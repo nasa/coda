@@ -1,0 +1,58 @@
+{
+  "rowName": "EV1 as-executed",
+  "startGMT": "2019-08-21 12:27:00",
+  "events": [
+    {
+      "content": "Egress / Setup",
+      "duration_min": 58
+    },
+    {
+      "content": "IDA3 Aft Cable Routing",
+      "duration_min": 51
+    },
+    {
+      "content": "IDA3 Fwd Cable Routing",
+      "duration_min": 17
+    },
+    {
+      "content": "IV Drive IDA Hook Gang 1",
+      "duration_min": 10
+    },
+    {
+      "content": "Gang 2 + PWC + Cable Prep",
+      "duration_min": 15
+    },
+    {
+      "content": "IDA3 Fwd Cable Routing",
+      "duration_min": 30
+    },
+    {
+      "content": "IDA3 Aft Cable Routing",
+      "duration_min": 50
+    },
+    {
+      "content": "IDA3 Cleanup",
+      "duration_min": 38
+    },
+    {
+      "content": "S0 Insulating Sleeve Install",
+      "duration_min": 16
+    },
+    {
+      "content": "S0 Red Truss Jumper Install",
+      "duration_min": 18
+    },
+    {
+      "content": "Route Spider Cable thru Rat's Nest",
+      "duration_min": 37
+    },
+    {
+      "content": "IDA3 Cleanup",
+      "duration_min": 33
+    },
+    {
+      "content": "Cleanup / Ingress",
+      "duration_min": 19
+    }
+  ]
+}

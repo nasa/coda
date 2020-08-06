@@ -1,0 +1,181 @@
+body {
+    font-family: Roboto Mono, serif;
+    background-color: #000000;
+    overflow-x: hidden;
+    margin: 0;
+    color: #ffffff;
+}
+
+p {
+    margin-top: 0;
+}
+
+input:focus {
+    outline: none;
+}
+
+button:focus {
+    outline: none;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+.headerContainer {
+    /*vertical-align: middle;*/
+}
+.headerTitle {
+    font-size: 2.1rem;
+}
+.title {
+    font-size: 1.2rem;
+}
+
+#panelsContainer {
+    display: flex;
+}
+
+.dateTime {
+    background-color: #1e1e1e;
+    color: #999999;
+    border: 1px;
+    margin: 3px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-top: 5px;
+    padding-bottom: 4px;
+    text-align: center;
+    width: 92px;
+}
+.goButton {
+    font-size: 1rem;
+    background-color: #bdbdbd;
+    border: none;
+    color: black;
+    padding-top: 0px;
+    padding-right: 10px;
+    padding-bottom: 2px;
+    padding-left: 10px;
+    /* margin-bottom: 5px; */
+    text-align: center;
+    text-decoration: none;
+    /* display: inline-block; */
+    border-radius: 8px;
+}
+.goButton.hover {
+    background-color: #008CBA;
+    color: white;
+}
+
+
+.audioPanel {
+    flex: 0.2;
+    margin-right: 5px;
+}
+#audioButtonsContainer {
+    display: flex;
+    flex-direction: column;
+}
+.audioButton {
+    font-size: 1rem;
+    background-color: #4f4f4f;
+    border: none;
+    color: black;
+    padding: 7px 15px;
+    margin-bottom: 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 8px;
+}
+.audioButton.active {
+    background-color: #bdbdbd;
+}
+.audioButton.active:hover {
+    background-color: #008CBA;
+    color: white;
+}
+.audioButton.selected {
+    background-color: #008CBA; /* Blue */
+    color: white;
+}
+
+.vidPanel {
+    flex: 1;
+}
+
+.player {
+    width: 100%;
+    z-index: 0;
+}
+.thumbPlayer {
+    width: 100px;
+    z-index: 0;
+}
+
+.vidButton {
+    font-size: 1rem;
+    background-color: #4f4f4f;
+    border: none;
+    color: black;
+    padding: 7px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 8px;
+}
+.vidButton.active {
+    background-color: #bdbdbd;
+}
+.vidButton.active:hover {
+    background-color: #008CBA;
+    color: white;
+}
+.vidButton.selected {
+    background-color: #008CBA; /* Blue */
+    color: white;
+}
+
+.vidContainer {
+    position: relative;
+}
+.vidContainer:hover .vidOverlay{
+    visibility: visible;
+}
+.vidContainer .vidOverlay {
+    visibility: hidden;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:1;
+}
+.vidTitle {
+    font-size: 0.9rem;
+    color: #999999;
+}
+.vidInfo {
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+.debugText {
+    color: #999999;
+}
+
+.svgCODALogo {
+    width: 50px;
+    height: 50px;
+    background: url(../images/logo_CODA.svg) no-repeat center;
+    background-size: 50px 50px;
+    margin-left: 0;
+    margin-right: auto;
+}
+.svgNASALogo {
+    width: 50px;
+    height: 50px;
+    background: url(../images/logo_NASA.svg) no-repeat center;
+    background-size: 50px 50px;
+    margin-left: 0;
+    margin-right: auto;
+}

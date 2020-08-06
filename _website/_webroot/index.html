@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    <link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5">
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="lib/jquery_3.4.1.min.js"></script>
+    <script src="lib/jquery_extensions.js"></script>
+    <script src="lib/paper-full.js"></script>
+    <script src="js/ajax.js"></script>
+    <script src="js/navigator.js"></script>
+    <script src="js/coda_iss.js"></script>
+</head>
+<body>
+<div class="headerContainer">
+    <div class="svgCODALogo" style="float: left;"></div>
+    <div class="headerTitle" style="float: left;  margin-left: 10px;">CODA</div>
+    <div class="title" style="float: left; margin-left: 15px;">Collaborative Operations Data Activation<BR>A component of EMSS</div>
+    <div class="MissionDateTimeWrapper" id="MissionDateTimeWrapper" style="display: flex; float: left; line-height: 4em; margin-left: 30px; width: 440px;">
+        <div style="flex: 1; font-size: 0.8em;">EVA Date/GMT:</div>
+        <div style="flex: 1;">
+            <input type="text" size="10" class="dateTime" id="missionDate" name="missionDate" value="2019-08-21">
+        </div>
+        <div style="flex: 1;">
+            <input type="text" size="8" class="dateTime" id="missionTime" name="missionTime" value="00:00:00">
+        </div>
+        <div style="flex: 1;">
+            <a class="goButton" id="goButton" title="Jump to Date/Time" onclick="goButtonClick();">
+                <span>GO</span>
+            </a>
+        </div>
+    </div>
+    <div class="svgNASALogo" style="float: right;"></div>
+    <div style="float: right; text-align: right; font-size: 0.8rem; margin-right: 10px;">Beta v0.0001<BR>Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a> </div>
+</div>
+<canvas id="navCanvas" resize="true" style="height: 155px; width: 100%;"></canvas>
+<div id="panelsContainer">
+    <div class="audioPanel">
+        <div class="title">
+            Audio Channels
+        </div>
+        <div id="audioButtonsContainer">
+            <button id="audioButton0" type="button" class="audioButton" onclick="playAudio(0)">1S/G-1</button>
+            <button id="audioButton1" type="button" class="audioButton" onclick="playAudio(1)">1S/G-2</button>
+            <button id="audioButton2" type="button" class="audioButton" onclick="playAudio(2)">EVA COORD ISS1</button>
+            <button id="audioButton3" type="button" class="audioButton" onclick="playAudio(3)">ISS FD1</button>
+            <button id="audioButton4" type="button" class="audioButton" onclick="playAudio(4)">EVA PROCED ISS1</button>
+            <button id="audioButton5" type="button" class="audioButton" onclick="playAudio(5)">EVA ISS1</button>
+        </div>
+    </div>
+    <div class="vidPanel">
+        <div>
+            <button id="vid0Button0" type="button" class="vidButton" onclick="loadVideo(0, 0, gCurrMissionTimeSeconds)">D/L 1</button>
+            <button id="vid0Button1" type="button" class="vidButton" onclick="loadVideo(0, 1, gCurrMissionTimeSeconds)">D/L 2</button>
+            <button id="vid0Button2" type="button" class="vidButton" onclick="loadVideo(0, 2, gCurrMissionTimeSeconds)">D/L 3</button>
+            <button id="vid0Button3" type="button" class="vidButton" onclick="loadVideo(0, 3, gCurrMissionTimeSeconds)">D/L 4</button>
+            <button id="vid0Button4" type="button" class="vidButton" onclick="loadVideo(0, 4, gCurrMissionTimeSeconds)">D/L 5</button>
+            <button id="vid0Button5" type="button" class="vidButton" onclick="loadVideo(0, 5, gCurrMissionTimeSeconds)">D/L 6</button>
+            <button id="vid0Button6" type="button" class="vidButton" onclick="loadVideo(0, 6, gCurrMissionTimeSeconds)">non-D/L</button>
+        </div>
+        <div style="display: none; /* display: flex; */" id="vidThumbnailPanel">
+            <div id="vid0Thumb0" class="vidThumb" onclick="loadVideo(0, 0, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer0"></video>
+            </div>
+            <div id="vid0Thumb1" class="vidThumb" onclick="loadVideo(0, 1, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer1"></video>
+            </div>
+            <div id="vid0Thumb2" class="vidThumb" onclick="loadVideo(0, 2, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer2"></video>
+            </div>
+            <div id="vid0Thumb3" class="vidThumb" onclick="loadVideo(0, 3, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer3"></video>
+            </div>
+            <div id="vid0Thumb4" class="vidThumb" onclick="loadVideo(0, 4, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer4"></video>
+            </div>
+            <div id="vid0Thumb5" class="vidThumb" onclick="loadVideo(0, 5, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer5"></video>
+            </div>
+            <div id="vid0Thumb6" class="vidThumb" onclick="loadVideo(0, 6, gCurrMissionTimeSeconds)">
+                <video class="thumbPlayer" id="thumbPlayer6"></video>
+            </div>
+        </div>
+        <div id="vidTitle0" class="vidTitle">vidTitle</div>
+        <div class="vidContainer">
+            <video class="player" id="player0" controls></video>
+            <div class="vidOverlay">
+                <div id="vidInfo0" class="vidInfo">vidInfo</div>
+            </div>
+        </div>
+    </div>
+    <div class="vidPanel">
+        <div>
+            <button id="vid1Button0" type="button" class="vidButton" onclick="loadVideo(1, 0, gCurrMissionTimeSeconds)">D/L 1</button>
+            <button id="vid1Button1" type="button" class="vidButton" onclick="loadVideo(1, 1, gCurrMissionTimeSeconds)">D/L 2</button>
+            <button id="vid1Button2" type="button" class="vidButton" onclick="loadVideo(1, 2, gCurrMissionTimeSeconds)">D/L 3</button>
+            <button id="vid1Button3" type="button" class="vidButton" onclick="loadVideo(1, 3, gCurrMissionTimeSeconds)">D/L 4</button>
+            <button id="vid1Button4" type="button" class="vidButton" onclick="loadVideo(1, 4, gCurrMissionTimeSeconds)">D/L 5</button>
+            <button id="vid1Button5" type="button" class="vidButton" onclick="loadVideo(1, 5, gCurrMissionTimeSeconds)">D/L 6</button>
+            <button id="vid1Button6" type="button" class="vidButton" onclick="loadVideo(1, 6, gCurrMissionTimeSeconds)">non-D/L</button>
+        </div>
+        <div id="vidTitle1" class="vidTitle">vidTitle</div>
+        <div class="vidContainer">
+            <video class="player" id="player1" controls></video>
+            <div class="vidOverlay">
+                <div id="vidInfo1" class="vidInfo">vidInfo</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="audioDiv" style="display: none;">
+    <audio id="audio-element" controls=controls>
+    </audio>
+</div>
+</body>
