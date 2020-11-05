@@ -35,6 +35,8 @@ var tierBoxColor = '#999999';
 var gColorZoomPane1Border = '#5E92A6';
 var gColorZoomPane2Border = '#84b8d9';
 var gActivityBackgroundColor = '#eb272b';
+var gDayColor = '#e6e600';
+var gNightColor = '#444444';
 var gAlphaRectOpacity = 0.4;
 var gNaxBoxZoomFadeOpacity = 0.2;
 
@@ -45,8 +47,8 @@ var cVidBarGapWidth = 1;
 
 var gMouseOnNavigator;
 
-function initNavigator() {
-    // $("body").css("overflow", "hidden");
+$(function() {
+    //Handler for .ready() called.
     paper.install(window);
     paper.setup('navCanvas');
 
@@ -57,14 +59,26 @@ function initNavigator() {
         drawTier2();
         drawCursor(gCurrMissionTimeSeconds);
     };
+});
 
+function initNavigator() {
     setDynamicWidthVariables();
 
-    gTier1Group = new paper.Group;
-    gTier1NavGroup = new paper.Group;
-    gTier2Group = new paper.Group;
-    gCursorGroup = new paper.Group;
-    gNavCursorGroup = new paper.Group;
+    // console.log(typeof(gTier1Group));
+
+    if (typeof(gTier1Group) !== "undefined") {
+        gTier1Group.removeChildren();
+        gTier1NavGroup.removeChildren();
+        gTier2Group.removeChildren();
+        gCursorGroup.removeChildren();
+        gNavCursorGroup.removeChildren();
+    } else {
+        gTier1Group = new paper.Group;
+        gTier1NavGroup = new paper.Group;
+        gTier2Group = new paper.Group;
+        gCursorGroup = new paper.Group;
+        gNavCursorGroup = new paper.Group;
+    }
 
     paper.view.onMouseMove = function (event) {
         gMouseOnNavigator = true;
@@ -155,11 +169,12 @@ function drawTier1() {
         gTier1Group.addChild(vidLine);
     }
 
-    //display EV1 activity
-    if (gEVADate === '2019-08-21') { //TODO total hack
-        drawTier1EVActivity(7, gVideoActivity.EV1); // row 8 for EV1 (rows start at 0)
-        drawTier1EVActivity(8, gVideoActivity.EV2); // row 9 for EV2 (rows start at 0)
-    }
+    //display EV activity
+
+    drawTier1EVActivity(7, gVideoActivity.EV1); // row 8 for EV1 (rows start at 0)
+    drawTier1EVActivity(8, gVideoActivity.EV2); // row 9 for EV2 (rows start at 0)
+    // drawTier1EVActivity(9, gVideoActivity.DayNight); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+
 }
 
 function drawTier1EVActivity(rowNum, evActivityArray) {
@@ -173,9 +188,15 @@ function drawTier1EVActivity(rowNum, evActivityArray) {
             to: [endLocX, endLocY],
             strokeWidth: 0.5,
             strokeColor: 'black',
-            fillColor: gActivityBackgroundColor,
+            // fillColor: gActivityBackgroundColor,
+            fillColor: evActivityArray[i].color,
             name: name
         });
+        if (evActivityArray[i].content === 'Insolation') {
+            activityLine.fillColor = gDayColor;
+        } else if (evActivityArray[i].content === 'Eclipse') {
+            activityLine.fillColor = gNightColor;
+        }
         gTier1Group.addChild(activityLine);
     }
 }
@@ -328,10 +349,9 @@ function drawTier2() {
         }
     }
 
-    if (gEVADate === '2019-08-21') { //TODO total hack
-        drawTier2EVActivity(0, gVideoActivity.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
-        drawTier2EVActivity(1, gVideoActivity.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
-    }
+    drawTier2EVActivity(0, gVideoActivity.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
+    drawTier2EVActivity(1, gVideoActivity.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
+    // drawTier2EVActivity(2, gVideoActivity.DayNight, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
 }
 
 function drawTier2EVActivity(evRow, evActivityArray, secondsOnTier2) {
@@ -350,9 +370,15 @@ function drawTier2EVActivity(evRow, evActivityArray, secondsOnTier2) {
                 to: [endLocX, endLocY],
                 strokeWidth: 0.5,
                 strokeColor: 'black',
-                fillColor: gActivityBackgroundColor,
+                // fillColor: gActivityBackgroundColor,
+                fillColor: evActivityArray[i].color,
                 name: name
             });
+            if (evActivityArray[i].content === 'Insolation') {
+                activityLine.fillColor = gDayColor;
+            } else if (evActivityArray[i].content === 'Eclipse') {
+                activityLine.fillColor = gNightColor;
+            }
             gTier2Group.addChild(activityLine);
 
             var activityText = new paper.PointText({
@@ -365,6 +391,9 @@ function drawTier2EVActivity(evRow, evActivityArray, secondsOnTier2) {
             var textTop = startLocY + 14;
             activityText.point = new paper.Point(startLocX + 2, textTop);
             activityText.content = evActivityArray[i].content;
+            if (evActivityArray[i].content === 'Insolation' || evActivityArray[i].color === 'yellow') {
+                activityText.fillColor = '#000000';
+            }
             gTier2Group.addChild(activityText);
         }
     }
@@ -443,8 +472,8 @@ function onMouseOutHandler() {
 function setDynamicWidthVariables() {
     gNavigatorWidth = paper.view.size.width - 5;
     gNavigatorHeight = paper.view.size.height;
-    gTier1Height = 46;
-    gTier2Height = 80;
+    gTier1Height = 51;
+    gTier2Height = 100;
 
     gTier1PixelsPerSecond = gNavigatorWidth / gTimingData['EVA_duration_seconds'] ;
     gTier1SecondsPerPixel = gTimingData['EVA_duration_seconds'] / gNavigatorWidth;

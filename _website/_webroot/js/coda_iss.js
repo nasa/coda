@@ -6,84 +6,100 @@ var gGroupVideoStartTimeSeconds = [];
 var gVideoActivity = {};
 var gVideoPlaying = [false, false];
 
-var gEVADate = '2019-08-21';  //default to US_EVA_55
-var gEVAGMT = '12:49:57'; //default to US_EVA_55
+var gEVADetails = {
+    evaDate: '2019-08-21', //default to US_EVA_55
+    evaName: 'US EVA 55'
+};
+var gPlaybackGMT = '12:49:57';
 
 var gAudioMetadata = [];
 var gSelectedAudioChannel = -1;
 
 var gCurrMissionTimeSeconds = 0;
-var gLastMissionTimeSeconds = 0;
 var gSelectedVidGroup = [0, 1];
 
 var gInterval;
 
 
-$(function() {
-    //Handler for .ready() called.
+$(function() { //Handler for .ready() called.
 
     //get date parameter if exists
     if (typeof $.getUrlVar('date') !== "undefined") {
-        gEVADate = $.getUrlVar('date');
-        gEVADate = decodeURIComponent(gEVADate);
+        gEVADetails.evaDate = $.getUrlVar('date');
+        gEVADetails.evaDate = decodeURIComponent(gEVADetails.evaDate);
     }
 
     //remove audio components if not US_EVA_55. //todo Total hack
-    if (gEVADate !== '2019-08-21') {
+    if (gEVADetails.evaDate !== '2019-08-21') {
         document.getElementsByClassName('audioPanel')[0].style.display = 'none';
     }
 
-    var dateArr = gEVADate.split('-');
+    if (typeof $.getUrlVar('GMT') !== "undefined") {
+        gPlaybackGMT = $.getUrlVar('GMT');
+        gPlaybackGMT = decodeURIComponent(gPlaybackGMT);
+    }
+
+    if (typeof $.getUrlVar('v0') !== "undefined") {
+        var v0 = $.getUrlVar('v0');
+        v0 = decodeURIComponent(v0);
+        gSelectedVidGroup[0] = parseInt(v0);
+    }
+    if (typeof $.getUrlVar('v1') !== "undefined") {
+        var v1 = $.getUrlVar('v1');
+        v1 = decodeURIComponent(v1);
+        gSelectedVidGroup[1] = parseInt(v1);
+    }
+
+    $.when(ajaxWikiGetEVAs()).done(function () {
+        $.when(ajaxWikiGetEVADetailsByDate(gEVADetails.evaDate)).done(function () {
+            $.when(ajaxWikiGetCrew(gEVADetails.evaName)).done(function () {
+                kickstart();
+            });
+        });
+    });
+});
+
+function kickstart() {
+    var dateArr = gEVADetails.evaDate.split('-');
     $.when(ajaxGetIoJSON(dateArr[0], dateArr[1], dateArr[2], [])).done(function () {
-        $.when(ajaxGetEV1ActivityJSON(), ajaxGetEV2ActivityJSON(), ajaxGetAudioMetadataJSON()).done( function () {
+        $.when(ajaxWikiGetAsExecuted(gEVADetails.evaName, 1), ajaxWikiGetAsExecuted(gEVADetails.evaName, 2), ajaxGetDayNightJSON(), ajaxGetAudioMetadataJSON()).done( function () {
             initCODA();
             initNavigator();
             setEventHandlers();
             startInterval();
         });
     });
-});
+}
 
 function initCODA() {
-    if (typeof $.getUrlVar('GMT') !== "undefined") {
-        gEVAGMT = $.getUrlVar('GMT');
-        gEVAGMT = decodeURIComponent(gEVAGMT);
-    }
-
-    var missionDateArr = gEVADate.split('-');
-    var missionTimeArr = gEVAGMT.split(':');
+    document.title = `${gEVADetails.evaName} - ${gEVADetails.evaTitle} | CODA`;
+    var missionDateArr = gEVADetails.evaDate.split('-');
+    var missionTimeArr = gPlaybackGMT.split(':');
 
     var UTCDateFromFields = Date.UTC(
         missionDateArr[0], missionDateArr[1] - 1, missionDateArr[2], missionTimeArr[0], missionTimeArr[1], missionTimeArr[2]
     );
-    gCurrMissionTimeSeconds = (UTCDateFromFields - gTimingData['video_earliestStart']) / 1000;
-    gLastMissionTimeSeconds = 0;
-    loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds + 1);
-    loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds + 1);
+    gCurrMissionTimeSeconds = ((UTCDateFromFields - gTimingData['video_earliestStart']) / 1000) + 1;
+
+    loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds);
+    loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds);
 }
 
 function startInterval() {
     clearInterval(gInterval);
     gInterval = setInterval(function() {
 
-        if (gCurrMissionTimeSeconds === 0) {
-            loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds + 1);
-            loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds + 1);
-            // for (var i = 0; i < 7; i++) {
-            //     loadThumbVideo(i, gCurrMissionTimeSeconds);
-            // }
-        }
-
         //if video change this second
         for (var i = 0; i < gSelectedVidGroup.length; i++) {
-            if (gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][gLastMissionTimeSeconds] !== gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][gCurrMissionTimeSeconds]) {
+            if (gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][gCurrMissionTimeSeconds] !== gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][gCurrMissionTimeSeconds + 1]) {
+                gCurrMissionTimeSeconds += 1;
                 loadVideo(i, gSelectedVidGroup[i], gCurrMissionTimeSeconds);
             }
         }
 
         //thumbnail vids
         // for (var i = 0; i < 7; i++) {
-        //     if (gVideoActivityByGroupBySecond[i][gLastMissionTimeSeconds] !== gVideoActivityByGroupBySecond[i][gCurrMissionTimeSeconds]) {
+        //     if (gVideoActivityByGroupBySecond[i][gCurrMissionTimeSeconds] !== gVideoActivityByGroupBySecond[i][gCurrMissionTimeSeconds + 1]) {
         //         loadThumbVideo(i, gCurrMissionTimeSeconds);
         //     }
         // }
@@ -114,7 +130,7 @@ function startInterval() {
                 playerElement.currentTime = secondsOffsetFromBeginningOfVideo;
         }
 
-        if (gEVADate === '2019-08-21') { //todo total hack
+        if (gEVADetails.evaDate === '2019-08-21') { //todo total hack
             //sync audio with current mission time
             if (gSelectedAudioChannel !== -1) {
                 var audioPlayerElement = document.getElementById("audio-element");
@@ -145,7 +161,6 @@ function startInterval() {
         if (gCurrMissionTimeSeconds > gTimingData.EVA_duration_seconds) {
             clearInterval(gInterval);
         }
-        gLastMissionTimeSeconds = gCurrMissionTimeSeconds;
 
     },1000);
 }
@@ -169,6 +184,9 @@ function loadVideo(playerNum, group, second) {
     //get video metadata
     if (vidIndex === -1) {
         var videoUrl = "/CODA_data/novid.mp4";
+        if (location.hostname === 'localhost') {
+            videoUrl = 'https://coda-dev.fit.nasa.gov' + videoUrl;
+        }
     } else {
         videoUrl = gVideoItems[vidIndex].videoUrl;
         //dev mod
@@ -347,7 +365,7 @@ function goButtonClick() {
     var missionDateArr = missionDateStr.split('-');
     var missionTimeArr = missionTimeStr.split(':');
 
-    if (document.getElementById("missionDate").value !== gEVADate) {
+    if (document.getElementById("missionDate").value !== gEVADetails.evaDate) {
         var urlRoot = document.URL.substr(0,document.URL.lastIndexOf('/'));
         var URL = urlRoot + '?date=' + missionDateStr + '&GMT=' + missionTimeStr;
         window.location = URL;
@@ -356,8 +374,35 @@ function goButtonClick() {
             missionDateArr[0], missionDateArr[1] - 1, missionDateArr[2], missionTimeArr[0], missionTimeArr[1], missionTimeArr[2]
         );
         gCurrMissionTimeSeconds = (UTCDateFromFields - gTimingData['video_earliestStart']) / 1000;
-        gLastMissionTimeSeconds = 0;
     }
+}
+
+function shareButtonClick() {
+    var missionDateStr = document.getElementById("missionDate").value;
+    var missionTimeStr = document.getElementById("missionTime").value;
+    $('#shareModalCopyLinkAction').text('COPY LINK');
+
+    var urlRoot = document.URL.substr(0,document.URL.lastIndexOf('/'));
+    var URL = urlRoot + '?date=' + missionDateStr + '&GMT=' + missionTimeStr + "&v0=" + gSelectedVidGroup[0] + "&v1=" + gSelectedVidGroup[1];
+
+    $('#shareURL').text(URL);
+
+    $('#shareModal').modal();
+}
+
+function copyShareURL() {
+    /* Get the text field */
+    var copyText = document.getElementById("shareURL");
+
+    /* Select the text field */
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+    /* Copy the text inside the text field */
+    document.execCommand("copy");
+
+    /* Alert the copied text */
+    $('#shareModalCopyLinkAction').text('LINK COPIED');
 }
 
 function onlyUnique(value, index, self) {
@@ -417,7 +462,7 @@ function padZeros(num, size) {
 
 function setEventHandlers() {
     document.getElementById("player0").addEventListener("play", function () {
-        // startInterval();
+        startInterval();
         document.getElementById('player1').play();
         if (gSelectedAudioChannel !== -1)
             document.getElementById('audio-element').play();
@@ -426,18 +471,21 @@ function setEventHandlers() {
         gVideoPlaying[0] = true;
     }, true);
     document.getElementById("player0").addEventListener("pause", function () {
-        gVideoPlaying[0] = false;
+        console.log("player0 paused.");
+        // gVideoPlaying[0] = false;
         document.getElementById('player1').pause();
         if (gSelectedAudioChannel !== -1)
             document.getElementById('audio-element').pause();
-        // clearInterval(gTimer);
+        // clearInterval(gInterval);
     }, true);
     document.getElementById('player0').addEventListener('ended', function () {
-        gVideoPlaying[0] = false;
+        console.log("player0 ended.");
+        // gCurrMissionTimeSeconds += 1;
+        // loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds + 2);
     }, true);
 
     document.getElementById("player1").addEventListener("play", function () {
-        // startInterval();
+        startInterval();
         document.getElementById('player0').play();
         if (gSelectedAudioChannel !== -1)
             document.getElementById('audio-element').play();
@@ -446,14 +494,50 @@ function setEventHandlers() {
         gVideoPlaying[1] = true;
     }, true);
     document.getElementById("player1").addEventListener("pause", function () {
-        gVideoPlaying[1] = false;
+        console.log("player1 paused.");
+        // gVideoPlaying[1] = false;
         document.getElementById('player0').pause();
         if (gSelectedAudioChannel !== -1)
             document.getElementById('audio-element').pause();
-        // clearInterval(gTimer);
+        // clearInterval(gInterval);
     }, true);
     document.getElementById('player1').addEventListener('ended', function () {
-        gVideoPlaying[1] = false;
+        console.log("player1 ended.");
+        // gCurrMissionTimeSeconds += 1;
+        // loadVideo(0, gSelectedVidGroup[1], gCurrMissionTimeSeconds + 2);
     }, true);
 
+    document.getElementById("EVAsDropdown").onchange = function () {
+        var EVADropdownValue = document.getElementById("EVAsDropdown").value;
+
+        gTier1Group.removeChildren();
+        gTier1NavGroup.removeChildren();
+        gTier2Group.removeChildren();
+        gCursorGroup.removeChildren();
+        gNavCursorGroup.removeChildren();
+
+        $.when(ajaxWikiGetEVADetails(EVADropdownValue)).then(function( data, textStatus, jqXHR ) {
+            $.when(ajaxWikiGetCrew(gEVADetails.evaName)).done(function () {
+                kickstart();
+            });
+        });
+    }
+}
+
+function displayEVADetails(detailsObject) {
+    document.getElementById("missionDate").value = gEVADetails.evaDate;
+    document.getElementById("evaNameSpan").innerHTML = detailsObject.evaName;
+    document.getElementById("evaTitleSpan").innerHTML = detailsObject.evaTitle;
+
+    var objSelect = document.getElementById("EVAsDropdown");
+    setSelectedValue(objSelect, detailsObject.evaName);
+}
+
+function setSelectedValue(selectObj, valueToSet) {
+    for (var i = 0; i < selectObj.options.length; i++) {
+        if (selectObj.options[i].value === valueToSet) {
+            selectObj.options[i].selected = true;
+            return;
+        }
+    }
 }

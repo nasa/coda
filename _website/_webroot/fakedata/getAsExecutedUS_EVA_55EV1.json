@@ -1,0 +1,393 @@
+{
+  "query": {
+    "printrequests": [
+      {
+        "label": "Index",
+        "key": "Index",
+        "redi": "",
+        "typeid": "_num",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Has text title",
+        "key": "Has_text_title",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Duration hour",
+        "key": "Duration_hour",
+        "redi": "",
+        "typeid": "_num",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Duration minute",
+        "key": "Duration_minute",
+        "redi": "",
+        "typeid": "_num",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Depends on",
+        "key": "Depends_on",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Related article",
+        "key": "Related_article",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Color",
+        "key": "Color",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Actor",
+        "key": "Actor",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
+      }
+    ],
+    "results": {
+      "US EVA 55/As-executed summary timeline# 868b8afb495ff99585ccfea0263fec03": {
+        "printouts": {
+          "Index": [
+            1
+          ],
+          "Has text title": [
+            "Post-Depress / Egress / Setup"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            58
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "gray"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# c1295f6c73ef84b934e31f2af05f23c4": {
+        "printouts": {
+          "Index": [
+            2
+          ],
+          "Has text title": [
+            "IDA 3 Aft Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            51
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# dfe251560478f1de4f42c6b91fdb3d29": {
+        "printouts": {
+          "Index": [
+            3
+          ],
+          "Has text title": [
+            "IDA 3 Fwd Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            17
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 6dac2c7ed92cca5a5b92ec71d414d3b9": {
+        "printouts": {
+          "Index": [
+            4
+          ],
+          "Has text title": [
+            "IV Drive IDA Hook Gang 1"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            10
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "orange"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 57bb34bfa67d4ce1a0a86aafa5a7623f": {
+        "printouts": {
+          "Index": [
+            5
+          ],
+          "Has text title": [
+            "Gang 2 + PWC + Cable Prep"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            15
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "orange"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# f18b03c126d61b8a300d3b4ab2787723": {
+        "printouts": {
+          "Index": [
+            6
+          ],
+          "Has text title": [
+            "IDA 3 Fwd Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            30
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 91a630f12d76fe2c48bd7d7113bccade": {
+        "printouts": {
+          "Index": [
+            7
+          ],
+          "Has text title": [
+            "IDA 3 Aft Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            50
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# e0e3acdf4cd5e9a79dce323a9b86530c": {
+        "printouts": {
+          "Index": [
+            8
+          ],
+          "Has text title": [
+            "IDA 3 Cleanup"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            38
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "green"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 7b192b7f556aa570c00f42c8f1f3e3bb": {
+        "printouts": {
+          "Index": [
+            9
+          ],
+          "Has text title": [
+            "S0 Insulating Sleeve Install"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            16
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "red"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 6b2e8ddf594c919499122ad1dfb8ff48": {
+        "printouts": {
+          "Index": [
+            10
+          ],
+          "Has text title": [
+            "S0 Red Truss Jumper Install"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            18
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "red"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 4859040ef5c7df9742f7caf59db1ae3a": {
+        "printouts": {
+          "Index": [
+            11
+          ],
+          "Has text title": [
+            "Route Spider Cable thru Rat's Nest"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            37
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "purple"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# c07666b604d1ece98f3c5f0fd534b499": {
+        "printouts": {
+          "Index": [
+            12
+          ],
+          "Has text title": [
+            "IDA3 Cleanup"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            33
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "green"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 9b997c5b2f476256d8535e1f3d64a791": {
+        "printouts": {
+          "Index": [
+            13
+          ],
+          "Has text title": [
+            "Cleanup / Ingress / Pre-Repress"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            19
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "gray"
+          ],
+          "Actor": [
+            "EV1"
+          ]
+        }
+      }
+    },
+    "serializer": "SMW\\Serializers\\QueryResultSerializer",
+    "version": 2,
+    "meta": {
+      "hash": "e88b4e177b10a0b5e2bee8c49e931693",
+      "count": 13,
+      "offset": 0,
+      "source": "",
+      "time": "0.011341"
+    }
+  }
+}

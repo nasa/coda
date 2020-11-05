@@ -14,10 +14,12 @@ function ajaxGetIoJSON( year, month, day, moreRows ) {
         rangeStartTimeline = new Date( Date.UTC( rangeStartYear, rangeStartMonth, rangeStartDay ) - 60*60*1000 ),
         rangeEndTimeline = new Date( Date.UTC( rangeEndYear, rangeEndMonth, rangeEndDay ) + 6*60*60*1000 );
 
-
-    var url = iohost + "/api/search/rpp=500&s_dt="+rangeStartIO+"&e_dt="+rangeEndIO+"&as=2?key=3E0556F2-EB15-69B9-4D8C0C12E07E8D37&format=json";
+    var param =  "/api/search/rpp=500&s_dt="+rangeStartIO+"&e_dt="+rangeEndIO+"&as=2?key=3E0556F2-EB15-69B9-4D8C0C12E07E8D37&format=json";
+    var url = iohost + param
     //dev mod
-    if (location.hostname === 'coda-iss.develop') { // use dev video location, otherwise use the stated IO URL
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/getio.php?IOParam=' + encodeURIComponent(url);
+    } else if (location.hostname === 'coda-iss.develop') { // use dev video location, otherwise use the stated IO URL
         url = 'fakedata/io.json';
     }
 
@@ -25,6 +27,9 @@ function ajaxGetIoJSON( year, month, day, moreRows ) {
         url,
         {},
         function (resp) {
+            gVideoItems = [];
+            gTimingData = {};
+
             var docs = resp.results.response.docs,
                 output = "",
                 className,
@@ -176,13 +181,16 @@ function ajaxGetIoJSON( year, month, day, moreRows ) {
                 });
 
             createMissionVideoActivity();
+            console.log('ajaxGetIoJSON completed.');
         });
 }
 
 function createMissionVideoActivity() {
     var t0 = performance.now();
+    gVideoActivityByGroupBySecond = [];
     for (var group = 0; group <= 6; group++) {
         var groupSecondsArray = [];
+        console.log("EVA duration: " + gTimingData.EVA_duration_seconds);
         for (var second = 0; second < gTimingData.EVA_duration_seconds; second++) {
             var vidsThisGroupThisSecond = [];
             for (var i = 0; i < gVideoItems.length; i++) {
@@ -233,54 +241,119 @@ function getChannel ( collectionStrings ) {
     }
 }
 
+// function ajaxGetEV1ActivityJSON() {
+//     return $.getJSON(
+//         'fakedata/EV1_as-executed.json',
+//         {},
+//         function (resp) {
+//             gVideoActivity.EV1 = createActivityArrayFromJSON(resp);
+//             console.log('ajaxGetEV1ActivityJSON completed.');
+//         });
+// }
+//
+// function ajaxGetEV2ActivityJSON() {
+//     return $.getJSON(
+//         'fakedata/EV2_as-executed.json',
+//         {},
+//         function (resp) {
+//             gVideoActivity.EV2 = createActivityArrayFromJSON(resp);
+//             console.log('ajaxGetEV1ActivityJSON completed.');
+//         });
+// }
 
-function ajaxGetEV1ActivityJSON() {
-    return $.getJSON(
-        'fakedata/EV1_as-executed.json',
-        {},
-        function (resp) {
-            gVideoActivity.EV1 = createActivityArrayFromJSON(resp);
-            console.log('ajaxGetEV1ActivityJSON completed.');
-        });
-}
-
-function ajaxGetEV2ActivityJSON() {
-    return $.getJSON(
-        'fakedata/EV2_as-executed.json',
-        {},
-        function (resp) {
-            gVideoActivity.EV2 = createActivityArrayFromJSON(resp);
-            console.log('ajaxGetEV1ActivityJSON completed.');
-        });
-}
-
-function createActivityArrayFromJSON(resp) {
-    var dateArr = resp.startGMT.split(/-| |:/).map(Number);
-    var ActivityStartUTCMilliseconds = Date.UTC(
-        dateArr[0], dateArr[1] - 1, dateArr[2], dateArr[3], dateArr[4], dateArr[5]
-    );
-    var activityArray = [];
-    var activityStartTimeSeconds = (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) / 1000;
-    var thisStartTimeSeconds = activityStartTimeSeconds;
-    for (var i=0; i < resp.events.length; i++) {
-        var activityObject = {
-            content: resp.events[i].content,
-            startTimeSeconds: thisStartTimeSeconds,
-            endTimeSeconds: thisStartTimeSeconds + (resp.events[i]['duration_min'] * 60)
-        };
-        thisStartTimeSeconds = thisStartTimeSeconds + (resp.events[i]['duration_min'] * 60);
-        activityArray.push(activityObject);
+function ajaxWikiGetAsExecuted(evaName, evNum) {
+    var url = './pullwiki.php?action=getAsExecuted&evaName=' + evaName + '&EVNum=' + evNum;
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getAsExecuted&evaName=' + evaName + '&EVNum=' + evNum;
+    } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
+        url = 'fakedata/getAsExecutedUS_EVA_55EV' + evNum + '.json';
     }
-    return activityArray
+    $.ajaxSetup({
+        scriptCharset: "utf-8",
+        contentType: "application/json; charset=utf-8"
+    });
+    return $.getJSON(
+        url,
+        function (resp) {
+            var dateArr = gEVADetails.evaDate.split(/-/).map(Number);
+            var timeArr = gEVADetails.startTime.split(/:/).map(Number);
+            var ActivityStartUTCMilliseconds = Date.UTC(
+                dateArr[0], dateArr[1] - 1, dateArr[2], timeArr[0], timeArr[1], "00"
+            );
+            var activityArray = [];
+            var thisStartTimeSeconds = (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) / 1000;
+
+            var resultObject = resp['query']['results'];
+            for (var key in resultObject) {
+                if (resultObject.hasOwnProperty(key)) {
+                    var durationHour = parseInt(resultObject[key]['printouts']['Duration hour'][0]);
+                    var durationMinute = parseInt(resultObject[key]['printouts']['Duration minute'][0]);
+                    var durationTotalSeconds = ((durationHour * 60) + durationMinute) * 60;
+
+                    var activityObject = {
+                        content: resultObject[key]['printouts']['Has text title'][0],
+                        startTimeSeconds: thisStartTimeSeconds,
+                        endTimeSeconds: thisStartTimeSeconds + durationTotalSeconds,
+                        color: resultObject[key]['printouts']['Color'][0]
+                    };
+                    if (activityObject.color === 'gray')
+                        activityObject.color = 'grey';
+
+                    thisStartTimeSeconds = thisStartTimeSeconds + durationTotalSeconds;
+                    activityArray.push(activityObject);
+                }
+            }
+            gVideoActivity['EV' + evNum] = activityArray;
+
+            console.log('ajaxWikiGetAsExecuted completed for EV' + evNum);
+        }).catch(function (jqXHR, textStatus, errorThrown) {
+        console.error(jqXHR);
+        console.error(textStatus);
+        console.error(errorThrown);
+    });
 }
+
+function ajaxGetDayNightJSON() {
+    return $.getJSON(
+        'fakedata/daynight.json',
+        {},
+        function (resp) {
+            // gVideoActivity.DayNight = createActivityArrayFromJSON(resp); //TODO make this use live wiki data
+            console.log('ajaxGetDayNightJSON completed.');
+        });
+}
+
+// function createActivityArrayFromJSON(resp) {
+//     var dateArr = resp.startGMT.split(/-| |:/).map(Number);
+//     var ActivityStartUTCMilliseconds = Date.UTC(
+//         dateArr[0], dateArr[1] - 1, dateArr[2], dateArr[3], dateArr[4], dateArr[5]
+//     );
+//     var activityArray = [];
+//     var activityStartTimeSeconds = (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) / 1000;
+//     var thisStartTimeSeconds = activityStartTimeSeconds;
+//     for (var i=0; i < resp.events.length; i++) {
+//         var activityObject = {
+//             content: resp.events[i].content,
+//             startTimeSeconds: thisStartTimeSeconds,
+//             endTimeSeconds: thisStartTimeSeconds + (resp.events[i]['duration_min'] * 60)
+//         };
+//         thisStartTimeSeconds = thisStartTimeSeconds + (resp.events[i]['duration_min'] * 60);
+//         activityArray.push(activityObject);
+//     }
+//     return activityArray
+// }
 
 function ajaxGetAudioMetadataJSON() {
     $.ajaxSetup({
         scriptCharset: "utf-8",
         contentType: "application/json; charset=utf-8"
     });
+    var url = '/CODA_data/US_EVA_55/audio/US_EVA_55_audio_metadata.json';
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov' + url;
+    }
     return $.getJSON(
-        '/CODA_data/US_EVA_55/audio/US_EVA_55_audio_metadata.json',
+        url,
         {},
         function (resp) {
             gAudioMetadata = resp;
@@ -290,6 +363,136 @@ function ajaxGetAudioMetadataJSON() {
                 gAudioMetadata[i].endTimeSeconds = (new Date(gAudioMetadata[i].end_time) - gTimingData.video_earliestStart) / 1000;
             }
             console.log('ajaxGetAudioMetadataJSON completed.');
+        }).catch(function (jqXHR, textStatus, errorThrown) {
+        console.error(jqXHR);
+        console.error(textStatus);
+        console.error(errorThrown);
+    });
+}
+
+function ajaxWikiGetEVAs() {
+    var url = './pullwiki.php?action=getEVAs';
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getEVAs';
+    } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
+        url = 'fakedata/getEVAs.json';
+    }
+    $.ajaxSetup({
+        scriptCharset: "utf-8",
+        contentType: "application/json; charset=utf-8"
+    });
+    return $.getJSON(
+        url,
+        function (resp) {
+            var dropdown = $('#EVAsDropdown');
+            dropdown.empty();
+            dropdown.append('<option selected="true" disabled>Choose EVA</option>');
+            dropdown.prop('selectedIndex', 0);
+
+            var resultObject = resp['query']['results'];
+            for (var evaName in resultObject) {
+                dropdown.append($('<option></option>').attr('value', evaName).text(evaName + ' - ' + resultObject[evaName]['printouts']['EVA title']));
+            }
+
+            console.log('ajaxWikiGetEVAs completed.');
+        }).catch(function (jqXHR, textStatus, errorThrown) {
+        console.error(jqXHR);
+        console.error(textStatus);
+        console.error(errorThrown);
+    });
+}
+
+function ajaxWikiGetEVADetails(evaName) {
+    var url = './pullwiki.php?action=getEVADetails&evaName=' + evaName;
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getEVADetails&evaName=' + evaName;
+    } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
+        url = 'fakedata/getEVADetailsUS_EVA_55.json';
+    }
+    $.ajaxSetup({
+        scriptCharset: "utf-8",
+        contentType: "application/json; charset=utf-8"
+    });
+    return $.getJSON(
+        url,
+        function (resp) {
+            gEVADetails = createDetailsObject(resp);
+            gPlaybackGMT = '12:00:00';
+            displayEVADetails(gEVADetails);
+            console.log('ajaxWikiGetEVADetails completed.');
+        }).catch(function (jqXHR, textStatus, errorThrown) {
+        console.error(jqXHR);
+        console.error(textStatus);
+        console.error(errorThrown);
+    });
+}
+
+function ajaxWikiGetEVADetailsByDate(evaDate) {
+    var url = './pullwiki.php?action=getEVADetailsByDate&evaDate=' + evaDate;
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getEVADetailsByDate&evaDate=' + evaDate;
+    } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
+        url = 'fakedata/getEVADetailsByDate2019-08-21.json';
+    }
+    $.ajaxSetup({
+        scriptCharset: "utf-8",
+        contentType: "application/json; charset=utf-8"
+    });
+    return $.getJSON(
+        url,
+        function (resp) {
+            gEVADetails = createDetailsObject(resp);
+
+            displayEVADetails(gEVADetails);
+            console.log('ajaxWikiGetEVADetailsByDate completed.');
+        }).catch(function (jqXHR, textStatus, errorThrown) {
+        console.error(jqXHR);
+        console.error(textStatus);
+        console.error(errorThrown);
+    });
+}
+
+function createDetailsObject(resp) {
+    var detailsObject = {};
+    detailsObject.evaName = Object.keys(resp['query']['results'])[0];
+    var resultObject = resp['query']['results'][detailsObject.evaName];
+
+    detailsObject.evaTitle = resultObject['printouts']['EVA title'][0];
+    detailsObject.startTime = resultObject['printouts']['Start time'][0];
+    detailsObject.duration = resultObject['printouts']['Duration'][0];
+    detailsObject.fullURL = resultObject['fullurl'];
+
+    var evaDate = resultObject['printouts']['Start date'][0]['raw'].substring(2);
+    var evaDateArray = evaDate.split('/');
+    detailsObject.evaDate = evaDateArray[0] + '-' + padZeros(evaDateArray[1], 2) + '-' + padZeros(evaDateArray[2], 2);
+
+    return detailsObject;
+}
+
+function ajaxWikiGetCrew(evaName) {
+    var url = './pullwiki.php?action=getCrew&evaName=' + evaName;
+    if (location.hostname === 'localhost') {
+        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getCrew&evaName=' + evaName;
+    } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
+        url = 'fakedata/getCrewUS_EVA_55.json';
+    }
+    $.ajaxSetup({
+        scriptCharset: "utf-8",
+        contentType: "application/json; charset=utf-8"
+    });
+    return $.getJSON(
+        url,
+        function (resp) {
+            var crewObject = {};
+            var resultObject = resp['query']['results'];
+            for (var key in resultObject) {
+                if (resultObject.hasOwnProperty(key)) {
+                    crewObject[resultObject[key]['printouts']['Has role'][0]['fulltext']] = resultObject[key]['printouts']['Has full name'][0]['fulltext'];
+                }
+            }
+            document.getElementById("ev1TitleSpan").innerHTML = crewObject.EV1;
+            document.getElementById("ev2TitleSpan").innerHTML = crewObject.EV2;
+            console.log('ajaxWikiGetCrew completed.');
         }).catch(function (jqXHR, textStatus, errorThrown) {
         console.error(jqXHR);
         console.error(textStatus);

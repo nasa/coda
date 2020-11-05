@@ -1,0 +1,148 @@
+{
+  "query": {
+    "printrequests": [
+      {
+        "label": "",
+        "key": "",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 2
+      },
+      {
+        "label": "Has full name",
+        "key": "Has_full_name",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Has role",
+        "key": "Has_role",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Has EMU Page",
+        "key": "Has_EMU_Page",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      }
+    ],
+    "results": {
+      "US EVA 55# a4c086604b5aa243bf1f3c99dc06d965": {
+        "printouts": {
+          "Has full name": [
+            {
+              "fulltext": "Christina Hammock Koch",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/Christina_Hammock_Koch",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ],
+          "Has role": [
+            {
+              "fulltext": "Suit IV",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/Suit_IV",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ],
+          "Has EMU Page": []
+        },
+        "fulltext": "US EVA 55# a4c086604b5aa243bf1f3c99dc06d965",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_55#_a4c086604b5aa243bf1f3c99dc06d965",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA 55# b61d85f5b0c3e8c5167b31753726282e": {
+        "printouts": {
+          "Has full name": [
+            {
+              "fulltext": "Drew Morgan",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/Drew_Morgan",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ],
+          "Has role": [
+            {
+              "fulltext": "EV2",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/EV2",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ],
+          "Has EMU Page": [
+            {
+              "fulltext": "EMU 3008",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/EMU_3008",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ]
+        },
+        "fulltext": "US EVA 55# b61d85f5b0c3e8c5167b31753726282e",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_55#_b61d85f5b0c3e8c5167b31753726282e",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA 55# e26edd294f19a2ea91424b459b9fd9a7": {
+        "printouts": {
+          "Has full name": [
+            {
+              "fulltext": "Nick Hague",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/Nick_Hague",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ],
+          "Has role": [
+            {
+              "fulltext": "EV1",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/EV1",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ],
+          "Has EMU Page": [
+            {
+              "fulltext": "EMU 3006",
+              "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/EMU_3006",
+              "namespace": 0,
+              "exists": "1",
+              "displaytitle": ""
+            }
+          ]
+        },
+        "fulltext": "US EVA 55# e26edd294f19a2ea91424b459b9fd9a7",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_55#_e26edd294f19a2ea91424b459b9fd9a7",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      }
+    },
+    "serializer": "SMW\\Serializers\\QueryResultSerializer",
+    "version": 2,
+    "meta": {
+      "hash": "2cdb49d90dca0ddf72a2318c5cc324e4",
+      "count": 3,
+      "offset": 0,
+      "source": "",
+      "time": "0.018093"
+    }
+  }
+}

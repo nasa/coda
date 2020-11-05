@@ -15,33 +15,56 @@
     <script src="lib/jquery_3.4.1.min.js"></script>
     <script src="lib/jquery_extensions.js"></script>
     <script src="lib/paper-full.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+
+    <title>CODA</title>
     <script src="js/ajax.js"></script>
     <script src="js/navigator.js"></script>
     <script src="js/coda_iss.js"></script>
 </head>
 <body>
 <div class="headerContainer">
-    <div class="svgCODALogo" style="float: left;"></div>
-    <div class="headerTitle" style="float: left;  margin-left: 10px;">CODA</div>
-    <div class="title" style="float: left; margin-left: 15px;">Collaborative Operations Data Activation<BR>A component of EMSS</div>
-    <div class="MissionDateTimeWrapper" id="MissionDateTimeWrapper" style="display: flex; float: left; line-height: 4em; margin-left: 30px; width: 440px;">
-        <div style="flex: 1; font-size: 0.8em;">EVA Date/GMT:</div>
-        <div style="flex: 1;">
-            <input type="text" size="10" class="dateTime" id="missionDate" name="missionDate" value="2019-08-21">
+    <div style="display: flex;">
+        <div class="svgCODALogo"></div>
+        <div class="headerTitle" style="float: left;  margin-left: 10px;">CODA</div>
+<!--        <div class="title" style="float: left; margin-left: 15px;">Collaborative Operations Data Activation<BR>A component of EMSS</div>-->
+    </div>
+    <div style="float: left;">
+        <select name="EVAsDropdown" id="EVAsDropdown"></select>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; margin-left: 30px; min-height: 4em;">
+        <div style="display: grid; flex-wrap: wrap;">
+            <div style="flex-grow: 1; font-size: 0.8em; color: #9b9b9b;">EVA Name: <span style="color: white;" id="evaNameSpan">EVA Name</span></div>
+            <div style="flex-grow: 1; font-size: 0.8em; color: #9b9b9b;">EVA Title: <span style="color: white;" id="evaTitleSpan">EVA Title</span></div>
+            <div style="flex-grow: 1; font-size: 0.8em; color: #9b9b9b;">EV1: <span style="color: white;" id="ev1TitleSpan">EV1</span></div>
+            <div style="flex-grow: 1; font-size: 0.8em; color: #9b9b9b;">EV2: <span style="color: white;" id="ev2TitleSpan">EV2</span></div>
         </div>
-        <div style="flex: 1;">
-            <input type="text" size="8" class="dateTime" id="missionTime" name="missionTime" value="00:00:00">
-        </div>
-        <div style="flex: 1;">
-            <a class="goButton" id="goButton" title="Jump to Date/Time" onclick="goButtonClick();">
-                <span>GO</span>
-            </a>
+        <div class="MissionDateTimeWrapper" id="MissionDateTimeWrapper" style="display: flex; margin-left: 30px; float: left; width: 550px;">
+            <div style="flex: 1; font-size: 0.8em; color: #9b9b9b;">EVA Date/GMT:</div>
+            <div style="flex: 1;">
+                <input type="text" size="10" class="dateTime" id="missionDate" name="missionDate" value="2019-08-21">
+            </div>
+            <div style="flex: 1;">
+                <input type="text" size="8" class="dateTime" id="missionTime" name="missionTime" value="00:00:00">
+            </div>
+            <div style="flex: 2;">
+                <a class="littleTopButton" id="goButton" title="Jump to Date/Time" onclick="goButtonClick();">
+                    GO
+                </a>
+                <a class="littleTopButton" id="shareButton" title="Share" onclick="shareButtonClick();">
+                    Share
+                </a>
+            </div>
         </div>
     </div>
-    <div class="svgNASALogo" style="float: right;"></div>
-    <div style="float: right; text-align: right; font-size: 0.8rem; margin-right: 10px;">Beta v0.0001<BR>Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a> </div>
+
+    <div style="flex: 1;">
+        <div class="svgNASALogo" style="float: right;"></div>
+        <div style="float: right; text-align: right; font-size: 0.8rem; margin-right: 10px;">Alpha v0.01<BR>Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a> </div>
+    </div>
 </div>
-<canvas id="navCanvas" resize="true" style="height: 155px; width: 100%;"></canvas>
+<canvas id="navCanvas" resize="true" style="height: 175px; width: 100%;"></canvas>
 <div id="panelsContainer">
     <div class="audioPanel">
         <div class="title">
@@ -120,5 +143,17 @@
 <div id="audioDiv" style="display: none;">
     <audio id="audio-element" controls=controls>
     </audio>
+</div>
+
+<div id="shareModal" class="modal">
+    <div class="shareModalWrapper">
+        <div class="headline">
+            Share this EVA time
+        </div>
+        <div class="body">
+            <textarea id="shareURL"></textarea><br><br>
+            <a class="vidButton active" id="shareModalCopyLinkAction" onclick="copyShareURL()">COPY LINK</a>
+        </div>
+    </div>
 </div>
 </body>
