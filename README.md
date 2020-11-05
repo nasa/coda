@@ -12,4 +12,6 @@ This site is all static files. All you need to do is spin up a server to serve t
 python -m http.server
 ```
 
-Then head over to `http://localhost:8000` and click through to `_website/_webroot/index.html` to see the site.
+Next, change your hosts file to map `coda-iss.develop` to `localhost`.
+
+Then head over to `http://coda-iss.develop:8000` and click through to `_website/_webroot/index.html` to see the site.

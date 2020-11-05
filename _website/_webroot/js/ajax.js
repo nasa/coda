@@ -374,7 +374,11 @@ function ajaxWikiGetEVAs() {
     var url = './pullwiki.php?action=getEVAs';
     if (location.hostname === 'localhost') {
         url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getEVAs';
-    } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
+    } else if (
+        location.hostname === 'coda-iss.develop' ||
+        location.hostname === "localhost"
+    ) {
+        // use fake data if on dev
         url = 'fakedata/getEVAs.json';
     }
     $.ajaxSetup({
