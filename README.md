@@ -6,12 +6,11 @@ Consolidating the context of missions, training, and testing into an easy to use
 
 ## Development
 
-This site is all static files. All you need to do is spin up a server to serve them. If you don't have a preferred static server, here's a quick Python script to whip one up on port 8000.
+### First Time Installation
 
-```sh
-python -m http.server
-```
+1. Setup the right version of Node using nvm: `nvm install && nvm use`
+2. Install dependencies: `npm i`
 
 Next, change your hosts file to map `coda-iss.develop` to `localhost`.
 
-Then head over to `http://coda-iss.develop:8000` and click through to `_website/_webroot/index.html` to see the site.
+Then head over to `http://coda-iss.develop:8000`.
