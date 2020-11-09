@@ -4,7 +4,7 @@
   "description": "Collaborative Operations Data Activation",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_ENV=local next dev",
     "build": "next build",
     "start": "next start"
   },

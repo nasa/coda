@@ -1,13 +1,14 @@
 import Head from "next/head";
 import Header from "../components/header";
 import NavTimeline from "../components/nav-timeline";
+import AVPanels from "../components/av-panels";
 
 function Index() {
   return (
     <div>
       <Head>
         <meta charSet="utf-8" />
-        <title>CODA</title>
+        <title>{process.env.TITLE}</title>
         <link
           rel="apple-touch-icon"
           sizes="180x180"
@@ -38,6 +39,7 @@ function Index() {
       </Head>
       <Header />
       <NavTimeline />
+      <AVPanels />
     </div>
   );
 }

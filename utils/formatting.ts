@@ -27,24 +27,24 @@ export function secondsToTimeStr(totalSeconds: number): string {
   return timeStr;
 }
 
-export function secondsToZuluString(seconds, gTimingData) {
+export function secondsToZuluString(seconds: number, gTimingData): string {
   var zuluDate = secondsToZuluDate(seconds, gTimingData);
   var temp = zuluDate.toISOString().split('T')[1].split(':');
   return temp[0] + ":" + temp[1] + ":" + temp[2].split('.')[0] + 'Z';
 }
 
-function secondsToZuluDate(seconds, gTimingData) {
+function secondsToZuluDate(seconds: number, gTimingData): Date {
     return new Date(gTimingData.video_earliestStart.getTime() + seconds * 1000);
 }
 
-function zuluDateToSeconds(zuluDate, gTimingData) {
+function zuluDateToSeconds(zuluDate: Date, gTimingData): number {
     return (zuluDate.getTime() - gTimingData.video_earliestStart.getTime()) / 1000;
 }
 
-function timeFromZuluDate(zuluDate) {
+function timeFromZuluDate(zuluDate: Date): string {
     return padZeros(zuluDate.getUTCHours(), 2) + ":" + padZeros(zuluDate.getUTCMinutes(), 2) + ":" + padZeros(zuluDate.getUTCSeconds(), 2);
 }
 
-function shortdateFromZuluDate(zuluDate) {
+function shortdateFromZuluDate(zuluDate: Date): string {
     return padZeros(zuluDate.getUTCFullYear(), 2) + "-" + padZeros(zuluDate.getUTCMonth() + 1, 2) + "-" + padZeros(zuluDate.getUTCDate(), 2);
 }
