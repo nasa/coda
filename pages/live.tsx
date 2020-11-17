@@ -1,24 +1,22 @@
-import { GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
-import Header from "../components/header";
-import NavTimeline from "../components/nav-timeline";
-import AVPanels from "../components/av-panels";
-import fetchVideoData from "../services/io";
+import Header from "components/header";
+import NavTimeline from "components/nav-timeline";
+import AVPanels from "components/av-panels";
+import { test } from "services/io";
 
 /**
  * Server-side call to hydrate the props
  */
-// export const getStaticProps: GetStaticProps = async (context) => {
-//   const data = await fetchVideoData(2020, 11, 13);
-//   return { props: data };
-// };
+export const getServerSideProps: GetServerSideProps = async ({
+  params: { eva },
+}) => {
+  // check if an EVA is happening now
+  const data = await test(eva);
+  return { props: data };
+};
 
-// use getStaticProps to load the default EVA
-// in the NavTimeline and AVPanels, update the state to match the props
-// whenever a user changes the EVA, rerun fetchVideoData() and update the states individually
-// could changing the EVA change the path and thus rerun getStaticProps()?
-
-function Index({ data }) {
+function Live({ data }) {
   return (
     <div>
       <Head>
@@ -59,4 +57,4 @@ function Index({ data }) {
   );
 }
 
-export default Index;
+export default Live;

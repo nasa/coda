@@ -1,5 +1,6 @@
 const playAudio = (_a) => {};
 
+// TODO: should this come from an external source?
 const buttons = [
   {
     id: 0,

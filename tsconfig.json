@@ -7,6 +7,7 @@
       "esnext"
     ],
     "allowJs": true,
+    "baseUrl": ".",
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
@@ -14,6 +15,12 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
+    "paths": {
+      "components/*": ["./components/*"],
+      "public/*": ["./public/*"],
+      "services/*": ["./services/*"],
+      "utils/*": ["./utils/*"],
+    },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve"
@@ -22,7 +29,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "next.config.js"
+    "next.config.js",
+    "mocks/index.js"
   ],
   "exclude": [
     "node_modules"

@@ -1,0 +1,417 @@
+{
+  "query": {
+    "printrequests": [
+      {
+        "label": "Index",
+        "key": "Index",
+        "redi": "",
+        "typeid": "_num",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Has text title",
+        "key": "Has_text_title",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Duration hour",
+        "key": "Duration_hour",
+        "redi": "",
+        "typeid": "_num",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Duration minute",
+        "key": "Duration_minute",
+        "redi": "",
+        "typeid": "_num",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Depends on",
+        "key": "Depends_on",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Related article",
+        "key": "Related_article",
+        "redi": "",
+        "typeid": "_wpg",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Color",
+        "key": "Color",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
+      },
+      {
+        "label": "Actor",
+        "key": "Actor",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
+      }
+    ],
+    "results": {
+      "US EVA 55/As-executed summary timeline# 527b54e6e5507aee2121b64cc87493d9": {
+        "printouts": {
+          "Index": [
+            1
+          ],
+          "Has text title": [
+            "Post-Depress / Egress / Setup"
+          ],
+          "Duration hour": [
+            1
+          ],
+          "Duration minute": [
+            0
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "gray"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 93fd2d5793083abe5dea909e7b35d94e": {
+        "printouts": {
+          "Index": [
+            2
+          ],
+          "Has text title": [
+            "IDA 3 AFT Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            51
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 7f28b2a1e9d2a4617696e77af1e4284f": {
+        "printouts": {
+          "Index": [
+            3
+          ],
+          "Has text title": [
+            "IDA 3 Fwd Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            15
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 4d8c6a90ee54122034f85102cea67898": {
+        "printouts": {
+          "Index": [
+            4
+          ],
+          "Has text title": [
+            "IV Drive IDA Hook Gang 1"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            10
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "orange"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 7b9b2adc04234f52a86ec87f2320c7f0": {
+        "printouts": {
+          "Index": [
+            5
+          ],
+          "Has text title": [
+            "Gang 2 + Cable Prep"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            15
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "orange"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 5cb8fbe311f22391fafddf0069ed2593": {
+        "printouts": {
+          "Index": [
+            6
+          ],
+          "Has text title": [
+            "IDA 3 Fwd Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            30
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 76e7309249afb56f9d35cf076f2cf8bc": {
+        "printouts": {
+          "Index": [
+            7
+          ],
+          "Has text title": [
+            "IDA 3 Aft Cable Routing"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            48
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "blue"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 7cbbfa0fe60219f456d8502a4e11454e": {
+        "printouts": {
+          "Index": [
+            8
+          ],
+          "Has text title": [
+            "IDA3 Cleanup & H-Fixture MLI"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            14
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "green"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 2d529def99463ef78d93ae4d6001ef84": {
+        "printouts": {
+          "Index": [
+            9
+          ],
+          "Has text title": [
+            "IDA Cover Remove & Stow"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            26
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "green"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 96961aee8f1fc7ff1ad3e0a272a06775": {
+        "printouts": {
+          "Index": [
+            10
+          ],
+          "Has text title": [
+            "IDA3 Planar and Hemi Reflectors"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            45
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "green"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 97eff92827ffbbff90a5b8d9750d0210": {
+        "printouts": {
+          "Index": [
+            11
+          ],
+          "Has text title": [
+            "Relocate APFR PMA3 to Stbd CETA"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            24
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "yellow"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# 5a0dd5f95c84297093b0dbcee80de14c": {
+        "printouts": {
+          "Index": [
+            12
+          ],
+          "Has text title": [
+            "Install Wire Tie Port CETA APFR Ingress Aid"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            9
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "yellow"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# dd8e14245edb2f4efae7818e63df8e1d": {
+        "printouts": {
+          "Index": [
+            13
+          ],
+          "Has text title": [
+            "Cleanup"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            17
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "green"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      },
+      "US EVA 55/As-executed summary timeline# bd17864bae352f3ef3573bcfa837b7b8": {
+        "printouts": {
+          "Index": [
+            14
+          ],
+          "Has text title": [
+            "Cleanup / Ingress / Pre-Repress"
+          ],
+          "Duration hour": [
+            0
+          ],
+          "Duration minute": [
+            28
+          ],
+          "Depends on": [],
+          "Related article": [],
+          "Color": [
+            "gray"
+          ],
+          "Actor": [
+            "EV2"
+          ]
+        }
+      }
+    },
+    "serializer": "SMW\\Serializers\\QueryResultSerializer",
+    "version": 2,
+    "meta": {
+      "hash": "1632ff4a703553eba0591dc076b55052",
+      "count": 14,
+      "offset": 0,
+      "source": "",
+      "time": "0.024443"
+    }
+  }
+}

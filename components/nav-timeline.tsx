@@ -477,19 +477,6 @@ function NavTimeline() {
     return cursorElementGroup;
   };
 
-  const onMouseOutHandler = () => {
-    //trace("onMouseOutHandler()");
-    gMouseOnNavigator = false;
-
-    // $('#navigatorKey').css('display', '');
-    // if (typeof gNavCursorGroup != "undefined") {
-    gNavCursorGroup.removeChildren();
-    // }
-    drawTier1();
-    drawTier1NavBox(gCurrMissionTimeSeconds);
-    drawTier2();
-  };
-
   const setDynamicWidthVariables = () => {
     gNavigatorWidth = paper.view.size.width - 5;
     gNavigatorHeight = paper.view.size.height;
@@ -563,7 +550,7 @@ function NavTimeline() {
     drawNavCursor(mouseXSeconds);
   };
 
-  paper.view.onMouseUp = function (event) {
+  paper.view.onMouseUp = (event) => {
     if (event.point.y < gTier1Top + gTier1Height + gTierSpacing) {
       gCurrMissionTimeSeconds = Math.round(
         (event.point.x - 1) * gTier1SecondsPerPixel + 1
@@ -586,22 +573,26 @@ function NavTimeline() {
     drawCursor(gCurrMissionTimeSeconds);
   };
 
-  paper.view.onMouseLeave = function (event) {
-    // trace("paper.view.onMouseLeave triggered");
-    onMouseOutHandler();
+  const onMouseOutHandler = (_event) => {
+    //trace("onMouseOutHandler()");
+    gMouseOnNavigator = false;
+
+    // $('#navigatorKey').css('display', '');
+    // if (typeof gNavCursorGroup != "undefined") {
+    gNavCursorGroup.removeChildren();
+    // }
+    drawTier1();
+    drawTier1NavBox(gCurrMissionTimeSeconds);
+    drawTier2();
   };
+
+  paper.view.onMouseLeave = onMouseOutHandler;
 
   drawTier1();
   drawTier1NavBox(gCurrMissionTimeSeconds);
   drawTier2();
 
-  return (
-    <canvas
-      id={canvasID}
-      resize="true"
-      style={{ height: "175px", width: "100%" }}
-    ></canvas>
-  );
+  return <canvas id={canvasID} style={{ height: "175px", width: "100%" }} />;
 }
 
 export default NavTimeline;

@@ -1,4 +1,31 @@
 function Header() {
+  // Dropdown logic
+
+  // .then((resp) => {
+  //   var dropdown = $("#EVAsDropdown");
+  //   dropdown.empty();
+  //   dropdown.append('<option selected="true" disabled>Choose EVA</option>');
+  //   dropdown.prop("selectedIndex", 0);
+
+  //   var resultObject = resp["query"]["results"];
+  //   for (var evaName in resultObject) {
+  //     dropdown.append(
+  //       $("<option></option>")
+  //         .attr("value", evaName)
+  //         .text(
+  //           evaName + " - " + resultObject[evaName]["printouts"]["EVA title"]
+  //         )
+  //     );
+  //   }
+
+  //   console.log("ajaxWikiGetEVAs completed.");
+  // })
+  // .catch(function (jqXHR, textStatus, errorThrown) {
+  //   console.error(jqXHR);
+  //   console.error(textStatus);
+  //   console.error(errorThrown);
+  // });
+
   return (
     <div className="headerContainer">
       <div style={{ display: "flex" }}>
