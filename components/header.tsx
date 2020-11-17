@@ -1,30 +1,12 @@
-function Header() {
-  // Dropdown logic
+import { useRouter } from "next/router";
 
-  // .then((resp) => {
-  //   var dropdown = $("#EVAsDropdown");
-  //   dropdown.empty();
-  //   dropdown.append('<option selected="true" disabled>Choose EVA</option>');
-  //   dropdown.prop("selectedIndex", 0);
+function Header({ selectedEVA, evas }) {
+  const router = useRouter();
 
-  //   var resultObject = resp["query"]["results"];
-  //   for (var evaName in resultObject) {
-  //     dropdown.append(
-  //       $("<option></option>")
-  //         .attr("value", evaName)
-  //         .text(
-  //           evaName + " - " + resultObject[evaName]["printouts"]["EVA title"]
-  //         )
-  //     );
-  //   }
-
-  //   console.log("ajaxWikiGetEVAs completed.");
-  // })
-  // .catch(function (jqXHR, textStatus, errorThrown) {
-  //   console.error(jqXHR);
-  //   console.error(textStatus);
-  //   console.error(errorThrown);
-  // });
+  const handleEVASelect = (e) => {
+    e.preventDefault();
+    router.push(`/replay/${e.target.value}`);
+  };
 
   return (
     <div className="headerContainer">
@@ -38,7 +20,24 @@ function Header() {
         </div>
       </div>
       <div style={{ float: "left" }}>
-        <select name="EVAsDropdown" id="EVAsDropdown"></select>
+        <select
+          name="EVAsDropdown"
+          id="EVAsDropdown"
+          onChange={handleEVASelect}
+        >
+          <option disabled>Choose EVA</option>
+          {Object.keys(evas).map((eva) => {
+            const value = eva.replace(/ /g, "_").toLowerCase();
+            return (
+              <option
+                value={value}
+                selected={value === selectedEVA.toLowerCase()}
+              >
+                {eva}
+              </option>
+            );
+          })}
+        </select>
       </div>
 
       <div
@@ -139,7 +138,7 @@ function Header() {
             marginRight: "10px",
           }}
         >
-          Alpha v0.01
+          Alpha v0.02
           <br />
           Contact:{" "}
           <a href="mailto:benjamin.f.feist@nasa.gov">
