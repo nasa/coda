@@ -1,7 +1,101 @@
 const loadVideo = (_a, _b, _c) => {};
 const gCurrMissionTimeSeconds = 0;
 
-function VideoPlayer({ id, gVideoActivityByGroupBySecond }) {
+function VideoPlayer({
+  id,
+  gVideoActivityByGroupBySecond,
+  selectedSource,
+}: {
+  id: number;
+  gVideoActivityByGroupBySecond: object;
+  selectedSource?: string;
+}) {
+  const loadVideo = (playerNum, group, second) => {
+    gSelectedVidGroup[playerNum] = group;
+    setVidButtonHighlights(gCurrMissionTimeSeconds);
+
+    var playerElement = document.getElementById("player" + playerNum);
+    var checkSourceExists = document.getElementById(
+      "player" + playerNum + "source"
+    );
+    if (!checkSourceExists) {
+      var source = document.createElement("source");
+      source.setAttribute("id", "player" + playerNum + "source");
+      playerElement.appendChild(source);
+    } else {
+      source = document.getElementById("player" + playerNum + "source");
+    }
+
+    var vidIndex = gVideoActivityByGroupBySecond[group][second];
+
+    //get video metadata
+    if (vidIndex === -1) {
+      var videoUrl = "/CODA_data/novid.mp4";
+      if (location.hostname === "localhost") {
+        videoUrl = "https://coda-dev.fit.nasa.gov" + videoUrl;
+      }
+    } else {
+      videoUrl = gVideoItems[vidIndex].videoUrl;
+      //dev mod
+      if (location.hostname === "coda-iss.develop") {
+        // use dev video location, otherwise use the stated IO URL
+        var tempArray = videoUrl.split("/");
+        var filename = tempArray[tempArray.length - 1];
+        videoUrl = "/CODA_data/US_EVA_55/video/" + filename;
+      }
+    }
+    if ($("#player" + playerNum + " source").attr("src") !== videoUrl) {
+      source.setAttribute("src", videoUrl);
+      playerElement.load();
+    }
+
+    var downlinkDisplay = "D/L " + (group + 1).toString();
+    if (vidIndex === -1) {
+      playerElement.muted = true;
+    } else if (gVideoItems[vidIndex].className === "downlink-LOS") {
+      downlinkDisplay += " (LOS)";
+      playerElement.muted = true;
+    } else {
+      playerElement.muted = false;
+    }
+    if (playerNum === 1)
+      //always mute player1
+      playerElement.muted = true;
+
+    playerElement.muted = true;
+
+    if (vidIndex === -1) {
+      document.getElementById("vidTitle" + playerNum).innerHTML =
+        downlinkDisplay + " | No video available.";
+      document.getElementById("vidInfo" + playerNum).innerHTML =
+        downlinkDisplay + " | No video available.";
+      gSelectedVideoStartTimeSeconds[playerNum] = gCurrMissionTimeSeconds;
+    } else {
+      document.getElementById(
+        "vidTitle" + playerNum
+      ).innerHTML = downlinkDisplay;
+      document.getElementById("vidInfo" + playerNum).innerHTML =
+        downlinkDisplay +
+        " | " +
+        gVideoItems[vidIndex].content +
+        " | " +
+        gVideoItems[vidIndex].description;
+      //figure out how many seconds into video to seek to get to current mission time
+      gSelectedVideoStartTimeSeconds[playerNum] =
+        gVideoItems[vidIndex].missionSecondsStart;
+    }
+
+    var secondsOffsetFromBeginningOfVideo =
+      gCurrMissionTimeSeconds - gSelectedVideoStartTimeSeconds[playerNum];
+    if (
+      Math.abs(playerElement.currentTime - secondsOffsetFromBeginningOfVideo) >
+      1
+    )
+      playerElement.currentTime = secondsOffsetFromBeginningOfVideo;
+
+    playerElement.play();
+  };
+
   return (
     <div className="vidPanel">
       <div>

@@ -3,12 +3,13 @@ import Head from "next/head";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import AVPanels from "components/av-panels";
-import { getEVAs } from "services/iss-wiki";
+import { getAsExecuted, getEVAs, getEVADetails } from "services/iss-wiki";
 import getVideoData from "services/io";
 
 function Replay({
-  eva,
-  evas,
+  selectedEVA,
+  allEVAs,
+  gEVADetails,
   gTimingData,
   gVideoActivityByGroupBySecond,
   gVideoItems,
@@ -46,7 +47,11 @@ function Replay({
           rel="stylesheet"
         ></link>
       </Head>
-      <Header selectedEVA={eva} evas={evas} />
+      <Header
+        selectedEVA={selectedEVA}
+        allEVAs={allEVAs}
+        gEVADetails={gEVADetails}
+      />
       <NavTimeline gTimingData={gTimingData} gVideoItems={gVideoItems} />
       <AVPanels gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond} />
     </div>
@@ -59,7 +64,7 @@ function Replay({
  */
 export const getStaticPaths: GetStaticPaths = async () => {
   // find out which EVAs are available
-  const res = await getEVAs().then((res) => res.json());
+  const res = await getEVAs();
   const results = res["query"]["results"];
 
   let evas = Object.keys(results).map((k) => k.replace(/ /g, "_"));
@@ -84,8 +89,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetServerSideProps = async ({
   params: { eva },
 }) => {
+  const evaName: string = eva as string;
   // all EVA data from the wiki
-  const res = await getEVAs().then((res) => res.json());
+  const res = await getEVAs();
   const results = res["query"]["results"];
 
   // video data for this EVA
@@ -95,7 +101,31 @@ export const getStaticProps: GetServerSideProps = async ({
     gVideoItems,
   } = await getVideoData(1, 1, 1);
 
-  console.log(gVideoItems);
+  const gEVADetails = await getEVADetails(evaName);
+  const dateArr = gEVADetails.evaDate.split(/-/).map(Number);
+  const timeArr = gEVADetails.startTime.split(/:/).map(Number);
+  const ActivityStartUTCMilliseconds = Date.UTC(
+    dateArr[0],
+    dateArr[1] - 1,
+    dateArr[2],
+    timeArr[0],
+    timeArr[1]
+  );
+
+  const gVideoActivity = {
+    EV1: await getAsExecuted(
+      evaName,
+      1,
+      gTimingData,
+      ActivityStartUTCMilliseconds
+    ),
+    EV2: await getAsExecuted(
+      evaName,
+      2,
+      gTimingData,
+      ActivityStartUTCMilliseconds
+    ),
+  };
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that this data is being fetched on the server and then sent to the client as a big JSON payload
   gTimingData["video_earliestStart"] = gTimingData[
@@ -111,10 +141,12 @@ export const getStaticProps: GetServerSideProps = async ({
 
   return {
     props: {
-      eva,
-      evas: results,
+      selectedEVA: eva,
+      allEVAs: results,
+      gEVADetails,
       gVideoActivityByGroupBySecond,
       gTimingData,
+      gVideoActivity,
       gVideoItems,
       // videoTimingData,
     },

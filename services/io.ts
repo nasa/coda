@@ -28,7 +28,7 @@ export default async function getVideoData(
   year: number,
   month: number,
   day: number
-): Promise<object> {
+): Promise<any> {
   const rangeStartYear = year;
   const rangeStartMonth = month;
   const rangeStartDay = day;
@@ -252,7 +252,6 @@ function createMissionVideoActivity(gTimingData, gVideoItems) {
   const gVideoActivityByGroupBySecond = [];
   for (let group = 0; group <= 6; group++) {
     const groupSecondsArray = [];
-    console.log("EVA duration: " + gTimingData.EVA_duration_seconds);
     for (let second = 0; second < gTimingData.EVA_duration_seconds; second++) {
       const vidsThisGroupThisSecond = [];
       for (let i = 0; i < gVideoItems.length; i++) {

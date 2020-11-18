@@ -1,9 +1,20 @@
 /*
 SERVER ONLY methods for fetching from wiki. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
-*/
-import fetch from "node-fetch";
 
-function getWiki(queryParams: string) {
+TODO: CHECK THIS OUT https://www.mediawiki.org/wiki/API:Client_code#JavaScript
+*/
+import fetch, { Response } from "node-fetch";
+import { padZeros } from "utils/formatting";
+
+interface WikiResponse {
+  query: any;
+  results: any;
+}
+
+async function getWiki(
+  queryParams: string,
+  action?: string
+): Promise<WikiResponse> {
   const url = `${process.env.WIKI_API_URL}?format=json&${queryParams}`;
   const options = {
     headers: {
@@ -18,105 +29,130 @@ function getWiki(queryParams: string) {
       "X-SKIP-SAML": "True",
     },
   };
-  return fetch(url, options);
+
+  // if we're in the local environment, add a header to make it easy to figure out which fakedata to return when we intercept this request
+  if (process.env.APP_ENV === "local" && action) {
+    options.headers["X-MOCK-ACTION"] = action;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, options);
+  } catch (e) {
+    throw e;
+  }
+  return res.json();
 }
 
-// export function getAsExecuted(evaName, evNum) {
-//   var url =
-//     "./pullwiki.php?action=getAsExecuted&evaName=" +
-//     evaName +
-//     "&EVNum=" +
-//     evNum;
-//   if (location.hostname === "localhost") {
-//     url =
-//       "https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getAsExecuted&evaName=" +
-//       evaName +
-//       "&EVNum=" +
-//       evNum;
-//   } else if (location.hostname === "coda-iss.develop") {
-//     // use fake data if on dev
-//     url = "fakedata/getAsExecutedUS_EVA_55EV" + evNum + ".json";
-//   }
-//   $.ajaxSetup({
-//     scriptCharset: "utf-8",
-//     contentType: "application/json; charset=utf-8",
-//   });
-//   return fetch(url, function (resp) {
-//     var dateArr = gEVADetails.evaDate.split(/-/).map(Number);
-//     var timeArr = gEVADetails.startTime.split(/:/).map(Number);
-//     var ActivityStartUTCMilliseconds = Date.UTC(
-//       dateArr[0],
-//       dateArr[1] - 1,
-//       dateArr[2],
-//       timeArr[0],
-//       timeArr[1],
-//       "00"
-//     );
-//     var activityArray = [];
-//     var thisStartTimeSeconds =
-//       (ActivityStartUTCMilliseconds -
-//         gTimingData.video_earliestStart.getTime()) /
-//       1000;
+export async function getEVAs() {
+  // wiki query parameters
+  const getEVAsQuery =
+    "[[~US EVA*]] [[EVA Classification::Scheduled or Historical]] |?EVA title |? Start date |? Start time |sort=Start date |format = json";
+  const query = encodeURI(`{ text: ${getEVAsQuery} }`);
+  const queryParams = `action=ask&query=${query}`;
+  return getWiki(queryParams, "getEVAs");
+}
 
-//     var resultObject = resp["query"]["results"];
-//     for (var key in resultObject) {
-//       if (resultObject.hasOwnProperty(key)) {
-//         var durationHour = parseInt(
-//           resultObject[key]["printouts"]["Duration hour"][0]
-//         );
-//         var durationMinute = parseInt(
-//           resultObject[key]["printouts"]["Duration minute"][0]
-//         );
-//         var durationTotalSeconds = (durationHour * 60 + durationMinute) * 60;
+/** EVA Metadata */
+interface evaDetails {
+  evaName: string;
+  evaTitle: string;
+  /** GMT HH:MM */
+  startTime: string;
+  /** H:MM */
+  duration: string;
+  /** Wiki URL */
+  fullURL: string;
+  /** YYYY-MM-DD */
+  evaDate: string;
+}
 
-//         var activityObject = {
-//           content: resultObject[key]["printouts"]["Has text title"][0],
-//           startTimeSeconds: thisStartTimeSeconds,
-//           endTimeSeconds: thisStartTimeSeconds + durationTotalSeconds,
-//           color: resultObject[key]["printouts"]["Color"][0],
-//         };
-//         if (activityObject.color === "gray") activityObject.color = "grey";
+/**
+ * Get metadata about an EVA from the wiki
+ */
+export async function getEVADetails(evaName): Promise<evaDetails> {
+  const wikiParams = `[[' . ${evaName} . ']] |? EVA title |? Start date |? Start time |? Duration |format = json`;
+  const query = encodeURI(`{ text: ${wikiParams} }`);
+  const queryParams = `action=ask&query=${query}`;
+  const res = await getWiki(queryParams, "getEVADetails");
+  return createDetailsObject(res);
+}
 
-//         thisStartTimeSeconds = thisStartTimeSeconds + durationTotalSeconds;
-//         activityArray.push(activityObject);
-//       }
-//     }
-//     gVideoActivity["EV" + evNum] = activityArray;
+function createDetailsObject(res): evaDetails {
+  const evaName = Object.keys(res["query"]["results"])[0];
+  const evaData = res["query"]["results"][evaName];
+  const evaDate = evaData["printouts"]["Start date"][0]["raw"].substring(2);
+  const [year, month, day] = evaDate.split("/");
+  return {
+    evaName,
+    evaTitle: evaData["printouts"]["EVA title"][0],
+    startTime: evaData["printouts"]["Start time"][0],
+    duration: evaData["printouts"]["Duration"][0],
+    fullURL: evaData["fullurl"],
+    evaDate: `${year}-${padZeros(month, 2)}-${padZeros(day, 2)}`,
+  };
+}
 
-//     console.log("ajaxWikiGetAsExecuted completed for EV" + evNum);
-//   }).catch(function (jqXHR, textStatus, errorThrown) {
-//     console.error(jqXHR);
-//     console.error(textStatus);
-//     console.error(errorThrown);
-//   });
-// }
+/** Get as-executed data for a given EV on a given EVA */
+export async function getAsExecuted(
+  evaName: string,
+  evNum: number,
+  gTimingData,
+  ActivityStartUTCMilliseconds: number
+) {
+  const actorName = `Actor${evNum + 1}`;
+  const wikiParams = `[[From page::~' . ${evaName} . '/*xecuted*]] [[Assigned to::' . ${actorName} . ']] |mainlabel=-|?Index |?Has text title |?Duration hour |?Duration minute |?Depends on |?Related article |?Color |?Actor |named args=yes |sort=Actor, Index |format = json`;
+  const query = encodeURI(`{ text: ${wikiParams} }`);
+  const queryParams = `action=ask&query=${query}`;
+  const data = await getWiki(queryParams, `getAsExecutedEV${evNum}`);
+  return parseAsExecuted(
+    data["query"]["results"],
+    gTimingData,
+    ActivityStartUTCMilliseconds
+  );
+}
 
-// function ajaxGetDayNightJSON() {
-//   return fetch("fakedata/daynight.json", {}, function (resp) {
-//     // gVideoActivity.DayNight = createActivityArrayFromJSON(resp); //TODO make this use live wiki data
-//     console.log("ajaxGetDayNightJSON completed.");
-//   });
-// }
+interface activity {
+  content: string;
+  startTimeSeconds: number;
+  endTimeSeconds: number;
+  color: string;
+}
 
-// function createActivityArrayFromJSON(resp) {
-//     var dateArr = resp.startGMT.split(/-| |:/).map(Number);
-//     var ActivityStartUTCMilliseconds = Date.UTC(
-//         dateArr[0], dateArr[1] - 1, dateArr[2], dateArr[3], dateArr[4], dateArr[5]
-//     );
-//     var activityArray = [];
-//     var activityStartTimeSeconds = (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) / 1000;
-//     var thisStartTimeSeconds = activityStartTimeSeconds;
-//     for (var i=0; i < resp.events.length; i++) {
-//         var activityObject = {
-//             content: resp.events[i].content,
-//             startTimeSeconds: thisStartTimeSeconds,
-//             endTimeSeconds: thisStartTimeSeconds + (resp.events[i]['duration_min'] * 60)
-//         };
-//         thisStartTimeSeconds = thisStartTimeSeconds + (resp.events[i]['duration_min'] * 60);
-//         activityArray.push(activityObject);
-//     }
-//     return activityArray
-// }
+async function parseAsExecuted(
+  results,
+  gTimingData,
+  ActivityStartUTCMilliseconds: number
+): Promise<activity[]> {
+  const activityArray = [];
+  let thisStartTimeSeconds =
+    (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) /
+    1000;
+
+  for (let key in results) {
+    if (results.hasOwnProperty(key)) {
+      const durationHour = parseInt(
+        results[key]["printouts"]["Duration hour"][0]
+      );
+      const durationMinute = parseInt(
+        results[key]["printouts"]["Duration minute"][0]
+      );
+      const durationTotalSeconds = (durationHour * 60 + durationMinute) * 60;
+
+      const activityObject: activity = {
+        content: results[key]["printouts"]["Has text title"][0],
+        startTimeSeconds: thisStartTimeSeconds,
+        endTimeSeconds: thisStartTimeSeconds + durationTotalSeconds,
+        color: results[key]["printouts"]["Color"][0],
+      };
+      if (activityObject.color === "gray") activityObject.color = "grey";
+
+      thisStartTimeSeconds = thisStartTimeSeconds + durationTotalSeconds;
+      activityArray.push(activityObject);
+    }
+  }
+  return activityArray;
+}
 
 // function ajaxGetAudioMetadataJSON() {
 //   $.ajaxSetup({
@@ -150,44 +186,6 @@ function getWiki(queryParams: string) {
 //     });
 // }
 
-export const GET_EVAS_QUERY =
-  "[[~US EVA*]] [[EVA Classification::Scheduled or Historical]] |?EVA title |? Start date |? Start time |sort=Start date |format = json";
-
-// CHECK THIS OUT https://www.mediawiki.org/wiki/API:Client_code#JavaScript
-
-export async function getEVAs() {
-  // wiki query parameters
-  const query = encodeURI(`{ text: ${GET_EVAS_QUERY} }`);
-  const queryParams = `action=ask&query=${query}`;
-  return getWiki(queryParams);
-}
-
-// export function ajaxWikiGetEVADetails(evaName) {
-//   var url = "./pullwiki.php?action=getEVADetails&evaName=" + evaName;
-//   if (location.hostname === "localhost") {
-//     url =
-//       "https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getEVADetails&evaName=" +
-//       evaName;
-//   } else if (location.hostname === "coda-iss.develop") {
-//     // use fake data if on dev
-//     url = "fakedata/getEVADetailsUS_EVA_55.json";
-//   }
-//   $.ajaxSetup({
-//     scriptCharset: "utf-8",
-//     contentType: "application/json; charset=utf-8",
-//   });
-//   return fetch(url, function (resp) {
-//     gEVADetails = createDetailsObject(resp);
-//     gPlaybackGMT = "12:00:00";
-//     displayEVADetails(gEVADetails);
-//     console.log("ajaxWikiGetEVADetails completed.");
-//   }).catch(function (jqXHR, textStatus, errorThrown) {
-//     console.error(jqXHR);
-//     console.error(textStatus);
-//     console.error(errorThrown);
-//   });
-// }
-
 // export function ajaxWikiGetEVADetailsByDate(evaDate) {
 //   var url = "./pullwiki.php?action=getEVADetailsByDate&evaDate=" + evaDate;
 //   if (location.hostname === "localhost") {
@@ -212,28 +210,6 @@ export async function getEVAs() {
 //     console.error(textStatus);
 //     console.error(errorThrown);
 //   });
-// }
-
-// function createDetailsObject(resp) {
-//   var detailsObject = {};
-//   detailsObject.evaName = Object.keys(resp["query"]["results"])[0];
-//   var resultObject = resp["query"]["results"][detailsObject.evaName];
-
-//   detailsObject.evaTitle = resultObject["printouts"]["EVA title"][0];
-//   detailsObject.startTime = resultObject["printouts"]["Start time"][0];
-//   detailsObject.duration = resultObject["printouts"]["Duration"][0];
-//   detailsObject.fullURL = resultObject["fullurl"];
-
-//   var evaDate = resultObject["printouts"]["Start date"][0]["raw"].substring(2);
-//   var evaDateArray = evaDate.split("/");
-//   detailsObject.evaDate =
-//     evaDateArray[0] +
-//     "-" +
-//     padZeros(evaDateArray[1], 2) +
-//     "-" +
-//     padZeros(evaDateArray[2], 2);
-
-//   return detailsObject;
 // }
 
 // export function ajaxWikiGetCrew(evaName) {

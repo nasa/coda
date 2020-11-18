@@ -19,6 +19,14 @@ Then head over to `http://coda-iss.develop:8000`.
 
 ### Imagery Online (IO)
 
+The source of all the videos.
+
+#### API Token
+
+Get one from the [IO website](https://io.jsc.nasa.gov/app/index.cfm).
+
+#### When New Videos Show Up
+
 From James Montalvo
 
 ```

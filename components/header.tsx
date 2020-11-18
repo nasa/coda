@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 
-function Header({ selectedEVA, evas }) {
+function Header({ selectedEVA, allEVAs, gEVADetails }) {
   const router = useRouter();
 
   /**
@@ -30,7 +30,7 @@ function Header({ selectedEVA, evas }) {
           value={selectedEVA.toLowerCase()}
         >
           <option disabled>Choose EVA</option>
-          {Object.keys(evas).map((eva) => {
+          {Object.keys(allEVAs).map((eva) => {
             const value = eva.replace(/ /g, "_").toLowerCase();
             return (
               <option key={value} value={value}>
@@ -53,13 +53,13 @@ function Header({ selectedEVA, evas }) {
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
             EVA Name:{" "}
             <span style={{ color: "white" }} id="evaNameSpan">
-              EVA Name
+              {gEVADetails.evaName || "EVA Name"}
             </span>
           </div>
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
             EVA Title:{" "}
             <span style={{ color: "white" }} id="evaTitleSpan">
-              EVA Title
+              {gEVADetails.evaTitle || "EVA Title"}
             </span>
           </div>
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
@@ -95,7 +95,7 @@ function Header({ selectedEVA, evas }) {
               className="dateTime"
               id="missionDate"
               name="missionDate"
-              value="2019-08-21"
+              value={gEVADetails.evaDate || "2019-08-21"}
               onChange={() => {}}
             />
           </div>
