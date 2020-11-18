@@ -3,7 +3,10 @@ import { useRouter } from "next/router";
 function Header({ selectedEVA, evas }) {
   const router = useRouter();
 
-  const handleEVASelect = (e) => {
+  /**
+   * Navigate to another EVA
+   */
+  const handleEVASelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.preventDefault();
     router.push(`/replay/${e.target.value}`);
   };
@@ -24,15 +27,13 @@ function Header({ selectedEVA, evas }) {
           name="EVAsDropdown"
           id="EVAsDropdown"
           onChange={handleEVASelect}
+          value={selectedEVA.toLowerCase()}
         >
           <option disabled>Choose EVA</option>
           {Object.keys(evas).map((eva) => {
             const value = eva.replace(/ /g, "_").toLowerCase();
             return (
-              <option
-                value={value}
-                selected={value === selectedEVA.toLowerCase()}
-              >
+              <option key={value} value={value}>
                 {eva}
               </option>
             );
@@ -95,6 +96,7 @@ function Header({ selectedEVA, evas }) {
               id="missionDate"
               name="missionDate"
               value="2019-08-21"
+              onChange={() => {}}
             />
           </div>
           <div style={{ flex: 1 }}>
@@ -105,6 +107,7 @@ function Header({ selectedEVA, evas }) {
               id="missionTime"
               name="missionTime"
               value="00:00:00"
+              onChange={() => {}}
             />
           </div>
           <div style={{ flex: 2 }}>

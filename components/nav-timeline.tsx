@@ -1,15 +1,6 @@
 import paper from "paper";
 import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
-// import VideosContext from "../contexts/videos";
 
-// TODO: replace
-const gTimingData = {
-  EVA_duration_seconds: 3600,
-  video_earliestStart: {
-    getTime: () => 0,
-  },
-};
-const gVideoItems = [];
 let gCurrMissionTimeSeconds = 0;
 const gVideoActivity = {
   EV1: {},
@@ -18,7 +9,14 @@ const gVideoActivity = {
 const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
-function NavTimeline() {
+function NavTimeline({ gTimingData, gVideoItems }) {
+  // gTimingData was turned into string for JSON-ification to get passed here from the server
+  // turn the times back into Dates
+  gTimingData["video_earliestStart"] = new Date(
+    gTimingData["video_earliestStart"]
+  );
+  gTimingData["video_latestEnd"] = new Date(gTimingData["video_latestEnd"]);
+
   let gTier1Group;
   let gTier1NavGroup;
   let gTier1NavBoxLocX;
@@ -592,6 +590,8 @@ function NavTimeline() {
   drawTier1NavBox(gCurrMissionTimeSeconds);
   drawTier2();
 
+  // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
+  // https://github.com/vercel/next.js/issues/7322
   return <canvas id={canvasID} style={{ height: "175px", width: "100%" }} />;
 }
 

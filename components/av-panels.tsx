@@ -1,12 +1,18 @@
 import VideoPlayer from "./video-player";
 import AudioPlayer from "./audio-player";
 
-function AVPanels() {
+function AVPanels({ gVideoActivityByGroupBySecond }) {
   return (
     <div id="panelsContainer">
       <AudioPlayer />
-      <VideoPlayer id={0} />
-      <VideoPlayer id={1} />
+      <VideoPlayer
+        id={0}
+        gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
+      />
+      <VideoPlayer
+        id={1}
+        gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
+      />
     </div>
   );
 }

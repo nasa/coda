@@ -153,6 +153,8 @@ function getWiki(queryParams: string) {
 export const GET_EVAS_QUERY =
   "[[~US EVA*]] [[EVA Classification::Scheduled or Historical]] |?EVA title |? Start date |? Start time |sort=Start date |format = json";
 
+// CHECK THIS OUT https://www.mediawiki.org/wiki/API:Client_code#JavaScript
+
 export async function getEVAs() {
   // wiki query parameters
   const query = encodeURI(`{ text: ${GET_EVAS_QUERY} }`);

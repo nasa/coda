@@ -1,7 +1,7 @@
 const loadVideo = (_a, _b, _c) => {};
 const gCurrMissionTimeSeconds = 0;
 
-function VideoPlayer({ id }) {
+function VideoPlayer({ id, gVideoActivityByGroupBySecond }) {
   return (
     <div className="vidPanel">
       <div>

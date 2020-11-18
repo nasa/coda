@@ -3,10 +3,16 @@ import Head from "next/head";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import AVPanels from "components/av-panels";
-import { test } from "services/io";
 import { getEVAs } from "services/iss-wiki";
+import getVideoData from "services/io";
 
-function Replay({ eva, evas }) {
+function Replay({
+  eva,
+  evas,
+  gTimingData,
+  gVideoActivityByGroupBySecond,
+  gVideoItems,
+}) {
   return (
     <div>
       <Head>
@@ -41,14 +47,14 @@ function Replay({ eva, evas }) {
         ></link>
       </Head>
       <Header selectedEVA={eva} evas={evas} />
-      <NavTimeline />
-      <AVPanels />
+      <NavTimeline gTimingData={gTimingData} gVideoItems={gVideoItems} />
+      <AVPanels gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond} />
     </div>
   );
 }
 
 /**
- * Define a list of paths to pre-render. In our case, we're using underscored versions of the EVA titles as parameters, eg. '/review/us_eva_1' or '/review/US_EVA_1' (either casing is allowed)
+ * Define a list of paths to pre-render. In our case, we're using underscored versions of the EVA titles as parameters, eg. '/review/us_eva_1' or '/review/US_EVA_1' (either casing is allowed). We fetch the full list of EVAs from the wiki and make the title of each one a path
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticpaths-static-generation
  */
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -72,18 +78,45 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 /**
- * Server-side call to hydrate the props. Pre-fetch all the data and links required to render the EVA
+ * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client. This is where we perform all the requests to external APIs to get the data required to render the EVA
+ * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
  */
 export const getStaticProps: GetServerSideProps = async ({
   params: { eva },
 }) => {
+  // all EVA data from the wiki
   const res = await getEVAs().then((res) => res.json());
   const results = res["query"]["results"];
+
+  // video data for this EVA
+  const {
+    gTimingData,
+    gVideoActivityByGroupBySecond,
+    gVideoItems,
+  } = await getVideoData(1, 1, 1);
+
+  console.log(gVideoItems);
+
+  // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that this data is being fetched on the server and then sent to the client as a big JSON payload
+  gTimingData["video_earliestStart"] = gTimingData[
+    "video_earliestStart"
+  ].toUTCString();
+  gTimingData["video_latestEnd"] = gTimingData["video_latestEnd"].toUTCString();
+  gVideoItems.forEach((vid) => {
+    vid["start"] = vid["start"].toUTCString();
+    vid["end"] = vid["end"].toUTCString();
+    vid["content"] = vid["content"] || "";
+    vid["description"] = vid["description"] || "";
+  });
 
   return {
     props: {
       eva,
       evas: results,
+      gVideoActivityByGroupBySecond,
+      gTimingData,
+      gVideoItems,
+      // videoTimingData,
     },
     // regenerate the props at most once per minute if a request comes in
     revalidate: 60,

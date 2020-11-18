@@ -1,13 +1,17 @@
 import { rest } from "msw";
 import { GET_EVAS_QUERY } from "services/iss-wiki";
-import getEVAs from "./fakedata/getEVAs.json";
+import getEVAsRes from "./fakedata/getEVAs.json";
+import ioRes from "./fakedata/io.json";
 
 export const handlers = [
   rest.get("http://wiki-mock/eva/api.php", (req, res, ctx) => {
     const query = req.url.searchParams.get("query");
     if (query.includes(GET_EVAS_QUERY)) {
-      return res(ctx.json(getEVAs));
+      return res(ctx.json(getEVAsRes));
     }
+  }),
+  rest.get("http://io-mock/api/search/*", (req, res, ctx) => {
+    return res(ctx.json(ioRes));
   }),
   rest.get("/reviews", (req, res, ctx) => {
     return res(

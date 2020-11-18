@@ -3,33 +3,59 @@ SERVER ONLY methods for fetching from IO. Only use this code within `getStaticPr
 */
 import fetch from "node-fetch";
 
-let gVideoActivityByGroupBySecond = {};
-
-function getIO(path: string) {
-  const url = `${process.env.IO_HOST}/path`;
-  // TODO cookies too
+function getIO(params: string) {
+  const url = `${process.env.IO_API_URL}&${params}`;
   const options = {
     headers: {
       "Accept-Encoding": "gzip,deflate",
       "Accept-Language": "en-us",
       cacert: process.env.CA_CERT,
       Connection: "keep-alive",
+      "Content-Type": "application/json; charset=utf-8",
       cookie: process.env.COOKIE_JAR,
       "cookie-jar": process.env.COOKIE_JAR,
+      "Script-Charset": "utf-8",
       "X-SKIP-SAML": "True",
     },
   };
   return fetch(url, options);
 }
 
-export function test(page) {
-  console.log(`running on ${page}`);
-  return { page };
+/**
+ * Fetch video data from IO
+ */
+export default async function getVideoData(
+  year: number,
+  month: number,
+  day: number
+): Promise<object> {
+  const rangeStartYear = year;
+  const rangeStartMonth = month;
+  const rangeStartDay = day;
+  const rangeEndYear = year;
+  const rangeEndMonth = month;
+  const rangeEndDay = day;
+
+  const rangeStartIO =
+    rangeStartMonth + "-" + rangeStartDay + "-" + rangeStartYear;
+  const rangeEndIO = rangeEndMonth + "-" + rangeEndDay + "-" + rangeEndYear;
+  const rangeStartTimeline = new Date(
+    Date.UTC(rangeStartYear, rangeStartMonth, rangeStartDay) - 60 * 60 * 1000
+  );
+  const rangeEndTimeline = new Date(
+    Date.UTC(rangeEndYear, rangeEndMonth, rangeEndDay) + 6 * 60 * 60 * 1000
+  );
+
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
+
+  return getIO(queryParams)
+    .then((res) => res.json())
+    .then(parseIOResponse);
 }
 
 function parseIOResponse(res) {
   const gVideoItems = [];
-  const gTimingData = {};
+  let gTimingData = {};
 
   const docs = res.results.response.docs;
   const output = "";
@@ -167,7 +193,6 @@ function parseIOResponse(res) {
       d.nasa_id +
       "." +
       d.file_extension_video;
-    // console.log(videoUrl);
 
     if (className === "downlink-LOS") {
       var priority = 0;
@@ -215,56 +240,16 @@ function parseIOResponse(res) {
     }
   );
 
-  createMissionVideoActivity(gTimingData, gVideoItems);
-  console.log("ajaxGetIoJSON completed.");
-  return { gVideoItems, gVideoActivityByGroupBySecond };
-}
-
-/**
- * Fetch video data from IO
- */
-export default function fetchVideoData(
-  year: number,
-  month: number,
-  day: number
-): Promise<object> {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const rangeStartYear = year;
-  const rangeStartMonth = month;
-  const rangeStartDay = day;
-  const rangeEndYear = year;
-  const rangeEndMonth = month;
-  const rangeEndDay = day;
-
-  const rangeStartIO =
-    rangeStartMonth + "-" + rangeStartDay + "-" + rangeStartYear;
-  const rangeEndIO = rangeEndMonth + "-" + rangeEndDay + "-" + rangeEndYear;
-  const rangeStartTimeline = new Date(
-    Date.UTC(rangeStartYear, rangeStartMonth, rangeStartDay) - 60 * 60 * 1000
-  );
-  const rangeEndTimeline = new Date(
-    Date.UTC(rangeEndYear, rangeEndMonth, rangeEndDay) + 6 * 60 * 60 * 1000
+  const gVideoActivityByGroupBySecond = createMissionVideoActivity(
+    gTimingData,
+    gVideoItems
   );
 
-  let url = `${process.env.IO_HOST}/api/search/rpp=500&s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
-
-  // use dev video location, otherwise use the stated IO URL
-  if (window.location.hostname === "localhost") {
-    url =
-      "https://coda-dev.fit.nasa.gov/CODA_ISS/getio.php?IOParam=" +
-      encodeURIComponent(url);
-  } else if (location.hostname === "coda-iss.develop") {
-    url = "fakedata/io.json";
-  }
-
-  return fetch(url).then(parseIOResponse);
+  return { gTimingData, gVideoActivityByGroupBySecond, gVideoItems };
 }
 
 function createMissionVideoActivity(gTimingData, gVideoItems) {
-  const t0 = performance.now();
-  gVideoActivityByGroupBySecond = [];
+  const gVideoActivityByGroupBySecond = [];
   for (let group = 0; group <= 6; group++) {
     const groupSecondsArray = [];
     console.log("EVA duration: " + gTimingData.EVA_duration_seconds);
@@ -287,13 +272,9 @@ function createMissionVideoActivity(gTimingData, gVideoItems) {
       }
       groupSecondsArray.push(vidIndex);
     }
-    //   gVideoActivityByGroupBySecond.push(groupSecondsArray);
+    gVideoActivityByGroupBySecond.push(groupSecondsArray);
   }
-  const t1 = performance.now();
-  console.log(
-    "createMissionVideoActivity took " + (t1 - t0) + " milliseconds."
-  );
-  return { gTimingData };
+  return gVideoActivityByGroupBySecond;
 }
 
 function getChannel(collectionStrings) {
