@@ -1,27 +1,29 @@
-const loadVideo = (_a, _b, _c) => {};
+import React from "react";
+
 const gCurrMissionTimeSeconds = 0;
+// TODO remove
+const gSelectedVidGroup = {};
+const gSelectedVideoStartTimeSeconds = {};
 
 function VideoPlayer({
   id,
   gVideoActivityByGroupBySecond,
+  gVideoItems,
   selectedSource,
-}: {
-  id: number;
-  gVideoActivityByGroupBySecond: object;
-  selectedSource?: string;
 }) {
+  const player = React.createRef();
+
   const loadVideo = (playerNum, group, second) => {
     gSelectedVidGroup[playerNum] = group;
     setVidButtonHighlights(gCurrMissionTimeSeconds);
 
-    var playerElement = document.getElementById("player" + playerNum);
     var checkSourceExists = document.getElementById(
       "player" + playerNum + "source"
     );
     if (!checkSourceExists) {
       var source = document.createElement("source");
       source.setAttribute("id", "player" + playerNum + "source");
-      playerElement.appendChild(source);
+      player.appendChild(source);
     } else {
       source = document.getElementById("player" + playerNum + "source");
     }
@@ -46,23 +48,23 @@ function VideoPlayer({
     }
     if ($("#player" + playerNum + " source").attr("src") !== videoUrl) {
       source.setAttribute("src", videoUrl);
-      playerElement.load();
+      player.load();
     }
 
     var downlinkDisplay = "D/L " + (group + 1).toString();
     if (vidIndex === -1) {
-      playerElement.muted = true;
+      player.muted = true;
     } else if (gVideoItems[vidIndex].className === "downlink-LOS") {
       downlinkDisplay += " (LOS)";
-      playerElement.muted = true;
+      player.muted = true;
     } else {
-      playerElement.muted = false;
+      player.muted = false;
     }
     if (playerNum === 1)
       //always mute player1
-      playerElement.muted = true;
+      player.muted = true;
 
-    playerElement.muted = true;
+    player.muted = true;
 
     if (vidIndex === -1) {
       document.getElementById("vidTitle" + playerNum).innerHTML =
@@ -87,13 +89,53 @@ function VideoPlayer({
 
     var secondsOffsetFromBeginningOfVideo =
       gCurrMissionTimeSeconds - gSelectedVideoStartTimeSeconds[playerNum];
-    if (
-      Math.abs(playerElement.currentTime - secondsOffsetFromBeginningOfVideo) >
-      1
-    )
-      playerElement.currentTime = secondsOffsetFromBeginningOfVideo;
+    if (Math.abs(player.currentTime - secondsOffsetFromBeginningOfVideo) > 1)
+      player.currentTime = secondsOffsetFromBeginningOfVideo;
 
-    playerElement.play();
+    player.play();
+  };
+
+  const setVidButtonHighlights = (second) => {
+    for (var group = 0; group < gSelectedVidGroup.length; group++) {
+      for (var i = 0; i < gVideoActivityByGroupBySecond.length; i++) {
+        if (i === gSelectedVidGroup[group]) {
+          if (
+            !document
+              .getElementById("vid" + group + "Button" + i.toString())
+              .classList.contains("selected")
+          )
+            document
+              .getElementById("vid" + group + "Button" + i.toString())
+              .classList.add("selected");
+        } else {
+          if (
+            document
+              .getElementById("vid" + group + "Button" + i.toString())
+              .classList.contains("selected")
+          )
+            document
+              .getElementById("vid" + group + "Button" + i.toString())
+              .classList.remove("selected");
+        }
+        if (gVideoActivityByGroupBySecond[i][second] !== -1) {
+          if (
+            !document
+              .getElementById("vid" + group + "Button" + i.toString())
+              .classList.contains("active") &&
+            !document
+              .getElementById("vid" + group + "Button" + i)
+              .classList.contains("selected")
+          )
+            document
+              .getElementById("vid" + group + "Button" + i.toString())
+              .classList.add("active");
+        } else {
+          document
+            .getElementById("vid" + group + "Button" + i.toString())
+            .classList.remove("active");
+        }
+      }
+    }
   };
 
   return (
@@ -161,7 +203,7 @@ function VideoPlayer({
         vidTitle
       </div>
       <div className="vidContainer">
-        <video className="player" id={id} controls></video>
+        <video ref={player} className="player" id={id} controls></video>
         <div className="vidOverlay">
           <div id="vidInfo0" className="vidInfo">
             vidInfo

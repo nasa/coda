@@ -8,7 +8,7 @@ import ioRes from "./fakedata/io.json";
 export const handlers = [
   rest.get("http://wiki-mock/eva/api.php", (req, res, ctx) => {
     const action = req.headers.get("x-mock-action");
-    console.log(action);
+    console.log(`Mocking request for: ${action}...`);
     switch (action) {
       case "getEVAs":
         return res(ctx.json(getEVAsRes));

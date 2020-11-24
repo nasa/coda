@@ -1,5 +1,8 @@
+import { useRouter } from "next/router";
+import { useContext } from "react";
 import paper from "paper";
 import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
+import { TimeSyncDispatch, TimeSyncState } from "store/contexts";
 
 let gCurrMissionTimeSeconds = 0;
 const gVideoActivity = {
@@ -10,6 +13,18 @@ const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
 function NavTimeline({ gTimingData, gVideoItems }) {
+  const {
+    query: { gmt = null, pet = null },
+  }: {
+    query: {
+      gmt?: number;
+      pet?: number;
+    };
+  } = useRouter();
+
+  const dispatch = useContext(TimeSyncDispatch);
+  const state = useContext(TimeSyncState);
+
   // gTimingData was turned into string for JSON-ification to get passed here from the server
   // turn the times back into Dates
   gTimingData["video_earliestStart"] = new Date(
@@ -566,8 +581,9 @@ function NavTimeline({ gTimingData, gVideoItems }) {
       // if (group <= 6)
       //     gCurrentGroup = group;
     }
-    loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds);
-    loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds);
+    // loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds);
+    // loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds);
+    dispatch({ type: "update_video", payload: { videoID: 1, playerID: 1 } });
     drawCursor(gCurrMissionTimeSeconds);
   };
 
@@ -589,6 +605,11 @@ function NavTimeline({ gTimingData, gVideoItems }) {
   drawTier1();
   drawTier1NavBox(gCurrMissionTimeSeconds);
   drawTier2();
+
+  // if (gmt) {
+  //   // TODO convert gmt to seconds
+  //   drawCursor(gmt);
+  // }
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322

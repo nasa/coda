@@ -1,8 +1,6 @@
 import { GetServerSideProps, GetStaticPaths } from "next";
 import Head from "next/head";
-import Header from "components/header";
-import NavTimeline from "components/nav-timeline";
-import AVPanels from "components/av-panels";
+import Main from "components/main";
 import { getAsExecuted, getEVAs, getEVADetails } from "services/iss-wiki";
 import getVideoData from "services/io";
 
@@ -47,13 +45,14 @@ function Replay({
           rel="stylesheet"
         ></link>
       </Head>
-      <Header
+      <Main
         selectedEVA={selectedEVA}
         allEVAs={allEVAs}
         gEVADetails={gEVADetails}
+        gTimingData={gTimingData}
+        gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
+        gVideoItems={gVideoItems}
       />
-      <NavTimeline gTimingData={gTimingData} gVideoItems={gVideoItems} />
-      <AVPanels gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond} />
     </div>
   );
 }

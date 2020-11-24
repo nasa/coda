@@ -19,6 +19,7 @@
       "components/*": ["./components/*"],
       "public/*": ["./public/*"],
       "services/*": ["./services/*"],
+      "store/*": ["./store/*"],
       "utils/*": ["./utils/*"],
     },
     "resolveJsonModule": true,
