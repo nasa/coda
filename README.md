@@ -92,7 +92,7 @@ We control when and how NextJS pre-renders pages with magic functions in our pag
 
 Note that this means we have server-side and client-side code living in the same files! We have to be especially careful about what APIs we use because of incompatibilities between the Node (server) environment and the browser environment. Wherever relevant in this repo, we mark code that can only be run in a specific environment.
 
-#### Pages vs Components
+### Pages vs Components
 
 A page represents a unique route on the website. In this repo, the code in a page file should be unique to that page. For example, we define the specific data sources for pre-populating that page. We may also define a new `<head>` to alter things like the `<title>`.
 
@@ -105,6 +105,19 @@ Components are free to import and use subcomponents as much as possible. It's a 
 #### Create a New Component
 
 Components are stored in `components/`. Their filenames generally correspond to the default export of each file. But it's totally acceptable for a file in `components/` to export multiple components if there is a logical connection between them.
+
+### Local Variables and Global State
+
+- [Documentation on hooks](https://reactjs.org/docs/hooks-intro.html)
+- [Documentation on useContext hook](https://reactjs.org/docs/hooks-reference.html#usecontext)
+- [Documentation on useReducer hook](https://reactjs.org/docs/hooks-reference.html#usereducer)
+- [Our general strategy for global state](https://reactjs.org/docs/hooks-faq.html#how-to-avoid-passing-callbacks-down)
+
+The repo uses React function components, which means we're defining chunks of the UI (ie, the DOM) as functions that take arguments and return HTML. In React, those arguments are called `props`. These components are generally "pure" functions that deterministically return HTML based only on the `props` passed to them.
+
+However, we also have a global state, or `store`, that can be accessed by any page or component. Generally, you want to minimize the use of the store, but it can come in handy. One instance where you may want to use the store is when a user clicks in the navigation timeline. The video players are not children of the navigation timeline, so you need another way tell the video players to jump to the time the user just selected. Broadly, the two approaches you could take are either passing a value up and down the tree of components, or having a separate global state both components can access. For the former, you could create a variable at the parent element to both the navigation timeline and the video player, and when a user picks a time, you tell the parent element to update the time in both the navigation timeline and video player. React gives you a few ways to do this, but it can get cumbersome passing a lot of values up and down the tree of components. For the latter, React provides a method that takes advantage of a new API called "hooks". This is what we're using. We use a `context` hook, which is a [higher order component](https://reactjs.org/docs/higher-order-components.html) for accessing data anywhere in your application, and a `reducer` hook, for getting and setting values in the store.
+
+Basically, you can wrap any component you want to be able to access the store in a context, and that gives it the ability to get and set values from the store. As soon as one component changes a value in the store, all other components will see the change and can react accordingly. The setup for this logic lives in `store/`.
 
 ## API Info
 
