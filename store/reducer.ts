@@ -1,5 +1,20 @@
-export const initialState = {
-  currentVideoIDs: {},
+export type VideoPlayerState = {
+  playerID: number;
+  videoSource: number;
+};
+
+/**
+ * The default state when the application first loads
+ */
+export const initialState: {
+  currentVideos:
+    | {
+        [key: number]: VideoPlayerState;
+      }
+    | {};
+  currentPlayhead: number;
+} = {
+  currentVideos: {},
   currentPlayhead: 0,
 };
 
@@ -7,13 +22,14 @@ export const initialState = {
  * Clearinghouse for changing and sharing the global state
  */
 export default function reducer(state, action) {
-  // console.log(state, action);
   switch (action.type) {
     case "update_video":
       // change one of the currently playing videos
-      const currentVideoIDs = state.currentVideoIDs;
-      currentVideoIDs[action.payload.playerID] = action.payload.videoID;
-      return Object.assign({}, state, { currentVideoIDs });
+      const currentVideos = state.currentVideos;
+      currentVideos[action.payload.playerID] = action.payload.videoID;
+      return Object.assign({}, state, { currentVideos });
+    case "jump_to_time":
+      return Object.assign({}, state, { currentPlayhead: action.payload });
     default:
       throw new Error();
   }
