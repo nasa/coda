@@ -5,6 +5,9 @@ import AVPanels from "components/av-panels";
 import reducer, { initialState } from "store/reducer";
 import { TimeSyncDispatch, TimeSyncState } from "store/contexts";
 
+/**
+ * Renders the main CODA application layout
+ */
 export default function Main({
   selectedEVA,
   allEVAs,

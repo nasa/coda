@@ -12,6 +12,9 @@ const gVideoActivity = {
 const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
+/**
+ * Renders the navigation timeline presented at the top of the CODA window
+ */
 function NavTimeline({ gTimingData, gVideoItems }) {
   const {
     query: { gmt = null, pet = null },

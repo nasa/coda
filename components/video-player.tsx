@@ -1,98 +1,85 @@
-import React from "react";
+import { createRef, useContext } from "react";
+import { TimeSyncDispatch, TimeSyncState } from "store/contexts";
 
 const gCurrMissionTimeSeconds = 0;
 // TODO remove
 const gSelectedVidGroup = {};
 const gSelectedVideoStartTimeSeconds = {};
 
+/**
+ * Renders an individual video including the video group picker
+ */
 function VideoPlayer({
   id,
   gVideoActivityByGroupBySecond,
   gVideoItems,
   selectedSource,
 }) {
-  const player = React.createRef();
+  const dispatch = useContext(TimeSyncDispatch);
+  const { currentVideos } = useContext(TimeSyncState);
 
-  const loadVideo = (playerNum, group, second) => {
-    gSelectedVidGroup[playerNum] = group;
+  const vidIndex = currentVideos[id];
+
+  const player = createRef();
+  const source = createRef();
+
+  // default video info
+  let videoURL = "https://coda-dev.fit.nasa.gov/CODA_data/novid.mp4";
+  let downlinkDisplay = "No video available";
+  let vidInfo = "";
+
+  gSelectedVidGroup[id] = currentVideos[id].videoSource;
+
+  const loadVideo = () => {
     setVidButtonHighlights(gCurrMissionTimeSeconds);
 
-    var checkSourceExists = document.getElementById(
-      "player" + playerNum + "source"
-    );
-    if (!checkSourceExists) {
-      var source = document.createElement("source");
-      source.setAttribute("id", "player" + playerNum + "source");
-      player.appendChild(source);
+    const vidIndex = gVideoActivityByGroupBySecond[group][second];
+    if (vidIndex >= 0) {
+      videoURL = gVideoItems[vidIndex].videoUrl;
     } else {
-      source = document.getElementById("player" + playerNum + "source");
+      console.log(player);
+      player.current.muted = true;
     }
 
-    var vidIndex = gVideoActivityByGroupBySecond[group][second];
-
-    //get video metadata
-    if (vidIndex === -1) {
-      var videoUrl = "/CODA_data/novid.mp4";
-      if (location.hostname === "localhost") {
-        videoUrl = "https://coda-dev.fit.nasa.gov" + videoUrl;
-      }
-    } else {
-      videoUrl = gVideoItems[vidIndex].videoUrl;
-      //dev mod
-      if (location.hostname === "coda-iss.develop") {
-        // use dev video location, otherwise use the stated IO URL
-        var tempArray = videoUrl.split("/");
-        var filename = tempArray[tempArray.length - 1];
-        videoUrl = "/CODA_data/US_EVA_55/video/" + filename;
-      }
-    }
-    if ($("#player" + playerNum + " source").attr("src") !== videoUrl) {
-      source.setAttribute("src", videoUrl);
-      player.load();
-    }
-
-    var downlinkDisplay = "D/L " + (group + 1).toString();
-    if (vidIndex === -1) {
-      player.muted = true;
-    } else if (gVideoItems[vidIndex].className === "downlink-LOS") {
+    downlinkDisplay = `D/L ${group + 1}`;
+    if (
+      gVideoItems[vidIndex] &&
+      gVideoItems[vidIndex].className === "downlink-LOS"
+    ) {
       downlinkDisplay += " (LOS)";
-      player.muted = true;
+      player.current.muted = true;
     } else {
-      player.muted = false;
+      player.current.muted = false;
     }
-    if (playerNum === 1)
-      //always mute player1
-      player.muted = true;
 
-    player.muted = true;
+    //always mute player1
+    if (playerNum === 1) {
+      player.current.muted = true;
+    }
 
     if (vidIndex === -1) {
-      document.getElementById("vidTitle" + playerNum).innerHTML =
-        downlinkDisplay + " | No video available.";
-      document.getElementById("vidInfo" + playerNum).innerHTML =
-        downlinkDisplay + " | No video available.";
+      downlinkDisplay = downlinkDisplay + " | No video available.";
+      vidInfo = downlinkDisplay + " | No video available.";
+      // TODO why is this here?
       gSelectedVideoStartTimeSeconds[playerNum] = gCurrMissionTimeSeconds;
     } else {
-      document.getElementById(
-        "vidTitle" + playerNum
-      ).innerHTML = downlinkDisplay;
-      document.getElementById("vidInfo" + playerNum).innerHTML =
-        downlinkDisplay +
-        " | " +
-        gVideoItems[vidIndex].content +
-        " | " +
-        gVideoItems[vidIndex].description;
-      //figure out how many seconds into video to seek to get to current mission time
+      vidInfo = `${downlinkDisplay} | ${gVideoItems[vidIndex].content} | ${gVideoItems[vidIndex].description}`;
+      // figure out how many seconds into video to seek to get to current mission time
       gSelectedVideoStartTimeSeconds[playerNum] =
         gVideoItems[vidIndex].missionSecondsStart;
     }
 
-    var secondsOffsetFromBeginningOfVideo =
+    const secondsOffsetFromBeginningOfVideo =
       gCurrMissionTimeSeconds - gSelectedVideoStartTimeSeconds[playerNum];
-    if (Math.abs(player.currentTime - secondsOffsetFromBeginningOfVideo) > 1)
-      player.currentTime = secondsOffsetFromBeginningOfVideo;
+    if (
+      Math.abs(player.current.currentTime - secondsOffsetFromBeginningOfVideo) >
+      1
+    ) {
+      player.current.currentTime = secondsOffsetFromBeginningOfVideo;
+    }
 
-    player.play();
+    player.current.load();
+    player.current.play();
   };
 
   const setVidButtonHighlights = (second) => {
@@ -200,13 +187,15 @@ function VideoPlayer({
       </div>
 
       <div id="vidTitle0" className="vidTitle">
-        vidTitle
+        {downlinkDisplay}
       </div>
       <div className="vidContainer">
-        <video ref={player} className="player" id={id} controls></video>
+        <video ref={player} className="player" id={id} controls>
+          <source src={videoURL} ref={source} />
+        </video>
         <div className="vidOverlay">
           <div id="vidInfo0" className="vidInfo">
-            vidInfo
+            {vidInfo}
           </div>
         </div>
       </div>

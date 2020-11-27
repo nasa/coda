@@ -2,6 +2,9 @@ import { useRouter } from "next/router";
 import VideoPlayer from "./video-player";
 import AudioPlayer from "./audio-player";
 
+/**
+ * Renders the part of the CODA interface that includes audio and video players and selectors
+ */
 function AVPanels({ gVideoActivityByGroupBySecond, gVideoItems }) {
   // get query parameters asking for specific video sources
   // see https://nextjs.org/docs/routing/dynamic-routes

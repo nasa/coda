@@ -1,5 +1,8 @@
 import { useRouter } from "next/router";
 
+/**
+ * Renders the top bar of CODA
+ */
 function Header({ selectedEVA, allEVAs, gEVADetails }) {
   const router = useRouter();
 

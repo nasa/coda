@@ -28,6 +28,9 @@ const buttons = [
   },
 ];
 
+/**
+ * Renders an audio channel selector and plays the audio
+ */
 function AudioPlayer() {
   const channelButton = (id: number, name: string) => (
     <button
