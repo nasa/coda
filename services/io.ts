@@ -3,6 +3,65 @@ SERVER ONLY methods for fetching from IO. Only use this code within `getStaticPr
 */
 import fetch from "node-fetch";
 
+/** Represents a single video search result from IO. A lot of the  */
+type Doc = {
+  audio_file_restricted: 0 | 1;
+  hh: 0 | 1;
+  duration_seconds: number;
+  on_public_site: number;
+  tw: number;
+  md_online_01: number;
+  on_flickr: 0 | 1;
+  lw: number;
+  hw: number;
+  /** Title of the EVA, eg. `EVA 55` */
+  md_title: string;
+  description: string;
+  md_orbit_ground: number;
+  has_audio_file: 0 | 1;
+  asset_type: number;
+  file_extension_video: string;
+  /** eg. `iss060m532` */
+  nasa_prefix: string;
+  /**
+   * eg. `iss060m532331624`. There is an exception for video recorded during LOS
+   * Breakdown:
+   * iss  = ISS video
+   * 053  = Expedition 53
+   * m    = moving imagery e.g. video
+   * 53   = Downlink 3, downlinked after an LOS. Realtime downlink would be 03
+   * 278  = GMT day 278
+   * 1939 = Actual start time of the video
+   *
+   * Note that 19:39 is the actual GMT start time of this video for a non-realtime
+   * downlink. The "Start GMT" listed in IO is wrong, stating GMT 0600.
+   * */
+  nasa_id: string;
+  /** eg. `/photos/vrps/12674` */
+  webpath: string;
+  id: number;
+  metadata_template: number;
+  /** The suffix is found at the end of .nasa_id, eg. `331624` */
+  nasa_suffix: number;
+  /** eg. `jpg` - just the extension, no leading dot */
+  file_extension_lores: string;
+  /** eg. `["P2344036/ISS Missions|ISS-060|Video|US Downlink|Channel 03"]` */
+  collections_string: string[];
+  avg_rating: number;
+  collections: number[];
+  file_extension_thum: string;
+  /** UTC eg. `2019-08-21T14:47:22Z` */
+  date_added: string;
+  flickr_photo_id: number;
+  th: number;
+  collections_list: number[];
+  /** UTC eg. `2019-08-21T17:11:12Z` */
+  md_creation_date: string;
+  lh: number;
+  md_interior_exterior: number;
+  _version_: number;
+};
+
 function getIO(params: string) {
   const url = `${process.env.IO_API_URL}&${params}`;
   const options = {
@@ -59,7 +118,6 @@ function parseIOResponse(res) {
   const gVideoItems = [];
   const output = "";
   let gTimingData = {};
-  let className;
   let beyondSixGroupId;
   let nonDownlinkGroupId;
   let earliestStart;
@@ -75,118 +133,30 @@ function parseIOResponse(res) {
     { id: 6, content: "Non-Downlink", value: 7 },
   ];
 
-  let content;
-
   for (let i = 0; i < docs.length; i++) {
-    const d = docs[i];
-
-    let group;
-    const channel = getChannel(d.collections_string);
-
-    if (channel) {
-      if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
-        className = "downlink-" + channel;
-        group = parseInt(channel) - 1;
-      }
-    } else {
-      className = "non-downlink-video";
-      let content = "Non-Downlink: " + d.md_title;
-      group = 6;
-    }
-
-    if (!d.duration_seconds) {
-      d.duration_seconds = 0;
-    }
-    d.duration_ms = d.duration_seconds * 1000;
-
-    // Create array of date elements from creation date
-    var dateArr = d.md_creation_date
-      .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/) // regex match for the date
-      .slice(1) // remove the first item (the full matched string)
-      .map(function (n) {
-        return parseInt(n);
-      }); // for each element, convert to integer
-
-    //********** EXCEPTION for video recorded during LOS
-    // NASA IDs are like iss053m532781939
-    // Breakdown:
-    // iss  = ISS video
-    // 053  = Expedition 53
-    // m    = moving imagery e.g. video
-    // 53   = Downlink 3, downlinked after an LOS. Realtime downlink would be 03
-    // 278  = GMT day 278
-    // 1939 = Actual start time of the video
-    //
-    // Note that 19:39 is the actual GMT start time of this video for a non-realtime
-    // downlink. The "Start GMT" listed in IO is wrong, stating GMT 0600.
-    const id_metadata = d.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
-    if (id_metadata && id_metadata[1] === "5") {
-      dateArr[3] = id_metadata[3];
-      dateArr[4] = id_metadata[4];
-      dateArr[5] = "00";
-      className = "downlink-LOS";
-    }
-
-    // create date object. Note, month is 0-11 in javascript.
-    const UTCstartMilliseconds = Date.UTC(
-      dateArr[0],
-      dateArr[1] - 1,
-      dateArr[2],
-      dateArr[3],
-      dateArr[4],
-      dateArr[5]
-    );
-    const UTCstart = new Date(UTCstartMilliseconds),
-      UTCend = new Date(UTCstartMilliseconds + d.duration_ms);
-    const dateString = function (a) {
-      return a.toJSON().slice(0, 10) + " " + a.toJSON().slice(11, 19);
-      // return a.getUTCFullYear() + '-' + a.getUTCMonth() + '-' + a.getUTCDate()
-      // + ' ' + a.getUTCHours() + ':' + a.getUTCMinutes() + ':' + a.getUTCSeconds();
-    };
+    const doc = docs[i];
+    const metadata = pullVideoMetadata(doc);
+    gVideoItems.push({
+      id: i + 1,
+      ...metadata,
+    });
 
     if (
       !gTimingData["video_earliestStart"] ||
-      UTCstart.getTime() < gTimingData["video_earliestStart"].getTime()
+      metadata.start.getTime() < gTimingData["video_earliestStart"].getTime()
     ) {
-      gTimingData["video_earliestStart"] = new Date(UTCstart.toUTCString());
+      gTimingData["video_earliestStart"] = new Date(
+        metadata.start.toUTCString()
+      );
     }
     if (
       !gTimingData["video_latestEnd"] ||
-      UTCend.getTime() > gTimingData["video_latestEnd"].getTime()
+      metadata.end.getTime() > gTimingData["video_latestEnd"].getTime()
     ) {
-      gTimingData["video_latestEnd"] = new Date(UTCend.toUTCString());
+      gTimingData["video_latestEnd"] = new Date(metadata.end.toUTCString());
     }
-
-    var url = process.env.HOST_IO + "/app/info.cfm?pid=" + d.id;
-
-    var videoUrl =
-      process.env.HOST_IO +
-      d.webpath +
-      "/video/" +
-      d.nasa_id +
-      "." +
-      d.file_extension_video;
-
-    if (className === "downlink-LOS") {
-      var priority = 0;
-    } else {
-      priority = 1;
-    }
-
-    gVideoItems.push({
-      id: i + 1,
-      content,
-      description: d.description,
-      start: UTCstart,
-      end: UTCend,
-      url: url,
-      videoUrl: videoUrl,
-      className: className,
-      priority: priority,
-      md_creation_date: d.md_creation_date,
-      group: group,
-    });
   }
+
   gTimingData["EVA_duration_seconds"] =
     (gTimingData["video_latestEnd"] - gTimingData["video_earliestStart"]) /
     1000;
@@ -219,6 +189,109 @@ function parseIOResponse(res) {
   );
 
   return { gTimingData, gVideoActivityByGroupBySecond, gVideoItems };
+}
+
+function pullVideoMetadata(
+  doc: Doc
+): {
+  content: string;
+  description: string;
+  start: Date;
+  end: Date;
+  url: string;
+  videoUrl: string;
+  className: string;
+  priority: number;
+  md_creation_date: string;
+  group: number;
+} {
+  let className = "";
+  let content;
+  let group;
+
+  const channel = getChannel(doc.collections_string);
+
+  if (channel) {
+    if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
+      className = "downlink-" + channel;
+      group = parseInt(channel) - 1;
+    }
+  } else {
+    className = "non-downlink-video";
+    let content = "Non-Downlink: " + doc.md_title;
+    group = 6;
+  }
+
+  if (!doc.duration_seconds) {
+    doc.duration_seconds = 0;
+  }
+  const duration_ms = doc.duration_seconds * 1000;
+
+  // Create array of date elements from creation date
+  var dateArr = doc.md_creation_date
+    // regex match for the date
+    .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
+    // remove the first item (the full matched string)
+    .slice(1)
+    .map(function (n) {
+      return parseInt(n);
+    });
+
+  // trust the nasa_id over the md_creation_date
+  const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
+  if (id_metadata && id_metadata[1] === "5") {
+    dateArr[3] = +id_metadata[3];
+    dateArr[4] = +id_metadata[4];
+    dateArr[5] = 0;
+    className = "downlink-LOS";
+  }
+
+  // create date object. Note, month is 0-11 in javascript.
+  const UTCstartMilliseconds = Date.UTC(
+    dateArr[0],
+    dateArr[1] - 1,
+    dateArr[2],
+    dateArr[3],
+    dateArr[4],
+    dateArr[5]
+  );
+  const UTCstart = new Date(UTCstartMilliseconds),
+    UTCend = new Date(UTCstartMilliseconds + duration_ms);
+  const dateString = function (a) {
+    return a.toJSON().slice(0, 10) + " " + a.toJSON().slice(11, 19);
+    // return a.getUTCFullYear() + '-' + a.getUTCMonth() + '-' + a.getUTCDate()
+    // + ' ' + a.getUTCHours() + ':' + a.getUTCMinutes() + ':' + a.getUTCSeconds();
+  };
+
+  var url = `${process.env.HOST_IO}/app/info.cfm?pid=${doc.id}`;
+
+  const videoUrl =
+    process.env.HOST_IO +
+    doc.webpath +
+    "/video/" +
+    doc.nasa_id +
+    "." +
+    doc.file_extension_video;
+
+  let priority = 0;
+  if (className === "downlink-LOS") {
+    priority = 0;
+  } else {
+    priority = 1;
+  }
+
+  return {
+    content,
+    description: doc.description,
+    start: UTCstart,
+    end: UTCend,
+    url: url,
+    videoUrl: videoUrl,
+    className: className,
+    priority: priority,
+    md_creation_date: doc.md_creation_date,
+    group: group,
+  };
 }
 
 function createMissionVideoActivity(gTimingData, gVideoItems) {
