@@ -298,7 +298,10 @@ function parseResultMetadata(doc: Doc, i: number): VideoItem {
 }
 
 /** Identify what videos are active at every second */
-function createMissionVideoActivity(gTimingData, gVideoItems): VideoActivity {
+function createMissionVideoActivity(
+  gTimingData: TimingData,
+  gVideoItems: VideoItem[]
+): VideoActivity {
   const gVideoActivityByGroupBySecond: number[][][] = [];
   for (let group = 0; group <= 6; group++) {
     const groupSecondsArray: number[][] = [];
