@@ -65,6 +65,7 @@ If you're trying to debug something, here's a good general rule of thumb about w
 - `next-env.d.ts` - TypeScript definition file for NextJS. No need to touch
 - `next.config.js` - defines custom environment variables for our application
 - `tsconfig.json` - defines the TypeScript environment. It's managed by NextJS but it can be adjusted when necessary
+- `jest.config.js`, `jest.setup.js`, `tsconfig.jest.json` - setup the testing environment
 
 ### Running a Server
 
