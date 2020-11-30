@@ -1,9 +1,25 @@
 /*
-SERVER ONLY methods for fetching from IO. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+SERVER ONLY methods for fetching from Imagery Online (IO). Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
 import fetch from "node-fetch";
 
-/** Represents a single video search result from IO. A lot of the  */
+/**
+ * Response from a search on Imagery Online
+ */
+type IOResponse = {
+  results: {
+    responseheader: any;
+    facet_counts: any;
+    response: {
+      start: number;
+      /** Info about videos from the search */
+      docs: Doc[];
+      numfound: number;
+    };
+  };
+};
+
+/** Represents a single video search result from IO */
 type Doc = {
   audio_file_restricted: 0 | 1;
   hh: 0 | 1;
@@ -112,7 +128,7 @@ export default async function getVideoData(
     .then(parseIOResponse);
 }
 
-function parseIOResponse(res) {
+function parseIOResponse(res: IOResponse) {
   const { docs } = res.results.response;
 
   const gVideoItems = [];
