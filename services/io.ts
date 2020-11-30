@@ -79,6 +79,12 @@ type Doc = {
   _version_: number;
 };
 
+type ParsedIOData = {
+  gVideoItems: VideoItem[];
+  gTimingData: TimingData;
+  gVideoActivityByGroupBySecond: VideoActivity;
+};
+
 /** Parsed metadata from an IO video result */
 type VideoItem = {
   id: number;
@@ -96,6 +102,25 @@ type VideoItem = {
   missionSecondsStart?: number;
   missionSecondsEnd?: number;
 };
+
+/** High level information about the start and end of videos for an EVA */
+type TimingData = {
+  video_earliestStart: Date;
+  video_latestEnd: Date;
+  EVA_duration_seconds: number;
+};
+
+/**
+ * Nested as:
+ *
+ * ```md
+ *    [ every second
+ *      [ every group
+ *          [ ID of every video that's playing ]
+ *      ]
+ *    ]
+ * ``` */
+type VideoActivity = number[][][];
 
 function getIO(params: string) {
   const url = `${process.env.IO_API_URL}&${params}`;
@@ -122,7 +147,7 @@ export default async function getVideoData(
   year: number,
   month: number,
   day: number
-): Promise<any> {
+): Promise<ParsedIOData> {
   const rangeStartYear = year;
   const rangeStartMonth = month;
   const rangeStartDay = day;
@@ -130,9 +155,8 @@ export default async function getVideoData(
   const rangeEndMonth = month;
   const rangeEndDay = day;
 
-  const rangeStartIO =
-    rangeStartMonth + "-" + rangeStartDay + "-" + rangeStartYear;
-  const rangeEndIO = rangeEndMonth + "-" + rangeEndDay + "-" + rangeEndYear;
+  const rangeStartIO = `${rangeStartMonth}-${rangeStartDay}-rangeStartYear`;
+  const rangeEndIO = `${rangeEndMonth}-${rangeEndDay}-${rangeEndYear}`;
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
 
@@ -145,7 +169,7 @@ function parseIOResponse(res: IOResponse) {
   const { docs } = res.results.response;
 
   const gVideoItems: VideoItem[] = [];
-  let gTimingData = {};
+  let gTimingData: TimingData;
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
@@ -170,16 +194,16 @@ function parseIOResponse(res: IOResponse) {
   }
 
   gTimingData["EVA_duration_seconds"] =
-    (gTimingData["video_latestEnd"] - gTimingData["video_earliestStart"]) /
+    (+gTimingData["video_latestEnd"] - +gTimingData["video_earliestStart"]) /
     1000;
 
   for (let i = 0; i < gVideoItems.length; i++) {
     // FYI, we're prepending a + to the dates to convert them to numbers
     // https://github.com/microsoft/TypeScript/issues/5710#issuecomment-157886246
     gVideoItems[i]["missionSecondsStart"] =
-      (+gVideoItems[i]["start"] - gTimingData["video_earliestStart"]) / 1000;
+      (+gVideoItems[i]["start"] - +gTimingData["video_earliestStart"]) / 1000;
     gVideoItems[i]["missionSecondsEnd"] =
-      (+gVideoItems[i]["end"] - gTimingData["video_earliestStart"]) / 1000;
+      (+gVideoItems[i]["end"] - +gTimingData["video_earliestStart"]) / 1000;
     gVideoItems[i]["durationSeconds"] =
       gVideoItems[i]["missionSecondsEnd"] -
       gVideoItems[i]["missionSecondsStart"];
@@ -273,17 +297,8 @@ function parseResultMetadata(doc: Doc, i: number): VideoItem {
   };
 }
 
-/** Identify what videos are active at every second. Nested as:
- *
- * ```md
- *    [ every second
- *      [ every group
- *          [ ID of every video that's playing ]
- *      ]
- *    ]
- * ```
- * */
-function createMissionVideoActivity(gTimingData, gVideoItems): number[][][] {
+/** Identify what videos are active at every second */
+function createMissionVideoActivity(gTimingData, gVideoItems): VideoActivity {
   const gVideoActivityByGroupBySecond: number[][][] = [];
   for (let group = 0; group <= 6; group++) {
     const groupSecondsArray: number[][] = [];

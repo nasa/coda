@@ -127,15 +127,20 @@ export const getStaticProps: GetServerSideProps = async ({
   };
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that this data is being fetched on the server and then sent to the client as a big JSON payload
-  gTimingData["video_earliestStart"] = gTimingData[
-    "video_earliestStart"
-  ].toUTCString();
-  gTimingData["video_latestEnd"] = gTimingData["video_latestEnd"].toUTCString();
-  gVideoItems.forEach((vid) => {
-    vid["start"] = vid["start"].toUTCString();
-    vid["end"] = vid["end"].toUTCString();
-    vid["content"] = vid["content"] || "";
-    vid["description"] = vid["description"] || "";
+  const jsonifiedTimingData = {
+    EVA_duration_seconds: gTimingData.EVA_duration_seconds,
+    video_earliestStart: gTimingData.video_earliestStart.toUTCString(),
+    video_latestEnd: gTimingData.video_latestEnd.toUTCString(),
+  };
+  const jsonifiedVideoItems = gVideoItems.map((vid) => {
+    return {
+      ...vid,
+      // overwrite the old start and end Date objects with strings
+      ...{
+        start: vid.start.toUTCString(),
+        end: vid.end.toUTCString(),
+      },
+    };
   });
 
   return {
@@ -144,10 +149,9 @@ export const getStaticProps: GetServerSideProps = async ({
       allEVAs: results,
       gEVADetails,
       gVideoActivityByGroupBySecond,
-      gTimingData,
+      gTimingData: jsonifiedTimingData,
       gVideoActivity,
-      gVideoItems,
-      // videoTimingData,
+      gVideoItems: jsonifiedVideoItems,
     },
     // regenerate the props at most once per minute if a request comes in
     revalidate: 60,
