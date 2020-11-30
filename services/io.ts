@@ -260,4 +260,5 @@ export function getChannel(collectionStrings: string[]): string {
       return chMatch[1];
     }
   }
+  return "";
 }

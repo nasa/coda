@@ -14,4 +14,15 @@ describe("getChannel()", () => {
 
     expect(getChannel(collectionString)).toEqual("03");
   });
+
+  it("should return an empty string when a channel is not available", () => {
+    const collectionString = [
+      "P0/ISS Missions",
+      "P4/ISS Missions|ISS-060",
+      "P2328011/ISS Missions|ISS-060|Video",
+      "P2342255/ISS Missions|ISS-060|Video|US Downlink",
+    ];
+
+    expect(getChannel(collectionString)).toEqual("");
+  });
 });
