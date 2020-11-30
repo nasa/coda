@@ -54,11 +54,11 @@ export default async function getVideoData(
 }
 
 function parseIOResponse(res) {
-  const gVideoItems = [];
-  let gTimingData = {};
+  const { docs } = res.results.response;
 
-  const docs = res.results.response.docs;
+  const gVideoItems = [];
   const output = "";
+  let gTimingData = {};
   let className;
   let beyondSixGroupId;
   let nonDownlinkGroupId;
@@ -72,53 +72,26 @@ function parseIOResponse(res) {
     { id: 3, content: "D/L 04", value: 4 },
     { id: 4, content: "D/L 05", value: 5 },
     { id: 5, content: "D/L 06", value: 6 },
+    { id: 6, content: "Non-Downlink", value: 7 },
   ];
 
-  let allowDownlinksBeyondSix = false;
-  let allowNonDownlinks = true;
+  let content;
 
-  if (allowDownlinksBeyondSix) {
-    beyondSixGroupId = groups.length;
-    groups.push({
-      id: beyondSixGroupId,
-      content: "Other D/L",
-      value: beyondSixGroupId + 1,
-    });
-  }
+  for (let i = 0; i < docs.length; i++) {
+    const d = docs[i];
 
-  if (allowNonDownlinks) {
-    nonDownlinkGroupId = groups.length;
-    groups.push({
-      id: nonDownlinkGroupId,
-      content: "Non-Downlink",
-      value: nonDownlinkGroupId + 1,
-    });
-  }
-
-  for (var i = 0; i < docs.length; i++) {
-    var d = docs[i];
-
-    var channel = getChannel(d.collections_string);
+    let group;
+    const channel = getChannel(d.collections_string);
 
     if (channel) {
       if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
         className = "downlink-" + channel;
-        var group = parseInt(channel) - 1;
-      } else {
-        if (!allowDownlinksBeyondSix) continue;
-        className = "downlink-other";
-        group = beyondSixGroupId;
+        group = parseInt(channel) - 1;
       }
-      var content = d.md_title;
     } else {
-      // FOR NOW, FILTERING OUT NON DOWNLINKS
-      if (!allowNonDownlinks) {
-        continue;
-      }
-
       className = "non-downlink-video";
-      content = "Non-Downlink: " + d.md_title;
-      group = nonDownlinkGroupId;
+      let content = "Non-Downlink: " + d.md_title;
+      group = 6;
     }
 
     if (!d.duration_seconds) {
@@ -202,7 +175,7 @@ function parseIOResponse(res) {
 
     gVideoItems.push({
       id: i + 1,
-      content: content,
+      content,
       description: d.description,
       start: UTCstart,
       end: UTCend,
@@ -218,7 +191,7 @@ function parseIOResponse(res) {
     (gTimingData["video_latestEnd"] - gTimingData["video_earliestStart"]) /
     1000;
 
-  for (i = 0; i < gVideoItems.length; i++) {
+  for (let i = 0; i < gVideoItems.length; i++) {
     gVideoItems[i]["missionSecondsStart"] =
       (gVideoItems[i]["start"] - gTimingData["video_earliestStart"]) / 1000;
     gVideoItems[i]["missionSecondsEnd"] =
