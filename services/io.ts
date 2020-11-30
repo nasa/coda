@@ -276,29 +276,15 @@ function createMissionVideoActivity(gTimingData, gVideoItems) {
   return gVideoActivityByGroupBySecond;
 }
 
-function getChannel(collectionStrings) {
-  let channel = null;
-
-  // loop through collections strings for each result
+/**
+ * Pull a channel from the IO response of available channels. Exported for testing purposes.
+ */
+export function getChannel(collectionStrings: string[]): string {
   for (let j = 0; j < collectionStrings.length; j++) {
     const chMatch = collectionStrings[j].match(/US Downlink\|Channel (\d+)/);
 
-    // if there is a channel match
     if (chMatch) {
-      if (Array.isArray(channel)) {
-        channel.push(chMatch[1]);
-      } else if (typeof channel === "string" || channel instanceof String) {
-        channel = [channel, chMatch[1]];
-      } else {
-        channel = chMatch[1];
-      }
+      return chMatch[1];
     }
-  }
-
-  if (Array.isArray(channel)) {
-    // console.warn( "Multiple downlink channels found" );
-    return channel[0];
-  } else {
-    return channel;
   }
 }
