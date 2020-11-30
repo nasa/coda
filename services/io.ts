@@ -19,7 +19,7 @@ type IOResponse = {
   };
 };
 
-/** Represents a single video search result from IO */
+/** Represents a single video search result as received from IO */
 type Doc = {
   audio_file_restricted: 0 | 1;
   hh: 0 | 1;
@@ -36,6 +36,7 @@ type Doc = {
   md_orbit_ground: number;
   has_audio_file: 0 | 1;
   asset_type: number;
+  /** eg. `mp4` - just the extension, no leading dot */
   file_extension_video: string;
   /** eg. `iss060m532` */
   nasa_prefix: string;
@@ -78,6 +79,24 @@ type Doc = {
   _version_: number;
 };
 
+/** Parsed metadata from an IO video result */
+type VideoItem = {
+  id: number;
+  content: string;
+  description: string;
+  start: Date;
+  end: Date;
+  url: string;
+  videoUrl: string;
+  className: string;
+  priority: number;
+  md_creation_date: string;
+  group: number;
+  durationSeconds?: number;
+  missionSecondsStart?: number;
+  missionSecondsEnd?: number;
+};
+
 function getIO(params: string) {
   const url = `${process.env.IO_API_URL}&${params}`;
   const options = {
@@ -114,12 +133,6 @@ export default async function getVideoData(
   const rangeStartIO =
     rangeStartMonth + "-" + rangeStartDay + "-" + rangeStartYear;
   const rangeEndIO = rangeEndMonth + "-" + rangeEndDay + "-" + rangeEndYear;
-  const rangeStartTimeline = new Date(
-    Date.UTC(rangeStartYear, rangeStartMonth, rangeStartDay) - 60 * 60 * 1000
-  );
-  const rangeEndTimeline = new Date(
-    Date.UTC(rangeEndYear, rangeEndMonth, rangeEndDay) + 6 * 60 * 60 * 1000
-  );
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
 
@@ -131,32 +144,15 @@ export default async function getVideoData(
 function parseIOResponse(res: IOResponse) {
   const { docs } = res.results.response;
 
-  const gVideoItems = [];
-  const output = "";
+  const gVideoItems: VideoItem[] = [];
   let gTimingData = {};
-  let beyondSixGroupId;
-  let nonDownlinkGroupId;
-  let earliestStart;
-  let latestEnd;
-
-  const groups = [
-    { id: 0, content: "D/L 01", value: 1 },
-    { id: 1, content: "D/L 02", value: 2 },
-    { id: 2, content: "D/L 03", value: 3 },
-    { id: 3, content: "D/L 04", value: 4 },
-    { id: 4, content: "D/L 05", value: 5 },
-    { id: 5, content: "D/L 06", value: 6 },
-    { id: 6, content: "Non-Downlink", value: 7 },
-  ];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = pullVideoMetadata(doc);
-    gVideoItems.push({
-      id: i + 1,
-      ...metadata,
-    });
+    const metadata = parseResultMetadata(doc, i);
+    gVideoItems.push(metadata);
 
+    // set the bounds on the video start and end times
     if (
       !gTimingData["video_earliestStart"] ||
       metadata.start.getTime() < gTimingData["video_earliestStart"].getTime()
@@ -178,26 +174,26 @@ function parseIOResponse(res: IOResponse) {
     1000;
 
   for (let i = 0; i < gVideoItems.length; i++) {
+    // FYI, we're prepending a + to the dates to convert them to numbers
+    // https://github.com/microsoft/TypeScript/issues/5710#issuecomment-157886246
     gVideoItems[i]["missionSecondsStart"] =
-      (gVideoItems[i]["start"] - gTimingData["video_earliestStart"]) / 1000;
+      (+gVideoItems[i]["start"] - gTimingData["video_earliestStart"]) / 1000;
     gVideoItems[i]["missionSecondsEnd"] =
-      (gVideoItems[i]["end"] - gTimingData["video_earliestStart"]) / 1000;
+      (+gVideoItems[i]["end"] - gTimingData["video_earliestStart"]) / 1000;
     gVideoItems[i]["durationSeconds"] =
       gVideoItems[i]["missionSecondsEnd"] -
       gVideoItems[i]["missionSecondsStart"];
   }
 
-  gVideoItems.sort(
-    //sorts by priority first, then duration second. Counterintuitively, this array is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
-    function (a, b) {
-      return (
-        +(a.priority > b.priority) ||
-        +(a.priority === b.priority) - 1 ||
-        +(a.durationSeconds > b.durationSeconds) ||
-        +(a.durationSeconds === b.durationSeconds) - 1
-      );
-    }
-  );
+  // sorts by priority first, then duration second. Counterintuitively, this array is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
+  gVideoItems.sort(function (a: VideoItem, b: VideoItem) {
+    return (
+      +(a.priority > b.priority) ||
+      +(a.priority === b.priority) - 1 ||
+      +(a.durationSeconds > b.durationSeconds) ||
+      +(a.durationSeconds === b.durationSeconds) - 1
+    );
+  });
 
   const gVideoActivityByGroupBySecond = createMissionVideoActivity(
     gTimingData,
@@ -207,20 +203,8 @@ function parseIOResponse(res: IOResponse) {
   return { gTimingData, gVideoActivityByGroupBySecond, gVideoItems };
 }
 
-function pullVideoMetadata(
-  doc: Doc
-): {
-  content: string;
-  description: string;
-  start: Date;
-  end: Date;
-  url: string;
-  videoUrl: string;
-  className: string;
-  priority: number;
-  md_creation_date: string;
-  group: number;
-} {
+/** Parse the video result for relevant information */
+function parseResultMetadata(doc: Doc, i: number): VideoItem {
   let className = "";
   let content = "";
   let group = -1;
@@ -272,15 +256,10 @@ function pullVideoMetadata(
 
   var url = `${process.env.HOST_IO}/app/info.cfm?pid=${doc.id}`;
 
-  const videoUrl =
-    process.env.HOST_IO +
-    doc.webpath +
-    "/video/" +
-    doc.nasa_id +
-    "." +
-    doc.file_extension_video;
+  const videoUrl = `${process.env.HOST_IO}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   return {
+    id: i + 1,
     content,
     description: doc.description,
     start: UTCstart,
@@ -294,12 +273,22 @@ function pullVideoMetadata(
   };
 }
 
-function createMissionVideoActivity(gTimingData, gVideoItems) {
-  const gVideoActivityByGroupBySecond = [];
+/** Identify what videos are active at every second. Nested as:
+ *
+ * ```md
+ *    [ every second
+ *      [ every group
+ *          [ ID of every video that's playing ]
+ *      ]
+ *    ]
+ * ```
+ * */
+function createMissionVideoActivity(gTimingData, gVideoItems): number[][][] {
+  const gVideoActivityByGroupBySecond: number[][][] = [];
   for (let group = 0; group <= 6; group++) {
-    const groupSecondsArray = [];
+    const groupSecondsArray: number[][] = [];
     for (let second = 0; second < gTimingData.EVA_duration_seconds; second++) {
-      const vidsThisGroupThisSecond = [];
+      const vidsThisGroupThisSecond: number[] = [];
       for (let i = 0; i < gVideoItems.length; i++) {
         if (
           gVideoItems[i].group === group &&
