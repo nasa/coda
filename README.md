@@ -30,9 +30,15 @@ Then head over to `http://coda-iss.develop:3000`
 
 ### Run Tests
 
-TODO: write tests
+We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
 
-`npm t`
+- [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
+
+Run tests with:
+
+```sh
+npm t
+```
 
 ### How to Work with this Repo
 
