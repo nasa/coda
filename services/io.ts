@@ -222,29 +222,24 @@ function pullVideoMetadata(
   group: number;
 } {
   let className = "";
-  let content;
-  let group;
+  let content = "";
+  let group = -1;
 
   const channel = getChannel(doc.collections_string);
 
   if (channel) {
     if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
-      className = "downlink-" + channel;
+      className = `downlink-${channel}`;
       group = parseInt(channel) - 1;
     }
   } else {
     className = "non-downlink-video";
-    let content = "Non-Downlink: " + doc.md_title;
+    content = `Non-Downlink: ${doc.md_title}`;
     group = 6;
   }
 
-  if (!doc.duration_seconds) {
-    doc.duration_seconds = 0;
-  }
-  const duration_ms = doc.duration_seconds * 1000;
-
   // Create array of date elements from creation date
-  var dateArr = doc.md_creation_date
+  const dateArr = doc.md_creation_date
     // regex match for the date
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     // remove the first item (the full matched string)
@@ -271,13 +266,9 @@ function pullVideoMetadata(
     dateArr[4],
     dateArr[5]
   );
-  const UTCstart = new Date(UTCstartMilliseconds),
-    UTCend = new Date(UTCstartMilliseconds + duration_ms);
-  const dateString = function (a) {
-    return a.toJSON().slice(0, 10) + " " + a.toJSON().slice(11, 19);
-    // return a.getUTCFullYear() + '-' + a.getUTCMonth() + '-' + a.getUTCDate()
-    // + ' ' + a.getUTCHours() + ':' + a.getUTCMinutes() + ':' + a.getUTCSeconds();
-  };
+  const UTCstart = new Date(UTCstartMilliseconds);
+  const duration_ms = (doc.duration_seconds || 0) * 1000;
+  const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
   var url = `${process.env.HOST_IO}/app/info.cfm?pid=${doc.id}`;
 
@@ -289,24 +280,17 @@ function pullVideoMetadata(
     "." +
     doc.file_extension_video;
 
-  let priority = 0;
-  if (className === "downlink-LOS") {
-    priority = 0;
-  } else {
-    priority = 1;
-  }
-
   return {
     content,
     description: doc.description,
     start: UTCstart,
     end: UTCend,
-    url: url,
-    videoUrl: videoUrl,
-    className: className,
-    priority: priority,
+    url,
+    videoUrl,
+    className,
+    priority: className === "downlink-LOS" ? 0 : 1,
     md_creation_date: doc.md_creation_date,
-    group: group,
+    group,
   };
 }
 
