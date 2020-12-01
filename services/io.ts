@@ -155,7 +155,7 @@ export default async function getVideoData(
   const rangeEndMonth = month;
   const rangeEndDay = day;
 
-  const rangeStartIO = `${rangeStartMonth}-${rangeStartDay}-rangeStartYear`;
+  const rangeStartIO = `${rangeStartMonth}-${rangeStartDay}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDay}-${rangeEndYear}`;
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
