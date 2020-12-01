@@ -126,7 +126,7 @@ export const getStaticProps: GetServerSideProps = async ({
     ),
   };
 
-  // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that this data is being fetched on the server and then sent to the client as a big JSON payload
+  // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
   const jsonifiedTimingData = {
     EVA_duration_seconds: gTimingData.EVA_duration_seconds,
     video_earliestStart: gTimingData.video_earliestStart.toUTCString(),
