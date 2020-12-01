@@ -1,7 +1,7 @@
 /*
 SERVER ONLY methods for fetching from Imagery Online (IO). Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
 
 /**
  * Response from a search on Imagery Online
@@ -122,7 +122,7 @@ type TimingData = {
  * ``` */
 type VideoActivity = number[][][];
 
-function getIO(params: string) {
+async function getIO(params: string): Promise<IOResponse> {
   const url = `${process.env.IO_API_URL}&${params}`;
   const options = {
     headers: {
@@ -137,7 +137,14 @@ function getIO(params: string) {
       "X-SKIP-SAML": "True",
     },
   };
-  return fetch(url, options);
+
+  let res: Response;
+  try {
+    res = await fetch(url, options);
+  } catch (e) {
+    throw e;
+  }
+  return res.json();
 }
 
 /**
@@ -160,9 +167,8 @@ export default async function getVideoData(
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
 
-  return getIO(queryParams)
-    .then((res) => res.json())
-    .then(parseIOResponse);
+  const res = await getIO(queryParams);
+  return parseIOResponse(res);
 }
 
 function parseIOResponse(res: IOResponse) {
