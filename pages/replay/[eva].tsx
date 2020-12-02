@@ -63,8 +63,7 @@ function Replay({
  */
 export const getStaticPaths: GetStaticPaths = async () => {
   // find out which EVAs are available
-  const res = await getEVAs();
-  const results = res["query"]["results"];
+  const results = await getEVAs();
 
   let evas = Object.keys(results).map((k) => k.replace(/ /g, "_"));
   // allow lowercase URLs to work too
@@ -89,9 +88,9 @@ export const getStaticProps: GetServerSideProps = async ({
   params: { eva },
 }) => {
   const evaName: string = eva as string;
+  console.log(evaName);
   // all EVA data from the wiki
-  const res = await getEVAs();
-  const results = res["query"]["results"];
+  const results = await getEVAs();
 
   // video data for this EVA
   const {
@@ -135,6 +134,7 @@ export const getStaticProps: GetServerSideProps = async ({
   const jsonifiedVideoItems = gVideoItems.map((vid) => {
     return {
       ...vid,
+      description: vid.description || "",
       // overwrite the old start and end Date objects with strings
       ...{
         start: vid.start.toUTCString(),

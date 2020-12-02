@@ -1,5 +1,4 @@
-import '../styles.css'
-import VideosContext from '../contexts/videos';
+import '../styles.css';
 
 // Enable API mocking locally
 // https://github.com/vercel/next.js/tree/canary/examples/with-msw

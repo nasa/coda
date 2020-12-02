@@ -30,7 +30,7 @@ type Doc = {
   on_flickr: 0 | 1;
   lw: number;
   hw: number;
-  /** Title of the EVA, eg. `EVA 55` */
+  /** Title of the EVA, eg. `US EVA 55` */
   md_title: string;
   description: string;
   md_orbit_ground: number;
@@ -104,11 +104,11 @@ type VideoItem = {
 };
 
 /** High level information about the start and end of videos for an EVA */
-type TimingData = {
+export interface TimingData {
   video_earliestStart: Date;
   video_latestEnd: Date;
   EVA_duration_seconds: number;
-};
+}
 
 /**
  * Nested as:
@@ -122,7 +122,8 @@ type TimingData = {
  * ``` */
 type VideoActivity = number[][][];
 
-async function getIO(params: string): Promise<IOResponse> {
+/** Perform a request against IO with the given parameters */
+async function fetchIO(params: string): Promise<IOResponse> {
   const url = `${process.env.IO_API_URL}&${params}`;
   const options = {
     headers: {
@@ -167,7 +168,7 @@ export default async function getVideoData(
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
 
-  const res = await getIO(queryParams);
+  const res = await fetchIO(queryParams);
   return parseIOResponse(res);
 }
 
@@ -175,7 +176,11 @@ function parseIOResponse(res: IOResponse) {
   const { docs } = res.results.response;
 
   const gVideoItems: VideoItem[] = [];
-  let gTimingData: TimingData;
+  let gTimingData: TimingData = {
+    video_earliestStart: null,
+    video_latestEnd: null,
+    EVA_duration_seconds: -1,
+  };
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
