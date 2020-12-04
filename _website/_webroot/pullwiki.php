@@ -13,12 +13,13 @@ header('Content-Type: application/json');
 //$wikijsonobject = json_decode($wikijson);
 
 $action = htmlspecialchars($_GET["action"]);
-$evaName = htmlspecialchars($_GET["evaName"]);
 if ($action == 'getEVAs') {
     $parameters = '"[[~US EVA*]] [[EVA Classification::Scheduled or Historical]] |?EVA title |? Start date |? Start time |sort=Start date |format = json"';
 } elseif ($action == 'getCrew') {
+    $evaName = htmlspecialchars($_GET["evaName"]);
     $parameters = '"[[Crew involved with subject::+]] [[From page::' . $evaName . ']] |? Has full name |? Has role |? Has EMU Page  |format = json"';
 } elseif ($action == 'getEVADetails') {
+    $evaName = htmlspecialchars($_GET["evaName"]);
     $parameters = '"[[' . $evaName . ']] |? EVA title |? Start date |? Start time |? Duration |format = json"';
 } elseif ($action == 'getEVADetailsByDate') {
     $evaDate = htmlspecialchars($_GET["evaDate"]);
@@ -29,6 +30,7 @@ if ($action == 'getEVAs') {
         $actorName = 'Actor2';
     elseif ($EVNum == '2')
         $actorName = 'Actor3';
+    $evaName = htmlspecialchars($_GET["evaName"]);
     $parameters = '"[[From page::~' . $evaName . '/*xecuted*]] [[Assigned to::' . $actorName . ']] |mainlabel=-|?Index |?Has text title |?Duration hour |?Duration minute |?Depends on |?Related article |?Color |?Actor |named args=yes |sort=Actor, Index |format = json"';
 }
 
