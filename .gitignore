@@ -2,3 +2,5 @@ Adobe Premiere Pro Auto-Save
 .idea
 .DS_Store
 *.iml
+.next
+node_modules
