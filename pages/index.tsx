@@ -1,24 +1,9 @@
-import { GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
-import Header from "../components/header";
-import NavTimeline from "../components/nav-timeline";
-import AVPanels from "../components/av-panels";
-import fetchVideoData from "../services/io";
+import Link from "next/link";
+import { getEVAs } from "services/iss-wiki";
 
-/**
- * Server-side call to hydrate the props
- */
-// export const getStaticProps: GetStaticProps = async (context) => {
-//   const data = await fetchVideoData(2020, 11, 13);
-//   return { props: data };
-// };
-
-// use getStaticProps to load the default EVA
-// in the NavTimeline and AVPanels, update the state to match the props
-// whenever a user changes the EVA, rerun fetchVideoData() and update the states individually
-// could changing the EVA change the path and thus rerun getStaticProps()?
-
-function Index({ data }) {
+function Index({ evas }) {
   return (
     <div>
       <Head>
@@ -52,11 +37,31 @@ function Index({ data }) {
           rel="stylesheet"
         ></link>
       </Head>
-      <Header />
-      <NavTimeline />
-      <AVPanels />
+      Welcome to CODA! Try out one of our many EVA replays.
+      <ul>
+        {evas.map((eva) => (
+          <li>
+            <Link href={`/replay/${eva.path}`}>
+              <a>{eva.name}</a>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+
+export const getStaticProps: GetServerSideProps = async () => {
+  const results = await getEVAs();
+  const evas = Object.keys(results).map((k) => ({
+    name: k,
+    path: k.replace(/ /g, "_"),
+  }));
+  return {
+    props: {
+      evas,
+    },
+  };
+};
 
 export default Index;
