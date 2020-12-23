@@ -1,9 +1,14 @@
+import moment from "moment";
+import { store } from "./index";
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 
 export interface Activation {
-  GMT: Date;
-  localTime: Date;
+  /** Whether or not the application clock should be ticking */
   go: Boolean;
+  /** ISO string */
+  localTime: string;
+  /** ISO string */
+  GMT?: string;
 }
 
 export const initialState = {
@@ -17,13 +22,22 @@ export const clockSlice = createSlice({
     /**
      * Set the current GMT of the application clock
      */
-    start: (state, action) => {
+    start: (state, action: { payload: string }) => {
       const activation: Activation = {
-        GMT: action.payload,
-        localTime: new Date(),
         go: true,
+        localTime: new Date().toISOString(),
+        // convert to Date and back to make sure it's a valid ISO string
+        GMT: new Date(action.payload).toISOString(),
       };
       state.history.push(activation);
+    },
+
+    /** Stop the application clock */
+    stop: (state, action: { payload: string }) => {
+      state.history.push({
+        go: false,
+        localTime: new Date().toISOString(),
+      });
     },
   },
 });
@@ -37,5 +51,31 @@ const historySelector = (state) => state.history;
  */
 export const currentClockSelector = createSelector(
   historySelector,
-  (history): Activation => history[history.length - 1] || null
+  (history: Activation[]): Activation => history[history.length - 1] || null
 );
+
+/**
+ * Get the current application GMT as an ISO string
+ */
+export const currentGMT = (): string => {
+  const {
+    clock: { history },
+  } = store.getState();
+
+  // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
+  let lastStopTime;
+  let lastGMT = null;
+
+  // iterate backwards to figure out the current application GMT
+  for (let h = history.length - 1; h >= 0; h--) {
+    const { go, localTime, GMT } = history[h];
+    if (go) {
+      const delta = moment(lastStopTime).diff(moment(localTime));
+      return moment(GMT).add(delta).toISOString();
+    }
+    lastStopTime = localTime;
+    lastGMT = GMT;
+  }
+  // the application must not have ever started
+  return lastGMT;
+};
