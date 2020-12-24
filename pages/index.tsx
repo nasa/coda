@@ -40,7 +40,7 @@ function Index({ evas }) {
       Welcome to CODA! Try out one of our many EVA replays.
       <ul>
         {evas.map((eva) => (
-          <li>
+          <li key={`home_page_list__${eva}`}>
             <Link href={`/replay/${eva.path}`}>
               <a>{eva.name}</a>
             </Link>
