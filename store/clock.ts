@@ -1,6 +1,9 @@
 import moment from "moment";
-import { store } from "./index";
 import { createSelector, createSlice } from "@reduxjs/toolkit";
+
+export interface ClockState {
+  history: Activation[];
+}
 
 export interface Activation {
   /** Whether or not the application clock should be ticking */
@@ -11,8 +14,8 @@ export interface Activation {
   GMT?: string;
 }
 
-export const initialState = {
-  history: [] as Activation[],
+export const initialState: ClockState = {
+  history: [],
 };
 
 export const clockSlice = createSlice({
@@ -54,28 +57,52 @@ export const currentClockSelector = createSelector(
   (history: Activation[]): Activation => history[history.length - 1] || null
 );
 
-/**
- * Get the current application GMT as an ISO string
- */
-export const currentGMT = (): string => {
-  const {
-    clock: { history },
-  } = store.getState();
+// /**
+//  * Get the current application GMT as an ISO string
+//  */
+// export const currentGMT = (): string => {
+//   const {
+//     clock: { history },
+//   } = store.getState();
 
-  // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
-  let lastStopTime;
-  let lastGMT = null;
+//   // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
+//   let lastStopTime;
+//   let lastGMT = null;
 
-  // iterate backwards to figure out the current application GMT
-  for (let h = history.length - 1; h >= 0; h--) {
-    const { go, localTime, GMT } = history[h];
-    if (go) {
-      const delta = moment(lastStopTime).diff(moment(localTime));
-      return moment(GMT).add(delta).toISOString();
-    }
-    lastStopTime = localTime;
-    lastGMT = GMT;
-  }
-  // the application must not have ever started
-  return lastGMT;
-};
+//   // iterate backwards to figure out the current application GMT
+//   for (let h = history.length - 1; h >= 0; h--) {
+//     const { go, localTime, GMT } = history[h];
+//     if (go) {
+//       const delta = moment(lastStopTime).diff(moment(localTime));
+//       return moment(GMT).add(delta).toISOString();
+//     }
+//     lastStopTime = localTime;
+//     lastGMT = GMT;
+//   }
+//   // the application must not have ever started
+//   return lastGMT;
+// };
+
+// /**
+//  * Get the current mission time in seconds
+//  */
+// export const currentMissionTimeSeconds = (): number => {
+//   const {
+//     clock: { history },
+//   } = store.getState();
+
+//   // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
+//   let lastStopTime;
+
+//   // iterate backwards to figure out the current application GMT
+//   for (let h = history.length - 1; h >= 0; h--) {
+//     const { go, localTime, GMT } = history[h];
+//     if (go) {
+//       const delta = moment(lastStopTime).diff(moment(localTime));
+//       return moment(GMT).add(delta).seconds();
+//     }
+//     lastStopTime = localTime;
+//   }
+//   // the application must not have ever started
+//   return 0;
+// };

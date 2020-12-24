@@ -1,3 +1,5 @@
+import { Provider } from "react-redux";
+import { useStore } from "store";
 import '../styles.css';
 
 // Enable API mocking locally
@@ -8,9 +10,11 @@ if (process.env.APP_ENV === 'local') {
 
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }) {
+  const store = useStore(pageProps.initialReduxState)
+
   return (
-    // <VideosContext.Provider>
+    <Provider store={store}>
       <Component {...pageProps} />
-    // </VideosContext.Provider>
+    </Provider>
   )
 }

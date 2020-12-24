@@ -66,7 +66,7 @@ interface WikiTimestamp {
 }
 
 /** Summary of an EVA in wiki query results */
-interface EVASummaryResponse {
+export interface EVASummaryResponse {
   /** Keyed by EVA title, eg `US EVA 1` */
   [key: string]: {
     printouts: {
@@ -127,7 +127,7 @@ export async function getEVADetails(evaName): Promise<ParsedEVADetails> {
   return parseDetailsObject(results);
 }
 
-interface ParsedEVADetails {
+export interface ParsedEVADetails {
   evaName: string;
   evaTitle: string;
   /** GMT HH:MM */

@@ -1,8 +1,9 @@
 import { useRouter } from "next/router";
-import { useContext } from "react";
 import paper from "paper";
+import { useSelector } from "react-redux";
+import { store } from "store";
+import { currentClockSelector } from "store/clock";
 import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
-import { TimeSyncDispatch, TimeSyncState } from "store/contexts";
 
 let gCurrMissionTimeSeconds = 0;
 const gVideoActivity = {
@@ -12,10 +13,13 @@ const gVideoActivity = {
 const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
+let interval = null;
+let renderedGMT = 0;
+
 /**
  * Renders the navigation timeline presented at the top of the CODA window
  */
-function NavTimeline({ gTimingData, gVideoItems }) {
+function NavTimeline({ gVideoItems }) {
   const {
     query: { gmt = null, pet = null },
   }: {
@@ -24,16 +28,38 @@ function NavTimeline({ gTimingData, gVideoItems }) {
       pet?: number;
     };
   } = useRouter();
+  // const state = store.getState();
+  const {
+    clock,
+    videos: { gTimingData },
+  } = useSelector((state) => state);
+  const currentClock = currentClockSelector(clock);
 
-  const dispatch = useContext(TimeSyncDispatch);
-  const state = useContext(TimeSyncState);
+  const timingData = JSON.parse(JSON.stringify(gTimingData));
 
-  // gTimingData was turned into string for JSON-ification to get passed here from the server
+  // interval = setInterval(() => {
+  //   // check for video changes
+  //   for (var i = 0; i < gSelectedVidGroup.length; i++) {
+  //     if (
+  //       gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][
+  //         gCurrMissionTimeSeconds
+  //       ] !==
+  //       gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][
+  //         gCurrMissionTimeSeconds + 1
+  //       ]
+  //     ) {
+  //       gCurrMissionTimeSeconds += 1;
+  //       loadVideo(i, gSelectedVidGroup[i], gCurrMissionTimeSeconds);
+  //     }
+  //   }
+  // }, 1000);
+
+  // timingData was turned into string for JSON-ification to get passed here from the server
   // turn the times back into Dates
-  gTimingData["video_earliestStart"] = new Date(
-    gTimingData["video_earliestStart"]
+  timingData["video_earliestStart"] = new Date(
+    timingData["video_earliestStart"]
   );
-  gTimingData["video_latestEnd"] = new Date(gTimingData["video_latestEnd"]);
+  timingData["video_latestEnd"] = new Date(timingData["video_latestEnd"]);
 
   let gTier1Group;
   let gTier1NavGroup;
@@ -99,7 +125,7 @@ function NavTimeline({ gTimingData, gVideoItems }) {
     gTier1Group.addChild(tierRectPath);
 
     //display time ticks
-    for (var i = 0; i < gTimingData["EVA_duration_seconds"]; i++) {
+    for (var i = 0; i < timingData["EVA_duration_seconds"]; i++) {
       // sillily complex thing to show time ticks on the hour
       if (
         parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
@@ -467,7 +493,7 @@ function NavTimeline({ gTimingData, gVideoItems }) {
       fontSize: 13,
       fillColor: color,
     });
-    timeText.content = secondsToZuluString(seconds, gTimingData);
+    timeText.content = secondsToZuluString(seconds, timingData);
     timeText.point = new paper.Point(
       cursorLocX - timeText.bounds.width / 2,
       tierBottom - 6
@@ -500,13 +526,13 @@ function NavTimeline({ gTimingData, gVideoItems }) {
     gTier2Height = 100;
 
     gTier1PixelsPerSecond =
-      gNavigatorWidth / gTimingData["EVA_duration_seconds"];
+      gNavigatorWidth / timingData["EVA_duration_seconds"];
     gTier1SecondsPerPixel =
-      gTimingData["EVA_duration_seconds"] / gNavigatorWidth;
+      timingData["EVA_duration_seconds"] / gNavigatorWidth;
     gTier2PixelsPerSecond =
-      gNavigatorWidth / (gTimingData["EVA_duration_seconds"] / gNavZoomFactor);
+      gNavigatorWidth / (timingData["EVA_duration_seconds"] / gNavZoomFactor);
     gTier2SecondsPerPixel =
-      gTimingData["EVA_duration_seconds"] / gNavZoomFactor / gNavigatorWidth;
+      timingData["EVA_duration_seconds"] / gNavZoomFactor / gNavigatorWidth;
 
     gNavigatorWidth = paper.view.size.width;
     gNavigatorHeight = paper.view.size.height;

@@ -6,11 +6,10 @@ import getVideoData from "services/io";
 
 function Replay({
   selectedEVA,
-  allEVAs,
-  gEVADetails,
-  gTimingData,
-  gVideoActivityByGroupBySecond,
-  gVideoItems,
+  initialReduxState: {
+    evas: { allEVAs, gEVADetails },
+    videos: { gVideoActivityByGroupBySecond, gVideoItems },
+  },
 }) {
   return (
     <div>
@@ -45,11 +44,11 @@ function Replay({
           rel="stylesheet"
         ></link>
       </Head>
+
       <Main
         selectedEVA={selectedEVA}
         allEVAs={allEVAs}
         gEVADetails={gEVADetails}
-        gTimingData={gTimingData}
         gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
         gVideoItems={gVideoItems}
       />
@@ -88,7 +87,6 @@ export const getStaticProps: GetServerSideProps = async ({
   params: { eva },
 }) => {
   const evaName: string = eva as string;
-  console.log(evaName);
   // all EVA data from the wiki
   const results = await getEVAs();
 
@@ -146,12 +144,18 @@ export const getStaticProps: GetServerSideProps = async ({
   return {
     props: {
       selectedEVA: eva,
-      allEVAs: results,
-      gEVADetails,
-      gVideoActivityByGroupBySecond,
-      gTimingData: jsonifiedTimingData,
-      gVideoActivity,
-      gVideoItems: jsonifiedVideoItems,
+      initialReduxState: {
+        evas: {
+          allEVAs: results,
+          gEVADetails,
+        },
+        videos: {
+          gVideoActivityByGroupBySecond,
+          gTimingData: jsonifiedTimingData,
+          gVideoActivity,
+          gVideoItems: jsonifiedVideoItems,
+        },
+      },
     },
     // regenerate the props at most once per minute if a request comes in
     revalidate: 60,

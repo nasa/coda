@@ -1,9 +1,14 @@
-import { useReducer } from "react";
+import { useDispatch } from "react-redux";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import AVPanels from "components/av-panels";
-import reducer, { initialState } from "store/reducer";
-import { TimeSyncDispatch, TimeSyncState } from "store/contexts";
+import { VideoActivity, VideoItem } from "services/io";
+import { EVASummaryResponse, ParsedEVADetails } from "services/iss-wiki";
+import { TimingData } from "services/io";
+import { store } from "store";
+import { initialize as initializeEVAs } from "store/evas";
+import { initialize as initializeVideos } from "store/videos";
+import "utils/scheduler";
 
 /**
  * Renders the main CODA application layout
@@ -12,26 +17,41 @@ export default function Main({
   selectedEVA,
   allEVAs,
   gEVADetails,
-  gTimingData,
   gVideoActivityByGroupBySecond,
   gVideoItems,
+}: {
+  selectedEVA: string;
+  allEVAs: EVASummaryResponse;
+  gEVADetails: ParsedEVADetails;
+  gVideoActivityByGroupBySecond: VideoActivity;
+  gVideoItems: VideoItem[];
 }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  // const dispatch = useDispatch();
+  // we're in a browser and the app is loading for the first time,
+  // so let's drop data in redux
+  // if (typeof window !== "undefined" && !store.getState().videos.initialized) {
+  //   dispatch(initializeEVAs({ allEVAs, gEVADetails }));
+  //   dispatch(
+  //     initializeVideos({
+  //       gVideoActivityByGroupBySecond,
+  //       gTimingData,
+  //       gVideoItems,
+  //     })
+  //   );
+  // }
 
   return (
-    <TimeSyncDispatch.Provider value={dispatch}>
-      <TimeSyncState.Provider value={state}>
-        <Header
-          selectedEVA={selectedEVA}
-          allEVAs={allEVAs}
-          gEVADetails={gEVADetails}
-        />
-        <NavTimeline gTimingData={gTimingData} gVideoItems={gVideoItems} />
-        <AVPanels
-          gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
-          gVideoItems={gVideoItems}
-        />
-      </TimeSyncState.Provider>
-    </TimeSyncDispatch.Provider>
+    <div>
+      <Header
+        selectedEVA={selectedEVA}
+        allEVAs={allEVAs}
+        gEVADetails={gEVADetails}
+      />
+      <NavTimeline gVideoItems={gVideoItems} />
+      <AVPanels
+        gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
+        gVideoItems={gVideoItems}
+      />
+    </div>
   );
 }

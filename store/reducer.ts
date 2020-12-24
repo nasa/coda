@@ -13,9 +13,11 @@ export const initialState: {
       }
     | {};
   currentPlayhead: number;
+  currentMissionTimeSeconds: number;
 } = {
   currentVideos: {},
   currentPlayhead: 0,
+  currentMissionTimeSeconds: 0,
 };
 
 /**
@@ -23,6 +25,8 @@ export const initialState: {
  */
 export default function reducer(state, action) {
   switch (action.type) {
+    case "initialize_videos":
+      return Object.assign({}, state, { currentVideos: action.payload });
     case "update_video":
       // change one of the currently playing videos
       const currentVideos = state.currentVideos;

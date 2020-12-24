@@ -86,7 +86,7 @@ type ParsedIOData = {
 };
 
 /** Parsed metadata from an IO video result */
-type VideoItem = {
+export type VideoItem = {
   id: number;
   content: string;
   description: string;
@@ -120,7 +120,7 @@ export interface TimingData {
  *      ]
  *    ]
  * ``` */
-type VideoActivity = number[][][];
+export type VideoActivity = number[][][];
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
