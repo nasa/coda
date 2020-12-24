@@ -1,10 +1,14 @@
 import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import { start } from "store/clock";
+import styles from "./header.module.css";
 
 /**
  * Renders the top bar of CODA
  */
 function Header({ selectedEVA, allEVAs, gEVADetails }) {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   /**
    * Navigate to another EVA
@@ -25,7 +29,7 @@ function Header({ selectedEVA, allEVAs, gEVADetails }) {
           CODA
         </div>
       </div>
-      <div style={{ float: "left" }}>
+      <div className={styles.floatLeft}>
         <select
           name="EVAsDropdown"
           id="EVAsDropdown"
@@ -118,18 +122,20 @@ function Header({ selectedEVA, allEVAs, gEVADetails }) {
               className="littleTopButton"
               id="goButton"
               title="Jump to Date/Time"
-              // onClick={goButtonClick}
+              // onClick={start}
             >
               GO
             </a>
-            <a
+            <button
               className="littleTopButton"
               id="shareButton"
               title="Share"
-              // onClick={shareButtonClick}
+              onClick={() =>
+                dispatch(start(new Date(1955, 11, 5).toISOString()))
+              }
             >
               Share
-            </a>
+            </button>
           </div>
         </div>
       </div>
