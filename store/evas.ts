@@ -3,12 +3,14 @@ import { EVASummaryResponse, ParsedEVADetails } from "services/iss-wiki";
 
 export interface EVAsState {
   initialized: Boolean;
+  selectedEVA: string;
   allEVAs: EVASummaryResponse;
   gEVADetails: ParsedEVADetails;
 }
 
 export const initialState: EVAsState = {
   initialized: false,
+  selectedEVA: "",
   allEVAs: null,
   gEVADetails: null,
 };

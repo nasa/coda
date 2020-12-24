@@ -1,11 +1,12 @@
 import { useRouter } from "next/router";
+import { useSelector } from "react-redux";
 import VideoPlayer from "./video-player";
 import AudioPlayer from "./audio-player";
 
 /**
  * Renders the part of the CODA interface that includes audio and video players and selectors
  */
-function AVPanels({ gVideoActivityByGroupBySecond, gVideoItems }) {
+function AVPanels() {
   // get query parameters asking for specific video sources
   // see https://nextjs.org/docs/routing/dynamic-routes
   // FYI: the syntax here is how you declare default parameters and types simultaneously for a destructured object with TS
@@ -15,6 +16,10 @@ function AVPanels({ gVideoActivityByGroupBySecond, gVideoItems }) {
   }: {
     query: { videoSource1?: string; videoSource2?: string };
   } = useRouter();
+  const {
+    clock,
+    videos: { gVideoItems, gVideoActivityByGroupBySecond },
+  } = useSelector((state) => state);
 
   return (
     <div id="panelsContainer">

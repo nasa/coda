@@ -1,14 +1,17 @@
 import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { start } from "store/clock";
 import styles from "./header.module.css";
 
 /**
  * Renders the top bar of CODA
  */
-function Header({ selectedEVA, allEVAs, gEVADetails }) {
+function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { selectedEVA, allEVAs, gEVADetails } = useSelector(
+    (state) => state.evas
+  );
 
   /**
    * Navigate to another EVA

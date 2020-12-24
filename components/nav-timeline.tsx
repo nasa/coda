@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import paper from "paper";
 import { useSelector } from "react-redux";
-import { store } from "store";
 import { currentClockSelector } from "store/clock";
 import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
 
@@ -19,7 +18,7 @@ let renderedGMT = 0;
 /**
  * Renders the navigation timeline presented at the top of the CODA window
  */
-function NavTimeline({ gVideoItems }) {
+function NavTimeline() {
   const {
     query: { gmt = null, pet = null },
   }: {
@@ -31,7 +30,7 @@ function NavTimeline({ gVideoItems }) {
   // const state = store.getState();
   const {
     clock,
-    videos: { gTimingData },
+    videos: { gTimingData, gVideoItems },
   } = useSelector((state) => state);
   const currentClock = currentClockSelector(clock);
 

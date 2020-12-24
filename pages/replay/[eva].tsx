@@ -5,17 +5,17 @@ import { getAsExecuted, getEVAs, getEVADetails } from "services/iss-wiki";
 import getVideoData from "services/io";
 
 function Replay({
-  selectedEVA,
   initialReduxState: {
-    evas: { allEVAs, gEVADetails },
-    videos: { gVideoActivityByGroupBySecond, gVideoItems },
+    evas: { gEVADetails },
   },
 }) {
   return (
     <div>
       <Head>
         <meta charSet="utf-8" />
-        <title>{process.env.TITLE}</title>
+        <title>
+          {gEVADetails.evaName} | {process.env.TITLE}
+        </title>
         <link
           rel="apple-touch-icon"
           sizes="180x180"
@@ -45,13 +45,7 @@ function Replay({
         ></link>
       </Head>
 
-      <Main
-        selectedEVA={selectedEVA}
-        allEVAs={allEVAs}
-        gEVADetails={gEVADetails}
-        gVideoActivityByGroupBySecond={gVideoActivityByGroupBySecond}
-        gVideoItems={gVideoItems}
-      />
+      <Main />
     </div>
   );
 }
@@ -143,11 +137,11 @@ export const getStaticProps: GetServerSideProps = async ({
 
   return {
     props: {
-      selectedEVA: eva,
       initialReduxState: {
         evas: {
           allEVAs: results,
           gEVADetails,
+          selectedEVA: eva,
         },
         videos: {
           gVideoActivityByGroupBySecond,
