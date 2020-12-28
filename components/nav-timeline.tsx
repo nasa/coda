@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import paper from "paper";
 import { useSelector } from "react-redux";
 import { currentClockSelector } from "store/clock";
+import { selectVideoItems, selectVideoTimingData } from "store/videos";
 import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
 
 let gCurrMissionTimeSeconds = 0;
@@ -27,38 +28,9 @@ function NavTimeline() {
       pet?: number;
     };
   } = useRouter();
-  // const state = store.getState();
-  const {
-    clock,
-    videos: { gTimingData, gVideoItems },
-  } = useSelector((state) => state);
-  const currentClock = currentClockSelector(clock);
-
-  const timingData = JSON.parse(JSON.stringify(gTimingData));
-
-  // interval = setInterval(() => {
-  //   // check for video changes
-  //   for (var i = 0; i < gSelectedVidGroup.length; i++) {
-  //     if (
-  //       gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][
-  //         gCurrMissionTimeSeconds
-  //       ] !==
-  //       gVideoActivityByGroupBySecond[gSelectedVidGroup[i]][
-  //         gCurrMissionTimeSeconds + 1
-  //       ]
-  //     ) {
-  //       gCurrMissionTimeSeconds += 1;
-  //       loadVideo(i, gSelectedVidGroup[i], gCurrMissionTimeSeconds);
-  //     }
-  //   }
-  // }, 1000);
-
-  // timingData was turned into string for JSON-ification to get passed here from the server
-  // turn the times back into Dates
-  timingData["video_earliestStart"] = new Date(
-    timingData["video_earliestStart"]
-  );
-  timingData["video_latestEnd"] = new Date(timingData["video_latestEnd"]);
+  const { clock, videos } = useSelector((state) => state);
+  const timingData = selectVideoTimingData(videos);
+  const gVideoItems = selectVideoItems(videos);
 
   let gTier1Group;
   let gTier1NavGroup;
@@ -611,7 +583,7 @@ function NavTimeline() {
     }
     // loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds);
     // loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds);
-    dispatch({ type: "update_video", payload: { videoID: 1, playerID: 1 } });
+    // dispatch({ type: "update_video", payload: { videoID: 1, playerID: 1 } });
     drawCursor(gCurrMissionTimeSeconds);
   };
 

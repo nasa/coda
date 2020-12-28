@@ -1,7 +1,12 @@
 import { GetServerSideProps, GetStaticPaths } from "next";
 import Head from "next/head";
 import Main from "components/main";
-import { getAsExecuted, getEVAs, getEVADetails } from "services/iss-wiki";
+import {
+  EVA,
+  getAsExecuted,
+  getAllEVAs,
+  getEVADetails,
+} from "services/iss-wiki";
 import getVideoData from "services/io";
 
 function Replay({
@@ -44,7 +49,6 @@ function Replay({
           rel="stylesheet"
         ></link>
       </Head>
-
       <Main />
     </div>
   );
@@ -56,7 +60,7 @@ function Replay({
  */
 export const getStaticPaths: GetStaticPaths = async () => {
   // find out which EVAs are available
-  const results = await getEVAs();
+  const results = await getAllEVAs();
 
   let evas = Object.keys(results).map((k) => k.replace(/ /g, "_"));
   // allow lowercase URLs to work too
@@ -80,18 +84,27 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetServerSideProps = async ({
   params: { eva },
 }) => {
-  const evaName: string = eva as string;
-  // all EVA data from the wiki
-  const results = await getEVAs();
+  const evaName = eva as string;
 
-  // video data for this EVA
-  const {
-    gTimingData,
-    gVideoActivityByGroupBySecond,
-    gVideoItems,
-  } = await getVideoData(1, 1, 1);
+  // all EVA data from the wiki
+  const results = await getAllEVAs();
+  const evas: { [key: string]: EVA } = {};
+  Object.keys(results).forEach((r) => {
+    evas[r] = {
+      name: results[r].printouts["EVA Title"][0],
+      wikiURL: results[r].fullurl,
+      displayTitle: results[r].displaytitle,
+      startDate: results[r].printouts["Start date"][0].raw.substring(2),
+      startTime: results[r].printouts["Start time"][0],
+      // the only thing we don't get from the initial query is the duration
+      duration: -1,
+    };
+  });
 
   const gEVADetails = await getEVADetails(evaName);
+  const [h, mm] = gEVADetails.duration.split(":");
+  evas[evaName].duration = +h * 3600 + +mm * 60;
+
   const dateArr = gEVADetails.evaDate.split(/-/).map(Number);
   const timeArr = gEVADetails.startTime.split(/:/).map(Number);
   const ActivityStartUTCMilliseconds = Date.UTC(
@@ -102,28 +115,33 @@ export const getStaticProps: GetServerSideProps = async ({
     timeArr[1]
   );
 
+  // video data for this EVA
+  // TODO: use dateArr?
+  const videos = await getVideoData(1, 1, 1);
+
   const gVideoActivity = {
     EV1: await getAsExecuted(
       evaName,
       1,
-      gTimingData,
+      // gTimingData,
       ActivityStartUTCMilliseconds
     ),
     EV2: await getAsExecuted(
       evaName,
       2,
-      gTimingData,
+      // gTimingData,
       ActivityStartUTCMilliseconds
     ),
   };
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
-  const jsonifiedTimingData = {
-    EVA_duration_seconds: gTimingData.EVA_duration_seconds,
-    video_earliestStart: gTimingData.video_earliestStart.toUTCString(),
-    video_latestEnd: gTimingData.video_latestEnd.toUTCString(),
-  };
-  const jsonifiedVideoItems = gVideoItems.map((vid) => {
+  // const jsonifiedTimingData = {
+  //   EVA_duration_seconds: gTimingData.EVA_duration_seconds,
+  //   video_earliestStart: gTimingData.video_earliestStart.toUTCString(),
+  //   video_latestEnd: gTimingData.video_latestEnd.toUTCString(),
+  // };
+  const jsonifiedVideoItems = Object.keys(videos).map((v) => {
+    const vid = videos[v];
     return {
       ...vid,
       description: vid.description || "",
@@ -144,10 +162,10 @@ export const getStaticProps: GetServerSideProps = async ({
           selectedEVA: eva,
         },
         videos: {
-          gVideoActivityByGroupBySecond,
-          gTimingData: jsonifiedTimingData,
-          gVideoActivity,
-          gVideoItems: jsonifiedVideoItems,
+          // gVideoActivityByGroupBySecond,
+          // gTimingData: jsonifiedTimingData,
+          // gVideoActivity,
+          videos: jsonifiedVideoItems,
         },
       },
     },

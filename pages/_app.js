@@ -10,7 +10,7 @@ if (process.env.APP_ENV === 'local') {
 
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }) {
-  const store = useStore(pageProps.initialReduxState)
+  const store = useStore(pageProps.initialReduxState);
 
   return (
     <Provider store={store}>

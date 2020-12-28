@@ -12,6 +12,8 @@ const initialState = {
   videos: videosInitialState,
 };
 
+// server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
+
 const initStore = (preloadedState = initialState) => {
   const store = configureStore({
     reducer: combineReducers({
@@ -48,6 +50,6 @@ export const initializeStore = (preloadedState) => {
 };
 
 export function useStore(initialState) {
-  const store = useMemo(() => initializeStore(initialState), [initialState]);
+  store = useMemo(() => initializeStore(initialState), [initialState]);
   return store;
 }

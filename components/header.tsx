@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { start } from "store/clock";
 import styles from "./header.module.css";
@@ -12,6 +13,7 @@ function Header() {
   const { selectedEVA, allEVAs, gEVADetails } = useSelector(
     (state) => state.evas
   );
+  const [evaTime, setEvaTime] = useState("00:00:00");
 
   /**
    * Navigate to another EVA
@@ -102,7 +104,7 @@ function Header() {
             <input
               type="text"
               size={10}
-              className="dateTime"
+              className={styles.dateTime}
               id="missionDate"
               name="missionDate"
               value={gEVADetails.evaDate || "2019-08-21"}
@@ -113,29 +115,31 @@ function Header() {
             <input
               type="text"
               size={8}
-              className="dateTime"
+              className={styles.dateTime}
               id="missionTime"
               name="missionTime"
-              value="00:00:00"
-              onChange={() => {}}
+              value={evaTime}
+              pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
+              onChange={(e) => setEvaTime(e.target.value)}
             />
           </div>
           <div style={{ flex: 2 }}>
             <a
-              className="littleTopButton"
+              className={styles.littleTopButton}
               id="goButton"
               title="Jump to Date/Time"
-              // onClick={start}
+              onClick={(e) => {
+                const [hh, mm, ss] = e.target.value.split(":");
+                dispatch(start(new Date(hh, mm, ss).toISOString()));
+              }}
             >
               GO
             </a>
             <button
-              className="littleTopButton"
+              className={styles.littleTopButton}
               id="shareButton"
               title="Share"
-              onClick={() =>
-                dispatch(start(new Date(1955, 11, 5).toISOString()))
-              }
+              onClick={() => {}}
             >
               Share
             </button>

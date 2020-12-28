@@ -43,12 +43,14 @@ type Doc = {
   /**
    * eg. `iss060m532331624`. There is an exception for video recorded during LOS
    * Breakdown:
+   * ```md
    * iss  = ISS video
    * 053  = Expedition 53
    * m    = moving imagery e.g. video
    * 53   = Downlink 3, downlinked after an LOS. Realtime downlink would be 03
    * 278  = GMT day 278
    * 1939 = Actual start time of the video
+   * ```
    *
    * Note that 19:39 is the actual GMT start time of this video for a non-realtime
    * downlink. The "Start GMT" listed in IO is wrong, stating GMT 0600.
@@ -79,15 +81,9 @@ type Doc = {
   _version_: number;
 };
 
-type ParsedIOData = {
-  gVideoItems: VideoItem[];
-  gTimingData: TimingData;
-  gVideoActivityByGroupBySecond: VideoActivity;
-};
-
 /** Parsed metadata from an IO video result */
 export type VideoItem = {
-  id: number;
+  id: string;
   content: string;
   description: string;
   start: Date;
@@ -103,11 +99,15 @@ export type VideoItem = {
   missionSecondsEnd?: number;
 };
 
+export interface Videos {
+  [key: string]: VideoItem;
+}
+
 /** High level information about the start and end of videos for an EVA */
 export interface TimingData {
-  video_earliestStart: Date;
-  video_latestEnd: Date;
-  EVA_duration_seconds: number;
+  video_earliestStart?: Date;
+  video_latestEnd?: Date;
+  EVA_duration_seconds?: number;
 }
 
 /**
@@ -155,7 +155,7 @@ export default async function getVideoData(
   year: number,
   month: number,
   day: number
-): Promise<ParsedIOData> {
+): Promise<Videos> {
   const rangeStartYear = year;
   const rangeStartMonth = month;
   const rangeStartDay = day;
@@ -174,8 +174,8 @@ export default async function getVideoData(
 
 function parseIOResponse(res: IOResponse) {
   const { docs } = res.results.response;
+  const videos: Videos = {};
 
-  const gVideoItems: VideoItem[] = [];
   let gTimingData: TimingData = {
     video_earliestStart: null,
     video_latestEnd: null,
@@ -185,57 +185,10 @@ function parseIOResponse(res: IOResponse) {
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
     const metadata = parseResultMetadata(doc, i);
-    gVideoItems.push(metadata);
-
-    // set the bounds on the video start and end times
-    if (
-      !gTimingData["video_earliestStart"] ||
-      metadata.start.getTime() < gTimingData["video_earliestStart"].getTime()
-    ) {
-      gTimingData["video_earliestStart"] = new Date(
-        metadata.start.toUTCString()
-      );
-    }
-    if (
-      !gTimingData["video_latestEnd"] ||
-      metadata.end.getTime() > gTimingData["video_latestEnd"].getTime()
-    ) {
-      gTimingData["video_latestEnd"] = new Date(metadata.end.toUTCString());
-    }
+    videos[metadata.id] = metadata;
   }
 
-  gTimingData["EVA_duration_seconds"] =
-    (+gTimingData["video_latestEnd"] - +gTimingData["video_earliestStart"]) /
-    1000;
-
-  for (let i = 0; i < gVideoItems.length; i++) {
-    // FYI, we're prepending a + to the dates to convert them to numbers
-    // https://github.com/microsoft/TypeScript/issues/5710#issuecomment-157886246
-    gVideoItems[i]["missionSecondsStart"] =
-      (+gVideoItems[i]["start"] - +gTimingData["video_earliestStart"]) / 1000;
-    gVideoItems[i]["missionSecondsEnd"] =
-      (+gVideoItems[i]["end"] - +gTimingData["video_earliestStart"]) / 1000;
-    gVideoItems[i]["durationSeconds"] =
-      gVideoItems[i]["missionSecondsEnd"] -
-      gVideoItems[i]["missionSecondsStart"];
-  }
-
-  // sorts by priority first, then duration second. Counterintuitively, this array is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
-  gVideoItems.sort(function (a: VideoItem, b: VideoItem) {
-    return (
-      +(a.priority > b.priority) ||
-      +(a.priority === b.priority) - 1 ||
-      +(a.durationSeconds > b.durationSeconds) ||
-      +(a.durationSeconds === b.durationSeconds) - 1
-    );
-  });
-
-  const gVideoActivityByGroupBySecond = createMissionVideoActivity(
-    gTimingData,
-    gVideoItems
-  );
-
-  return { gTimingData, gVideoActivityByGroupBySecond, gVideoItems };
+  return videos;
 }
 
 /** Parse the video result for relevant information */
@@ -294,7 +247,7 @@ function parseResultMetadata(doc: Doc, i: number): VideoItem {
   const videoUrl = `${process.env.HOST_IO}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   return {
-    id: i + 1,
+    id: doc.nasa_id,
     content,
     description: doc.description,
     start: UTCstart,
@@ -306,38 +259,6 @@ function parseResultMetadata(doc: Doc, i: number): VideoItem {
     md_creation_date: doc.md_creation_date,
     group,
   };
-}
-
-/** Identify what videos are active at every second */
-function createMissionVideoActivity(
-  gTimingData: TimingData,
-  gVideoItems: VideoItem[]
-): VideoActivity {
-  const gVideoActivityByGroupBySecond: number[][][] = [];
-  for (let group = 0; group <= 6; group++) {
-    const groupSecondsArray: number[][] = [];
-    for (let second = 0; second < gTimingData.EVA_duration_seconds; second++) {
-      const vidsThisGroupThisSecond: number[] = [];
-      for (let i = 0; i < gVideoItems.length; i++) {
-        if (
-          gVideoItems[i].group === group &&
-          second >= gVideoItems[i].missionSecondsStart &&
-          second <= gVideoItems[i].missionSecondsEnd
-        ) {
-          vidsThisGroupThisSecond.push(i);
-        }
-      }
-      let vidIndex;
-      if (vidsThisGroupThisSecond.length > 0) {
-        vidIndex = vidsThisGroupThisSecond[vidsThisGroupThisSecond.length - 1];
-      } else {
-        vidIndex = -1;
-      }
-      groupSecondsArray.push(vidIndex);
-    }
-    gVideoActivityByGroupBySecond.push(groupSecondsArray);
-  }
-  return gVideoActivityByGroupBySecond;
 }
 
 /**

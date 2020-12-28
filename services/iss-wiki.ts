@@ -4,8 +4,19 @@ SERVER ONLY methods for fetching from wiki. Only use this code within `getStatic
 TODO: CHECK THIS OUT https://www.mediawiki.org/wiki/API:Client_code#JavaScript
 */
 import fetch, { Response } from "node-fetch";
-import { TimingData } from "./io";
 import { padZeros } from "utils/formatting";
+
+export interface EVA {
+  name: string;
+  wikiURL: string;
+  displayTitle: string;
+  /** UTC */
+  startDate: string;
+  /** UTC */
+  startTime: string;
+  /** seconds */
+  duration: number;
+}
 
 interface WikiResponse {
   query: {
@@ -86,7 +97,7 @@ export interface EVASummaryResponse {
 }
 
 /** Get a summary of all EVAs on the wiki */
-export async function getEVAs(): Promise<EVASummaryResponse> {
+export async function getAllEVAs(): Promise<EVASummaryResponse> {
   // wiki query parameters
   const getEVAsQuery =
     "[[~US EVA*]] [[EVA Classification::Scheduled or Historical]] |?EVA title |? Start date |? Start time |sort=Start date |format = json";
@@ -176,7 +187,7 @@ interface EVAAsExecuted {
 export async function getAsExecuted(
   evaName: string,
   evNum: number,
-  gTimingData: TimingData,
+  // gTimingData: TimingData,
   ActivityStartUTCMilliseconds: number
 ) {
   const actorName = `Actor${evNum + 1}`;
@@ -185,25 +196,25 @@ export async function getAsExecuted(
   const queryParams = `action=ask&query=${query}`;
   const res = await fetchWiki(queryParams, `getAsExecutedEV${evNum}`);
   const results: EVAAsExecuted = res.query.results;
-  return parseAsExecuted(results, gTimingData, ActivityStartUTCMilliseconds);
+  return parseAsExecuted(results, ActivityStartUTCMilliseconds);
 }
 
 interface activity {
   content: string;
-  startTimeSeconds: number;
-  endTimeSeconds: number;
+  startTimeSeconds?: number;
+  endTimeSeconds?: number;
   color: string;
 }
 
 async function parseAsExecuted(
   results: EVAAsExecuted,
-  gTimingData: TimingData,
+  // gTimingData: TimingData,
   ActivityStartUTCMilliseconds: number
 ): Promise<activity[]> {
   const activityArray = [];
-  let thisStartTimeSeconds =
-    (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) /
-    1000;
+  // let thisStartTimeSeconds =
+  //   (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) /
+  //   1000;
 
   for (let key in results) {
     if (results.hasOwnProperty(key)) {
@@ -213,106 +224,15 @@ async function parseAsExecuted(
 
       const activityObject: activity = {
         content: results[key]["printouts"]["Has text title"][0],
-        startTimeSeconds: thisStartTimeSeconds,
-        endTimeSeconds: thisStartTimeSeconds + durationTotalSeconds,
+        // startTimeSeconds: thisStartTimeSeconds,
+        // endTimeSeconds: thisStartTimeSeconds + durationTotalSeconds,
         color: results[key]["printouts"]["Color"][0],
       };
       if (activityObject.color === "gray") activityObject.color = "grey";
 
-      thisStartTimeSeconds = thisStartTimeSeconds + durationTotalSeconds;
+      // thisStartTimeSeconds = thisStartTimeSeconds + durationTotalSeconds;
       activityArray.push(activityObject);
     }
   }
   return activityArray;
 }
-
-// function ajaxGetAudioMetadataJSON() {
-//   $.ajaxSetup({
-//     scriptCharset: "utf-8",
-//     contentType: "application/json; charset=utf-8",
-//   });
-//   var url = "/CODA_data/US_EVA_55/audio/US_EVA_55_audio_metadata.json";
-//   if (location.hostname === "localhost") {
-//     url = "https://coda-dev.fit.nasa.gov" + url;
-//   }
-//   return fetch(url, {})
-//     .then(function (resp) {
-//       gAudioMetadata = resp;
-
-//       for (var i = 0; i < gAudioMetadata.length; i++) {
-//         gAudioMetadata[i].startTimeSeconds =
-//           (new Date(gAudioMetadata[i].start_time) -
-//             gTimingData.video_earliestStart) /
-//           1000;
-//         gAudioMetadata[i].endTimeSeconds =
-//           (new Date(gAudioMetadata[i].end_time) -
-//             gTimingData.video_earliestStart) /
-//           1000;
-//       }
-//       console.log("ajaxGetAudioMetadataJSON completed.");
-//     })
-//     .catch(function (jqXHR, textStatus, errorThrown) {
-//       console.error(jqXHR);
-//       console.error(textStatus);
-//       console.error(errorThrown);
-//     });
-// }
-
-// export function ajaxWikiGetEVADetailsByDate(evaDate) {
-//   var url = "./pullwiki.php?action=getEVADetailsByDate&evaDate=" + evaDate;
-//   if (location.hostname === "localhost") {
-//     url =
-//       "https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getEVADetailsByDate&evaDate=" +
-//       evaDate;
-//   } else if (location.hostname === "coda-iss.develop") {
-//     // use fake data if on dev
-//     url = "fakedata/getEVADetailsByDate2019-08-21.json";
-//   }
-//   $.ajaxSetup({
-//     scriptCharset: "utf-8",
-//     contentType: "application/json; charset=utf-8",
-//   });
-//   return fetch(url, function (resp) {
-//     gEVADetails = createDetailsObject(resp);
-
-//     displayEVADetails(gEVADetails);
-//     console.log("ajaxWikiGetEVADetailsByDate completed.");
-//   }).catch(function (jqXHR, textStatus, errorThrown) {
-//     console.error(jqXHR);
-//     console.error(textStatus);
-//     console.error(errorThrown);
-//   });
-// }
-
-// export function ajaxWikiGetCrew(evaName) {
-//   var url = "./pullwiki.php?action=getCrew&evaName=" + evaName;
-//   if (location.hostname === "localhost") {
-//     url =
-//       "https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getCrew&evaName=" +
-//       evaName;
-//   } else if (location.hostname === "coda-iss.develop") {
-//     // use fake data if on dev
-//     url = "fakedata/getCrewUS_EVA_55.json";
-//   }
-//   $.ajaxSetup({
-//     scriptCharset: "utf-8",
-//     contentType: "application/json; charset=utf-8",
-//   });
-//   return fetch(url, function (resp) {
-//     var crewObject = {};
-//     var resultObject = resp["query"]["results"];
-//     for (var key in resultObject) {
-//       if (resultObject.hasOwnProperty(key)) {
-//         crewObject[resultObject[key]["printouts"]["Has role"][0]["fulltext"]] =
-//           resultObject[key]["printouts"]["Has full name"][0]["fulltext"];
-//       }
-//     }
-//     document.getElementById("ev1TitleSpan").innerHTML = crewObject.EV1;
-//     document.getElementById("ev2TitleSpan").innerHTML = crewObject.EV2;
-//     console.log("ajaxWikiGetCrew completed.");
-//   }).catch(function (jqXHR, textStatus, errorThrown) {
-//     console.error(jqXHR);
-//     console.error(textStatus);
-//     console.error(errorThrown);
-//   });
-// }
