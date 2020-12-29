@@ -18,10 +18,6 @@ import {
 import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 
-let gCurrMissionTimeSeconds = 0;
-const gSelectedVidGroup = [];
-const loadVideo = (_a, _b, _c) => {};
-
 let missionTime = null;
 
 /**
@@ -629,7 +625,6 @@ function NavTimeline() {
         (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
         gTier2StartSeconds;
     }
-    // drawCursor(timeStrToSeconds(gCurrMissionTime));
     drawNavCursor(mouseXSeconds);
   };
 
@@ -637,44 +632,26 @@ function NavTimeline() {
     let seconds = 0;
     if (event.point.y < gTier1Top + gTier1Height + gTierSpacing) {
       seconds = Math.round((event.point.x - 1) * gTier1SecondsPerPixel + 1);
-      // var group = Math.trunc(event.point.y / (cChannelStrokeWidth + cVidBarGapWidth));
-      // if (group <= 6)
-      //     gCurrentGroup = group;
     } else {
       //if in tier 2
       seconds = Math.round(
         (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
           gTier2StartSeconds
       );
-      // group = Math.trunc((event.point.y - (gTier1Height + 5)) / (cChannelStrokeWidth + cVidBarGapWidth));
-      // if (group <= 6)
-      //     gCurrentGroup = group;
     }
-    // loadVideo(0, gSelectedVidGroup[0], seconds);
-    // loadVideo(1, gSelectedVidGroup[1], seconds);
-    // dispatch({ type: "update_video", payload: { videoID: 1, playerID: 1 } });
 
     const hh = Math.floor(seconds / 3600);
     const mm = Math.floor((seconds - hh * 3600) / 60);
     const ss = seconds - hh * 3600 - mm * 60;
     const [Y, M, D] = evas.EVAs[evas.selectedEVA].startDate.split("/");
-    console.log(Y, M, D, hh, mm, ss);
     const dt = new Date(+Y, +M - 1, +D, hh, mm, ss);
     dispatch(start(dt.toISOString()));
     drawCursor(seconds);
   };
 
   const onMouseOutHandler = (_event) => {
-    //trace("onMouseOutHandler()");
     setMouseOnNavigator(false);
-
-    // $('#navigatorKey').css('display', '');
-    // if (typeof gNavCursorGroup != "undefined") {
     gNavCursorGroup.removeChildren();
-    // }
-    // drawTier1();
-    // drawTier1NavBox(missionTime);
-    // drawTier2();
   };
 
   paper.view.onMouseLeave = onMouseOutHandler;
@@ -682,11 +659,6 @@ function NavTimeline() {
   drawTier1();
   drawTier1NavBox(missionTime);
   drawTier2();
-
-  // if (gmt) {
-  //   // TODO convert gmt to seconds
-  //   drawCursor(gmt);
-  // }
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322
