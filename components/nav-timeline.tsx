@@ -1,15 +1,17 @@
 import { useRouter } from "next/router";
 import paper from "paper";
 import { useSelector } from "react-redux";
-import { currentClockSelector } from "store/clock";
-import { selectVideoItems, selectVideoTimingData } from "store/videos";
+import { Activity } from "services/iss-wiki";
+import { ClockState, currentClockSelector } from "store/clock";
+import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
+import {
+  selectVideoItems,
+  selectVideoTimingData,
+  VideosState,
+} from "store/videos";
 import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
 
 let gCurrMissionTimeSeconds = 0;
-const gVideoActivity = {
-  EV1: {},
-  EV2: {},
-};
 const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
@@ -28,9 +30,40 @@ function NavTimeline() {
       pet?: number;
     };
   } = useRouter();
-  const { clock, videos } = useSelector((state) => state);
+  const {
+    clock,
+    evas,
+    videos,
+  }: {
+    clock: ClockState;
+    evas: EVAsState;
+    videos: VideosState;
+  } = useSelector((state) => state);
   const timingData = selectVideoTimingData(videos);
   const gVideoItems = selectVideoItems(videos);
+  const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
+  const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
+
+  let thisStartTimeSeconds =
+    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) /
+    1000;
+  for (let a = 0; a < activityPerformance.EV1.length; a++) {
+    const activity = activityPerformance.EV1[a];
+    activityPerformance.EV1[a].startTimeSeconds = thisStartTimeSeconds;
+    activityPerformance.EV1[a].endTimeSeconds =
+      thisStartTimeSeconds + activity.duration;
+    thisStartTimeSeconds = thisStartTimeSeconds + activity.duration;
+  }
+  thisStartTimeSeconds =
+    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) /
+    1000;
+  for (let a = 0; a < activityPerformance.EV2.length; a++) {
+    const activity = activityPerformance.EV2[a];
+    activityPerformance.EV2[a].startTimeSeconds = thisStartTimeSeconds;
+    activityPerformance.EV2[a].endTimeSeconds =
+      thisStartTimeSeconds + activity.duration;
+    thisStartTimeSeconds = thisStartTimeSeconds + activity.duration;
+  }
 
   let gTier1Group;
   let gTier1NavGroup;
@@ -114,6 +147,7 @@ function NavTimeline() {
 
     //display video segments
     for (i = 0; i < gVideoItems.length; i++) {
+      // TODO: use .start after converting it to a Date first
       var startLocX =
         gVideoItems[i]["missionSecondsStart"] * gTier1PixelsPerSecond;
       var endLocX = gVideoItems[i]["missionSecondsEnd"] * gTier1PixelsPerSecond;
@@ -122,7 +156,7 @@ function NavTimeline() {
         0.5 + gVideoItems[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
       var endLocY = startLocY + cChannelStrokeWidth + 1;
 
-      var name = "vidItem_" + i.toString();
+      const name = "vidItem_" + i.toString();
 
       var vidLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
@@ -130,7 +164,7 @@ function NavTimeline() {
         strokeWidth: 0.5,
         strokeColor: "black",
         fillColor: gColorVideo,
-        name: name,
+        name,
       });
       if (gVideoItems[i].className === "downlink-LOS")
         vidLine.fillColor = gColorVideoLOS;
@@ -139,12 +173,12 @@ function NavTimeline() {
 
     //display EV activity
 
-    drawTier1EVActivity(7, gVideoActivity.EV1); // row 8 for EV1 (rows start at 0)
-    drawTier1EVActivity(8, gVideoActivity.EV2); // row 9 for EV2 (rows start at 0)
-    // drawTier1EVActivity(9, gVideoActivity.DayNight); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    drawTier1EVActivity(7, activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
+    drawTier1EVActivity(8, activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
+    // drawTier1EVActivity(9, activityPerformance.DayNight); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
   };
 
-  const drawTier1EVActivity = (rowNum, evActivityArray) => {
+  const drawTier1EVActivity = (rowNum, evActivityArray: Activity[]) => {
     for (var i = 0; i < evActivityArray.length; i++) {
       var startLocX =
         evActivityArray[i].startTimeSeconds * gTier1PixelsPerSecond;
@@ -158,7 +192,7 @@ function NavTimeline() {
         strokeColor: "black",
         // fillColor: gActivityBackgroundColor,
         fillColor: evActivityArray[i].color,
-        name: name,
+        // name: name,
       });
       if (evActivityArray[i].content === "Insolation") {
         activityLine.fillColor = gDayColor;
@@ -359,9 +393,9 @@ function NavTimeline() {
       }
     }
 
-    drawTier2EVActivity(0, gVideoActivity.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
-    drawTier2EVActivity(1, gVideoActivity.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
-    // drawTier2EVActivity(2, gVideoActivity.DayNight, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    drawTier2EVActivity(0, activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
+    drawTier2EVActivity(1, activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
+    // drawTier2EVActivity(2, activityPerformance.DayNight, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
   };
 
   const drawTier2EVActivity = (evRow, evActivityArray, secondsOnTier2) => {

@@ -11,7 +11,7 @@ import getVideoData from "services/io";
 
 function Replay({
   initialReduxState: {
-    evas: { gEVADetails },
+    evas: { EVAs, selectedEVA },
   },
 }) {
   return (
@@ -19,7 +19,7 @@ function Replay({
       <Head>
         <meta charSet="utf-8" />
         <title>
-          {gEVADetails.evaName} | {process.env.TITLE}
+          {EVAs[selectedEVA].name} | {process.env.TITLE}
         </title>
         <link
           rel="apple-touch-icon"
@@ -86,60 +86,36 @@ export const getStaticProps: GetServerSideProps = async ({
 }) => {
   const evaName = eva as string;
 
-  // all EVA data from the wiki
+  // fetch all data for the EVA store
+  // TODO: maybe move this into functions?
   const results = await getAllEVAs();
-  const evas: { [key: string]: EVA } = {};
+  const EVAs: { [key: string]: EVA } = {};
   Object.keys(results).forEach((r) => {
-    evas[r] = {
-      name: results[r].printouts["EVA Title"][0],
+    const formattedEVAName = r.replace(/ /g, "_").toLowerCase();
+    EVAs[formattedEVAName] = {
+      name: results[r].printouts["EVA title"][0],
       wikiURL: results[r].fullurl,
       displayTitle: results[r].displaytitle,
       startDate: results[r].printouts["Start date"][0].raw.substring(2),
       startTime: results[r].printouts["Start time"][0],
-      // the only thing we don't get from the initial query is the duration
+      // we don't have these properties yet
       duration: -1,
+      activityPerformance: {},
     };
   });
 
-  const gEVADetails = await getEVADetails(evaName);
-  const [h, mm] = gEVADetails.duration.split(":");
-  evas[evaName].duration = +h * 3600 + +mm * 60;
+  EVAs[evaName].activityPerformance["EV1"] = await getAsExecuted(evaName, 1);
+  EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
 
-  const dateArr = gEVADetails.evaDate.split(/-/).map(Number);
-  const timeArr = gEVADetails.startTime.split(/:/).map(Number);
-  const ActivityStartUTCMilliseconds = Date.UTC(
-    dateArr[0],
-    dateArr[1] - 1,
-    dateArr[2],
-    timeArr[0],
-    timeArr[1]
-  );
+  const gEVADetails = await getEVADetails(evaName);
+  const [h, m] = gEVADetails.duration.split(":");
+  EVAs[evaName].duration = +h * 3600 + +m * 60;
 
   // video data for this EVA
-  // TODO: use dateArr?
-  const videos = await getVideoData(1, 1, 1);
-
-  const gVideoActivity = {
-    EV1: await getAsExecuted(
-      evaName,
-      1,
-      // gTimingData,
-      ActivityStartUTCMilliseconds
-    ),
-    EV2: await getAsExecuted(
-      evaName,
-      2,
-      // gTimingData,
-      ActivityStartUTCMilliseconds
-    ),
-  };
+  const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
+  const videos = await getVideoData(Y, M, D);
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
-  // const jsonifiedTimingData = {
-  //   EVA_duration_seconds: gTimingData.EVA_duration_seconds,
-  //   video_earliestStart: gTimingData.video_earliestStart.toUTCString(),
-  //   video_latestEnd: gTimingData.video_latestEnd.toUTCString(),
-  // };
   const jsonifiedVideoItems = Object.keys(videos).map((v) => {
     const vid = videos[v];
     return {
@@ -157,14 +133,10 @@ export const getStaticProps: GetServerSideProps = async ({
     props: {
       initialReduxState: {
         evas: {
-          allEVAs: results,
-          gEVADetails,
+          EVAs,
           selectedEVA: eva,
         },
         videos: {
-          // gVideoActivityByGroupBySecond,
-          // gTimingData: jsonifiedTimingData,
-          // gVideoActivity,
           videos: jsonifiedVideoItems,
         },
       },

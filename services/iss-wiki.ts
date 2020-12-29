@@ -14,10 +14,21 @@ export interface EVA {
   startDate: string;
   /** UTC */
   startTime: string;
-  /** seconds */
+  /** seconds for entire EVA */
   duration: number;
+  /** Activity performance keyed by EV */
+  activityPerformance: { [key: string]: Activity[] };
 }
 
+export interface Activity {
+  content: string;
+  color: string;
+  /** seconds */
+  duration: number;
+  // used by the nav-timeline
+  startTimeSeconds?: number;
+  endTimeSeconds?: number;
+}
 interface WikiResponse {
   query: {
     printrequests: {
@@ -81,7 +92,7 @@ export interface EVASummaryResponse {
   /** Keyed by EVA title, eg `US EVA 1` */
   [key: string]: {
     printouts: {
-      "EVA Title": string[];
+      "EVA title": string[];
       "Start date": WikiTimestamp[];
       /** eg. `[ 11:38 ]` */
       "Start Time": string[];
@@ -184,55 +195,33 @@ interface EVAAsExecuted {
 }
 
 /** Get as-executed data for a given EV on a given EVA */
-export async function getAsExecuted(
-  evaName: string,
-  evNum: number,
-  // gTimingData: TimingData,
-  ActivityStartUTCMilliseconds: number
-) {
+export async function getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
   const wikiParams = `[[From page::~' . ${evaName} . '/*xecuted*]] [[Assigned to::' . ${actorName} . ']] |mainlabel=-|?Index |?Has text title |?Duration hour |?Duration minute |?Depends on |?Related article |?Color |?Actor |named args=yes |sort=Actor, Index |format = json`;
   const query = encodeURI(`{ text: ${wikiParams} }`);
   const queryParams = `action=ask&query=${query}`;
   const res = await fetchWiki(queryParams, `getAsExecutedEV${evNum}`);
   const results: EVAAsExecuted = res.query.results;
-  return parseAsExecuted(results, ActivityStartUTCMilliseconds);
+  return parseAsExecuted(results);
 }
 
-interface activity {
-  content: string;
-  startTimeSeconds?: number;
-  endTimeSeconds?: number;
-  color: string;
-}
+async function parseAsExecuted(results: EVAAsExecuted): Promise<Activity[]> {
+  const res = [];
 
-async function parseAsExecuted(
-  results: EVAAsExecuted,
-  // gTimingData: TimingData,
-  ActivityStartUTCMilliseconds: number
-): Promise<activity[]> {
-  const activityArray = [];
-  // let thisStartTimeSeconds =
-  //   (ActivityStartUTCMilliseconds - gTimingData.video_earliestStart.getTime()) /
-  //   1000;
+  Object.keys(results).forEach((r) => {
+    const durationHour = results[r]["printouts"]["Duration hour"][0];
+    const durationMinute = results[r]["printouts"]["Duration minute"][0];
+    const durationTotalSeconds = +durationHour * 3600 + +durationMinute * 60;
 
-  for (let key in results) {
-    if (results.hasOwnProperty(key)) {
-      const durationHour = results[key]["printouts"]["Duration hour"][0];
-      const durationMinute = results[key]["printouts"]["Duration minute"][0];
-      const durationTotalSeconds = (durationHour * 60 + durationMinute) * 60;
+    const activity: Activity = {
+      content: results[r]["printouts"]["Has text title"][0],
+      duration: durationTotalSeconds,
+      color: results[r]["printouts"]["Color"][0],
+    };
+    if (activity.color === "gray") activity.color = "grey";
 
-      const activityObject: activity = {
-        content: results[key]["printouts"]["Has text title"][0],
-        // startTimeSeconds: thisStartTimeSeconds,
-        // endTimeSeconds: thisStartTimeSeconds + durationTotalSeconds,
-        color: results[key]["printouts"]["Color"][0],
-      };
-      if (activityObject.color === "gray") activityObject.color = "grey";
+    res.push(activity);
+  });
 
-      // thisStartTimeSeconds = thisStartTimeSeconds + durationTotalSeconds;
-      activityArray.push(activityObject);
-    }
-  }
-  return activityArray;
+  return res;
 }

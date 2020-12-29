@@ -131,6 +131,11 @@ Basically, you can wrap any component you want to be able to access the store in
 - https://github.com/vercel/next.js/tree/canary/examples/with-redux
 - https://github.com/vercel/next.js/tree/canary/examples/with-redux-toolkit
 
+### Time
+
+1. All times are stored internally in UTC
+2. All durations are stored internally in seconds
+
 ## API Info
 
 ### Imagery Online (IO)

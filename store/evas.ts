@@ -1,30 +1,32 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { EVA, EVASummaryResponse, ParsedEVADetails } from "services/iss-wiki";
 
 export interface EVAsState {
+  /** Keyed in the format of underscored lowercase EVA name, eg. `us_eva_55` */
   EVAs: { [key: string]: EVA };
+  /** Format of underscored lowercase EVA name, eg. `us_eva_55` */
   selectedEVA: string;
-  allEVAs: EVASummaryResponse;
-  evaDetails: ParsedEVADetails;
 }
 
 export const initialState: EVAsState = {
   EVAs: {},
   selectedEVA: "",
-  allEVAs: null,
-  gEVADetails: null,
 };
 
 export const evasSlice = createSlice({
   name: "evas",
   initialState,
-  reducers: {
-    initialize: (state, action) => {
-      state.allEVAs = action.payload.allEVAs;
-      // TODO: should we key gEVADetails by EVA name?
-      state.gEVADetails = action.payload.gEVADetails;
-    },
-  },
+  reducers: {},
 });
 
-export const { initialize } = evasSlice.actions;
+// export const { initialize } = evasSlice.actions;
+
+export const selectEVAStartMilliseconds = createSelector(
+  (state: EVAsState) => state.EVAs[state.selectedEVA],
+  (eva) => {
+    const { startDate, startTime } = eva;
+    const [Y, M, D] = startDate.split("/").map(Number);
+    const [hh, mm] = startTime.split(/:/).map(Number);
+    return Date.UTC(Y, M - 1, D, hh, mm);
+  }
+);

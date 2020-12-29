@@ -28,18 +28,20 @@ export const selectVideoTimingData = createSelector(
 
     Object.keys(videos).forEach((v) => {
       const video = videos[v];
+      const start = new Date(video.start);
+      const end = new Date(video.end);
       // set the bounds on the video start and end times
       if (
         !timingData.video_earliestStart ||
-        video.start.getTime() < timingData.video_earliestStart.getTime()
+        start.getTime() < timingData.video_earliestStart.getTime()
       ) {
-        timingData.video_earliestStart = new Date(video.start.toUTCString());
+        timingData.video_earliestStart = new Date(start.toUTCString());
       }
       if (
         !timingData.video_latestEnd ||
-        video.end.getTime() > timingData.video_latestEnd.getTime()
+        end.getTime() > timingData.video_latestEnd.getTime()
       ) {
-        timingData.video_latestEnd = new Date(video.end.toUTCString());
+        timingData.video_latestEnd = new Date(end.toUTCString());
       }
     });
 

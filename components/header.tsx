@@ -10,9 +10,7 @@ import styles from "./header.module.css";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { selectedEVA, allEVAs, gEVADetails } = useSelector(
-    (state) => state.evas
-  );
+  const { EVAs, selectedEVA } = useSelector((state) => state.evas);
   const [evaTime, setEvaTime] = useState("00:00:00");
 
   /**
@@ -42,11 +40,10 @@ function Header() {
           value={selectedEVA.toLowerCase()}
         >
           <option disabled>Choose EVA</option>
-          {Object.keys(allEVAs).map((eva) => {
-            const value = eva.replace(/ /g, "_").toLowerCase();
+          {Object.keys(EVAs).map((eva) => {
             return (
-              <option key={value} value={value}>
-                {eva}
+              <option key={eva} value={eva}>
+                {EVAs[eva].displayTitle}
               </option>
             );
           })}
@@ -65,13 +62,13 @@ function Header() {
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
             EVA Name:{" "}
             <span style={{ color: "white" }} id="evaNameSpan">
-              {gEVADetails.evaName || "EVA Name"}
+              {EVAs[selectedEVA].name || "EVA Name"}
             </span>
           </div>
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
             EVA Title:{" "}
             <span style={{ color: "white" }} id="evaTitleSpan">
-              {gEVADetails.evaTitle || "EVA Title"}
+              {EVAs[selectedEVA].displayTitle || "EVA Title"}
             </span>
           </div>
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
@@ -107,7 +104,7 @@ function Header() {
               className={styles.dateTime}
               id="missionDate"
               name="missionDate"
-              value={gEVADetails.evaDate || "2019-08-21"}
+              value={EVAs[selectedEVA].evaDate || "2019-08-21"}
               onChange={() => {}}
             />
           </div>
