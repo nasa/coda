@@ -1,9 +1,14 @@
 import { useRouter } from "next/router";
 import paper from "paper";
 import { useEffect, useState } from "react";
-import { useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { Activity } from "services/iss-wiki";
-import { ClockState, getMissionTime, historySelector } from "store/clock";
+import {
+  ClockState,
+  getMissionTime,
+  historySelector,
+  start,
+} from "store/clock";
 import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
 import {
   selectVideoItems,
@@ -40,6 +45,7 @@ function NavTimeline() {
     evas: EVAsState;
     videos: VideosState;
   } = useSelector((state) => state);
+  const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoItems = selectVideoItems(videos);
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
@@ -628,16 +634,15 @@ function NavTimeline() {
   };
 
   paper.view.onMouseUp = (event) => {
+    let seconds = 0;
     if (event.point.y < gTier1Top + gTier1Height + gTierSpacing) {
-      gCurrMissionTimeSeconds = Math.round(
-        (event.point.x - 1) * gTier1SecondsPerPixel + 1
-      );
+      seconds = Math.round((event.point.x - 1) * gTier1SecondsPerPixel + 1);
       // var group = Math.trunc(event.point.y / (cChannelStrokeWidth + cVidBarGapWidth));
       // if (group <= 6)
       //     gCurrentGroup = group;
     } else {
       //if in tier 2
-      gCurrMissionTimeSeconds = Math.round(
+      seconds = Math.round(
         (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
           gTier2StartSeconds
       );
@@ -645,10 +650,18 @@ function NavTimeline() {
       // if (group <= 6)
       //     gCurrentGroup = group;
     }
-    // loadVideo(0, gSelectedVidGroup[0], gCurrMissionTimeSeconds);
-    // loadVideo(1, gSelectedVidGroup[1], gCurrMissionTimeSeconds);
+    // loadVideo(0, gSelectedVidGroup[0], seconds);
+    // loadVideo(1, gSelectedVidGroup[1], seconds);
     // dispatch({ type: "update_video", payload: { videoID: 1, playerID: 1 } });
-    drawCursor(gCurrMissionTimeSeconds);
+
+    const hh = Math.floor(seconds / 3600);
+    const mm = Math.floor((seconds - hh * 3600) / 60);
+    const ss = seconds - hh * 3600 - mm * 60;
+    const [Y, M, D] = evas.EVAs[evas.selectedEVA].startDate.split("/");
+    console.log(Y, M, D, hh, mm, ss);
+    const dt = new Date(+Y, +M - 1, +D, hh, mm, ss);
+    dispatch(start(dt.toISOString()));
+    drawCursor(seconds);
   };
 
   const onMouseOutHandler = (_event) => {
