@@ -91,7 +91,10 @@ export const getMissionTime = (history: Activation[]): number => {
     const { go, localTime, GMT } = history[h];
     if (go) {
       const delta = moment(lastStopTime).diff(moment(localTime));
-      return moment(GMT).add(delta).seconds();
+      const updated = moment(GMT).add(delta);
+      return (
+        updated.hours() * 3600 + updated.minutes() * 60 + updated.seconds()
+      );
     }
     lastStopTime = localTime;
   }

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import paper from "paper";
-import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useSelector, useStore } from "react-redux";
 import { Activity } from "services/iss-wiki";
 import { ClockState, getMissionTime, historySelector } from "store/clock";
 import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
@@ -10,29 +10,30 @@ import {
   selectVideoTimingData,
   VideosState,
 } from "store/videos";
-import { secondsToTimeStr, secondsToZuluString } from "../utils/formatting";
+import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
+import useInterval from "utils/useInterval";
 
 let gCurrMissionTimeSeconds = 0;
 const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
 let interval = null;
-let renderedGMT = 0;
+let missionTime = null;
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
  */
 function NavTimeline() {
   const {
-    query: { gmt = null, pet = null },
+    query: { utc = null, pet = null },
   }: {
     query: {
-      gmt?: number;
+      utc?: number;
       pet?: number;
     };
   } = useRouter();
+  const store = useStore();
   const {
-    clock,
     evas,
     videos,
   }: {
@@ -45,14 +46,19 @@ function NavTimeline() {
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
   const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
 
-  let missionTime = 0;
-  useEffect(() => {
-    const interval = setInterval(() => {
-      missionTime = getMissionTime(historySelector(clock));
-      // console.log(missionTime);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const [mouseOnNavigator, setMouseOnNavigator] = useState(false);
+  useInterval(() => {
+    if (!mouseOnNavigator) {
+      const { clock } = store.getState();
+      const newMissionTime = getMissionTime(historySelector(clock));
+      if (newMissionTime !== missionTime) {
+        drawTier1NavBox(newMissionTime);
+        drawTier2();
+        drawCursor(newMissionTime);
+        missionTime = newMissionTime;
+      }
+    }
+  }, 50);
 
   // get activity times in the mission timeframe
   let thisStartTimeSeconds =
@@ -136,8 +142,6 @@ function NavTimeline() {
 
   let cChannelStrokeWidth = 4;
   let cVidBarGapWidth = 1;
-
-  let gMouseOnNavigator;
 
   const drawTier1 = () => {
     gTier1Group.removeChildren();
@@ -483,11 +487,13 @@ function NavTimeline() {
     }
   };
 
+  /** Green cursor */
   const drawCursor = (seconds) => {
     gCursorGroup.removeChildren();
     gCursorGroup.addChild(getCursorElement(seconds, gColorCursor));
   };
 
+  /** Yellow cursor */
   const drawNavCursor = (seconds) => {
     gNavCursorGroup.removeChildren();
     gNavCursorGroup.addChild(getCursorElement(seconds, gColorNavCursor));
@@ -601,7 +607,9 @@ function NavTimeline() {
   }
 
   paper.view.onMouseMove = function (event) {
-    gMouseOnNavigator = true;
+    if (!mouseOnNavigator) {
+      setMouseOnNavigator(true);
+    }
 
     var mouseXSeconds;
     gNavCursorGroup.removeChildren();
@@ -646,21 +654,21 @@ function NavTimeline() {
 
   const onMouseOutHandler = (_event) => {
     //trace("onMouseOutHandler()");
-    gMouseOnNavigator = false;
+    setMouseOnNavigator(false);
 
     // $('#navigatorKey').css('display', '');
     // if (typeof gNavCursorGroup != "undefined") {
     gNavCursorGroup.removeChildren();
     // }
-    drawTier1();
-    drawTier1NavBox(gCurrMissionTimeSeconds);
-    drawTier2();
+    // drawTier1();
+    // drawTier1NavBox(missionTime);
+    // drawTier2();
   };
 
   paper.view.onMouseLeave = onMouseOutHandler;
 
   drawTier1();
-  drawTier1NavBox(gCurrMissionTimeSeconds);
+  drawTier1NavBox(missionTime);
   drawTier2();
 
   // if (gmt) {
