@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import paper from "paper";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { Activity } from "services/iss-wiki";
 import {
