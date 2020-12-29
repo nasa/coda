@@ -33,7 +33,7 @@
   text-decoration: none;
   /* display: inline-block; */
   border-radius: 8px;
-  cursor: default;
+  /* cursor: default; */
 }
 
 .littleTopButton.hover {

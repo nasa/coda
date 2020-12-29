@@ -1,8 +1,9 @@
 import { useRouter } from "next/router";
 import paper from "paper";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Activity } from "services/iss-wiki";
-import { ClockState, currentClockSelector } from "store/clock";
+import { ClockState, getMissionTime, historySelector } from "store/clock";
 import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
 import {
   selectVideoItems,
@@ -43,6 +44,15 @@ function NavTimeline() {
   const videoItems = selectVideoItems(videos);
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
   const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
+
+  let missionTime = 0;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      missionTime = getMissionTime(historySelector(clock));
+      // console.log(missionTime);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // get activity times in the mission timeframe
   let thisStartTimeSeconds =
@@ -569,9 +579,9 @@ function NavTimeline() {
   paper.view.onResize = function () {
     setDynamicWidthVariables();
     drawTier1();
-    drawTier1NavBox(gCurrMissionTimeSeconds);
+    drawTier1NavBox(missionTime);
     drawTier2();
-    drawCursor(gCurrMissionTimeSeconds);
+    drawCursor(missionTime);
   };
 
   setDynamicWidthVariables();

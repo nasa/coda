@@ -58,19 +58,19 @@ export const currentClockSelector = createSelector(
 );
 
 /**
- * Get the current application GMT as an ISO string
+ * Get the current application UTC
  */
-export const currentGMT = (history: Activation[]): string => {
+export const getApplicationUTC = (history: Activation[]): Date => {
   // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
   let lastStopTime;
-  let lastGMT = "";
+  let lastGMT = null;
 
   // iterate backwards to figure out the current application GMT
   for (let h = history.length - 1; h >= 0; h--) {
     const { go, localTime, GMT } = history[h];
     if (go) {
       const delta = moment(lastStopTime).diff(moment(localTime));
-      return moment(GMT).add(delta).toISOString();
+      return moment(GMT).add(delta).toDate();
     }
     lastStopTime = localTime;
     lastGMT = GMT;
@@ -82,22 +82,19 @@ export const currentGMT = (history: Activation[]): string => {
 /**
  * Get the current mission time in seconds
  */
-export const currentMissionTimeSeconds = createSelector(
-  historySelector,
-  (history: Activation[]): number => {
-    // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
-    let lastStopTime;
+export const getMissionTime = (history: Activation[]): number => {
+  // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
+  let lastStopTime;
 
-    // iterate backwards to figure out the current application GMT
-    for (let h = history.length - 1; h >= 0; h--) {
-      const { go, localTime, GMT } = history[h];
-      if (go) {
-        const delta = moment(lastStopTime).diff(moment(localTime));
-        return moment(GMT).add(delta).seconds();
-      }
-      lastStopTime = localTime;
+  // iterate backwards to figure out the current application GMT
+  for (let h = history.length - 1; h >= 0; h--) {
+    const { go, localTime, GMT } = history[h];
+    if (go) {
+      const delta = moment(lastStopTime).diff(moment(localTime));
+      return moment(GMT).add(delta).seconds();
     }
-    // the application must not have ever started
-    return 0;
+    lastStopTime = localTime;
   }
-);
+  // the application must not have ever started
+  return 0;
+};

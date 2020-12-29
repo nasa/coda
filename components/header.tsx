@@ -1,7 +1,15 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { start } from "store/clock";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector, useStore } from "react-redux";
+import {
+  ClockState,
+  getApplicationUTC,
+  getMissionTime,
+  historySelector,
+  start,
+} from "store/clock";
+import { padZeros } from "utils/formatting";
+
 import styles from "./header.module.css";
 
 /**
@@ -10,8 +18,29 @@ import styles from "./header.module.css";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { EVAs, selectedEVA } = useSelector((state) => state.evas);
-  const [evaTime, setEvaTime] = useState("00:00:00");
+  const store = useStore();
+  const {
+    evas: { EVAs, selectedEVA },
+  } = useSelector((state) => state);
+
+  const [userValue, setUserValue] = useState("");
+  const [appValue, setAppValue] = useState("00:00:00");
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const { clock } = store.getState();
+      let missionHHMMSS = "00:00:00";
+      const utc = getApplicationUTC(historySelector(clock));
+      if (utc) {
+        const hh = padZeros(utc.getHours(), 2);
+        const mm = padZeros(utc.getMinutes(), 2);
+        const ss = padZeros(utc.getSeconds(), 2);
+        missionHHMMSS = `${hh}:${mm}:${ss}`;
+      }
+      setAppValue(missionHHMMSS);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   /**
    * Navigate to another EVA
@@ -104,7 +133,7 @@ function Header() {
               className={styles.dateTime}
               id="missionDate"
               name="missionDate"
-              value={EVAs[selectedEVA].evaDate || "2019-08-21"}
+              value={EVAs[selectedEVA].startDate || "2019-08-21"}
               onChange={() => {}}
             />
           </div>
@@ -115,23 +144,41 @@ function Header() {
               className={styles.dateTime}
               id="missionTime"
               name="missionTime"
-              value={evaTime}
-              pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
-              onChange={(e) => setEvaTime(e.target.value)}
+              value={editing ? userValue : appValue}
+              // allow HH:MM or HH:MM:SS
+              pattern="^(?:(?:([01]?\d|2[0-3]):[0-5]\d))(?::[0-5]\d)?$"
+              onFocus={() => {
+                setEditing(true);
+                setUserValue(`${userValue || appValue}`);
+              }}
+              onBlur={() => {
+                setUserValue("");
+                setEditing(false);
+              }}
+              onChange={(e) => setUserValue(e.target.value)}
             />
           </div>
           <div style={{ flex: 2 }}>
-            <a
+            <button
               className={styles.littleTopButton}
               id="goButton"
               title="Jump to Date/Time"
               onClick={(e) => {
-                const [hh, mm, ss] = e.target.value.split(":");
-                dispatch(start(new Date(hh, mm, ss).toISOString()));
+                const [Y, M, D] = EVAs[selectedEVA].startDate.split("/");
+                let dt: Date;
+                if (userValue === "") {
+                  dt = new Date(+Y, +M - 1, +D);
+                } else {
+                  const [hh, mm = "00", ss = "00"] = userValue.split(":");
+                  dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
+                }
+                dispatch(start(dt.toISOString()));
+                setUserValue("");
+                setEditing(false);
               }}
             >
               GO
-            </a>
+            </button>
             <button
               className={styles.littleTopButton}
               id="shareButton"

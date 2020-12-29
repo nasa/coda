@@ -2,7 +2,7 @@ import { useStore } from "react-redux";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import AVPanels from "components/av-panels";
-import { currentGMT, historySelector } from "store/clock";
+import { getApplicationUTC, historySelector } from "store/clock";
 // import handleSync from "utils/sync";
 
 let interval;
@@ -17,8 +17,8 @@ export default function Main() {
 
     interval = setInterval(() => {
       const { clock } = store.getState();
-      const GMT = currentGMT(historySelector(clock));
-      console.log(GMT);
+      const GMT = getApplicationUTC(historySelector(clock));
+      // console.log(GMT);
       // checkVideoChange(state);
     }, 1000);
 
