@@ -79,7 +79,7 @@ function Header() {
           {Object.keys(EVAs).map((eva) => {
             return (
               <option key={eva} value={eva}>
-                {EVAs[eva].displayTitle}
+                {EVAs[eva].name}
               </option>
             );
           })}

@@ -17,7 +17,6 @@ let gCurrMissionTimeSeconds = 0;
 const gSelectedVidGroup = [];
 const loadVideo = (_a, _b, _c) => {};
 
-let interval = null;
 let missionTime = null;
 
 /**
