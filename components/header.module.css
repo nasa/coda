@@ -1,3 +1,14 @@
+.headerContainer {
+  /*vertical-align: middle;*/
+  display: flex;
+}
+.headerTitle {
+  font-size: 2.1rem;
+}
+.title {
+  font-size: 1.2rem;
+}
+
 .floatLeft {
   float: left;
 }
@@ -39,4 +50,21 @@
 .littleTopButton.hover {
   background-color: #008cba;
   color: white;
+}
+
+.svgCODALogo {
+  width: 50px;
+  height: 50px;
+  background: url(/images/logo_CODA.svg) no-repeat center;
+  background-size: 50px 50px;
+  margin-left: 0;
+  margin-right: auto;
+}
+.svgNASALogo {
+  width: 50px;
+  height: 50px;
+  background: url(/images/logo_NASA.svg) no-repeat center;
+  background-size: 50px 50px;
+  margin-left: 0;
+  margin-right: auto;
 }

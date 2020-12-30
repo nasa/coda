@@ -58,11 +58,11 @@ function Header() {
   }
 
   return (
-    <div className="headerContainer">
+    <div className={styles.headerContainer}>
       <div style={{ display: "flex" }}>
-        <div className="svgCODALogo"></div>
+        <div className={styles.svgCODALogo}></div>
         <div
-          className="headerTitle"
+          className={styles.headerTitle}
           style={{ float: "left", marginLeft: "10px" }}
         >
           CODA
@@ -121,7 +121,7 @@ function Header() {
           </div>
         </div>
         <div
-          className="MissionDateTimeWrapper"
+          className={styles.MissionDateTimeWrapper}
           id="MissionDateTimeWrapper"
           style={{
             display: "flex",
@@ -200,7 +200,7 @@ function Header() {
       </div>
 
       <div style={{ flex: 1 }}>
-        <div className="svgNASALogo" style={{ float: "right" }} />
+        <div className={styles.svgNASALogo} style={{ float: "right" }} />
         <div
           style={{
             float: "right",

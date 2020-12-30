@@ -1,3 +1,5 @@
+import styles from "./audio.module.css";
+
 const playAudio = (_a) => {};
 
 // TODO: should this come from an external source?
@@ -31,13 +33,13 @@ const buttons = [
 /**
  * Renders an audio channel selector and plays the audio
  */
-function AudioPlayer() {
+function Audios() {
   const channelButton = (id: number, name: string) => (
     <button
       id={`audioButton${id}`}
       key={`AUDIO_BUTTON_${id}`}
       type="button"
-      className="audioButton"
+      className={styles.audioButton}
       onClick={() => playAudio(id)}
     >
       {name}
@@ -45,8 +47,8 @@ function AudioPlayer() {
   );
 
   return (
-    <div className="audioPanel">
-      <div className="title">Audio Channels</div>
+    <div className={styles.audioPanel}>
+      <div className={styles.title}>Audio Channels</div>
       <div id="audioButtonsContainer">
         {buttons.map((b) => channelButton(b.id, b.name))}
       </div>
@@ -54,4 +56,4 @@ function AudioPlayer() {
   );
 }
 
-export default AudioPlayer;
+export default Audios;

@@ -1,0 +1,197 @@
+import { useRouter } from "next/router";
+import { useRef } from "react";
+import { useDispatch, useSelector, useStore } from "react-redux";
+import { getMissionTime, historySelector } from "store/clock";
+import {
+  pickGroup,
+  pickVideoFile,
+  selectVideoActivity,
+  VideosState,
+} from "store/videos";
+import useInterval from "utils/useInterval";
+import styles from "./videos.module.css";
+
+const noVidURL = "https://coda-dev.fit.nasa.gov/CODA_data/novid.mp4";
+let missionTime = 0;
+
+/**
+ * Renders the part of the CODA interface that includes audio and video players and selectors
+ */
+function Videos() {
+  // get query parameters asking for specific video sources
+  // see https://nextjs.org/docs/routing/dynamic-routes
+  // FYI: the syntax here is how you declare default parameters and types simultaneously for a destructured object with TS
+  // see https://mariusschulz.com/blog/typing-destructured-object-parameters-in-typescript
+  const {
+    query: { group1 = null, group2 = null },
+  }: {
+    query: { group1?: number; group2?: number };
+  } = useRouter();
+
+  const store = useStore();
+  const dispatch = useDispatch();
+  const videos: VideosState = useSelector((state) => state.videos);
+
+  // define the name of the players
+  // the names of the players should match the keys in `store.videos.selectedGroups`
+  const videoPlayerNames = ["left", "right"];
+  // creates `{name: playerRef}` pairs for each HTML5 video player
+  const players = Object.fromEntries(
+    videoPlayerNames.map((n) => [n, useRef()])
+  );
+
+  const videoActivity = selectVideoActivity(videos);
+
+  // this is the main loop where we make sure the right videos are playing and that they're synced with the timeline
+  useInterval(() => {
+    const { clock } = store.getState();
+    const newMissionTime = getMissionTime(historySelector(clock));
+
+    // don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
+    if (newMissionTime === missionTime) {
+      return;
+    }
+
+    missionTime = newMissionTime;
+
+    // perform checks against all video players
+    videoPlayerNames.forEach((name) => {
+      const group = videos.selectedGroups[name];
+
+      // (1) make sure the correct video is playing
+      if (
+        // check for video changes in the group between now and the next second
+        // TODO: this is array equality - is there a safer check?
+        videoActivity[group][missionTime] !==
+        videoActivity[group][missionTime + 1]
+      ) {
+        let id = "";
+        if (videoActivity[group][missionTime + 1].length > 0) {
+          // there is a different video for this group the next second! pick the highest priority one
+          id = videoActivity[group][missionTime + 1][0];
+        }
+        dispatch(pickVideoFile({ name, id }));
+        return;
+      }
+
+      // (2) make sure the video times are correct
+      if (!players[name].current) {
+        // bail if no video is playing
+        return;
+      }
+
+      const currentTime: number = players[name].current.currentTime;
+      const currentlyPlayingVideo =
+        videos.videos[videos.activeVideoFiles[name]];
+      const videoStartOffset =
+        missionTime - currentlyPlayingVideo.missionSecondsStart;
+
+      // make sure the video starts at the right time
+      // TODO: does this need to be checked when the video is first played?
+      // I'm not convinced this is necessary. check the original codebase
+      // if (Math.abs(currentTime - videoStartOffset) > 1) {
+      //   players[name].current.currentTime = videoStartOffset;
+      // }
+
+      // use left video to sync master clock if it's playing a video
+      // TODO: can we tell if a video is buffered? if so, maybe we just pause the appliation clock until its buffered
+      // if (
+      //   gVideoActivityByGroupBySecond[gSelectedVidGroup[0]][
+      //     gCurrMissionTimeSeconds + 1
+      //   ] !== -1
+      // ) {
+      //   gCurrMissionTimeSeconds = parseInt(
+      //     gSelectedVideoStartTimeSeconds[0] +
+      //       document.getElementById("player0").currentTime
+      //   );
+
+      //   // or sync the clock to right video if left video is not available
+      // } else if (
+      //   gVideoActivityByGroupBySecond[gSelectedVidGroup[1]][
+      //     gCurrMissionTimeSeconds + 1
+      //   ] !== -1
+      // ) {
+      //   gCurrMissionTimeSeconds = parseInt(
+      //     gSelectedVideoStartTimeSeconds[1] +
+      //       document.getElementById("player1").currentTime
+      //   );
+      // }
+    });
+  }, 50);
+
+  /**
+   * Renders the actual HTML5 video
+   */
+  const renderVideo = (name: string, i: number) => {
+    const videoID = videos.activeVideoFiles[name];
+
+    // default video info
+    let videoURL = noVidURL;
+    let downlinkDisplay = "No video available";
+    let vidInfo = "";
+    if (videoID !== "") {
+      const video = videos.videos[videoID];
+      videoURL = video.videoURL;
+      vidInfo = video.description;
+      downlinkDisplay = video.content;
+      players[name].current.load();
+      players[name].current.play();
+    }
+
+    // always mute the right hand side player
+    if (name === "right" && players[name].current) {
+      players[name].current.muted = true;
+    }
+
+    return (
+      <div key={`video_player__${i}`} className={styles.foo}>
+        <div id="vidTitle0" className={styles.vidTitle}>
+          {downlinkDisplay}
+        </div>
+        <div className={styles.vidContainer}>
+          <video ref={players[name]} className={styles.player} controls muted>
+            <source src={videoURL} />
+          </video>
+          <div className={styles.vidOverlay}>
+            <div className={styles.vidInfo}>{vidInfo}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const availableGroups = [0, 1, 2, 3, 4, 5, 6];
+
+  const videoPlayer = (
+    /** Identifies this video player so we know what group to play. It should match a key in `store.videos.selectedGroups` */
+    name: string,
+    i: number
+  ) => (
+    <div className={styles.vidPanel}>
+      <div>
+        {availableGroups.map((g) => {
+          return (
+            <button
+              id={`vid${name}__button${g}`}
+              type="button"
+              className={`${styles.vidButton} ${
+                g === videos.selectedGroups[name] && styles.selected
+              } ${
+                videoActivity[videos.selectedGroups[name]].length > 0 &&
+                styles.active
+              }`}
+              onClick={() => dispatch(pickGroup({ name, group: g }))}
+            >
+              {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
+            </button>
+          );
+        })}
+      </div>
+      {renderVideo(name, i)}
+    </div>
+  );
+
+  return videoPlayerNames.map(videoPlayer);
+}
+
+export default Videos;

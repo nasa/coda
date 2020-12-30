@@ -1,0 +1,64 @@
+.vidPanel {
+  flex: 1;
+}
+
+.foo {
+  flex: 1;
+}
+
+.player {
+  width: 100%;
+  z-index: 0;
+}
+.thumbPlayer {
+  width: 100px;
+  z-index: 0;
+}
+
+.vidContainer {
+  position: relative;
+}
+.vidContainer:hover .vidOverlay {
+  visibility: visible;
+}
+.vidContainer .vidOverlay {
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+.vidTitle {
+  font-size: 0.9rem;
+  color: #999999;
+}
+.vidInfo {
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+.debugText {
+  color: #999999;
+}
+
+.vidButton {
+  font-size: 1rem;
+  background-color: #4f4f4f;
+  border: none;
+  color: black;
+  padding: 7px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 8px;
+}
+.vidButton.active {
+  background-color: #bdbdbd;
+}
+.vidButton.active:hover {
+  background-color: #008cba;
+  color: white;
+}
+.vidButton.selected {
+  background-color: #008cba; /* Blue */
+  color: white;
+}
