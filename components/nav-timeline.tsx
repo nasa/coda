@@ -132,29 +132,29 @@ function NavTimeline() {
 
   const drawTier1 = () => {
     gTier1Group.removeChildren();
-    var tierRect = new paper.Rectangle(
+    let tierRect = new paper.Rectangle(
       gTier1Left,
       gTier1Top,
       gNavigatorWidth,
       gTier1Height
     );
-    var cornerSize = new paper.Size(5, 5);
-    var tierRectPath = paper.Path.RoundRectangle(tierRect, cornerSize);
+    const cornerSize = new paper.Size(5, 5);
+    let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
     //var tierRectPath = paper.Path.Rectangle(tierRect);
     tierRectPath.strokeColor = tierBoxColor;
     gTier1Group.addChild(tierRectPath);
 
     //display time ticks
-    for (var i = 0; i < timingData["EVA_duration_seconds"]; i++) {
+    for (let i = 0; i < timingData["EVA_duration_seconds"]; i++) {
       // sillily complex thing to show time ticks on the hour
       if (
         parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
         secondsToTimeStr(i).substring(6, 8) === "00"
       ) {
-        var itemLocX = i * gTier1PixelsPerSecond;
-        var topPoint = new paper.Point(itemLocX, 1);
-        var bottomPoint = new paper.Point(itemLocX, 10);
-        var aLine = new paper.Path.Line(topPoint, bottomPoint);
+        let itemLocX = i * gTier1PixelsPerSecond;
+        let topPoint = new paper.Point(itemLocX, 1);
+        let bottomPoint = new paper.Point(itemLocX, 10);
+        let aLine = new paper.Path.Line(topPoint, bottomPoint);
         aLine.strokeColor = gColorTimeTicks;
 
         gTier1Group.addChild(aLine);
@@ -162,17 +162,17 @@ function NavTimeline() {
     }
 
     //display video segments
-    for (i = 0; i < videoFiles.length; i++) {
-      var startLocX = videoFiles[i].missionSecondsStart * gTier1PixelsPerSecond;
-      var endLocX = videoFiles[i].missionSecondsEnd * gTier1PixelsPerSecond;
+    for (let i = 0; i < videoFiles.length; i++) {
+      let startLocX = videoFiles[i].missionSecondsStart * gTier1PixelsPerSecond;
+      let endLocX = videoFiles[i].missionSecondsEnd * gTier1PixelsPerSecond;
 
-      var startLocY =
+      let startLocY =
         0.5 + videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
-      var endLocY = startLocY + cChannelStrokeWidth + 1;
+      let endLocY = startLocY + cChannelStrokeWidth + 1;
 
       const name = "vidItem_" + i.toString();
 
-      var vidLine = new paper.Path.Rectangle({
+      let vidLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
         to: [endLocX, endLocY],
         strokeWidth: 0.5,
@@ -193,13 +193,13 @@ function NavTimeline() {
   };
 
   const drawTier1EVActivity = (rowNum, evActivityArray: Activity[]) => {
-    for (var i = 0; i < evActivityArray.length; i++) {
-      var startLocX =
+    for (let i = 0; i < evActivityArray.length; i++) {
+      let startLocX =
         evActivityArray[i].startTimeSeconds * gTier1PixelsPerSecond;
-      var endLocX = evActivityArray[i].endTimeSeconds * gTier1PixelsPerSecond;
-      var startLocY = 0.5 + rowNum * (cChannelStrokeWidth + cVidBarGapWidth);
-      var endLocY = startLocY + cChannelStrokeWidth + 1;
-      var activityLine = new paper.Path.Rectangle({
+      let endLocX = evActivityArray[i].endTimeSeconds * gTier1PixelsPerSecond;
+      let startLocY = 0.5 + rowNum * (cChannelStrokeWidth + cVidBarGapWidth);
+      let endLocY = startLocY + cChannelStrokeWidth + 1;
+      let activityLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
         to: [endLocX, endLocY],
         strokeWidth: 0.5,
@@ -220,8 +220,8 @@ function NavTimeline() {
   const drawTier1NavBox = (seconds) => {
     gTier1NavGroup.removeChildren();
 
-    var locX = seconds * gTier1PixelsPerSecond;
-    var navBoxWidth = gNavigatorWidth / gNavZoomFactor;
+    let locX = seconds * gTier1PixelsPerSecond;
+    let navBoxWidth = gNavigatorWidth / gNavZoomFactor;
     gTier1NavBoxLocX = locX - navBoxWidth / 2;
     if (gTier1NavBoxLocX < 0) {
       gTier1NavBoxLocX = 0;
@@ -230,46 +230,43 @@ function NavTimeline() {
     }
     gTier2StartSeconds = gTier1SecondsPerPixel * gTier1NavBoxLocX;
 
-    var navBoxRect = new paper.Rectangle(
+    let navBoxRect = new paper.Rectangle(
       gTier1NavBoxLocX,
       1.5,
       navBoxWidth,
       gTier1Height
     );
-    var cornerSize = new paper.Size(2, 2);
-    var navBoxRectPath = paper.Path.RoundRectangle(navBoxRect, cornerSize);
+    const cornerSize = new paper.Size(2, 2);
+    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
     //var navBoxRectPath = paper.Path.Rectangle(navBoxRect);
     navBoxRectPath.strokeColor = gColorZoomPane1Border;
     gTier1NavGroup.addChild(navBoxRectPath);
 
-    var leftAlphaRect = new paper.Rectangle(
+    let leftAlphaRect = new paper.Rectangle(
       gTier1Left,
       gTier1Top,
       gTier1NavBoxLocX - gTier1Left,
       gTier1Height
     );
-    var leftAlphaRectPath = paper.Path.RoundRectangle(
+    let leftAlphaRectPath = new paper.Path.Rectangle(
       leftAlphaRect,
       cornerSize
     );
     leftAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
     gTier1NavGroup.addChild(leftAlphaRectPath);
 
-    var rightAlphaRect = new paper.Rectangle(
+    let rightAlphaRect = new paper.Rectangle(
       gTier1NavBoxLocX + navBoxWidth,
       gTier1Top,
       gNavigatorWidth - gTier1NavBoxLocX + navBoxWidth,
       gTier1Height
     );
-    var rightAlphaRectPath = paper.Path.RoundRectangle(
-      rightAlphaRect,
-      cornerSize
-    );
+    let rightAlphaRectPath = new paper.Path.Rectangle(rightAlphaRect, cornerSize);
     rightAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
     gTier1NavGroup.addChild(rightAlphaRectPath);
 
     //add zoom curves
-    var leftCurveObj = new paper.Path({
+    let leftCurveObj = new paper.Path({
       segments: [
         [gTier1NavBoxLocX, gTier1Top + gTier1Height / 2],
         [gTier2Left, gTier2Top],
@@ -283,14 +280,14 @@ function NavTimeline() {
       fillColor: "white",
       opacity: gNaxBoxZoomFadeOpacity,
     });
-    var handleVector = new paper.Point({
+    let handleVector = new paper.Point({
       angle: 90,
       length: gTier1Height,
     });
     leftCurveObj.segments[0].handleOut = handleVector;
     gTier1NavGroup.addChild(leftCurveObj);
 
-    var rightCurveObj = new paper.Path({
+    let rightCurveObj = new paper.Path({
       segments: [
         [gTier1NavBoxLocX + navBoxWidth, gTier1Top + gTier1Height / 2],
         [gNavigatorWidth, gTier2Top],
@@ -307,7 +304,7 @@ function NavTimeline() {
     rightCurveObj.segments[0].handleOut = handleVector;
     gTier1NavGroup.addChild(rightCurveObj);
 
-    var fillUnderNavBox = new paper.Path({
+    let fillUnderNavBox = new paper.Path({
       segments: [
         [gTier1NavBoxLocX + 0.5, gTier1Top + gTier1Height],
         [gTier1NavBoxLocX + 0.5, gTier2Top],
@@ -325,53 +322,53 @@ function NavTimeline() {
   };
 
   const drawTier2 = () => {
-    var secondsOnTier2 = gTier2SecondsPerPixel * gNavigatorWidth;
+    let secondsOnTier2 = gTier2SecondsPerPixel * gNavigatorWidth;
 
     gTier2Group.removeChildren();
 
     // draw tier2 boarder
-    var tier2Top = gTier1Height + 5;
-    var tierBottom = gTier2Height;
-    var tierRect = new paper.Rectangle(
+    let tier2Top = gTier1Height + 5;
+    let tierBottom = gTier2Height;
+    let tierRect = new paper.Rectangle(
       1.5,
       tier2Top,
       gNavigatorWidth,
       gTier2Height
     );
-    var cornerSize = new paper.Size(3, 3);
-    var tierRectPath = paper.Path.RoundRectangle(tierRect, cornerSize);
+    let cornerSize = new paper.Size(3, 3);
+    let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
 
     tierRectPath.strokeColor = tierBoxColor;
     gTier2Group.addChild(tierRectPath);
     // gTier2BoarderGroup.sendToBack();
 
     // draw video segments boxes
-    for (var i = 0; i < videoFiles.length; i++) {
+    for (let i = 0; i < videoFiles.length; i++) {
       //draw if video segment start is before end of viewport, and video segment end is after start of viewport
       if (
         videoFiles[i].missionSecondsStart <=
-          gTier2StartSeconds + secondsOnTier2 &&
+        gTier2StartSeconds + secondsOnTier2 &&
         videoFiles[i].missionSecondsEnd >= gTier2StartSeconds
       ) {
-        var startLocX =
+        let startLocX =
           gTier2Left +
           (videoFiles[i].missionSecondsStart - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
-        var endLocX =
+          gTier2PixelsPerSecond;
+        let endLocX =
           gTier2Left +
           (videoFiles[i].missionSecondsEnd - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
+          gTier2PixelsPerSecond;
 
-        var startLocY =
+        let startLocY =
           gTier1Height +
           gTierSpacing +
           0.5 +
           videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
-        var endLocY = startLocY + cChannelStrokeWidth + 1;
+        let endLocY = startLocY + cChannelStrokeWidth + 1;
 
-        var name = "vidItem_" + i.toString();
+        let name = "vidItem_" + i.toString();
 
-        var vidLine = new paper.Path.Rectangle({
+        let vidLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           strokeWidth: 1,
@@ -386,22 +383,18 @@ function NavTimeline() {
     }
 
     //display time ticks
-    for (
-      i = Math.round(gTier2StartSeconds);
-      i < gTier2StartSeconds + secondsOnTier2;
-      i++
-    ) {
+    for (let i = Math.round(gTier2StartSeconds); i < gTier2StartSeconds + secondsOnTier2; i++) {
       if (
         parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
         secondsToTimeStr(i).substring(6, 8) === "00"
       ) {
-        var itemSecondsFromLeft = i - gTier2StartSeconds;
+        let itemSecondsFromLeft = i - gTier2StartSeconds;
 
-        var itemLocX = gTier2Left + itemSecondsFromLeft * gTier2PixelsPerSecond;
-        var barHeight = 10;
-        var topPoint = new paper.Point(itemLocX, gTier2Top);
-        var bottomPoint = new paper.Point(itemLocX, gTier2Top + barHeight);
-        var aLine = new paper.Path.Line(topPoint, bottomPoint);
+        let itemLocX = gTier2Left + itemSecondsFromLeft * gTier2PixelsPerSecond;
+        let barHeight = 10;
+        let topPoint = new paper.Point(itemLocX, gTier2Top);
+        let bottomPoint = new paper.Point(itemLocX, gTier2Top + barHeight);
+        let aLine = new paper.Path.Line(topPoint, bottomPoint);
         aLine.strokeColor = gColorTimeTicks;
         gTier2Group.addChild(aLine);
       }
@@ -413,31 +406,31 @@ function NavTimeline() {
   };
 
   const drawTier2EVActivity = (evRow, evActivityArray, secondsOnTier2) => {
-    var tier2EVActivityHeight = 20;
-    for (var i = 0; i < evActivityArray.length; i++) {
+    const tier2EVActivityHeight = 20;
+    for (let i = 0; i < evActivityArray.length; i++) {
       if (
         evActivityArray[i].startTimeSeconds <=
-          gTier2StartSeconds + secondsOnTier2 &&
+        gTier2StartSeconds + secondsOnTier2 &&
         evActivityArray[i].endTimeSeconds >= gTier2StartSeconds
       ) {
-        var startLocX =
+        let startLocX =
           gTier2Left +
           (evActivityArray[i].startTimeSeconds - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
-        var endLocX =
+          gTier2PixelsPerSecond;
+        let endLocX =
           gTier2Left +
           (evActivityArray[i].endTimeSeconds - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
+          gTier2PixelsPerSecond;
 
-        var startY =
+        let startY =
           gTier1Height +
           gTierSpacing +
           0.5 +
           7 * (cChannelStrokeWidth + cVidBarGapWidth); //there are 7 video channels, start EV activity tracking below them
-        var startLocY = startY + evRow * tier2EVActivityHeight;
-        var endLocY = startLocY + tier2EVActivityHeight;
+        let startLocY = startY + evRow * tier2EVActivityHeight;
+        let endLocY = startLocY + tier2EVActivityHeight;
 
-        var activityLine = new paper.Path.Rectangle({
+        let activityLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           strokeWidth: 0.5,
@@ -453,14 +446,14 @@ function NavTimeline() {
         }
         gTier2Group.addChild(activityLine);
 
-        var activityText = new paper.PointText({
+        let activityText = new paper.PointText({
           justification: "left",
           fontFamily: gNavigatorFontFamily,
           //fontWeight: 'bold',
           fontSize: 13,
           fillColor: "white",
         });
-        var textTop = startLocY + 14;
+        let textTop = startLocY + 14;
         activityText.point = new paper.Point(startLocX + 2, textTop);
         activityText.content = evActivityArray[i].content;
         if (
@@ -487,18 +480,18 @@ function NavTimeline() {
   };
 
   const getCursorElement = (seconds, color) => {
-    var cursorElementGroup = new paper.Group();
+    let cursorElementGroup = new paper.Group();
 
     // tier1
-    var cursorLocX = 0.5 + seconds * gTier1PixelsPerSecond;
-    var topPoint = new paper.Point(cursorLocX, 1);
-    var bottomPoint = new paper.Point(cursorLocX, gTier1Height);
-    var aLine = new paper.Path.Line(topPoint, bottomPoint);
+    let cursorLocX = 0.5 + seconds * gTier1PixelsPerSecond;
+    let topPoint = new paper.Point(cursorLocX, 1);
+    let bottomPoint = new paper.Point(cursorLocX, gTier1Height);
+    let aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = gColorNavCursor;
     cursorElementGroup.addChild(aLine);
 
     // tier2
-    var tierBottom = gNavigatorHeight;
+    let tierBottom = gNavigatorHeight;
     cursorLocX =
       gTier2Left + (seconds - gTier2StartSeconds) * gTier2PixelsPerSecond;
     topPoint = new paper.Point(cursorLocX, gTier2Top);
@@ -507,7 +500,7 @@ function NavTimeline() {
     aLine.strokeColor = color;
     cursorElementGroup.addChild(aLine);
 
-    var timeText = new paper.PointText({
+    let timeText = new paper.PointText({
       justification: "left",
       fontWeight: "bold",
       fontFamily: gNavigatorFontFamily,
@@ -524,14 +517,11 @@ function NavTimeline() {
     } else if (timeText.point.x > gNavigatorWidth - timeText.bounds.width - 5) {
       timeText.point.x = gNavigatorWidth - timeText.bounds.width - 5;
     }
-    var cornerSize = new paper.Size(3, 3);
-    var timeTextRect = new paper.Path.RoundRectangle(
-      timeText.bounds,
-      cornerSize
-    );
+    const cornerSize = new paper.Size(3, 3);
+    let timeTextRect = new paper.Path.Rectangle(timeText.bounds, cornerSize);
     //var timeTextRect = new paper.Path.Rectangle(timeText.bounds);
     timeTextRect.strokeColor = color;
-    timeTextRect.fillColor = "black";
+    timeTextRect.fillColor = new paper.Color("black");
     //timeTextRect.opacity = 0.5;
     timeTextRect.scale(1.1, 1.2);
     cursorElementGroup.addChild(timeTextRect);
@@ -598,7 +588,7 @@ function NavTimeline() {
       setMouseOnNavigator(true);
     }
 
-    var mouseXSeconds;
+    let mouseXSeconds;
     gNavCursorGroup.removeChildren();
     if (event.point.y < gTier1Top + gTier1Height + gTierSpacing) {
       //if in tier1
@@ -622,7 +612,7 @@ function NavTimeline() {
       //if in tier 2
       seconds = Math.round(
         (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
-          gTier2StartSeconds
+        gTier2StartSeconds
       );
     }
 

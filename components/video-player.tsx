@@ -195,7 +195,7 @@ function VideoPlayer({
         {downlinkDisplay}
       </div>
       <div className="vidContainer">
-        <video ref={player} className="player" controls>
+        <video ref={player} className="player" controls muted> {/* temporarily manually muted so we don't go insane during dev */}
           <source src={videoURL} ref={source} />
         </video>
         <div className="vidOverlay">
