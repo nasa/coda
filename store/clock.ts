@@ -23,7 +23,7 @@ export const clockSlice = createSlice({
   initialState,
   reducers: {
     /**
-     * Set the current GMT of the application clock
+     * Set the current UTC of the application clock
      */
     start: (state, action: { payload: string }) => {
       const activation: Activation = {

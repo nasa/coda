@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { getEVAs } from "services/iss-wiki";
+import { getAllEVAs } from "services/iss-wiki";
 
 function Index({ evas }) {
   return (
@@ -52,7 +52,7 @@ function Index({ evas }) {
 }
 
 export const getStaticProps: GetServerSideProps = async () => {
-  const results = await getEVAs();
+  const results = await getAllEVAs();
   const evas = Object.keys(results).map((k) => ({
     name: k,
     path: k.replace(/ /g, "_"),

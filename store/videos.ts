@@ -1,25 +1,60 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { TimingData, VideoActivity, Videos, VideoItem } from "services/io";
+import { Videos, VideoFile } from "services/io";
 
+/** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {
-  videos: { [key: string]: VideoItem };
-  gSelectedVidGroup: number;
+  /** Keyed by the ID of the video, @see {VideoFile.id} */
+  videos: { [key: string]: VideoFile };
+  /** Match the video player to a group, @see {VideoFile.group}. Keyed by the name of the video player */
+  selectedGroups: { [key: string]: number };
+  /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the name of the video player */
+  activeVideoFiles: { [key: string]: string };
 }
 
 export const initialState: VideosState = {
   videos: {},
-  gSelectedVidGroup: null,
+  selectedGroups: {
+    left: 0,
+    right: 1,
+  },
+  activeVideoFiles: {
+    left: "",
+    right: "",
+  },
 };
 
 export const videoSlice = createSlice({
   name: "video",
   initialState,
-  reducers: {},
+  reducers: {
+    /** Pick a video group to play on a named `<VideoPlayer />` */
+    pickGroup: (
+      state,
+      action: { payload: { name: string; group: number } }
+    ) => {
+      state.selectedGroups[action.payload.name] = action.payload.group;
+    },
+
+    /** Set the video file ID to play on a named `<VideoPlayer />` */
+    pickVideoFile: (
+      state,
+      action: { payload: { name: string; id: string } }
+    ) => {
+      state.activeVideoFiles[action.payload.name] = action.payload.id;
+    },
+  },
 });
 
-// export const { initialize } = videoSlice.actions;
+export const { pickGroup, pickVideoFile } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
+
+/** High level information about the start and end of videos for an EVA */
+export interface TimingData {
+  video_earliestStart?: Date;
+  video_latestEnd?: Date;
+  EVA_duration_seconds?: number;
+}
 
 export const selectVideoTimingData = createSelector(
   videosSelector,
@@ -52,60 +87,88 @@ export const selectVideoTimingData = createSelector(
   }
 );
 
-/** Identify what videos are active at every second */
-export const selectVideoActivity = createSelector(
+/**
+ * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
+ */
+export const videoSorter = (a: VideoFile, b: VideoFile) => {
+  return (
+    +(a.priority < b.priority) ||
+    +(a.priority === b.priority) ||
+    +(a.durationSeconds < b.durationSeconds) ||
+    +(a.durationSeconds === b.durationSeconds)
+  );
+};
+
+/**
+ * Get an array of video files sorted by priority and duration with mission timeframes
+ */
+export const selectVideoFiles = createSelector(
   videosSelector,
   selectVideoTimingData,
-  (videos, gTimingData): VideoActivity => {
-    const gVideoActivityByGroupBySecond: VideoActivity = [];
-    for (let group = 0; group <= 6; group++) {
-      const groupSecondsArray: number[][] = [];
-      for (
-        let second = 0;
-        second < gTimingData.EVA_duration_seconds;
-        second++
-      ) {
-        const vidsThisGroupThisSecond: number[] = [];
-        for (let i = 0; i < videos.length; i++) {
-          if (
-            videos[i].group === group &&
-            second >= videos[i].missionSecondsStart &&
-            second <= videos[i].missionSecondsEnd
-          ) {
-            vidsThisGroupThisSecond.push(i);
-          }
-        }
-        let vidIndex;
-        if (vidsThisGroupThisSecond.length > 0) {
-          vidIndex =
-            vidsThisGroupThisSecond[vidsThisGroupThisSecond.length - 1];
-        } else {
-          vidIndex = -1;
-        }
-        groupSecondsArray.push(vidIndex);
-      }
-      gVideoActivityByGroupBySecond.push(groupSecondsArray);
-    }
-    return gVideoActivityByGroupBySecond;
+  (videos, timingData) => {
+    const videoFiles: VideoFile[] = [];
+
+    Object.keys(videos).forEach((v) => {
+      const newVideoFile = Object.assign({}, videos[v]);
+      newVideoFile.missionSecondsStart =
+        (new Date(newVideoFile.start).getTime() -
+          timingData.video_earliestStart.getTime()) /
+        1000;
+      newVideoFile.missionSecondsEnd =
+        (new Date(newVideoFile.end).getTime() -
+          timingData.video_earliestStart.getTime()) /
+        1000;
+      newVideoFile.durationSeconds =
+        newVideoFile.missionSecondsEnd - newVideoFile.missionSecondsStart;
+
+      videoFiles.push(newVideoFile);
+    });
+
+    videoFiles.sort(videoSorter);
+
+    return videoFiles;
   }
 );
 
-export const selectVideoItems = createSelector(videosSelector, (videos) => {
-  const gVideoItems: VideoItem[] = [];
+/**
+ * Nested as:
+ *
+ * ```md
+ * [ every group
+ *   [ every second
+ *       [ ID of every video that's playing ]
+ *   ]
+ * ]
+ * ``` */
+export type VideoActivity = string[][][];
 
-  Object.keys(videos).forEach((v) => {
-    gVideoItems.push(videos[v]);
-  });
-
-  // sorts by priority first, then duration second. Counterintuitively, this array is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
-  gVideoItems.sort(function (a: VideoItem, b: VideoItem) {
-    return (
-      +(a.priority > b.priority) ||
-      +(a.priority === b.priority) - 1 ||
-      +(a.durationSeconds > b.durationSeconds) ||
-      +(a.durationSeconds === b.durationSeconds) - 1
-    );
-  });
-
-  return gVideoItems;
-});
+/** Identify what videos are active at every second */
+export const selectVideoActivity = createSelector(
+  // presorted video files
+  selectVideoFiles,
+  selectVideoTimingData,
+  (videos: VideoFile[], timingData: TimingData): VideoActivity => {
+    const res: VideoActivity = [];
+    // iterate through the possible group numbers, which is only 0-6 right now
+    for (let group = 0; group <= 6; group++) {
+      const groupSecondsArray: string[][] = [];
+      // capture every second of the mission
+      for (let second = 0; second < timingData.EVA_duration_seconds; second++) {
+        // capture all the IDs of the video files that are playing for this group this second
+        const vidsThisGroupThisSecond: string[] = [];
+        videos.forEach((video, i) => {
+          if (
+            video.group === group &&
+            second >= video.missionSecondsStart &&
+            second <= video.missionSecondsEnd
+          ) {
+            vidsThisGroupThisSecond.push(video.id);
+          }
+        });
+        groupSecondsArray.push(vidsThisGroupThisSecond);
+      }
+      res.push(groupSecondsArray);
+    }
+    return res;
+  }
+);

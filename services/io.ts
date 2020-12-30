@@ -81,46 +81,29 @@ type Doc = {
   _version_: number;
 };
 
-/** Parsed metadata from an IO video result */
-export type VideoItem = {
+/** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
+export interface VideoFile {
   id: string;
   content: string;
   description: string;
   start: Date;
   end: Date;
   url: string;
-  videoUrl: string;
+  videoURL: string;
   className: string;
   priority: number;
   md_creation_date: string;
+  /** Collection that this file falls under */
   group: number;
   durationSeconds?: number;
   missionSecondsStart?: number;
   missionSecondsEnd?: number;
-};
+}
 
+/** Keyed by @see {VideoFile.id} */
 export interface Videos {
-  [key: string]: VideoItem;
+  [key: string]: VideoFile;
 }
-
-/** High level information about the start and end of videos for an EVA */
-export interface TimingData {
-  video_earliestStart?: Date;
-  video_latestEnd?: Date;
-  EVA_duration_seconds?: number;
-}
-
-/**
- * Nested as:
- *
- * ```md
- *    [ every second
- *      [ every group
- *          [ ID of every video that's playing ]
- *      ]
- *    ]
- * ``` */
-export type VideoActivity = number[][][];
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
@@ -176,12 +159,6 @@ function parseIOResponse(res: IOResponse) {
   const { docs } = res.results.response;
   const videos: Videos = {};
 
-  let gTimingData: TimingData = {
-    video_earliestStart: null,
-    video_latestEnd: null,
-    EVA_duration_seconds: -1,
-  };
-
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
     const metadata = parseResultMetadata(doc, i);
@@ -192,7 +169,7 @@ function parseIOResponse(res: IOResponse) {
 }
 
 /** Parse the video result for relevant information */
-function parseResultMetadata(doc: Doc, i: number): VideoItem {
+function parseResultMetadata(doc: Doc, i: number): VideoFile {
   let className = "";
   let content = "";
   let group = -1;
@@ -242,9 +219,9 @@ function parseResultMetadata(doc: Doc, i: number): VideoItem {
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
-  var url = `${process.env.HOST_IO}/app/info.cfm?pid=${doc.id}`;
+  var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  const videoUrl = `${process.env.HOST_IO}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const videoURL = `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   return {
     id: doc.nasa_id,
@@ -253,7 +230,7 @@ function parseResultMetadata(doc: Doc, i: number): VideoItem {
     start: UTCstart,
     end: UTCend,
     url,
-    videoUrl,
+    videoURL,
     className,
     priority: className === "downlink-LOS" ? 0 : 1,
     md_creation_date: doc.md_creation_date,

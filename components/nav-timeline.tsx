@@ -11,7 +11,7 @@ import {
 } from "store/clock";
 import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
 import {
-  selectVideoItems,
+  selectVideoFiles,
   selectVideoTimingData,
   VideosState,
 } from "store/videos";
@@ -43,7 +43,7 @@ function NavTimeline() {
   } = useSelector((state) => state);
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
-  const videoItems = selectVideoItems(videos);
+  const videoFiles = selectVideoFiles(videos);
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
   const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
 
@@ -81,20 +81,6 @@ function NavTimeline() {
     activityPerformance.EV2[a].endTimeSeconds =
       thisStartTimeSeconds + activity.duration;
     thisStartTimeSeconds = thisStartTimeSeconds + activity.duration;
-  }
-
-  // get video times in the mission timeframe
-  for (let i = 0; i < videoItems.length; i++) {
-    videoItems[i].missionSecondsStart =
-      (new Date(videoItems[i].start).getTime() -
-        timingData.video_earliestStart.getTime()) /
-      1000;
-    videoItems[i].missionSecondsEnd =
-      (new Date(videoItems[i].end).getTime() -
-        timingData.video_earliestStart.getTime()) /
-      1000;
-    videoItems[i].durationSeconds =
-      videoItems[i].missionSecondsEnd - videoItems[i].missionSecondsStart;
   }
 
   let gTier1Group;
@@ -176,12 +162,12 @@ function NavTimeline() {
     }
 
     //display video segments
-    for (i = 0; i < videoItems.length; i++) {
-      var startLocX = videoItems[i].missionSecondsStart * gTier1PixelsPerSecond;
-      var endLocX = videoItems[i].missionSecondsEnd * gTier1PixelsPerSecond;
+    for (i = 0; i < videoFiles.length; i++) {
+      var startLocX = videoFiles[i].missionSecondsStart * gTier1PixelsPerSecond;
+      var endLocX = videoFiles[i].missionSecondsEnd * gTier1PixelsPerSecond;
 
       var startLocY =
-        0.5 + videoItems[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
+        0.5 + videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
       var endLocY = startLocY + cChannelStrokeWidth + 1;
 
       const name = "vidItem_" + i.toString();
@@ -194,7 +180,7 @@ function NavTimeline() {
         fillColor: gColorVideo,
         name,
       });
-      if (videoItems[i].className === "downlink-LOS")
+      if (videoFiles[i].className === "downlink-LOS")
         vidLine.fillColor = gColorVideoLOS;
       gTier1Group.addChild(vidLine);
     }
@@ -360,27 +346,27 @@ function NavTimeline() {
     // gTier2BoarderGroup.sendToBack();
 
     // draw video segments boxes
-    for (var i = 0; i < videoItems.length; i++) {
+    for (var i = 0; i < videoFiles.length; i++) {
       //draw if video segment start is before end of viewport, and video segment end is after start of viewport
       if (
-        videoItems[i].missionSecondsStart <=
+        videoFiles[i].missionSecondsStart <=
           gTier2StartSeconds + secondsOnTier2 &&
-        videoItems[i].missionSecondsEnd >= gTier2StartSeconds
+        videoFiles[i].missionSecondsEnd >= gTier2StartSeconds
       ) {
         var startLocX =
           gTier2Left +
-          (videoItems[i].missionSecondsStart - gTier2StartSeconds) *
+          (videoFiles[i].missionSecondsStart - gTier2StartSeconds) *
             gTier2PixelsPerSecond;
         var endLocX =
           gTier2Left +
-          (videoItems[i].missionSecondsEnd - gTier2StartSeconds) *
+          (videoFiles[i].missionSecondsEnd - gTier2StartSeconds) *
             gTier2PixelsPerSecond;
 
         var startLocY =
           gTier1Height +
           gTierSpacing +
           0.5 +
-          videoItems[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
+          videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
         var endLocY = startLocY + cChannelStrokeWidth + 1;
 
         var name = "vidItem_" + i.toString();
@@ -393,7 +379,7 @@ function NavTimeline() {
           fillColor: gColorVideo,
           name: name,
         });
-        if (videoItems[i].className === "downlink-LOS")
+        if (videoFiles[i].className === "downlink-LOS")
           vidLine.fillColor = gColorVideoLOS;
         gTier2Group.addChild(vidLine);
       }
