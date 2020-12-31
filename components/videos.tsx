@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useRef } from "react";
+import { MutableRefObject, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { getMissionTime, historySelector } from "store/clock";
 import {
@@ -37,12 +37,15 @@ function Videos() {
   const videoPlayerNames = ["left", "right"];
   // creates `{name: playerRef}` pairs for each HTML5 video player
   const players = Object.fromEntries(
-    videoPlayerNames.map((n) => [n, useRef()])
+    videoPlayerNames.map((n) => [
+      n,
+      useRef() as MutableRefObject<HTMLVideoElement>,
+    ])
   );
 
   const videoActivity = selectVideoActivity(videos);
 
-  // this is the main loop where we make sure the right videos are playing and that they're synced with the timeline
+  // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(historySelector(clock));
@@ -51,28 +54,41 @@ function Videos() {
     if (newMissionTime === missionTime) {
       return;
     }
-
     missionTime = newMissionTime;
 
-    // perform checks against all video players
+    // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name) => {
       const group = videos.selectedGroups[name];
+      const activeVideoFileID = videos.activeVideoFiles[name];
+      const videosNextSecond = videoActivity[group][missionTime + 1];
 
-      // (1) make sure the correct video is playing
+      // (1) check for video changes
+
+      let id = activeVideoFileID;
+
+      // (1.1) if the timeline just jumped or the video files changed, make sure we start the right video
       if (
-        // check for video changes in the group between now and the next second
-        // TODO: this is array equality - is there a safer check?
-        videoActivity[group][missionTime] !==
-        videoActivity[group][missionTime + 1]
+        videosNextSecond.length > 0 &&
+        activeVideoFileID !== videosNextSecond[0]
       ) {
-        let id = "";
-        if (videoActivity[group][missionTime + 1].length > 0) {
-          // there is a different video for this group the next second! pick the highest priority one
-          id = videoActivity[group][missionTime + 1][0];
-        }
+        // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
+        id = videosNextSecond[0];
+      } else if (
+        // (1.2) check if no video is playing next second
+        videosNextSecond.length === 0
+      ) {
+        id = "";
+      }
+
+      // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
+      if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
         return;
       }
+
+      // (2) keep the timeline in sync
+
+      const { buffered, currentTime } = players[name].current;
 
       // (2) make sure the video times are correct
       if (!players[name].current) {
@@ -80,11 +96,10 @@ function Videos() {
         return;
       }
 
-      const currentTime: number = players[name].current.currentTime;
-      const currentlyPlayingVideo =
-        videos.videos[videos.activeVideoFiles[name]];
-      const videoStartOffset =
-        missionTime - currentlyPlayingVideo.missionSecondsStart;
+      // const currentlyPlayingVideo =
+      //   videos.videos[videos.activeVideoFiles[name]];
+      // const videoStartOffset =
+      //   missionTime - currentlyPlayingVideo.missionSecondsStart;
 
       // make sure the video starts at the right time
       // TODO: does this need to be checked when the video is first played?
@@ -134,6 +149,7 @@ function Videos() {
       videoURL = video.videoURL;
       vidInfo = video.description;
       downlinkDisplay = video.content;
+      // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
       players[name].current.load();
       players[name].current.play();
     }
@@ -144,7 +160,7 @@ function Videos() {
     }
 
     return (
-      <div key={`video_player__${i}`} className={styles.foo}>
+      <div key={`video_element__${i}`} className={styles.foo}>
         <div id="vidTitle0" className={styles.vidTitle}>
           {downlinkDisplay}
         </div>
@@ -167,12 +183,12 @@ function Videos() {
     name: string,
     i: number
   ) => (
-    <div className={styles.vidPanel}>
+    <div className={styles.vidPanel} key={`video_player__${name}`}>
       <div>
         {availableGroups.map((g) => {
           return (
             <button
-              id={`vid${name}__button${g}`}
+              key={`vid${name}__button${g}`}
               type="button"
               className={`${styles.vidButton} ${
                 g === videos.selectedGroups[name] && styles.selected

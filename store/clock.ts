@@ -45,7 +45,7 @@ export const clockSlice = createSlice({
   },
 });
 
-export const { start } = clockSlice.actions;
+export const { start, stop } = clockSlice.actions;
 
 export const historySelector = (state) => state.history;
 
