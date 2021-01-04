@@ -8,6 +8,7 @@ import {
   getEVADetails,
 } from "services/iss-wiki";
 import getVideoData from "services/io";
+import { assignStartEnd, generateTimingData } from "store/videos";
 
 function Replay({
   initialReduxState: {
@@ -113,7 +114,9 @@ export const getStaticProps: GetServerSideProps = async ({
 
   // video data for this EVA
   const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
-  const videos = await getVideoData(Y, M, D);
+  let videos = await getVideoData(Y, M, D);
+  const timingData = generateTimingData(videos);
+  videos = assignStartEnd(videos, timingData);
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
   // the trick we're using to map over the existing video files object is:
@@ -152,6 +155,10 @@ export const getStaticProps: GetServerSideProps = async ({
           activeVideoFiles: {
             left: "",
             right: "",
+          },
+          ready: {
+            left: false,
+            right: false,
           },
         },
       },

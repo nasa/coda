@@ -2,20 +2,25 @@ import moment from "moment";
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 
 export interface ClockState {
-  history: Activation[];
-}
-
-export interface Activation {
-  /** Whether or not the application clock should be ticking */
-  go: Boolean;
-  /** ISO string */
-  localTime: string;
-  /** ISO string */
-  GMT?: string;
+  /** Whether the clock actually is running */
+  isRunning: boolean;
+  /** Whether the user wants the clock to be running */
+  ready: boolean;
+  /** ISO string for the last start in the application timeframe */
+  UTC: string;
+  /** ISO string when the clock was started */
+  lastStarted: string;
+  /** ISO string when the clock was last stopped */
+  lastStopped: string;
 }
 
 export const initialState: ClockState = {
-  history: [],
+  isRunning: true,
+  // assume a user wants the timeline to play as soon as they load the application
+  ready: true,
+  UTC: null,
+  lastStarted: null,
+  lastStopped: null,
 };
 
 export const clockSlice = createSlice({
@@ -23,81 +28,78 @@ export const clockSlice = createSlice({
   initialState,
   reducers: {
     /**
-     * Set the current UTC of the application clock
+     * The user lets us know the clock is ready to run or not
      */
-    start: (state, action: { payload: string }) => {
-      const activation: Activation = {
-        go: true,
-        localTime: new Date().toISOString(),
-        // convert to Date and back to make sure it's a valid ISO string
-        GMT: new Date(action.payload).toISOString(),
-      };
-      state.history.push(activation);
+    toggleReady: (state) => {
+      state.ready = !state.ready;
     },
 
-    /** Stop the application clock */
-    stop: (state, action: { payload: string }) => {
-      state.history.push({
-        go: false,
-        localTime: new Date().toISOString(),
-      });
+    /**
+     * Set the current UTC of the application clock
+     */
+    set: (state, action: { payload: string }) => {
+      // convert to Date and back to make sure it's a valid ISO string
+      state.UTC = new Date(action.payload).toISOString();
+    },
+
+    /**
+     * Start the application clock
+     */
+    start: (state) => {
+      state.lastStarted = new Date().toISOString();
+      state.lastStopped = null;
+      state.isRunning = true;
+    },
+
+    /**
+     * Stop the application clock
+     */
+    stop: (state) => {
+      state.lastStopped = new Date().toISOString();
+      state.isRunning = false;
     },
   },
 });
 
-export const { start, stop } = clockSlice.actions;
+export const { set, start, stop, toggleReady } = clockSlice.actions;
 
-export const historySelector = (state) => state.history;
+/** Utility for doing the math to determine the internal application time based on starts and stops of the clock */
+const getApplicationTime = (state: ClockState): moment.Moment => {
+  const { isRunning, lastStarted, lastStopped, UTC } = state;
 
-/**
- * Get the current clock settings
- */
-export const currentClockSelector = createSelector(
-  historySelector,
-  (history: Activation[]): Activation => history[history.length - 1] || null
-);
+  // the application has never run
+  if (!UTC) {
+    // TODO: maybe return the earliest time we have timing data for?
+    return null;
+  }
+
+  const delta = isRunning
+    ? moment().diff(moment(lastStarted))
+    : moment(lastStopped).diff(moment(lastStarted));
+
+  return moment(UTC).add(delta);
+};
 
 /**
  * Get the current application UTC
  */
-export const getApplicationUTC = (history: Activation[]): Date => {
-  // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
-  let lastStopTime;
-  let lastGMT = null;
-
-  // iterate backwards to figure out the current application GMT
-  for (let h = history.length - 1; h >= 0; h--) {
-    const { go, localTime, GMT } = history[h];
-    if (go) {
-      const delta = moment(lastStopTime).diff(moment(localTime));
-      return moment(GMT).add(delta).toDate();
-    }
-    lastStopTime = localTime;
-    lastGMT = GMT;
+export const getApplicationUTC = (state: ClockState): Date => {
+  const time = getApplicationTime(state);
+  if (time) {
+    return time.toDate();
   }
-  // the application must not have ever started
-  return lastGMT;
+
+  return null;
 };
 
 /**
  * Get the current mission time in seconds
  */
-export const getMissionTime = (history: Activation[]): number => {
-  // lastStopTime must be undefined for `moment(lastStopTime)` to either return a moment representing the lastStopTime or a moment representing now
-  let lastStopTime;
-
-  // iterate backwards to figure out the current application GMT
-  for (let h = history.length - 1; h >= 0; h--) {
-    const { go, localTime, GMT } = history[h];
-    if (go) {
-      const delta = moment(lastStopTime).diff(moment(localTime));
-      const updated = moment(GMT).add(delta);
-      return (
-        updated.hours() * 3600 + updated.minutes() * 60 + updated.seconds()
-      );
-    }
-    lastStopTime = localTime;
+export const getMissionTime = (state: ClockState): number => {
+  const time = getApplicationTime(state);
+  if (time) {
+    return time.hours() * 3600 + time.minutes() * 60 + time.seconds();
   }
-  // the application must not have ever started
+
   return 0;
 };

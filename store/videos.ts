@@ -9,6 +9,8 @@ export interface VideosState {
   selectedGroups: { [key: string]: number };
   /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the name of the video player */
   activeVideoFiles: { [key: string]: string };
+  /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
+  ready: { [key: string]: boolean };
 }
 
 export const initialState: VideosState = {
@@ -20,6 +22,10 @@ export const initialState: VideosState = {
   activeVideoFiles: {
     left: "",
     right: "",
+  },
+  ready: {
+    left: false,
+    right: false,
   },
 };
 
@@ -42,49 +48,73 @@ export const videoSlice = createSlice({
     ) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
     },
+
+    /** Mark videos are ready to be played. The payload is the video player name */
+    ready: (state, action: { payload: string }) => {
+      state.ready[action.payload] = true;
+    },
+
+    /** Mark videos as not ready to be played. The payload is the video player name */
+    buffering: (state, action: { payload: string }) => {
+      state.ready[action.payload] = false;
+    },
   },
 });
 
-export const { pickGroup, pickVideoFile } = videoSlice.actions;
+export const {
+  pickGroup,
+  pickVideoFile,
+  ready,
+  buffering,
+} = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
 /** High level information about the start and end of videos for an EVA */
 export interface TimingData {
-  video_earliestStart?: Date;
-  video_latestEnd?: Date;
-  EVA_duration_seconds?: number;
+  video_earliestStart: Date;
+  video_latestEnd: Date;
+  EVA_duration_seconds: number;
 }
+
+/**
+ * Calculate start, end, and duration of the EVA based on video data
+ */
+export const generateTimingData = (videos: Videos): TimingData => {
+  const timingData: TimingData = {
+    video_earliestStart: null,
+    video_latestEnd: null,
+    EVA_duration_seconds: 0,
+  };
+
+  Object.keys(videos).forEach((v) => {
+    const video = videos[v];
+    const start = new Date(video.start);
+    const end = new Date(video.end);
+    // set the bounds on the video start and end times
+    if (
+      !timingData.video_earliestStart ||
+      start.getTime() < timingData.video_earliestStart.getTime()
+    ) {
+      timingData.video_earliestStart = new Date(start.toUTCString());
+    }
+    if (
+      !timingData.video_latestEnd ||
+      end.getTime() > timingData.video_latestEnd.getTime()
+    ) {
+      timingData.video_latestEnd = new Date(end.toUTCString());
+    }
+  });
+
+  timingData.EVA_duration_seconds =
+    (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
+
+  return timingData;
+};
 
 export const selectVideoTimingData = createSelector(
   videosSelector,
-  (videos: Videos) => {
-    const timingData: TimingData = {};
-
-    Object.keys(videos).forEach((v) => {
-      const video = videos[v];
-      const start = new Date(video.start);
-      const end = new Date(video.end);
-      // set the bounds on the video start and end times
-      if (
-        !timingData.video_earliestStart ||
-        start.getTime() < timingData.video_earliestStart.getTime()
-      ) {
-        timingData.video_earliestStart = new Date(start.toUTCString());
-      }
-      if (
-        !timingData.video_latestEnd ||
-        end.getTime() > timingData.video_latestEnd.getTime()
-      ) {
-        timingData.video_latestEnd = new Date(end.toUTCString());
-      }
-    });
-
-    timingData.EVA_duration_seconds =
-      (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
-
-    return timingData;
-  }
+  generateTimingData
 );
 
 /**
@@ -100,15 +130,11 @@ export const videoSorter = (a: VideoFile, b: VideoFile) => {
 };
 
 /**
- * Get an array of video files sorted by priority and duration with mission timeframes
+ * Assing the mission start, mission end, and durations to videos
  */
-export const selectVideoFiles = createSelector(
-  videosSelector,
-  selectVideoTimingData,
-  (videos, timingData) => {
-    const videoFiles: VideoFile[] = [];
-
-    Object.keys(videos).forEach((v) => {
+export const assignStartEnd = (videos: Videos, timingData: TimingData) => {
+  return Object.fromEntries(
+    Object.keys(videos).map((v) => {
       const newVideoFile = Object.assign({}, videos[v]);
       newVideoFile.missionSecondsStart =
         (new Date(newVideoFile.start).getTime() -
@@ -121,14 +147,19 @@ export const selectVideoFiles = createSelector(
       newVideoFile.durationSeconds =
         newVideoFile.missionSecondsEnd - newVideoFile.missionSecondsStart;
 
-      videoFiles.push(newVideoFile);
-    });
+      return [v, newVideoFile];
+    })
+  );
+};
 
-    videoFiles.sort(videoSorter);
-
-    return videoFiles;
-  }
-);
+/**
+ * Get an array of video files sorted by priority and duration with mission timeframes
+ */
+export const selectVideoFiles = createSelector(videosSelector, (videos) => {
+  const videoFiles = Object.keys(videos).map((v) => videos[v]);
+  videoFiles.sort(videoSorter);
+  return videoFiles;
+});
 
 /**
  * Nested as:

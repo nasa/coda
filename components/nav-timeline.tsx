@@ -3,12 +3,7 @@ import paper from "paper";
 import { useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { Activity } from "services/iss-wiki";
-import {
-  ClockState,
-  getMissionTime,
-  historySelector,
-  start,
-} from "store/clock";
+import { ClockState, getMissionTime, set } from "store/clock";
 import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
 import {
   selectVideoFiles,
@@ -51,7 +46,7 @@ function NavTimeline() {
   useInterval(() => {
     if (!mouseOnNavigator) {
       const { clock } = store.getState();
-      const newMissionTime = getMissionTime(historySelector(clock));
+      const newMissionTime = getMissionTime(clock);
       if (newMissionTime !== missionTime) {
         drawTier1NavBox(newMissionTime);
         drawTier2();
@@ -248,10 +243,7 @@ function NavTimeline() {
       gTier1NavBoxLocX - gTier1Left,
       gTier1Height
     );
-    let leftAlphaRectPath = new paper.Path.Rectangle(
-      leftAlphaRect,
-      cornerSize
-    );
+    let leftAlphaRectPath = new paper.Path.Rectangle(leftAlphaRect, cornerSize);
     leftAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
     gTier1NavGroup.addChild(leftAlphaRectPath);
 
@@ -261,7 +253,10 @@ function NavTimeline() {
       gNavigatorWidth - gTier1NavBoxLocX + navBoxWidth,
       gTier1Height
     );
-    let rightAlphaRectPath = new paper.Path.Rectangle(rightAlphaRect, cornerSize);
+    let rightAlphaRectPath = new paper.Path.Rectangle(
+      rightAlphaRect,
+      cornerSize
+    );
     rightAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
     gTier1NavGroup.addChild(rightAlphaRectPath);
 
@@ -347,17 +342,17 @@ function NavTimeline() {
       //draw if video segment start is before end of viewport, and video segment end is after start of viewport
       if (
         videoFiles[i].missionSecondsStart <=
-        gTier2StartSeconds + secondsOnTier2 &&
+          gTier2StartSeconds + secondsOnTier2 &&
         videoFiles[i].missionSecondsEnd >= gTier2StartSeconds
       ) {
         let startLocX =
           gTier2Left +
           (videoFiles[i].missionSecondsStart - gTier2StartSeconds) *
-          gTier2PixelsPerSecond;
+            gTier2PixelsPerSecond;
         let endLocX =
           gTier2Left +
           (videoFiles[i].missionSecondsEnd - gTier2StartSeconds) *
-          gTier2PixelsPerSecond;
+            gTier2PixelsPerSecond;
 
         let startLocY =
           gTier1Height +
@@ -383,7 +378,11 @@ function NavTimeline() {
     }
 
     //display time ticks
-    for (let i = Math.round(gTier2StartSeconds); i < gTier2StartSeconds + secondsOnTier2; i++) {
+    for (
+      let i = Math.round(gTier2StartSeconds);
+      i < gTier2StartSeconds + secondsOnTier2;
+      i++
+    ) {
       if (
         parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
         secondsToTimeStr(i).substring(6, 8) === "00"
@@ -410,17 +409,17 @@ function NavTimeline() {
     for (let i = 0; i < evActivityArray.length; i++) {
       if (
         evActivityArray[i].startTimeSeconds <=
-        gTier2StartSeconds + secondsOnTier2 &&
+          gTier2StartSeconds + secondsOnTier2 &&
         evActivityArray[i].endTimeSeconds >= gTier2StartSeconds
       ) {
         let startLocX =
           gTier2Left +
           (evActivityArray[i].startTimeSeconds - gTier2StartSeconds) *
-          gTier2PixelsPerSecond;
+            gTier2PixelsPerSecond;
         let endLocX =
           gTier2Left +
           (evActivityArray[i].endTimeSeconds - gTier2StartSeconds) *
-          gTier2PixelsPerSecond;
+            gTier2PixelsPerSecond;
 
         let startY =
           gTier1Height +
@@ -612,7 +611,7 @@ function NavTimeline() {
       //if in tier 2
       seconds = Math.round(
         (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
-        gTier2StartSeconds
+          gTier2StartSeconds
       );
     }
 
@@ -621,7 +620,7 @@ function NavTimeline() {
     const ss = seconds - hh * 3600 - mm * 60;
     const [Y, M, D] = evas.EVAs[evas.selectedEVA].startDate.split("/");
     const dt = new Date(+Y, +M - 1, +D, hh, mm, ss);
-    dispatch(start(dt.toISOString()));
+    dispatch(set(dt.toISOString()));
     drawCursor(seconds);
   };
 

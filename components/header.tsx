@@ -1,13 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import {
-  ClockState,
-  getApplicationUTC,
-  getMissionTime,
-  historySelector,
-  start,
-} from "store/clock";
+import { getApplicationUTC, getMissionTime, set } from "store/clock";
 import { padZeros } from "utils/formatting";
 import useInterval from "utils/useInterval";
 
@@ -31,10 +25,10 @@ function Header() {
   const [editing, setEditing] = useState(false);
   useInterval(() => {
     const { clock } = store.getState();
-    const newMissionTime = getMissionTime(historySelector(clock));
+    const newMissionTime = getMissionTime(clock);
 
     if (newMissionTime !== missionTime) {
-      const utc = getApplicationUTC(historySelector(clock));
+      const utc = getApplicationUTC(clock);
       setAppValue(utc);
       missionTime = newMissionTime;
     }
@@ -180,7 +174,7 @@ function Header() {
                   const [hh, mm = "00", ss = "00"] = userValue.split(":");
                   dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
                 }
-                dispatch(start(dt.toISOString()));
+                dispatch(set(dt.toISOString()));
                 setUserValue("");
                 setEditing(false);
               }}

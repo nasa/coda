@@ -1,11 +1,14 @@
 import { useRouter } from "next/router";
 import { MutableRefObject, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { getMissionTime, historySelector } from "store/clock";
+import { ClockState, getMissionTime } from "store/clock";
 import {
+  buffering,
   pickGroup,
   pickVideoFile,
+  ready,
   selectVideoActivity,
+  selectVideoFiles,
   VideosState,
 } from "store/videos";
 import useInterval from "utils/useInterval";
@@ -30,7 +33,10 @@ function Videos() {
 
   const store = useStore();
   const dispatch = useDispatch();
-  const videos: VideosState = useSelector((state) => state.videos);
+  const {
+    videos,
+    clock,
+  }: { videos: VideosState; clock: ClockState } = useSelector((state) => state);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -48,7 +54,7 @@ function Videos() {
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
     const { clock } = store.getState();
-    const newMissionTime = getMissionTime(historySelector(clock));
+    const newMissionTime = getMissionTime(clock);
 
     // don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
     if (newMissionTime === missionTime) {
@@ -83,54 +89,31 @@ function Videos() {
       // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
       if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
+        dispatch(buffering(name));
         return;
       }
 
-      // (2) keep the timeline in sync
+      // (2) keep the video in sync with the timeline
 
-      const { buffered, currentTime } = players[name].current;
-
-      // (2) make sure the video times are correct
+      // (2.1) bail if no video is loaded
       if (!players[name].current) {
-        // bail if no video is playing
         return;
       }
 
-      // const currentlyPlayingVideo =
-      //   videos.videos[videos.activeVideoFiles[name]];
-      // const videoStartOffset =
-      //   missionTime - currentlyPlayingVideo.missionSecondsStart;
+      const { currentTime } = players[name].current;
 
-      // make sure the video starts at the right time
-      // TODO: does this need to be checked when the video is first played?
-      // I'm not convinced this is necessary. check the original codebase
-      // if (Math.abs(currentTime - videoStartOffset) > 1) {
-      //   players[name].current.currentTime = videoStartOffset;
-      // }
+      // (2.2) make sure the video times are correct
 
-      // use left video to sync master clock if it's playing a video
-      // TODO: can we tell if a video is buffered? if so, maybe we just pause the appliation clock until its buffered
-      // if (
-      //   gVideoActivityByGroupBySecond[gSelectedVidGroup[0]][
-      //     gCurrMissionTimeSeconds + 1
-      //   ] !== -1
-      // ) {
-      //   gCurrMissionTimeSeconds = parseInt(
-      //     gSelectedVideoStartTimeSeconds[0] +
-      //       document.getElementById("player0").currentTime
-      //   );
+      const currentlyPlayingVideo =
+        videos.videos[videos.activeVideoFiles[name]];
+      const videoStartOffset =
+        missionTime - currentlyPlayingVideo.missionSecondsStart;
 
-      //   // or sync the clock to right video if left video is not available
-      // } else if (
-      //   gVideoActivityByGroupBySecond[gSelectedVidGroup[1]][
-      //     gCurrMissionTimeSeconds + 1
-      //   ] !== -1
-      // ) {
-      //   gCurrMissionTimeSeconds = parseInt(
-      //     gSelectedVideoStartTimeSeconds[1] +
-      //       document.getElementById("player1").currentTime
-      //   );
-      // }
+      if (Math.abs(currentTime - videoStartOffset) > 1) {
+        players[name].current.pause();
+        players[name].current.currentTime = videoStartOffset;
+        dispatch(buffering(name));
+      }
     });
   }, 50);
 
@@ -145,18 +128,34 @@ function Videos() {
     let downlinkDisplay = "No video available";
     let vidInfo = "";
     if (videoID !== "") {
+      // TODO: do we need to check that the video has changed?
+      // TODO: pretty sure we do
       const video = videos.videos[videoID];
       videoURL = video.videoURL;
       vidInfo = video.description;
       downlinkDisplay = video.content;
-      // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
-      players[name].current.load();
-      players[name].current.play();
+
+      if (videoURL !== players[name].current.currentSrc) {
+        // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
+        players[name].current.load();
+      }
+
+      // TODO: we need to figure out how to tell if the video is ready to play
+      // when the video is first loaded or the timeline changes, videos should be marked not ready
+      // when the video canplay event fires, we mark it ready and run the timeline
     }
 
     // always mute the right hand side player
     if (name === "right" && players[name].current) {
       players[name].current.muted = true;
+    }
+
+    if (
+      players[name].current &&
+      players[name].current.paused &&
+      clock.isRunning
+    ) {
+      (async () => await players[name].current.play())();
     }
 
     return (
@@ -165,7 +164,15 @@ function Videos() {
           {downlinkDisplay}
         </div>
         <div className={styles.vidContainer}>
-          <video ref={players[name]} className={styles.player} controls muted>
+          <video
+            ref={players[name]}
+            className={styles.player}
+            controls
+            muted
+            onCanPlay={() => dispatch(ready(name))}
+            // TODO: probably not necessary
+            // onWaiting={() => dispatch(buffering(name))}
+          >
             <source src={videoURL} />
           </video>
           <div className={styles.vidOverlay}>
