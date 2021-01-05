@@ -6,8 +6,10 @@ import {
   getAsExecuted,
   getAllEVAs,
   getEVADetails,
+  EVASummaryResponse,
+  ParsedEVADetails,
 } from "services/iss-wiki";
-import getVideoData from "services/io";
+import getVideoData, { Videos } from "services/io";
 import { assignStartEnd, generateTimingData } from "store/videos";
 
 function Replay({
@@ -86,37 +88,49 @@ export const getStaticProps: GetServerSideProps = async ({
   params: { eva },
 }) => {
   const evaName = (eva as string).toLowerCase();
+  let evaErrorMessage = "";
+  let videosErrorMessage = "";
 
   // fetch all data for the EVA store
-  // TODO: maybe move this into functions?
-  const results = await getAllEVAs();
-  const EVAs: { [key: string]: EVA } = {};
-  Object.keys(results).forEach((r) => {
-    const formattedEVAName = r.replace(/ /g, "_").toLowerCase();
-    EVAs[formattedEVAName] = {
-      name: results[r].printouts["EVA title"][0],
-      wikiURL: results[r].fullurl,
-      displayTitle: results[r].displaytitle,
-      startDate: results[r].printouts["Start date"][0].raw.substring(2),
-      startTime: results[r].printouts["Start time"][0],
-      // we don't have these properties yet
-      duration: -1,
-      activityPerformance: {},
-    };
-  });
 
-  EVAs[evaName].activityPerformance["EV1"] = await getAsExecuted(evaName, 1);
-  EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
+  const EVAs = {} as { [key: string]: EVA };
+  let gEVADetails: ParsedEVADetails;
+  try {
+    const evas = await getAllEVAs();
+    Object.keys(evas).forEach((evaName) => {
+      const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+      EVAs[formattedEVAName] = {
+        name: evas[evaName].printouts["EVA title"][0],
+        wikiURL: evas[evaName].fullurl,
+        displayTitle: evas[evaName].displaytitle,
+        startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
+        startTime: evas[evaName].printouts["Start time"][0],
+        // we don't have these properties yet
+        duration: -1,
+        activityPerformance: {},
+      };
+    });
 
-  const gEVADetails = await getEVADetails(evaName);
-  const [h, m] = gEVADetails.duration.split(":");
-  EVAs[evaName].duration = +h * 3600 + +m * 60;
+    EVAs[evaName].activityPerformance["EV1"] = await getAsExecuted(evaName, 1);
+    EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
 
-  // video data for this EVA
-  const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
-  let videos = await getVideoData(Y, M, D);
-  const timingData = generateTimingData(videos);
-  videos = assignStartEnd(videos, timingData);
+    gEVADetails = await getEVADetails(evaName);
+  } catch {
+    evaErrorMessage = "Error fetching EVAs";
+  }
+
+  let videos: Videos;
+  try {
+    const [h, m] = gEVADetails.duration.split(":");
+    EVAs[evaName].duration = +h * 3600 + +m * 60;
+    // video data for this EVA
+    const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
+    videos = await getVideoData(Y, M, D);
+    const timingData = generateTimingData(videos);
+    videos = assignStartEnd(videos, timingData);
+  } catch {
+    videosErrorMessage = "Error fetching videos";
+  }
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
   // the trick we're using to map over the existing video files object is:
@@ -145,6 +159,7 @@ export const getStaticProps: GetServerSideProps = async ({
         evas: {
           EVAs,
           selectedEVA: eva,
+          errorMessage: evaErrorMessage,
         },
         videos: {
           videos: jsonifiedVideoFiles,
@@ -160,6 +175,7 @@ export const getStaticProps: GetServerSideProps = async ({
             left: false,
             right: false,
           },
+          errorMessage: videosErrorMessage,
         },
       },
     },

@@ -14,7 +14,7 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 
 ### Software Dependencies
 
-- [NodeJS](https://nodejs.dev/) v14. Install manually or use [nvm](https://github.com/nvm-sh/nvm)
+- [NodeJS](https://nodejs.dev/) v14. Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (there's also a [Windows version](https://github.com/coreybutler/nvm-windows) but I've never tried it)
 
 ### First Time Installation
 

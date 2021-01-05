@@ -112,13 +112,9 @@ async function fetchIO(params: string): Promise<IOResponse> {
     headers: {
       "Accept-Encoding": "gzip,deflate",
       "Accept-Language": "en-us",
-      cacert: process.env.CA_CERT,
       Connection: "keep-alive",
       "Content-Type": "application/json; charset=utf-8",
-      cookie: process.env.COOKIE_JAR,
-      "cookie-jar": process.env.COOKIE_JAR,
       "Script-Charset": "utf-8",
-      "X-SKIP-SAML": "True",
     },
   };
 

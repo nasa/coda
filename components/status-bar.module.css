@@ -1,0 +1,16 @@
+.container {
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+  background-color: blue;
+  transition: background-color 0.5s;
+}
+
+.isRunning {
+  background-color: green;
+}
+
+.isStopped {
+  background-color: yellow;
+}

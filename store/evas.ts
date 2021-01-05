@@ -6,11 +6,14 @@ export interface EVAsState {
   EVAs: { [key: string]: EVA };
   /** Format of underscored lowercase EVA name, eg. `us_eva_55` */
   selectedEVA: string;
+  /** Message describing something that went wrong fetching EVAs */
+  errorMessage: string;
 }
 
 export const initialState: EVAsState = {
   EVAs: {},
   selectedEVA: "",
+  errorMessage: "",
 };
 
 export const evasSlice = createSlice({

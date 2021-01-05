@@ -11,6 +11,8 @@ export interface VideosState {
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
   ready: { [key: string]: boolean };
+  /** Message describing something that went wrong fetching video metadata */
+  errorMessage: string;
 }
 
 export const initialState: VideosState = {
@@ -27,6 +29,7 @@ export const initialState: VideosState = {
     left: false,
     right: false,
   },
+  errorMessage: "",
 };
 
 export const videoSlice = createSlice({

@@ -8,7 +8,6 @@ import {
   pickVideoFile,
   ready,
   selectVideoActivity,
-  selectVideoFiles,
   VideosState,
 } from "store/videos";
 import useInterval from "utils/useInterval";
@@ -38,16 +37,17 @@ function Videos() {
     clock,
   }: { videos: VideosState; clock: ClockState } = useSelector((state) => state);
 
+  // TODO: go from video to no video, switch videos at same time
+  // why aren't the videos running when the app loads?
+
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
   const videoPlayerNames = ["left", "right"];
   // creates `{name: playerRef}` pairs for each HTML5 video player
-  const players = Object.fromEntries(
-    videoPlayerNames.map((n) => [
-      n,
-      useRef() as MutableRefObject<HTMLVideoElement>,
-    ])
-  );
+  const players = {
+    left: useRef() as MutableRefObject<HTMLVideoElement>,
+    right: useRef() as MutableRefObject<HTMLVideoElement>,
+  };
 
   const videoActivity = selectVideoActivity(videos);
 
@@ -128,8 +128,6 @@ function Videos() {
     let downlinkDisplay = "No video available";
     let vidInfo = "";
     if (videoID !== "") {
-      // TODO: do we need to check that the video has changed?
-      // TODO: pretty sure we do
       const video = videos.videos[videoID];
       videoURL = video.videoURL;
       vidInfo = video.description;
@@ -146,10 +144,11 @@ function Videos() {
     }
 
     // always mute the right hand side player
-    if (name === "right" && players[name].current) {
+    if (players[name].current && name === "right") {
       players[name].current.muted = true;
     }
 
+    // make sure the video is playing when the clock is running
     if (
       players[name].current &&
       players[name].current.paused &&
@@ -170,8 +169,10 @@ function Videos() {
             controls
             muted
             onCanPlay={() => dispatch(ready(name))}
+            onPause={() => dispatch(buffering(name))}
             // TODO: probably not necessary
-            // onWaiting={() => dispatch(buffering(name))}
+            onWaiting={() => dispatch(buffering(name))}
+            // onWaiting={console.log}
           >
             <source src={videoURL} />
           </video>
