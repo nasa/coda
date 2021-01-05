@@ -28,6 +28,10 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 
 Then head over to `http://coda-iss.develop:3000`
 
+Bonus: `npm run dev` is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging). Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
+
+Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) on how the debugger is setup.
+
 ### Run Tests
 
 We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
