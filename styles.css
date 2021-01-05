@@ -1,7 +1,7 @@
 body {
   font-family: Roboto Mono, serif;
   background-color: #000000;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
   margin: 0;
   color: #ffffff;
 }

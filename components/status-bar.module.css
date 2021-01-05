@@ -1,16 +1,63 @@
 .container {
   position: fixed;
+  display: flex;
+  justify-content: space-between;
   width: 100%;
   bottom: 0;
   left: 0;
-  background-color: blue;
   transition: background-color 0.5s;
+  height: 24px;
+  color: black;
 }
 
-.isRunning {
-  background-color: green;
+.container > span {
+  display: inline-block;
 }
 
-.isStopped {
-  background-color: yellow;
+.noErrors {
+  background-color: #006026;
+}
+
+.haveErrors {
+  background-color: red;
+}
+
+.playPause {
+  letter-spacing: -3px;
+}
+
+.spinner:after {
+  content: "";
+  animation-name: spin;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+}
+
+/* ┤ ┘ ┴ └ ├ ┌ ┬ ┐ */
+
+@keyframes spin {
+  0% {
+    content: "┤";
+  }
+  14.3% {
+    content: "┘";
+  }
+  28.5% {
+    content: "┴";
+  }
+  42.9% {
+    content: "└";
+  }
+  57.1% {
+    content: "├";
+  }
+  71.4% {
+    content: "┌";
+  }
+  85.7% {
+    content: "┬";
+  }
+  100% {
+    content: "┐";
+  }
 }
