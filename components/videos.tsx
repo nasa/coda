@@ -39,7 +39,6 @@ function Videos() {
 
   // TODO: go from video to no video, switch videos at same time
   // why aren't the videos running when the app loads?
-  // videos aren't changing when mission changes
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -216,7 +215,9 @@ function Videos() {
     </div>
   );
 
-  return videoPlayerNames.map(videoPlayer);
+  return (
+    <div className={styles.container}>{videoPlayerNames.map(videoPlayer)}</div>
+  );
 }
 
 export default Videos;

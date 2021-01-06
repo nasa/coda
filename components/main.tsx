@@ -1,8 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
-import AVPanels from "components/av-panels";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import StatusBar from "components/status-bar";
+import Videos from "components/videos";
 import { ClockState, start, stop } from "store/clock";
 import { VideosState } from "store/videos";
 
@@ -41,7 +41,7 @@ export default function Main() {
     <div>
       <Header />
       <NavTimeline />
-      <AVPanels />
+      <Videos />
       <StatusBar />
     </div>
   );
