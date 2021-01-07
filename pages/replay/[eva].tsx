@@ -6,8 +6,10 @@ import {
   getAsExecuted,
   getAllEVAs,
   getEVADetails,
+  getCrew,
   EVASummaryResponse,
   ParsedEVADetails,
+  ParsedCrewResults,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
 import { assignStartEnd, generateTimingData } from "store/videos";
@@ -95,14 +97,15 @@ export const getStaticProps: GetServerSideProps = async ({
 
   const EVAs = {} as { [key: string]: EVA };
   let gEVADetails: ParsedEVADetails;
+  let EVACrew: ParsedCrewResults;
   try {
     const evas = await getAllEVAs();
     Object.keys(evas).forEach((evaName) => {
       const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
       EVAs[formattedEVAName] = {
-        name: evas[evaName].printouts["EVA title"][0],
+        name: evaName,
         wikiURL: evas[evaName].fullurl,
-        displayTitle: evas[evaName].displaytitle,
+        displayTitle: evas[evaName].printouts["EVA title"][0],
         startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
         startTime: evas[evaName].printouts["Start time"][0],
         // we don't have these properties yet
@@ -115,6 +118,7 @@ export const getStaticProps: GetServerSideProps = async ({
     EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
 
     gEVADetails = await getEVADetails(evaName);
+    EVACrew = await getCrew(evaName);
   } catch {
     evaErrorMessage = "Error fetching EVAs";
   }
@@ -159,6 +163,7 @@ export const getStaticProps: GetServerSideProps = async ({
         evas: {
           EVAs,
           selectedEVA: eva,
+          EVACrew,
           errorMessage: evaErrorMessage,
         },
         videos: {

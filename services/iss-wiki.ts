@@ -29,6 +29,7 @@ export interface Activity {
   startTimeSeconds?: number;
   endTimeSeconds?: number;
 }
+
 interface WikiResponse {
   query: {
     printrequests: {
@@ -224,4 +225,44 @@ async function parseAsExecuted(results: EVAAsExecuted): Promise<Activity[]> {
   });
 
   return res;
+}
+
+interface EVACrewResults {
+  /** keyed in the form of `US EVA 55# a4c086604b5aa243bf1f3c99dc06d965` */
+  [key: string]: {
+    printouts: {
+      "Has full name": [{
+        fulltext: string;
+      }],
+      "Has role": [{
+        fulltext: string;
+      }]
+    };
+  };
+}
+
+export interface ParsedCrewResults {
+  ev1: string,
+  ev2: string,
+  suit_iv: string,
+}
+
+/** Get crew assignment data for a EVA */
+export async function getCrew(evaName: string) {
+  const wikiParams = `[[Crew involved with subject::+]] [[From page::' . ${evaName} . ']] |? Has full name |? Has role |? Has EMU Page  |format = json`;
+  const query = encodeURI(`{ text: ${wikiParams} }`);
+  const queryParams = `action=ask&query=${query}`;
+  const res = await fetchWiki(queryParams, `getCrew`);
+  const results: EVACrewResults = res.query.results;
+  return parseCrew(results);
+}
+
+async function parseCrew(results: EVACrewResults): Promise<ParsedCrewResults> {
+  let crewObject = {};
+  for (let objKey in results) {
+    let useableKey = results[objKey]['printouts']['Has role'][0]['fulltext'].replace(/ /g, "_").toLowerCase();
+    crewObject[useableKey] = results[objKey]['printouts']['Has full name'][0]['fulltext'];
+  }
+
+  return crewObject;
 }
