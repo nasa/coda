@@ -206,7 +206,7 @@ export async function getAsExecuted(evaName: string, evNum: number) {
   return parseAsExecuted(results);
 }
 
-async function parseAsExecuted(results: EVAAsExecuted): Promise<Activity[]> {
+function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
 
   Object.keys(results).forEach((r) => {
@@ -257,8 +257,12 @@ export async function getCrew(evaName: string) {
   return parseCrew(results);
 }
 
-async function parseCrew(results: EVACrewResults): Promise<ParsedCrewResults> {
-  let crewObject = {};
+function parseCrew(results: EVACrewResults): ParsedCrewResults {
+  let crewObject: ParsedCrewResults = {
+    ev1: '',
+    ev2: '',
+    suit_iv: '',
+  };
   for (let objKey in results) {
     let useableKey = results[objKey]['printouts']['Has role'][0]['fulltext'].replace(/ /g, "_").toLowerCase();
     crewObject[useableKey] = results[objKey]['printouts']['Has full name'][0]['fulltext'];
