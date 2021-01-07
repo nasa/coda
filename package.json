@@ -1,6 +1,6 @@
 {
   "name": "coda",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Collaborative Operations Data Activation",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.12.7",
+    "@sinonjs/fake-timers": "^6.0.1",
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/jest": "^26.0.15",
     "@types/node": "^14.14.6",

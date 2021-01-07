@@ -7,7 +7,7 @@ export interface ClockState {
   /** Whether the user wants the clock to be running */
   ready: boolean;
   /** ISO string for the last start in the application timeframe */
-  UTC: string;
+  applicationTime: string;
   /** ISO string when the clock was started */
   lastStarted: string;
   /** ISO string when the clock was last stopped */
@@ -18,7 +18,7 @@ export const initialState: ClockState = {
   isRunning: true,
   // assume a user wants the timeline to play as soon as they load the application
   ready: true,
-  UTC: null,
+  applicationTime: null,
   lastStarted: null,
   lastStopped: null,
 };
@@ -39,7 +39,7 @@ export const clockSlice = createSlice({
      */
     set: (state, action: { payload: string }) => {
       // convert to Date and back to make sure it's a valid ISO string
-      state.UTC = new Date(action.payload).toISOString();
+      state.applicationTime = new Date(action.payload).toISOString();
     },
 
     /**
@@ -63,12 +63,12 @@ export const clockSlice = createSlice({
 
 export const { set, start, stop, toggleReady } = clockSlice.actions;
 
-/** Utility for doing the math to determine the internal application time based on starts and stops of the clock */
-const getApplicationTime = (state: ClockState): moment.Moment => {
-  const { isRunning, lastStarted, lastStopped, UTC } = state;
+/** Utility for doing the math to determine the internal application time based on starts and stops of the clock. Exported for testing */
+export const getApplicationTime = (state: ClockState): moment.Moment => {
+  const { isRunning, lastStarted, lastStopped, applicationTime } = state;
 
   // the application has never run
-  if (!UTC) {
+  if (!applicationTime) {
     // TODO: maybe return the earliest time we have timing data for?
     return null;
   }
@@ -77,7 +77,7 @@ const getApplicationTime = (state: ClockState): moment.Moment => {
     ? moment().diff(moment(lastStarted))
     : moment(lastStopped).diff(moment(lastStarted));
 
-  return moment(UTC).add(delta);
+  return moment(applicationTime).add(delta);
 };
 
 /**
