@@ -17,7 +17,7 @@ function Header() {
   const dispatch = useDispatch();
   const store = useStore();
   const {
-    evas: { EVAs, selectedEVA },
+    evas: { EVAs, selectedEVA, EVACrew },
   } = useSelector((state) => state);
 
   const [userValue, setUserValue] = useState("");
@@ -67,13 +67,13 @@ function Header() {
           name="EVAsDropdown"
           id="EVAsDropdown"
           onChange={handleEVASelect}
-          value={selectedEVA.toLowerCase()}
+          value={selectedEVA}
         >
           <option disabled>Choose EVA</option>
           {Object.keys(EVAs).map((eva) => {
             return (
               <option key={eva} value={eva}>
-                {EVAs[eva].name}
+                {EVAs[eva].name} - {EVAs[eva].displayTitle}
               </option>
             );
           })}
@@ -104,13 +104,13 @@ function Header() {
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
             EV1:{" "}
             <span style={{ color: "white" }} id="ev1TitleSpan">
-              EV1
+              {EVACrew.ev1}
             </span>
           </div>
           <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
             EV2:{" "}
             <span style={{ color: "white" }} id="ev2TitleSpan">
-              EV2
+              {EVACrew.ev2}
             </span>
           </div>
         </div>
@@ -135,7 +135,7 @@ function Header() {
               id="missionDate"
               name="missionDate"
               value={EVAs[selectedEVA].startDate || "2019-08-21"}
-              onChange={() => {}}
+              onChange={() => { }}
             />
           </div>
           <div style={{ flex: 1 }}>
@@ -185,7 +185,7 @@ function Header() {
               className={styles.littleTopButton}
               id="shareButton"
               title="Share"
-              onClick={() => {}}
+              onClick={() => { }}
             >
               Share
             </button>
