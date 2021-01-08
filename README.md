@@ -21,6 +21,13 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 1. If you're using `nvm` instead of installing Node manually, install the right version of Node: `nvm install && nvm use`
 2. Install JavaScript dependencies: `npm i`
 3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
+4. Create a `.env` file at the root of the repo. It must contain:
+
+```
+IO_KEY=the-auth-key-we-have-for-io
+```
+
+Ask Ben or Cameron for the key if you don't have it.
 
 ### Dev Server
 
