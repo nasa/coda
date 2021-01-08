@@ -184,8 +184,8 @@ export const getStaticProps: GetServerSideProps = async ({
         },
       },
     },
-    // regenerate the props at most once per minute if a request comes in
-    revalidate: 60,
+    // regenerate the props at most once per second if a request comes in
+    revalidate: 1,
   };
 };
 

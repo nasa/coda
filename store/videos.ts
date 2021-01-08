@@ -90,27 +90,19 @@ export const generateTimingData = (videos: Videos): TimingData => {
     EVA_duration_seconds: 0,
   };
 
-  Object.keys(videos).forEach((v) => {
-    const video = videos[v];
-    const start = new Date(video.start);
-    const end = new Date(video.end);
-    // set the bounds on the video start and end times
-    if (
-      !timingData.video_earliestStart ||
-      start.getTime() < timingData.video_earliestStart.getTime()
-    ) {
-      timingData.video_earliestStart = new Date(start.toUTCString());
-    }
-    if (
-      !timingData.video_latestEnd ||
-      end.getTime() > timingData.video_latestEnd.getTime()
-    ) {
-      timingData.video_latestEnd = new Date(end.toUTCString());
-    }
-  });
+  //Always start at 00:00:00Z and end at 23:59:59Z
 
-  timingData.EVA_duration_seconds =
-    (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
+  //get the date from the first video
+  let firstVideoKey = Object.keys(videos)[0];
+  //FIXME: figure out why typescript sees this as a string half the time and a date the other half depending on reload (or just leave it)
+  // see: https://stackoverflow.com/questions/32156823/typeerror-formats-datetimestring-toisostring-is-not-a-function
+  const stringStartDate = videos[firstVideoKey].start.toString();
+
+  let EVADay = new Date(stringStartDate).toISOString().substring(0, 10);
+  timingData.video_earliestStart = new Date(EVADay + 'T00:00:00Z');
+  timingData.video_latestEnd = new Date(EVADay + 'T23:59:59Z');
+
+  timingData.EVA_duration_seconds = (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
 
   return timingData;
 };
