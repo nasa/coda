@@ -146,6 +146,12 @@ Basically, you can wrap any component you want to be able to access the store in
 
 The source of all the videos.
 
+Example call to IO:
+
+```sh
+curl -H "Origin: https://coda-dev.fit.nasa.gov" "https://io.jsc.nasa.gov/api/search/rpp=500&s_dt=08-21-2019&e_dt=08-21-2019&as=2?key=put-your-key-here&format=json"
+```
+
 #### API Token
 
 Get one from the [IO website](https://io.jsc.nasa.gov/app/index.cfm).
