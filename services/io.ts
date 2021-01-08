@@ -2,6 +2,11 @@
 SERVER ONLY methods for fetching from Imagery Online (IO). Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
 import fetch, { Response } from "node-fetch";
+import { padZeros } from "utils/formatting";
+
+// IO uses a NOCA cert. we need to tell node to use system certs on mac and windows
+require("mac-ca");
+require("win-ca");
 
 /**
  * Response from a search on Imagery Online
@@ -107,14 +112,14 @@ export interface Videos {
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
-  const url = `${process.env.IO_API_URL}&${params}`;
+  const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
     headers: {
-      "Accept-Encoding": "gzip,deflate",
-      "Accept-Language": "en-us",
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      "Accept-Encoding": "gzip,deflate,br",
+      "Accept-Language": "en-US,en;q=0.9",
       Connection: "keep-alive",
-      "Content-Type": "application/json; charset=utf-8",
-      "Script-Charset": "utf-8",
+      Origin: "https://coda-dev.fit.nasa.gov",
     },
   };
 
@@ -136,16 +141,16 @@ export default async function getVideoData(
   day: number
 ): Promise<Videos> {
   const rangeStartYear = year;
-  const rangeStartMonth = month;
-  const rangeStartDay = day;
+  const rangeStartMonth = padZeros(month, 2);
+  const rangeStartDay = padZeros(day, 2);
   const rangeEndYear = year;
-  const rangeEndMonth = month;
-  const rangeEndDay = day;
+  const rangeEndMonth = padZeros(month, 2);
+  const rangeEndDay = padZeros(day, 2);
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDay}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDay}-${rangeEndYear}`;
 
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2?key=${process.env.IO_KEY}&format=json`;
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
   const res = await fetchIO(queryParams);
   return parseIOResponse(res);

@@ -118,8 +118,8 @@ export const getStaticProps: GetServerSideProps = async ({
     EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
 
     gEVADetails = await getEVADetails(evaName);
-    EVACrew = await getCrew(evaName);
-  } catch {
+  } catch (e) {
+    console.error(e);
     evaErrorMessage = "Error fetching EVAs";
   }
 
@@ -132,7 +132,8 @@ export const getStaticProps: GetServerSideProps = async ({
     videos = await getVideoData(Y, M, D);
     const timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);
-  } catch {
+  } catch (e) {
+    console.error(e);
     videosErrorMessage = "Error fetching videos";
   }
 

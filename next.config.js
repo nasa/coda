@@ -22,8 +22,8 @@ const envs = {
     IO_HOST: 'https://io.jsc.nasa.gov',
     IO_KEY: process.env.IO_KEY,
     WIKI_API_URL: 'https://wiki-dev.fit.nasa.gov/iss/api.php',
-    WIKI_USER: process.env.WIKI_USER,
-    WIKI_PASSWORD: process.env.WIKI_PASSWORD,
+    WIKI_USER: process.env.WIKI_USER_DEV,
+    WIKI_PASSWORD: process.env.WIKI_PASSWORD_DEV,
   },
   prod: {
     TITLE: 'CODA',
