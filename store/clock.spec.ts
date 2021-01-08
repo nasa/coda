@@ -3,12 +3,12 @@ import FakeTimers from "@sinonjs/fake-timers";
 import {
   clockSlice,
   ClockState,
-  getApplicationTime,
   getApplicationUTC,
   getMissionTime,
   initialState,
   set,
   start,
+  stop,
 } from "store/clock";
 
 // adds handy matchers for comparing clock times
@@ -62,12 +62,23 @@ describe("store/clockSlice", () => {
     });
   });
 
+  describe("stop", () => {
+    it("should stop the clock within a few ms of dispatch", () => {
+      const action = stop();
+      expect(action.type).toEqual("clock/stop");
+      expect(action.payload).toBeFalsy();
+
+      const { lastStopped } = clockSlice.reducer(initialState, action);
+      expect(new Date(lastStopped)).toHappenAround(new Date());
+    });
+  });
+
   describe("application time helpers", () => {
     beforeEach(() => {
       store = mockStore(initialState);
     });
 
-    it("#getApplicationTime should return a moment representing the application set time when the mission has not started", () => {
+    it("#getApplicationUTC should return the UTC of the application set time when the mission has not started", () => {
       const d = new Date();
       const s = {
         isRunning: false,
@@ -77,14 +88,14 @@ describe("store/clockSlice", () => {
         lastStopped: null,
       } as ClockState;
 
-      const received = getApplicationTime(s);
-      expect(received.toISOString()).toEqual(d.toISOString());
+      const received = getApplicationUTC(s);
+      expect(received).toHappenAround(d);
     });
 
-    it("#getApplicationTime should return a diff between now and the set time when a mission is running", () => {
+    it("#getApplicationUTC should return a diff between now and the set time when a mission is running", () => {
       const clock = FakeTimers.install({ toFake: ["Date"] });
 
-      const applicationTime = new Date(1985, 11, 5, 0, 1, 0);
+      const applicationTime = new Date(1985, 11, 5, 0, 1, 0, 0);
       const lastStarted = new Date();
       const s = {
         isRunning: true,
@@ -95,16 +106,16 @@ describe("store/clockSlice", () => {
       } as ClockState;
 
       // five seconds later
-      const expectedTime = new Date(1985, 11, 5, 0, 1, 5);
+      const expectedTime = new Date(1985, 11, 5, 0, 1, 5, 0);
       clock.tick(5000);
 
-      const received = getApplicationTime(s);
-      expect(received.toDate()).toHappenAround(expectedTime);
+      const received = getApplicationUTC(s);
+      expect(received).toHappenAround(expectedTime);
 
       clock.uninstall();
     });
 
-    it("#getApplicationTime should return a diff between when a mission was started and stopped when it isn't running", () => {
+    it("#getApplicationUTC should return a diff between when a mission was started and stopped when it isn't running", () => {
       const applicationTime = new Date(1985, 11, 5, 0, 1, 0);
       const lastStarted = new Date(2021, 1, 8, 0, 0, 0);
       // five seconds later
@@ -120,11 +131,11 @@ describe("store/clockSlice", () => {
       // five seconds later
       const expectedTime = new Date(1985, 11, 5, 0, 1, 5);
 
-      const received = getApplicationTime(s);
-      expect(received.toDate()).toHappenAround(expectedTime);
+      const received = getApplicationUTC(s);
+      expect(received).toHappenAround(expectedTime);
     });
 
-    it("#getApplicationTime should return a diff between now and when a mission was started when it is running", () => {
+    it("#getApplicationUTC should return a diff between now and when a mission was started when it is running", () => {
       const clock = FakeTimers.install({ toFake: ["Date"] });
 
       const applicationTime = new Date(1985, 11, 5, 0, 1, 0);
@@ -143,8 +154,8 @@ describe("store/clockSlice", () => {
       const expectedTime = new Date(1985, 11, 5, 0, 1, 5);
       clock.tick(5000);
 
-      const received = getApplicationTime(s);
-      expect(received.toDate()).toHappenAround(expectedTime);
+      const received = getApplicationUTC(s);
+      expect(received).toHappenAround(expectedTime);
 
       clock.uninstall();
     });
@@ -173,6 +184,28 @@ describe("store/clockSlice", () => {
 
       const received = getMissionTime(s);
       expect(received).toEqual(0);
+    });
+  });
+
+  describe("stops and starts", () => {
+    it("picks up where it left off when you start, stop, start", () => {
+      const clock = FakeTimers.install({ toFake: ["Date"] });
+
+      const firstStart = new Date();
+      const set1 = set(firstStart.toISOString());
+      let s = clockSlice.reducer(initialState, set1);
+
+      const start1 = start();
+      s = clockSlice.reducer(s, start1);
+
+      clock.setSystemTime(0);
+      clock.tick(5000);
+      console.log(new Date());
+
+      const received = getMissionTime(s);
+      expect(received).toEqual(5);
+
+      clock.uninstall();
     });
   });
 });

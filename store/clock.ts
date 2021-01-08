@@ -1,4 +1,3 @@
-import moment from "moment";
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 
 export interface ClockState {
@@ -64,7 +63,7 @@ export const clockSlice = createSlice({
 export const { set, start, stop, toggleReady } = clockSlice.actions;
 
 /** Utility for doing the math to determine the internal application time based on starts and stops of the clock. Exported for testing */
-export const getApplicationTime = (state: ClockState): moment.Moment => {
+export const getApplicationUTC = (state: ClockState): Date => {
   const { isRunning, lastStarted, lastStopped, applicationTime } = state;
 
   // the application has never run
@@ -74,32 +73,55 @@ export const getApplicationTime = (state: ClockState): moment.Moment => {
   }
 
   const delta = isRunning
-    ? moment().diff(moment(lastStarted))
-    : moment(lastStopped).diff(moment(lastStarted));
+    ? diff(new Date(), new Date(lastStarted))
+    : diff(new Date(lastStopped), new Date(lastStarted));
 
-  return moment(applicationTime).add(delta);
-};
-
-/**
- * Get the current application UTC
- */
-export const getApplicationUTC = (state: ClockState): Date => {
-  const time = getApplicationTime(state);
-  if (time) {
-    return time.toDate();
-  }
-
-  return null;
+  return add(new Date(applicationTime), delta);
 };
 
 /**
  * Get the current mission time in seconds
  */
 export const getMissionTime = (state: ClockState): number => {
-  const time = getApplicationTime(state);
+  const time = getApplicationUTC(state);
   if (time) {
-    return time.hours() * 3600 + time.minutes() * 60 + time.seconds();
+    return time.getHours() * 3600 + time.getMinutes() * 60 + time.getSeconds();
   }
 
   return 0;
+};
+
+/**
+ * Get the number of milliseconds between two dates, equivalent to `a - b`
+ */
+const diff = (a: Date, b: Date): number => {
+  const Y1 = a.getUTCFullYear();
+  const M1 = a.getUTCMonth();
+  const D1 = a.getUTCDay();
+  const h1 = a.getUTCHours();
+  const m1 = a.getUTCMinutes();
+  const s1 = a.getUTCSeconds();
+  const ms1 = a.getUTCMilliseconds();
+
+  const Y2 = b.getUTCFullYear();
+  const M2 = b.getUTCMonth();
+  const D2 = b.getUTCDay();
+  const h2 = b.getUTCHours();
+  const m2 = b.getUTCMinutes();
+  const s2 = b.getUTCSeconds();
+  const ms2 = b.getUTCMilliseconds();
+
+  return (
+    Date.UTC(Y1, M1, D1, h1, m1, s1, ms1) -
+    Date.UTC(Y2, M2, D2, h2, m2, s2, ms2)
+  );
+};
+
+/**
+ * Advance a Date by some number of milliseconds
+ */
+const add = (d: Date, ms: number): Date => {
+  const ret = new Date(d);
+  ret.setUTCMilliseconds(ms);
+  return ret;
 };
