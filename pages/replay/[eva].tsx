@@ -118,6 +118,7 @@ export const getStaticProps: GetServerSideProps = async ({
     EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
 
     gEVADetails = await getEVADetails(evaName);
+    EVACrew = await getCrew(evaName);
   } catch (e) {
     console.error(e);
     evaErrorMessage = "Error fetching EVAs";
