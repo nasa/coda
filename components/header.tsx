@@ -1,5 +1,6 @@
+import config from "../package.json";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
 import { padZeros } from "utils/formatting";
@@ -135,7 +136,7 @@ function Header() {
               id="missionDate"
               name="missionDate"
               value={EVAs[selectedEVA].startDate || "2019-08-21"}
-              onChange={() => { }}
+              onChange={() => {}}
             />
           </div>
           <div style={{ flex: 1 }}>
@@ -185,7 +186,7 @@ function Header() {
               className={styles.littleTopButton}
               id="shareButton"
               title="Share"
-              onClick={() => { }}
+              onClick={() => {}}
             >
               Share
             </button>
@@ -203,7 +204,7 @@ function Header() {
             marginRight: "10px",
           }}
         >
-          Alpha v0.02
+          Alpha v{config.version}
           <br />
           Contact:{" "}
           <a href="mailto:benjamin.f.feist@nasa.gov">

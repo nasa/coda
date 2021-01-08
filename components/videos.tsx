@@ -106,8 +106,11 @@ function Videos() {
 
       const currentlyPlayingVideo =
         videos.videos[videos.activeVideoFiles[name]];
-      const videoStartOffset =
-        missionTime - currentlyPlayingVideo.missionSecondsStart;
+      let videoStartOffset = 0;
+      if (currentlyPlayingVideo) {
+        videoStartOffset =
+          missionTime - currentlyPlayingVideo.missionSecondsStart;
+      }
 
       if (Math.abs(currentTime - videoStartOffset) > 1) {
         players[name].current.pause();
@@ -133,19 +136,17 @@ function Videos() {
       vidInfo = video.description;
       downlinkDisplay = video.content;
 
-      if (videoURL !== players[name].current.currentSrc) {
-        // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
-        players[name].current.load();
-      }
-
       // TODO: we need to figure out how to tell if the video is ready to play
       // when the video is first loaded or the timeline changes, videos should be marked not ready
       // when the video canplay event fires, we mark it ready and run the timeline
     }
 
-    // always mute the right hand side player
-    if (players[name].current && name === "right") {
-      players[name].current.muted = true;
+    if (
+      players[name].current &&
+      videoURL !== players[name].current.currentSrc
+    ) {
+      // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
+      players[name].current.load();
     }
 
     // make sure the video is playing when the clock is running
