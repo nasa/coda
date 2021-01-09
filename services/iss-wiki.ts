@@ -208,16 +208,32 @@ export async function getAsExecuted(evaName: string, evNum: number) {
 
 function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
+  const colorTranslator = {
+    red: "#C0392B",
+    grey: "#7F8C8D",
+    blue: "#2980B9",
+    orange: "#CA6F1E",
+    green: "#28B463",
+    purple: "#8E44AD",
+    gray: "#797D7F",
+    yellow: "#B7950B",
+  };
 
   Object.keys(results).forEach((r) => {
     const durationHour = results[r]["printouts"]["Duration hour"][0];
     const durationMinute = results[r]["printouts"]["Duration minute"][0];
     const durationTotalSeconds = +durationHour * 3600 + +durationMinute * 60;
 
+    let colorString = results[r]["printouts"]["Color"][0];
+    if (colorString in colorTranslator) {
+      colorString = colorTranslator[colorString];
+    } else {
+      console.log("color not found: " + colorString);
+    }
     const activity: Activity = {
       content: results[r]["printouts"]["Has text title"][0],
       duration: durationTotalSeconds,
-      color: results[r]["printouts"]["Color"][0],
+      color: colorString,
     };
     if (activity.color === "gray") activity.color = "grey";
 
@@ -231,20 +247,24 @@ interface EVACrewResults {
   /** keyed in the form of `US EVA 55# a4c086604b5aa243bf1f3c99dc06d965` */
   [key: string]: {
     printouts: {
-      "Has full name": [{
-        fulltext: string;
-      }],
-      "Has role": [{
-        fulltext: string;
-      }]
+      "Has full name": [
+        {
+          fulltext: string;
+        }
+      ];
+      "Has role": [
+        {
+          fulltext: string;
+        }
+      ];
     };
   };
 }
 
 export interface ParsedCrewResults {
-  ev1: string,
-  ev2: string,
-  suit_iv: string,
+  ev1: string;
+  ev2: string;
+  suit_iv: string;
 }
 
 /** Get crew assignment data for a EVA */
@@ -259,13 +279,16 @@ export async function getCrew(evaName: string) {
 
 function parseCrew(results: EVACrewResults): ParsedCrewResults {
   let crewObject: ParsedCrewResults = {
-    ev1: '',
-    ev2: '',
-    suit_iv: '',
+    ev1: "",
+    ev2: "",
+    suit_iv: "",
   };
   for (let objKey in results) {
-    let useableKey = results[objKey]['printouts']['Has role'][0]['fulltext'].replace(/ /g, "_").toLowerCase();
-    crewObject[useableKey] = results[objKey]['printouts']['Has full name'][0]['fulltext'];
+    let useableKey = results[objKey]["printouts"]["Has role"][0]["fulltext"]
+      .replace(/ /g, "_")
+      .toLowerCase();
+    crewObject[useableKey] =
+      results[objKey]["printouts"]["Has full name"][0]["fulltext"];
   }
 
   return crewObject;
