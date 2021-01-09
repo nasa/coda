@@ -23,8 +23,8 @@ export default function Main() {
     // (1) make sure the clock is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady =
-      clock.ready && videos.ready.right && videos.ready.left;
+    const everythingReady = clock.ready;
+    // clock.ready && videos.ready.right && videos.ready.left;
 
     // (1.2) the clock is paused when it should be running
     if (everythingReady && !clock.isRunning) {
@@ -40,8 +40,8 @@ export default function Main() {
   return (
     <div>
       <Header />
-      <NavTimeline />
       <Videos />
+      <NavTimeline />
       <StatusBar />
     </div>
   );

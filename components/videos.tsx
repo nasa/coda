@@ -123,7 +123,7 @@ function Videos() {
   /**
    * Renders the actual HTML5 video
    */
-  const renderVideo = (name: string, i: number) => {
+  const videoElement = (name: string, i: number) => {
     const videoID = videos.activeVideoFiles[name];
 
     // default video info
@@ -175,7 +175,7 @@ function Videos() {
             onWaiting={() => dispatch(buffering(name))}
             // onWaiting={console.log}
           >
-            <source src={videoURL} />
+            {/* <source src={videoURL} /> */}
           </video>
           <div className={styles.vidOverlay}>
             <div className={styles.vidInfo}>{vidInfo}</div>
@@ -212,12 +212,15 @@ function Videos() {
           );
         })}
       </div>
-      {renderVideo(name, i)}
+      {videoElement(name, i)}
     </div>
   );
 
   return (
-    <div className={styles.container}>{videoPlayerNames.map(videoPlayer)}</div>
+    <div className={styles.container}>
+      {videoPlayer("left", 0)}
+      {videoPlayer("right", 1)}
+    </div>
   );
 }
 

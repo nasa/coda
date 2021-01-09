@@ -54,162 +54,152 @@ function Header() {
 
   return (
     <div className={styles.headerContainer}>
-      <div style={{ display: "flex" }}>
-        <div className={styles.svgCODALogo}></div>
-        <div
-          className={styles.headerTitle}
-          style={{ float: "left", marginLeft: "10px" }}
-        >
-          CODA
-        </div>
-      </div>
-      <div className={styles.floatLeft}>
-        <select
-          name="EVAsDropdown"
-          id="EVAsDropdown"
-          onChange={handleEVASelect}
-          value={selectedEVA}
-        >
-          <option disabled>Choose EVA</option>
-          {Object.keys(EVAs).map((eva) => {
-            return (
-              <option key={eva} value={eva}>
-                {EVAs[eva].name} - {EVAs[eva].displayTitle}
-              </option>
-            );
-          })}
-        </select>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          marginLeft: "30px",
-          minHeight: "4em",
-        }}
-      >
-        <div style={{ display: "grid", flexWrap: "wrap" }}>
-          <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
-            EVA Name:{" "}
-            <span style={{ color: "white" }} id="evaNameSpan">
-              {EVAs[selectedEVA].name || "EVA Name"}
-            </span>
-          </div>
-          <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
-            EVA Title:{" "}
-            <span style={{ color: "white" }} id="evaTitleSpan">
-              {EVAs[selectedEVA].displayTitle || "EVA Title"}
-            </span>
-          </div>
-          <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
-            EV1:{" "}
-            <span style={{ color: "white" }} id="ev1TitleSpan">
-              {EVACrew.ev1}
-            </span>
-          </div>
-          <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
-            EV2:{" "}
-            <span style={{ color: "white" }} id="ev2TitleSpan">
-              {EVACrew.ev2}
-            </span>
+      <div className={styles.leftSection}>
+        <div className={styles.headerElementContainer}>
+          <div style={{ display: "flex" }}>
+            <div className={styles.svgNASALogo} />
+            <div
+              className={styles.headerTitle}
+              style={{ float: "left", marginLeft: "10px" }}
+            >
+              CODA
+            </div>
           </div>
         </div>
+        <div className={styles.headerElementContainer}>
+          <div className={styles.select}>
+            <select
+              name="EVAsDropdown"
+              id="EVAsDropdown"
+              onChange={handleEVASelect}
+              value={selectedEVA}
+            >
+              <option disabled>Choose EVA</option>
+              {Object.keys(EVAs).map((eva) => {
+                return (
+                  <option key={eva} value={eva}>
+                    {EVAs[eva].name} - {EVAs[eva].displayTitle}
+                  </option>
+                );
+              })}
+            </select>
+            <div className={styles.select_arrow}></div>
+          </div>
+        </div>
+        <div className={styles.headerElementContainer}>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div>
+              <input
+                type="text"
+                size={10}
+                className={styles.dateTime}
+                id="missionDate"
+                name="missionDate"
+                value={EVAs[selectedEVA].startDate || "2019-08-21"}
+                style={{
+                  width: "80px",
+                  borderTopLeftRadius: "5px",
+                  borderBottomLeftRadius: "5px",
+                  marginRight: "1px",
+                }}
+                onChange={() => {}}
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                size={8}
+                className={styles.dateTime}
+                id="missionTime"
+                name="missionTime"
+                value={editing ? userValue : renderTime}
+                style={{
+                  width: "70px",
+                  borderTopRightRadius: "5px",
+                  borderBottomRightRadius: "5px",
+                  marginLeft: "1px",
+                }}
+                // allow HH:MM or HH:MM:SS
+                pattern="^(?:(?:([01]?\d|2[0-3]):[0-5]\d))(?::[0-5]\d)?$"
+                onFocus={() => {
+                  setEditing(true);
+                  setUserValue(`${renderTime}`);
+                }}
+                onBlur={() => {
+                  setEditing(false);
+                }}
+                onChange={(e) => setUserValue(e.target.value)}
+              />
+            </div>
+            <div style={{ marginLeft: "5px" }}>
+              <button
+                className={styles.littleHeaderButton}
+                id="goButton"
+                title="Jump to Date/Time"
+                onClick={(e) => {
+                  const [Y, M, D] = EVAs[selectedEVA].startDate.split("/");
+                  let hh, mm, ss;
+                  let dt: Date;
+                  if (userValue === "") {
+                    const [hh, mm, ss] = renderTime.split(":");
+                    dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
+                  } else {
+                    const [hh, mm = "00", ss = "00"] = userValue.split(":");
+                    dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
+                  }
+                  dispatch(set(dt.toISOString()));
+                  setUserValue("");
+                  setEditing(false);
+                }}
+              >
+                GO
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className={styles.headerElementContainer}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+            }}
+          >
+            <div className={styles.crewItem}>
+              EV1:{" "}
+              <span style={{ color: "white" }} id="ev1TitleSpan">
+                {EVACrew.ev1}
+              </span>
+            </div>
+            <div className={styles.crewItem}>
+              EV2:{" "}
+              <span style={{ color: "white" }} id="ev2TitleSpan">
+                {EVACrew.ev2}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className={styles.rightSection}>
+        <div className={styles.headerElementContainer}>
+          <div className={styles.version}>
+            Alpha v{config.version}
+            <br />
+            Contact:{" "}
+            <a href="mailto:benjamin.f.feist@nasa.gov">
+              benjamin.f.feist@nasa.gov
+            </a>
+          </div>
+        </div>
         <div
-          className={styles.MissionDateTimeWrapper}
-          id="MissionDateTimeWrapper"
+          className={styles.headerElementContainer}
           style={{
-            display: "flex",
-            marginLeft: "30px",
-            float: "left",
-            width: "550px",
+            backgroundColor: "#2b2a2d;",
+            paddingLeft: "15px",
+            paddingRight: "15px",
           }}
         >
-          <div style={{ flexGrow: 1, fontSize: "0.8em", color: "#9b9b9b" }}>
-            EVA Date/GMT:
-          </div>
-          <div style={{ flex: 1 }}>
-            <input
-              type="text"
-              size={10}
-              className={styles.dateTime}
-              id="missionDate"
-              name="missionDate"
-              value={EVAs[selectedEVA].startDate || "2019-08-21"}
-              onChange={() => {}}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <input
-              type="text"
-              size={8}
-              className={styles.dateTime}
-              id="missionTime"
-              name="missionTime"
-              value={editing ? userValue : renderTime}
-              // allow HH:MM or HH:MM:SS
-              pattern="^(?:(?:([01]?\d|2[0-3]):[0-5]\d))(?::[0-5]\d)?$"
-              onFocus={() => {
-                setEditing(true);
-                setUserValue(`${renderTime}`);
-              }}
-              onBlur={() => {
-                setEditing(false);
-              }}
-              onChange={(e) => setUserValue(e.target.value)}
-            />
-          </div>
-          <div style={{ flex: 2 }}>
-            <button
-              className={styles.littleTopButton}
-              id="goButton"
-              title="Jump to Date/Time"
-              onClick={(e) => {
-                const [Y, M, D] = EVAs[selectedEVA].startDate.split("/");
-                let hh, mm, ss;
-                let dt: Date;
-                if (userValue === "") {
-                  const [hh, mm, ss] = renderTime.split(":");
-                  dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
-                } else {
-                  const [hh, mm = "00", ss = "00"] = userValue.split(":");
-                  dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
-                }
-                dispatch(set(dt.toISOString()));
-                setUserValue("");
-                setEditing(false);
-              }}
-            >
-              GO
-            </button>
-            <button
-              className={styles.littleTopButton}
-              id="shareButton"
-              title="Share"
-              onClick={() => {}}
-            >
-              Share
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ flex: 1 }}>
-        <div className={styles.svgNASALogo} style={{ float: "right" }} />
-        <div
-          style={{
-            float: "right",
-            textAlign: "right",
-            fontSize: "0.8rem",
-            marginRight: "10px",
-          }}
-        >
-          Alpha v{config.version}
-          <br />
-          Contact:{" "}
-          <a href="mailto:benjamin.f.feist@nasa.gov">
-            benjamin.f.feist@nasa.gov
-          </a>
+          <div className={styles.svgShare} />
         </div>
       </div>
     </div>
