@@ -581,8 +581,8 @@ function NavTimeline() {
     <canvas
       id={canvasID}
       style={{
-        position: "fixed",
-        bottom: "24px",
+        // position: "relative",
+        // bottom: "0",
         height: "210px",
         width: "100%",
       }}

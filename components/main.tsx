@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
+import PlaybackControls from "components/PlaybackControls";
 import StatusBar from "components/status-bar";
 import Videos from "components/videos";
 import { ClockState, start, stop } from "store/clock";
@@ -44,7 +45,21 @@ export default function Main() {
         <Videos />
       </div>
       <div className={styles.footer}>
-        <NavTimeline />
+        <div style={{ display: "flex" }}>
+          <div
+            style={{
+              flex: "0 0 110px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <PlaybackControls />
+          </div>
+          <div style={{ flex: 1 }}>
+            <NavTimeline />
+          </div>
+        </div>
         <StatusBar />
       </div>
     </div>
