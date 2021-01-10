@@ -9,6 +9,7 @@
 }
 
 .body {
+  margin-top: 6px;
   flex: 1 1 auto;
 }
 

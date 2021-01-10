@@ -15,7 +15,7 @@
 }
 
 .noErrors {
-  background-color: #006026;
+  background-color: #19181b;
 }
 
 .haveErrors {
@@ -24,6 +24,14 @@
 
 .playPause {
   letter-spacing: -3px;
+}
+
+.statusText {
+  font-size: 0.8em;
+  font-weight: 200;
+  color: white;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .spinner:after {

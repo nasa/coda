@@ -58,8 +58,19 @@ function Header() {
         <div className={styles.headerElementContainer}>
           <div style={{ display: "flex" }}>
             <div className={styles.svgNASALogo} />
-            <div className={styles.headerTitle} style={{ float: "left", marginLeft: "10px" }}>
-              CODA
+            <div
+              className={styles.headerTitle}
+              style={{ position: "relative", width: "100px", marginLeft: "10px" }}
+            >
+              <img
+                src="/images/logo_coda.png"
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                }}
+              />
             </div>
           </div>
         </div>

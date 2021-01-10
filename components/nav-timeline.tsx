@@ -112,6 +112,7 @@ function NavTimeline() {
   let gColorTimeTicks = new paper.Color("#7b7b7b");
   let gColorVideo = new paper.Color("#999999");
   let gColorVideoLOS = new paper.Color("#4e4e4e");
+  let gColorVideoBorder = "#2a282e";
   let tierBoxColor = new paper.Color("#999999");
   let gColorZoomPane1Border = new paper.Color("#5E92A6");
   let gColorZoomPane2Border = new paper.Color("#84b8d9");
@@ -120,6 +121,7 @@ function NavTimeline() {
   let gNaxBoxZoomFadeOpacity = 0.2;
 
   let gNavigatorFontFamily = "Roboto Mono";
+  let gNavigatorFontFamilyActivity = "Inter";
   // let gNavigatorFontFamily = "Inter";
   // let gNavigatorFontFamily = "Space Mono";
 
@@ -165,7 +167,7 @@ function NavTimeline() {
         from: [startLocX, startLocY],
         to: [endLocX, endLocY],
         strokeWidth: 0.5,
-        strokeColor: "black",
+        strokeColor: gColorVideoBorder,
         fillColor: gColorVideo,
         name,
       });
@@ -221,9 +223,9 @@ function NavTimeline() {
     gTier1NavGroup.addChild(navBoxRectPath);
 
     //navBoxEffect
-    const startPoint = new paper.Point(gTier1NavBoxLocX - 2, gTier1Top);
+    const startPoint = new paper.Point(gTier1NavBoxLocX - 2, gTier1Top + 3);
     const boxWidth = navBoxWidth + 4;
-    const effectHeight = gTierSpacing;
+    const effectHeight = gTierSpacing + 1;
     const effectSideWidth = 30;
     let navBoxEffect = new paper.Path({
       strokeColor: "black",
@@ -252,89 +254,59 @@ function NavTimeline() {
     navBoxEffect.lineTo(startPoint);
     gTier1NavGroup.addChild(navBoxEffect);
 
-    // let leftAlphaRect = new paper.Rectangle(gTier1Left, gTier1Top, gTier1NavBoxLocX - gTier1Left, gTier1Height);
-    // let leftAlphaRectPath = new paper.Path.Rectangle(leftAlphaRect, cornerSize);
-    // leftAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
-    // gTier1NavGroup.addChild(leftAlphaRectPath);
-
-    // let rightAlphaRect = new paper.Rectangle(
-    //   gTier1NavBoxLocX + navBoxWidth,
-    //   gTier1Top,
-    //   gNavigatorWidth - gTier1NavBoxLocX + navBoxWidth,
-    //   gTier1Height
-    // );
-    // let rightAlphaRectPath = new paper.Path.Rectangle(rightAlphaRect, cornerSize);
-    // rightAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
-    // gTier1NavGroup.addChild(rightAlphaRectPath);
-
-    //add zoom curves
-    // let leftCurveObj = new paper.Path({
-    //   segments: [
-    //     [gTier1NavBoxLocX, gTier1Top + gTier1Height / 2],
-    //     [gTier2Left, gTier2Top],
-    //     [gTier1NavBoxLocX, gTier2Top],
-    //   ],
-
-    //   strokeColor: "white",
-    //   // closed: true,
-    //   strokeWidth: 1,
-    //   strokeJoin: "round",
-    //   fillColor: "white",
-    //   opacity: gNaxBoxZoomFadeOpacity,
-    // });
-    // let handleVector = new paper.Point({
-    //   angle: 90,
-    //   length: gTier1Height,
-    // });
-    // leftCurveObj.segments[0].handleOut = handleVector;
-    // gTier1NavGroup.addChild(leftCurveObj);
-
-    // let rightCurveObj = new paper.Path({
-    //   segments: [
-    //     [gTier1NavBoxLocX + navBoxWidth, gTier1Top + gTier1Height / 2],
-    //     [gNavigatorWidth, gTier2Top],
-    //     [gTier1NavBoxLocX + navBoxWidth, gTier2Top],
-    //   ],
-
-    //   strokeColor: "white",
-    //   // closed: true,
-    //   strokeWidth: 1,
-    //   strokeJoin: "round",
-    //   fillColor: "white",
-    //   opacity: gNaxBoxZoomFadeOpacity,
-    // });
-    // rightCurveObj.segments[0].handleOut = handleVector;
-    // gTier1NavGroup.addChild(rightCurveObj);
-
-    // let fillUnderNavBox = new paper.Path({
-    //   segments: [
-    //     [gTier1NavBoxLocX + 0.5, gTier1Top + gTier1Height],
-    //     [gTier1NavBoxLocX + 0.5, gTier2Top],
-    //     [gTier1NavBoxLocX + navBoxWidth - 0.5, gTier2Top],
-    //     [gTier1NavBoxLocX + navBoxWidth - 0.5, gTier1Top + gTier1Height],
-    //   ],
-    //   strokeColor: "white",
-    //   closed: true,
-    //   strokeWidth: 1,
-    //   // strokeJoin: 'round',
-    //   fillColor: "white",
-    //   opacity: gNaxBoxZoomFadeOpacity,
-    // });
-    // gTier1NavGroup.addChild(fillUnderNavBox);
+    //navBox effect orange bar full width
+    const navBoxEffectBar = new paper.Path.Line({
+      from: [0, gTier1Top - gTierSpacing],
+      to: [gNavigatorWidth, gTier1Top - gTierSpacing],
+      strokeColor: "#ffc000",
+      strokeWidth: 4,
+    });
+    gTier1NavGroup.addChild(navBoxEffectBar);
   };
 
   const drawTier2 = () => {
     let secondsOnTier2 = gTier2SecondsPerPixel * gNavigatorWidth;
 
     gTier2Group.removeChildren();
+    let tierBottom = gTier1Top + gTier2Height;
 
     // draw tier2 boarder
-    let tierBottom = gTier1Top + gTier2Height;
     // let tierRect = new paper.Rectangle(1.5, gTier2Top, gNavigatorWidth, gTier2Height);
     // let cornerSize = new paper.Size(3, 3);
     // let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
     // tierRectPath.strokeColor = tierBoxColor;
     // gTier2Group.addChild(tierRectPath);
+
+    //draw tier2 video background staff lines
+    let yPos = gTier2Top;
+    for (let i = 0; i < 6; i++) {
+      let staffLine = new paper.Path.Rectangle({
+        from: [gTier2Left, yPos],
+        to: [gNavigatorWidth, yPos + cChannelStrokeWidth + 1],
+        strokeWidth: 1,
+        strokeColor: gColorVideoBorder,
+        // fillColor: "#3e3b44", //page body background color
+      });
+      yPos = yPos + cChannelStrokeWidth + cVidBarGapWidth;
+      gTier2Group.addChild(staffLine);
+    }
+    //draw tier2 activity background staff lines
+    const tier2EVActivityHeight = 20;
+    let startY = gTier2Top + 7 * (cChannelStrokeWidth + cVidBarGapWidth);
+
+    for (let i = 0; i < 3; i++) {
+      let startLocY = startY + i * tier2EVActivityHeight;
+      let endLocY = startLocY + tier2EVActivityHeight;
+      let activityStaffLine = new paper.Path.Rectangle({
+        from: [gTier2Left, startLocY],
+        to: [gNavigatorWidth, endLocY],
+        strokeWidth: 1,
+        strokeColor: gColorVideoBorder,
+        // fillColor: "#3e3b44", //page body background color
+      });
+      yPos = yPos + tier2EVActivityHeight;
+      gTier2Group.addChild(activityStaffLine);
+    }
 
     // draw video segments boxes
     for (let i = 0; i < videoFiles.length; i++) {
@@ -360,7 +332,7 @@ function NavTimeline() {
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           strokeWidth: 1,
-          strokeColor: "black",
+          strokeColor: gColorVideoBorder,
           fillColor: gColorVideo,
           name: name,
         });
@@ -414,7 +386,7 @@ function NavTimeline() {
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           strokeWidth: 0.5,
-          strokeColor: "black",
+          strokeColor: gColorVideoBorder,
           // fillColor: gActivityBackgroundColor,
           fillColor: evActivityArray[i].color,
           name: name,
@@ -423,7 +395,7 @@ function NavTimeline() {
 
         let activityText = new paper.PointText({
           justification: "left",
-          fontFamily: gNavigatorFontFamily,
+          fontFamily: gNavigatorFontFamilyActivity,
           //fontWeight: 'bold',
           fontSize: 13,
           fillColor: "white",
@@ -431,7 +403,7 @@ function NavTimeline() {
         let textTop = startLocY + 14;
         activityText.point = new paper.Point(startLocX + 2, textTop);
         activityText.content = evActivityArray[i].content;
-        if (evActivityArray[i].content === "Insolation" || evActivityArray[i].color === "yellow") {
+        if (evActivityArray[i].content === "Insolation") {
           activityText.fillColor = new paper.Color("#000000");
         }
         gTier2Group.addChild(activityText);
@@ -454,18 +426,17 @@ function NavTimeline() {
 
     // tier1
     let cursorLocX = 0.5 + seconds * gTier1PixelsPerSecond;
-    let topPoint = new paper.Point(cursorLocX, gTier1Top);
-    let bottomPoint = new paper.Point(cursorLocX, gTier1Top + gTier1Height);
+    let topPoint = new paper.Point(cursorLocX, gTier1Top + 3);
+    let bottomPoint = new paper.Point(cursorLocX, gTier1Top + gTier1Height - 2);
     let aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = color;
     aLine.strokeWidth = 2;
     cursorElementGroup.addChild(aLine);
 
     // tier2
-    let tierBottom = gNavigatorHeight;
     cursorLocX = gTier2Left + (seconds - gTier2StartSeconds) * gTier2PixelsPerSecond;
-    topPoint = new paper.Point(cursorLocX, gTier2Top);
-    bottomPoint = new paper.Point(cursorLocX, tierBottom);
+    topPoint = new paper.Point(cursorLocX, gTier2Top - 2);
+    bottomPoint = new paper.Point(cursorLocX, gTier2Top - 2 + gTier2Height);
     aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = color;
     aLine.strokeWidth = 2;
@@ -485,7 +456,7 @@ function NavTimeline() {
     //center rectangle behind text
     timeTextRect.width = 135;
     timeTextRect.height += 5;
-    timeTextRect.top -= 3;
+    timeTextRect.top -= 2;
     if (timeText.point.x < 5) {
       timeText.point.x = 5;
     } else if (timeText.point.x > gNavigatorWidth - timeTextRect.width - 5) {
@@ -498,6 +469,7 @@ function NavTimeline() {
     // timeTextRect.strokeColor = color;
     // timeTextRect.strokeWidth = 5;
     timeTextRectPath.fillColor = new paper.Color("red");
+    timeTextRectPath.opacity = 0.8;
     //timeTextRect.opacity = 0.5;
     // timeTextRectPath.scale(1.1, 1.8);
     cursorElementGroup.addChild(timeTextRectPath);
@@ -516,7 +488,7 @@ function NavTimeline() {
     gTier2SecondsPerPixel = timingData["EVA_duration_seconds"] / gNavZoomFactor / gNavigatorWidth;
 
     gTier1Height = 50;
-    gTier2Height = 95;
+    gTier2Height = 99;
 
     gTierSpacing = 30;
 
@@ -611,9 +583,10 @@ function NavTimeline() {
       style={{
         position: "fixed",
         bottom: "24px",
-        height: "205px",
+        height: "210px",
         width: "100%",
       }}
+      data-paper-resize
     />
   );
 }

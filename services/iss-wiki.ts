@@ -320,7 +320,7 @@ function parseDayNight(results) {
   for (var i = 0; i < results.events.length; i++) {
     let color = "";
     if (results.events[i].content === "Insolation") {
-      color = "#B7950B"; //day color
+      color = "#B3B6B7"; //day color
     } else {
       color = "#151515"; //night color
     }

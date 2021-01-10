@@ -14,14 +14,15 @@ import styles from "./main.module.css";
 export default function Main() {
   // the server shouldn't be running clocks!!!
   if (typeof window !== "undefined") {
-    const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector((state) => state);
+    const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
+      (state) => state
+    );
     const dispatch = useDispatch();
 
     // (1) make sure the clock is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady = clock.ready;
-    // clock.ready && videos.ready.right && videos.ready.left;
+    const everythingReady = clock.ready && videos.ready.right && videos.ready.left;
 
     // (1.2) the clock is paused when it should be running
     if (everythingReady && !clock.isRunning) {
