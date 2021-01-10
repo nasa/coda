@@ -6,18 +6,15 @@ import Videos from "components/videos";
 import { ClockState, start, stop } from "store/clock";
 import { VideosState } from "store/videos";
 
+import styles from "./main.module.css";
+
 /**
  * Renders the main CODA application layout. Also handles checking whether the clock should be running
  */
 export default function Main() {
   // the server shouldn't be running clocks!!!
   if (typeof window !== "undefined") {
-    const {
-      clock,
-      videos,
-    }: { clock: ClockState; videos: VideosState } = useSelector(
-      (state) => state
-    );
+    const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector((state) => state);
     const dispatch = useDispatch();
 
     // (1) make sure the clock is running when it should
@@ -38,11 +35,17 @@ export default function Main() {
   }
 
   return (
-    <div>
-      <Header />
-      <Videos />
-      <NavTimeline />
-      <StatusBar />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <Header />
+      </div>
+      <div className={styles.body}>
+        <Videos />
+      </div>
+      <div className={styles.footer}>
+        <NavTimeline />
+        <StatusBar />
+      </div>
     </div>
   );
 }

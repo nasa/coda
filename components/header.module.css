@@ -48,7 +48,7 @@
 
 .dateTime {
   padding: 10px;
-  font-size: 1.1em;
+  font-size: 1em;
   border-width: 0px;
   background-color: #2b2a2d;
   color: #ffc000;
@@ -94,7 +94,7 @@
   width: 100%;
 }    
 .select select {
-  font-family: 'Arial';
+  font-family: 'Inter', sans-serif;
   font-size: 1.1em;
   cursor: pointer;
   padding: 10px 15px;

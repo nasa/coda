@@ -6,6 +6,7 @@ import {
   getAsExecuted,
   getAllEVAs,
   getEVADetails,
+  getDayNight,
   getCrew,
   EVASummaryResponse,
   ParsedEVADetails,
@@ -26,33 +27,24 @@ function Replay({
         <title>
           {EVAs[selectedEVA].name} | {process.env.TITLE}
         </title>
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/favicon/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon/favicon-16x16.png"
-        />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
-        <link
-          rel="mask-icon"
-          href="/favicon/safari-pinned-tab.svg"
-          color="#5bbad5"
-        />
+        <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
           rel="stylesheet"
-        ></link>
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap"
+          rel="stylesheet"
+        />
       </Head>
       <Main />
     </div>
@@ -86,9 +78,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
  * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client. This is where we perform all the requests to external APIs to get the data required to render the EVA
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
  */
-export const getStaticProps: GetServerSideProps = async ({
-  params: { eva },
-}) => {
+export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) => {
   const evaName = (eva as string).toLowerCase();
   let evaErrorMessage = "";
   let videosErrorMessage = "";
@@ -111,11 +101,13 @@ export const getStaticProps: GetServerSideProps = async ({
         // we don't have these properties yet
         duration: -1,
         activityPerformance: {},
+        dayNight: {},
       };
     });
 
     EVAs[evaName].activityPerformance["EV1"] = await getAsExecuted(evaName, 1);
     EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
+    EVAs[evaName].dayNight = await getDayNight(evaName);
 
     gEVADetails = await getEVADetails(evaName);
     EVACrew = await getCrew(evaName);

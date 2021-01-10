@@ -5,11 +5,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { Activity } from "services/iss-wiki";
 import { ClockState, getMissionTime, set } from "store/clock";
 import { EVAsState, selectEVAStartMilliseconds } from "store/evas";
-import {
-  selectVideoFiles,
-  selectVideoTimingData,
-  VideosState,
-} from "store/videos";
+import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
 import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 
@@ -41,6 +37,7 @@ function NavTimeline() {
   const videoFiles = selectVideoFiles(videos);
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
   const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
+  const dayNight = evas.EVAs[evas.selectedEVA].dayNight;
 
   const [mouseOnNavigator, setMouseOnNavigator] = useState(false);
   useInterval(() => {
@@ -58,24 +55,28 @@ function NavTimeline() {
 
   // get activity times in the mission timeframe
   let thisStartTimeSeconds =
-    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) /
-    1000;
+    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) / 1000;
   for (let a = 0; a < activityPerformance.EV1.length; a++) {
     const activity = activityPerformance.EV1[a];
     activityPerformance.EV1[a].startTimeSeconds = thisStartTimeSeconds;
-    activityPerformance.EV1[a].endTimeSeconds =
-      thisStartTimeSeconds + activity.duration;
+    activityPerformance.EV1[a].endTimeSeconds = thisStartTimeSeconds + activity.duration;
     thisStartTimeSeconds = thisStartTimeSeconds + activity.duration;
   }
   thisStartTimeSeconds =
-    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) /
-    1000;
+    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) / 1000;
   for (let a = 0; a < activityPerformance.EV2.length; a++) {
     const activity = activityPerformance.EV2[a];
     activityPerformance.EV2[a].startTimeSeconds = thisStartTimeSeconds;
-    activityPerformance.EV2[a].endTimeSeconds =
-      thisStartTimeSeconds + activity.duration;
+    activityPerformance.EV2[a].endTimeSeconds = thisStartTimeSeconds + activity.duration;
     thisStartTimeSeconds = thisStartTimeSeconds + activity.duration;
+  }
+  //slightly different for dayNight object
+  thisStartTimeSeconds = (dayNight.dataStartUTC - timingData.video_earliestStart.getTime()) / 1000;
+  for (let e = 0; e < dayNight.events.length; e++) {
+    const event = dayNight.events[e];
+    event.startTimeSeconds = thisStartTimeSeconds;
+    event.endTimeSeconds = thisStartTimeSeconds + event.duration * 60;
+    thisStartTimeSeconds = thisStartTimeSeconds + event.duration * 60;
   }
 
   let gTier1Group;
@@ -106,8 +107,8 @@ function NavTimeline() {
   let gTier1Left;
   let gTier2Left;
 
-  let gColorCursor = new paper.Color("#00ff00");
-  let gColorNavCursor = new paper.Color("#ffff00"); //'yellow';
+  let gColorCursor = new paper.Color("#ff0000");
+  let gColorNavCursor = new paper.Color("#00ff00"); //'green';
   let gColorTimeTicks = new paper.Color("#7b7b7b");
   let gColorVideo = new paper.Color("#999999");
   let gColorVideoLOS = new paper.Color("#4e4e4e");
@@ -115,29 +116,23 @@ function NavTimeline() {
   let gColorZoomPane1Border = new paper.Color("#5E92A6");
   let gColorZoomPane2Border = new paper.Color("#84b8d9");
   let gActivityBackgroundColor = new paper.Color("#eb272b");
-  let gDayColor = new paper.Color("#e6e600");
-  let gNightColor = new paper.Color("#444444");
   let gAlphaRectOpacity = 0.4;
   let gNaxBoxZoomFadeOpacity = 0.2;
 
   let gNavigatorFontFamily = "Roboto Mono";
+  // let gNavigatorFontFamily = "Inter";
+  // let gNavigatorFontFamily = "Space Mono";
 
   let cChannelStrokeWidth = 4;
   let cVidBarGapWidth = 1;
 
   const drawTier1 = () => {
     gTier1Group.removeChildren();
-    let tierRect = new paper.Rectangle(
-      gTier1Left,
-      gTier1Top,
-      gNavigatorWidth,
-      gTier1Height
-    );
+    let tierRect = new paper.Rectangle(gTier1Left, gTier1Top, gNavigatorWidth, gTier1Height);
     const cornerSize = new paper.Size(5, 5);
-    let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
-    //var tierRectPath = paper.Path.Rectangle(tierRect);
-    tierRectPath.strokeColor = tierBoxColor;
-    gTier1Group.addChild(tierRectPath);
+    // let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
+    // tierRectPath.strokeColor = tierBoxColor;
+    // gTier1Group.addChild(tierRectPath);
 
     //display time ticks
     for (let i = 0; i < timingData["EVA_duration_seconds"]; i++) {
@@ -147,8 +142,8 @@ function NavTimeline() {
         secondsToTimeStr(i).substring(6, 8) === "00"
       ) {
         let itemLocX = i * gTier1PixelsPerSecond;
-        let topPoint = new paper.Point(itemLocX, 1);
-        let bottomPoint = new paper.Point(itemLocX, 10);
+        let topPoint = new paper.Point(itemLocX, gTier1Top);
+        let bottomPoint = new paper.Point(itemLocX, gTier1Top + 10);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
         aLine.strokeColor = gColorTimeTicks;
 
@@ -161,8 +156,7 @@ function NavTimeline() {
       let startLocX = videoFiles[i].missionSecondsStart * gTier1PixelsPerSecond;
       let endLocX = videoFiles[i].missionSecondsEnd * gTier1PixelsPerSecond;
 
-      let startLocY =
-        0.5 + videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
+      let startLocY = gTier1Top + videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
       let endLocY = startLocY + cChannelStrokeWidth + 1;
 
       const name = "vidItem_" + i.toString();
@@ -175,8 +169,7 @@ function NavTimeline() {
         fillColor: gColorVideo,
         name,
       });
-      if (videoFiles[i].className === "downlink-LOS")
-        vidLine.fillColor = gColorVideoLOS;
+      if (videoFiles[i].className === "downlink-LOS") vidLine.fillColor = gColorVideoLOS;
       gTier1Group.addChild(vidLine);
     }
 
@@ -184,15 +177,14 @@ function NavTimeline() {
 
     drawTier1EVActivity(7, activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
     drawTier1EVActivity(8, activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
-    // drawTier1EVActivity(9, activityPerformance.DayNight); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    drawTier1EVActivity(9, dayNight.events); // row 10 for day night  //TODO: pending access to this data for all EVAs. Wiki currently uncooperative.
   };
 
   const drawTier1EVActivity = (rowNum, evActivityArray: Activity[]) => {
     for (let i = 0; i < evActivityArray.length; i++) {
-      let startLocX =
-        evActivityArray[i].startTimeSeconds * gTier1PixelsPerSecond;
+      let startLocX = evActivityArray[i].startTimeSeconds * gTier1PixelsPerSecond;
       let endLocX = evActivityArray[i].endTimeSeconds * gTier1PixelsPerSecond;
-      let startLocY = 0.5 + rowNum * (cChannelStrokeWidth + cVidBarGapWidth);
+      let startLocY = gTier1Top + rowNum * (cChannelStrokeWidth + cVidBarGapWidth);
       let endLocY = startLocY + cChannelStrokeWidth + 1;
       let activityLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
@@ -203,11 +195,6 @@ function NavTimeline() {
         fillColor: evActivityArray[i].color,
         // name: name,
       });
-      if (evActivityArray[i].content === "Insolation") {
-        activityLine.fillColor = gDayColor;
-      } else if (evActivityArray[i].content === "Eclipse") {
-        activityLine.fillColor = gNightColor;
-      }
       gTier1Group.addChild(activityLine);
     }
   };
@@ -225,95 +212,115 @@ function NavTimeline() {
     }
     gTier2StartSeconds = gTier1SecondsPerPixel * gTier1NavBoxLocX;
 
-    let navBoxRect = new paper.Rectangle(
-      gTier1NavBoxLocX,
-      1.5,
-      navBoxWidth,
-      gTier1Height
-    );
+    let navBoxRect = new paper.Rectangle(gTier1NavBoxLocX, gTier1Top, navBoxWidth, gTier1Height);
     const cornerSize = new paper.Size(2, 2);
     let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
     //var navBoxRectPath = paper.Path.Rectangle(navBoxRect);
-    navBoxRectPath.strokeColor = gColorZoomPane1Border;
+    navBoxRectPath.strokeColor = new paper.Color("#ffc000");
+    navBoxRectPath.strokeWidth = 4;
     gTier1NavGroup.addChild(navBoxRectPath);
 
-    let leftAlphaRect = new paper.Rectangle(
-      gTier1Left,
-      gTier1Top,
-      gTier1NavBoxLocX - gTier1Left,
-      gTier1Height
+    //navBoxEffect
+    const startPoint = new paper.Point(gTier1NavBoxLocX - 2, gTier1Top);
+    const boxWidth = navBoxWidth + 4;
+    const effectHeight = gTierSpacing;
+    const effectSideWidth = 30;
+    let navBoxEffect = new paper.Path({
+      strokeColor: "black",
+      closed: true,
+      fillColor: "#ffc000",
+      strokeWidth: 0,
+    });
+    navBoxEffect.moveTo(startPoint);
+    navBoxEffect.arcTo(
+      new paper.Point(
+        startPoint.x - effectSideWidth / 2,
+        startPoint.y - effectHeight + effectSideWidth / 6
+      ),
+      new paper.Point(startPoint.x - effectSideWidth, startPoint.y - effectHeight)
     );
-    let leftAlphaRectPath = new paper.Path.Rectangle(leftAlphaRect, cornerSize);
-    leftAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
-    gTier1NavGroup.addChild(leftAlphaRectPath);
+    navBoxEffect.lineTo(
+      new paper.Point(startPoint.x + effectSideWidth + boxWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffect.arcTo(
+      new paper.Point(
+        startPoint.x + boxWidth + effectSideWidth / 2,
+        startPoint.y - effectHeight + effectSideWidth / 6
+      ),
+      new paper.Point(startPoint.x + boxWidth, startPoint.y)
+    );
+    navBoxEffect.lineTo(startPoint);
+    gTier1NavGroup.addChild(navBoxEffect);
 
-    let rightAlphaRect = new paper.Rectangle(
-      gTier1NavBoxLocX + navBoxWidth,
-      gTier1Top,
-      gNavigatorWidth - gTier1NavBoxLocX + navBoxWidth,
-      gTier1Height
-    );
-    let rightAlphaRectPath = new paper.Path.Rectangle(
-      rightAlphaRect,
-      cornerSize
-    );
-    rightAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
-    gTier1NavGroup.addChild(rightAlphaRectPath);
+    // let leftAlphaRect = new paper.Rectangle(gTier1Left, gTier1Top, gTier1NavBoxLocX - gTier1Left, gTier1Height);
+    // let leftAlphaRectPath = new paper.Path.Rectangle(leftAlphaRect, cornerSize);
+    // leftAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
+    // gTier1NavGroup.addChild(leftAlphaRectPath);
+
+    // let rightAlphaRect = new paper.Rectangle(
+    //   gTier1NavBoxLocX + navBoxWidth,
+    //   gTier1Top,
+    //   gNavigatorWidth - gTier1NavBoxLocX + navBoxWidth,
+    //   gTier1Height
+    // );
+    // let rightAlphaRectPath = new paper.Path.Rectangle(rightAlphaRect, cornerSize);
+    // rightAlphaRectPath.fillColor = new paper.Color(0, 0, 0, gAlphaRectOpacity);
+    // gTier1NavGroup.addChild(rightAlphaRectPath);
 
     //add zoom curves
-    let leftCurveObj = new paper.Path({
-      segments: [
-        [gTier1NavBoxLocX, gTier1Top + gTier1Height / 2],
-        [gTier2Left, gTier2Top],
-        [gTier1NavBoxLocX, gTier2Top],
-      ],
+    // let leftCurveObj = new paper.Path({
+    //   segments: [
+    //     [gTier1NavBoxLocX, gTier1Top + gTier1Height / 2],
+    //     [gTier2Left, gTier2Top],
+    //     [gTier1NavBoxLocX, gTier2Top],
+    //   ],
 
-      strokeColor: "white",
-      // closed: true,
-      strokeWidth: 1,
-      strokeJoin: "round",
-      fillColor: "white",
-      opacity: gNaxBoxZoomFadeOpacity,
-    });
-    let handleVector = new paper.Point({
-      angle: 90,
-      length: gTier1Height,
-    });
-    leftCurveObj.segments[0].handleOut = handleVector;
-    gTier1NavGroup.addChild(leftCurveObj);
+    //   strokeColor: "white",
+    //   // closed: true,
+    //   strokeWidth: 1,
+    //   strokeJoin: "round",
+    //   fillColor: "white",
+    //   opacity: gNaxBoxZoomFadeOpacity,
+    // });
+    // let handleVector = new paper.Point({
+    //   angle: 90,
+    //   length: gTier1Height,
+    // });
+    // leftCurveObj.segments[0].handleOut = handleVector;
+    // gTier1NavGroup.addChild(leftCurveObj);
 
-    let rightCurveObj = new paper.Path({
-      segments: [
-        [gTier1NavBoxLocX + navBoxWidth, gTier1Top + gTier1Height / 2],
-        [gNavigatorWidth, gTier2Top],
-        [gTier1NavBoxLocX + navBoxWidth, gTier2Top],
-      ],
+    // let rightCurveObj = new paper.Path({
+    //   segments: [
+    //     [gTier1NavBoxLocX + navBoxWidth, gTier1Top + gTier1Height / 2],
+    //     [gNavigatorWidth, gTier2Top],
+    //     [gTier1NavBoxLocX + navBoxWidth, gTier2Top],
+    //   ],
 
-      strokeColor: "white",
-      // closed: true,
-      strokeWidth: 1,
-      strokeJoin: "round",
-      fillColor: "white",
-      opacity: gNaxBoxZoomFadeOpacity,
-    });
-    rightCurveObj.segments[0].handleOut = handleVector;
-    gTier1NavGroup.addChild(rightCurveObj);
+    //   strokeColor: "white",
+    //   // closed: true,
+    //   strokeWidth: 1,
+    //   strokeJoin: "round",
+    //   fillColor: "white",
+    //   opacity: gNaxBoxZoomFadeOpacity,
+    // });
+    // rightCurveObj.segments[0].handleOut = handleVector;
+    // gTier1NavGroup.addChild(rightCurveObj);
 
-    let fillUnderNavBox = new paper.Path({
-      segments: [
-        [gTier1NavBoxLocX + 0.5, gTier1Top + gTier1Height],
-        [gTier1NavBoxLocX + 0.5, gTier2Top],
-        [gTier1NavBoxLocX + navBoxWidth - 0.5, gTier2Top],
-        [gTier1NavBoxLocX + navBoxWidth - 0.5, gTier1Top + gTier1Height],
-      ],
-      strokeColor: "white",
-      closed: true,
-      strokeWidth: 1,
-      // strokeJoin: 'round',
-      fillColor: "white",
-      opacity: gNaxBoxZoomFadeOpacity,
-    });
-    gTier1NavGroup.addChild(fillUnderNavBox);
+    // let fillUnderNavBox = new paper.Path({
+    //   segments: [
+    //     [gTier1NavBoxLocX + 0.5, gTier1Top + gTier1Height],
+    //     [gTier1NavBoxLocX + 0.5, gTier2Top],
+    //     [gTier1NavBoxLocX + navBoxWidth - 0.5, gTier2Top],
+    //     [gTier1NavBoxLocX + navBoxWidth - 0.5, gTier1Top + gTier1Height],
+    //   ],
+    //   strokeColor: "white",
+    //   closed: true,
+    //   strokeWidth: 1,
+    //   // strokeJoin: 'round',
+    //   fillColor: "white",
+    //   opacity: gNaxBoxZoomFadeOpacity,
+    // });
+    // gTier1NavGroup.addChild(fillUnderNavBox);
   };
 
   const drawTier2 = () => {
@@ -322,43 +329,29 @@ function NavTimeline() {
     gTier2Group.removeChildren();
 
     // draw tier2 boarder
-    let tier2Top = gTier1Height + 5;
-    let tierBottom = gTier2Height;
-    let tierRect = new paper.Rectangle(
-      1.5,
-      tier2Top,
-      gNavigatorWidth,
-      gTier2Height
-    );
-    let cornerSize = new paper.Size(3, 3);
-    let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
-
-    tierRectPath.strokeColor = tierBoxColor;
-    gTier2Group.addChild(tierRectPath);
-    // gTier2BoarderGroup.sendToBack();
+    let tierBottom = gTier1Top + gTier2Height;
+    // let tierRect = new paper.Rectangle(1.5, gTier2Top, gNavigatorWidth, gTier2Height);
+    // let cornerSize = new paper.Size(3, 3);
+    // let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
+    // tierRectPath.strokeColor = tierBoxColor;
+    // gTier2Group.addChild(tierRectPath);
 
     // draw video segments boxes
     for (let i = 0; i < videoFiles.length; i++) {
       //draw if video segment start is before end of viewport, and video segment end is after start of viewport
       if (
-        videoFiles[i].missionSecondsStart <=
-          gTier2StartSeconds + secondsOnTier2 &&
+        videoFiles[i].missionSecondsStart <= gTier2StartSeconds + secondsOnTier2 &&
         videoFiles[i].missionSecondsEnd >= gTier2StartSeconds
       ) {
         let startLocX =
           gTier2Left +
-          (videoFiles[i].missionSecondsStart - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
+          (videoFiles[i].missionSecondsStart - gTier2StartSeconds) * gTier2PixelsPerSecond;
         let endLocX =
           gTier2Left +
-          (videoFiles[i].missionSecondsEnd - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
+          (videoFiles[i].missionSecondsEnd - gTier2StartSeconds) * gTier2PixelsPerSecond;
 
         let startLocY =
-          gTier1Height +
-          gTierSpacing +
-          0.5 +
-          videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
+          gTier2Top + videoFiles[i]["group"] * (cChannelStrokeWidth + cVidBarGapWidth);
         let endLocY = startLocY + cChannelStrokeWidth + 1;
 
         let name = "vidItem_" + i.toString();
@@ -371,18 +364,13 @@ function NavTimeline() {
           fillColor: gColorVideo,
           name: name,
         });
-        if (videoFiles[i].className === "downlink-LOS")
-          vidLine.fillColor = gColorVideoLOS;
+        if (videoFiles[i].className === "downlink-LOS") vidLine.fillColor = gColorVideoLOS;
         gTier2Group.addChild(vidLine);
       }
     }
 
     //display time ticks
-    for (
-      let i = Math.round(gTier2StartSeconds);
-      i < gTier2StartSeconds + secondsOnTier2;
-      i++
-    ) {
+    for (let i = Math.round(gTier2StartSeconds); i < gTier2StartSeconds + secondsOnTier2; i++) {
       if (
         parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
         secondsToTimeStr(i).substring(6, 8) === "00"
@@ -401,31 +389,24 @@ function NavTimeline() {
 
     drawTier2EVActivity(0, activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
     drawTier2EVActivity(1, activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
-    // drawTier2EVActivity(2, activityPerformance.DayNight, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    drawTier2EVActivity(2, dayNight.events, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
   };
 
   const drawTier2EVActivity = (evRow, evActivityArray, secondsOnTier2) => {
     const tier2EVActivityHeight = 20;
     for (let i = 0; i < evActivityArray.length; i++) {
       if (
-        evActivityArray[i].startTimeSeconds <=
-          gTier2StartSeconds + secondsOnTier2 &&
+        evActivityArray[i].startTimeSeconds <= gTier2StartSeconds + secondsOnTier2 &&
         evActivityArray[i].endTimeSeconds >= gTier2StartSeconds
       ) {
         let startLocX =
           gTier2Left +
-          (evActivityArray[i].startTimeSeconds - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
+          (evActivityArray[i].startTimeSeconds - gTier2StartSeconds) * gTier2PixelsPerSecond;
         let endLocX =
           gTier2Left +
-          (evActivityArray[i].endTimeSeconds - gTier2StartSeconds) *
-            gTier2PixelsPerSecond;
+          (evActivityArray[i].endTimeSeconds - gTier2StartSeconds) * gTier2PixelsPerSecond;
 
-        let startY =
-          gTier1Height +
-          gTierSpacing +
-          0.5 +
-          7 * (cChannelStrokeWidth + cVidBarGapWidth); //there are 7 video channels, start EV activity tracking below them
+        let startY = gTier2Top + 7 * (cChannelStrokeWidth + cVidBarGapWidth); //there are 7 video channels, start EV activity tracking below them
         let startLocY = startY + evRow * tier2EVActivityHeight;
         let endLocY = startLocY + tier2EVActivityHeight;
 
@@ -438,11 +419,6 @@ function NavTimeline() {
           fillColor: evActivityArray[i].color,
           name: name,
         });
-        if (evActivityArray[i].content === "Insolation") {
-          activityLine.fillColor = gDayColor;
-        } else if (evActivityArray[i].content === "Eclipse") {
-          activityLine.fillColor = gNightColor;
-        }
         gTier2Group.addChild(activityLine);
 
         let activityText = new paper.PointText({
@@ -455,10 +431,7 @@ function NavTimeline() {
         let textTop = startLocY + 14;
         activityText.point = new paper.Point(startLocX + 2, textTop);
         activityText.content = evActivityArray[i].content;
-        if (
-          evActivityArray[i].content === "Insolation" ||
-          evActivityArray[i].color === "yellow"
-        ) {
+        if (evActivityArray[i].content === "Insolation" || evActivityArray[i].color === "yellow") {
           activityText.fillColor = new paper.Color("#000000");
         }
         gTier2Group.addChild(activityText);
@@ -466,16 +439,14 @@ function NavTimeline() {
     }
   };
 
-  /** Green cursor */
   const drawCursor = (seconds) => {
     gCursorGroup.removeChildren();
     gCursorGroup.addChild(getCursorElement(seconds, gColorCursor));
   };
 
-  /** Yellow cursor */
   const drawNavCursor = (seconds) => {
     gNavCursorGroup.removeChildren();
-    gNavCursorGroup.addChild(getCursorElement(seconds, gColorNavCursor));
+    gNavCursorGroup.addChild(getCursorElement(seconds, gColorCursor));
   };
 
   const getCursorElement = (seconds, color) => {
@@ -483,74 +454,74 @@ function NavTimeline() {
 
     // tier1
     let cursorLocX = 0.5 + seconds * gTier1PixelsPerSecond;
-    let topPoint = new paper.Point(cursorLocX, 1);
-    let bottomPoint = new paper.Point(cursorLocX, gTier1Height);
+    let topPoint = new paper.Point(cursorLocX, gTier1Top);
+    let bottomPoint = new paper.Point(cursorLocX, gTier1Top + gTier1Height);
     let aLine = new paper.Path.Line(topPoint, bottomPoint);
-    aLine.strokeColor = gColorNavCursor;
+    aLine.strokeColor = color;
+    aLine.strokeWidth = 2;
     cursorElementGroup.addChild(aLine);
 
     // tier2
     let tierBottom = gNavigatorHeight;
-    cursorLocX =
-      gTier2Left + (seconds - gTier2StartSeconds) * gTier2PixelsPerSecond;
+    cursorLocX = gTier2Left + (seconds - gTier2StartSeconds) * gTier2PixelsPerSecond;
     topPoint = new paper.Point(cursorLocX, gTier2Top);
     bottomPoint = new paper.Point(cursorLocX, tierBottom);
     aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = color;
+    aLine.strokeWidth = 2;
     cursorElementGroup.addChild(aLine);
 
     let timeText = new paper.PointText({
       justification: "left",
       fontWeight: "bold",
       fontFamily: gNavigatorFontFamily,
-      fontSize: 13,
-      fillColor: color,
+      fontSize: 20,
+      fillColor: "white",
     });
-    timeText.content = secondsToZuluString(seconds, timingData);
-    timeText.point = new paper.Point(
-      cursorLocX - timeText.bounds.width / 2,
-      tierBottom - 6
-    );
+    timeText.content = " " + secondsToZuluString(seconds, timingData) + " ";
+    timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, 20);
+    const cornerSize = new paper.Size(12, 12);
+    let timeTextRect = new paper.Rectangle(timeText.bounds);
+    //center rectangle behind text
+    timeTextRect.width = 135;
+    timeTextRect.height += 5;
+    timeTextRect.top -= 3;
     if (timeText.point.x < 5) {
       timeText.point.x = 5;
-    } else if (timeText.point.x > gNavigatorWidth - timeText.bounds.width - 5) {
-      timeText.point.x = gNavigatorWidth - timeText.bounds.width - 5;
+    } else if (timeText.point.x > gNavigatorWidth - timeTextRect.width - 5) {
+      timeText.point.x = gNavigatorWidth - timeTextRect.width - 5;
     }
-    const cornerSize = new paper.Size(3, 3);
-    let timeTextRect = new paper.Path.Rectangle(timeText.bounds, cornerSize);
+    timeTextRect.left = timeText.point.x;
+    timeTextRect.left -= 5;
+    let timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
     //var timeTextRect = new paper.Path.Rectangle(timeText.bounds);
-    timeTextRect.strokeColor = color;
-    timeTextRect.fillColor = new paper.Color("black");
+    // timeTextRect.strokeColor = color;
+    // timeTextRect.strokeWidth = 5;
+    timeTextRectPath.fillColor = new paper.Color("red");
     //timeTextRect.opacity = 0.5;
-    timeTextRect.scale(1.1, 1.2);
-    cursorElementGroup.addChild(timeTextRect);
+    // timeTextRectPath.scale(1.1, 1.8);
+    cursorElementGroup.addChild(timeTextRectPath);
     cursorElementGroup.addChild(timeText);
 
     return cursorElementGroup;
   };
 
   const setDynamicWidthVariables = () => {
-    gNavigatorWidth = paper.view.size.width - 5;
-    gNavigatorHeight = paper.view.size.height;
-    gTier1Height = 51;
-    gTier2Height = 100;
-
-    gTier1PixelsPerSecond =
-      gNavigatorWidth / timingData["EVA_duration_seconds"];
-    gTier1SecondsPerPixel =
-      timingData["EVA_duration_seconds"] / gNavigatorWidth;
-    gTier2PixelsPerSecond =
-      gNavigatorWidth / (timingData["EVA_duration_seconds"] / gNavZoomFactor);
-    gTier2SecondsPerPixel =
-      timingData["EVA_duration_seconds"] / gNavZoomFactor / gNavigatorWidth;
-
     gNavigatorWidth = paper.view.size.width;
     gNavigatorHeight = paper.view.size.height;
 
-    gTierSpacing = 5;
+    gTier1PixelsPerSecond = gNavigatorWidth / timingData["EVA_duration_seconds"];
+    gTier1SecondsPerPixel = timingData["EVA_duration_seconds"] / gNavigatorWidth;
+    gTier2PixelsPerSecond = gNavigatorWidth / (timingData["EVA_duration_seconds"] / gNavZoomFactor);
+    gTier2SecondsPerPixel = timingData["EVA_duration_seconds"] / gNavZoomFactor / gNavigatorWidth;
 
-    gTier1Top = 1;
-    gTier2Top = gTier1Height + gTierSpacing;
+    gTier1Height = 50;
+    gTier2Height = 95;
+
+    gTierSpacing = 30;
+
+    gTier2Top = 30;
+    gTier1Top = gTier2Top + gTier2Height + gTierSpacing;
 
     gTier1Left = 1;
     gTier2Left = 1;
@@ -589,29 +560,26 @@ function NavTimeline() {
 
     let mouseXSeconds;
     gNavCursorGroup.removeChildren();
-    if (event.point.y < gTier1Top + gTier1Height + gTierSpacing) {
+    if (event.point.y > gTier1Top) {
       //if in tier1
       mouseXSeconds = (event.point.x - 1) * gTier1SecondsPerPixel + 1;
       drawTier1NavBox(mouseXSeconds);
       drawTier2();
     } else {
       //if in tier 2
-      mouseXSeconds =
-        (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
-        gTier2StartSeconds;
+      mouseXSeconds = (event.point.x - gTier2Left) * gTier2SecondsPerPixel + gTier2StartSeconds;
     }
     drawNavCursor(mouseXSeconds);
   };
 
   paper.view.onMouseUp = (event) => {
     let seconds = 0;
-    if (event.point.y < gTier1Top + gTier1Height + gTierSpacing) {
+    if (event.point.y > gTier1Top) {
       seconds = Math.round((event.point.x - 1) * gTier1SecondsPerPixel + 1);
     } else {
       //if in tier 2
       seconds = Math.round(
-        (event.point.x - gTier2Left) * gTier2SecondsPerPixel +
-          gTier2StartSeconds
+        (event.point.x - gTier2Left) * gTier2SecondsPerPixel + gTier2StartSeconds
       );
     }
 
@@ -637,7 +605,17 @@ function NavTimeline() {
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322
-  return <canvas id={canvasID} style={{ height: "175px", width: "100%" }} />;
+  return (
+    <canvas
+      id={canvasID}
+      style={{
+        position: "fixed",
+        bottom: "24px",
+        height: "205px",
+        width: "100%",
+      }}
+    />
+  );
 }
 
 export default NavTimeline;

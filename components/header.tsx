@@ -58,10 +58,7 @@ function Header() {
         <div className={styles.headerElementContainer}>
           <div style={{ display: "flex" }}>
             <div className={styles.svgNASALogo} />
-            <div
-              className={styles.headerTitle}
-              style={{ float: "left", marginLeft: "10px" }}
-            >
+            <div className={styles.headerTitle} style={{ float: "left", marginLeft: "10px" }}>
               CODA
             </div>
           </div>
@@ -185,16 +182,13 @@ function Header() {
           <div className={styles.version}>
             Alpha v{config.version}
             <br />
-            Contact:{" "}
-            <a href="mailto:benjamin.f.feist@nasa.gov">
-              benjamin.f.feist@nasa.gov
-            </a>
+            Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>
         </div>
         <div
           className={styles.headerElementContainer}
           style={{
-            backgroundColor: "#2b2a2d;",
+            backgroundColor: "#2b2a2d",
             paddingLeft: "15px",
             paddingRight: "15px",
           }}
