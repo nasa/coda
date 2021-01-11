@@ -13,6 +13,16 @@ cache:
 before_script:
   - npm install
 
+stages:
+  - test
+  - build
+
 test:
   script:
     - npm t
+
+build:
+  script:
+    - npm run build
+  only:
+    - live

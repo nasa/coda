@@ -21,6 +21,13 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 1. If you're using `nvm` instead of installing Node manually, install the right version of Node: `nvm install && nvm use`
 2. Install JavaScript dependencies: `npm i`
 3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
+4. Create a `.env` file at the root of the repo. It must contain:
+
+```
+IO_KEY=the-auth-key-we-have-for-io
+```
+
+Ask Ben or Cameron for the key if you don't have it.
 
 ### Dev Server
 
@@ -142,6 +149,8 @@ Basically, you can wrap any component you want to be able to access the store in
 
 ## API Info
 
+Which APIs we're interact with
+
 ### Imagery Online (IO)
 
 The source of all the videos.
@@ -154,7 +163,7 @@ curl -H "Origin: https://coda-dev.fit.nasa.gov" "https://io.jsc.nasa.gov/api/sea
 
 #### API Token
 
-Get one from the [IO website](https://io.jsc.nasa.gov/app/index.cfm).
+~Get one from the [IO website](https://io.jsc.nasa.gov/app/index.cfm)~ ask someone for one?
 
 #### When New Videos Show Up
 
