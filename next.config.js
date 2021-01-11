@@ -6,9 +6,9 @@ const envs = {
     COOKIE_JAR: "foobar",
     CA_CERT: "something",
     HOST: 'coda-iss.develop',
-    IO_API_URL: 'http://io-mock/api/search/rpp=500',
+    IO_API_URL: 'https://io.jsc.nasa.gov/api/search/rpp=500',
     IO_HOST: 'https://io.jsc.nasa.gov',
-    IO_KEY: 'notarealkey',
+    IO_KEY: process.env.IO_KEY,
     WIKI_API_URL: 'http://wiki-mock/eva/api.php',
     WIKI_USER: 'none',
     WIKI_PASSWORD: 'none'

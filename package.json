@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' APP_ENV=local next dev",
-    "build": "next build",
+    "build": "APP_ENV=dev next build",
     "start": "next start",
     "test": "jest"
   },

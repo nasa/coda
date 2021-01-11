@@ -142,6 +142,8 @@ Basically, you can wrap any component you want to be able to access the store in
 
 ## API Info
 
+Which APIs we're interact with
+
 ### Imagery Online (IO)
 
 The source of all the videos.
@@ -154,7 +156,7 @@ curl -H "Origin: https://coda-dev.fit.nasa.gov" "https://io.jsc.nasa.gov/api/sea
 
 #### API Token
 
-Get one from the [IO website](https://io.jsc.nasa.gov/app/index.cfm).
+~Get one from the [IO website](https://io.jsc.nasa.gov/app/index.cfm)~ ask someone for one?
 
 #### When New Videos Show Up
 
