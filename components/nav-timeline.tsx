@@ -72,7 +72,7 @@ function NavTimeline() {
 
     paper.view.onMouseMove = handleMouseMove;
     paper.view.onMouseUp = handleMouseUp;
-    paper.view.onMouseLeave = onMouseOutHandler;
+    paper.view.onMouseLeave = handleMouseLeave;
 
     drawTier1();
     drawTier1NavBox(missionTime);
@@ -85,6 +85,7 @@ function NavTimeline() {
       const newMissionTime = getMissionTime(clock);
       if (newMissionTime !== missionTime) {
         if (gTier1NavGroup) {
+          // TODO: not running?
           drawTier1NavBox(newMissionTime);
           drawTier2();
           drawCursor(newMissionTime);
@@ -579,7 +580,7 @@ function NavTimeline() {
     drawCursor(seconds);
   };
 
-  const onMouseOutHandler = (_event) => {
+  const handleMouseLeave = (_event) => {
     mouseOnNavigator = false;
     gNavCursorGroup.removeChildren();
   };
