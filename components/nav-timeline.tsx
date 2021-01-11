@@ -34,6 +34,7 @@ function NavTimeline() {
   } = useSelector((state) => state);
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
+
   const videoFiles = selectVideoFiles(videos);
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
   const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
@@ -418,7 +419,7 @@ function NavTimeline() {
 
   const drawNavCursor = (seconds) => {
     gNavCursorGroup.removeChildren();
-    gNavCursorGroup.addChild(getCursorElement(seconds, gColorCursor));
+    gNavCursorGroup.addChild(getCursorElement(seconds, gColorNavCursor));
   };
 
   const getCursorElement = (seconds, color) => {
@@ -466,9 +467,9 @@ function NavTimeline() {
     timeTextRect.left -= 5;
     let timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
     //var timeTextRect = new paper.Path.Rectangle(timeText.bounds);
-    // timeTextRect.strokeColor = color;
-    // timeTextRect.strokeWidth = 5;
-    timeTextRectPath.fillColor = new paper.Color("red");
+    // timeTextRectPath.strokeColor = new paper.Color(color);
+    // timeTextRectPath.strokeWidth = 1;
+    timeTextRectPath.fillColor = color;
     timeTextRectPath.opacity = 0.8;
     //timeTextRect.opacity = 0.5;
     // timeTextRectPath.scale(1.1, 1.8);

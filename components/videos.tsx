@@ -154,7 +154,7 @@ function Videos() {
           <video
             ref={players[name]}
             className={styles.player}
-            // controls
+            controls
             muted
             onCanPlay={() => dispatch(ready(name))}
             onPause={() => dispatch(buffering(name))}
