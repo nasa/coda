@@ -36,7 +36,7 @@
 .spinner:after {
   content: "";
   animation-name: spin;
-  animation-duration: 1s;
+  animation-duration: 3s;
   animation-iteration-count: infinite;
 }
 

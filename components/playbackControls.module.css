@@ -1,3 +1,9 @@
+.container {
+  position: fixed;
+  bottom: 56px;
+  left: -20px;
+}
+
 .playPause {
   display: table;
   width: 100px;
@@ -6,7 +12,7 @@
 
   border: #ffc000 solid 3px;
   background-color: #19181b;
-  box-shadow: 0px 0px 40px rgba(0,0,0,0.4);
+  box-shadow: 0px 0px 40px rgba(0,0,0,1);
 }
 
 .playPauseBtn {

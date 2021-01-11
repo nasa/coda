@@ -24,8 +24,10 @@ export default function PlaybackControls() {
     svgName = styles.playSVG;
   }
   return (
-    <div className={styles.playPause}>
-      <div className={`${styles.playPauseBtn} ${svgName}`} onClick={handlePlayPause}></div>
+    <div className={styles.container}>
+      <div className={styles.playPause}>
+        <div className={`${styles.playPauseBtn} ${svgName}`} onClick={handlePlayPause}></div>
+      </div>
     </div>
   );
 }

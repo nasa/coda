@@ -45,21 +45,8 @@ export default function Main() {
         <Videos />
       </div>
       <div className={styles.footer}>
-        <div style={{ display: "flex" }}>
-          <div
-            style={{
-              flex: "0 0 110px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-            }}
-          >
-            <PlaybackControls />
-          </div>
-          <div style={{ flex: 1 }}>
-            <NavTimeline />
-          </div>
-        </div>
+        <PlaybackControls />
+        <NavTimeline />
         <StatusBar />
       </div>
     </div>
