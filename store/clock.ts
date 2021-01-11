@@ -1,4 +1,4 @@
-import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 export interface ClockState {
   /** Whether the clock actually is running */
@@ -45,8 +45,8 @@ export const clockSlice = createSlice({
      * Start the application clock
      */
     start: (state) => {
+      state.applicationTime = getApplicationUTC(state)?.toISOString() || null;
       state.lastStarted = new Date().toISOString();
-      state.lastStopped = null;
       state.isRunning = true;
     },
 
@@ -54,8 +54,10 @@ export const clockSlice = createSlice({
      * Stop the application clock
      */
     stop: (state) => {
-      state.lastStopped = new Date().toISOString();
-      state.isRunning = false;
+      if (state.isRunning) {
+        state.lastStopped = new Date().toISOString();
+        state.isRunning = false;
+      }
     },
   },
 });
@@ -72,8 +74,9 @@ export const getApplicationUTC = (state: ClockState): Date => {
     return null;
   }
 
+  const now = new Date();
   const delta = isRunning
-    ? diff(new Date(), new Date(lastStarted))
+    ? diff(now, new Date(lastStarted))
     : diff(new Date(lastStopped), new Date(lastStarted));
 
   return add(new Date(applicationTime), delta);
@@ -85,7 +88,11 @@ export const getApplicationUTC = (state: ClockState): Date => {
 export const getMissionTime = (state: ClockState): number => {
   const time = getApplicationUTC(state);
   if (time) {
-    return time.getHours() * 3600 + time.getMinutes() * 60 + time.getSeconds();
+    return (
+      time.getUTCHours() * 3600 +
+      time.getUTCMinutes() * 60 +
+      time.getUTCSeconds()
+    );
   }
 
   return 0;
@@ -122,6 +129,7 @@ const diff = (a: Date, b: Date): number => {
  */
 const add = (d: Date, ms: number): Date => {
   const ret = new Date(d);
-  ret.setUTCMilliseconds(ms);
+  const currentMS = ret.getUTCMilliseconds();
+  ret.setUTCMilliseconds(currentMS + ms);
   return ret;
 };

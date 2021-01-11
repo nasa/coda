@@ -185,6 +185,29 @@ describe("store/clockSlice", () => {
       const received = getMissionTime(s);
       expect(received).toEqual(0);
     });
+
+    it("#getMissionTime should return the number of UTC seconds past midnight when the clock is running", () => {
+      const clock = FakeTimers.install({ toFake: ["Date"] });
+
+      // note we're at midnight UTC
+      const applicationTime = new Date(Date.UTC(1985, 11, 5, 0, 0, 0, 0));
+      const lastStarted = new Date();
+      const s = {
+        isRunning: true,
+        ready: true,
+        applicationTime: applicationTime.toISOString(),
+        lastStarted: lastStarted.toISOString(),
+        lastStopped: null,
+      } as ClockState;
+
+      clock.tick(5000);
+
+      // should be 5 seconds past midnight
+      const received = getMissionTime(s);
+      expect(received).toEqual(5);
+
+      clock.uninstall();
+    });
   });
 
   describe("stops and starts", () => {
@@ -198,12 +221,91 @@ describe("store/clockSlice", () => {
       const start1 = start();
       s = clockSlice.reducer(s, start1);
 
-      clock.setSystemTime(0);
       clock.tick(5000);
-      console.log(new Date());
 
-      const received = getMissionTime(s);
-      expect(received).toEqual(5);
+      const afterFirstStart = getMissionTime(s);
+      expect(afterFirstStart).toEqual(5);
+
+      const stop1 = stop();
+      s = clockSlice.reducer(s, stop1);
+
+      // let some time pass after the clock is stopped
+      clock.tick(5000);
+
+      // we should get the same time if the clock is stopped
+      const afterStop = getMissionTime(s);
+      expect(afterStop).toEqual(5);
+
+      // start the clock again and let time elapse
+      const start2 = start();
+      s = clockSlice.reducer(s, start2);
+
+      clock.tick(5000);
+
+      const afterSecondStart = getMissionTime(s);
+      expect(afterSecondStart).toEqual(10);
+
+      clock.uninstall();
+    });
+
+    it("lets you hit start multiple times", () => {
+      const clock = FakeTimers.install({ toFake: ["Date"] });
+
+      const firstStart = new Date();
+      const set1 = set(firstStart.toISOString());
+      let s = clockSlice.reducer(initialState, set1);
+
+      const start1 = start();
+      s = clockSlice.reducer(s, start1);
+
+      clock.tick(5000);
+
+      const afterFirstStart = getMissionTime(s);
+      expect(afterFirstStart).toEqual(5);
+
+      // hit start again, which should not impact the clock
+      const start2 = start();
+      s = clockSlice.reducer(s, start2);
+
+      clock.tick(5000);
+
+      const afterSecondStart = getMissionTime(s);
+      expect(afterSecondStart).toEqual(10);
+
+      clock.uninstall();
+    });
+
+    it("lets you hit stop multiple times", () => {
+      const clock = FakeTimers.install({ toFake: ["Date"] });
+
+      const firstStart = new Date();
+      const set1 = set(firstStart.toISOString());
+      let s = clockSlice.reducer(initialState, set1);
+
+      const start1 = start();
+      s = clockSlice.reducer(s, start1);
+
+      clock.tick(5000);
+
+      const afterFirstStart = getMissionTime(s);
+      expect(afterFirstStart).toEqual(5);
+
+      const stop1 = stop();
+      s = clockSlice.reducer(s, stop1);
+
+      clock.tick(5000);
+
+      const afterFirstStop = getMissionTime(s);
+      expect(afterFirstStop).toEqual(5);
+
+      // hit stop again, which should not impact the clock
+      const stop2 = stop();
+      s = clockSlice.reducer(s, stop2);
+
+      clock.tick(5000);
+
+      const afterSecondStop = getMissionTime(s);
+      expect(afterSecondStop).toEqual(5);
 
       clock.uninstall();
     });
