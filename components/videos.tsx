@@ -129,10 +129,6 @@ function Videos() {
       videoURL = video.videoURL;
       vidInfo = video.description;
       downlinkDisplay = video.content;
-
-      // TODO: we need to figure out how to tell if the video is ready to play
-      // when the video is first loaded or the timeline changes, videos should be marked not ready
-      // when the video canplay event fires, we mark it ready and run the timeline
     }
 
     if (players[name].current && videoURL !== players[name].current.currentSrc) {
@@ -158,9 +154,7 @@ function Videos() {
             muted
             onCanPlay={() => dispatch(ready(name))}
             onPause={() => dispatch(buffering(name))}
-            // TODO: probably not necessary
             onWaiting={() => dispatch(buffering(name))}
-            // onWaiting={console.log}
           >
             <source src={videoURL} />
           </video>
