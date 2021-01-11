@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import paper from "paper";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { Activity } from "services/iss-wiki";
 import { ClockState, getMissionTime, set } from "store/clock";
@@ -9,7 +9,9 @@ import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/vide
 import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 
+// these vars only affect the canvas so avoid updating the React component state
 let missionTime = null;
+let mouseOnNavigator = false;
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
@@ -40,15 +42,53 @@ function NavTimeline() {
   const activityPerformance = evas.EVAs[evas.selectedEVA].activityPerformance;
   const dayNight = evas.EVAs[evas.selectedEVA].dayNight;
 
-  const [mouseOnNavigator, setMouseOnNavigator] = useState(false);
+  const canvas = useRef();
+
+  useEffect(() => {
+    paper.setup(canvas.current);
+    paper.view.onResize = function () {
+      setDynamicWidthVariables();
+      drawTier1();
+      drawTier1NavBox(missionTime);
+      drawTier2();
+      drawCursor(missionTime);
+    };
+
+    setDynamicWidthVariables();
+
+    if (typeof gTier1Group !== "undefined") {
+      gTier1Group.removeChildren();
+      gTier1NavGroup.removeChildren();
+      gTier2Group.removeChildren();
+      gCursorGroup.removeChildren();
+      gNavCursorGroup.removeChildren();
+    } else {
+      gTier1Group = new paper.Group();
+      gTier1NavGroup = new paper.Group();
+      gTier2Group = new paper.Group();
+      gCursorGroup = new paper.Group();
+      gNavCursorGroup = new paper.Group();
+    }
+
+    paper.view.onMouseMove = handleMouseMove;
+    paper.view.onMouseUp = handleMouseUp;
+    paper.view.onMouseLeave = onMouseOutHandler;
+
+    drawTier1();
+    drawTier1NavBox(missionTime);
+    drawTier2();
+  }, []);
+
   useInterval(() => {
     if (!mouseOnNavigator) {
       const { clock } = store.getState();
       const newMissionTime = getMissionTime(clock);
       if (newMissionTime !== missionTime) {
-        drawTier1NavBox(newMissionTime);
-        drawTier2();
-        drawCursor(newMissionTime);
+        if (gTier1NavGroup) {
+          drawTier1NavBox(newMissionTime);
+          drawTier2();
+          drawCursor(newMissionTime);
+        }
         missionTime = newMissionTime;
       }
     }
@@ -500,35 +540,9 @@ function NavTimeline() {
     gTier2Left = 1;
   };
 
-  const canvasID = "__NAV_CANVAS__";
-  paper.setup(canvasID);
-  paper.view.onResize = function () {
-    setDynamicWidthVariables();
-    drawTier1();
-    drawTier1NavBox(missionTime);
-    drawTier2();
-    drawCursor(missionTime);
-  };
-
-  setDynamicWidthVariables();
-
-  if (typeof gTier1Group !== "undefined") {
-    gTier1Group.removeChildren();
-    gTier1NavGroup.removeChildren();
-    gTier2Group.removeChildren();
-    gCursorGroup.removeChildren();
-    gNavCursorGroup.removeChildren();
-  } else {
-    gTier1Group = new paper.Group();
-    gTier1NavGroup = new paper.Group();
-    gTier2Group = new paper.Group();
-    gCursorGroup = new paper.Group();
-    gNavCursorGroup = new paper.Group();
-  }
-
-  paper.view.onMouseMove = function (event) {
+  const handleMouseMove = (event) => {
     if (!mouseOnNavigator) {
-      setMouseOnNavigator(true);
+      mouseOnNavigator = true;
     }
 
     let mouseXSeconds;
@@ -545,7 +559,7 @@ function NavTimeline() {
     drawNavCursor(mouseXSeconds);
   };
 
-  paper.view.onMouseUp = (event) => {
+  const handleMouseUp = (event) => {
     let seconds = 0;
     if (event.point.y > gTier1Top) {
       seconds = Math.round((event.point.x - 1) * gTier1SecondsPerPixel + 1);
@@ -566,21 +580,15 @@ function NavTimeline() {
   };
 
   const onMouseOutHandler = (_event) => {
-    setMouseOnNavigator(false);
+    mouseOnNavigator = false;
     gNavCursorGroup.removeChildren();
   };
-
-  paper.view.onMouseLeave = onMouseOutHandler;
-
-  drawTier1();
-  drawTier1NavBox(missionTime);
-  drawTier2();
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322
   return (
     <canvas
-      id={canvasID}
+      ref={canvas}
       style={{
         // position: "relative",
         // bottom: "0",
