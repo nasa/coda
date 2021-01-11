@@ -4,7 +4,7 @@ SERVER ONLY methods for fetching from Imagery Online (IO). Only use this code wi
 import fetch, { Response } from "node-fetch";
 import { padZeros } from "utils/formatting";
 
-// IO uses a NOCA cert. we need to tell node to use system certs on mac and windows
+// IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
 require("mac-ca");
 require("win-ca");
 
