@@ -6,13 +6,21 @@ import {
   getAsExecuted,
   getAllEVAs,
   getEVADetails,
+  getDayNight,
   getCrew,
   EVASummaryResponse,
   ParsedEVADetails,
   ParsedCrewResults,
+  Activity,
+  DayNight,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
-import { assignStartEnd, generateTimingData } from "store/videos";
+import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
+import {
+  getActivityPerformanceMissionTime,
+  getDayNightMissionTime,
+  getEVAStartMilliseconds,
+} from "store/evas";
 
 function Replay({
   initialReduxState: {
@@ -26,33 +34,24 @@ function Replay({
         <title>
           {EVAs[selectedEVA].name} | {process.env.TITLE}
         </title>
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/favicon/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon/favicon-16x16.png"
-        />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
-        <link
-          rel="mask-icon"
-          href="/favicon/safari-pinned-tab.svg"
-          color="#5bbad5"
-        />
+        <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
           rel="stylesheet"
-        ></link>
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap"
+          rel="stylesheet"
+        />
       </Head>
       <Main />
     </div>
@@ -86,9 +85,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
  * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client. This is where we perform all the requests to external APIs to get the data required to render the EVA
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
  */
-export const getStaticProps: GetServerSideProps = async ({
-  params: { eva },
-}) => {
+export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) => {
   const evaName = (eva as string).toLowerCase();
   let evaErrorMessage = "";
   let videosErrorMessage = "";
@@ -98,6 +95,9 @@ export const getStaticProps: GetServerSideProps = async ({
   const EVAs = {} as { [key: string]: EVA };
   let gEVADetails: ParsedEVADetails;
   let EVACrew: ParsedCrewResults;
+  let asExecutedEV1: Activity[];
+  let asExecutedEV2: Activity[];
+  let dayNight: DayNight;
   try {
     const evas = await getAllEVAs();
     Object.keys(evas).forEach((evaName) => {
@@ -111,11 +111,13 @@ export const getStaticProps: GetServerSideProps = async ({
         // we don't have these properties yet
         duration: -1,
         activityPerformance: {},
+        dayNight: {},
       };
     });
 
-    EVAs[evaName].activityPerformance["EV1"] = await getAsExecuted(evaName, 1);
-    EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
+    asExecutedEV1 = await getAsExecuted(evaName, 1);
+    asExecutedEV2 = await getAsExecuted(evaName, 2);
+    dayNight = await getDayNight(evaName);
 
     gEVADetails = await getEVADetails(evaName);
     EVACrew = await getCrew(evaName);
@@ -125,18 +127,33 @@ export const getStaticProps: GetServerSideProps = async ({
   }
 
   let videos: Videos;
+  let timingData: TimingData;
   try {
     const [h, m] = gEVADetails.duration.split(":");
     EVAs[evaName].duration = +h * 3600 + +m * 60;
     // video data for this EVA
     const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
     videos = await getVideoData(Y, M, D);
-    const timingData = generateTimingData(videos);
+    timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);
   } catch (e) {
     console.error(e);
     videosErrorMessage = "Error fetching videos";
   }
+
+  const activityStartUTCMilliseconds = getEVAStartMilliseconds(EVAs[evaName]);
+
+  EVAs[evaName].activityPerformance["EV1"] = getActivityPerformanceMissionTime(
+    asExecutedEV1,
+    timingData,
+    activityStartUTCMilliseconds
+  );
+  EVAs[evaName].activityPerformance["EV2"] = getActivityPerformanceMissionTime(
+    asExecutedEV2,
+    timingData,
+    activityStartUTCMilliseconds
+  );
+  EVAs[evaName].dayNight = getDayNightMissionTime(dayNight, timingData);
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
   // the trick we're using to map over the existing video files object is:

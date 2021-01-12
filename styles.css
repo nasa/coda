@@ -1,6 +1,10 @@
-body {
-  font-family: Roboto Mono, serif;
-  background-color: #000000;
+* {
+  font-family: 'Inter', sans-serif;
+  font-feature-settings: "tnum"; /* mono-spaced digits */
+}
+
+body {  
+  background-color: #3e3b44;
   /* overflow-x: hidden; */
   margin: 0;
   color: #ffffff;
@@ -34,7 +38,6 @@ a {
 }
 
 .shareModalWrapper .headline {
-  font-family: "Roboto Mono", sans-serif;
   font-size: 1.5em;
   color: #5e92a6;
   text-align: left;
@@ -42,7 +45,6 @@ a {
 }
 
 .shareModalWrapper .body {
-  font-family: "Roboto", sans-serif;
   font-size: 1em;
   float: left;
   padding-bottom: 10px;

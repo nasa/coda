@@ -32,10 +32,9 @@ function Videos() {
 
   const store = useStore();
   const dispatch = useDispatch();
-  const {
-    videos,
-    clock,
-  }: { videos: VideosState; clock: ClockState } = useSelector((state) => state);
+  const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
+    (state) => state
+  );
 
   // TODO: go from video to no video, switch videos at same time
   // why aren't the videos running when the app loads?
@@ -73,10 +72,7 @@ function Videos() {
       let id = activeVideoFileID;
 
       // (1.1) if the timeline just jumped or the video files changed, make sure we start the right video
-      if (
-        videosNextSecond.length > 0 &&
-        activeVideoFileID !== videosNextSecond[0]
-      ) {
+      if (videosNextSecond.length > 0 && activeVideoFileID !== videosNextSecond[0]) {
         // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
         id = videosNextSecond[0];
       } else if (
@@ -104,12 +100,10 @@ function Videos() {
 
       // (2.2) make sure the video times are correct
 
-      const currentlyPlayingVideo =
-        videos.videos[videos.activeVideoFiles[name]];
+      const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[name]];
       let videoStartOffset = 0;
       if (currentlyPlayingVideo) {
-        videoStartOffset =
-          missionTime - currentlyPlayingVideo.missionSecondsStart;
+        videoStartOffset = missionTime - currentlyPlayingVideo.missionSecondsStart;
       }
 
       if (Math.abs(currentTime - videoStartOffset) > 1) {
@@ -123,7 +117,7 @@ function Videos() {
   /**
    * Renders the actual HTML5 video
    */
-  const renderVideo = (name: string, i: number) => {
+  const videoElement = (name: string, i: number) => {
     const videoID = videos.activeVideoFiles[name];
 
     // default video info
@@ -141,28 +135,21 @@ function Videos() {
       // when the video canplay event fires, we mark it ready and run the timeline
     }
 
-    if (
-      players[name].current &&
-      videoURL !== players[name].current.currentSrc
-    ) {
+    if (players[name].current && videoURL !== players[name].current.currentSrc) {
       // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
       players[name].current.load();
     }
 
     // make sure the video is playing when the clock is running
-    if (
-      players[name].current &&
-      players[name].current.paused &&
-      clock.isRunning
-    ) {
+    if (players[name].current && players[name].current.paused && clock.isRunning) {
       (async () => await players[name].current.play())();
     }
 
     return (
       <div key={`video_element__${i}`} className={styles.foo}>
-        <div id="vidTitle0" className={styles.vidTitle}>
+        {/* <div id="vidTitle0" className={styles.vidTitle}>
           {downlinkDisplay}
-        </div>
+        </div> */}
         <div className={styles.vidContainer}>
           <video
             ref={players[name]}
@@ -199,12 +186,14 @@ function Videos() {
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={`${styles.vidButton} ${
-                g === videos.selectedGroups[name] && styles.selected
-              } ${
-                videoActivity[videos.selectedGroups[name]].length > 0 &&
-                styles.active
-              }`}
+              className={`${styles.vidButton} 
+              ${g === videos.selectedGroups[name] && styles.selected} 
+              ${
+                videoActivity[videos.selectedGroups[name]].length > 0 && styles.active
+              } //TODO: subscribe this to clock
+              ${g === 0 && styles.first}
+              ${g === 6 && styles.last}
+              `}
               onClick={() => dispatch(pickGroup({ name, group: g }))}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
@@ -212,12 +201,15 @@ function Videos() {
           );
         })}
       </div>
-      {renderVideo(name, i)}
+      {videoElement(name, i)}
     </div>
   );
 
   return (
-    <div className={styles.container}>{videoPlayerNames.map(videoPlayer)}</div>
+    <div className={styles.container}>
+      {videoPlayer("left", 0)}
+      {videoPlayer("right", 1)}
+    </div>
   );
 }
 

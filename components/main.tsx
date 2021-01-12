@@ -1,10 +1,13 @@
 import { useDispatch, useSelector } from "react-redux";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
+import PlaybackControls from "components/PlaybackControls";
 import StatusBar from "components/status-bar";
 import Videos from "components/videos";
 import { ClockState, start, stop } from "store/clock";
 import { VideosState } from "store/videos";
+
+import styles from "./main.module.css";
 
 /**
  * Renders the main CODA application layout. Also handles checking whether the clock should be running
@@ -12,10 +15,7 @@ import { VideosState } from "store/videos";
 export default function Main() {
   // the server shouldn't be running clocks!!!
   if (typeof window !== "undefined") {
-    const {
-      clock,
-      videos,
-    }: { clock: ClockState; videos: VideosState } = useSelector(
+    const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
       (state) => state
     );
     const dispatch = useDispatch();
@@ -23,8 +23,7 @@ export default function Main() {
     // (1) make sure the clock is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady =
-      clock.ready && videos.ready.right && videos.ready.left;
+    const everythingReady = clock.ready && videos.ready.right && videos.ready.left;
 
     // (1.2) the clock is paused when it should be running
     if (everythingReady && !clock.isRunning) {
@@ -38,11 +37,18 @@ export default function Main() {
   }
 
   return (
-    <div>
-      <Header />
-      <NavTimeline />
-      <Videos />
-      <StatusBar />
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <Header />
+      </div>
+      <div className={styles.body}>
+        <Videos />
+      </div>
+      <div className={styles.footer}>
+        <PlaybackControls />
+        {typeof window !== "undefined" && <NavTimeline />}
+        <StatusBar />
+      </div>
     </div>
   );
 }

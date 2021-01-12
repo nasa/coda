@@ -1,0 +1,20 @@
+.container {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.header {
+  flex: 0 1 auto;
+}
+
+.body {
+  margin-top: 6px;
+  flex: 1 1 auto;
+}
+
+.footer {
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+}

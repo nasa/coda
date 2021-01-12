@@ -18,27 +18,15 @@ export default function StatusBar() {
   const errorMessages = evasErrorMessage !== "" || videosErrorMessage !== "";
 
   return (
-    <div
-      className={`${styles.container} ${
-        errorMessages ? styles.haveErrors : styles.noErrors
-      }`}
-    >
+    <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
       <span className={styles.playPause}>
         &nbsp;
-        {isRunning ? (
-          <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span>
-        ) : (
-          "❙❙"
-        )}
+        {isRunning ? <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span> : "❙❙"}
       </span>
-      <span>
-        Connection Statuses: IO {videosErrorMessage === "" ? "✓" : "✗"} | ISS
-        WIKI {evasErrorMessage === "" ? "✓" : "✗"}&nbsp;
-        {!videosReady.left && !videosReady.right ? (
-          <span className={styles.spinner}></span>
-        ) : (
-          " "
-        )}
+      <span className={styles.statusText}>
+        Connection Statuses: IO {videosErrorMessage === "" ? "✓" : "✗"} | ISS WIKI{" "}
+        {evasErrorMessage === "" ? "✓" : "✗"}&nbsp;
+        {!videosReady.left && !videosReady.right ? <span className={styles.spinner}></span> : " "}
         &nbsp;
       </span>
     </div>

@@ -18,6 +18,10 @@ export interface EVA {
   duration: number;
   /** Activity performance keyed by EV */
   activityPerformance: { [key: string]: Activity[] };
+  dayNight: {
+    dataStartUTC?: number;
+    events?: Activity[];
+  };
 }
 
 export interface Activity {
@@ -48,10 +52,7 @@ interface WikiResponse {
  * Perform a query against the ISS Wiki with the given query parameters
  * @param action Optional string for specifying the action type for local mocking
  */
-async function fetchWiki(
-  queryParams: string,
-  action?: string
-): Promise<WikiResponse> {
+async function fetchWiki(queryParams: string, action?: string): Promise<WikiResponse> {
   const url = `${process.env.WIKI_API_URL}?format=json&${queryParams}`;
   const options = {
     headers: {
@@ -209,15 +210,33 @@ export async function getAsExecuted(evaName: string, evNum: number) {
 function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
 
+  // these colors are muted equivalents giving a more pastel result. Found at https://htmlcolorcodes.com/
+  const colorTranslator = {
+    red: "#C0392B",
+    grey: "#7F8C8D",
+    gray: "#7F8C8D",
+    blue: "#2980B9",
+    orange: "#CA6F1E",
+    green: "#28B463",
+    purple: "#8E44AD",
+    yellow: "#B7950B",
+  };
+
   Object.keys(results).forEach((r) => {
     const durationHour = results[r]["printouts"]["Duration hour"][0];
     const durationMinute = results[r]["printouts"]["Duration minute"][0];
     const durationTotalSeconds = +durationHour * 3600 + +durationMinute * 60;
 
+    let colorString = results[r]["printouts"]["Color"][0];
+    if (colorString in colorTranslator) {
+      colorString = colorTranslator[colorString];
+    } else {
+      console.error("color not found: " + colorString);
+    }
     const activity: Activity = {
       content: results[r]["printouts"]["Has text title"][0],
       duration: durationTotalSeconds,
-      color: results[r]["printouts"]["Color"][0],
+      color: colorString,
     };
     if (activity.color === "gray") activity.color = "grey";
 
@@ -231,20 +250,24 @@ interface EVACrewResults {
   /** keyed in the form of `US EVA 55# a4c086604b5aa243bf1f3c99dc06d965` */
   [key: string]: {
     printouts: {
-      "Has full name": [{
-        fulltext: string;
-      }],
-      "Has role": [{
-        fulltext: string;
-      }]
+      "Has full name": [
+        {
+          fulltext: string;
+        }
+      ];
+      "Has role": [
+        {
+          fulltext: string;
+        }
+      ];
     };
   };
 }
 
 export interface ParsedCrewResults {
-  ev1: string,
-  ev2: string,
-  suit_iv: string,
+  ev1: string;
+  ev2: string;
+  suit_iv: string;
 }
 
 /** Get crew assignment data for a EVA */
@@ -259,14 +282,62 @@ export async function getCrew(evaName: string) {
 
 function parseCrew(results: EVACrewResults): ParsedCrewResults {
   let crewObject: ParsedCrewResults = {
-    ev1: '',
-    ev2: '',
-    suit_iv: '',
+    ev1: "",
+    ev2: "",
+    suit_iv: "",
   };
   for (let objKey in results) {
-    let useableKey = results[objKey]['printouts']['Has role'][0]['fulltext'].replace(/ /g, "_").toLowerCase();
-    crewObject[useableKey] = results[objKey]['printouts']['Has full name'][0]['fulltext'];
+    let useableKey = results[objKey]["printouts"]["Has role"][0]["fulltext"]
+      .replace(/ /g, "_")
+      .toLowerCase();
+    crewObject[useableKey] = results[objKey]["printouts"]["Has full name"][0]["fulltext"];
   }
 
   return crewObject;
+}
+
+export interface DayNight {
+  dataStartUTC: number;
+  events: Activity[];
+}
+
+export async function getDayNight(evaName: string) {
+  const wikiParams = ``;
+  const query = encodeURI(`{ text: ${wikiParams} }`);
+  const queryParams = `action=ask&query=${query}`;
+  const res = await fetchWiki(queryParams, `getDayNight`);
+  const results = res;
+  return parseDayNight(results);
+}
+
+function parseDayNight(results): DayNight {
+  const dateArr = results.startGMT.split(/-| |:/).map(Number);
+  const dataStartUTC = Date.UTC(
+    dateArr[0],
+    dateArr[1] - 1,
+    dateArr[2],
+    dateArr[3],
+    dateArr[4],
+    dateArr[5]
+  );
+  const activityArray = [];
+
+  for (var i = 0; i < results.events.length; i++) {
+    let color = "";
+    if (results.events[i].content === "Insolation") {
+      color = "#B3B6B7"; //day color
+    } else {
+      color = "#151515"; //night color
+    }
+    var activityObject = {
+      content: results.events[i].content,
+      duration: results.events[i]["duration_min"],
+      color: color,
+    };
+    activityArray.push(activityObject);
+  }
+  return {
+    dataStartUTC: dataStartUTC,
+    events: activityArray,
+  };
 }

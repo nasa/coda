@@ -1,6 +1,22 @@
 .headerContainer {
   /*vertical-align: middle;*/
   display: flex;
+  justify-content: space-between;
+  background-color: #19181b;
+  width: 100%;
+}
+.leftSection {
+  display: flex;
+}
+.rightSection {
+  display: flex;
+}
+.headerElementContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 .headerTitle {
   font-size: 2.1rem;
@@ -9,11 +25,15 @@
   font-size: 1.2rem;
 }
 
-.floatLeft {
-  float: left;
+.crewItem {
+  flex: 1;
+  font-size: 0.8em;
+  color: #9b9b9b;
+  white-space: nowrap;
 }
 
-.dateTime {
+
+/* .dateTime {
   background-color: #1e1e1e;
   color: #999999;
   border: 1px;
@@ -24,32 +44,95 @@
   padding-bottom: 4px;
   text-align: center;
   width: 92px;
-}
+} */
 
+.dateTime {
+  padding: 10px;
+  font-size: 1em;
+  border-width: 0px;
+  background-color: #2b2a2d;
+  color: #ffc000;
+  border-style: solid;
+  text-align: center;
+}
+.idateTime:focus {
+  outline:none;
+}
 .dateTime:invalid {
   color: #ff9b9b;
 }
 
-.littleTopButton {
+.littleHeaderButton {
   font-size: 1rem;
+  line-height: 1rem;
+  height: 100%;
   background-color: #bdbdbd;
   border: none;
   color: black;
-  padding-top: 0px;
   padding-right: 10px;
-  padding-bottom: 2px;
   padding-left: 10px;
-  /* margin-bottom: 5px; */
   text-align: center;
   text-decoration: none;
-  /* display: inline-block; */
   border-radius: 8px;
-  /* cursor: default; */
 }
 
-.littleTopButton.hover {
+.littleHeaderButton.hover {
   background-color: #008cba;
   color: white;
+}
+
+.version {
+  float: right;
+  text-align: right;
+  font-size: 0.8rem;
+  margin-right: 10px;
+}
+
+.select {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}    
+.select select {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1em;
+  cursor: pointer;
+  padding: 10px 15px;
+  border: 0px solid #000000;
+  border-radius: 5px;
+  background: #2b2a2d;
+  color: #ffc000;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.select select::-ms-expand {
+    display: none;
+}
+.select select:hover,
+.select select:focus {
+    color: #ffc000;
+    background: #656269;
+}
+.select select:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.select_arrow {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 11px 7px 0px 8px;
+  border-color: #7b7b7b transparent transparent transparent;
+}
+.select select:hover ~ .select_arrow,
+.select select:focus ~ .select_arrow {
+  border-top-color: #000000;
+}
+.select select:disabled ~ .select_arrow {
+  border-top-color: #cccccc;
 }
 
 .svgCODALogo {
@@ -66,5 +149,13 @@
   background: url(/images/logo_NASA.svg) no-repeat center;
   background-size: 50px 50px;
   margin-left: 0;
-  margin-right: auto;
+  margin-right: 0;
+}
+.svgShare {
+  width: 20px;
+  height: 20px;
+  background: url(/images/share.svg) no-repeat center;
+  background-size: 20px 20px;
+  margin-left: 0;
+  margin-right: 0;
 }

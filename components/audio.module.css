@@ -1,0 +1,31 @@
+.audioPanel {
+  flex: 0.2;
+  margin-right: 5px;
+}
+#audioButtonsContainer {
+  display: flex;
+  flex-direction: column;
+}
+.audioButton {
+  font-size: 1rem;
+  background-color: #4f4f4f;
+  border: none;
+  color: black;
+  padding: 7px 15px;
+  margin-bottom: 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 8px;
+}
+.audioButton.active {
+  background-color: #bdbdbd;
+}
+.audioButton.active:hover {
+  background-color: #008cba;
+  color: white;
+}
+.audioButton.selected {
+  background-color: #008cba; /* Blue */
+  color: white;
+}

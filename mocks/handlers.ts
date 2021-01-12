@@ -3,7 +3,8 @@ import getEVAsRes from "./fakedata/getEVAs.json";
 import getEVADetailsRes from "./fakedata/getEVADetailsUS_EVA_55.json";
 import getAsExecutedEV1Res from "./fakedata/getAsExecutedUS_EVA_55EV1.json";
 import getAsExecutedEV2Res from "./fakedata/getAsExecutedUS_EVA_55EV2.json";
-import getCrew from "./fakedata/getCrewUS_EVA_55.json";
+import getDayNightRes from "./fakedata/daynight.json";
+import getCrewRes from "./fakedata/getCrewUS_EVA_55.json";
 import ioRes from "./fakedata/io.json";
 
 export const handlers = [
@@ -19,8 +20,10 @@ export const handlers = [
         return res(ctx.json(getAsExecutedEV1Res));
       case "getAsExecutedEV2":
         return res(ctx.json(getAsExecutedEV2Res));
+      case "getDayNight":
+        return res(ctx.json(getDayNightRes));
       case "getCrew":
-        return res(ctx.json(getCrew));
+        return res(ctx.json(getCrewRes));
       default:
         return res(ctx.json({}));
     }

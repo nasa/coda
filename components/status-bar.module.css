@@ -1,5 +1,4 @@
 .container {
-  position: fixed;
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -15,7 +14,7 @@
 }
 
 .noErrors {
-  background-color: #006026;
+  background-color: #19181b;
 }
 
 .haveErrors {
@@ -26,10 +25,18 @@
   letter-spacing: -3px;
 }
 
+.statusText {
+  font-size: 0.8em;
+  font-weight: 200;
+  color: white;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
 .spinner:after {
   content: "";
   animation-name: spin;
-  animation-duration: 1s;
+  animation-duration: 3s;
   animation-iteration-count: infinite;
 }
 
