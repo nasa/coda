@@ -11,9 +11,16 @@ import {
   EVASummaryResponse,
   ParsedEVADetails,
   ParsedCrewResults,
+  Activity,
+  DayNight,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
-import { assignStartEnd, generateTimingData } from "store/videos";
+import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
+import {
+  getActivityPerformanceMissionTime,
+  getDayNightMissionTime,
+  getEVAStartMilliseconds,
+} from "store/evas";
 
 function Replay({
   initialReduxState: {
@@ -88,6 +95,9 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
   const EVAs = {} as { [key: string]: EVA };
   let gEVADetails: ParsedEVADetails;
   let EVACrew: ParsedCrewResults;
+  let asExecutedEV1: Activity[];
+  let asExecutedEV2: Activity[];
+  let dayNight: DayNight;
   try {
     const evas = await getAllEVAs();
     Object.keys(evas).forEach((evaName) => {
@@ -105,9 +115,9 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
       };
     });
 
-    EVAs[evaName].activityPerformance["EV1"] = await getAsExecuted(evaName, 1);
-    EVAs[evaName].activityPerformance["EV2"] = await getAsExecuted(evaName, 2);
-    EVAs[evaName].dayNight = await getDayNight(evaName);
+    asExecutedEV1 = await getAsExecuted(evaName, 1);
+    asExecutedEV2 = await getAsExecuted(evaName, 2);
+    dayNight = await getDayNight(evaName);
 
     gEVADetails = await getEVADetails(evaName);
     EVACrew = await getCrew(evaName);
@@ -117,18 +127,33 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
   }
 
   let videos: Videos;
+  let timingData: TimingData;
   try {
     const [h, m] = gEVADetails.duration.split(":");
     EVAs[evaName].duration = +h * 3600 + +m * 60;
     // video data for this EVA
     const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
     videos = await getVideoData(Y, M, D);
-    const timingData = generateTimingData(videos);
+    timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);
   } catch (e) {
     console.error(e);
     videosErrorMessage = "Error fetching videos";
   }
+
+  const activityStartUTCMilliseconds = getEVAStartMilliseconds(EVAs[evaName]);
+
+  EVAs[evaName].activityPerformance["EV1"] = getActivityPerformanceMissionTime(
+    asExecutedEV1,
+    timingData,
+    activityStartUTCMilliseconds
+  );
+  EVAs[evaName].activityPerformance["EV2"] = getActivityPerformanceMissionTime(
+    asExecutedEV2,
+    timingData,
+    activityStartUTCMilliseconds
+  );
+  EVAs[evaName].dayNight = getDayNightMissionTime(dayNight, timingData);
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
   // the trick we're using to map over the existing video files object is:

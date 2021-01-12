@@ -1,4 +1,3 @@
-import configureMockStore, { MockStore } from "redux-mock-store";
 import FakeTimers from "@sinonjs/fake-timers";
 import {
   clockSlice,
@@ -19,21 +18,13 @@ expect.extend({
     const expected = y.getTime();
     return {
       pass: Math.abs(received / 1000 - expected / 1000) < 1,
-      message: () =>
-        `Received time ${x} is not within 1 second of ${y}${z ? ` ${z}` : ""}`,
+      message: () => `Received time ${x} is not within 1 second of ${y}${z ? ` ${z}` : ""}`,
     };
   },
 });
 
 describe("store/clockSlice", () => {
-  const mockStore = configureMockStore();
-  let store: MockStore;
-
   describe("set", () => {
-    beforeEach(() => {
-      store = mockStore(initialState);
-    });
-
     it("should set the current application time", () => {
       const utc = new Date().toISOString();
       const { type, payload } = set(utc);
@@ -43,19 +34,12 @@ describe("store/clockSlice", () => {
   });
 
   describe("start", () => {
-    beforeEach(() => {
-      store = mockStore(initialState);
-    });
-
     it("should start the clock within a few ms of dispatch", () => {
       const action = start();
       expect(action.type).toEqual("clock/start");
       expect(action.payload).toBeFalsy();
 
-      const { isRunning, lastStarted, lastStopped } = clockSlice.reducer(
-        initialState,
-        action
-      );
+      const { isRunning, lastStarted, lastStopped } = clockSlice.reducer(initialState, action);
       expect(new Date(lastStarted)).toHappenAround(new Date());
       expect(isRunning).toEqual(true);
       expect(lastStopped).toBeNull();
@@ -74,10 +58,6 @@ describe("store/clockSlice", () => {
   });
 
   describe("application time helpers", () => {
-    beforeEach(() => {
-      store = mockStore(initialState);
-    });
-
     it("#getApplicationUTC should return the UTC of the application set time when the mission has not started", () => {
       const d = new Date();
       const s = {
@@ -158,6 +138,29 @@ describe("store/clockSlice", () => {
       expect(received).toHappenAround(expectedTime);
 
       clock.uninstall();
+    });
+
+    it.only("#getApplicationUTC should return a diff between now and when a mission was started when it is running, realtime", async () => {
+      const applicationTime = new Date(Date.UTC(1985, 11, 5, 0, 1, 0));
+      const lastStarted = new Date();
+
+      const s = {
+        isRunning: true,
+        ready: true,
+        applicationTime: applicationTime.toISOString(),
+        lastStopped: null,
+        lastStarted: lastStarted.toISOString(),
+      } as ClockState;
+
+      // five seconds later
+      await new Promise((resolve) => {
+        setTimeout(resolve, 2000);
+      });
+
+      const expectedTime = new Date(1985, 11, 5, 0, 1, 2);
+
+      const received = getApplicationUTC(s);
+      expect(received).toHappenAround(expectedTime);
     });
 
     it("#getApplicationUTC should return null when the clock hasn't been set", () => {

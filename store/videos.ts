@@ -37,18 +37,12 @@ export const videoSlice = createSlice({
   initialState,
   reducers: {
     /** Pick a video group to play on a named `<VideoPlayer />` */
-    pickGroup: (
-      state,
-      action: { payload: { name: string; group: number } }
-    ) => {
+    pickGroup: (state, action: { payload: { name: string; group: number } }) => {
       state.selectedGroups[action.payload.name] = action.payload.group;
     },
 
     /** Set the video file ID to play on a named `<VideoPlayer />` */
-    pickVideoFile: (
-      state,
-      action: { payload: { name: string; id: string } }
-    ) => {
+    pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
     },
 
@@ -64,12 +58,7 @@ export const videoSlice = createSlice({
   },
 });
 
-export const {
-  pickGroup,
-  pickVideoFile,
-  ready,
-  buffering,
-} = videoSlice.actions;
+export const { pickGroup, pickVideoFile, ready, buffering } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
@@ -99,18 +88,16 @@ export const generateTimingData = (videos: Videos): TimingData => {
   const stringStartDate = videos[firstVideoKey].start.toString();
 
   let EVADay = new Date(stringStartDate).toISOString().substring(0, 10);
-  timingData.video_earliestStart = new Date(EVADay + 'T00:00:00Z');
-  timingData.video_latestEnd = new Date(EVADay + 'T23:59:59Z');
+  timingData.video_earliestStart = new Date(EVADay + "T00:00:00Z");
+  timingData.video_latestEnd = new Date(EVADay + "T23:59:59Z");
 
-  timingData.EVA_duration_seconds = (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
+  timingData.EVA_duration_seconds =
+    (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
 
   return timingData;
 };
 
-export const selectVideoTimingData = createSelector(
-  videosSelector,
-  generateTimingData
-);
+export const selectVideoTimingData = createSelector(videosSelector, generateTimingData);
 
 /**
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
@@ -132,13 +119,9 @@ export const assignStartEnd = (videos: Videos, timingData: TimingData) => {
     Object.keys(videos).map((v) => {
       const newVideoFile = Object.assign({}, videos[v]);
       newVideoFile.missionSecondsStart =
-        (new Date(newVideoFile.start).getTime() -
-          timingData.video_earliestStart.getTime()) /
-        1000;
+        (new Date(newVideoFile.start).getTime() - timingData.video_earliestStart.getTime()) / 1000;
       newVideoFile.missionSecondsEnd =
-        (new Date(newVideoFile.end).getTime() -
-          timingData.video_earliestStart.getTime()) /
-        1000;
+        (new Date(newVideoFile.end).getTime() - timingData.video_earliestStart.getTime()) / 1000;
       newVideoFile.durationSeconds =
         newVideoFile.missionSecondsEnd - newVideoFile.missionSecondsStart;
 
