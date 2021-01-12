@@ -180,7 +180,9 @@ function Videos() {
             }}
             onWaiting={() => {
               console.log(name, "onWaiting", videoID);
-              dispatch(buffering(name));
+              if (videos.ready[name] && videoID !== "") {
+                dispatch(buffering(name));
+              }
             }}
           >
             {/* <source src={videoURL} /> */}
