@@ -157,7 +157,7 @@ describe("store/clockSlice", () => {
         setTimeout(resolve, 2000);
       });
 
-      const expectedTime = new Date(1985, 11, 5, 0, 1, 2);
+      const expectedTime = new Date(Date.UTC(1985, 11, 5, 0, 1, 2));
 
       const received = getApplicationUTC(s);
       expect(received).toHappenAround(expectedTime);
