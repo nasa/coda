@@ -46,7 +46,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        <NavTimeline />
+        {typeof window !== "undefined" && <NavTimeline />}
         <StatusBar />
       </div>
     </div>

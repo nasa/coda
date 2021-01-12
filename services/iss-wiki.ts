@@ -231,7 +231,7 @@ function parseAsExecuted(results: EVAAsExecuted): Activity[] {
     if (colorString in colorTranslator) {
       colorString = colorTranslator[colorString];
     } else {
-      console.log("color not found: " + colorString);
+      console.error("color not found: " + colorString);
     }
     const activity: Activity = {
       content: results[r]["printouts"]["Has text title"][0],
