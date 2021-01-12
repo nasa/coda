@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { create } from "domain";
-import { Activity, EVA, ParsedEVADetails } from "services/iss-wiki";
+import { Activity, DayNight, EVA, ParsedEVADetails } from "services/iss-wiki";
 import { TimingData } from "store/videos";
 
 export interface EVAsState {
@@ -24,87 +24,72 @@ export const evasSlice = createSlice({
   reducers: {},
 });
 
-export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA];
-
-export const selectEVAStartMilliseconds = createSelector(evaSelector, (eva) => {
+/** Start time of an EVA in UTC milliseconds */
+export const getEVAStartMilliseconds = (eva: EVA): number => {
   const { startDate, startTime } = eva;
   const [Y, M, D] = startDate.split("/").map(Number);
   const [hh, mm] = startTime.split(/:/).map(Number);
   return Date.UTC(Y, M - 1, D, hh, mm);
-});
+};
 
-export const makeActivityPerformanceSelector = (
+/** Translate as-performed EVA activities to mission time */
+export const getActivityPerformanceMissionTime = (
+  asExecuted,
   timingData,
-  dayNight,
   activityStartUTCMilliseconds
 ) => {
-  return createSelector(evaSelector, ({ activityPerformance }) => {
-    const res = {
-      EV1: [],
-      EV2: [],
-    } as { [key: string]: Activity[] };
+  const res = [] as Activity[];
 
-    // get activity times in the mission timeframe
-    let thisStartTimeSeconds =
-      (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) / 1000;
+  // get activity times in the mission timeframe
+  let thisStartTimeSeconds =
+    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) / 1000;
 
-    for (let a = 0; a < activityPerformance.EV1.length; a++) {
-      const {
-        color,
-        content,
-        duration,
-        startTimeSeconds,
-        endTimeSeconds,
-      } = activityPerformance.EV1[a];
-      const activity = {
-        color,
-        content,
-        duration,
-        startTimeSeconds,
-        endTimeSeconds,
-      } as Activity;
-      activity.startTimeSeconds = thisStartTimeSeconds;
-      activity.endTimeSeconds = thisStartTimeSeconds + duration;
-      thisStartTimeSeconds = thisStartTimeSeconds + duration;
+  for (let a = 0; a < asExecuted.length; a++) {
+    const { color, content, duration } = asExecuted[a];
+    const activity = {
+      color,
+      content,
+      duration,
+      startTimeSeconds: thisStartTimeSeconds,
+      endTimeSeconds: thisStartTimeSeconds + duration,
+    } as Activity;
+    res.push(activity);
 
-      res.EV1.push(activity);
-    }
-    thisStartTimeSeconds =
-      (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) / 1000;
+    thisStartTimeSeconds = thisStartTimeSeconds + duration;
+  }
 
-    for (let a = 0; a < activityPerformance.EV2.length; a++) {
-      const {
-        color,
-        content,
-        duration,
-        startTimeSeconds,
-        endTimeSeconds,
-      } = activityPerformance.EV2[a];
-      const activity = {
-        color,
-        content,
-        duration,
-        startTimeSeconds,
-        endTimeSeconds,
-      } as Activity;
-
-      activity.startTimeSeconds = thisStartTimeSeconds;
-      activity.endTimeSeconds = thisStartTimeSeconds + duration;
-      thisStartTimeSeconds = thisStartTimeSeconds + duration;
-
-      res.EV2.push(activity);
-    }
-
-    // slightly different for dayNight object
-    // thisStartTimeSeconds =
-    //   (dayNight.dataStartUTC - timingData.video_earliestStart.getTime()) / 1000;
-    // for (let e = 0; e < dayNight.events.length; e++) {
-    //   const event = dayNight.events[e];
-    //   event.startTimeSeconds = thisStartTimeSeconds;
-    //   event.endTimeSeconds = thisStartTimeSeconds + event.duration * 60;
-    //   thisStartTimeSeconds = thisStartTimeSeconds + event.duration * 60;
-    // }
-
-    return res;
-  });
+  return res;
 };
+
+/** Translate day/night cycles to mission time */
+export const getDayNightMissionTime = (dayNight: DayNight, timingData: TimingData): DayNight => {
+  const events = [] as Activity[];
+
+  // slightly different for dayNight object
+  let thisStartTimeSeconds =
+    (dayNight.dataStartUTC - timingData.video_earliestStart.getTime()) / 1000;
+
+  for (let e = 0; e < dayNight.events.length; e++) {
+    const { color, content, duration } = dayNight.events[e];
+    const event = {
+      color,
+      content,
+      duration,
+      startTimeSeconds: thisStartTimeSeconds,
+      endTimeSeconds: thisStartTimeSeconds + duration * 60,
+    } as Activity;
+
+    events.push(event);
+
+    thisStartTimeSeconds = thisStartTimeSeconds + duration * 60;
+  }
+
+  return {
+    dataStartUTC: dayNight.dataStartUTC,
+    events,
+  };
+};
+
+export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA];
+
+export const selectEVAStartMilliseconds = createSelector(evaSelector, getEVAStartMilliseconds);

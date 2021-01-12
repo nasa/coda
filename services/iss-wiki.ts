@@ -296,6 +296,11 @@ function parseCrew(results: EVACrewResults): ParsedCrewResults {
   return crewObject;
 }
 
+export interface DayNight {
+  dataStartUTC: number;
+  events: Activity[];
+}
+
 export async function getDayNight(evaName: string) {
   const wikiParams = ``;
   const query = encodeURI(`{ text: ${wikiParams} }`);
@@ -305,7 +310,7 @@ export async function getDayNight(evaName: string) {
   return parseDayNight(results);
 }
 
-function parseDayNight(results) {
+function parseDayNight(results): DayNight {
   const dateArr = results.startGMT.split(/-| |:/).map(Number);
   const dataStartUTC = Date.UTC(
     dateArr[0],

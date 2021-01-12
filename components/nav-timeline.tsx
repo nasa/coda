@@ -1,18 +1,10 @@
-import _ from "lodash";
 import { useRouter } from "next/router";
 import paper from "paper";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { Activity } from "services/iss-wiki";
 import { ClockState, getMissionTime, set } from "store/clock";
-import {
-  evaSelector,
-  EVAsState,
-  makeActivityPerformanceSelector,
-  selectEVAStartMilliseconds,
-} from "store/evas";
+import { evaSelector, EVAsState, selectEVAStartMilliseconds } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
-import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import DrawNav from "./draw-nav";
 
@@ -47,14 +39,7 @@ function NavTimeline() {
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
   const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
-  const { dayNight, activityPerformance, startDate } = evaSelector(evas);
-
-  const activityPerformanceSelector = makeActivityPerformanceSelector(
-    timingData,
-    dayNight,
-    activityStartUTCMilliseconds
-  );
-  const activityPerformanceMissionTime = activityPerformanceSelector(evas);
+  const { activityPerformance, dayNight, startDate } = evaSelector(evas);
 
   const canvas = useRef();
 
@@ -68,7 +53,7 @@ function NavTimeline() {
       timingData,
       videoFiles,
       dayNight,
-      activityPerformanceMissionTime,
+      activityPerformance,
       activityStartUTCMilliseconds
     );
 
