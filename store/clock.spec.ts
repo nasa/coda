@@ -140,7 +140,7 @@ describe("store/clockSlice", () => {
       clock.uninstall();
     });
 
-    it.only("#getApplicationUTC should return a diff between now and when a mission was started when it is running, realtime", async () => {
+    it("#getApplicationUTC should return a diff between now and when a mission was started when it is running, realtime", async () => {
       const applicationTime = new Date(Date.UTC(1985, 11, 5, 0, 1, 0));
       const lastStarted = new Date();
 
