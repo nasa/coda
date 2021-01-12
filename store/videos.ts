@@ -26,8 +26,8 @@ export const initialState: VideosState = {
     right: "",
   },
   ready: {
-    left: false,
-    right: false,
+    left: true,
+    right: true,
   },
   errorMessage: "",
 };

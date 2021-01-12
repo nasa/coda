@@ -42,27 +42,41 @@ export const clockSlice = createSlice({
     },
 
     /**
-     * Start the application clock
+     * Make the application clock run
      */
-    start: (state) => {
+    run: (state) => {
       state.applicationTime = getApplicationUTC(state)?.toISOString() || null;
       state.lastStarted = new Date().toISOString();
       state.isRunning = true;
     },
 
     /**
-     * Stop the application clock
+     * Make the application clock stop running
      */
-    stop: (state) => {
+    halt: (state) => {
       if (state.isRunning) {
         state.lastStopped = new Date().toISOString();
         state.isRunning = false;
       }
     },
+
+    /**
+     * The user is ready for the clock to run
+     */
+    start: (state) => {
+      state.ready = true;
+    },
+
+    /**
+     * The user wants the clock to stop
+     */
+    stop: (state) => {
+      state.ready = false;
+    },
   },
 });
 
-export const { set, start, stop, toggleReady } = clockSlice.actions;
+export const { start, stop, set, run, halt, toggleReady } = clockSlice.actions;
 
 /** Utility for doing the math to determine the internal application time based on starts and stops of the clock. Exported for testing */
 export const getApplicationUTC = (state: ClockState): Date => {

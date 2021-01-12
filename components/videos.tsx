@@ -13,7 +13,6 @@ import {
 import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
 
-const noVidURL = "https://coda-dev.fit.nasa.gov/CODA_data/novid.mp4";
 let missionTime = 0;
 
 /**
@@ -37,7 +36,7 @@ function Videos() {
   );
 
   // TODO: go from video to no video, switch videos at same time
-  // why aren't the videos running when the app loads?
+  // why aren't the videos running when the app loads? probably the same reason the videos don't play when one is missing
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -80,12 +79,16 @@ function Videos() {
         videosNextSecond.length === 0
       ) {
         id = "";
+        if (!videos.ready[name]) {
+          // the video should still be reporting ready to let the clock move
+          dispatch(ready(name));
+        }
       }
 
       // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
       if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
-        dispatch(buffering(name));
+        // dispatch(buffering(name));
         return;
       }
 
@@ -121,7 +124,7 @@ function Videos() {
     const videoID = videos.activeVideoFiles[name];
 
     // default video info
-    let videoURL = noVidURL;
+    let videoURL = "";
     let downlinkDisplay = "No video available";
     let vidInfo = "";
     if (videoID !== "") {
@@ -131,7 +134,7 @@ function Videos() {
       downlinkDisplay = video.content;
     }
 
-    if (players[name].current && videoURL !== players[name].current.currentSrc) {
+    if (players[name].current && videoURL !== "" && videoURL !== players[name].current.currentSrc) {
       // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
       players[name].current.load();
     }
@@ -139,6 +142,10 @@ function Videos() {
     // make sure the video is playing when the clock is running
     if (players[name].current && players[name].current.paused && clock.isRunning) {
       (async () => await players[name].current.play())();
+    }
+
+    if (players[name].current && !players[name].current.paused && !clock.isRunning) {
+      (async () => await players[name].current.pause())();
     }
 
     return (
@@ -152,11 +159,22 @@ function Videos() {
             className={styles.player}
             controls
             muted
-            onCanPlay={() => dispatch(ready(name))}
-            onPause={() => dispatch(buffering(name))}
-            onWaiting={() => dispatch(buffering(name))}
+            src={videoURL}
+            poster="/images/novid.jpg"
+            onCanPlay={() => {
+              console.log(name, "onCanPlay", videoID);
+              dispatch(ready(name));
+            }}
+            onEnded={() => {
+              console.log(name, "onEnded", videoID);
+              dispatch(ready(name));
+            }}
+            onWaiting={() => {
+              console.log(name, "onWaiting", videoID);
+              dispatch(buffering(name));
+            }}
           >
-            <source src={videoURL} />
+            {/* <source src={videoURL} /> */}
           </video>
           <div className={styles.vidOverlay}>
             <div className={styles.vidInfo}>{vidInfo}</div>
@@ -180,11 +198,9 @@ function Videos() {
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={`${styles.vidButton} 
-              ${g === videos.selectedGroups[name] && styles.selected} 
-              ${
-                videoActivity[videos.selectedGroups[name]].length > 0 && styles.active
-              } //TODO: subscribe this to clock
+              className={`${styles.vidButton}
+              ${g === videos.selectedGroups[name] && styles.selected}
+              ${videoActivity[videos.selectedGroups[name]].length > 0 && styles.active}
               ${g === 0 && styles.first}
               ${g === 6 && styles.last}
               `}

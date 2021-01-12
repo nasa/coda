@@ -6,6 +6,8 @@ import {
   getMissionTime,
   initialState,
   set,
+  run,
+  halt,
   start,
   stop,
 } from "store/clock";
@@ -33,10 +35,10 @@ describe("store/clockSlice", () => {
     });
   });
 
-  describe("start", () => {
+  describe("run", () => {
     it("should start the clock within a few ms of dispatch", () => {
-      const action = start();
-      expect(action.type).toEqual("clock/start");
+      const action = run();
+      expect(action.type).toEqual("clock/run");
       expect(action.payload).toBeFalsy();
 
       const { isRunning, lastStarted, lastStopped } = clockSlice.reducer(initialState, action);
@@ -46,10 +48,10 @@ describe("store/clockSlice", () => {
     });
   });
 
-  describe("stop", () => {
+  describe("halt", () => {
     it("should stop the clock within a few ms of dispatch", () => {
-      const action = stop();
-      expect(action.type).toEqual("clock/stop");
+      const action = halt();
+      expect(action.type).toEqual("clock/halt");
       expect(action.payload).toBeFalsy();
 
       const { lastStopped } = clockSlice.reducer(initialState, action);
@@ -221,7 +223,7 @@ describe("store/clockSlice", () => {
       const set1 = set(firstStart.toISOString());
       let s = clockSlice.reducer(initialState, set1);
 
-      const start1 = start();
+      const start1 = run();
       s = clockSlice.reducer(s, start1);
 
       clock.tick(5000);
@@ -229,7 +231,7 @@ describe("store/clockSlice", () => {
       const afterFirstStart = getMissionTime(s);
       expect(afterFirstStart).toEqual(5);
 
-      const stop1 = stop();
+      const stop1 = halt();
       s = clockSlice.reducer(s, stop1);
 
       // let some time pass after the clock is stopped
@@ -240,7 +242,7 @@ describe("store/clockSlice", () => {
       expect(afterStop).toEqual(5);
 
       // start the clock again and let time elapse
-      const start2 = start();
+      const start2 = run();
       s = clockSlice.reducer(s, start2);
 
       clock.tick(5000);
@@ -258,7 +260,7 @@ describe("store/clockSlice", () => {
       const set1 = set(firstStart.toISOString());
       let s = clockSlice.reducer(initialState, set1);
 
-      const start1 = start();
+      const start1 = run();
       s = clockSlice.reducer(s, start1);
 
       clock.tick(5000);
@@ -267,7 +269,7 @@ describe("store/clockSlice", () => {
       expect(afterFirstStart).toEqual(5);
 
       // hit start again, which should not impact the clock
-      const start2 = start();
+      const start2 = run();
       s = clockSlice.reducer(s, start2);
 
       clock.tick(5000);
@@ -285,7 +287,7 @@ describe("store/clockSlice", () => {
       const set1 = set(firstStart.toISOString());
       let s = clockSlice.reducer(initialState, set1);
 
-      const start1 = start();
+      const start1 = run();
       s = clockSlice.reducer(s, start1);
 
       clock.tick(5000);
@@ -293,7 +295,7 @@ describe("store/clockSlice", () => {
       const afterFirstStart = getMissionTime(s);
       expect(afterFirstStart).toEqual(5);
 
-      const stop1 = stop();
+      const stop1 = halt();
       s = clockSlice.reducer(s, stop1);
 
       clock.tick(5000);
@@ -302,7 +304,7 @@ describe("store/clockSlice", () => {
       expect(afterFirstStop).toEqual(5);
 
       // hit stop again, which should not impact the clock
-      const stop2 = stop();
+      const stop2 = halt();
       s = clockSlice.reducer(s, stop2);
 
       clock.tick(5000);

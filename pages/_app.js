@@ -10,7 +10,13 @@ if (process.env.APP_ENV === 'local') {
 
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }) {
-  const store = useStore(pageProps.initialReduxState);
+  const stateFromServer = pageProps.initialReduxState;
+  // set lastStarted so the clock is running when CODA loads
+  // we also need to set applicationTime on the server-side, see [eva].tsx
+  if (stateFromServer) {
+    stateFromServer.clock.lastStarted = new Date().toISOString();
+  }
+  const store = useStore(stateFromServer);
 
   return (
     <Provider store={store}>

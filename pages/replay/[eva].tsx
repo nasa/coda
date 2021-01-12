@@ -179,6 +179,15 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
   return {
     props: {
       initialReduxState: {
+        clock: {
+          ready: true,
+          isRunning: true,
+          // set the applicationTime so the clock is running when CODA loads
+          // we also need to set lastStarted on the client-side, see _app.js
+          applicationTime: timingData.video_earliestStart.toISOString(),
+          lastStarted: null,
+          lastStopped: null,
+        },
         evas: {
           EVAs,
           selectedEVA: eva,
@@ -196,8 +205,8 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
             right: "",
           },
           ready: {
-            left: false,
-            right: false,
+            left: true,
+            right: true,
           },
           errorMessage: videosErrorMessage,
         },

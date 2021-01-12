@@ -1,10 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
-import PlaybackControls from "components/PlaybackControls";
+import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
 import Videos from "components/videos";
-import { ClockState, start, stop } from "store/clock";
+import { ClockState, run, halt } from "store/clock";
 import { VideosState } from "store/videos";
 
 import styles from "./main.module.css";
@@ -27,12 +27,12 @@ export default function Main() {
 
     // (1.2) the clock is paused when it should be running
     if (everythingReady && !clock.isRunning) {
-      dispatch(start());
+      dispatch(run());
     }
     // (1.2) the clock is running when it should be paused
     else if (!everythingReady && clock.isRunning) {
       // kill the clock if it should be paused
-      dispatch(stop());
+      dispatch(halt());
     }
   }
 
