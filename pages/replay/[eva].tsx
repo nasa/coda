@@ -8,7 +8,6 @@ import {
   getEVADetails,
   getDayNight,
   getCrew,
-  EVASummaryResponse,
   ParsedEVADetails,
   ParsedCrewResults,
   Activity,

@@ -131,7 +131,9 @@ function Header() {
                   setUserValue(`${renderTime}`);
                 }}
                 onBlur={() => {
-                  setEditing(false);
+                  if (editing) {
+                    setEditing(false);
+                  }
                 }}
                 onChange={(e) => setUserValue(e.target.value)}
               />

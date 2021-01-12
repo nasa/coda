@@ -34,20 +34,15 @@ function Videos() {
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
     (state) => state
   );
-
-  // TODO: go from video to no video, switch videos at same time
-  // why aren't the videos running when the app loads? probably the same reason the videos don't play when one is missing
+  const videoActivity = selectVideoActivity(videos);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
   const videoPlayerNames = ["left", "right"];
-  // creates `{name: playerRef}` pairs for each HTML5 video player
   const players = {
     left: useRef() as MutableRefObject<HTMLVideoElement>,
     right: useRef() as MutableRefObject<HTMLVideoElement>,
   };
-
-  const videoActivity = selectVideoActivity(videos);
 
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
@@ -79,22 +74,17 @@ function Videos() {
         videosNextSecond.length === 0
       ) {
         id = "";
-        if (!videos.ready[name]) {
-          // the video should still be reporting ready to let the clock move
-          dispatch(ready(name));
-        }
       }
 
       // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
       if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
-        // dispatch(buffering(name));
         return;
       }
 
       // (2) keep the video in sync with the timeline
 
-      // (2.1) bail if no video is loaded
+      // (2.1) bail if no video element is loaded
       if (!players[name].current) {
         return;
       }
@@ -132,19 +122,37 @@ function Videos() {
       videoURL = video.videoURL;
       vidInfo = video.description;
       downlinkDisplay = video.content;
+    } else {
+      if (!videos.ready[name]) {
+        // there is no video for right now, so don't block the clock
+        dispatch(ready(name));
+      }
     }
 
-    if (players[name].current && videoURL !== "" && videoURL !== players[name].current.currentSrc) {
+    if (players[name].current && videoURL !== players[name].current.currentSrc) {
       // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
       players[name].current.load();
     }
 
     // make sure the video is playing when the clock is running
-    if (players[name].current && players[name].current.paused && clock.isRunning) {
-      (async () => await players[name].current.play())();
+    if (
+      clock.isRunning &&
+      players[name].current &&
+      players[name].current.paused &&
+      videos.ready[name]
+    ) {
+      // it is paused when it should be playing
+      (async () => {
+        try {
+          await players[name].current.play();
+        } catch (e) {
+          console.error(e);
+        }
+      })();
     }
 
     if (players[name].current && !players[name].current.paused && !clock.isRunning) {
+      // it is playing when it shouldn't be
       (async () => await players[name].current.pause())();
     }
 
@@ -157,7 +165,6 @@ function Videos() {
           <video
             ref={players[name]}
             className={styles.player}
-            controls
             muted
             src={videoURL}
             poster="/images/novid.jpg"
@@ -165,8 +172,10 @@ function Videos() {
               console.log(name, "onCanPlay", videoID);
               dispatch(ready(name));
             }}
+            onPause={() => console.log(name, "onPause", videoID)}
             onEnded={() => {
               console.log(name, "onEnded", videoID);
+              // ready up because we don't want a missing video to hold up the clock
               dispatch(ready(name));
             }}
             onWaiting={() => {
