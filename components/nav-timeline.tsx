@@ -38,7 +38,6 @@ function NavTimeline() {
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
-  const activityStartUTCMilliseconds = selectEVAStartMilliseconds(evas);
   const { activityPerformance, dayNight, startDate } = evaSelector(evas);
 
   const canvas = useRef();
@@ -49,13 +48,7 @@ function NavTimeline() {
       return;
     }
 
-    drawNav = new DrawNav(
-      timingData,
-      videoFiles,
-      dayNight,
-      activityPerformance,
-      activityStartUTCMilliseconds
-    );
+    drawNav = new DrawNav(timingData, videoFiles, dayNight, activityPerformance);
 
     paper.setup(canvas.current);
     drawNav.initGroups();
@@ -80,9 +73,10 @@ function NavTimeline() {
       });
     };
     paper.view.onMouseUp = (event) => {
-      drawNav.handleMouseUp(event, (hh, mm, ss) => {
+      drawNav.handleMouseUp(event, (hh: number, mm: number, ss: number) => {
         const [Y, M, D] = startDate.split("/");
-        const dt = new Date(+Y, +M - 1, +D, hh, mm, ss);
+        // time is in Zulu time. we need to convert to UTC
+        const dt = new Date(Date.UTC(+Y, +M - 1, +D, hh, mm, ss));
         dispatch(set(dt.toISOString()));
       });
     };

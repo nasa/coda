@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
-import { padZeros } from "utils/formatting";
+import { timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 
 import styles from "./header.module.css";
@@ -46,10 +46,7 @@ function Header() {
   let renderTime = "00:00:00";
   if (appValue) {
     const dt = new Date(appValue);
-    const hh = padZeros(dt.getHours(), 2);
-    const mm = padZeros(dt.getMinutes(), 2);
-    const ss = padZeros(dt.getSeconds(), 2);
-    renderTime = `${hh}:${mm}:${ss}`;
+    renderTime = timeFromZuluDate(dt);
   }
 
   return (
@@ -146,16 +143,15 @@ function Header() {
                 title="Jump to Date/Time"
                 onClick={(e) => {
                   const [Y, M, D] = EVAs[selectedEVA].startDate.split("/");
-                  let hh, mm, ss;
                   let dt: Date;
                   if (userValue === "") {
                     const [hh, mm, ss] = renderTime.split(":");
                     dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
                   } else {
                     const [hh, mm = "00", ss = "00"] = userValue.split(":");
-                    dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
+                    dt = new Date(Date.UTC(+Y, +M - 1, +D, +hh, +mm, +ss));
                   }
-                  dispatch(set(dt.toISOString()));
+                  dispatch(set(dt.toUTCString()));
                   setUserValue("");
                   setEditing(false);
                 }}

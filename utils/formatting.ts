@@ -1,3 +1,5 @@
+import { TimingData } from "store/videos";
+
 /**
  * Return a zero padded string of a number
  */
@@ -14,42 +16,32 @@ export function secondsToTimeStr(totalSeconds: number): string {
   var minutes = (Math.abs(Math.round(totalSeconds / 60)) % 60) % 60;
   var seconds = Math.abs(Math.round(totalSeconds)) % 60;
   seconds = Math.floor(seconds);
-  var timeStr =
-    padZeros(hours, 2) +
-    ":" +
-    padZeros(minutes, 2) +
-    ":" +
-    padZeros(seconds, 2);
+  var timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
   if (totalSeconds < 0) {
     timeStr = "-" + timeStr.substr(1); //change timeStr to negative, replacing leading zero in hours with "-"
   }
   return timeStr;
 }
 
-export function secondsToZuluString(seconds: number, gTimingData): string {
-  var zuluDate = secondsToZuluDate(seconds, gTimingData);
+export function secondsToZuluString(seconds: number, timingData: TimingData): string {
+  var zuluDate = secondsToZuluDate(seconds, timingData);
   var temp = zuluDate.toISOString().split("T")[1].split(":");
   return temp[0] + ":" + temp[1] + ":" + temp[2].split(".")[0] + "Z";
 }
 
-function secondsToZuluDate(seconds: number, gTimingData): Date {
-  return new Date(gTimingData.video_earliestStart.getTime() + seconds * 1000);
+function secondsToZuluDate(seconds: number, timingData: TimingData): Date {
+  return new Date(timingData.video_earliestStart.getTime() + seconds * 1000);
 }
 
-function zuluDateToSeconds(zuluDate: Date, gTimingData): number {
-  return (
-    (zuluDate.getTime() - gTimingData.video_earliestStart.getTime()) / 1000
-  );
+function zuluDateToSeconds(zuluDate: Date, timingData: TimingData): number {
+  return (zuluDate.getTime() - timingData.video_earliestStart.getTime()) / 1000;
 }
 
-function timeFromZuluDate(zuluDate: Date): string {
-  return (
-    padZeros(zuluDate.getUTCHours(), 2) +
-    ":" +
-    padZeros(zuluDate.getUTCMinutes(), 2) +
-    ":" +
-    padZeros(zuluDate.getUTCSeconds(), 2)
-  );
+export function timeFromZuluDate(zuluDate: Date): string {
+  const hh = padZeros(zuluDate.getUTCHours(), 2);
+  const mm = padZeros(zuluDate.getUTCMinutes(), 2);
+  const ss = padZeros(zuluDate.getUTCSeconds(), 2);
+  return `${hh}:${mm}:${ss}`;
 }
 
 function shortdateFromZuluDate(zuluDate: Date): string {

@@ -60,8 +60,7 @@ export default class DrawNav {
     readonly dayNight: any,
     readonly activityPerformance: {
       [x: string]: Activity[];
-    },
-    activityStartUTCMilliseconds: number
+    }
   ) {}
 
   initGroups() {
@@ -493,7 +492,7 @@ export default class DrawNav {
     cb();
   };
 
-  handleMouseUp = (event, cb) => {
+  handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {
     let seconds = 0;
     if (event.point.y > this.gTier1Top) {
       seconds = Math.round((event.point.x - 1) * this.gTier1SecondsPerPixel + 1);
@@ -508,8 +507,8 @@ export default class DrawNav {
     const mm = Math.floor((seconds - hh * 3600) / 60);
     const ss = seconds - hh * 3600 - mm * 60;
 
-    cb(hh, mm, ss);
     this.drawCursor(seconds);
+    cb(hh, mm, ss);
   };
 
   handleMouseLeave = (_event, cb) => {

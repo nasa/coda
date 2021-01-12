@@ -83,16 +83,12 @@ export const getApplicationUTC = (state: ClockState): Date => {
 };
 
 /**
- * Get the current mission time in seconds
+ * Get the current mission time in UTC seconds
  */
 export const getMissionTime = (state: ClockState): number => {
   const time = getApplicationUTC(state);
   if (time) {
-    return (
-      time.getUTCHours() * 3600 +
-      time.getUTCMinutes() * 60 +
-      time.getUTCSeconds()
-    );
+    return time.getUTCHours() * 3600 + time.getUTCMinutes() * 60 + time.getUTCSeconds();
   }
 
   return 0;
@@ -118,10 +114,7 @@ const diff = (a: Date, b: Date): number => {
   const s2 = b.getUTCSeconds();
   const ms2 = b.getUTCMilliseconds();
 
-  return (
-    Date.UTC(Y1, M1, D1, h1, m1, s1, ms1) -
-    Date.UTC(Y2, M2, D2, h2, m2, s2, ms2)
-  );
+  return Date.UTC(Y1, M1, D1, h1, m1, s1, ms1) - Date.UTC(Y2, M2, D2, h2, m2, s2, ms2);
 };
 
 /**
