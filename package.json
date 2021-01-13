@@ -7,7 +7,8 @@
     "dev": "NODE_OPTIONS='--inspect' APP_ENV=local next dev",
     "build": "APP_ENV=dev next build",
     "start": "next start",
-    "test": "jest"
+    "test": "jest",
+    "io": "curl -H \"Origin: https://coda-dev.fit.nasa.gov\" \"https://io.jsc.nasa.gov/api/search/rpp=500&s_dt=08-21-2019&e_dt=08-21-2019&as=2?key=3E0556F2-EB15-69B9-4D8C0C12E07E8D37&format=json\""
   },
   "repository": {
     "type": "git",
