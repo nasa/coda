@@ -20,6 +20,7 @@ stages:
 test:
   script:
     - npm t
+    - npm run io
 
 build:
   script:
