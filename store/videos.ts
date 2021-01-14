@@ -151,7 +151,16 @@ export const selectVideoFiles = createSelector(videosSelector, (videos) => {
  * ``` */
 export type VideoActivity = string[][][];
 
-/** Identify what videos are active at every second */
+/** Identify what videos are active at every second
+ * this produces a nested array: [groups][missionSeconds][list of videos]
+ * groups are downlink channels, currently 0 - 6 for ISS
+ * missionSeconds starts at 0 and ends at the end of the day (currently 24 hours of seconds)
+ * list of videos is an array of video names that are labeled in IO as having occurred on this group (downlink)
+ * at this second. We currently only ever use the first element in this array because the array is sorted by
+ * longest video. The thought here is that the longest video in IO at any given time is probably the most reliable
+ * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
+ * overlap across files in IO for a given downlink. *
+ */
 export const selectVideoActivity = createSelector(
   // presorted video files
   selectVideoFiles,

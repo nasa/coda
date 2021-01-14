@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useRef } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime } from "store/clock";
 import {
@@ -44,6 +44,9 @@ function Videos() {
     right: useRef() as MutableRefObject<HTMLVideoElement>,
   };
 
+  const [mutedLeft, setMutedLeft] = useState(true);
+  const [mutedRight, setMutedRight] = useState(true);
+
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
     const { clock } = store.getState();
@@ -56,7 +59,7 @@ function Videos() {
     missionTime = newMissionTime;
 
     // perform video and timeline syncs against all video players
-    videoPlayerNames.forEach((name) => {
+    videoPlayerNames.forEach((name: string) => {
       const group = videos.selectedGroups[name];
       const activeVideoFileID = videos.activeVideoFiles[name];
       const videosNextSecond = videoActivity[group][missionTime + 1];
@@ -66,6 +69,7 @@ function Videos() {
       let id = activeVideoFileID;
 
       // (1.1) if the timeline just jumped or the video files changed, make sure we start the right video
+      // we always use element 0 of the videos available in this group for any given second (see videos.ts)
       if (videosNextSecond.length > 0 && activeVideoFileID !== videosNextSecond[0]) {
         // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
         id = videosNextSecond[0];
@@ -156,6 +160,8 @@ function Videos() {
       (async () => await players[name].current.pause())();
     }
 
+    const muted = name === "left" ? mutedLeft : mutedRight;
+
     return (
       <div key={`video_element__${i}`} className={styles.foo}>
         {/* <div id="vidTitle0" className={styles.vidTitle}>
@@ -165,7 +171,7 @@ function Videos() {
           <video
             ref={players[name]}
             className={styles.player}
-            muted
+            muted={muted}
             src={videoURL}
             poster="/images/novid.jpg"
             onCanPlay={() => {
@@ -201,17 +207,25 @@ function Videos() {
     /** Identifies this video player so we know what group to play. It should match a key in `store.videos.selectedGroups` */
     name: string,
     i: number
-  ) => (
-    <div className={styles.vidPanel} key={`video_player__${name}`}>
-      <div>
+  ) => {
+    let mutedClass;
+    if (name === "left") {
+      mutedClass = mutedLeft === true ? styles.unmute : styles.mute;
+    } else {
+      mutedClass = mutedRight === true ? styles.unmute : styles.mute;
+    }
+
+    return (
+      <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
+          let currentMissionTime = getMissionTime(clock);
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
               className={`${styles.vidButton}
               ${g === videos.selectedGroups[name] && styles.selected}
-              ${videoActivity[videos.selectedGroups[name]].length > 0 && styles.active}
+              ${videoActivity[g][currentMissionTime].length > 0 && styles.active}
               ${g === 0 && styles.first}
               ${g === 6 && styles.last}
               `}
@@ -221,10 +235,23 @@ function Videos() {
             </button>
           );
         })}
+
+        <div className={styles.soundBtnOutline}>
+          <div
+            className={`${styles.soundBtn} ${mutedClass}`}
+            onClick={() => {
+              if (name === "left") {
+                setMutedLeft(!mutedLeft);
+              } else {
+                setMutedRight(!mutedRight);
+              }
+            }}
+          ></div>
+        </div>
+        {videoElement(name, i)}
       </div>
-      {videoElement(name, i)}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className={styles.container}>
