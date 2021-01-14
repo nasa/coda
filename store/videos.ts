@@ -161,7 +161,6 @@ export type VideoActivity = string[][][];
  * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
  * overlap across files in IO for a given downlink. *
  */
-
 export const selectVideoActivity = createSelector(
   // presorted video files
   selectVideoFiles,
