@@ -222,7 +222,11 @@ function parseResultMetadata(doc: Doc, i: number): VideoFile {
 
   var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  const videoURL = `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // this allows dev to continue with VPN off
+  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
+
+  const videoURL = `${process.env.IO_HOST}${webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   return {
     id: doc.nasa_id,
