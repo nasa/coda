@@ -203,3 +203,13 @@ some of them HD
 ### ISS Wiki
 
 We use the wiki dev server for our dev server.
+
+## Deployments
+
+TODO
+
+GitLab CI variable file
+
+```
+NODE_EXTRA_CERTS_FILE=
+```

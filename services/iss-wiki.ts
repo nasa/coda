@@ -181,7 +181,7 @@ interface EVADetails {
  */
 export async function getEVADetails(evaName): Promise<ParsedEVADetails> {
   const query = `
-    [[' . ${evaName} . ']]
+    [[' ${evaName} ']]
     |? EVA title
     |? Start date
     |? Start time
@@ -358,7 +358,7 @@ export interface DayNight {
 }
 
 export async function getDayNight(evaName: string) {
-  const query = ``;
+  // const query = ``;
   // const res = await fetchWiki(query, `getDayNight`);
   // const results = res;
   // return parseDayNight(results);
