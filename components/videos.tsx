@@ -217,26 +217,25 @@ function Videos() {
 
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
-        <div style={{ float: "left" }}>
-          {availableGroups.map((g) => {
-            let currentMissionTime = getMissionTime(clock);
-            return (
-              <button
-                key={`vid${name}__button${g}`}
-                type="button"
-                className={`${styles.vidButton}
+        {availableGroups.map((g) => {
+          let currentMissionTime = getMissionTime(clock);
+          return (
+            <button
+              key={`vid${name}__button${g}`}
+              type="button"
+              className={`${styles.vidButton}
               ${g === videos.selectedGroups[name] && styles.selected}
               ${videoActivity[g][currentMissionTime].length > 0 && styles.active}
               ${g === 0 && styles.first}
               ${g === 6 && styles.last}
               `}
-                onClick={() => dispatch(pickGroup({ name, group: g }))}
-              >
-                {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
-              </button>
-            );
-          })}
-        </div>
+              onClick={() => dispatch(pickGroup({ name, group: g }))}
+            >
+              {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
+            </button>
+          );
+        })}
+
         <div className={styles.soundBtnOutline}>
           <div
             className={`${styles.soundBtn} ${mutedClass}`}
