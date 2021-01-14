@@ -181,7 +181,7 @@ interface EVADetails {
  */
 export async function getEVADetails(evaName): Promise<ParsedEVADetails> {
   const query = `
-    [[' ${evaName} ']]
+    [[ ${evaName} ]]
     |? EVA title
     |? Start date
     |? Start time
@@ -241,8 +241,8 @@ interface EVAAsExecuted {
 export async function getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
   const query = `
-    [[From page::~' . ${evaName} . '/*xecuted*]]
-    [[Assigned to::' . ${actorName} . ']]
+    [[From page::~${evaName}/*xecuted*]]
+    [[Assigned to::${actorName}]]
     |mainlabel=-|?Index
     |? Has text title
     |? Duration hour
@@ -326,7 +326,7 @@ export interface ParsedCrewResults {
 export async function getCrew(evaName: string) {
   const query = `
     [[Crew involved with subject::+]]
-    [[From page::' . ${evaName} . ']]
+    [[From page::${evaName}]]
     |? Has full name
     |? Has role
     |? Has EMU Page

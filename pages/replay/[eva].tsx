@@ -114,11 +114,11 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
       };
     });
 
-    asExecutedEV1 = await getAsExecuted(evaName, 1);
-    asExecutedEV2 = await getAsExecuted(evaName, 2);
-    dayNight = await getDayNight(evaName);
+    asExecutedEV1 = await getAsExecuted(EVAs[evaName].name, 1);
+    asExecutedEV2 = await getAsExecuted(EVAs[evaName].name, 2);
+    dayNight = await getDayNight(EVAs[evaName].name);
 
-    gEVADetails = await getEVADetails(evaName);
+    gEVADetails = await getEVADetails(EVAs[evaName].name);
     EVACrew = await getCrew(evaName);
   } catch (e) {
     console.error(e);
