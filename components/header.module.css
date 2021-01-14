@@ -32,7 +32,6 @@
   white-space: nowrap;
 }
 
-
 /* .dateTime {
   background-color: #1e1e1e;
   color: #999999;
@@ -56,7 +55,7 @@
   text-align: center;
 }
 .idateTime:focus {
-  outline:none;
+  outline: none;
 }
 .dateTime:invalid {
   color: #ff9b9b;
@@ -74,6 +73,7 @@
   text-align: center;
   text-decoration: none;
   border-radius: 8px;
+  cursor: pointer;
 }
 
 .littleHeaderButton.hover {
@@ -92,9 +92,9 @@
   position: relative;
   display: inline-block;
   width: 100%;
-}    
+}
 .select select {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 1.1em;
   cursor: pointer;
   padding: 10px 15px;
@@ -107,16 +107,16 @@
   -moz-appearance: none;
 }
 .select select::-ms-expand {
-    display: none;
+  display: none;
 }
 .select select:hover,
 .select select:focus {
-    color: #ffc000;
-    background: #656269;
+  color: #ffc000;
+  background: #656269;
 }
 .select select:disabled {
-    opacity: 0.5;
-    pointer-events: none;
+  opacity: 0.5;
+  pointer-events: none;
 }
 .select_arrow {
   position: absolute;

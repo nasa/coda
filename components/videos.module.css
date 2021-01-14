@@ -57,6 +57,7 @@
   text-align: center;
   text-decoration: none;
   display: inline-block;
+  cursor: pointer;
 }
 .vidButton.active {
   background-color: #656269;
