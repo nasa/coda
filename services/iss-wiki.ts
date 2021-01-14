@@ -1,10 +1,11 @@
 /*
 SERVER ONLY methods for fetching from wiki. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
-
-TODO: CHECK THIS OUT https://www.mediawiki.org/wiki/API:Client_code#JavaScript
 */
+import MWBot from "mwbot";
+import { memoize } from "lodash";
 import fetch, { Response } from "node-fetch";
 import { padZeros } from "utils/formatting";
+import dayNight from "../mocks/fakedata/daynight.json";
 
 export interface EVA {
   name: string;
@@ -48,38 +49,70 @@ interface WikiResponse {
   };
 }
 
+async function _getMWBot() {
+  const apiUrl = process.env.WIKI_API_URL;
+  const bot = new MWBot({
+    apiUrl,
+    verbose: true,
+    silent: false,
+  });
+
+  bot.setGlobalRequestOptions({
+    qs: {
+      format: "json",
+    },
+    followRedirect: true,
+    followAllRedirects: true,
+    maxRedirects: 10,
+    headers: {
+      "User-Agent": "js-api-CODAdev",
+      "X-SKIP-SAML": "True",
+    },
+    timeout: 10000,
+    jar: true,
+    json: true,
+  });
+
+  try {
+    await bot.loginGetEditToken({
+      username: process.env.WIKI_USER,
+      password: process.env.WIKI_PASSWORD,
+    });
+  } catch (e) {
+    console.error("Wiki login unsuccessful");
+    throw e;
+  }
+
+  return bot;
+}
+
+const getMWBot = memoize(_getMWBot);
+
 /**
  * Perform a query against the ISS Wiki with the given query parameters
  * @param action Optional string for specifying the action type for local mocking
  */
-async function fetchWiki(queryParams: string, action?: string): Promise<WikiResponse> {
-  const url = `${process.env.WIKI_API_URL}?format=json&${queryParams}`;
-  const options = {
-    headers: {
-      "Accept-Encoding": "gzip,deflate",
-      "Accept-Language": "en-us",
-      cacert: process.env.CA_CERT,
-      Connection: "keep-alive",
-      "Content-Type": "application/json; charset=utf-8",
-      cookie: process.env.COOKIE_JAR,
-      "cookie-jar": process.env.COOKIE_JAR,
-      "Script-Charset": "utf-8",
-      "X-SKIP-SAML": "True",
-    },
-  };
+async function fetchWiki(query: string, action?: string): Promise<WikiResponse> {
+  let res: Response;
 
-  // if we're in the local environment, add a header to make it easy to figure out which fakedata to return when we intercept this request
-  if (process.env.APP_ENV === "local" && action) {
-    options.headers["X-MOCK-ACTION"] = action;
+  // we're in the local environment. fake the request using a mock service worker
+  if (process.env.APP_ENV === "local") {
+    const res = await fetch(process.env.WIKI_API_URL, {
+      headers: {
+        "X-MOCK-ACTION": action,
+      },
+    });
+    return res.json();
   }
 
-  let res: Response;
+  const bot = await getMWBot();
+
   try {
-    res = await fetch(url, options);
+    res = await bot.request({ action: "ask", method: "GET", format: "json", query });
   } catch (e) {
     throw e;
   }
-  return res.json();
+  return res;
 }
 
 interface WikiTimestamp {
@@ -112,11 +145,15 @@ export interface EVASummaryResponse {
 /** Get a summary of all EVAs on the wiki */
 export async function getAllEVAs(): Promise<EVASummaryResponse> {
   // wiki query parameters
-  const getEVAsQuery =
-    "[[~US EVA*]] [[EVA Classification::Scheduled or Historical]] |?EVA title |? Start date |? Start time |sort=Start date |format = json";
-  const query = encodeURI(`{ text: ${getEVAsQuery} }`);
-  const queryParams = `action=ask&query=${query}`;
-  const res = await fetchWiki(queryParams, "getEVAs");
+  const query = `
+    [[~US EVA*]]
+    [[EVA Classification::Scheduled or Historical]]
+    |? EVA title
+    |? Start date
+    |? Start time
+    |sort=Start date
+  `;
+  const res = await fetchWiki(query, "getEVAs");
   return res.query.results;
 }
 
@@ -143,10 +180,14 @@ interface EVADetails {
  * Get metadata about an EVA from the wiki
  */
 export async function getEVADetails(evaName): Promise<ParsedEVADetails> {
-  const wikiParams = `[[' . ${evaName} . ']] |? EVA title |? Start date |? Start time |? Duration |format = json`;
-  const query = encodeURI(`{ text: ${wikiParams} }`);
-  const queryParams = `action=ask&query=${query}`;
-  const res = await fetchWiki(queryParams, "getEVADetails");
+  const query = `
+    [[' . ${evaName} . ']]
+    |? EVA title
+    |? Start date
+    |? Start time
+    |? Duration
+  `;
+  const res = await fetchWiki(query, "getEVADetails");
   const results: EVADetails = res.query.results;
   return parseDetailsObject(results);
 }
@@ -199,10 +240,21 @@ interface EVAAsExecuted {
 /** Get as-executed data for a given EV on a given EVA */
 export async function getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
-  const wikiParams = `[[From page::~' . ${evaName} . '/*xecuted*]] [[Assigned to::' . ${actorName} . ']] |mainlabel=-|?Index |?Has text title |?Duration hour |?Duration minute |?Depends on |?Related article |?Color |?Actor |named args=yes |sort=Actor, Index |format = json`;
-  const query = encodeURI(`{ text: ${wikiParams} }`);
-  const queryParams = `action=ask&query=${query}`;
-  const res = await fetchWiki(queryParams, `getAsExecutedEV${evNum}`);
+  const query = `
+    [[From page::~' . ${evaName} . '/*xecuted*]]
+    [[Assigned to::' . ${actorName} . ']]
+    |mainlabel=-|?Index
+    |? Has text title
+    |? Duration hour
+    |? Duration minute
+    |? Depends on
+    |? Related article
+    |? Color
+    |? Actor
+    |named args=yes
+    |sort=Actor, Index
+  `;
+  const res = await fetchWiki(query, `getAsExecutedEV${evNum}`);
   const results: EVAAsExecuted = res.query.results;
   return parseAsExecuted(results);
 }
@@ -272,10 +324,14 @@ export interface ParsedCrewResults {
 
 /** Get crew assignment data for a EVA */
 export async function getCrew(evaName: string) {
-  const wikiParams = `[[Crew involved with subject::+]] [[From page::' . ${evaName} . ']] |? Has full name |? Has role |? Has EMU Page  |format = json`;
-  const query = encodeURI(`{ text: ${wikiParams} }`);
-  const queryParams = `action=ask&query=${query}`;
-  const res = await fetchWiki(queryParams, `getCrew`);
+  const query = `
+    [[Crew involved with subject::+]]
+    [[From page::' . ${evaName} . ']]
+    |? Has full name
+    |? Has role
+    |? Has EMU Page
+  `;
+  const res = await fetchWiki(query, `getCrew`);
   const results: EVACrewResults = res.query.results;
   return parseCrew(results);
 }
@@ -302,12 +358,11 @@ export interface DayNight {
 }
 
 export async function getDayNight(evaName: string) {
-  const wikiParams = ``;
-  const query = encodeURI(`{ text: ${wikiParams} }`);
-  const queryParams = `action=ask&query=${query}`;
-  const res = await fetchWiki(queryParams, `getDayNight`);
-  const results = res;
-  return parseDayNight(results);
+  const query = ``;
+  // const res = await fetchWiki(query, `getDayNight`);
+  // const results = res;
+  // return parseDayNight(results);
+  return parseDayNight(dayNight);
 }
 
 function parseDayNight(results): DayNight {
