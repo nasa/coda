@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
 import { timeFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
@@ -14,12 +14,11 @@ export default function HeaderShare() {
   const { clock } = store.getState();
   const EVADate = EVAs[selectedEVA].startDate;
 
+  const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
-  const shareURLtextarea = useRef(null);
-
   const [shareURLtextValue, setShareURLtextValue] = useState(null);
 
-  const [modalIsOpen, setIsOpen] = useState(false);
+  const shareURLtextarea = useRef(null);
 
   function copyToClipboard(e) {
     shareURLtextarea.current.select();
@@ -46,15 +45,9 @@ export default function HeaderShare() {
     setIsOpen(true);
   }
 
-  function afterOpenModal() {
-    // references are now sync'd and can be accessed.
-    // subtitle.style.color = '#f00';
-    console.log("afterOpenModal()");
-  }
-
   function closeModal() {
     setIsOpen(false);
-    console.log("closeModal()");
+    // console.log("closeModal()");
   }
 
   return (
@@ -67,7 +60,6 @@ export default function HeaderShare() {
       ></div>
       <Modal
         isOpen={modalIsOpen}
-        onAfterOpen={afterOpenModal}
         onRequestClose={closeModal}
         className={styles.shareModalWrapper}
         overlayClassName={styles.modalOverlay}
@@ -75,13 +67,7 @@ export default function HeaderShare() {
       >
         <div className={styles.modalHeadline}>Share this EVA time</div>
         <div className={styles.modalBody}>
-          <textarea
-            ref={shareURLtextarea}
-            className={styles.modalTextarea}
-            // onChange={(e) => {
-            //   setShareURLtextValue(e.target.value);
-            // }}
-          >
+          <textarea ref={shareURLtextarea} className={styles.modalTextarea}>
             {shareURLtextValue}
           </textarea>
           <div className={styles.modalButton} onClick={copyToClipboard}>
