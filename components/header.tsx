@@ -5,6 +5,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
 import { timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
+import HeaderShare from "components/header-share";
 
 import styles from "./header.module.css";
 
@@ -24,6 +25,7 @@ function Header() {
   const [userValue, setUserValue] = useState("");
   const [appValue, setAppValue] = useState(null);
   const [editing, setEditing] = useState(false);
+
   useInterval(() => {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
@@ -202,7 +204,7 @@ function Header() {
             paddingRight: "15px",
           }}
         >
-          <div className={styles.svgShare} />
+          <HeaderShare />
         </div>
       </div>
     </div>
