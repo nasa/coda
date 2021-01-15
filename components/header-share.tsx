@@ -22,7 +22,8 @@ export default function HeaderShare() {
 
   function copyToClipboard(e) {
     shareURLtextarea.current.select();
-    navigator.clipboard.writeText(shareURLtextarea.current.value);
+    // navigator.clipboard.writeText(shareURLtextarea.current.value);
+    document.execCommand("copy");
     e.target.focus();
     setCopyButtonText("LINK COPIED");
   }
