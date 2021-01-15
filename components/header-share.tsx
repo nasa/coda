@@ -37,7 +37,7 @@ export default function HeaderShare() {
     const urlRoot = document.URL.substr(0, document.URL.lastIndexOf("/"));
     const URL = urlRoot + "?date=" + EVADate + "&GMT=" + missionTime;
 
-    //TODO: make additional parameters for selected videos
+    //TODO: make additional parameters for selected videos downlinks
     // "&v0=" + gSelectedVidGroup[0] + "&v1=" + gSelectedVidGroup[1];
 
     setShareURLtextValue(URL);
@@ -67,9 +67,11 @@ export default function HeaderShare() {
       >
         <div className={styles.modalHeadline}>Share this EVA time</div>
         <div className={styles.modalBody}>
-          <textarea ref={shareURLtextarea} className={styles.modalTextarea}>
-            {shareURLtextValue}
-          </textarea>
+          <textarea
+            ref={shareURLtextarea}
+            className={styles.modalTextarea}
+            value={shareURLtextValue}
+          />
           <div className={styles.modalButton} onClick={copyToClipboard}>
             <div className={styles.modalButtonText}>{copyButtonText}</div>
           </div>
