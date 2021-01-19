@@ -51,14 +51,14 @@ export default function Videos() {
   // render operation
   const router = useRouter();
   if (videos.selectedGroups.left === -1) {
-    let selectedLeft: number = 0; //set the default of left video to DL1
+    let selectedLeft = 0; //set the default of left video to DL1
     if ("left" in router.query) {
       selectedLeft = parseInt(router.query.left as string);
     }
     dispatch(pickGroup({ name: "left", group: selectedLeft }));
   }
   if (videos.selectedGroups.right === -1) {
-    let selectedRight: number = 1; //set the default of right video to DL2
+    let selectedRight = 1; //set the default of right video to DL2
     if ("right" in router.query) {
       selectedRight = parseInt(router.query.right as string);
     }
