@@ -108,7 +108,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResponse> 
   const bot = await getMWBot();
 
   try {
-    res = await bot.request({ action: "ask", method: "GET", format: "json", query });
+    res = await bot.request({ action: "ask", format: "json", query });
   } catch (e) {
     throw e;
   }
@@ -152,6 +152,7 @@ export async function getAllEVAs(): Promise<EVASummaryResponse> {
     |? Start date
     |? Start time
     |sort=Start date
+    |limit=10000
   `;
   const res = await fetchWiki(query, "getEVAs");
   return res.query.results;
