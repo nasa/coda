@@ -5,6 +5,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
 import { timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
+import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
 
 import styles from "./header.module.css";
@@ -74,24 +75,7 @@ function Header() {
           </div>
         </div>
         <div className={styles.headerElementContainer}>
-          <div className={styles.select}>
-            <select
-              name="EVAsDropdown"
-              id="EVAsDropdown"
-              onChange={handleEVASelect}
-              value={selectedEVA}
-            >
-              <option disabled>Choose EVA</option>
-              {Object.keys(EVAs).map((eva) => {
-                return (
-                  <option key={eva} value={eva}>
-                    {EVAs[eva].name} - {EVAs[eva].displayTitle}
-                  </option>
-                );
-              })}
-            </select>
-            <div className={styles.select_arrow}></div>
-          </div>
+          <EVADropdown />
         </div>
         <div className={styles.headerElementContainer}>
           <div style={{ display: "flex", flexDirection: "row" }}>
