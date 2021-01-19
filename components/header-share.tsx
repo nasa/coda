@@ -35,7 +35,7 @@ export default function HeaderShare() {
     const dt = new Date(utc);
     const missionTime = timeFromZuluDate(dt);
 
-    const urlRoot = document.URL.substr(0, document.URL.lastIndexOf("/"));
+    const urlRoot = document.URL.substr(0, document.URL.lastIndexOf("?"));
     const URL = urlRoot + "?date=" + EVADate + "&GMT=" + missionTime;
 
     //TODO: make additional parameters for selected videos downlinks
