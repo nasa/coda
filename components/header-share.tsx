@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useSelector, useStore } from "react-redux";
-import { getApplicationUTC, getMissionTime, set } from "store/clock";
+import { getApplicationUTC } from "store/clock";
 import { timeFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
@@ -20,7 +20,7 @@ export default function HeaderShare() {
 
   const shareURLtextarea = useRef(null);
 
-  function copyToClipboard(e) {
+  function handleCopyToClipboard(e) {
     shareURLtextarea.current.select();
     // navigator.clipboard.writeText(shareURLtextarea.current.value);
     document.execCommand("copy");
@@ -28,7 +28,7 @@ export default function HeaderShare() {
     setCopyButtonText("LINK COPIED");
   }
 
-  function openModal() {
+  function handleRequestOpen() {
     setCopyButtonText("COPY LINK");
 
     const utc = getApplicationUTC(clock);
@@ -38,7 +38,6 @@ export default function HeaderShare() {
     const urlRoot = document.URL.substr(0, document.URL.lastIndexOf("?"));
     const URL = urlRoot + "?date=" + EVADate + "&GMT=" + missionTime;
 
-    //TODO: make additional parameters for selected videos downlinks
     // "&v0=" + gSelectedVidGroup[0] + "&v1=" + gSelectedVidGroup[1];
 
     setShareURLtextValue(URL);
@@ -46,25 +45,31 @@ export default function HeaderShare() {
     setIsOpen(true);
   }
 
-  function closeModal() {
+  function handleRequestClose() {
     setIsOpen(false);
-    // console.log("closeModal()");
+    // console.log("handleRequestClose()");
   }
 
   return (
     <>
       <div
-        className={styles.svgShare}
-        onClick={(e) => {
-          openModal();
+        style={{
+          backgroundColor: "#2b2a2d",
+          padding: "15px",
         }}
-      ></div>
+        onClick={(e) => {
+          handleRequestOpen();
+        }}
+      >
+        <div className={styles.svgShare}></div>
+      </div>
       <Modal
         isOpen={modalIsOpen}
-        onRequestClose={closeModal}
+        onRequestClose={handleRequestClose}
         className={styles.shareModalWrapper}
         overlayClassName={styles.modalOverlay}
         contentLabel="Share"
+        ariaHideApp={false}
       >
         <div className={styles.modalHeadline}>Share this EVA time</div>
         <div className={styles.modalBody}>
@@ -72,13 +77,14 @@ export default function HeaderShare() {
             ref={shareURLtextarea}
             className={styles.modalTextarea}
             value={shareURLtextValue}
+            readOnly
           />
-          <div className={styles.modalButton} onClick={copyToClipboard}>
+          <div className={styles.modalButton} onClick={handleCopyToClipboard}>
             <div className={styles.modalButtonText}>{copyButtonText}</div>
           </div>
         </div>
         <div className={styles.closeButtonWrapper}>
-          <div className={styles.closeButton} onClick={closeModal}>
+          <div className={styles.closeButton} onClick={handleRequestClose}>
             <div className={styles.closeSVG}></div>
           </div>
         </div>
