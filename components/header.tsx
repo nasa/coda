@@ -5,6 +5,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
 import { timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
+import HeaderShare from "components/header-share";
 
 import styles from "./header.module.css";
 
@@ -24,6 +25,7 @@ function Header() {
   const [userValue, setUserValue] = useState("");
   const [appValue, setAppValue] = useState(null);
   const [editing, setEditing] = useState(false);
+
   useInterval(() => {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
@@ -194,15 +196,8 @@ function Header() {
             Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>
         </div>
-        <div
-          className={styles.headerElementContainer}
-          style={{
-            backgroundColor: "#2b2a2d",
-            paddingLeft: "15px",
-            paddingRight: "15px",
-          }}
-        >
-          <div className={styles.svgShare} />
+        <div className={styles.headerElementContainer} style={{ padding: "0" }}>
+          <HeaderShare />
         </div>
       </div>
     </div>
