@@ -1,3 +1,9 @@
+.headerModalButton {
+  background-color: #2b2a2d;
+  padding: 15px;
+  cursor: pointer;
+}
+
 .shareModalWrapper {
   position: absolute;
   background: #0f0f0f;
@@ -55,7 +61,7 @@
   outline: none;
 }
 
-.modalButton {
+.copyURLButton {
   float: right;
   font-family: 'Roboto', sans-serif;
   display: table;

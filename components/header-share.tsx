@@ -53,10 +53,7 @@ export default function HeaderShare() {
   return (
     <>
       <div
-        style={{
-          backgroundColor: "#2b2a2d",
-          padding: "15px",
-        }}
+        className={styles.headerModalButton}
         onClick={(e) => {
           handleRequestOpen();
         }}
@@ -79,7 +76,7 @@ export default function HeaderShare() {
             value={shareURLtextValue}
             readOnly
           />
-          <div className={styles.modalButton} onClick={handleCopyToClipboard}>
+          <div className={styles.copyURLButton} onClick={handleCopyToClipboard}>
             <div className={styles.modalButtonText}>{copyButtonText}</div>
           </div>
         </div>

@@ -196,7 +196,7 @@ function Header() {
             Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>
         </div>
-        <div className={styles.headerElementContainer}>
+        <div className={styles.headerElementContainer} style={{ padding: "0" }}>
           <HeaderShare />
         </div>
       </div>
