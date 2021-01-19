@@ -151,6 +151,7 @@ export async function getAllEVAs(): Promise<EVASummaryResponse> {
     |? EVA title
     |? Start date
     |? Start time
+    |? Duration
     |sort=Start date
     |limit=10000
   `;

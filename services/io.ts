@@ -1,7 +1,7 @@
 /*
-SERVER ONLY methods for fetching from Imagery Online (IO). Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+Methods for fetching from Imagery Online (IO)
 */
-import fetch, { Response } from "node-fetch";
+import fetch from "isomorphic-unfetch";
 import { padZeros } from "utils/formatting";
 
 // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118

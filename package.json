@@ -19,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@reduxjs/toolkit": "^1.5.0",
+    "isomorphic-unfetch": "^3.1.0",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "mwbot": "^1.0.10",

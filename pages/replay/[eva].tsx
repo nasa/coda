@@ -100,6 +100,7 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     dayNight = await getDayNight(EVAs[evaName].name);
 
     gEVADetails = await getEVADetails(EVAs[evaName].name);
+    // TODO: not updating when you navigate from one EVA to another. only uses mock data?
     EVACrew = await getCrew(evaName);
   } catch (e) {
     console.error(e);
