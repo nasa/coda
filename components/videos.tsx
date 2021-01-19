@@ -114,7 +114,7 @@ function Videos() {
   /**
    * Renders the actual HTML5 video
    */
-  const videoElement = (name: string, i: number) => {
+  const videoElement = (name: string) => {
     const videoID = videos.activeVideoFiles[name];
 
     // default video info
@@ -163,7 +163,7 @@ function Videos() {
     const muted = name === "left" ? mutedLeft : mutedRight;
 
     return (
-      <div key={`video_element__${i}`} className={styles.foo}>
+      <div key={`video_element__${name}`} className={styles.foo}>
         {/* <div id="vidTitle0" className={styles.vidTitle}>
           {downlinkDisplay}
         </div> */}
@@ -205,8 +205,7 @@ function Videos() {
 
   const videoPlayer = (
     /** Identifies this video player so we know what group to play. It should match a key in `store.videos.selectedGroups` */
-    name: string,
-    i: number
+    name: string
   ) => {
     let mutedClass;
     if (name === "left") {
@@ -248,15 +247,15 @@ function Videos() {
             }}
           ></div>
         </div>
-        {videoElement(name, i)}
+        {videoElement(name)}
       </div>
     );
   };
 
   return (
     <div className={styles.container}>
-      {videoPlayer("left", 0)}
-      {videoPlayer("right", 1)}
+      {videoPlayer("left")}
+      {videoPlayer("right")}
     </div>
   );
 }
