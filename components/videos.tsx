@@ -164,9 +164,6 @@ function Videos() {
 
     return (
       <div key={`video_element__${name}`} className={styles.foo}>
-        {/* <div id="vidTitle0" className={styles.vidTitle}>
-          {downlinkDisplay}
-        </div> */}
         <div className={styles.vidContainer}>
           <video
             ref={players[name]}
@@ -175,24 +172,18 @@ function Videos() {
             src={videoURL}
             poster="/images/novid.jpg"
             onCanPlay={() => {
-              console.log(name, "onCanPlay", videoID);
               dispatch(ready(name));
             }}
-            onPause={() => console.log(name, "onPause", videoID)}
             onEnded={() => {
-              console.log(name, "onEnded", videoID);
               // ready up because we don't want a missing video to hold up the clock
               dispatch(ready(name));
             }}
             onWaiting={() => {
-              console.log(name, "onWaiting", videoID);
               if (videos.ready[name] && videoID !== "") {
                 dispatch(buffering(name));
               }
             }}
-          >
-            {/* <source src={videoURL} /> */}
-          </video>
+          ></video>
           <div className={styles.vidOverlay}>
             <div className={styles.vidInfo}>{vidInfo}</div>
           </div>
