@@ -45,6 +45,27 @@ export default function Videos() {
   const [leftVideo, setLeftVideo] = useState(left - 1);
   const [rightVideo, setRightVideo] = useState(right - 1);
 
+  // get query parameters asking for specific video sources and store them in Redux
+  // -1 default values are defined in videos.ts in the store initial state.
+  // we use this to detect whether the query parameters have already been used in a previous component
+  // render operation
+  const router = useRouter();
+  console.log("left before check in videos.tsx: " + videos.selectedGroups.left);
+  if (videos.selectedGroups.left === -1) {
+    let selectedLeft: number = 0; //set the default of left video to DL1
+    if ("left" in router.query) {
+      selectedLeft = parseInt(router.query.left as string);
+    }
+    dispatch(pickGroup({ name: "left", group: selectedLeft }));
+  }
+  if (videos.selectedGroups.right === -1) {
+    let selectedRight: number = 1; //set the default of right video to DL2
+    if ("right" in router.query) {
+      selectedRight = parseInt(router.query.right as string);
+    }
+    dispatch(pickGroup({ name: "right", group: selectedRight }));
+  }
+
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
   const videoPlayerNames = ["left", "right"];
