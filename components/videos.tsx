@@ -50,7 +50,6 @@ export default function Videos() {
   // we use this to detect whether the query parameters have already been used in a previous component
   // render operation
   const router = useRouter();
-  console.log("left before check in videos.tsx: " + videos.selectedGroups.left);
   if (videos.selectedGroups.left === -1) {
     let selectedLeft: number = 0; //set the default of left video to DL1
     if ("left" in router.query) {
