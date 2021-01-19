@@ -35,7 +35,7 @@ export default function HeaderShare() {
     const dt = new Date(utc);
     const missionTime = timeFromZuluDate(dt);
 
-    const urlRoot = location.protocol + "//" + location.host + location.pathname;
+    const urlRoot = location.origin + location.pathname;
     const URL = urlRoot + "?date=" + EVADate + "&GMT=" + missionTime;
 
     // "&v0=" + gSelectedVidGroup[0] + "&v1=" + gSelectedVidGroup[1];
