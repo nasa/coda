@@ -4,7 +4,9 @@
   "description": "Collaborative Operations Data Activation",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' APP_ENV=local next dev",
+    "local": "NODE_OPTIONS='--inspect' APP_ENV=local next dev",
+    "dev": "NODE_OPTIONS='--inspect' APP_ENV=dev next dev",
+    "prod": "NODE_OPTIONS='--inspect' APP_ENV=prod next dev",
     "build": "APP_ENV=dev next build",
     "start": "next start",
     "test": "jest"
