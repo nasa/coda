@@ -404,7 +404,7 @@ export default class DrawNav {
 
   drawNavCursor = (seconds) => {
     this.gNavCursorGroup.removeChildren();
-    this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorNavCursor));
+    this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorCursor));
   };
 
   getCursorElement = (seconds, color) => {
@@ -489,6 +489,7 @@ export default class DrawNav {
 
   handleMouseMove = (event, cb) => {
     let mouseXSeconds;
+    this.gCursorGroup.removeChildren();
     this.gNavCursorGroup.removeChildren();
     if (event.point.y > this.gTier1Top) {
       //if in tier1
