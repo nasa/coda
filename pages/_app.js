@@ -1,3 +1,4 @@
+import clone from "lodash/clone";
 import Head from "next/head";
 import { Provider } from "react-redux";
 import { useStore } from "store";
@@ -17,7 +18,7 @@ export default function App({ Component, pageProps }) {
   if (stateFromServer) {
     stateFromServer.clock.lastStarted = new Date().toISOString();
   }
-  const store = useStore(stateFromServer);
+  const store = useStore(clone(stateFromServer));
 
   return (
     <Provider store={store}>
