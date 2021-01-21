@@ -93,7 +93,7 @@ const getMWBot = memoize(_getMWBot);
  * @param action Optional string for specifying the action type for local mocking
  */
 async function fetchWiki(query: string, action?: string): Promise<WikiResponse> {
-  let res: Response;
+  let res: WikiResponse;
 
   // we're in the local environment. fake the request using a mock service worker
   if (process.env.APP_ENV === "local") {
