@@ -14,17 +14,20 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 
 ### Software Dependencies
 
-- [NodeJS](https://nodejs.dev/) v14. Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (there's also a [Windows version](https://github.com/coreybutler/nvm-windows) but I've never tried it)
+- [NodeJS](https://nodejs.dev/) v14. Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (Mac/Linux) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) (Windows)
 
 ### First Time Installation
 
 1. If you're using `nvm` instead of installing Node manually, install the right version of Node: `nvm install && nvm use`
+  - `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
 2. Install JavaScript dependencies: `npm i`
 3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
 4. Create a `.env` file at the root of the repo. It must contain:
 
 ```
-IO_KEY=the-auth-key-we-have-for-io
+IO_KEY="the-auth-key-we-have-for-io"
+WIKI_USER="the-wiki-bot-account-username"
+WIKI_PASSWORD="and-the-associated-password"
 ```
 
 Ask Ben or Cameron for the key if you don't have it.
@@ -33,7 +36,7 @@ Ask Ben or Cameron for the key if you don't have it.
 
 `npm run dev`
 
-Then head over to `http://coda-iss.develop:3000`
+Then head over to `http://coda-iss.develop:3000` (or `http://localhost:3000` if you didn't setup your hosts file)
 
 Bonus: `npm run dev` is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging). Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
 
