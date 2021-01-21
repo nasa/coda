@@ -1,11 +1,16 @@
 /*
 SERVER ONLY methods for fetching from wiki. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
+import { promises as fs } from "fs";
 import MWBot from "mwbot";
+import FileCookieStore from "tough-cookie-filestore";
+import request from "request";
 import { memoize } from "lodash";
 import fetch from "node-fetch";
 import { padZeros } from "utils/formatting";
 import dayNight from "../mocks/fakedata/daynight.json";
+
+const COOKIE_JAR = "services/.cookies.json";
 
 export interface EVA {
   name: string;
@@ -57,6 +62,11 @@ async function _getMWBot() {
     silent: false,
   });
 
+  // just make sure the cookie jar file exists
+  try {
+    await fs.writeFile(COOKIE_JAR, "", { flag: "wx" });
+  } catch (e) {}
+
   bot.setGlobalRequestOptions({
     qs: {
       format: "json",
@@ -69,18 +79,23 @@ async function _getMWBot() {
       "X-SKIP-SAML": "True",
     },
     timeout: 10000,
-    jar: true,
+    jar: request.jar(new FileCookieStore(COOKIE_JAR)),
     json: true,
   });
 
   try {
-    await bot.login({
-      username: process.env.WIKI_USER,
-      password: process.env.WIKI_PASSWORD,
-    });
+    // check if our cookies are still good. if not, log in
+    await bot.read("Main_Page");
   } catch (e) {
-    console.error("Wiki login unsuccessful");
-    throw e;
+    try {
+      await bot.login({
+        username: process.env.WIKI_USER,
+        password: process.env.WIKI_PASSWORD,
+      });
+    } catch (e) {
+      console.error("Wiki login unsuccessful");
+      throw e;
+    }
   }
 
   return bot;
