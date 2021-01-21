@@ -3,7 +3,7 @@ SERVER ONLY methods for fetching from wiki. Only use this code within `getStatic
 */
 import MWBot from "mwbot";
 import { memoize } from "lodash";
-import fetch, { Response } from "node-fetch";
+import fetch from "node-fetch";
 import { padZeros } from "utils/formatting";
 import dayNight from "../mocks/fakedata/daynight.json";
 
@@ -74,7 +74,7 @@ async function _getMWBot() {
   });
 
   try {
-    await bot.loginGetEditToken({
+    await bot.login({
       username: process.env.WIKI_USER,
       password: process.env.WIKI_PASSWORD,
     });

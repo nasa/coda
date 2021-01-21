@@ -1,5 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { Videos, VideoFile } from "services/io";
+import type { Videos, VideoFile } from "services/io";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {

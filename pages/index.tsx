@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import EVADropdown from "components/eva-dropdown";
 import styles from "./index.module.css";
-import { GetServerSideProps } from "next";
+import type { GetServerSideProps } from "next";
 import { EVA, getAllEVAs } from "services/iss-wiki";
 
 export default function Index() {

@@ -50,7 +50,6 @@ export default function View({
   return (
     <div>
       <Head>
-        <meta charSet="utf-8" />
         <title>
           {EVAs[selectedEVA].name} | {process.env.TITLE}
         </title>

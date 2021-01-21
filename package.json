@@ -10,7 +10,8 @@
     "build": "cross-env APP_ENV=dev next build",
     "build-prod": "cross-env APP_ENV=prod next build",
     "start": "next start",
-    "test": "jest"
+    "test": "jest",
+    "tsc": "tsc --pretty"
   },
   "repository": {
     "type": "git",
