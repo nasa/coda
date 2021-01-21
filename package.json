@@ -4,10 +4,10 @@
   "description": "Collaborative Operations Data Activation",
   "main": "index.js",
   "scripts": {
-    "local": "NODE_OPTIONS='--inspect' APP_ENV=local next dev",
-    "dev": "NODE_OPTIONS='--inspect' APP_ENV=dev next dev",
-    "prod": "NODE_OPTIONS='--inspect' APP_ENV=prod next dev",
-    "build": "APP_ENV=dev next build",
+    "local": "cross-env NODE_OPTIONS='--inspect' APP_ENV=local next dev",
+    "dev": "cross-env NODE_OPTIONS='--inspect' APP_ENV=dev next dev",
+    "prod": "cross-env NODE_OPTIONS='--inspect' APP_ENV=prod next dev",
+    "build": "cross-env APP_ENV=dev next build",
     "start": "next start",
     "test": "jest"
   },
@@ -39,6 +39,7 @@
     "@types/node": "^14.14.6",
     "@types/node-fetch": "^2.5.7",
     "@types/react": "^16.9.55",
+    "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.5",
