@@ -1,4 +1,5 @@
-import { GetServerSideProps, GetStaticPaths } from "next";
+import get from "lodash/get";
+import type { GetServerSideProps, GetStaticPaths } from "next";
 import Head from "next/head";
 import Main from "components/main";
 import {
@@ -82,14 +83,21 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     const evas = await getAllEVAs();
     Object.keys(evas).forEach((evaName) => {
       const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+      let duration = -1;
+      const [wikiDuration] = evas[evaName].printouts.Duration;
+      // for whatever reason, if no duration is specified this is what the wiki gives us
+      if (wikiDuration !== ":") {
+        const [h, m] = wikiDuration.split(":");
+        duration = +h * 3600 + +m * 60;
+      }
       EVAs[formattedEVAName] = {
         name: evaName,
         wikiURL: evas[evaName].fullurl,
         displayTitle: evas[evaName].printouts["EVA title"][0],
         startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
         startTime: evas[evaName].printouts["Start time"][0],
+        duration,
         // we don't have these properties yet
-        duration: -1,
         activityPerformance: {},
         dayNight: {},
       };
@@ -98,8 +106,6 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     asExecutedEV1 = await getAsExecuted(EVAs[evaName].name, 1);
     asExecutedEV2 = await getAsExecuted(EVAs[evaName].name, 2);
     dayNight = await getDayNight(EVAs[evaName].name);
-
-    gEVADetails = await getEVADetails(EVAs[evaName].name);
     // TODO: not updating when you navigate from one EVA to another. only uses mock data?
     EVACrew = await getCrew(evaName);
   } catch (e) {
@@ -110,10 +116,8 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
   let videos: Videos;
   let timingData: TimingData;
   try {
-    const [h, m] = gEVADetails.duration.split(":");
-    EVAs[evaName].duration = +h * 3600 + +m * 60;
     // video data for this EVA
-    const [Y, M, D] = gEVADetails.evaDate.split(/-/).map(Number);
+    const [Y, M, D] = EVAs[evaName].startDate.split("/").map(Number);
     videos = await getVideoData(Y, M, D);
     timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);

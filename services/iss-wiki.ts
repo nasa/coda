@@ -131,6 +131,8 @@ export interface EVASummaryResponse {
       "Start date": WikiTimestamp[];
       /** eg. `[ 11:38 ]` */
       "Start Time": string[];
+      /** In H:MM, eg `[ 6:32 ]`. Defaults to `[ : ]` when no duration is present */
+      Duration: string[];
     };
     /** eg. `US EVA 1` */
     fulltext: string;
@@ -165,7 +167,7 @@ interface EVADetails {
     printouts: {
       "EVA Title": string[];
       "Start date": WikiTimestamp[];
-      /** In H:MM, eg `[ 6:32 ]` */
+      /** In H:MM, eg `[ 6:32 ]`. Defaults to `[ : ]` when no duration is present */
       Duration: string[];
     };
     /** eg. `US EVA 1` */
