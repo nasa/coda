@@ -160,7 +160,7 @@ export interface EVASummaryResponse {
 }
 
 /** Get a summary of all EVAs on the wiki */
-export async function getAllEVAs(): Promise<EVASummaryResponse> {
+async function _getAllEVAs(): Promise<EVASummaryResponse> {
   // wiki query parameters
   const query = `
     [[~US EVA*]]
@@ -175,6 +175,9 @@ export async function getAllEVAs(): Promise<EVASummaryResponse> {
   const res = await fetchWiki(query, "getEVAs");
   return res.query.results;
 }
+
+/** Memoized call to get a summary of all EVAs on the wiki */
+export const getAllEVAs = memoize(_getAllEVAs);
 
 /** EVA Metadata */
 interface EVADetails {
@@ -257,7 +260,7 @@ interface EVAAsExecuted {
 }
 
 /** Get as-executed data for a given EV on a given EVA */
-export async function getAsExecuted(evaName: string, evNum: number) {
+async function _getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
   const query = `
     [[From page::~${evaName}/*xecuted*]]
@@ -278,6 +281,9 @@ export async function getAsExecuted(evaName: string, evNum: number) {
   return parseAsExecuted(results);
 }
 
+/** Memoized call to get as-executed data for a given EV on a given EVA */
+export const getAsExecuted = memoize(_getAsExecuted);
+
 function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
 
@@ -291,6 +297,8 @@ function parseAsExecuted(results: EVAAsExecuted): Activity[] {
     green: "#28B463",
     purple: "#8E44AD",
     yellow: "#B7950B",
+    white: "#FFFFFF",
+    black: "#000000",
   };
 
   Object.keys(results).forEach((r) => {
@@ -342,7 +350,7 @@ export interface ParsedCrewResults {
 }
 
 /** Get crew assignment data for a EVA */
-export async function getCrew(evaName: string) {
+async function _getCrew(evaName: string) {
   const query = `
     [[Crew involved with subject::+]]
     [[From page::${evaName}]]
@@ -354,6 +362,9 @@ export async function getCrew(evaName: string) {
   const results: EVACrewResults = res.query.results;
   return parseCrew(results);
 }
+
+/** Memoized call to get crew assignment data for a EVA */
+export const getCrew = memoize(_getCrew);
 
 function parseCrew(results: EVACrewResults): ParsedCrewResults {
   let crewObject: ParsedCrewResults = {
@@ -414,4 +425,33 @@ function parseDayNight(results): DayNight {
     dataStartUTC: dataStartUTC,
     events: activityArray,
   };
+}
+
+/** Fetch all EVA as-planned data and format it for passing to the redux store */
+export async function buildEVAStore() {
+  const EVAs = {} as { [key: string]: EVA };
+  const evas = await getAllEVAs();
+  Object.keys(evas).forEach((evaName) => {
+    const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+    let duration = -1;
+    const [wikiDuration] = evas[evaName].printouts.Duration;
+    // for whatever reason, if no duration is specified the wiki gives us ":"
+    if (wikiDuration !== ":") {
+      const [h, m] = wikiDuration.split(":");
+      duration = +h * 3600 + +m * 60;
+    }
+    EVAs[formattedEVAName] = {
+      name: evaName,
+      wikiURL: evas[evaName].fullurl,
+      displayTitle: evas[evaName].printouts["EVA title"][0],
+      startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
+      startTime: evas[evaName].printouts["Start time"][0],
+      duration,
+      // we don't have these properties yet
+      activityPerformance: {},
+      dayNight: {},
+    };
+  });
+
+  return EVAs;
 }

@@ -3,15 +3,14 @@ import type { GetServerSideProps, GetStaticPaths } from "next";
 import Head from "next/head";
 import Main from "components/main";
 import {
+  buildEVAStore,
   EVA,
   getAsExecuted,
   getAllEVAs,
-  getEVADetails,
   getDayNight,
   getCrew,
-  ParsedEVADetails,
-  ParsedCrewResults,
   Activity,
+  ParsedCrewResults,
   DayNight,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
@@ -21,6 +20,7 @@ import {
   getDayNightMissionTime,
   getEVAStartMilliseconds,
 } from "store/evas";
+import { diff } from "store/clock";
 
 function Replay({
   initialReduxState: {
@@ -47,7 +47,16 @@ export const getStaticPaths: GetStaticPaths = async () => {
   // find out which EVAs are available
   const results = await getAllEVAs();
 
-  let evas = Object.keys(results).map((k) => k.replace(/ /g, "_"));
+  let evas = Object.keys(results)
+    .filter((k) => {
+      // the wiki includes planned EVAs. only include EVAs that have already occured in the build
+      const [Y, M, D] = results[k].printouts["Start date"][0].raw
+        .substring(2)
+        .split("/")
+        .map(Number);
+      return diff(new Date(), new Date(Y, M - 1, D)) > 0;
+    })
+    .map((k) => k.replace(/ /g, "_"));
   // allow lowercase URLs to work too
   evas = evas.concat(evas.map((eva) => eva.toLowerCase()));
 
@@ -65,6 +74,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 /**
  * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client. This is where we perform all the requests to external APIs to get the data required to render the EVA
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
+ * Why all the try-catch's in here? Because "Using a wiki as a database is like using graffiti on a bathroom wall as a contact list" - Ben Feist
  */
 export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) => {
   const evaName = (eva as string).toLowerCase();
@@ -73,36 +83,13 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
 
   // fetch all data for the EVA store
 
-  const EVAs = {} as { [key: string]: EVA };
-  let gEVADetails: ParsedEVADetails;
+  let EVAs: { [key: string]: EVA };
   let EVACrew: ParsedCrewResults;
   let asExecutedEV1: Activity[];
   let asExecutedEV2: Activity[];
   let dayNight: DayNight;
   try {
-    const evas = await getAllEVAs();
-    Object.keys(evas).forEach((evaName) => {
-      const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
-      let duration = -1;
-      const [wikiDuration] = evas[evaName].printouts.Duration;
-      // for whatever reason, if no duration is specified this is what the wiki gives us
-      if (wikiDuration !== ":") {
-        const [h, m] = wikiDuration.split(":");
-        duration = +h * 3600 + +m * 60;
-      }
-      EVAs[formattedEVAName] = {
-        name: evaName,
-        wikiURL: evas[evaName].fullurl,
-        displayTitle: evas[evaName].printouts["EVA title"][0],
-        startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
-        startTime: evas[evaName].printouts["Start time"][0],
-        duration,
-        // we don't have these properties yet
-        activityPerformance: {},
-        dayNight: {},
-      };
-    });
-
+    EVAs = await buildEVAStore();
     asExecutedEV1 = await getAsExecuted(EVAs[evaName].name, 1);
     asExecutedEV2 = await getAsExecuted(EVAs[evaName].name, 2);
     dayNight = await getDayNight(EVAs[evaName].name);
@@ -121,24 +108,24 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     videos = await getVideoData(Y, M, D);
     timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);
+
+    const activityStartUTCMilliseconds = getEVAStartMilliseconds(EVAs[evaName]);
+
+    EVAs[evaName].activityPerformance["EV1"] = getActivityPerformanceMissionTime(
+      asExecutedEV1,
+      timingData,
+      activityStartUTCMilliseconds
+    );
+    EVAs[evaName].activityPerformance["EV2"] = getActivityPerformanceMissionTime(
+      asExecutedEV2,
+      timingData,
+      activityStartUTCMilliseconds
+    );
+    EVAs[evaName].dayNight = getDayNightMissionTime(dayNight, timingData);
   } catch (e) {
     console.error(e);
     videosErrorMessage = "Error fetching videos";
   }
-
-  const activityStartUTCMilliseconds = getEVAStartMilliseconds(EVAs[evaName]);
-
-  EVAs[evaName].activityPerformance["EV1"] = getActivityPerformanceMissionTime(
-    asExecutedEV1,
-    timingData,
-    activityStartUTCMilliseconds
-  );
-  EVAs[evaName].activityPerformance["EV2"] = getActivityPerformanceMissionTime(
-    asExecutedEV2,
-    timingData,
-    activityStartUTCMilliseconds
-  );
-  EVAs[evaName].dayNight = getDayNightMissionTime(dayNight, timingData);
 
   // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
   // the trick we're using to map over the existing video files object is:
@@ -175,7 +162,7 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
         },
         evas: {
           EVAs,
-          selectedEVA: eva,
+          selectedEVA: evaName,
           EVACrew,
           errorMessage: evaErrorMessage,
         },
