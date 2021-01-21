@@ -3,8 +3,6 @@ require('dotenv').config()
 const envs = {
   local: {
     TITLE: 'CODA (local)',
-    COOKIE_JAR: "foobar",
-    CA_CERT: "something",
     IO_API_URL: 'http://io-mock/api/search/rpp=500',
     IO_HOST: 'https://emss.s3-us-gov-east-1.amazonaws.com',
     IO_KEY: process.env.IO_KEY,
@@ -15,8 +13,6 @@ const envs = {
   },
   dev: {
     TITLE: 'CODA (dev)',
-    COOKIE_JAR: "foobar",
-    CA_CERT: "something",
     IO_API_URL: 'https://io.jsc.nasa.gov/api/search/rpp=500',
     IO_HOST: 'https://io.jsc.nasa.gov',
     IO_KEY: process.env.IO_KEY,
@@ -26,8 +22,6 @@ const envs = {
   },
   prod: {
     TITLE: 'CODA',
-    COOKIE_JAR: "foobar",
-    CA_CERT: "something",
     IO_API_URL: 'https://io.jsc.nasa.gov/api/search/rpp=500',
     IO_HOST: 'https://io.jsc.nasa.gov',
     IO_KEY: process.env.IO_KEY,
