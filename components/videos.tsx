@@ -11,7 +11,6 @@ import {
   VideoActivity,
   VideosState,
 } from "store/videos";
-import { dateAsCanonicalString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
 
@@ -20,7 +19,7 @@ let missionTime = 0;
 /**
  * Renders the part of the CODA interface that includes audio and video players and selectors
  */
-function Videos() {
+export default function Videos() {
   // get query parameters asking for specific video sources
   // see https://nextjs.org/docs/routing/dynamic-routes
   // FYI: the syntax here is how you declare default parameters and types simultaneously for a destructured object with TS
@@ -266,5 +265,3 @@ function Videos() {
     </div>
   );
 }
-
-export default Videos;
