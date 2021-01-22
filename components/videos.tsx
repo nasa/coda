@@ -4,7 +4,6 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime } from "store/clock";
 import {
   buffering,
-  pickGroup,
   pickVideoFile,
   ready,
   selectVideoActivity,
@@ -221,8 +220,14 @@ export default function Videos() {
 
     const buttonClass = (g, name) => {
       let ret = styles.vidButton;
-      if (g === videos.selectedGroups[name]) {
-        ret = `${ret} ${styles.selected}`;
+      if (name === "left") {
+        if (g === leftVideo) {
+          ret = `${ret} ${styles.selected}`;
+        }
+      } else {
+        if (g === rightVideo) {
+          ret = `${ret} ${styles.selected}`;
+        }
       }
       if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
         ret = `${ret} ${styles.active}`;
@@ -233,8 +238,6 @@ export default function Videos() {
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
-          let currentMissionTime = getMissionTime(clock);
-          const group = name === "left" ? leftVideo : rightVideo;
           return (
             <button
               key={`vid${name}__button${g}`}
