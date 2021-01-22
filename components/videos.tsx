@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime } from "store/clock";
 import {
@@ -8,8 +8,10 @@ import {
   pickVideoFile,
   ready,
   selectVideoActivity,
+  VideoActivity,
   VideosState,
 } from "store/videos";
+import { dateAsCanonicalString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
 
@@ -34,7 +36,11 @@ function Videos() {
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
     (state) => state
   );
-  const videoActivity = selectVideoActivity(videos);
+  let videoActivity = null as VideoActivity;
+
+  if (Object.keys(videos.videos).length > 0) {
+    videoActivity = selectVideoActivity(videos);
+  }
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -57,6 +63,11 @@ function Videos() {
       return;
     }
     missionTime = newMissionTime;
+
+    // we can't update videos if we don't have videos
+    if (!videoActivity) {
+      return;
+    }
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
@@ -114,18 +125,16 @@ function Videos() {
   /**
    * Renders the actual HTML5 video
    */
-  const videoElement = (name: string, i: number) => {
+  const videoElement = (name: string) => {
     const videoID = videos.activeVideoFiles[name];
 
     // default video info
     let videoURL = "";
-    let downlinkDisplay = "No video available";
     let vidInfo = "";
     if (videoID !== "") {
       const video = videos.videos[videoID];
       videoURL = video.videoURL;
       vidInfo = video.description;
-      downlinkDisplay = video.content;
     } else {
       if (!videos.ready[name]) {
         // there is no video for right now, so don't block the clock
@@ -163,10 +172,7 @@ function Videos() {
     const muted = name === "left" ? mutedLeft : mutedRight;
 
     return (
-      <div key={`video_element__${i}`} className={styles.foo}>
-        {/* <div id="vidTitle0" className={styles.vidTitle}>
-          {downlinkDisplay}
-        </div> */}
+      <div key={`video_element__${name}`} className={styles.foo}>
         <div className={styles.vidContainer}>
           <video
             ref={players[name]}
@@ -175,24 +181,18 @@ function Videos() {
             src={videoURL}
             poster="/images/novid.jpg"
             onCanPlay={() => {
-              console.log(name, "onCanPlay", videoID);
               dispatch(ready(name));
             }}
-            onPause={() => console.log(name, "onPause", videoID)}
             onEnded={() => {
-              console.log(name, "onEnded", videoID);
               // ready up because we don't want a missing video to hold up the clock
               dispatch(ready(name));
             }}
             onWaiting={() => {
-              console.log(name, "onWaiting", videoID);
               if (videos.ready[name] && videoID !== "") {
                 dispatch(buffering(name));
               }
             }}
-          >
-            {/* <source src={videoURL} /> */}
-          </video>
+          ></video>
           <div className={styles.vidOverlay}>
             <div className={styles.vidInfo}>{vidInfo}</div>
           </div>
@@ -205,8 +205,7 @@ function Videos() {
 
   const videoPlayer = (
     /** Identifies this video player so we know what group to play. It should match a key in `store.videos.selectedGroups` */
-    name: string,
-    i: number
+    name: string
   ) => {
     let mutedClass;
     if (name === "left") {
@@ -215,20 +214,27 @@ function Videos() {
       mutedClass = mutedRight === true ? styles.unmute : styles.mute;
     }
 
+    let currentMissionTime = getMissionTime(clock);
+
+    const buttonClass = (g, name) => {
+      let ret = styles.vidButton;
+      if (g === videos.selectedGroups[name]) {
+        ret = `${ret} ${styles.selected}`;
+      }
+      if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
+        ret = `${ret} ${styles.active}`;
+      }
+      return ret;
+    };
+
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
-          let currentMissionTime = getMissionTime(clock);
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={`${styles.vidButton}
-              ${g === videos.selectedGroups[name] && styles.selected}
-              ${videoActivity[g][currentMissionTime].length > 0 && styles.active}
-              ${g === 0 && styles.first}
-              ${g === 6 && styles.last}
-              `}
+              className={buttonClass(g, name)}
               onClick={() => dispatch(pickGroup({ name, group: g }))}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
@@ -248,15 +254,15 @@ function Videos() {
             }}
           ></div>
         </div>
-        {videoElement(name, i)}
+        {videoElement(name)}
       </div>
     );
   };
 
   return (
     <div className={styles.container}>
-      {videoPlayer("left", 0)}
-      {videoPlayer("right", 1)}
+      {videoPlayer("left")}
+      {videoPlayer("right")}
     </div>
   );
 }

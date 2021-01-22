@@ -19,10 +19,12 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 ### First Time Installation
 
 1. If you're using `nvm` instead of installing Node manually, install the right version of Node: `nvm install && nvm use`
-  - `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
+
+- `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
+
 2. Install JavaScript dependencies: `npm i`
 3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
-4. Create a `.env` file at the root of the repo. It must contain:
+4. (Optional) Create a `.env` file at the root of the repo. It must contain:
 
 ```
 IO_KEY="the-auth-key-we-have-for-io"
@@ -34,11 +36,15 @@ Ask Ben or Cameron for the key if you don't have it.
 
 ### Dev Server
 
-`npm run dev`
+You have three options for running the site locally.
 
-Then head over to `http://coda-iss.develop:3000` (or `http://localhost:3000` if you didn't setup your hosts file)
+1. `npm run local` - runs the local version which uses mock data and does not hit any NASA APIs. Currently the mock data is from US EVA 55. Does not require a `.env` file
+2. `npm run dev` - runs the dev version which gets EVA data from wiki-dev.fit.nasa.gov and video data from IO. Requires the `.env` file mentioned above
+3. `npm run prod` - runs the prod version which gets EVA data from wiki.jsc.nasa.gov and video data from IO. Requires the `.env` file mentioned above
 
-Bonus: `npm run dev` is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging). Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
+Then head over to [](http://coda-iss.develop:3000) (or [](http://localhost:3000) if you didn't setup your hosts file)
+
+Bonus: the site is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging) when you run it locally. Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
 
 Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) on how the debugger is setup.
 

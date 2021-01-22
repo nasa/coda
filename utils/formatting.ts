@@ -53,3 +53,10 @@ function shortdateFromZuluDate(zuluDate: Date): string {
     padZeros(zuluDate.getUTCDate(), 2)
   );
 }
+
+export function dateAsCanonicalString(d: Date): string {
+  const Y = d.getUTCFullYear();
+  const M = d.getUTCMonth();
+  const D = d.getUTCDate();
+  return `${Y}/${M}/${D}`;
+}

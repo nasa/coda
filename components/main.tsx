@@ -13,11 +13,12 @@ import styles from "./main.module.css";
  * Renders the main CODA application layout. Also handles checking whether the clock should be running
  */
 export default function Main() {
+  const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
+    (state) => state
+  );
+
   // the server shouldn't be running clocks!!!
   if (typeof window !== "undefined") {
-    const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
-      (state) => state
-    );
     const dispatch = useDispatch();
 
     // (1) make sure the clock is running when it should
@@ -46,7 +47,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        <NavTimeline />
+        {Object.keys(videos.videos).length > 0 && <NavTimeline />}
         <StatusBar />
       </div>
     </div>

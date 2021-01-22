@@ -108,27 +108,22 @@ export const getMissionTime = (state: ClockState): number => {
   return 0;
 };
 
+const getMS = (d: Date): number => {
+  const Y = d.getUTCFullYear();
+  const M = d.getUTCMonth();
+  const D = d.getUTCDate();
+  const h = d.getUTCHours();
+  const m = d.getUTCMinutes();
+  const s = d.getUTCSeconds();
+  const ms = d.getUTCMilliseconds();
+  return Date.UTC(Y, M, D, h, m, s, ms);
+};
+
 /**
  * Get the number of milliseconds between two dates, equivalent to `a - b`
  */
-const diff = (a: Date, b: Date): number => {
-  const Y1 = a.getUTCFullYear();
-  const M1 = a.getUTCMonth();
-  const D1 = a.getUTCDay();
-  const h1 = a.getUTCHours();
-  const m1 = a.getUTCMinutes();
-  const s1 = a.getUTCSeconds();
-  const ms1 = a.getUTCMilliseconds();
-
-  const Y2 = b.getUTCFullYear();
-  const M2 = b.getUTCMonth();
-  const D2 = b.getUTCDay();
-  const h2 = b.getUTCHours();
-  const m2 = b.getUTCMinutes();
-  const s2 = b.getUTCSeconds();
-  const ms2 = b.getUTCMilliseconds();
-
-  return Date.UTC(Y1, M1, D1, h1, m1, s1, ms1) - Date.UTC(Y2, M2, D2, h2, m2, s2, ms2);
+export const diff = (a: Date, b: Date): number => {
+  return getMS(a) - getMS(b);
 };
 
 /**

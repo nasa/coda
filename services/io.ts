@@ -1,12 +1,14 @@
 /*
-SERVER ONLY methods for fetching from Imagery Online (IO). Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+Methods for fetching from Imagery Online (IO)
 */
-import fetch, { Response } from "node-fetch";
+import fetch from "isomorphic-unfetch";
 import { padZeros } from "utils/formatting";
 
-// IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
-require("mac-ca");
-require("win-ca");
+if (typeof window === "undefined") {
+  // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
+  require("mac-ca");
+  require("win-ca");
+}
 
 /**
  * Response from a search on Imagery Online
@@ -112,7 +114,10 @@ export interface Videos {
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
-  const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
+  const url = `${process.env.IO_API_URL}&${params}&as=2?key=${process.env.IO_KEY}&format=json`;
+  const proxied = `https://coda-dev.fit.nasa.gov/CODA_ISS/getio.php?IOParam=${encodeURIComponent(
+    url
+  )}`;
   const options = {
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
@@ -125,7 +130,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
 
   let res: Response;
   try {
-    res = await fetch(url, options);
+    res = await fetch(proxied, options);
   } catch (e) {
     throw e;
   }
@@ -150,7 +155,7 @@ export default async function getVideoData(
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDay}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDay}-${rangeEndYear}`;
 
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 
   const res = await fetchIO(queryParams);
   return parseIOResponse(res);

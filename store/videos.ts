@@ -1,5 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { Videos, VideoFile } from "services/io";
+import type { Videos, VideoFile } from "services/io";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {
@@ -79,11 +79,11 @@ export const generateTimingData = (videos: Videos): TimingData => {
     EVA_duration_seconds: 0,
   };
 
-  //Always start at 00:00:00Z and end at 23:59:59Z
+  // Always start at 00:00:00Z and end at 23:59:59Z
 
-  //get the date from the first video
+  // get the date from the first video
   let firstVideoKey = Object.keys(videos)[0];
-  //FIXME: figure out why typescript sees this as a string half the time and a date the other half depending on reload (or just leave it)
+  // FIXME: figure out why typescript sees this as a string half the time and a date the other half depending on reload (or just leave it)
   // see: https://stackoverflow.com/questions/32156823/typeerror-formats-datetimestring-toisostring-is-not-a-function
   const stringStartDate = videos[firstVideoKey].start.toString();
 

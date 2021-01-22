@@ -1,7 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import { create } from "domain";
-import { Activity, DayNight, EVA, ParsedEVADetails } from "services/iss-wiki";
-import { TimingData } from "store/videos";
+import type { Activity, DayNight, EVA } from "services/iss-wiki";
+import type { TimingData } from "store/videos";
 
 export interface EVAsState {
   /** Keyed in the format of underscored lowercase EVA name, eg. `us_eva_55` */

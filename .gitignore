@@ -9,3 +9,4 @@ node_modules/
 
 # don't commit secrets!
 .env
+**/*/.cookies.json

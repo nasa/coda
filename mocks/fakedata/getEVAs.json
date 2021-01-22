@@ -31,6 +31,14 @@
         "typeid": "_txt",
         "mode": 1,
         "format": ""
+      },
+      {
+        "label": "Duration",
+        "key": "Duration",
+        "redi": "",
+        "typeid": "_txt",
+        "mode": 1,
+        "format": ""
       }
     ],
     "results": {
@@ -47,6 +55,9 @@
           ],
           "Start time": [
             "11:38"
+          ],
+          "Duration": [
+            "5:47"
           ]
         },
         "fulltext": "US EVA 1",
@@ -68,6 +79,9 @@
           ],
           "Start time": [
             "12:50"
+          ],
+          "Duration": [
+            "6:51"
           ]
         },
         "fulltext": "US EVA 2",
@@ -89,6 +103,9 @@
           ],
           "Start time": [
             "12:40"
+          ],
+          "Duration": [
+            "6:26"
           ]
         },
         "fulltext": "US EVA 3",
@@ -110,6 +127,9 @@
           ],
           "Start time": [
             "15:32"
+          ],
+          "Duration": [
+            "5:22"
           ]
         },
         "fulltext": "US EVA 4",
@@ -131,6 +151,9 @@
           ],
           "Start time": [
             "14:04"
+          ],
+          "Duration": [
+            "5:54"
           ]
         },
         "fulltext": "US EVA 5",
@@ -152,6 +175,9 @@
           ],
           "Start time": [
             "15:14"
+          ],
+          "Duration": [
+            "7:55"
           ]
         },
         "fulltext": "US EVA 6",
@@ -173,6 +199,9 @@
           ],
           "Start time": [
             "13:38"
+          ],
+          "Duration": [
+            "7:11"
           ]
         },
         "fulltext": "US EVA 7",
@@ -194,6 +223,9 @@
           ],
           "Start time": [
             "13:26"
+          ],
+          "Duration": [
+            "6:40"
           ]
         },
         "fulltext": "US EVA 8",
@@ -215,6 +247,9 @@
           ],
           "Start time": [
             "10:25"
+          ],
+          "Duration": [
+            "7:41"
           ]
         },
         "fulltext": "US EVA 9",
@@ -236,6 +271,9 @@
           ],
           "Start time": [
             "9:54"
+          ],
+          "Duration": [
+            "6:55"
           ]
         },
         "fulltext": "US EVA 10",
@@ -257,6 +295,9 @@
           ],
           "Start time": [
             "10:10"
+          ],
+          "Duration": [
+            "7:16"
           ]
         },
         "fulltext": "US EVA 11",
@@ -278,6 +319,9 @@
           ],
           "Start time": [
             "09:50"
+          ],
+          "Duration": [
+            "7:04"
           ]
         },
         "fulltext": "US EVA 12",
@@ -299,6 +343,9 @@
           ],
           "Start time": [
             "09:50"
+          ],
+          "Duration": [
+            "6:56"
           ]
         },
         "fulltext": "US EVA 13",
@@ -320,6 +367,9 @@
           ],
           "Start time": [
             "9:56"
+          ],
+          "Duration": [
+            "7:10"
           ]
         },
         "fulltext": "US EVA 14",
@@ -341,6 +391,9 @@
           ],
           "Start time": [
             "11:19"
+          ],
+          "Duration": [
+            "8:03"
           ]
         },
         "fulltext": "US EVA 15",
@@ -362,6 +415,9 @@
           ],
           "Start time": [
             "12:27"
+          ],
+          "Duration": [
+            "7:26"
           ]
         },
         "fulltext": "US EVA 16",
@@ -383,6 +439,9 @@
           ],
           "Start time": [
             "10:20"
+          ],
+          "Duration": [
+            "7:20"
           ]
         },
         "fulltext": "US EVA 17",
@@ -404,6 +463,9 @@
           ],
           "Start time": [
             "12:16"
+          ],
+          "Duration": [
+            "8:17"
           ]
         },
         "fulltext": "US EVA 18",
@@ -425,6 +487,9 @@
           ],
           "Start time": [
             "11:06"
+          ],
+          "Duration": [
+            "6:28"
           ]
         },
         "fulltext": "US EVA 19",
@@ -446,6 +511,9 @@
           ],
           "Start time": [
             "12:29"
+          ],
+          "Duration": [
+            "6:38"
           ]
         },
         "fulltext": "US EVA 20",
@@ -467,6 +535,9 @@
           ],
           "Start time": [
             "12:44"
+          ],
+          "Duration": [
+            "5:30"
           ]
         },
         "fulltext": "US EVA 21",
@@ -488,6 +559,9 @@
           ],
           "Start time": [
             "12:02"
+          ],
+          "Duration": [
+            "6:07"
           ]
         },
         "fulltext": "US EVA 22",
@@ -509,6 +583,9 @@
           ],
           "Start time": [
             "11:57"
+          ],
+          "Duration": [
+            "1:32"
           ]
         },
         "fulltext": "US EVA 23",
@@ -530,6 +607,9 @@
           ],
           "Start time": [
             "12:01"
+          ],
+          "Duration": [
+            "5:28"
           ]
         },
         "fulltext": "US EVA 24",
@@ -551,6 +631,9 @@
           ],
           "Start time": [
             "11:53"
+          ],
+          "Duration": [
+            "7:30"
           ]
         },
         "fulltext": "US EVA 25",
@@ -572,6 +655,9 @@
           ],
           "Start time": [
             "13:56"
+          ],
+          "Duration": [
+            "1:36"
           ]
         },
         "fulltext": "US EVA 26",
@@ -593,6 +679,9 @@
           ],
           "Start time": [
             "12:30"
+          ],
+          "Duration": [
+            "6:13"
           ]
         },
         "fulltext": "US EVA 27",
@@ -614,6 +703,9 @@
           ],
           "Start time": [
             "12:16"
+          ],
+          "Duration": [
+            "6:34"
           ]
         },
         "fulltext": "US EVA 28",
@@ -635,6 +727,9 @@
           ],
           "Start time": [
             "12:45"
+          ],
+          "Duration": [
+            "6:41"
           ]
         },
         "fulltext": "US EVA 29",
@@ -656,6 +751,9 @@
           ],
           "Start time": [
             "11:51"
+          ],
+          "Duration": [
+            "6:43"
           ]
         },
         "fulltext": "US EVA 30",
@@ -677,6 +775,9 @@
           ],
           "Start time": [
             "11:52"
+          ],
+          "Duration": [
+            "5:38"
           ]
         },
         "fulltext": "US EVA 31",
@@ -698,6 +799,9 @@
           ],
           "Start time": [
             "12:03"
+          ],
+          "Duration": [
+            "7:16"
           ]
         },
         "fulltext": "US EVA 32",
@@ -719,6 +823,9 @@
           ],
           "Start time": [
             "11:22"
+          ],
+          "Duration": [
+            "7:48"
           ]
         },
         "fulltext": "US EVA 33",
@@ -740,6 +847,9 @@
           ],
           "Start time": [
             "12:45"
+          ],
+          "Duration": [
+            "3:16"
           ]
         },
         "fulltext": "US EVA 34",
@@ -761,6 +871,9 @@
           ],
           "Start time": [
             "12:48"
+          ],
+          "Duration": [
+            "4:43"
           ]
         },
         "fulltext": "US EVA 35",
@@ -782,6 +895,9 @@
           ],
           "Start time": [
             "12:04"
+          ],
+          "Duration": [
+            "5:58"
           ]
         },
         "fulltext": "US EVA 36",
@@ -803,6 +919,9 @@
           ],
           "Start time": [
             "11:53"
+          ],
+          "Duration": [
+            "6:48"
           ]
         },
         "fulltext": "US EVA 37",
@@ -824,6 +943,9 @@
           ],
           "Start time": [
             "12:23"
+          ],
+          "Duration": [
+            "6:32"
           ]
         },
         "fulltext": "US EVA 38",
@@ -845,6 +967,9 @@
           ],
           "Start time": [
             "11:22"
+          ],
+          "Duration": [
+            "5:58"
           ]
         },
         "fulltext": "US EVA 39",
@@ -866,6 +991,9 @@
           ],
           "Start time": [
             "11:25"
+          ],
+          "Duration": [
+            "6:34"
           ]
         },
         "fulltext": "US EVA 40",
@@ -887,6 +1015,9 @@
           ],
           "Start time": [
             "11:29"
+          ],
+          "Duration": [
+            "7:04"
           ]
         },
         "fulltext": "US EVA 41",
@@ -908,6 +1039,9 @@
           ],
           "Start time": [
             "13:08"
+          ],
+          "Duration": [
+            "4:13"
           ]
         },
         "fulltext": "US EVA 42",
@@ -929,6 +1063,9 @@
           ],
           "Start time": [
             "11:20"
+          ],
+          "Duration": [
+            "2:46"
           ]
         },
         "fulltext": "US EVA 43",
@@ -950,6 +1087,9 @@
           ],
           "Start time": [
             "12:05"
+          ],
+          "Duration": [
+            "6:55"
           ]
         },
         "fulltext": "US EVA 44",
@@ -971,6 +1111,9 @@
           ],
           "Start time": [
             "11:56"
+          ],
+          "Duration": [
+            "6:26"
           ]
         },
         "fulltext": "US EVA 45",
@@ -992,6 +1135,9 @@
           ],
           "Start time": [
             "11:47"
+          ],
+          "Duration": [
+            "6:49"
           ]
         },
         "fulltext": "US EVA 46",
@@ -1013,6 +1159,9 @@
           ],
           "Start time": [
             "11:49"
+          ],
+          "Duration": [
+            "7:24"
           ]
         },
         "fulltext": "US EVA 47",
@@ -1034,6 +1183,9 @@
           ],
           "Start time": [
             "12:00"
+          ],
+          "Duration": [
+            "5:57"
           ]
         },
         "fulltext": "US EVA 48",
@@ -1055,6 +1207,9 @@
           ],
           "Start time": [
             "13:33"
+          ],
+          "Duration": [
+            "6:10"
           ]
         },
         "fulltext": "US EVA 49",
@@ -1076,6 +1231,9 @@
           ],
           "Start time": [
             "11:39"
+          ],
+          "Duration": [
+            "6:31"
           ]
         },
         "fulltext": "US EVA 50",
@@ -1097,6 +1255,9 @@
           ],
           "Start time": [
             "12:06"
+          ],
+          "Duration": [
+            "6:49"
           ]
         },
         "fulltext": "US EVA 51",
@@ -1118,6 +1279,9 @@
           ],
           "Start time": [
             "12:01"
+          ],
+          "Duration": [
+            "6:39"
           ]
         },
         "fulltext": "US EVA 52",
@@ -1139,6 +1303,9 @@
           ],
           "Start time": [
             "11:42"
+          ],
+          "Duration": [
+            "6:45"
           ]
         },
         "fulltext": "US EVA 53",
@@ -1160,6 +1327,9 @@
           ],
           "Start time": [
             "11:31"
+          ],
+          "Duration": [
+            "6:29"
           ]
         },
         "fulltext": "US EVA 54",
@@ -1181,6 +1351,9 @@
           ],
           "Start time": [
             "12:27"
+          ],
+          "Duration": [
+            "6:32"
           ]
         },
         "fulltext": "US EVA 55",
@@ -1202,6 +1375,9 @@
           ],
           "Start time": [
             "11:39"
+          ],
+          "Duration": [
+            "7:01"
           ]
         },
         "fulltext": "US EVA 56",
@@ -1223,6 +1399,9 @@
           ],
           "Start time": [
             "11:38"
+          ],
+          "Duration": [
+            "6:45"
           ]
         },
         "fulltext": "US EVA 57",
@@ -1244,6 +1423,9 @@
           ],
           "Start time": [
             "11:38"
+          ],
+          "Duration": [
+            "7:17"
           ]
         },
         "fulltext": "US EVA 58",
@@ -1265,6 +1447,9 @@
           ],
           "Start time": [
             "11:39"
+          ],
+          "Duration": [
+            "6:39"
           ]
         },
         "fulltext": "US EVA 59",
@@ -1286,6 +1471,9 @@
           ],
           "Start time": [
             "12:02"
+          ],
+          "Duration": [
+            "6:33"
           ]
         },
         "fulltext": "US EVA 60",
@@ -1307,6 +1495,9 @@
           ],
           "Start time": [
             "11:31"
+          ],
+          "Duration": [
+            "6:02"
           ]
         },
         "fulltext": "US EVA 61",
@@ -1328,6 +1519,9 @@
           ],
           "Start time": [
             "11:35"
+          ],
+          "Duration": [
+            "7:29"
           ]
         },
         "fulltext": "US EVA 62",
@@ -1349,6 +1543,9 @@
           ],
           "Start time": [
             "11:35"
+          ],
+          "Duration": [
+            "6:58"
           ]
         },
         "fulltext": "US EVA 63",
@@ -1370,6 +1567,9 @@
           ],
           "Start time": [
             "12:04"
+          ],
+          "Duration": [
+            "6:16"
           ]
         },
         "fulltext": "US EVA 64",
@@ -1378,31 +1578,10 @@
         "exists": "1",
         "displaytitle": ""
       },
-      "US EVA S6 Batteries": {
-        "printouts": {
-          "EVA title": [
-            "US EVA S6 Batteries"
-          ],
-          "Start date": [
-            {
-              "timestamp": "1593129600",
-              "raw": "1/2020/6/26"
-            }
-          ],
-          "Start time": [
-            "11:32"
-          ]
-        },
-        "fulltext": "US EVA S6 Batteries",
-        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_S6_Batteries",
-        "namespace": 0,
-        "exists": "1",
-        "displaytitle": ""
-      },
       "US EVA 65": {
         "printouts": {
           "EVA title": [
-            "US EVA 65"
+            "US EVA S6 Batteries: 1B EVA 1"
           ],
           "Start date": [
             {
@@ -1412,10 +1591,85 @@
           ],
           "Start time": [
             "11:35"
+          ],
+          "Duration": [
+            "6:07"
           ]
         },
         "fulltext": "US EVA 65",
         "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_65",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA 66": {
+        "printouts": {
+          "EVA title": [
+            "US EVA S6 Batteries: 1B EVA 2"
+          ],
+          "Start date": [
+            {
+              "timestamp": "1593561600",
+              "raw": "1/2020/7/1"
+            }
+          ],
+          "Start time": [
+            "11:12"
+          ],
+          "Duration": [
+            "6:01"
+          ]
+        },
+        "fulltext": "US EVA 66",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_66",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA 67": {
+        "printouts": {
+          "EVA title": [
+            "US EVA S6 Batteries: 3B EVA 1"
+          ],
+          "Start date": [
+            {
+              "timestamp": "1594857600",
+              "raw": "1/2020/7/16"
+            }
+          ],
+          "Start time": [
+            "11:10"
+          ],
+          "Duration": [
+            "6:00"
+          ]
+        },
+        "fulltext": "US EVA 67",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_67",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA 68": {
+        "printouts": {
+          "EVA title": [
+            "US EVA S6 Batteries: 3B EVA 2"
+          ],
+          "Start date": [
+            {
+              "timestamp": "1595289600",
+              "raw": "1/2020/7/21"
+            }
+          ],
+          "Start time": [
+            "11:12"
+          ],
+          "Duration": [
+            "5:29"
+          ]
+        },
+        "fulltext": "US EVA 68",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_68",
         "namespace": 0,
         "exists": "1",
         "displaytitle": ""
@@ -1427,11 +1681,14 @@
           ],
           "Start date": [
             {
-              "timestamp": "1594771200",
-              "raw": "1/2020/7/15"
+              "timestamp": "1611705600",
+              "raw": "1/2021/1/27"
             }
           ],
           "Start time": [
+            ":"
+          ],
+          "Duration": [
             ":"
           ]
         },
@@ -1448,11 +1705,14 @@
           ],
           "Start date": [
             {
-              "timestamp": "1595289600",
-              "raw": "1/2020/7/21"
+              "timestamp": "1612137600",
+              "raw": "1/2021/2/1"
             }
           ],
           "Start time": [
+            ":"
+          ],
+          "Duration": [
             ":"
           ]
         },
@@ -1469,11 +1729,14 @@
           ],
           "Start date": [
             {
-              "timestamp": "1599696000",
-              "raw": "1/2020/9/10"
+              "timestamp": "1612137600",
+              "raw": "1/2021/2/1"
             }
           ],
           "Start time": [
+            ":"
+          ],
+          "Duration": [
             ":"
           ]
         },
@@ -1490,11 +1753,14 @@
           ],
           "Start date": [
             {
-              "timestamp": "1600128000",
-              "raw": "1/2020/9/15"
+              "timestamp": "1612742400",
+              "raw": "1/2021/2/8"
             }
           ],
           "Start time": [
+            ":"
+          ],
+          "Duration": [
             ":"
           ]
         },
@@ -1504,23 +1770,74 @@
         "exists": "1",
         "displaytitle": ""
       },
-      "US EVA IPA IROSA": {
+      "US EVA P6 IROSA INSTALL": {
         "printouts": {
           "EVA title": [
             "US EVA P6 IROSA Install"
           ],
           "Start date": [
             {
-              "timestamp": "1610668800",
-              "raw": "1/2021/1/15"
+              "timestamp": "1622505600",
+              "raw": "1/2021/6/1"
             }
           ],
           "Start time": [
             ":"
+          ],
+          "Duration": [
+            ":"
           ]
         },
-        "fulltext": "US EVA IPA IROSA",
-        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_IPA_IROSA",
+        "fulltext": "US EVA P6 IROSA INSTALL",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_P6_IROSA_INSTALL",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA IROSA Prep 4A": {
+        "printouts": {
+          "EVA title": [
+            "US EVA IROSA Prep 4A"
+          ],
+          "Start date": [
+            {
+              "timestamp": "1627171200",
+              "raw": "1/2021/7/25"
+            }
+          ],
+          "Start time": [
+            ":"
+          ],
+          "Duration": [
+            ":"
+          ]
+        },
+        "fulltext": "US EVA IROSA Prep 4A",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_IROSA_Prep_4A",
+        "namespace": 0,
+        "exists": "1",
+        "displaytitle": ""
+      },
+      "US EVA IROSA Prep 3A": {
+        "printouts": {
+          "EVA title": [
+            "US EVA IROSA Prep 3A"
+          ],
+          "Start date": [
+            {
+              "timestamp": "1627689600",
+              "raw": "1/2021/7/31"
+            }
+          ],
+          "Start time": [
+            ":"
+          ],
+          "Duration": [
+            ":"
+          ]
+        },
+        "fulltext": "US EVA IROSA Prep 3A",
+        "fullurl": "https://wiki-dev.fit.nasa.gov/iss/index.php/US_EVA_IROSA_Prep_3A",
         "namespace": 0,
         "exists": "1",
         "displaytitle": ""
@@ -1529,11 +1846,11 @@
     "serializer": "SMW\\Serializers\\QueryResultSerializer",
     "version": 2,
     "meta": {
-      "hash": "74e0ade512c0311cac6b43729189c4b2",
-      "count": 71,
+      "hash": "679ec0a3496687c326e9562ef6c0a8c7",
+      "count": 75,
       "offset": 0,
       "source": "",
-      "time": "0.122478"
+      "time": "0.024871"
     }
   }
 }

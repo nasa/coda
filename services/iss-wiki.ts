@@ -1,11 +1,16 @@
 /*
 SERVER ONLY methods for fetching from wiki. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
+import { promises as fs } from "fs";
 import MWBot from "mwbot";
+import FileCookieStore from "tough-cookie-filestore";
+import request from "request";
 import { memoize } from "lodash";
-import fetch, { Response } from "node-fetch";
+import fetch from "node-fetch";
 import { padZeros } from "utils/formatting";
 import dayNight from "../mocks/fakedata/daynight.json";
+
+const COOKIE_JAR = "services/.cookies.json";
 
 export interface EVA {
   name: string;
@@ -57,6 +62,11 @@ async function _getMWBot() {
     silent: false,
   });
 
+  // just make sure the cookie jar file exists
+  try {
+    await fs.writeFile(COOKIE_JAR, "", { flag: "wx" });
+  } catch (e) {}
+
   bot.setGlobalRequestOptions({
     qs: {
       format: "json",
@@ -69,18 +79,24 @@ async function _getMWBot() {
       "X-SKIP-SAML": "True",
     },
     timeout: 10000,
-    jar: true,
+    jar: request.jar(new FileCookieStore(COOKIE_JAR)),
     json: true,
   });
 
   try {
-    await bot.loginGetEditToken({
-      username: process.env.WIKI_USER,
-      password: process.env.WIKI_PASSWORD,
-    });
+    // check if our cookies are still good. if not, log in
+    // TODO: try to hit the wiki first with the actual request
+    await bot.read("Main_Page");
   } catch (e) {
-    console.error("Wiki login unsuccessful");
-    throw e;
+    try {
+      await bot.login({
+        username: process.env.WIKI_USER,
+        password: process.env.WIKI_PASSWORD,
+      });
+    } catch (e) {
+      console.error("Wiki login unsuccessful");
+      throw e;
+    }
   }
 
   return bot;
@@ -108,7 +124,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResponse> 
   const bot = await getMWBot();
 
   try {
-    res = await bot.request({ action: "ask", method: "GET", format: "json", query });
+    res = await bot.request({ action: "ask", format: "json", query });
   } catch (e) {
     throw e;
   }
@@ -131,6 +147,8 @@ export interface EVASummaryResponse {
       "Start date": WikiTimestamp[];
       /** eg. `[ 11:38 ]` */
       "Start Time": string[];
+      /** In H:MM, eg `[ 6:32 ]`. Defaults to `[ : ]` when no duration is present */
+      Duration: string[];
     };
     /** eg. `US EVA 1` */
     fulltext: string;
@@ -143,7 +161,7 @@ export interface EVASummaryResponse {
 }
 
 /** Get a summary of all EVAs on the wiki */
-export async function getAllEVAs(): Promise<EVASummaryResponse> {
+async function _getAllEVAs(): Promise<EVASummaryResponse> {
   // wiki query parameters
   const query = `
     [[~US EVA*]]
@@ -151,11 +169,16 @@ export async function getAllEVAs(): Promise<EVASummaryResponse> {
     |? EVA title
     |? Start date
     |? Start time
+    |? Duration
     |sort=Start date
+    |limit=10000
   `;
   const res = await fetchWiki(query, "getEVAs");
   return res.query.results;
 }
+
+/** Memoized call to get a summary of all EVAs on the wiki */
+export const getAllEVAs = memoize(_getAllEVAs);
 
 /** EVA Metadata */
 interface EVADetails {
@@ -163,7 +186,7 @@ interface EVADetails {
     printouts: {
       "EVA Title": string[];
       "Start date": WikiTimestamp[];
-      /** In H:MM, eg `[ 6:32 ]` */
+      /** In H:MM, eg `[ 6:32 ]`. Defaults to `[ : ]` when no duration is present */
       Duration: string[];
     };
     /** eg. `US EVA 1` */
@@ -238,7 +261,7 @@ interface EVAAsExecuted {
 }
 
 /** Get as-executed data for a given EV on a given EVA */
-export async function getAsExecuted(evaName: string, evNum: number) {
+async function _getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
   const query = `
     [[From page::~${evaName}/*xecuted*]]
@@ -259,6 +282,9 @@ export async function getAsExecuted(evaName: string, evNum: number) {
   return parseAsExecuted(results);
 }
 
+/** Memoized call to get as-executed data for a given EV on a given EVA */
+export const getAsExecuted = memoize(_getAsExecuted);
+
 function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
 
@@ -272,6 +298,8 @@ function parseAsExecuted(results: EVAAsExecuted): Activity[] {
     green: "#28B463",
     purple: "#8E44AD",
     yellow: "#B7950B",
+    white: "#FFFFFF",
+    black: "#000000",
   };
 
   Object.keys(results).forEach((r) => {
@@ -323,7 +351,7 @@ export interface ParsedCrewResults {
 }
 
 /** Get crew assignment data for a EVA */
-export async function getCrew(evaName: string) {
+async function _getCrew(evaName: string) {
   const query = `
     [[Crew involved with subject::+]]
     [[From page::${evaName}]]
@@ -335,6 +363,9 @@ export async function getCrew(evaName: string) {
   const results: EVACrewResults = res.query.results;
   return parseCrew(results);
 }
+
+/** Memoized call to get crew assignment data for a EVA */
+export const getCrew = memoize(_getCrew);
 
 function parseCrew(results: EVACrewResults): ParsedCrewResults {
   let crewObject: ParsedCrewResults = {
@@ -395,4 +426,33 @@ function parseDayNight(results): DayNight {
     dataStartUTC: dataStartUTC,
     events: activityArray,
   };
+}
+
+/** Fetch all EVA as-planned data and format it for passing to the redux store */
+export async function buildEVAStore() {
+  const EVAs = {} as { [key: string]: EVA };
+  const evas = await getAllEVAs();
+  Object.keys(evas).forEach((evaName) => {
+    const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+    let duration = -1;
+    const [wikiDuration] = evas[evaName].printouts.Duration;
+    // for whatever reason, if no duration is specified the wiki gives us ":"
+    if (wikiDuration !== ":") {
+      const [h, m] = wikiDuration.split(":");
+      duration = +h * 3600 + +m * 60;
+    }
+    EVAs[formattedEVAName] = {
+      name: evaName,
+      wikiURL: evas[evaName].fullurl,
+      displayTitle: evas[evaName].printouts["EVA title"][0],
+      startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
+      startTime: evas[evaName].printouts["Start time"][0],
+      duration,
+      // we don't have these properties yet
+      activityPerformance: {},
+      dayNight: {},
+    };
+  });
+
+  return EVAs;
 }
