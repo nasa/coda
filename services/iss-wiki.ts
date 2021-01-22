@@ -85,6 +85,7 @@ async function _getMWBot() {
 
   try {
     // check if our cookies are still good. if not, log in
+    // TODO: try to hit the wiki first with the actual request
     await bot.read("Main_Page");
   } catch (e) {
     try {

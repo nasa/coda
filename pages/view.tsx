@@ -1,5 +1,7 @@
+import isNull from "lodash/isNull";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import Main from "components/main";
 import {
   EVA,
@@ -10,6 +12,7 @@ import {
   ParsedCrewResults,
   Activity,
   DayNight,
+  buildEVAStore,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
 import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
@@ -18,41 +21,77 @@ import {
   getDayNightMissionTime,
   getEVAStartMilliseconds,
 } from "store/evas";
+import { useRouter } from "next/router";
+import { dateAsCanonicalString } from "utils/formatting";
+import { useEffect } from "react";
+import { ClockState, diff, set } from "store/clock";
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 // /view always tries to collect newest videos from IO and updates the nav-timeline
 // /view?date=today-in-gmt is the same as /view
 // view?date=date-in-past-gmt will fetch all videos for that 24-hour period
 // leave /replay/eva alone for now
 
-export default function View({
-  initialReduxState: {
-    evas: { EVAs, selectedEVA },
-  },
-}) {
+export default function View() {
+  const {
+    // date should be in YYYY/MM/DD format
+    query: { date = null as string },
+  } = useRouter();
+  const { clock }: { clock: ClockState } = useSelector((state) => state);
+  const dispatch = useDispatch();
+
+  // make sure the application is running on the correct date
+  if (typeof window !== "undefined") {
+    let applicationDate = new Date();
+    if (date) {
+      const [Y, M, D] = (date as string).split("/");
+      applicationDate = new Date(+Y, +M, +D);
+    }
+
+    if (
+      !clock.applicationTime ||
+      Math.abs(diff(new Date(clock.applicationTime), applicationDate)) > ONE_DAY_MS
+    ) {
+      dispatch(set(applicationDate.toISOString()));
+    }
+  }
+
   // TODO: do we refetch videos here in a `useInterval?`
 
   // TODO: set the clock.applicationTime?
 
-  // TODO: here's code for getting videos
-  let videos: Videos;
-  let timingData: TimingData;
-  try {
-    // TODO: if date, break down the day into Y, M, D, otherwise get today's UTC
-    videos = await getVideoData(Y, M, D);
-    timingData = generateTimingData(videos);
-    videos = assignStartEnd(videos, timingData);
-  } catch (e) {
-    console.error(e);
-  }
-
   // TODO: check if there's an EVA on this date and ask if someone wants to redirect?
+
+  useEffect(() => {
+    (async () => {
+      let videos: Videos;
+      let timingData: TimingData;
+
+      if (isNull(clock.applicationTime)) {
+        return;
+      }
+
+      const d = new Date(clock.applicationTime);
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+
+      try {
+        // video data for this EVA
+        videos = await getVideoData(year, month + 1, day);
+        timingData = generateTimingData(videos);
+        videos = assignStartEnd(videos, timingData);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [clock.applicationTime]);
 
   return (
     <div>
       <Head>
-        <title>
-          {EVAs[selectedEVA].name} | {process.env.TITLE}
-        </title>
+        <title>Viewer | {process.env.TITLE}</title>
       </Head>
       <Main />
     </div>
@@ -66,32 +105,10 @@ export default function View({
 export const getStaticProps: GetServerSideProps = async () => {
   let evaOnDate = null as string;
   let evaErrorMessage = "";
-  let videosErrorMessage = "";
 
-  const EVAs = {} as { [key: string]: EVA };
-  let EVACrew = {} as ParsedCrewResults;
+  let EVAs: { [key: string]: EVA };
   try {
-    const evas = await getAllEVAs();
-    Object.keys(evas).forEach((eva) => {
-      const formattedEVAName = eva.replace(/ /g, "_").toLowerCase();
-      EVAs[formattedEVAName] = {
-        name: eva,
-        wikiURL: evas[eva].fullurl,
-        displayTitle: evas[eva].printouts["EVA title"][0],
-        startDate: evas[eva].printouts["Start date"][0].raw.substring(2),
-        startTime: evas[eva].printouts["Start time"][0],
-        // we don't have these properties yet
-        duration: -1,
-        activityPerformance: {},
-        dayNight: {},
-      };
-
-      if (evas[eva].printouts["duration"].length === 1) {
-        const [h, m] = evas[eva].printouts["duration"][0].split(":");
-        const duration = +h * 3600 + +m * 60;
-        EVAs[formattedEVAName].duration = duration;
-      }
-    });
+    EVAs = await buildEVAStore();
   } catch (e) {
     console.error(e);
     evaErrorMessage = "Error fetching EVA list";
@@ -112,7 +129,7 @@ export const getStaticProps: GetServerSideProps = async () => {
         evas: {
           EVAs,
           selectedEVA: evaOnDate,
-          EVACrew,
+          EVACrew: {},
           errorMessage: evaErrorMessage,
         },
         videos: {
@@ -129,7 +146,7 @@ export const getStaticProps: GetServerSideProps = async () => {
             left: true,
             right: true,
           },
-          errorMessage: videosErrorMessage,
+          errorMessage: "",
         },
       },
     },

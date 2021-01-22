@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime } from "store/clock";
 import {
@@ -8,8 +8,10 @@ import {
   pickVideoFile,
   ready,
   selectVideoActivity,
+  VideoActivity,
   VideosState,
 } from "store/videos";
+import { dateAsCanonicalString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
 
@@ -34,7 +36,11 @@ function Videos() {
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
     (state) => state
   );
-  const videoActivity = selectVideoActivity(videos);
+  let videoActivity = null as VideoActivity;
+
+  if (Object.keys(videos.videos).length > 0) {
+    videoActivity = selectVideoActivity(videos);
+  }
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -57,6 +63,11 @@ function Videos() {
       return;
     }
     missionTime = newMissionTime;
+
+    // we can't update videos if we don't have videos
+    if (!videoActivity) {
+      return;
+    }
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
@@ -119,13 +130,11 @@ function Videos() {
 
     // default video info
     let videoURL = "";
-    let downlinkDisplay = "No video available";
     let vidInfo = "";
     if (videoID !== "") {
       const video = videos.videos[videoID];
       videoURL = video.videoURL;
       vidInfo = video.description;
-      downlinkDisplay = video.content;
     } else {
       if (!videos.ready[name]) {
         // there is no video for right now, so don't block the clock
@@ -205,20 +214,27 @@ function Videos() {
       mutedClass = mutedRight === true ? styles.unmute : styles.mute;
     }
 
+    let currentMissionTime = getMissionTime(clock);
+
+    const buttonClass = (g, name) => {
+      let ret = styles.vidButton;
+      if (g === videos.selectedGroups[name]) {
+        ret = `${ret} ${styles.selected}`;
+      }
+      if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
+        ret = `${ret} ${styles.active}`;
+      }
+      return ret;
+    };
+
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
-          let currentMissionTime = getMissionTime(clock);
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={`${styles.vidButton}
-              ${g === videos.selectedGroups[name] && styles.selected}
-              ${videoActivity[g][currentMissionTime].length > 0 && styles.active}
-              ${g === 0 && styles.first}
-              ${g === 6 && styles.last}
-              `}
+              className={buttonClass(g, name)}
               onClick={() => dispatch(pickGroup({ name, group: g }))}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}

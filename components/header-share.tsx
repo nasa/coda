@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useSelector, useStore } from "react-redux";
 import { getApplicationUTC } from "store/clock";
-import { timeFromZuluDate } from "utils/formatting";
+import { dateAsCanonicalString, timeFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 
@@ -12,7 +12,9 @@ export default function HeaderShare() {
   } = useSelector((state) => state);
 
   const { clock } = store.getState();
-  const EVADate = EVAs[selectedEVA].startDate;
+
+  // TODO: the fallback should be the day the user is on in /view
+  const EVADate = EVAs[selectedEVA]?.startDate || dateAsCanonicalString(new Date());
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
@@ -47,7 +49,6 @@ export default function HeaderShare() {
 
   function handleRequestClose() {
     setIsOpen(false);
-    // console.log("handleRequestClose()");
   }
 
   return (

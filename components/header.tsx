@@ -38,14 +38,6 @@ function Header() {
     }
   }, 50);
 
-  /**
-   * Navigate to another EVA
-   */
-  const handleEVASelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    e.preventDefault();
-    router.push(`/replay/${e.target.value}`);
-  };
-
   let renderTime = "00:00:00";
   if (appValue) {
     const dt = new Date(appValue);
@@ -86,7 +78,7 @@ function Header() {
                 className={styles.dateTime}
                 id="missionDate"
                 name="missionDate"
-                value={EVAs[selectedEVA].startDate || "2019-08-21"}
+                value={EVAs[selectedEVA]?.startDate || "2019-08-21"}
                 style={{
                   width: "80px",
                   borderTopLeftRadius: "5px",
