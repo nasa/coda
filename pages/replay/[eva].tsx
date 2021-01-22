@@ -1,4 +1,3 @@
-import get from "lodash/get";
 import type { GetServerSideProps, GetStaticPaths } from "next";
 import Head from "next/head";
 import Main from "components/main";
@@ -22,7 +21,7 @@ import {
 } from "store/evas";
 import { diff } from "store/clock";
 
-function Replay({
+export default function Replay({
   initialReduxState: {
     evas: { EVAs, selectedEVA },
   },
@@ -188,5 +187,3 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     revalidate: 1,
   };
 };
-
-export default Replay;
