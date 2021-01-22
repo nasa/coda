@@ -13,7 +13,12 @@ import {
   DayNight,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
-import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
+import {
+  assignStartEnd,
+  generateTimingData,
+  TimingData,
+  initialState as videosInitialState,
+} from "store/videos";
 import {
   getActivityPerformanceMissionTime,
   getDayNightMissionTime,
@@ -133,19 +138,9 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
           errorMessage: evaErrorMessage,
         },
         videos: {
-          videos,
-          selectedGroups: {
-            left: 0,
-            right: 1,
-          },
-          activeVideoFiles: {
-            left: "",
-            right: "",
-          },
-          ready: {
-            left: true,
-            right: true,
-          },
+          videos: jsonifiedVideoFiles,
+          activeVideoFiles: videosInitialState.activeVideoFiles,
+          ready: videosInitialState.ready,
           errorMessage: videosErrorMessage,
         },
       },

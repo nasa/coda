@@ -24,10 +24,11 @@ export default function Videos() {
   // see https://nextjs.org/docs/routing/dynamic-routes
   // FYI: the syntax here is how you declare default parameters and types simultaneously for a destructured object with TS
   // see https://mariusschulz.com/blog/typing-destructured-object-parameters-in-typescript
+  // get query parameters asking for specific video downlink sources
   const {
-    query: { group1 = null, group2 = null },
+    query: { left = 1, right = 2 },
   }: {
-    query: { group1?: number; group2?: number };
+    query: { left?: number; right?: number };
   } = useRouter();
 
   const store = useStore();
@@ -40,6 +41,9 @@ export default function Videos() {
   if (Object.keys(videos.videos).length > 0) {
     videoActivity = selectVideoActivity(videos);
   }
+
+  const [leftVideo, setLeftVideo] = useState(left - 1);
+  const [rightVideo, setRightVideo] = useState(right - 1);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -70,7 +74,7 @@ export default function Videos() {
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
-      const group = videos.selectedGroups[name];
+      const group = name === "left" ? leftVideo : rightVideo;
       const activeVideoFileID = videos.activeVideoFiles[name];
       const videosNextSecond = videoActivity[group][missionTime + 1];
 
@@ -229,12 +233,20 @@ export default function Videos() {
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
+          let currentMissionTime = getMissionTime(clock);
+          const group = name === "left" ? leftVideo : rightVideo;
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
               className={buttonClass(g, name)}
-              onClick={() => dispatch(pickGroup({ name, group: g }))}
+              onClick={() => {
+                if (name === "left") {
+                  setLeftVideo(g);
+                } else {
+                  setRightVideo(g);
+                }
+              }}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
             </button>

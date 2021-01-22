@@ -6,8 +6,6 @@ import { isSameDate } from "./clock";
 export interface VideosState {
   /** Keyed by the ID of the video, @see {VideoFile.id} */
   videos: { [key: string]: VideoFile };
-  /** Match the video player to a group, @see {VideoFile.group}. Keyed by the name of the video player */
-  selectedGroups: { [key: string]: number };
   /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the name of the video player */
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
@@ -20,10 +18,6 @@ export interface VideosState {
 
 export const initialState: VideosState = {
   videos: {},
-  selectedGroups: {
-    left: 0,
-    right: 1,
-  },
   activeVideoFiles: {
     left: "",
     right: "",
@@ -40,11 +34,6 @@ export const videoSlice = createSlice({
   name: "video",
   initialState,
   reducers: {
-    /** Pick a video group to play on a named `<VideoPlayer />` */
-    pickGroup: (state, action: { payload: { name: string; group: number } }) => {
-      state.selectedGroups[action.payload.name] = action.payload.group;
-    },
-
     /** Set the video file ID to play on a named `<VideoPlayer />` */
     pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
@@ -68,7 +57,7 @@ export const videoSlice = createSlice({
   },
 });
 
-export const { pickGroup, pickVideoFile, ready, buffering, add } = videoSlice.actions;
+export const { pickVideoFile, ready, buffering, add } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
