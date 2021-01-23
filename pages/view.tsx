@@ -14,8 +14,15 @@ import {
   DayNight,
   buildEVAStore,
 } from "services/iss-wiki";
-import getVideoData, { Videos } from "services/io";
-import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
+import getVideoData, { buildVideoStore, Videos } from "services/io";
+import {
+  add as addVideos,
+  assignStartEnd,
+  generateTimingData,
+  haveVideosFromDate,
+  TimingData,
+  VideosState,
+} from "store/videos";
 import {
   getActivityPerformanceMissionTime,
   getDayNightMissionTime,
@@ -38,15 +45,17 @@ export default function View() {
     // date should be in YYYY/MM/DD format
     query: { date = null as string },
   } = useRouter();
-  const { clock }: { clock: ClockState } = useSelector((state) => state);
+  const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
+    (state) => state
+  );
   const dispatch = useDispatch();
 
   // make sure the application is running on the correct date
   if (typeof window !== "undefined") {
     let applicationDate = new Date();
     if (date) {
-      const [Y, M, D] = (date as string).split("/");
-      applicationDate = new Date(+Y, +M, +D);
+      const [Y, M, D] = (date as string).split("/").map(Number);
+      applicationDate = new Date(Y, M - 1, D);
     }
 
     if (
@@ -57,34 +66,34 @@ export default function View() {
     }
   }
 
-  // TODO: do we refetch videos here in a `useInterval?`
-
-  // TODO: set the clock.applicationTime?
-
   // TODO: check if there's an EVA on this date and ask if someone wants to redirect?
 
   useEffect(() => {
     (async () => {
-      let videos: Videos;
-      let timingData: TimingData;
-
       if (isNull(clock.applicationTime)) {
         return;
       }
 
       const d = new Date(clock.applicationTime);
+
+      // make sure we don't already have videos for this date
+      if (haveVideosFromDate(videos.videos, d)) {
+        return;
+      }
+
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
 
+      let videoStore: Videos;
       try {
         // video data for this EVA
-        videos = await getVideoData(year, month + 1, day);
-        timingData = generateTimingData(videos);
-        videos = assignStartEnd(videos, timingData);
+        videoStore = await buildVideoStore(year, month + 1, day);
       } catch (e) {
         console.error(e);
       }
+
+      dispatch(addVideos({ videos: videoStore }));
     })();
   }, [clock.applicationTime]);
 
@@ -103,7 +112,7 @@ export default function View() {
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
  */
 export const getStaticProps: GetServerSideProps = async () => {
-  let evaOnDate = null as string;
+  let evaOnDate = "";
   let evaErrorMessage = "";
 
   let EVAs: { [key: string]: EVA };

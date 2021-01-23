@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { Videos, VideoFile } from "services/io";
+import { isSameDate } from "./clock";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {
@@ -55,10 +56,15 @@ export const videoSlice = createSlice({
     buffering: (state, action: { payload: string }) => {
       state.ready[action.payload] = false;
     },
+
+    /** Add new video files to the store */
+    add: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
+      state.videos = { ...state.videos, ...action.payload.videos };
+    },
   },
 });
 
-export const { pickGroup, pickVideoFile, ready, buffering } = videoSlice.actions;
+export const { pickGroup, pickVideoFile, ready, buffering, add } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
@@ -133,11 +139,14 @@ export const assignStartEnd = (videos: Videos, timingData: TimingData) => {
 /**
  * Get an array of video files sorted by priority and duration with mission timeframes
  */
-export const selectVideoFiles = createSelector(videosSelector, (videos) => {
-  const videoFiles = Object.keys(videos).map((v) => videos[v]);
-  videoFiles.sort(videoSorter);
-  return videoFiles;
-});
+export const selectVideoFiles = createSelector(
+  videosSelector,
+  (videos: { [key: string]: VideoFile } = {}) => {
+    const videoFiles = Object.keys(videos).map((v) => videos[v]);
+    videoFiles.sort(videoSorter);
+    return videoFiles;
+  }
+);
 
 /**
  * Nested as:
@@ -190,3 +199,14 @@ export const selectVideoActivity = createSelector(
     return res;
   }
 );
+
+/** Quick check to see if we have _any_ videos from a given UTC date in our store */
+export const haveVideosFromDate = (videos: { [key: string]: VideoFile }, date: Date): boolean => {
+  const files = selectVideoFiles(videos) as VideoFile[];
+  for (let f of files) {
+    if (isSameDate(f.start, date)) {
+      return true;
+    }
+  }
+  return false;
+};

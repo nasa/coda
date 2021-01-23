@@ -135,3 +135,18 @@ const add = (d: Date, ms: number): Date => {
   ret.setUTCMilliseconds(currentMS + ms);
   return ret;
 };
+
+/**
+ * Whether or not two dates are the same UTC date
+ */
+export const isSameDate = (a: Date, b: Date): boolean => {
+  const Y1 = a.getUTCFullYear();
+  const M1 = a.getUTCMonth();
+  const D1 = a.getUTCDate();
+
+  const Y2 = b.getUTCFullYear();
+  const M2 = b.getUTCMonth();
+  const D2 = b.getUTCDate();
+
+  return Y1 === Y2 && M1 === M2 && D1 === D2;
+};

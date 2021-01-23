@@ -2,6 +2,7 @@
 Methods for fetching from Imagery Online (IO)
 */
 import fetch from "isomorphic-unfetch";
+import { assignStartEnd, generateTimingData } from "store/videos";
 import { padZeros } from "utils/formatting";
 
 if (typeof window === "undefined") {
@@ -154,17 +155,17 @@ async function fetchIO(params: string): Promise<IOResponse> {
 export default async function getVideoData(
   year: number,
   month: number,
-  day: number
+  date: number
 ): Promise<Videos> {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
-  const rangeStartDay = padZeros(day, 2);
+  const rangeStartDate = padZeros(date, 2);
   const rangeEndYear = year;
   const rangeEndMonth = padZeros(month, 2);
-  const rangeEndDay = padZeros(day, 2);
+  const rangeEndDate = padZeros(date, 2);
 
-  const rangeStartIO = `${rangeStartMonth}-${rangeStartDay}-${rangeStartYear}`;
-  const rangeEndIO = `${rangeEndMonth}-${rangeEndDay}-${rangeEndYear}`;
+  const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
+  const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 
@@ -271,4 +272,18 @@ export function getChannel(collectionStrings: string[]): string {
     }
   }
   return "";
+}
+
+/**
+ * Fetch and format all videos for passing to the redux store
+ */
+export async function buildVideoStore(
+  year: number,
+  month: number,
+  date: number
+): Promise<{ [key: string]: VideoFile }> {
+  let videos = await getVideoData(year, month, date);
+  const timingData = generateTimingData(videos);
+  videos = assignStartEnd(videos, timingData);
+  return videos;
 }
