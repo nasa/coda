@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import paper from "paper";
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getMissionTime, set } from "store/clock";
+import { ClockState, getApplicationUTC, getMissionTime, set } from "store/clock";
 import { evaSelector, EVAsState, selectEVAStartMilliseconds } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
 import useInterval from "utils/useInterval";
@@ -18,16 +18,9 @@ let drawNav: DrawNav;
  * Renders the navigation timeline presented at the top of the CODA window
  */
 function NavTimeline() {
-  const {
-    query: { utc = null, pet = null },
-  }: {
-    query: {
-      utc?: number;
-      pet?: number;
-    };
-  } = useRouter();
   const store = useStore();
   const {
+    clock,
     evas,
     videos,
   }: {
@@ -38,7 +31,11 @@ function NavTimeline() {
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
-  const { activityPerformance, dayNight, startDate } = evaSelector(evas);
+  let ap;
+  let dn;
+  let sd;
+
+  const eva = evaSelector(evas);
 
   const canvas = useRef();
 
@@ -47,6 +44,9 @@ function NavTimeline() {
     if (drawNav) {
       return;
     }
+
+    const dayNight = eva?.dayNight || null;
+    const activityPerformance = eva?.activityPerformance || null;
 
     drawNav = new DrawNav(timingData, videoFiles, dayNight, activityPerformance);
 
@@ -74,9 +74,12 @@ function NavTimeline() {
     };
     paper.view.onMouseUp = (event) => {
       drawNav.handleMouseUp(event, (hh: number, mm: number, ss: number) => {
-        const [Y, M, D] = startDate.split("/");
+        const utc = getApplicationUTC(clock);
+        const Y = utc.getUTCFullYear();
+        const M = utc.getUTCMonth();
+        const D = utc.getUTCDate();
         // time is in Zulu time. we need to convert to UTC
-        const dt = new Date(Date.UTC(+Y, +M - 1, +D, hh, mm, ss));
+        const dt = new Date(Date.UTC(Y, M - 1, D, hh, mm, ss));
         dispatch(set(dt.toISOString()));
       });
     };

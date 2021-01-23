@@ -1,6 +1,7 @@
+import isNull from "lodash/isNull";
 import paper from "paper";
 import { VideoFile } from "services/io";
-import { Activity } from "services/iss-wiki";
+import { Activity, DayNight } from "services/iss-wiki";
 import { TimingData } from "store/videos";
 import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
 
@@ -57,7 +58,7 @@ export default class DrawNav {
   constructor(
     readonly timingData: TimingData,
     readonly videoFiles: VideoFile[],
-    readonly dayNight: any,
+    readonly dayNight: DayNight,
     readonly activityPerformance: {
       [x: string]: Activity[];
     }
@@ -136,9 +137,13 @@ export default class DrawNav {
 
     //display EV activity
 
-    this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
-    this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
-    this.drawTier1EVActivity(9, this.dayNight.events); // row 10 for day night  //TODO: pending access to this data for all EVAs. Wiki currently uncooperative.
+    if (!isNull(this.activityPerformance)) {
+      this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
+      this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
+    }
+    if (!isNull(this.dayNight)) {
+      this.drawTier1EVActivity(9, this.dayNight.events); // row 10 for day night  //TODO: pending access to this data for all EVAs. Wiki currently uncooperative.
+    }
   }
 
   drawTier1EVActivity(rowNum, evActivityArray: Activity[]) {
@@ -331,9 +336,13 @@ export default class DrawNav {
       }
     }
 
-    this.drawTier2EVActivity(0, this.activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
-    this.drawTier2EVActivity(1, this.activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
-    this.drawTier2EVActivity(2, this.dayNight.events, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    if (!isNull(this.activityPerformance)) {
+      this.drawTier2EVActivity(0, this.activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
+      this.drawTier2EVActivity(1, this.activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
+    }
+    if (!isNull(this.dayNight)) {
+      this.drawTier2EVActivity(2, this.dayNight.events, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    }
   }
 
   drawTier2EVActivity = (evRow, evActivityArray, secondsOnTier2) => {

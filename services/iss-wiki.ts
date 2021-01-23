@@ -24,10 +24,7 @@ export interface EVA {
   duration: number;
   /** Activity performance keyed by EV */
   activityPerformance: { [key: string]: Activity[] };
-  dayNight: {
-    dataStartUTC?: number;
-    events?: Activity[];
-  };
+  dayNight: DayNight;
 }
 
 export interface Activity {
@@ -410,8 +407,8 @@ function parseCrew(results: EVACrewResults): ParsedCrewResults {
 }
 
 export interface DayNight {
-  dataStartUTC: number;
-  events: Activity[];
+  dataStartUTC?: number;
+  events?: Activity[];
 }
 
 export async function getDayNight(evaName: string) {
@@ -475,7 +472,7 @@ export async function buildEVAStore() {
       startTime: evas[evaName].printouts["Start time"][0],
       duration,
       // we don't have these properties yet
-      activityPerformance: {},
+      activityPerformance: { EV1: [], EV2: [] },
       dayNight: {},
     };
   });

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { getApplicationUTC, getMissionTime, set } from "store/clock";
-import { timeFromZuluDate } from "utils/formatting";
+import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
@@ -16,7 +16,6 @@ let missionTime = null;
  * Renders the top bar of CODA
  */
 function Header() {
-  const router = useRouter();
   const dispatch = useDispatch();
   const store = useStore();
   const {
@@ -39,9 +38,11 @@ function Header() {
   }, 50);
 
   let renderTime = "00:00:00";
+  let renderDate = "2019-08-21";
   if (appValue) {
     const dt = new Date(appValue);
     renderTime = timeFromZuluDate(dt);
+    renderDate = shortdateFromZuluDate(dt);
   }
 
   return (
@@ -78,9 +79,9 @@ function Header() {
                 className={styles.dateTime}
                 id="missionDate"
                 name="missionDate"
-                value={EVAs[selectedEVA]?.startDate || "2019-08-21"}
+                value={renderDate}
                 style={{
-                  width: "80px",
+                  width: "88px",
                   borderTopLeftRadius: "5px",
                   borderBottomLeftRadius: "5px",
                   marginRight: "1px",
