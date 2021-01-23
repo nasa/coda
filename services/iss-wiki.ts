@@ -112,7 +112,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResponse> 
   let res: WikiResponse;
 
   // we're in the local environment. fake the request using a mock service worker
-  if (process.env.APP_ENV === "local") {
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
     const res = await fetch(process.env.WIKI_API_URL, {
       headers: {
         "X-MOCK-ACTION": action,

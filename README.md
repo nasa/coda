@@ -24,15 +24,15 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 
 2. Install JavaScript dependencies: `npm i`
 3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
-4. (Optional) Create a `.env` file at the root of the repo. It must contain:
+4. (Optional) Create a `.env.local` file at the root of the repo. It must contain:
 
 ```
-IO_KEY="the-auth-key-we-have-for-io"
-WIKI_USER="the-wiki-bot-account-username"
-WIKI_PASSWORD="and-the-associated-password"
+WIKI_USER=the-wiki-bot-account-username
+WIKI_PASSWORD=and-the-associated-password
+NEXT_PUBLIC_IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
 ```
 
-Ask Ben or Cameron for the key if you don't have it.
+Ask Ben, James, or Cameron for the keys and account info if you don't have them.
 
 ### Dev Server
 

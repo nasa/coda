@@ -8,5 +8,5 @@ node_modules/
 .next/
 
 # don't commit secrets!
-.env
+.env*
 **/*/.cookies.json
