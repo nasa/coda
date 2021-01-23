@@ -40,7 +40,7 @@ export interface Activity {
   endTimeSeconds?: number;
 }
 
-interface WikiResponse {
+interface WikiResults {
   query: {
     printrequests: {
       label: string;
@@ -54,6 +54,21 @@ interface WikiResponse {
   };
 }
 
+interface WikiResponse {
+  errorResponse: boolean;
+  code: string;
+  info: string;
+  response: {
+    error: {
+      code: string;
+      info: string;
+      "*": string;
+    };
+  };
+  request: Request;
+}
+
+/** Get a read-only "bot" for the wiki */
 async function _getMWBot() {
   const apiUrl = process.env.WIKI_API_URL;
   const bot = new MWBot({
@@ -83,33 +98,18 @@ async function _getMWBot() {
     json: true,
   });
 
-  try {
-    // check if our cookies are still good. if not, log in
-    // TODO: try to hit the wiki first with the actual request
-    await bot.read("Main_Page");
-  } catch (e) {
-    try {
-      await bot.login({
-        username: process.env.WIKI_USER,
-        password: process.env.WIKI_PASSWORD,
-      });
-    } catch (e) {
-      console.error("Wiki login unsuccessful");
-      throw e;
-    }
-  }
-
   return bot;
 }
 
+/** Memoized get of a read-only "bot" for the wiki */
 const getMWBot = memoize(_getMWBot);
 
 /**
  * Perform a query against the ISS Wiki with the given query parameters
  * @param action Optional string for specifying the action type for local mocking
  */
-async function fetchWiki(query: string, action?: string): Promise<WikiResponse> {
-  let res: WikiResponse;
+async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
+  let res: WikiResults;
 
   // we're in the local environment. fake the request using a mock service worker
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
@@ -124,11 +124,37 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResponse> 
   const bot = await getMWBot();
 
   try {
+    // optmistically try to fetch from the wiki before we know for sure we're logged in
     res = await bot.request({ action: "ask", format: "json", query });
   } catch (e) {
-    throw e;
+    if (isAPIError(e)) {
+      // we weren't logged in. let's log in
+      try {
+        await bot.login({
+          username: process.env.WIKI_USER,
+          password: process.env.WIKI_PASSWORD,
+        });
+      } catch (e) {
+        console.error("Wiki login unsuccessful");
+        throw e;
+      }
+    } else {
+      throw e;
+    }
+    // we are logged in now. retry the request
+    try {
+      res = await bot.request({ action: "ask", format: "json", query });
+    } catch (e) {
+      console.error("Wiki request error");
+      throw e;
+    }
   }
   return res;
+}
+
+/** Checks if the response from the wiki mean we aren't logged in */
+function isAPIError(e: any | WikiResponse): e is WikiResponse {
+  return e.errorResponse && e.code === "readapidenied";
 }
 
 interface WikiTimestamp {
