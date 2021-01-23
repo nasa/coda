@@ -218,22 +218,32 @@ export default function Videos() {
 
     let currentMissionTime = getMissionTime(clock);
 
+    const buttonClass = (g, name) => {
+      let ret = styles.vidButton;
+      if (name === "left") {
+        if (g === leftVideo) {
+          ret = `${ret} ${styles.selected}`;
+        }
+      } else {
+        if (g === rightVideo) {
+          ret = `${ret} ${styles.selected}`;
+        }
+      }
+      if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
+        ret = `${ret} ${styles.active}`;
+      }
+      return ret;
+    };
+
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
           const group = name === "left" ? leftVideo : rightVideo;
-
-          let buttonClassStyle = styles.vidButton;
-          if (g === group) {
-            buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
-          } else if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
-            buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
-          }
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={buttonClassStyle}
+              className={buttonClass(g, name)}
               onClick={() => {
                 if (name === "left") {
                   setLeftVideo(g);

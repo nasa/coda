@@ -1,6 +1,6 @@
 {
   "name": "coda",
-  "version": "0.1",
+  "version": "0.0.2",
   "description": "Collaborative Operations Data Activation",
   "main": "index.js",
   "scripts": {
