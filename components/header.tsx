@@ -184,7 +184,7 @@ function Header() {
       <div className={styles.rightSection}>
         <div className={styles.headerElementContainer}>
           <div className={styles.version}>
-            Alpha v{config.version}
+            Beta v{config.version}
             <br />
             Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>
