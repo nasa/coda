@@ -10,6 +10,12 @@ if (typeof window === "undefined") {
   require("win-ca");
 }
 
+let mockIOData: IOResponse;
+if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+  // get mock data for later
+  mockIOData = require("../mocks/fakedata/io.json");
+}
+
 /**
  * Response from a search on Imagery Online
  */
@@ -28,25 +34,25 @@ type IOResponse = {
 
 /** Represents a single video search result as received from IO */
 type Doc = {
-  audio_file_restricted: 0 | 1;
-  hh: 0 | 1;
+  audio_file_restricted: 0 | 1 | number;
+  hh: 0 | 1 | number;
   duration_seconds: number;
   on_public_site: number;
   tw: number;
   md_online_01: number;
-  on_flickr: 0 | 1;
+  on_flickr: 0 | 1 | number;
   lw: number;
   hw: number;
   /** Title of the EVA, eg. `US EVA 55` */
-  md_title: string;
-  description: string;
+  md_title?: string;
+  description?: string;
   md_orbit_ground: number;
-  has_audio_file: 0 | 1;
+  has_audio_file: 0 | 1 | number;
   asset_type: number;
   /** eg. `mp4` - just the extension, no leading dot */
   file_extension_video: string;
   /** eg. `iss060m532` */
-  nasa_prefix: string;
+  nasa_prefix?: string;
   /**
    * eg. `iss060m532331624`. There is an exception for video recorded during LOS
    * Breakdown:
@@ -68,19 +74,19 @@ type Doc = {
   id: number;
   metadata_template: number;
   /** The suffix is found at the end of .nasa_id, eg. `331624` */
-  nasa_suffix: number;
+  nasa_suffix?: number;
   /** eg. `jpg` - just the extension, no leading dot */
   file_extension_lores: string;
   /** eg. `["P2344036/ISS Missions|ISS-060|Video|US Downlink|Channel 03"]` */
   collections_string: string[];
   avg_rating: number;
-  collections: number[];
+  collections: (string | number)[];
   file_extension_thum: string;
   /** UTC eg. `2019-08-21T14:47:22Z` */
   date_added: string;
   flickr_photo_id: number;
   th: number;
-  collections_list: number[];
+  collections_list: (string | number)[];
   /** UTC eg. `2019-08-21T17:11:12Z` */
   md_creation_date: string;
   lh: number;
@@ -114,10 +120,15 @@ export interface Videos {
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
-  const url = `${process.env.IO_API_URL}&${params}&as=2?key=${process.env.IO_KEY}&format=json`;
-  const proxied = `https://coda-dev.fit.nasa.gov/CODA_ISS/getio.php?IOParam=${encodeURIComponent(
-    url
-  )}`;
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    // mock the request with local data
+    return Promise.resolve(mockIOData);
+  }
+
+  let url = `${process.env.IO_API_URL}&${params}&as=2?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
+  // IO doesn't currently like our Origin and key so we need to use a proxy
+  url = `${process.env.IO_PROXY_ORIGIN}/CODA_ISS/getio.php?IOParam=${encodeURIComponent(url)}`;
+
   const options = {
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
@@ -130,7 +141,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
 
   let res: Response;
   try {
-    res = await fetch(proxied, options);
+    res = await fetch(url, options);
   } catch (e) {
     throw e;
   }
