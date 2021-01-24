@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime } from "store/clock";
 import {
@@ -209,30 +209,28 @@ export default function Videos() {
     }
 
     return (
-      <div key={`video_element__${name}`} className={styles.foo}>
-        <div className={styles.vidContainer}>
-          <video
-            ref={players[name]}
-            className={styles.player}
-            muted={muted}
-            src={videoURL}
-            poster={posterURL}
-            onCanPlay={() => {
-              dispatch(ready(name));
-            }}
-            onEnded={() => {
-              // ready up because we don't want a missing video to hold up the clock
-              dispatch(ready(name));
-            }}
-            onWaiting={() => {
-              if (videos.ready[name] && videoID !== "") {
-                dispatch(buffering(name));
-              }
-            }}
-          ></video>
-          <div className={styles.vidOverlay}>
-            <div className={styles.vidInfo}>{vidInfo}</div>
-          </div>
+      <div key={`video_element__${name}`} className={styles.vidContainer}>
+        <video
+          ref={players[name]}
+          className={styles.player}
+          muted={muted}
+          src={videoURL}
+          poster={posterURL}
+          onCanPlay={() => {
+            dispatch(ready(name));
+          }}
+          onEnded={() => {
+            // ready up because we don't want a missing video to hold up the clock
+            dispatch(ready(name));
+          }}
+          onWaiting={() => {
+            if (videos.ready[name] && videoID !== "") {
+              dispatch(buffering(name));
+            }
+          }}
+        ></video>
+        <div className={styles.vidOverlay}>
+          <div className={styles.vidInfo}>{vidInfo}</div>
         </div>
       </div>
     );

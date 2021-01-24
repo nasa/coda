@@ -12,7 +12,10 @@
 
 .player {
   width: 100%;
-  z-index: 0;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 .thumbPlayer {
   width: 100px;
@@ -20,6 +23,9 @@
 }
 
 .vidContainer {
+  width: 100%;
+  padding-top: 75%;
+  height: 0px;
   position: relative;
 }
 .vidContainer:hover .vidOverlay {
