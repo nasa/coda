@@ -35,6 +35,7 @@ export default function Videos() {
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
     (state) => state
   );
+
   let videoActivity = null as VideoActivity;
 
   if (Object.keys(videos.videos).length > 0) {
@@ -173,6 +174,11 @@ export default function Videos() {
 
     const muted = name === "left" ? mutedLeft : mutedRight;
 
+    let posterURL = "/images/test-pattern-bw_640.png";
+    if (videos.status[name] === "buffering") {
+      posterURL = "/images/eva_loader_bw.gif";
+    }
+
     return (
       <div key={`video_element__${name}`} className={styles.foo}>
         <div className={styles.vidContainer}>
@@ -181,7 +187,7 @@ export default function Videos() {
             className={styles.player}
             muted={muted}
             src={videoURL}
-            poster="/images/novid.jpg"
+            poster={posterURL}
             onCanPlay={() => {
               dispatch(ready(name));
             }}

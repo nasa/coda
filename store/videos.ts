@@ -10,12 +10,15 @@ export interface VideosState {
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
   ready: { [key: string]: boolean };
+  /**buffering or playing or novid*/
+  status: { [key: string]: string };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
   /** UTC string of the last time we hit IO */
   lastChecked: string;
 }
 
+//TODO: Very confusing. These are not where the actual defaults are stored. They are in [eva].tsx and now view.tsx as well
 export const initialState: VideosState = {
   videos: {},
   activeVideoFiles: {
@@ -25,6 +28,10 @@ export const initialState: VideosState = {
   ready: {
     left: true,
     right: true,
+  },
+  status: {
+    left: "",
+    right: "",
   },
   errorMessage: "",
   lastChecked: "",
@@ -42,11 +49,13 @@ export const videoSlice = createSlice({
     /** Mark videos are ready to be played. The payload is the video player name */
     ready: (state, action: { payload: string }) => {
       state.ready[action.payload] = true;
+      state.status[action.payload] = "ready";
     },
 
     /** Mark videos as not ready to be played. The payload is the video player name */
     buffering: (state, action: { payload: string }) => {
       state.ready[action.payload] = false;
+      state.status[action.payload] = "buffering";
     },
 
     /** Add new video files to the store */
