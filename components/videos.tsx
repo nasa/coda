@@ -43,6 +43,7 @@ export default function Videos() {
     videoActivity = selectVideoActivity(videos);
   }
 
+  //downlink channels for left and right
   const [leftVideo, setLeftVideo] = useState(left - 1);
   const [rightVideo, setRightVideo] = useState(right - 1);
 
@@ -81,9 +82,12 @@ export default function Videos() {
     left: useRef() as MutableRefObject<HTMLVideoElement>,
     right: useRef() as MutableRefObject<HTMLVideoElement>,
   };
-
   const [mutedLeft, setMutedLeft] = useState(true);
   const [mutedRight, setMutedRight] = useState(true);
+
+  // metadata for video dimensions. Used to detect video aspect radio and adjust CSS accordingly
+  const [videoMetadataLeft, setVideoMetadataLeft] = useState(null);
+  const [videoMetadataRight, setVideoMetadataRight] = useState(null);
 
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
@@ -208,8 +212,18 @@ export default function Videos() {
       posterURL = "/images/eva_loader_bw.gif";
     }
 
+    //uses videoMetadata state data to determine correct display aspect ratio of each video
+    let aspectRatioClass = styles.vidContainer4by3;
+    const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
+    if (videoMetadata) {
+      const aspectRatio = videoMetadata.videoHeight / videoMetadata.videoWidth;
+      if (aspectRatio !== 0.75) {
+        aspectRatioClass = styles.vidContainer16by9;
+      }
+    }
+
     return (
-      <div key={`video_element__${name}`} className={styles.vidContainer}>
+      <div key={`video_element__${name}`} className={`${styles.vidContainer} ${aspectRatioClass}`}>
         <video
           ref={players[name]}
           className={styles.player}
@@ -227,6 +241,24 @@ export default function Videos() {
             if (videos.ready[name] && videoID !== "") {
               dispatch(buffering(name));
             }
+          }}
+          onLoadedMetadata={(e) => {
+            const vidElement = e.target as HTMLVideoElement;
+            vidElement;
+            if (name === "left") {
+              setVideoMetadataLeft({
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+              });
+            } else {
+              setVideoMetadataRight({
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+              });
+            }
+            console.log(
+              "html vid metadata: " + vidElement.videoHeight + " width: " + vidElement.videoWidth
+            );
           }}
         ></video>
         <div className={styles.vidOverlay}>
