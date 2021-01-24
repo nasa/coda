@@ -130,6 +130,14 @@ export default function Videos() {
       // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
       if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
+
+        //wipe out the metadata for this player so that aspect will be recalculated when the next video loads
+        if (name === "left") {
+          setVideoMetadataLeft(null);
+        } else {
+          setVideoMetadataRight(null);
+        }
+
         return;
       }
 
@@ -300,8 +308,10 @@ export default function Videos() {
               onClick={() => {
                 if (name === "left") {
                   setLeftVideo(g);
+                  setVideoMetadataLeft(null);
                 } else {
                   setRightVideo(g);
+                  setVideoMetadataRight(null);
                 }
               }}
             >
