@@ -94,11 +94,16 @@ export default function Videos() {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
 
-    // don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
-    if (newMissionTime === missionTime) {
-      return;
+    /* don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
+    but only if the clock is running. This stops one buffering video from essentially blocking
+    beginning to buffer the other video */
+    if (clock.isRunning) {
+      if (newMissionTime === missionTime) {
+        return;
+      } else {
+        missionTime = newMissionTime;
+      }
     }
-    missionTime = newMissionTime;
 
     // we can't update videos if we don't have videos
     if (!videoActivity) {
@@ -264,9 +269,6 @@ export default function Videos() {
                 videoWidth: vidElement.videoWidth,
               });
             }
-            console.log(
-              "html vid metadata: " + vidElement.videoHeight + " width: " + vidElement.videoWidth
-            );
           }}
         ></video>
         <div className={styles.vidOverlay}>
