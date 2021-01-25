@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import isNull from "lodash/isNull";
 import paper from "paper";
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
@@ -31,18 +31,24 @@ function NavTimeline() {
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
-  let ap;
-  let dn;
-  let sd;
 
   const eva = evaSelector(evas);
 
   const canvas = useRef();
 
+  // TODO: need a way to blow away the nav-timeline when:
+  //   - the UTC day changes
+  //   - new video data for this UTC day has arrived
+
   useEffect(() => {
     // bail if we've already instantiated the paperjs timeline
-    if (drawNav) {
+    if (!isNull(paper.project) && !paper.project.isEmpty()) {
       return;
+    }
+
+    // only setup the canvas once
+    if (isNull(paper.project)) {
+      paper.setup(canvas.current);
     }
 
     const dayNight = eva?.dayNight || null;
@@ -50,7 +56,6 @@ function NavTimeline() {
 
     drawNav = new DrawNav(timingData, videoFiles, dayNight, activityPerformance);
 
-    paper.setup(canvas.current);
     drawNav.initGroups();
     drawNav.setDynamicWidthVariables();
     drawNav.drawTier1();
@@ -92,7 +97,9 @@ function NavTimeline() {
     if (!paperReady) {
       paperReady = true;
     }
-  }, []);
+
+    return () => paper.project.clear();
+  }, [clock.applicationTime, videos.videos]);
 
   useInterval(() => {
     if (!paperReady) {
