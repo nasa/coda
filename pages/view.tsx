@@ -92,13 +92,18 @@ export default function View() {
       let hit = false;
       for (let eva in evas.EVAs) {
         const [Y, M, D] = evas.EVAs[eva].startDate.split("/");
-        if (isSameDate(new Date(+Y, +M - 1, +D), d) && evas.selectedEVA !== eva) {
-          dispatch(setSelected(eva));
+        if (isSameDate(new Date(Date.UTC(+Y, +M - 1, +D, 0, 0, 0, 0)), d)) {
+          if (evas.selectedEVA !== eva) {
+            // the new date has an EVA
+            dispatch(setSelected(eva));
+          }
+          // we already know which EVA is happening on this date
           hit = true;
           break;
         }
       }
-      if (!hit) {
+      if (!hit && evas.selectedEVA !== "") {
+        // the user used to be looking at an EVA but no EVA is on this new date
         dispatch(setSelected(""));
       }
 

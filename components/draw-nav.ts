@@ -64,7 +64,9 @@ export default class DrawNav {
       [x: string]: Activity[];
     },
     /** Keep track of dates for bookkeeping purposes */
-    readonly dateRendered: Date
+    readonly dateRendered: Date,
+    /** Keep track of which EVA was rendered for bookkeping purposes */
+    readonly evaRendered: string
   ) {}
 
   initGroups() {

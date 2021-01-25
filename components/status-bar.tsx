@@ -30,6 +30,7 @@ export default function StatusBar() {
       </span>
       <span className={styles.statusText}>
         {!videosReady.left || !videosReady.right ? <span className={styles.spinner}></span> : " "}
+        &nbsp;
         {selectedEVA === "" && (
           <span>
             Last video update: {lastUpdate}. Next update scheduled for: {nextUpdate} |&nbsp;
