@@ -191,29 +191,32 @@ export default function Videos() {
 
     const muted = name === "left" ? mutedLeft : mutedRight;
 
-    let posterURL = "/images/test-pattern-bw_640.png";
-    if (videos.status[name] === "buffering") {
-      posterURL = "/images/eva_loader_bw.gif";
-    }
-
-    //uses videoMetadata state data to determine correct display aspect ratio of each video
-    let aspectRatioClass = styles.vidContainer4by3;
+    // Displays video background poster to depect novid, buffering, or blank if video loaded or buffering during playback
+    // Uses videoMetadata as an indicator whether the video element is currently playing something. is null when no vid
     const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
-    if (videoMetadata) {
-      const aspectRatio = videoMetadata.videoHeight / videoMetadata.videoWidth;
-      if (aspectRatio !== 0.75) {
-        aspectRatioClass = styles.vidContainer16by9;
+    let posterClass = styles.playerPosterNovid;
+    if (videos.status[name] === "buffering") {
+      if (!videoMetadata) {
+        posterClass = styles.playerPosterBuffering;
+      } else {
+        posterClass = "";
       }
+    }
+    if (videoMetadata) {
+      posterClass = "";
     }
 
     return (
-      <div key={`video_element__${name}`} className={`${styles.vidContainer} ${aspectRatioClass}`}>
+      <div
+        key={`video_element__${name}`}
+        className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
+      >
+        <div className={`${styles.playerPoster} ${posterClass}`}></div>
         <video
           ref={players[name]}
           className={styles.player}
           muted={muted}
           src={videoURL}
-          poster={posterURL}
           onCanPlay={() => {
             dispatch(ready(name));
           }}
@@ -233,11 +236,13 @@ export default function Videos() {
               setVideoMetadataLeft({
                 videoHeight: vidElement.videoHeight,
                 videoWidth: vidElement.videoWidth,
+                duration: vidElement.duration,
               });
             } else {
               setVideoMetadataRight({
                 videoHeight: vidElement.videoHeight,
                 videoWidth: vidElement.videoWidth,
+                duration: vidElement.duration,
               });
             }
           }}
@@ -281,10 +286,8 @@ export default function Videos() {
               onClick={() => {
                 if (name === "left") {
                   setLeftVideo(g);
-                  setVideoMetadataLeft(null);
                 } else {
                   setRightVideo(g);
-                  setVideoMetadataRight(null);
                 }
               }}
             >
