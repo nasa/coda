@@ -58,15 +58,6 @@ function NavTimeline() {
 
     // clock.applicationTime is a day off???
 
-    console.log(
-      "project", isNull(paper.project),
-      "drawNav", drawNav.current,
-      "paper", paperRendered,
-      "already rendered vids", drawNav.current?.hasAlreadyRenderedVideos(videoFiles),
-      "same date", drawNav.current && isSameDate(drawNav.current.dateRendered, new Date(clock.applicationTime)),
-      "same eva", evas.selectedEVA === drawNav.current?.evaRendered
-    );
-
     if (paperRendered && sameVideos && sameDate && sameEVA) {
       // bail if there's no reason to rerender the timeline
       return;
@@ -148,15 +139,6 @@ function NavTimeline() {
     if (!navReady) {
       navReady = true;
     }
-
-    console.log(
-      "project", isNull(paper.project),
-      "drawNav", drawNav.current,
-      "paper", paperRendered,
-      "already rendered vids", drawNav.current?.hasAlreadyRenderedVideos(videoFiles),
-      "same date", drawNav.current && isSameDate(drawNav.current.dateRendered, new Date(clock.applicationTime)),
-      "same eva", evas.selectedEVA === drawNav.current?.evaRendered
-    );
 
     return () => {
       paper.project.remove();
