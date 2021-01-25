@@ -12,6 +12,8 @@ export interface VideosState {
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
   ready: { [key: string]: boolean };
+  /** buffering or playing or novid */
+  status: { [key: string]: string };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
   /** UTC string of the last time we hit IO */
@@ -32,6 +34,10 @@ export const initialState: VideosState = {
     left: true,
     right: true,
   },
+  status: {
+    left: "",
+    right: "",
+  },
   errorMessage: "",
   lastChecked: "",
 };
@@ -40,11 +46,6 @@ export const videoSlice = createSlice({
   name: "video",
   initialState,
   reducers: {
-    /** Pick a video group to play on a named `<VideoPlayer />` */
-    pickGroup: (state, action: { payload: { name: string; group: number } }) => {
-      state.selectedGroups[action.payload.name] = action.payload.group;
-    },
-
     /** Set the video file ID to play on a named `<VideoPlayer />` */
     pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
@@ -53,11 +54,13 @@ export const videoSlice = createSlice({
     /** Mark videos are ready to be played. The payload is the video player name */
     ready: (state, action: { payload: string }) => {
       state.ready[action.payload] = true;
+      state.status[action.payload] = "ready";
     },
 
     /** Mark videos as not ready to be played. The payload is the video player name */
     buffering: (state, action: { payload: string }) => {
       state.ready[action.payload] = false;
+      state.status[action.payload] = "buffering";
     },
 
     /** Add new video files to the store */
@@ -68,7 +71,7 @@ export const videoSlice = createSlice({
   },
 });
 
-export const { pickGroup, pickVideoFile, ready, buffering, add } = videoSlice.actions;
+export const { pickVideoFile, ready, buffering, add } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 

@@ -1,10 +1,9 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime } from "store/clock";
 import {
   buffering,
-  pickGroup,
   pickVideoFile,
   ready,
   selectVideoActivity,
@@ -24,10 +23,11 @@ export default function Videos() {
   // see https://nextjs.org/docs/routing/dynamic-routes
   // FYI: the syntax here is how you declare default parameters and types simultaneously for a destructured object with TS
   // see https://mariusschulz.com/blog/typing-destructured-object-parameters-in-typescript
+  // get query parameters asking for specific video downlink sources
   const {
-    query: { group1 = null, group2 = null },
+    query: { left = 1, right = 2 },
   }: {
-    query: { group1?: number; group2?: number };
+    query: { left?: number; right?: number };
   } = useRouter();
 
   const store = useStore();
@@ -35,11 +35,16 @@ export default function Videos() {
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
     (state) => state
   );
+
   let videoActivity = null as VideoActivity;
 
   if (Object.keys(videos.videos).length > 0) {
     videoActivity = selectVideoActivity(videos);
   }
+
+  //downlink channels for left and right
+  const [leftVideo, setLeftVideo] = useState(left - 1);
+  const [rightVideo, setRightVideo] = useState(right - 1);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -48,20 +53,28 @@ export default function Videos() {
     left: useRef() as MutableRefObject<HTMLVideoElement>,
     right: useRef() as MutableRefObject<HTMLVideoElement>,
   };
-
   const [mutedLeft, setMutedLeft] = useState(true);
   const [mutedRight, setMutedRight] = useState(true);
+
+  // metadata for video dimensions. Used to detect video aspect radio and adjust CSS accordingly
+  const [videoMetadataLeft, setVideoMetadataLeft] = useState(null);
+  const [videoMetadataRight, setVideoMetadataRight] = useState(null);
 
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
 
-    // don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
-    if (newMissionTime === missionTime) {
-      return;
+    /* don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
+    but only if the clock is running. This stops one buffering video from essentially blocking
+    beginning to buffer the other video */
+    if (clock.isRunning) {
+      if (newMissionTime === missionTime) {
+        return;
+      } else {
+        missionTime = newMissionTime;
+      }
     }
-    missionTime = newMissionTime;
 
     // we can't update videos if we don't have videos
     if (!videoActivity) {
@@ -70,7 +83,7 @@ export default function Videos() {
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
-      const group = videos.selectedGroups[name];
+      const group = name === "left" ? leftVideo : rightVideo;
       const activeVideoFileID = videos.activeVideoFiles[name];
       const videosNextSecond = videoActivity[group][missionTime + 1];
 
@@ -93,6 +106,14 @@ export default function Videos() {
       // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
       if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
+
+        //wipe out the metadata for this player so that aspect will be recalculated when the next video loads
+        if (name === "left") {
+          setVideoMetadataLeft(null);
+        } else {
+          setVideoMetadataRight(null);
+        }
+
         return;
       }
 
@@ -170,31 +191,59 @@ export default function Videos() {
 
     const muted = name === "left" ? mutedLeft : mutedRight;
 
+    let posterURL = "/images/test-pattern-bw_640.png";
+    if (videos.status[name] === "buffering") {
+      posterURL = "/images/eva_loader_bw.gif";
+    }
+
+    //uses videoMetadata state data to determine correct display aspect ratio of each video
+    let aspectRatioClass = styles.vidContainer4by3;
+    const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
+    if (videoMetadata) {
+      const aspectRatio = videoMetadata.videoHeight / videoMetadata.videoWidth;
+      if (aspectRatio !== 0.75) {
+        aspectRatioClass = styles.vidContainer16by9;
+      }
+    }
+
     return (
-      <div key={`video_element__${name}`} className={styles.foo}>
-        <div className={styles.vidContainer}>
-          <video
-            ref={players[name]}
-            className={styles.player}
-            muted={muted}
-            src={videoURL}
-            poster="/images/novid.jpg"
-            onCanPlay={() => {
-              dispatch(ready(name));
-            }}
-            onEnded={() => {
-              // ready up because we don't want a missing video to hold up the clock
-              dispatch(ready(name));
-            }}
-            onWaiting={() => {
-              if (videos.ready[name] && videoID !== "") {
-                dispatch(buffering(name));
-              }
-            }}
-          ></video>
-          <div className={styles.vidOverlay}>
-            <div className={styles.vidInfo}>{vidInfo}</div>
-          </div>
+      <div key={`video_element__${name}`} className={`${styles.vidContainer} ${aspectRatioClass}`}>
+        <video
+          ref={players[name]}
+          className={styles.player}
+          muted={muted}
+          src={videoURL}
+          poster={posterURL}
+          onCanPlay={() => {
+            dispatch(ready(name));
+          }}
+          onEnded={() => {
+            // ready up because we don't want a missing video to hold up the clock
+            dispatch(ready(name));
+          }}
+          onWaiting={() => {
+            if (videos.ready[name] && videoID !== "") {
+              dispatch(buffering(name));
+            }
+          }}
+          onLoadedMetadata={(e) => {
+            const vidElement = e.target as HTMLVideoElement;
+            vidElement;
+            if (name === "left") {
+              setVideoMetadataLeft({
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+              });
+            } else {
+              setVideoMetadataRight({
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+              });
+            }
+          }}
+        ></video>
+        <div className={styles.vidOverlay}>
+          <div className={styles.vidInfo}>{vidInfo}</div>
         </div>
       </div>
     );
@@ -212,29 +261,32 @@ export default function Videos() {
     } else {
       mutedClass = mutedRight === true ? styles.unmute : styles.mute;
     }
-
     let currentMissionTime = getMissionTime(clock);
-
-    const buttonClass = (g, name) => {
-      let ret = styles.vidButton;
-      if (g === videos.selectedGroups[name]) {
-        ret = `${ret} ${styles.selected}`;
-      }
-      if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
-        ret = `${ret} ${styles.active}`;
-      }
-      return ret;
-    };
-
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
+          const group = name === "left" ? leftVideo : rightVideo;
+
+          let buttonClassStyle = styles.vidButton;
+          if (g === group) {
+            buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
+          } else if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
+            buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
+          }
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={buttonClass(g, name)}
-              onClick={() => dispatch(pickGroup({ name, group: g }))}
+              className={buttonClassStyle}
+              onClick={() => {
+                if (name === "left") {
+                  setLeftVideo(g);
+                  setVideoMetadataLeft(null);
+                } else {
+                  setRightVideo(g);
+                  setVideoMetadataRight(null);
+                }
+              }}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
             </button>

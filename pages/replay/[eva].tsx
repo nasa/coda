@@ -13,7 +13,12 @@ import {
   DayNight,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
-import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
+import {
+  assignStartEnd,
+  generateTimingData,
+  TimingData,
+  initialState as videosInitialState,
+} from "store/videos";
 import {
   getActivityPerformanceMissionTime,
   getDayNightMissionTime,
@@ -92,8 +97,7 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     asExecutedEV1 = await getAsExecuted(EVAs[evaName].name, 1);
     asExecutedEV2 = await getAsExecuted(EVAs[evaName].name, 2);
     dayNight = await getDayNight(EVAs[evaName].name);
-    // TODO: not updating when you navigate from one EVA to another. only uses mock data?
-    EVACrew = await getCrew(evaName);
+    EVACrew = await getCrew(EVAs[evaName].name);
   } catch (e) {
     console.error(e);
     evaErrorMessage = "Error fetching EVAs";
@@ -134,18 +138,10 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
         },
         videos: {
           videos,
-          selectedGroups: {
-            left: 0,
-            right: 1,
-          },
-          activeVideoFiles: {
-            left: "",
-            right: "",
-          },
-          ready: {
-            left: true,
-            right: true,
-          },
+          selectedGroups: videosInitialState.selectedGroups,
+          activeVideoFiles: videosInitialState.activeVideoFiles,
+          ready: videosInitialState.ready,
+          status: videosInitialState.status,
           errorMessage: videosErrorMessage,
         },
       },
