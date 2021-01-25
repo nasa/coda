@@ -1,18 +1,24 @@
 /*
-SERVER ONLY methods for fetching from wiki. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+SERVER ONLY methods for fetching BLE data (aka Basic Level of Entitlement aka data anyone at NASA can see) from the ISS wiki. Caches responses whenever possible. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
+import crypto from "crypto";
 import { promises as fs } from "fs";
 import MWBot from "mwbot";
 import FileCookieStore from "tough-cookie-filestore";
 import request from "request";
-import { memoize } from "lodash";
+import isNull from "lodash/isNull";
+import memoize from "lodash/memoize";
 import fetch from "node-fetch";
 import { padZeros } from "utils/formatting";
 import dayNight from "../mocks/fakedata/daynight.json";
 
 const COOKIE_JAR = "services/.cookies.json";
 
+// to be clear, we're not hashing sensitive data, just filenames
+const hash = crypto.createHash("md5");
+
 export interface EVA {
+  /** EVA name upper-cased with spaces, eg. `US EVA 55` */
   name: string;
   wikiURL: string;
   displayTitle: string;
@@ -74,7 +80,7 @@ async function _getMWBot() {
     silent: false,
   });
 
-  // just make sure the cookie jar file exists
+  // make sure the cookie jar file exists
   try {
     await fs.writeFile(COOKIE_JAR, "", { flag: "wx" });
   } catch (e) {}
@@ -101,6 +107,44 @@ async function _getMWBot() {
 /** Memoized get of a read-only "bot" for the wiki */
 const getMWBot = memoize(_getMWBot);
 
+async function performAsk(bot: MWBot, query: string): Promise<WikiResults> {
+  hash.update(query);
+  const cacheFile = `../.cache/${hash.copy().digest("hex")}.json`;
+
+  let res = null as WikiResults;
+  let cachedRes = null as string;
+
+  // either get from the cache or hit the network
+  try {
+    cachedRes = await fs.readFile(cacheFile, { encoding: "utf-8" });
+  } catch (e) {
+    res = await bot.request({ action: "ask", format: "json", query });
+  }
+
+  // we got from the cache. turn it into valid WikiResults
+  if (!isNull(cachedRes)) {
+    try {
+      res = JSON.parse(cachedRes);
+    } catch (e) {
+      console.error("Could not parse cache file");
+    }
+  }
+
+  // we got from the network. cache the results for later
+  if (isNull(cachedRes)) {
+    try {
+      // make sure the .cache directory exists
+      // await fs.mkdir("../.cache", { recursive: true });
+      await fs.writeFile(cacheFile, JSON.stringify(res));
+    } catch (e) {
+      console.error("Could not cache wiki results");
+      console.error(e);
+    }
+  }
+
+  return res;
+}
+
 /**
  * Perform a query against the ISS Wiki with the given query parameters
  * @param action Optional string for specifying the action type for local mocking
@@ -122,7 +166,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
 
   try {
     // optmistically try to fetch from the wiki before we know for sure we're logged in
-    res = await bot.request({ action: "ask", format: "json", query });
+    res = await performAsk(bot, query);
   } catch (e) {
     if (isAPIError(e)) {
       // we weren't logged in. let's log in
@@ -140,7 +184,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
     }
     // we are logged in now. retry the request
     try {
-      res = await bot.request({ action: "ask", format: "json", query });
+      res = await performAsk(bot, query);
     } catch (e) {
       console.error("Wiki request error");
       throw e;
@@ -283,6 +327,21 @@ interface EVAAsExecuted {
   };
 }
 
+// these colors are muted equivalents giving a more pastel result. Found at https://htmlcolorcodes.com/
+const colorTranslator = {
+  red: "#C0392B",
+  grey: "#7F8C8D",
+  gray: "#7F8C8D",
+  blue: "#2980B9",
+  orange: "#CA6F1E",
+  green: "#28B463",
+  purple: "#8E44AD",
+  yellow: "#B7950B",
+  white: "#FFFFFF",
+  black: "#000000",
+  pink: "#FFC0CB",
+};
+
 /** Get as-executed data for a given EV on a given EVA */
 async function _getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
@@ -311,20 +370,6 @@ export const getAsExecuted = memoize(_getAsExecuted);
 function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
 
-  // these colors are muted equivalents giving a more pastel result. Found at https://htmlcolorcodes.com/
-  const colorTranslator = {
-    red: "#C0392B",
-    grey: "#7F8C8D",
-    gray: "#7F8C8D",
-    blue: "#2980B9",
-    orange: "#CA6F1E",
-    green: "#28B463",
-    purple: "#8E44AD",
-    yellow: "#B7950B",
-    white: "#FFFFFF",
-    black: "#000000",
-  };
-
   Object.keys(results).forEach((r) => {
     const durationHour = results[r]["printouts"]["Duration hour"][0];
     const durationMinute = results[r]["printouts"]["Duration minute"][0];
@@ -349,6 +394,85 @@ function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   return res;
 }
 
+/** Get as-executed data for a given EV on a given EVA */
+async function _getAllAsExecuted(evaName: string, evNum: number) {
+  const query = `
+    [[From page::~US EVA*/*xecuted*]]
+    |mainlabel=-|?Index
+    |? Has text title
+    |? Duration hour
+    |? Duration minute
+    |? Depends on
+    |? Related article
+    |? Color
+    |? Actor
+    |named args=yes
+    |sort=Actor, Index
+    |limit=1000000
+  `;
+  const res = await fetchWiki(query, "getAllAsExecuted");
+  const results: EVAAsExecuted = res.query.results;
+  return parseAllAsExecuted(results);
+}
+
+/** Memoized call to get as-executed data for a given EV on a given EVA */
+export const getAllAsExecuted = memoize(_getAllAsExecuted);
+
+export interface AllExecution {
+  /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
+  [key: string]: {
+    /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
+    [key: string]: Activity[];
+  };
+}
+
+function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
+  const res = {};
+
+  Object.keys(results).forEach((r) => {
+    // results are keyed with strings like
+    // "US EVA 49/As-executed timeline# 599b16d6cf9daca7f7d8f938b04a2404"
+    const evaName = r.split("/")[0];
+    if (!(evaName in res)) {
+      res[evaName] = {};
+    }
+
+    let actor = results[r].printouts["Actor"][0];
+    // SSRMS is "Actor 1", EV1 is "Actor 2", EV2 is "Actor 3". let's standardize "Actor 2" to EV1 and "Actor 3" to EV2. omit Actor 1 / SSRMS. If the actor has another name, just go with it
+    if (actor.indexOf("Actor") > -1) {
+      const [_, actorNumber] = actor.split("Actor");
+      if (+actorNumber - 1 < 1) {
+        // must be SSRMS
+        return;
+      }
+      actor = `EV${+actorNumber - 1}`;
+    }
+    if (!(actor in res[evaName])) {
+      res[evaName][actor] = [];
+    }
+
+    const durationHour = results[r].printouts["Duration hour"][0];
+    const durationMinute = results[r].printouts["Duration minute"][0];
+    const durationTotalSeconds = +durationHour * 3600 + +durationMinute * 60;
+
+    let colorString = results[r].printouts["Color"][0];
+    if (colorString in colorTranslator) {
+      colorString = colorTranslator[colorString];
+    } else {
+      console.error("color not found: " + colorString);
+    }
+    const activity: Activity = {
+      content: results[r].printouts["Has text title"][0],
+      duration: durationTotalSeconds,
+      color: colorString,
+    };
+    if (activity.color === "gray") activity.color = "grey";
+
+    res[evaName][actor].push(activity);
+  });
+
+  return res;
+}
 interface EVACrewResults {
   /** keyed in the form of `US EVA 55# a4c086604b5aa243bf1f3c99dc06d965` */
   [key: string]: {

@@ -9,3 +9,6 @@ node_modules/
 
 # don't commit secrets!
 .env*
+
+# temporarily store BLE requests at build-time
+.cache
