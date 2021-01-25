@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getMissionTime } from "store/clock";
+import { ClockState, getMissionTime, isSameDate } from "store/clock";
 import {
   buffering,
   pickVideoFile,
@@ -59,6 +59,23 @@ export default function Videos() {
   // metadata for video dimensions. Used to detect video aspect radio and adjust CSS accordingly
   const [videoMetadataLeft, setVideoMetadataLeft] = useState(null);
   const [videoMetadataRight, setVideoMetadataRight] = useState(null);
+
+  useEffect(() => {
+    const videoIDLeft = videos.activeVideoFiles["left"];
+    const videoIDRight = videos.activeVideoFiles["right"];
+    if (
+      videos.activeVideoFiles.left === "" ||
+      !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDLeft].start))
+    ) {
+      setVideoMetadataLeft(null);
+    }
+    if (
+      videos.activeVideoFiles.right === "" ||
+      !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDRight].start))
+    ) {
+      setVideoMetadataRight(null);
+    }
+  }, [clock.applicationTime, videos.activeVideoFiles]);
 
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
@@ -194,7 +211,7 @@ export default function Videos() {
     // Displays video background poster to depect novid, buffering, or blank if video loaded or buffering during playback
     // Uses videoMetadata as an indicator whether the video element is currently playing something. is null when no vid
     const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
-    let posterClass = "";
+    let posterClass = styles.playerPosterNovid;
     if (videos.status[name] === "buffering") {
       if (!videoMetadata) {
         posterClass = styles.playerPosterBuffering;
