@@ -107,34 +107,45 @@ async function _getMWBot() {
 /** Memoized get of a read-only "bot" for the wiki */
 const getMWBot = memoize(_getMWBot);
 
+/**
+ * Perform a
+ */
 async function performAsk(bot: MWBot, query: string): Promise<WikiResults> {
   hash.update(query);
-  const cacheFile = `../.cache/${hash.copy().digest("hex")}.json`;
+  const cacheFile = `./.cache/${hash.copy().digest("hex")}.json`;
 
   let res = null as WikiResults;
   let cachedRes = null as string;
 
-  // either get from the cache or hit the network
+  // either hit the cache or hit the network
   try {
     cachedRes = await fs.readFile(cacheFile, { encoding: "utf-8" });
   } catch (e) {
-    res = await bot.request({ action: "ask", format: "json", query });
+    try {
+      res = await bot.request({ action: "ask", format: "json", query });
+    } catch (e) {
+      // the request failed. we may not be logged in or something else is wrong
+      // let the caller decide what to do
+      throw e;
+    }
   }
 
-  // we got from the cache. turn it into valid WikiResults
+  // we hit the cache. turn it into valid WikiResults
   if (!isNull(cachedRes)) {
     try {
       res = JSON.parse(cachedRes);
     } catch (e) {
       console.error("Could not parse cache file");
+      throw e;
     }
   }
 
-  // we got from the network. cache the results for later
+  // we hit the network. cache the results for later
   if (isNull(cachedRes)) {
     try {
-      // make sure the .cache directory exists
-      // await fs.mkdir("../.cache", { recursive: true });
+      // make sure the cache directory exists firsts
+      await fs.mkdir("./.cache", { recursive: true });
+      // write to the cache
       await fs.writeFile(cacheFile, JSON.stringify(res));
     } catch (e) {
       console.error("Could not cache wiki results");
