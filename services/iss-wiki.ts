@@ -1,18 +1,25 @@
 /*
-SERVER ONLY methods for fetching from wiki. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+SERVER ONLY methods for fetching BLE data (aka Basic Level of Entitlement aka data anyone at NASA can see) from the ISS wiki. Caches responses whenever possible. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
+import crypto from "crypto";
 import { promises as fs } from "fs";
 import MWBot from "mwbot";
 import FileCookieStore from "tough-cookie-filestore";
 import request from "request";
-import { memoize } from "lodash";
+import get from "lodash/get";
+import isNull from "lodash/isNull";
+import memoize from "lodash/memoize";
 import fetch from "node-fetch";
 import { padZeros } from "utils/formatting";
 import dayNight from "../mocks/fakedata/daynight.json";
 
 const COOKIE_JAR = "services/.cookies.json";
 
+// to be clear, we're not hashing sensitive data, just filenames
+const hash = crypto.createHash("md5");
+
 export interface EVA {
+  /** EVA name upper-cased with spaces, eg. `US EVA 55` */
   name: string;
   wikiURL: string;
   displayTitle: string;
@@ -24,9 +31,14 @@ export interface EVA {
   duration: number;
   /** Activity performance keyed by EV */
   activityPerformance: { [key: string]: Activity[] };
-  dayNight: {
-    dataStartUTC?: number;
-    events?: Activity[];
+  dayNight: DayNight;
+  execution?: {
+    /** Keyed by actor, eg. `EV1` */
+    [key: string]: Activity[];
+  };
+  crew?: {
+    /** Crew names keyed by actor, eg. `{EV1: "Bob"}` */
+    [key: string]: string;
   };
 }
 
@@ -40,7 +52,7 @@ export interface Activity {
   endTimeSeconds?: number;
 }
 
-interface WikiResponse {
+interface WikiResults {
   query: {
     printrequests: {
       label: string;
@@ -54,6 +66,21 @@ interface WikiResponse {
   };
 }
 
+interface WikiResponse {
+  errorResponse: boolean;
+  code: string;
+  info: string;
+  response: {
+    error: {
+      code: string;
+      info: string;
+      "*": string;
+    };
+  };
+  request: Request;
+}
+
+/** Get a read-only "bot" for the wiki */
 async function _getMWBot() {
   const apiUrl = process.env.WIKI_API_URL;
   const bot = new MWBot({
@@ -62,7 +89,7 @@ async function _getMWBot() {
     silent: false,
   });
 
-  // just make sure the cookie jar file exists
+  // make sure the cookie jar file exists
   try {
     await fs.writeFile(COOKIE_JAR, "", { flag: "wx" });
   } catch (e) {}
@@ -83,36 +110,70 @@ async function _getMWBot() {
     json: true,
   });
 
+  return bot;
+}
+
+/** Memoized get of a read-only "bot" for the wiki */
+const getMWBot = memoize(_getMWBot);
+
+/**
+ * Perform a
+ */
+async function performAsk(bot: MWBot, query: string): Promise<WikiResults> {
+  hash.update(query);
+  const cacheFile = `./.cache/${hash.copy().digest("hex")}.json`;
+
+  let res = null as WikiResults;
+  let cachedRes = null as string;
+
+  // either hit the cache or hit the network
   try {
-    // check if our cookies are still good. if not, log in
-    // TODO: try to hit the wiki first with the actual request
-    await bot.read("Main_Page");
+    cachedRes = await fs.readFile(cacheFile, { encoding: "utf-8" });
   } catch (e) {
     try {
-      await bot.login({
-        username: process.env.WIKI_USER,
-        password: process.env.WIKI_PASSWORD,
-      });
+      res = await bot.request({ action: "ask", format: "json", query });
     } catch (e) {
-      console.error("Wiki login unsuccessful");
+      // the request failed. we may not be logged in or something else is wrong
+      // let the caller decide what to do
       throw e;
     }
   }
 
-  return bot;
-}
+  // we hit the cache. turn it into valid WikiResults
+  if (!isNull(cachedRes)) {
+    try {
+      res = JSON.parse(cachedRes);
+    } catch (e) {
+      console.error("Could not parse cache file");
+      throw e;
+    }
+  }
 
-const getMWBot = memoize(_getMWBot);
+  // we hit the network. cache the results for later
+  if (isNull(cachedRes)) {
+    try {
+      // make sure the cache directory exists firsts
+      await fs.mkdir("./.cache", { recursive: true });
+      // write to the cache
+      await fs.writeFile(cacheFile, JSON.stringify(res));
+    } catch (e) {
+      console.error("Could not cache wiki results");
+      console.error(e);
+    }
+  }
+
+  return res;
+}
 
 /**
  * Perform a query against the ISS Wiki with the given query parameters
  * @param action Optional string for specifying the action type for local mocking
  */
-async function fetchWiki(query: string, action?: string): Promise<WikiResponse> {
-  let res: WikiResponse;
+async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
+  let res: WikiResults;
 
   // we're in the local environment. fake the request using a mock service worker
-  if (process.env.APP_ENV === "local") {
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
     const res = await fetch(process.env.WIKI_API_URL, {
       headers: {
         "X-MOCK-ACTION": action,
@@ -124,11 +185,37 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResponse> 
   const bot = await getMWBot();
 
   try {
-    res = await bot.request({ action: "ask", format: "json", query });
+    // optmistically try to fetch from the wiki before we know for sure we're logged in
+    res = await performAsk(bot, query);
   } catch (e) {
-    throw e;
+    if (isAPIError(e)) {
+      // we weren't logged in. let's log in
+      try {
+        await bot.login({
+          username: process.env.WIKI_USER,
+          password: process.env.WIKI_PASSWORD,
+        });
+      } catch (e) {
+        console.error("Wiki login unsuccessful");
+        throw e;
+      }
+    } else {
+      throw e;
+    }
+    // we are logged in now. retry the request
+    try {
+      res = await performAsk(bot, query);
+    } catch (e) {
+      console.error("Wiki request error");
+      throw e;
+    }
   }
   return res;
+}
+
+/** Checks if the response from the wiki mean we aren't logged in */
+function isAPIError(e: any | WikiResponse): e is WikiResponse {
+  return e.errorResponse && e.code === "readapidenied";
 }
 
 interface WikiTimestamp {
@@ -178,7 +265,7 @@ async function _getAllEVAs(): Promise<EVASummaryResponse> {
 }
 
 /** Memoized call to get a summary of all EVAs on the wiki */
-export const getAllEVAs = memoize(_getAllEVAs);
+export const getAllEVAs: () => Promise<EVASummaryResponse> = memoize(_getAllEVAs);
 
 /** EVA Metadata */
 interface EVADetails {
@@ -260,6 +347,21 @@ interface EVAAsExecuted {
   };
 }
 
+// these colors are muted equivalents giving a more pastel result. Found at https://htmlcolorcodes.com/
+const colorTranslator = {
+  red: "#C0392B",
+  grey: "#7F8C8D",
+  gray: "#7F8C8D",
+  blue: "#2980B9",
+  orange: "#CA6F1E",
+  green: "#28B463",
+  purple: "#8E44AD",
+  yellow: "#B7950B",
+  white: "#FFFFFF",
+  black: "#000000",
+  pink: "#FFC0CB",
+};
+
 /** Get as-executed data for a given EV on a given EVA */
 async function _getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
@@ -288,20 +390,6 @@ export const getAsExecuted = memoize(_getAsExecuted);
 function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   const res = [];
 
-  // these colors are muted equivalents giving a more pastel result. Found at https://htmlcolorcodes.com/
-  const colorTranslator = {
-    red: "#C0392B",
-    grey: "#7F8C8D",
-    gray: "#7F8C8D",
-    blue: "#2980B9",
-    orange: "#CA6F1E",
-    green: "#28B463",
-    purple: "#8E44AD",
-    yellow: "#B7950B",
-    white: "#FFFFFF",
-    black: "#000000",
-  };
-
   Object.keys(results).forEach((r) => {
     const durationHour = results[r]["printouts"]["Duration hour"][0];
     const durationMinute = results[r]["printouts"]["Duration minute"][0];
@@ -326,6 +414,85 @@ function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   return res;
 }
 
+export interface AllExecution {
+  /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
+  [key: string]: {
+    /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
+    [key: string]: Activity[];
+  };
+}
+
+/** Get as-executed data for a given EV on a given EVA */
+async function _getAllAsExecuted(evaName: string, evNum: number): Promise<AllExecution> {
+  const query = `
+    [[From page::~US EVA*/*xecuted*]]
+    |mainlabel=-|?Index
+    |? Has text title
+    |? Duration hour
+    |? Duration minute
+    |? Depends on
+    |? Related article
+    |? Color
+    |? Actor
+    |named args=yes
+    |sort=Actor, Index
+    |limit=1000000
+  `;
+  const res = await fetchWiki(query, "getAllAsExecuted");
+  const results: EVAAsExecuted = res.query.results;
+  return parseAllAsExecuted(results);
+}
+
+/** Memoized call to get as-executed data for a given EV on a given EVA */
+export const getAllAsExecuted: () => Promise<AllExecution> = memoize(_getAllAsExecuted);
+
+function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
+  const res = {};
+
+  Object.keys(results).forEach((r) => {
+    // results are keyed with strings like
+    // "US EVA 49/As-executed timeline# 599b16d6cf9daca7f7d8f938b04a2404"
+    const evaName = r.split("/")[0];
+    if (!(evaName in res)) {
+      res[evaName] = {};
+    }
+
+    let actor = results[r].printouts["Actor"][0];
+    // SSRMS is "Actor 1", EV1 is "Actor 2", EV2 is "Actor 3". let's standardize "Actor 2" to EV1 and "Actor 3" to EV2. omit Actor 1 / SSRMS. If the actor has another name, just go with it
+    if (actor.indexOf("Actor") > -1) {
+      const [_, actorNumber] = actor.split("Actor");
+      if (+actorNumber - 1 < 1) {
+        // must be SSRMS
+        return;
+      }
+      actor = `EV${+actorNumber - 1}`;
+    }
+    if (!(actor in res[evaName])) {
+      res[evaName][actor] = [];
+    }
+
+    const durationHour = results[r].printouts["Duration hour"][0];
+    const durationMinute = results[r].printouts["Duration minute"][0];
+    const durationTotalSeconds = +durationHour * 3600 + +durationMinute * 60;
+
+    let colorString = results[r].printouts["Color"][0];
+    if (colorString in colorTranslator) {
+      colorString = colorTranslator[colorString];
+    } else {
+      console.error("color not found: " + colorString);
+    }
+    const activity: Activity = {
+      content: results[r].printouts["Has text title"][0],
+      duration: durationTotalSeconds,
+      color: colorString,
+    };
+    if (activity.color === "gray") activity.color = "grey";
+
+    res[evaName][actor].push(activity);
+  });
+
+  return res;
+}
 interface EVACrewResults {
   /** keyed in the form of `US EVA 55# a4c086604b5aa243bf1f3c99dc06d965` */
   [key: string]: {
@@ -345,9 +512,9 @@ interface EVACrewResults {
 }
 
 export interface ParsedCrewResults {
-  ev1: string;
-  ev2: string;
-  suit_iv: string;
+  EV1: string;
+  EV2: string;
+  SUIT_IV: string;
 }
 
 /** Get crew assignment data for a EVA */
@@ -359,7 +526,7 @@ async function _getCrew(evaName: string) {
     |? Has role
     |? Has EMU Page
   `;
-  const res = await fetchWiki(query, `getCrew`);
+  const res = await fetchWiki(query, "getCrew");
   const results: EVACrewResults = res.query.results;
   return parseCrew(results);
 }
@@ -369,23 +536,72 @@ export const getCrew = memoize(_getCrew);
 
 function parseCrew(results: EVACrewResults): ParsedCrewResults {
   let crewObject: ParsedCrewResults = {
-    ev1: "",
-    ev2: "",
-    suit_iv: "",
+    EV1: "",
+    EV2: "",
+    SUIT_IV: "",
   };
   for (let objKey in results) {
     let useableKey = results[objKey]["printouts"]["Has role"][0]["fulltext"]
       .replace(/ /g, "_")
-      .toLowerCase();
+      .toUpperCase();
     crewObject[useableKey] = results[objKey]["printouts"]["Has full name"][0]["fulltext"];
   }
 
   return crewObject;
 }
 
+export interface AllCrews {
+  [key: string]: ParsedCrewResults;
+}
+
+/** Get crew assignment data for all EVAs */
+async function _getAllCrew(): Promise<AllCrews> {
+  const query = `
+    [[Crew involved with subject::+]]
+    [[From page::~US EVA*]]
+    |? Has full name
+    |? Has role
+    |? Has EMU Page
+    |limit=10000
+  `;
+  const res = await fetchWiki(query, "getAllCrew");
+  const results: EVACrewResults = res.query.results;
+  return parseAllCrew(results);
+}
+
+/** Memoized call to get crew assignment data for all EVAs */
+export const getAllCrew: () => Promise<AllCrews> = memoize(_getAllCrew);
+
+function parseAllCrew(results: EVACrewResults): AllCrews {
+  const res = {} as AllCrews;
+
+  Object.keys(results).forEach((result) => {
+    const actor = get(results, [result, "printouts", "Has role", 0, "fulltext"], "")
+      .replace(/ /g, "_")
+      .toUpperCase();
+
+    if (actor === "") {
+      return;
+    }
+
+    const name = get(results, [result, "printouts", "Has full name", 0, "fulltext"], "");
+
+    // result keys are in the form of
+    // "'US EVA 28# c9d6c0b4412f9729eee290e84cf1aa63'"
+    const [evaName] = result.split("#");
+    const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+    if (!(formattedEVAName in res)) {
+      res[formattedEVAName] = { EV1: "", EV2: "", SUIT_IV: "" };
+    }
+    res[formattedEVAName][actor] = name;
+  });
+
+  return res;
+}
+
 export interface DayNight {
-  dataStartUTC: number;
-  events: Activity[];
+  dataStartUTC?: number;
+  events?: Activity[];
 }
 
 export async function getDayNight(evaName: string) {
@@ -431,26 +647,33 @@ function parseDayNight(results): DayNight {
 /** Fetch all EVA as-planned data and format it for passing to the redux store */
 export async function buildEVAStore() {
   const EVAs = {} as { [key: string]: EVA };
-  const evas = await getAllEVAs();
-  Object.keys(evas).forEach((evaName) => {
+  const asPlanned = await getAllEVAs();
+  const asExecuted = await getAllAsExecuted();
+  const crews = await getAllCrew();
+
+  Object.keys(asPlanned).forEach((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
     let duration = -1;
-    const [wikiDuration] = evas[evaName].printouts.Duration;
+    const [wikiDuration] = asPlanned[evaName].printouts.Duration;
     // for whatever reason, if no duration is specified the wiki gives us ":"
     if (wikiDuration !== ":") {
       const [h, m] = wikiDuration.split(":");
       duration = +h * 3600 + +m * 60;
     }
+
     EVAs[formattedEVAName] = {
       name: evaName,
-      wikiURL: evas[evaName].fullurl,
-      displayTitle: evas[evaName].printouts["EVA title"][0],
-      startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
-      startTime: evas[evaName].printouts["Start time"][0],
+      wikiURL: asPlanned[evaName].fullurl,
+      displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+      startDate: asPlanned[evaName].printouts["Start date"][0].raw.substring(2),
+      startTime: asPlanned[evaName].printouts["Start time"][0],
       duration,
-      // we don't have these properties yet
-      activityPerformance: {},
-      dayNight: {},
+      execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
+      crew: get(crews, formattedEVAName, {}),
+      // we need video data to calculate activityPerformance
+      activityPerformance: { EV1: [], EV2: [] },
+      // the wiki doesn't actually give us dayNight
+      dayNight: { events: [], dataStartUTC: 0 },
     };
   });
 

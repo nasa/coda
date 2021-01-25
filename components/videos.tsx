@@ -1,17 +1,15 @@
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getMissionTime } from "store/clock";
+import { ClockState, getMissionTime, isSameDate } from "store/clock";
 import {
   buffering,
-  pickGroup,
   pickVideoFile,
   ready,
   selectVideoActivity,
   VideoActivity,
   VideosState,
 } from "store/videos";
-import { dateAsCanonicalString } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
 
@@ -20,15 +18,16 @@ let missionTime = 0;
 /**
  * Renders the part of the CODA interface that includes audio and video players and selectors
  */
-function Videos() {
+export default function Videos() {
   // get query parameters asking for specific video sources
   // see https://nextjs.org/docs/routing/dynamic-routes
   // FYI: the syntax here is how you declare default parameters and types simultaneously for a destructured object with TS
   // see https://mariusschulz.com/blog/typing-destructured-object-parameters-in-typescript
+  // get query parameters asking for specific video downlink sources
   const {
-    query: { group1 = null, group2 = null },
+    query: { left = 1, right = 2 },
   }: {
-    query: { group1?: number; group2?: number };
+    query: { left?: number; right?: number };
   } = useRouter();
 
   const store = useStore();
@@ -36,11 +35,16 @@ function Videos() {
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
     (state) => state
   );
+
   let videoActivity = null as VideoActivity;
 
   if (Object.keys(videos.videos).length > 0) {
     videoActivity = selectVideoActivity(videos);
   }
+
+  //downlink channels for left and right
+  const [leftVideo, setLeftVideo] = useState(left - 1);
+  const [rightVideo, setRightVideo] = useState(right - 1);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -49,20 +53,45 @@ function Videos() {
     left: useRef() as MutableRefObject<HTMLVideoElement>,
     right: useRef() as MutableRefObject<HTMLVideoElement>,
   };
-
   const [mutedLeft, setMutedLeft] = useState(true);
   const [mutedRight, setMutedRight] = useState(true);
+
+  // metadata for video dimensions. Used to detect video aspect radio and adjust CSS accordingly
+  const [videoMetadataLeft, setVideoMetadataLeft] = useState(null);
+  const [videoMetadataRight, setVideoMetadataRight] = useState(null);
+
+  useEffect(() => {
+    const videoIDLeft = videos.activeVideoFiles["left"];
+    const videoIDRight = videos.activeVideoFiles["right"];
+    if (
+      videos.activeVideoFiles.left === "" ||
+      !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDLeft].start))
+    ) {
+      setVideoMetadataLeft(null);
+    }
+    if (
+      videos.activeVideoFiles.right === "" ||
+      !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDRight].start))
+    ) {
+      setVideoMetadataRight(null);
+    }
+  }, [clock.applicationTime, videos.activeVideoFiles]);
 
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
   useInterval(() => {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
 
-    // don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
-    if (newMissionTime === missionTime) {
-      return;
+    /* don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
+    but only if the clock is running. This stops one buffering video from essentially blocking
+    beginning to buffer the other video */
+    if (clock.isRunning) {
+      if (newMissionTime === missionTime) {
+        return;
+      } else {
+        missionTime = newMissionTime;
+      }
     }
-    missionTime = newMissionTime;
 
     // we can't update videos if we don't have videos
     if (!videoActivity) {
@@ -71,7 +100,7 @@ function Videos() {
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
-      const group = videos.selectedGroups[name];
+      const group = name === "left" ? leftVideo : rightVideo;
       const activeVideoFileID = videos.activeVideoFiles[name];
       const videosNextSecond = videoActivity[group][missionTime + 1];
 
@@ -94,6 +123,14 @@ function Videos() {
       // if the video needs to change, change it and bail. let the timeline catch up in the next second after the video loads
       if (id !== activeVideoFileID) {
         dispatch(pickVideoFile({ name, id }));
+
+        //wipe out the metadata for this player so that aspect will be recalculated when the next video loads
+        if (name === "left") {
+          setVideoMetadataLeft(null);
+        } else {
+          setVideoMetadataRight(null);
+        }
+
         return;
       }
 
@@ -171,31 +208,64 @@ function Videos() {
 
     const muted = name === "left" ? mutedLeft : mutedRight;
 
+    // Displays video background poster to depect novid, buffering, or blank if video loaded or buffering during playback
+    // Uses videoMetadata as an indicator whether the video element is currently playing something. is null when no vid
+    const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
+    let posterClass = styles.playerPosterNovid;
+    if (videos.status[name] === "buffering") {
+      if (!videoMetadata) {
+        posterClass = styles.playerPosterBuffering;
+      } else {
+        posterClass = "";
+      }
+    }
+    if (videoMetadata) {
+      posterClass = "";
+    }
+
     return (
-      <div key={`video_element__${name}`} className={styles.foo}>
-        <div className={styles.vidContainer}>
-          <video
-            ref={players[name]}
-            className={styles.player}
-            muted={muted}
-            src={videoURL}
-            poster="/images/novid.jpg"
-            onCanPlay={() => {
-              dispatch(ready(name));
-            }}
-            onEnded={() => {
-              // ready up because we don't want a missing video to hold up the clock
-              dispatch(ready(name));
-            }}
-            onWaiting={() => {
-              if (videos.ready[name] && videoID !== "") {
-                dispatch(buffering(name));
-              }
-            }}
-          ></video>
-          <div className={styles.vidOverlay}>
-            <div className={styles.vidInfo}>{vidInfo}</div>
-          </div>
+      <div
+        key={`video_element__${name}`}
+        className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
+      >
+        <div className={`${styles.playerPoster} ${posterClass}`}></div>
+        <video
+          ref={players[name]}
+          className={styles.player}
+          muted={muted}
+          src={videoURL}
+          onCanPlay={() => {
+            dispatch(ready(name));
+          }}
+          onEnded={() => {
+            // ready up because we don't want a missing video to hold up the clock
+            dispatch(ready(name));
+          }}
+          onWaiting={() => {
+            if (videos.ready[name] && videoID !== "") {
+              dispatch(buffering(name));
+            }
+          }}
+          onLoadedMetadata={(e) => {
+            const vidElement = e.target as HTMLVideoElement;
+            vidElement;
+            if (name === "left") {
+              setVideoMetadataLeft({
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+                duration: vidElement.duration,
+              });
+            } else {
+              setVideoMetadataRight({
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+                duration: vidElement.duration,
+              });
+            }
+          }}
+        ></video>
+        <div className={styles.vidOverlay}>
+          <div className={styles.vidInfo}>{vidInfo}</div>
         </div>
       </div>
     );
@@ -213,29 +283,30 @@ function Videos() {
     } else {
       mutedClass = mutedRight === true ? styles.unmute : styles.mute;
     }
-
     let currentMissionTime = getMissionTime(clock);
-
-    const buttonClass = (g, name) => {
-      let ret = styles.vidButton;
-      if (g === videos.selectedGroups[name]) {
-        ret = `${ret} ${styles.selected}`;
-      }
-      if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
-        ret = `${ret} ${styles.active}`;
-      }
-      return ret;
-    };
-
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
+          const group = name === "left" ? leftVideo : rightVideo;
+
+          let buttonClassStyle = styles.vidButton;
+          if (g === group) {
+            buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
+          } else if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
+            buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
+          }
           return (
             <button
               key={`vid${name}__button${g}`}
               type="button"
-              className={buttonClass(g, name)}
-              onClick={() => dispatch(pickGroup({ name, group: g }))}
+              className={buttonClassStyle}
+              onClick={() => {
+                if (name === "left") {
+                  setLeftVideo(g);
+                } else {
+                  setRightVideo(g);
+                }
+              }}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
             </button>
@@ -266,5 +337,3 @@ function Videos() {
     </div>
   );
 }
-
-export default Videos;

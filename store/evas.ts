@@ -20,8 +20,15 @@ export const initialState: EVAsState = {
 export const evasSlice = createSlice({
   name: "evas",
   initialState,
-  reducers: {},
+  reducers: {
+    /** Set the currently selected EVA */
+    setSelected: (state, action: { payload: string }) => {
+      state.selectedEVA = action.payload;
+    },
+  },
 });
+
+export const { setSelected } = evasSlice.actions;
 
 /** Start time of an EVA in UTC milliseconds */
 export const getEVAStartMilliseconds = (eva: EVA): number => {
@@ -89,6 +96,6 @@ export const getDayNightMissionTime = (dayNight: DayNight, timingData: TimingDat
   };
 };
 
-export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA];
+export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA] || null;
 
 export const selectEVAStartMilliseconds = createSelector(evaSelector, getEVAStartMilliseconds);

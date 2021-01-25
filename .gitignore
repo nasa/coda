@@ -8,5 +8,7 @@ node_modules/
 .next/
 
 # don't commit secrets!
-.env
-**/*/.cookies.json
+.env*
+
+# temporarily store BLE requests at build-time
+.cache

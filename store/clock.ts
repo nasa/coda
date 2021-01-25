@@ -1,5 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// TODO: should we use the Page Visibility API to pause the timeline when the user isn't looking?
+// https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+
 export interface ClockState {
   /** Whether the clock actually is running */
   isRunning: boolean;
@@ -78,7 +81,7 @@ export const clockSlice = createSlice({
 
 export const { start, stop, set, run, halt, toggleReady } = clockSlice.actions;
 
-/** Utility for doing the math to determine the internal application time based on starts and stops of the clock. Exported for testing */
+/** Utility for doing the math to determine the internal application time based on starts and stops of the clock */
 export const getApplicationUTC = (state: ClockState): Date => {
   const { isRunning, lastStarted, lastStopped, applicationTime } = state;
 
@@ -129,9 +132,24 @@ export const diff = (a: Date, b: Date): number => {
 /**
  * Advance a Date by some number of milliseconds
  */
-const add = (d: Date, ms: number): Date => {
+export const add = (d: Date, ms: number): Date => {
   const ret = new Date(d);
   const currentMS = ret.getUTCMilliseconds();
   ret.setUTCMilliseconds(currentMS + ms);
   return ret;
+};
+
+/**
+ * Whether or not two dates are the same UTC date
+ */
+export const isSameDate = (a: Date, b: Date): boolean => {
+  const Y1 = a.getUTCFullYear();
+  const M1 = a.getUTCMonth();
+  const D1 = a.getUTCDate();
+
+  const Y2 = b.getUTCFullYear();
+  const M2 = b.getUTCMonth();
+  const D2 = b.getUTCDate();
+
+  return Y1 === Y2 && M1 === M2 && D1 === D2;
 };

@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { Videos, VideoFile } from "services/io";
+import { isSameDate } from "./clock";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {
@@ -11,8 +12,12 @@ export interface VideosState {
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
   ready: { [key: string]: boolean };
+  /** buffering or playing or novid */
+  status: { [key: string]: string };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
+  /** UTC string of the last time we hit IO */
+  lastChecked: string;
 }
 
 export const initialState: VideosState = {
@@ -29,36 +34,45 @@ export const initialState: VideosState = {
     left: true,
     right: true,
   },
+  status: {
+    left: "",
+    right: "",
+  },
   errorMessage: "",
+  lastChecked: "",
 };
 
 export const videoSlice = createSlice({
   name: "video",
   initialState,
   reducers: {
-    /** Pick a video group to play on a named `<VideoPlayer />` */
-    pickGroup: (state, action: { payload: { name: string; group: number } }) => {
-      state.selectedGroups[action.payload.name] = action.payload.group;
-    },
-
     /** Set the video file ID to play on a named `<VideoPlayer />` */
     pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
+      state.status[action.payload.name] = "";
     },
 
     /** Mark videos are ready to be played. The payload is the video player name */
     ready: (state, action: { payload: string }) => {
       state.ready[action.payload] = true;
+      state.status[action.payload] = "ready";
     },
 
     /** Mark videos as not ready to be played. The payload is the video player name */
     buffering: (state, action: { payload: string }) => {
       state.ready[action.payload] = false;
+      state.status[action.payload] = "buffering";
+    },
+
+    /** Add new video files to the store */
+    add: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
+      state.videos = { ...state.videos, ...action.payload.videos };
+      state.lastChecked = new Date().toUTCString();
     },
   },
 });
 
-export const { pickGroup, pickVideoFile, ready, buffering } = videoSlice.actions;
+export const { pickVideoFile, ready, buffering, add } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
@@ -133,11 +147,14 @@ export const assignStartEnd = (videos: Videos, timingData: TimingData) => {
 /**
  * Get an array of video files sorted by priority and duration with mission timeframes
  */
-export const selectVideoFiles = createSelector(videosSelector, (videos) => {
-  const videoFiles = Object.keys(videos).map((v) => videos[v]);
-  videoFiles.sort(videoSorter);
-  return videoFiles;
-});
+export const selectVideoFiles = createSelector(
+  videosSelector,
+  (videos: { [key: string]: VideoFile } = {}) => {
+    const videoFiles = Object.keys(videos).map((v) => videos[v]);
+    videoFiles.sort(videoSorter);
+    return videoFiles;
+  }
+);
 
 /**
  * Nested as:
@@ -190,3 +207,14 @@ export const selectVideoActivity = createSelector(
     return res;
   }
 );
+
+/** Quick check to see if we have _any_ videos from a given UTC date in our store */
+export const haveVideosFromDate = (videos: VideosState, date: Date): boolean => {
+  const files = selectVideoFiles(videos) as VideoFile[];
+  for (let f in files) {
+    if (isSameDate(new Date(files[f].start), date)) {
+      return true;
+    }
+  }
+  return false;
+};

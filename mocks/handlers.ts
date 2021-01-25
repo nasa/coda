@@ -5,7 +5,6 @@ import getAsExecutedEV1Res from "./fakedata/getAsExecutedUS_EVA_55EV1.json";
 import getAsExecutedEV2Res from "./fakedata/getAsExecutedUS_EVA_55EV2.json";
 import getDayNightRes from "./fakedata/daynight.json";
 import getCrewRes from "./fakedata/getCrewUS_EVA_55.json";
-import ioRes from "./fakedata/io.json";
 
 export const handlers = [
   rest.get("http://wiki-mock/eva/api.php", (req, res, ctx) => {
@@ -27,8 +26,5 @@ export const handlers = [
       default:
         return res(ctx.json({}));
     }
-  }),
-  rest.get("http://io-mock/api/search/*", (req, res, ctx) => {
-    return res(ctx.json(ioRes));
   }),
 ];

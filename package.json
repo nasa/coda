@@ -9,6 +9,7 @@
     "prod": "cross-env NODE_OPTIONS='--inspect' APP_ENV=prod next dev",
     "build": "cross-env APP_ENV=dev next build",
     "build-prod": "cross-env APP_ENV=prod next build",
+    "export": "cross-env APP_ENV=dev next export",
     "start": "next start",
     "test": "jest",
     "tsc": "tsc --pretty"
@@ -43,7 +44,6 @@
     "@types/node-fetch": "^2.5.8",
     "@types/react": "^16.14.2",
     "cross-env": "^7.0.3",
-    "dotenv": "^8.2.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "jest": "^26.6.3",

@@ -44,7 +44,7 @@ export function timeFromZuluDate(zuluDate: Date): string {
   return `${hh}:${mm}:${ss}`;
 }
 
-function shortdateFromZuluDate(zuluDate: Date): string {
+export function shortdateFromZuluDate(zuluDate: Date): string {
   return (
     padZeros(zuluDate.getUTCFullYear(), 2) +
     "-" +

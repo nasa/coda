@@ -1,14 +1,15 @@
 import config from "../package.json";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { getApplicationUTC, getMissionTime, set } from "store/clock";
-import { timeFromZuluDate } from "utils/formatting";
+import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
+import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
 
 import styles from "./header.module.css";
+import { evaSelector, EVAsState } from "store/evas";
 
 let missionTime = null;
 
@@ -19,13 +20,16 @@ function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
   const store = useStore();
-  const {
-    evas: { EVAs, selectedEVA, EVACrew },
-  } = useSelector((state) => state);
+  const { clock, evas }: { clock: ClockState; evas: EVAsState } = useSelector((state) => state);
 
-  const [userValue, setUserValue] = useState("");
-  const [appValue, setAppValue] = useState(null);
-  const [editing, setEditing] = useState(false);
+  const [userTimeValue, setUserTimeValue] = useState("");
+  const [appDateTimeValue, setAppDateTimeValue] = useState(null);
+  const [editingTime, setEditingTime] = useState(false);
+
+  const [userDateValue, setUserDateValue] = useState("");
+  const [editingDate, setEditingDate] = useState(false);
+
+  const eva = evaSelector(evas);
 
   useInterval(() => {
     const { clock } = store.getState();
@@ -33,15 +37,17 @@ function Header() {
 
     if (newMissionTime !== missionTime) {
       const utc = getApplicationUTC(clock);
-      setAppValue(utc);
+      setAppDateTimeValue(utc);
       missionTime = newMissionTime;
     }
   }, 50);
 
   let renderTime = "00:00:00";
-  if (appValue) {
-    const dt = new Date(appValue);
+  let renderDate = "2019-08-21";
+  if (appDateTimeValue) {
+    const dt = new Date(appDateTimeValue);
     renderTime = timeFromZuluDate(dt);
+    renderDate = shortdateFromZuluDate(dt);
   }
 
   return (
@@ -78,14 +84,26 @@ function Header() {
                 className={styles.dateTime}
                 id="missionDate"
                 name="missionDate"
-                value={EVAs[selectedEVA]?.startDate || "2019-08-21"}
+                value={editingDate ? userDateValue : renderDate}
                 style={{
-                  width: "80px",
+                  width: "100px",
                   borderTopLeftRadius: "5px",
                   borderBottomLeftRadius: "5px",
                   marginRight: "1px",
                 }}
-                onChange={() => {}}
+                // match a yyyy-mm-dd or yyyy-m-d string
+                // https://stackoverflow.com/a/22061879
+                pattern="^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$"
+                onFocus={() => {
+                  setEditingDate(true);
+                  setUserDateValue(renderDate);
+                }}
+                onBlur={() => {
+                  if (editingDate) {
+                    setEditingDate(false);
+                  }
+                }}
+                onChange={(e) => setUserDateValue(e.target.value)}
               />
             </div>
             <div>
@@ -95,7 +113,7 @@ function Header() {
                 className={styles.dateTime}
                 id="missionTime"
                 name="missionTime"
-                value={editing ? userValue : renderTime}
+                value={editingTime ? userTimeValue : renderTime}
                 style={{
                   width: "70px",
                   borderTopRightRadius: "5px",
@@ -105,15 +123,15 @@ function Header() {
                 // allow HH:MM or HH:MM:SS
                 pattern="^(?:(?:([01]?\d|2[0-3]):[0-5]\d))(?::[0-5]\d)?$"
                 onFocus={() => {
-                  setEditing(true);
-                  setUserValue(`${renderTime}`);
+                  setEditingTime(true);
+                  setUserTimeValue(renderTime);
                 }}
                 onBlur={() => {
-                  if (editing) {
-                    setEditing(false);
+                  if (editingTime) {
+                    setEditingTime(false);
                   }
                 }}
-                onChange={(e) => setUserValue(e.target.value)}
+                onChange={(e) => setUserTimeValue(e.target.value)}
               />
             </div>
             <div style={{ marginLeft: "5px" }}>
@@ -122,22 +140,49 @@ function Header() {
                 id="goButton"
                 title="Jump to Date/Time"
                 onClick={(e) => {
-                  const [Y, M, D] = EVAs[selectedEVA].startDate.split("/");
-                  let dt: Date;
-                  if (userValue === "") {
-                    const [hh, mm, ss] = renderTime.split(":");
-                    dt = new Date(+Y, +M - 1, +D, +hh, +mm, +ss);
-                  } else {
-                    const [hh, mm = "00", ss = "00"] = userValue.split(":");
-                    dt = new Date(Date.UTC(+Y, +M - 1, +D, +hh, +mm, +ss));
+                  let year: number;
+                  let month: number;
+                  let day: number;
+                  let date: Date;
+
+                  if (userDateValue !== "") {
+                    const [Y, M, D] = userDateValue.split("-");
+                    router.push(`/view?date=${Y}/${M}/${D}`);
+                    return;
                   }
-                  dispatch(set(dt.toUTCString()));
-                  setUserValue("");
-                  setEditing(false);
+
+                  const d = new Date(clock.applicationTime);
+                  year = d.getUTCFullYear();
+                  month = d.getUTCMonth();
+                  day = d.getUTCDate();
+
+                  date = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+
+                  if (userTimeValue !== "") {
+                    const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
+                    date = new Date(Date.UTC(year, month, day, +hh, +mm, +ss));
+                  }
+
+                  dispatch(set(date.toUTCString()));
+                  setUserTimeValue("");
+                  setUserDateValue("");
+                  setEditingTime(false);
+                  setEditingDate(false);
                 }}
               >
-                GO
+                Jump
               </button>
+              {isSameDate(new Date(), new Date(clock.applicationTime)) && (
+                <button
+                  className={styles.littleHeaderButton}
+                  title="Jump to now"
+                  onClick={(e) => {
+                    dispatch(set(new Date().toUTCString()));
+                  }}
+                >
+                  Go Live
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -149,25 +194,29 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            <div className={styles.crewItem}>
-              EV1:{" "}
-              <span style={{ color: "white" }} id="ev1TitleSpan">
-                {EVACrew.ev1}
-              </span>
-            </div>
-            <div className={styles.crewItem}>
-              EV2:{" "}
-              <span style={{ color: "white" }} id="ev2TitleSpan">
-                {EVACrew.ev2}
-              </span>
-            </div>
+            {eva && (
+              <div>
+                <div className={styles.crewItem}>
+                  EV1:{" "}
+                  <span style={{ color: "white" }} id="ev1TitleSpan">
+                    {eva.crew?.EV1 || "unknown"}
+                  </span>
+                </div>
+                <div className={styles.crewItem}>
+                  EV2:{" "}
+                  <span style={{ color: "white" }} id="ev2TitleSpan">
+                    {eva.crew?.EV2 || "unknown"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
       <div className={styles.rightSection}>
         <div className={styles.headerElementContainer}>
           <div className={styles.version}>
-            Alpha v{config.version}
+            Beta v{config.version}
             <br />
             Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>

@@ -4,9 +4,9 @@ import { Provider } from "react-redux";
 import { useStore } from "store";
 import "../styles.css";
 
-// Enable API mocking locally
+// Enable API mocking locally in node
 // https://github.com/vercel/next.js/tree/canary/examples/with-msw
-if (process.env.APP_ENV === "local") {
+if (typeof window === "undefined" && process.env.NEXT_PUBLIC_APP_ENV === "local") {
   require("../mocks");
 }
 

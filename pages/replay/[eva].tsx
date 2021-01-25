@@ -1,4 +1,3 @@
-import get from "lodash/get";
 import type { GetServerSideProps, GetStaticPaths } from "next";
 import Head from "next/head";
 import Main from "components/main";
@@ -14,7 +13,12 @@ import {
   DayNight,
 } from "services/iss-wiki";
 import getVideoData, { Videos } from "services/io";
-import { assignStartEnd, generateTimingData, TimingData } from "store/videos";
+import {
+  assignStartEnd,
+  generateTimingData,
+  TimingData,
+  initialState as videosInitialState,
+} from "store/videos";
 import {
   getActivityPerformanceMissionTime,
   getDayNightMissionTime,
@@ -22,7 +26,7 @@ import {
 } from "store/evas";
 import { diff } from "store/clock";
 
-function Replay({
+export default function Replay({
   initialReduxState: {
     evas: { EVAs, selectedEVA },
   },
@@ -93,8 +97,7 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     asExecutedEV1 = await getAsExecuted(EVAs[evaName].name, 1);
     asExecutedEV2 = await getAsExecuted(EVAs[evaName].name, 2);
     dayNight = await getDayNight(EVAs[evaName].name);
-    // TODO: not updating when you navigate from one EVA to another. only uses mock data?
-    EVACrew = await getCrew(evaName);
+    EVACrew = await getCrew(EVAs[evaName].name);
   } catch (e) {
     console.error(e);
     evaErrorMessage = "Error fetching EVAs";
@@ -109,44 +112,11 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);
 
-    const activityStartUTCMilliseconds = getEVAStartMilliseconds(EVAs[evaName]);
-
-    EVAs[evaName].activityPerformance["EV1"] = getActivityPerformanceMissionTime(
-      asExecutedEV1,
-      timingData,
-      activityStartUTCMilliseconds
-    );
-    EVAs[evaName].activityPerformance["EV2"] = getActivityPerformanceMissionTime(
-      asExecutedEV2,
-      timingData,
-      activityStartUTCMilliseconds
-    );
     EVAs[evaName].dayNight = getDayNightMissionTime(dayNight, timingData);
   } catch (e) {
     console.error(e);
     videosErrorMessage = "Error fetching videos";
   }
-
-  // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
-  // the trick we're using to map over the existing video files object is:
-  // (1) map over the existing object, returning an [id, newObj] array, (2) use `Object.fromEntries` to convert the array of [id, newObj] arrays back into an object with the same keys as the original
-  const jsonifiedVideoFiles = Object.fromEntries(
-    Object.keys(videos).map((v) => {
-      const vid = videos[v];
-      return [
-        vid.id,
-        {
-          ...vid,
-          description: vid.description || "",
-          // overwrite the old start and end Date objects with strings
-          ...{
-            start: vid.start.toUTCString(),
-            end: vid.end.toUTCString(),
-          },
-        },
-      ];
-    })
-  );
 
   return {
     props: {
@@ -167,19 +137,11 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
           errorMessage: evaErrorMessage,
         },
         videos: {
-          videos: jsonifiedVideoFiles,
-          selectedGroups: {
-            left: 0,
-            right: 1,
-          },
-          activeVideoFiles: {
-            left: "",
-            right: "",
-          },
-          ready: {
-            left: true,
-            right: true,
-          },
+          videos,
+          selectedGroups: videosInitialState.selectedGroups,
+          activeVideoFiles: videosInitialState.activeVideoFiles,
+          ready: videosInitialState.ready,
+          status: videosInitialState.status,
           errorMessage: videosErrorMessage,
         },
       },
@@ -188,5 +150,3 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     revalidate: 1,
   };
 };
-
-export default Replay;

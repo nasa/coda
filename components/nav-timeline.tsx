@@ -1,9 +1,16 @@
-import { useRouter } from "next/router";
+import get from "lodash/get";
+import isNull from "lodash/isNull";
 import paper from "paper";
-import { useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getMissionTime, set } from "store/clock";
-import { evaSelector, EVAsState, selectEVAStartMilliseconds } from "store/evas";
+import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
+import {
+  evaSelector,
+  EVAsState,
+  getActivityPerformanceMissionTime,
+  getEVAStartMilliseconds,
+  selectEVAStartMilliseconds,
+} from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
 import useInterval from "utils/useInterval";
 import DrawNav from "./draw-nav";
@@ -11,23 +18,15 @@ import DrawNav from "./draw-nav";
 // these vars only affect the canvas so avoid updating the React component state
 let missionTime = null;
 let mouseOnNavigator = false;
-let paperReady = false;
-let drawNav: DrawNav;
+let navReady = false;
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
  */
 function NavTimeline() {
-  const {
-    query: { utc = null, pet = null },
-  }: {
-    query: {
-      utc?: number;
-      pet?: number;
-    };
-  } = useRouter();
   const store = useStore();
   const {
+    clock,
     evas,
     videos,
   }: {
@@ -38,61 +37,117 @@ function NavTimeline() {
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
-  const { activityPerformance, dayNight, startDate } = evaSelector(evas);
 
+  const eva = evaSelector(evas);
   const canvas = useRef();
+  const drawNav: MutableRefObject<DrawNav> = useRef(null);
 
   useEffect(() => {
-    // bail if we've already instantiated the paperjs timeline
-    if (drawNav) {
+    // only setup the canvas once
+    if (isNull(paper.project)) {
+      paper.setup(canvas.current);
+    }
+
+    const paperRendered = !isNull(paper.project) && !paper.project.isEmpty();
+    const sameVideos =
+      !isNull(drawNav.current) && drawNav.current.hasAlreadyRenderedVideos(videoFiles);
+    const sameDate =
+      !isNull(drawNav.current) &&
+      isSameDate(drawNav.current.dateRendered, new Date(clock.applicationTime));
+    const sameEVA = !isNull(drawNav.current) && evas.selectedEVA === drawNav.current.evaRendered;
+
+    // clock.applicationTime is a day off???
+
+    if (paperRendered && sameVideos && sameDate && sameEVA) {
+      // bail if there's no reason to rerender the timeline
       return;
     }
 
-    drawNav = new DrawNav(timingData, videoFiles, dayNight, activityPerformance);
+    // clear out the timeline before rerendering
+    // paper.project.clear();
 
-    paper.setup(canvas.current);
-    drawNav.initGroups();
-    drawNav.setDynamicWidthVariables();
-    drawNav.drawTier1();
-    drawNav.drawTier1NavBox(missionTime);
-    drawNav.drawTier2();
+    const dayNight = eva?.dayNight || null;
+
+    const activityPerformance = { EV1: [], EV2: [] };
+    if (!isNull(eva)) {
+      const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);
+      const EV1 = get(eva.execution, "EV1", null);
+      if (!isNull(EV1)) {
+        activityPerformance.EV1 = getActivityPerformanceMissionTime(
+          EV1,
+          timingData,
+          activityStartUTCMilliseconds
+        );
+      }
+      const EV2 = get(eva.execution, "EV2", null);
+      if (!isNull(EV2)) {
+        activityPerformance.EV2 = getActivityPerformanceMissionTime(
+          EV2,
+          timingData,
+          activityStartUTCMilliseconds
+        );
+      }
+    }
+
+    drawNav.current = new DrawNav(
+      timingData,
+      videoFiles,
+      dayNight,
+      activityPerformance,
+      new Date(clock.applicationTime),
+      evas.selectedEVA
+    );
+
+    drawNav.current.initGroups();
+    drawNav.current.setDynamicWidthVariables();
+    drawNav.current.drawTier1();
+    drawNav.current.drawTier1NavBox(missionTime);
+    drawNav.current.drawTier2();
 
     paper.view.onResize = function () {
-      drawNav.setDynamicWidthVariables();
-      drawNav.drawTier1();
-      drawNav.drawTier1NavBox(missionTime);
-      drawNav.drawTier2();
-      drawNav.drawCursor(missionTime);
+      drawNav.current.setDynamicWidthVariables();
+      drawNav.current.drawTier1();
+      drawNav.current.drawTier1NavBox(missionTime);
+      drawNav.current.drawTier2();
+      drawNav.current.drawCursor(missionTime);
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.handleMouseMove(event, () => {
+      drawNav.current?.handleMouseMove(event, () => {
         if (!mouseOnNavigator) {
           mouseOnNavigator = true;
         }
       });
     };
     paper.view.onMouseUp = (event) => {
-      drawNav.handleMouseUp(event, (hh: number, mm: number, ss: number) => {
-        const [Y, M, D] = startDate.split("/");
-        // time is in Zulu time. we need to convert to UTC
-        const dt = new Date(Date.UTC(+Y, +M - 1, +D, hh, mm, ss));
+      drawNav.current.handleMouseUp(event, (hh: number, mm: number, ss: number) => {
+        const utc = getApplicationUTC(clock);
+        const Y = utc.getUTCFullYear();
+        const M = utc.getUTCMonth();
+        const D = utc.getUTCDate();
+
+        const dt = new Date(Date.UTC(Y, M, D, hh, mm, ss));
         dispatch(set(dt.toISOString()));
       });
     };
     paper.view.onMouseLeave = (event) => {
-      drawNav.handleMouseLeave(event, () => {
+      drawNav.current?.handleMouseLeave(event, () => {
         mouseOnNavigator = false;
       });
     };
 
-    if (!paperReady) {
-      paperReady = true;
+    if (!navReady) {
+      navReady = true;
     }
-  }, []);
+
+    return () => {
+      paper.project.remove();
+      drawNav.current = null;
+    };
+  }, [clock.applicationTime, evas.selectedEVA, videos.videos]);
 
   useInterval(() => {
-    if (!paperReady) {
+    if (!navReady) {
       // nothing to update if the paperjs timeline hasn't been instantiated
       return;
     }
@@ -105,9 +160,9 @@ function NavTimeline() {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
     if (newMissionTime !== missionTime) {
-      drawNav.drawTier1NavBox(newMissionTime);
-      drawNav.drawTier2();
-      drawNav.drawCursor(newMissionTime);
+      drawNav.current.drawTier1NavBox(newMissionTime);
+      drawNav.current.drawTier2();
+      drawNav.current.drawCursor(newMissionTime);
       missionTime = newMissionTime;
     }
   }, 50);
