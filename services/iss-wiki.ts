@@ -646,11 +646,9 @@ function parseDayNight(results): DayNight {
 /** Fetch all EVA as-planned data and format it for passing to the redux store */
 export async function buildEVAStore() {
   const EVAs = {} as { [key: string]: EVA };
-  const [asPlanned, asExecuted, crews] = await Promise.all([
-    getAllEVAs(),
-    getAllAsExecuted(),
-    getAllCrew(),
-  ]);
+  const asPlanned = await getAllEVAs();
+  const asExecuted = await getAllAsExecuted();
+  const crews = await getAllCrew();
 
   Object.keys(asPlanned).forEach((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
