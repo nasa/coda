@@ -1,9 +1,10 @@
-import router from "next/router";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import styles from "./eva-dropdown.module.css";
 
 export default function EVADropdown() {
+  const router = useRouter();
   const {
     evas: { EVAs, selectedEVA },
   } = useSelector((state) => state);
