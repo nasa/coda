@@ -1,5 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// TODO: should we use the Page Visibility API to pause the timeline when the user isn't looking?
+// https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+
 export interface ClockState {
   /** Whether the clock actually is running */
   isRunning: boolean;

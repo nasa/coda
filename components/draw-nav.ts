@@ -61,7 +61,9 @@ export default class DrawNav {
     readonly dayNight: DayNight,
     readonly activityPerformance: {
       [x: string]: Activity[];
-    }
+    },
+    /** Keep track of dates for bookkeeping purposes */
+    readonly dateRendered: Date
   ) {}
 
   initGroups() {
@@ -523,5 +525,15 @@ export default class DrawNav {
   handleMouseLeave = (_event, cb) => {
     cb();
     this.gNavCursorGroup.removeChildren();
+  };
+
+  hasAlreadyRenderedVideos = (otherVideos: VideoFile[]): boolean => {
+    const currentVideoIDs = new Map(this.videoFiles.map((vid) => [vid.id, null]));
+    for (let v = 0; v < otherVideos.length; v++) {
+      if (!currentVideoIDs.has(otherVideos[v].id)) {
+        return false;
+      }
+    }
+    return true;
   };
 }

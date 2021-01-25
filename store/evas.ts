@@ -89,6 +89,6 @@ export const getDayNightMissionTime = (dayNight: DayNight, timingData: TimingDat
   };
 };
 
-export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA];
+export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA] || null;
 
 export const selectEVAStartMilliseconds = createSelector(evaSelector, getEVAStartMilliseconds);

@@ -108,18 +108,6 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     timingData = generateTimingData(videos);
     videos = assignStartEnd(videos, timingData);
 
-    const activityStartUTCMilliseconds = getEVAStartMilliseconds(EVAs[evaName]);
-
-    EVAs[evaName].activityPerformance["EV1"] = getActivityPerformanceMissionTime(
-      asExecutedEV1,
-      timingData,
-      activityStartUTCMilliseconds
-    );
-    EVAs[evaName].activityPerformance["EV2"] = getActivityPerformanceMissionTime(
-      asExecutedEV2,
-      timingData,
-      activityStartUTCMilliseconds
-    );
     EVAs[evaName].dayNight = getDayNightMissionTime(dayNight, timingData);
   } catch (e) {
     console.error(e);

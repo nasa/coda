@@ -1,9 +1,16 @@
+import get from "lodash/get";
 import isNull from "lodash/isNull";
 import paper from "paper";
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getApplicationUTC, getMissionTime, set } from "store/clock";
-import { evaSelector, EVAsState, selectEVAStartMilliseconds } from "store/evas";
+import {
+  evaSelector,
+  EVAsState,
+  getActivityPerformanceMissionTime,
+  getEVAStartMilliseconds,
+  selectEVAStartMilliseconds,
+} from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
 import useInterval from "utils/useInterval";
 import DrawNav from "./draw-nav";
@@ -11,8 +18,8 @@ import DrawNav from "./draw-nav";
 // these vars only affect the canvas so avoid updating the React component state
 let missionTime = null;
 let mouseOnNavigator = false;
-let paperReady = false;
-let drawNav: DrawNav;
+let navReady = false;
+let drawNav = null as DrawNav;
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
@@ -36,25 +43,59 @@ function NavTimeline() {
 
   const canvas = useRef();
 
-  // TODO: need a way to blow away the nav-timeline when:
-  //   - the UTC day changes
-  //   - new video data for this UTC day has arrived
-
   useEffect(() => {
-    // bail if we've already instantiated the paperjs timeline
-    if (!isNull(paper.project) && !paper.project.isEmpty()) {
-      return;
-    }
-
     // only setup the canvas once
     if (isNull(paper.project)) {
       paper.setup(canvas.current);
     }
 
-    const dayNight = eva?.dayNight || null;
-    const activityPerformance = eva?.activityPerformance || null;
+    const paperRendered = !isNull(paper.project) && !paper.project.isEmpty();
+    const sameVideos = !isNull(drawNav) && drawNav.hasAlreadyRenderedVideos(videoFiles);
+    const sameDate = !isNull(drawNav) && drawNav.dateRendered === new Date(clock.applicationTime);
 
-    drawNav = new DrawNav(timingData, videoFiles, dayNight, activityPerformance);
+    if (paperRendered && sameVideos && sameDate) {
+      // bail if there's no reason to rerender the timeline
+      return;
+    } else {
+      // clear out the timeline before rerendering
+      paper.project.clear();
+    }
+
+    const dayNight = eva?.dayNight || null;
+    // TODO: calculate activity performance here instead of duing getStaticProps
+    // TODO: need to blow away the nav-timeline when:
+    //   - the UTC date changes
+    //   - new video data for this UTC day has arrived
+    // maybe put a property on the drawDraw that indicates date, whether it used activity performance, etc? then check that first in useEffect to see if the updated store would cause the nav-timeline to change
+
+    const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);
+    const activityPerformance = { EV1: [], EV2: [] };
+    if (!isNull(eva)) {
+      const EV1 = get(eva, ["execution", "EV1"], null);
+      if (!isNull(EV1)) {
+        activityPerformance.EV1 = getActivityPerformanceMissionTime(
+          eva.execution.EV1,
+          timingData,
+          activityStartUTCMilliseconds
+        );
+      }
+      const EV2 = get(eva, ["execution", "EV2"], null);
+      if (!isNull(EV2)) {
+        activityPerformance.EV2 = getActivityPerformanceMissionTime(
+          eva.execution.EV2,
+          timingData,
+          activityStartUTCMilliseconds
+        );
+      }
+    }
+
+    drawNav = new DrawNav(
+      timingData,
+      videoFiles,
+      dayNight,
+      activityPerformance,
+      new Date(clock.applicationTime)
+    );
 
     drawNav.initGroups();
     drawNav.setDynamicWidthVariables();
@@ -94,15 +135,15 @@ function NavTimeline() {
       });
     };
 
-    if (!paperReady) {
-      paperReady = true;
+    if (!navReady) {
+      navReady = true;
     }
 
     return () => paper.project.clear();
   }, [clock.applicationTime, videos.videos]);
 
   useInterval(() => {
-    if (!paperReady) {
+    if (!navReady) {
       // nothing to update if the paperjs timeline hasn't been instantiated
       return;
     }
