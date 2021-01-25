@@ -20,13 +20,11 @@
 .playerPoster {
   width: 100%;
   height: 100%;
+  background: no-repeat url("/images/test-pattern-bw_640.png");
+  background-size: cover;
   position: absolute;
   top: 0;
   left: 0;
-}
-.playerPosterNovid {
-  background: no-repeat url("/images/test-pattern-bw_640.png");
-  background-size: cover;
 }
 .playerPosterBuffering {
   background: no-repeat url("/images/eva_loader_bw.gif");

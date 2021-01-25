@@ -194,7 +194,7 @@ export default function Videos() {
     // Displays video background poster to depect novid, buffering, or blank if video loaded or buffering during playback
     // Uses videoMetadata as an indicator whether the video element is currently playing something. is null when no vid
     const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
-    let posterClass = styles.playerPosterNovid;
+    let posterClass = "";
     if (videos.status[name] === "buffering") {
       if (!videoMetadata) {
         posterClass = styles.playerPosterBuffering;

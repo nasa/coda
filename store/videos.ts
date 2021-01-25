@@ -49,6 +49,7 @@ export const videoSlice = createSlice({
     /** Set the video file ID to play on a named `<VideoPlayer />` */
     pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
+      state.status[action.payload.name] = "";
     },
 
     /** Mark videos are ready to be played. The payload is the video player name */
