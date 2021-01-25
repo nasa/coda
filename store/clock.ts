@@ -81,7 +81,7 @@ export const clockSlice = createSlice({
 
 export const { start, stop, set, run, halt, toggleReady } = clockSlice.actions;
 
-/** Utility for doing the math to determine the internal application time based on starts and stops of the clock. Exported for testing */
+/** Utility for doing the math to determine the internal application time based on starts and stops of the clock */
 export const getApplicationUTC = (state: ClockState): Date => {
   const { isRunning, lastStarted, lastStopped, applicationTime } = state;
 
@@ -132,7 +132,7 @@ export const diff = (a: Date, b: Date): number => {
 /**
  * Advance a Date by some number of milliseconds
  */
-const add = (d: Date, ms: number): Date => {
+export const add = (d: Date, ms: number): Date => {
   const ret = new Date(d);
   const currentMS = ret.getUTCMilliseconds();
   ret.setUTCMilliseconds(currentMS + ms);

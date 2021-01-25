@@ -14,6 +14,8 @@ export interface VideosState {
   ready: { [key: string]: boolean };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
+  /** UTC string of the last time we hit IO */
+  lastChecked: string;
 }
 
 export const initialState: VideosState = {
@@ -31,6 +33,7 @@ export const initialState: VideosState = {
     right: true,
   },
   errorMessage: "",
+  lastChecked: "",
 };
 
 export const videoSlice = createSlice({
@@ -60,6 +63,7 @@ export const videoSlice = createSlice({
     /** Add new video files to the store */
     add: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
       state.videos = { ...state.videos, ...action.payload.videos };
+      state.lastChecked = new Date().toUTCString();
     },
   },
 });
@@ -201,10 +205,10 @@ export const selectVideoActivity = createSelector(
 );
 
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */
-export const haveVideosFromDate = (videos: { [key: string]: VideoFile }, date: Date): boolean => {
+export const haveVideosFromDate = (videos: VideosState, date: Date): boolean => {
   const files = selectVideoFiles(videos) as VideoFile[];
-  for (let f of files) {
-    if (isSameDate(f.start, date)) {
+  for (let f in files) {
+    if (isSameDate(new Date(files[f].start), date)) {
       return true;
     }
   }

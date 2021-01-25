@@ -100,8 +100,8 @@ export interface VideoFile {
   id: string;
   content: string;
   description: string;
-  start: Date;
-  end: Date;
+  start: string;
+  end: string;
   url: string;
   videoURL: string;
   className: string;
@@ -248,9 +248,9 @@ function parseResultMetadata(doc: Doc, i: number): VideoFile {
   return {
     id: doc.nasa_id,
     content,
-    description: doc.description,
-    start: UTCstart,
-    end: UTCend,
+    description: doc.description || "",
+    start: UTCstart.toUTCString(),
+    end: UTCend.toUTCString(),
     url,
     videoURL,
     className,

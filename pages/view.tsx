@@ -25,16 +25,21 @@ import {
   VideosState,
 } from "store/videos";
 import {
+  evasSlice,
+  EVAsState,
   getActivityPerformanceMissionTime,
   getDayNightMissionTime,
   getEVAStartMilliseconds,
+  setSelected,
 } from "store/evas";
 import { useRouter } from "next/router";
 import { dateAsCanonicalString } from "utils/formatting";
 import { useEffect } from "react";
-import { ClockState, diff, set } from "store/clock";
+import { ClockState, diff, isSameDate, set } from "store/clock";
+import useInterval from "utils/useInterval";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const FIVE_MINS_MS = 5 * 60 * 1000;
 
 // /view always tries to collect newest videos from IO and updates the nav-timeline
 // /view?date=today-in-gmt is the same as /view
@@ -46,9 +51,11 @@ export default function View() {
     // date should be in YYYY/MM/DD format
     query: { date = null as string },
   } = useRouter();
-  const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
-    (state) => state
-  );
+  const {
+    clock,
+    evas,
+    videos,
+  }: { clock: ClockState; evas: EVAsState; videos: VideosState } = useSelector((state) => state);
   const dispatch = useDispatch();
 
   // make sure the application is running on the correct date
@@ -56,7 +63,12 @@ export default function View() {
     let applicationDate = new Date();
     if (date) {
       const [Y, M, D] = (date as string).split("/").map(Number);
-      applicationDate = new Date(Y, M - 1, D);
+      const userDate = new Date(Date.UTC(Y, M - 1, D, 0, 0, 0, 0));
+
+      // only use the userDate if it's in the past (CODA doesn't have precogs!)
+      if (diff(new Date(), userDate) >= 0) {
+        applicationDate = userDate;
+      }
     }
 
     if (
@@ -67,8 +79,6 @@ export default function View() {
     }
   }
 
-  // TODO: check if there's an EVA on this date and ask if someone wants to redirect?
-
   useEffect(() => {
     (async () => {
       if (isNull(clock.applicationTime)) {
@@ -77,8 +87,22 @@ export default function View() {
 
       const d = new Date(clock.applicationTime);
 
+      // try to find an EVA on this date
+      let hit = false;
+      for (let eva in evas.EVAs) {
+        const [Y, M, D] = evas.EVAs[eva].startDate.split("/");
+        if (isSameDate(new Date(+Y, +M - 1, +D), d) && evas.selectedEVA !== eva) {
+          dispatch(setSelected(eva));
+          hit = true;
+          break;
+        }
+      }
+      if (!hit) {
+        dispatch(setSelected(""));
+      }
+
       // make sure we don't already have videos for this date
-      if (haveVideosFromDate(videos.videos, d)) {
+      if (haveVideosFromDate(videos, d)) {
         return;
       }
 
@@ -97,6 +121,36 @@ export default function View() {
       dispatch(addVideos({ videos: videoStore }));
     })();
   }, [clock.applicationTime]);
+
+  // look for new videos every 5 minutes if the user is looking at today's date
+  useInterval(() => {
+    (async () => {
+      // the clock hasn't been set, no point in looking for videos
+      if (isNull(clock.applicationTime)) {
+        return;
+      }
+
+      const d = new Date(clock.applicationTime);
+      if (!isSameDate(d, new Date())) {
+        // the user is looking at a date in the past. no need to keep looking for new videos
+        return;
+      }
+
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+
+      let videoStore: Videos;
+      try {
+        // video data for this EVA
+        videoStore = await buildVideoStore(year, month + 1, day);
+      } catch (e) {
+        console.error(e);
+      }
+
+      dispatch(addVideos({ videos: videoStore }));
+    })();
+  }, FIVE_MINS_MS);
 
   return (
     <div>

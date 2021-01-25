@@ -672,7 +672,7 @@ export async function buildEVAStore() {
       // we need video data to calculate activityPerformance
       activityPerformance: { EV1: [], EV2: [] },
       // the wiki doesn't actually give us dayNight
-      dayNight: {},
+      dayNight: { events: [], dataStartUTC: 0 },
     };
   });
 

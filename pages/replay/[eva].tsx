@@ -114,27 +114,6 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
     videosErrorMessage = "Error fetching videos";
   }
 
-  // in order to inject timing data into the page props, it has to be JSON serializable. Date() is not. Remember that server-side rendering means that the data that is returned from this function was originally fetched on the server and then sent to the client as a big JSON payload
-  // the trick we're using to map over the existing video files object is:
-  // (1) map over the existing object, returning an [id, newObj] array, (2) use `Object.fromEntries` to convert the array of [id, newObj] arrays back into an object with the same keys as the original
-  const jsonifiedVideoFiles = Object.fromEntries(
-    Object.keys(videos).map((v) => {
-      const vid = videos[v];
-      return [
-        vid.id,
-        {
-          ...vid,
-          description: vid.description || "",
-          // overwrite the old start and end Date objects with strings
-          ...{
-            start: vid.start.toUTCString(),
-            end: vid.end.toUTCString(),
-          },
-        },
-      ];
-    })
-  );
-
   return {
     props: {
       initialReduxState: {
@@ -154,7 +133,7 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
           errorMessage: evaErrorMessage,
         },
         videos: {
-          videos: jsonifiedVideoFiles,
+          videos,
           selectedGroups: {
             left: 0,
             right: 1,

@@ -3,7 +3,7 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getApplicationUTC, getMissionTime, set } from "store/clock";
+import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
 import {
   evaSelector,
   EVAsState,
@@ -51,7 +51,8 @@ function NavTimeline() {
 
     const paperRendered = !isNull(paper.project) && !paper.project.isEmpty();
     const sameVideos = !isNull(drawNav) && drawNav.hasAlreadyRenderedVideos(videoFiles);
-    const sameDate = !isNull(drawNav) && drawNav.dateRendered === new Date(clock.applicationTime);
+    const sameDate =
+      !isNull(drawNav) && isSameDate(drawNav.dateRendered, new Date(clock.applicationTime));
 
     if (paperRendered && sameVideos && sameDate) {
       // bail if there's no reason to rerender the timeline
@@ -62,15 +63,10 @@ function NavTimeline() {
     }
 
     const dayNight = eva?.dayNight || null;
-    // TODO: calculate activity performance here instead of duing getStaticProps
-    // TODO: need to blow away the nav-timeline when:
-    //   - the UTC date changes
-    //   - new video data for this UTC day has arrived
-    // maybe put a property on the drawDraw that indicates date, whether it used activity performance, etc? then check that first in useEffect to see if the updated store would cause the nav-timeline to change
 
-    const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);
     const activityPerformance = { EV1: [], EV2: [] };
     if (!isNull(eva)) {
+      const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);
       const EV1 = get(eva, ["execution", "EV1"], null);
       if (!isNull(EV1)) {
         activityPerformance.EV1 = getActivityPerformanceMissionTime(
@@ -124,8 +120,8 @@ function NavTimeline() {
         const Y = utc.getUTCFullYear();
         const M = utc.getUTCMonth();
         const D = utc.getUTCDate();
-        // time is in Zulu time. we need to convert to UTC
-        const dt = new Date(Date.UTC(Y, M - 1, D, hh, mm, ss));
+        // make sure the time is in UTC
+        const dt = new Date(Date.UTC(Y, M, D, hh, mm, ss));
         dispatch(set(dt.toISOString()));
       });
     };
@@ -140,7 +136,7 @@ function NavTimeline() {
     }
 
     return () => paper.project.clear();
-  }, [clock.applicationTime, videos.videos]);
+  }, [clock.applicationTime, evas.selectedEVA, videos.videos]);
 
   useInterval(() => {
     if (!navReady) {
