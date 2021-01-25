@@ -18,7 +18,6 @@ export interface VideosState {
   lastChecked: string;
 }
 
-//TODO: Very confusing. These are not where the actual defaults are stored. They are in [eva].tsx and now view.tsx as well
 export const initialState: VideosState = {
   videos: {},
   activeVideoFiles: {
