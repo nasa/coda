@@ -153,13 +153,13 @@ function Header() {
             <div className={styles.crewItem}>
               EV1:{" "}
               <span style={{ color: "white" }} id="ev1TitleSpan">
-                {EVACrew.ev1}
+                {EVACrew.EV1}
               </span>
             </div>
             <div className={styles.crewItem}>
               EV2:{" "}
               <span style={{ color: "white" }} id="ev2TitleSpan">
-                {EVACrew.ev2}
+                {EVACrew.EV2}
               </span>
             </div>
           </div>

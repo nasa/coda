@@ -119,7 +119,6 @@ export const getStaticProps: GetServerSideProps = async () => {
   let EVAs: { [key: string]: EVA };
   try {
     EVAs = await buildEVAStore();
-    const temp = await getAllAsExecuted();
   } catch (e) {
     console.error(e);
     evaErrorMessage = "Error fetching EVA list";

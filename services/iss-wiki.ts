@@ -6,6 +6,7 @@ import { promises as fs } from "fs";
 import MWBot from "mwbot";
 import FileCookieStore from "tough-cookie-filestore";
 import request from "request";
+import get from "lodash/get";
 import isNull from "lodash/isNull";
 import memoize from "lodash/memoize";
 import fetch from "node-fetch";
@@ -31,6 +32,14 @@ export interface EVA {
   /** Activity performance keyed by EV */
   activityPerformance: { [key: string]: Activity[] };
   dayNight: DayNight;
+  execution?: {
+    /** Keyed by actor, eg. `EV1` */
+    [key: string]: Activity[];
+  };
+  crew?: {
+    /** Crew names keyed by actor, eg. `{EV1: "Bob"}` */
+    [key: string]: string;
+  };
 }
 
 export interface Activity {
@@ -256,7 +265,7 @@ async function _getAllEVAs(): Promise<EVASummaryResponse> {
 }
 
 /** Memoized call to get a summary of all EVAs on the wiki */
-export const getAllEVAs = memoize(_getAllEVAs);
+export const getAllEVAs: () => Promise<EVASummaryResponse> = memoize(_getAllEVAs);
 
 /** EVA Metadata */
 interface EVADetails {
@@ -405,8 +414,16 @@ function parseAsExecuted(results: EVAAsExecuted): Activity[] {
   return res;
 }
 
+export interface AllExecution {
+  /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
+  [key: string]: {
+    /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
+    [key: string]: Activity[];
+  };
+}
+
 /** Get as-executed data for a given EV on a given EVA */
-async function _getAllAsExecuted(evaName: string, evNum: number) {
+async function _getAllAsExecuted(evaName: string, evNum: number): Promise<AllExecution> {
   const query = `
     [[From page::~US EVA*/*xecuted*]]
     |mainlabel=-|?Index
@@ -427,15 +444,7 @@ async function _getAllAsExecuted(evaName: string, evNum: number) {
 }
 
 /** Memoized call to get as-executed data for a given EV on a given EVA */
-export const getAllAsExecuted = memoize(_getAllAsExecuted);
-
-export interface AllExecution {
-  /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
-  [key: string]: {
-    /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
-    [key: string]: Activity[];
-  };
-}
+export const getAllAsExecuted: () => Promise<AllExecution> = memoize(_getAllAsExecuted);
 
 function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
   const res = {};
@@ -503,9 +512,9 @@ interface EVACrewResults {
 }
 
 export interface ParsedCrewResults {
-  ev1: string;
-  ev2: string;
-  suit_iv: string;
+  EV1: string;
+  EV2: string;
+  SUIT_IV: string;
 }
 
 /** Get crew assignment data for a EVA */
@@ -517,7 +526,7 @@ async function _getCrew(evaName: string) {
     |? Has role
     |? Has EMU Page
   `;
-  const res = await fetchWiki(query, `getCrew`);
+  const res = await fetchWiki(query, "getCrew");
   const results: EVACrewResults = res.query.results;
   return parseCrew(results);
 }
@@ -527,18 +536,66 @@ export const getCrew = memoize(_getCrew);
 
 function parseCrew(results: EVACrewResults): ParsedCrewResults {
   let crewObject: ParsedCrewResults = {
-    ev1: "",
-    ev2: "",
-    suit_iv: "",
+    EV1: "",
+    EV2: "",
+    SUIT_IV: "",
   };
   for (let objKey in results) {
     let useableKey = results[objKey]["printouts"]["Has role"][0]["fulltext"]
       .replace(/ /g, "_")
-      .toLowerCase();
+      .toUpperCase();
     crewObject[useableKey] = results[objKey]["printouts"]["Has full name"][0]["fulltext"];
   }
 
   return crewObject;
+}
+
+export interface AllCrews {
+  [key: string]: ParsedCrewResults;
+}
+
+/** Get crew assignment data for all EVAs */
+async function _getAllCrew(): Promise<AllCrews> {
+  const query = `
+    [[Crew involved with subject::+]]
+    [[From page::~US EVA*]]
+    |? Has full name
+    |? Has role
+    |? Has EMU Page
+    |limit=10000
+  `;
+  const res = await fetchWiki(query, "getAllCrew");
+  const results: EVACrewResults = res.query.results;
+  return parseAllCrew(results);
+}
+
+/** Memoized call to get crew assignment data for all EVAs */
+export const getAllCrew: () => Promise<AllCrews> = memoize(_getAllCrew);
+
+function parseAllCrew(results: EVACrewResults): AllCrews {
+  const res = {} as AllCrews;
+
+  Object.keys(results).forEach((result) => {
+    const actor = get(results, [result, "printouts", "Has role", 0, "fulltext"], "")
+      .replace(/ /g, "_")
+      .toUpperCase();
+
+    if (actor === "") {
+      return;
+    }
+
+    const name = get(results, [result, "printouts", "Has full name", 0, "fulltext"], "");
+
+    // result keys are in the form of
+    // "'US EVA 28# c9d6c0b4412f9729eee290e84cf1aa63'"
+    const [evaName] = result.split("#");
+    if (!(evaName in res)) {
+      res[evaName] = { EV1: "", EV2: "", SUIT_IV: "" };
+    }
+    res[evaName][actor] = name;
+  });
+
+  return res;
 }
 
 export interface DayNight {
@@ -589,25 +646,34 @@ function parseDayNight(results): DayNight {
 /** Fetch all EVA as-planned data and format it for passing to the redux store */
 export async function buildEVAStore() {
   const EVAs = {} as { [key: string]: EVA };
-  const evas = await getAllEVAs();
-  Object.keys(evas).forEach((evaName) => {
+  const [asPlanned, asExecuted, crews] = await Promise.all([
+    getAllEVAs(),
+    getAllAsExecuted(),
+    getAllCrew(),
+  ]);
+
+  Object.keys(asPlanned).forEach((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
     let duration = -1;
-    const [wikiDuration] = evas[evaName].printouts.Duration;
+    const [wikiDuration] = asPlanned[evaName].printouts.Duration;
     // for whatever reason, if no duration is specified the wiki gives us ":"
     if (wikiDuration !== ":") {
       const [h, m] = wikiDuration.split(":");
       duration = +h * 3600 + +m * 60;
     }
+
     EVAs[formattedEVAName] = {
       name: evaName,
-      wikiURL: evas[evaName].fullurl,
-      displayTitle: evas[evaName].printouts["EVA title"][0],
-      startDate: evas[evaName].printouts["Start date"][0].raw.substring(2),
-      startTime: evas[evaName].printouts["Start time"][0],
+      wikiURL: asPlanned[evaName].fullurl,
+      displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+      startDate: asPlanned[evaName].printouts["Start date"][0].raw.substring(2),
+      startTime: asPlanned[evaName].printouts["Start time"][0],
       duration,
-      // we don't have these properties yet
+      execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
+      crew: get(crews, evaName, {}),
+      // we need video data to calculate activityPerformance
       activityPerformance: { EV1: [], EV2: [] },
+      // the wiki doesn't actually give us dayNight
       dayNight: {},
     };
   });
