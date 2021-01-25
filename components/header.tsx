@@ -1,14 +1,14 @@
 import config from "../package.json";
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { getApplicationUTC, getMissionTime, set } from "store/clock";
+import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
 import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
 
 import styles from "./header.module.css";
+import { evaSelector, EVAsState } from "store/evas";
 
 let missionTime = null;
 
@@ -18,13 +18,13 @@ let missionTime = null;
 function Header() {
   const dispatch = useDispatch();
   const store = useStore();
-  const {
-    evas: { EVAs, selectedEVA, EVACrew },
-  } = useSelector((state) => state);
+  const { clock, evas }: { clock: ClockState; evas: EVAsState } = useSelector((state) => state);
 
   const [userValue, setUserValue] = useState("");
   const [appValue, setAppValue] = useState(null);
   const [editing, setEditing] = useState(false);
+
+  const eva = evaSelector(evas);
 
   useInterval(() => {
     const { clock } = store.getState();
@@ -123,7 +123,8 @@ function Header() {
                 id="goButton"
                 title="Jump to Date/Time"
                 onClick={(e) => {
-                  const [Y, M, D] = EVAs[selectedEVA].startDate.split("/");
+                  const Y = new Date(clock.applicationTime).getUTCFullYear();
+
                   let dt: Date;
                   if (userValue === "") {
                     const [hh, mm, ss] = renderTime.split(":");
@@ -137,8 +138,19 @@ function Header() {
                   setEditing(false);
                 }}
               >
-                GO
+                Jump
               </button>
+              {isSameDate(new Date(), new Date(clock.applicationTime)) && (
+                <button
+                  className={styles.littleHeaderButton}
+                  title="Jump to now"
+                  onClick={(e) => {
+                    dispatch(set(new Date().toUTCString()));
+                  }}
+                >
+                  Go Live
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -150,18 +162,22 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            <div className={styles.crewItem}>
-              EV1:{" "}
-              <span style={{ color: "white" }} id="ev1TitleSpan">
-                {EVACrew.EV1}
-              </span>
-            </div>
-            <div className={styles.crewItem}>
-              EV2:{" "}
-              <span style={{ color: "white" }} id="ev2TitleSpan">
-                {EVACrew.EV2}
-              </span>
-            </div>
+            {eva && (
+              <div>
+                <div className={styles.crewItem}>
+                  EV1:{" "}
+                  <span style={{ color: "white" }} id="ev1TitleSpan">
+                    {eva.crew?.EV1 || "unknown"}
+                  </span>
+                </div>
+                <div className={styles.crewItem}>
+                  EV2:{" "}
+                  <span style={{ color: "white" }} id="ev2TitleSpan">
+                    {eva.crew?.EV2 || "unknown"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -589,10 +589,11 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
     // result keys are in the form of
     // "'US EVA 28# c9d6c0b4412f9729eee290e84cf1aa63'"
     const [evaName] = result.split("#");
-    if (!(evaName in res)) {
-      res[evaName] = { EV1: "", EV2: "", SUIT_IV: "" };
+    const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+    if (!(formattedEVAName in res)) {
+      res[formattedEVAName] = { EV1: "", EV2: "", SUIT_IV: "" };
     }
-    res[evaName][actor] = name;
+    res[formattedEVAName][actor] = name;
   });
 
   return res;
@@ -668,7 +669,7 @@ export async function buildEVAStore() {
       startTime: asPlanned[evaName].printouts["Start time"][0],
       duration,
       execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
-      crew: get(crews, evaName, {}),
+      crew: get(crews, formattedEVAName, {}),
       // we need video data to calculate activityPerformance
       activityPerformance: { EV1: [], EV2: [] },
       // the wiki doesn't actually give us dayNight

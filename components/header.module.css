@@ -74,6 +74,11 @@
   text-decoration: none;
   border-radius: 8px;
   cursor: pointer;
+  margin-right: 1em;
+}
+
+.littleHeaderButton:last-of-type {
+  margin-right: 0;
 }
 
 .littleHeaderButton.hover {
