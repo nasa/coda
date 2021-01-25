@@ -23,6 +23,7 @@ import {
   haveVideosFromDate,
   TimingData,
   VideosState,
+  initialState as videosInitialState,
 } from "store/videos";
 import {
   evasSlice,
@@ -198,18 +199,10 @@ export const getStaticProps: GetServerSideProps = async () => {
         },
         videos: {
           videos: {},
-          selectedGroups: {
-            left: 0,
-            right: 1,
-          },
-          activeVideoFiles: {
-            left: "",
-            right: "",
-          },
-          ready: {
-            left: true,
-            right: true,
-          },
+          selectedGroups: videosInitialState.selectedGroups,
+          activeVideoFiles: videosInitialState.activeVideoFiles,
+          ready: videosInitialState.ready,
+          status: videosInitialState.status,
           errorMessage: "",
         },
       },

@@ -137,7 +137,7 @@ export const getStaticProps: GetServerSideProps = async ({ params: { eva } }) =>
           errorMessage: evaErrorMessage,
         },
         videos: {
-          videos: jsonifiedVideoFiles,
+          videos,
           activeVideoFiles: videosInitialState.activeVideoFiles,
           ready: videosInitialState.ready,
           status: videosInitialState.status,

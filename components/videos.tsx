@@ -12,7 +12,6 @@ import {
 } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
-import { paramsToObject } from "utils/formatting";
 
 let missionTime = 0;
 
@@ -46,34 +45,6 @@ export default function Videos() {
   //downlink channels for left and right
   const [leftVideo, setLeftVideo] = useState(left - 1);
   const [rightVideo, setRightVideo] = useState(right - 1);
-
-  // get query parameters asking for specific video sources and store them in Redux
-  // -1 default values are defined in videos.ts in the store initial state.
-  // we use this to detect whether the query parameters have already been used in a previous component
-  // render operation
-  const router = useRouter();
-
-  //router.query does not seem to include query params so we decode them ourselves
-  const queryParamsString = router.asPath.split("?")[1];
-  const urlParams = new URLSearchParams(queryParamsString);
-  const entries = urlParams.entries(); //returns an iterator of decoded [key,value] tuples
-  const params = paramsToObject(entries); //{abc:"foo",def:"[asf]",xyz:"5"}
-
-  // console.log("left default before load: " + videos.selectedGroups.left);
-  if (videos.selectedGroups.left === -1) {
-    let selectedLeft = 0; //set the default of left video to DL1
-    if ("left" in params) {
-      selectedLeft = parseInt(params["left"]);
-    }
-    dispatch(pickGroup({ name: "left", group: selectedLeft }));
-  }
-  if (videos.selectedGroups.right === -1) {
-    let selectedRight = 1; //set the default of right video to DL2
-    if ("right" in params) {
-      selectedRight = parseInt(params["right"]);
-    }
-    dispatch(pickGroup({ name: "right", group: selectedRight }));
-  }
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
