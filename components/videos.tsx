@@ -263,6 +263,12 @@ export default function Videos() {
               });
             }
           }}
+          onError={(e) => {
+            // triggered with video from IO throws an error (403, 404 happens somewhat often)
+            const errorCode = e.target.error.code;
+            videos.status[name] === "";
+            videos.ready[name] === false;
+          }}
         ></video>
         <div className={styles.vidOverlay}>
           <div className={styles.vidInfo}>{vidInfo}</div>
