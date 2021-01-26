@@ -19,11 +19,6 @@ import useInterval from "utils/useInterval";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-// /view always tries to collect newest videos from IO and updates the nav-timeline
-// /view?date=today-in-gmt is the same as /view
-// view?date=date-in-past-gmt will fetch all videos for that 24-hour period
-// leave /replay/eva alone for now
-
 export default function View() {
   const {
     // date should be in YYYY/MM/DD format
