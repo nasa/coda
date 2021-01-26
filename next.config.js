@@ -21,6 +21,8 @@ const envs = {
     IO_PROXY_ORIGIN: 'https://coda-dev.fit.nasa.gov',
     IO_HOST: 'https://io.jsc.nasa.gov',
     WIKI_API_URL: 'https://wiki.jsc.nasa.gov/iss/api.php',
+    WIKI_USER: process.env.WIKI_USER,
+    WIKI_PASSWORD: process.env.WIKI_PASSWORD,
   },
 };
 
