@@ -510,7 +510,7 @@ export default class DrawNav {
   handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {
     let seconds = 0;
     if (event.point.y > this.gTier1Top) {
-      seconds = Math.round((event.point.x - 1) * this.gTier1SecondsPerPixel + 1);
+      seconds = Math.round(event.point.x * this.gTier1SecondsPerPixel);
     } else {
       //if in tier 2
       seconds = Math.round(

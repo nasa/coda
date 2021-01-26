@@ -13,7 +13,7 @@ import {
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
 import useInterval from "utils/useInterval";
-import DrawNav from "./draw-nav";
+import DrawNav from "./nav-timeline-draw";
 
 // these vars only affect the canvas so avoid updating the React component state
 let missionTime = null;

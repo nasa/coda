@@ -6,6 +6,7 @@ import {
   buffering,
   pickVideoFile,
   ready,
+  videoError,
   selectVideoActivity,
   VideoActivity,
   VideosState,
@@ -105,7 +106,6 @@ export default function Videos() {
       const videosNextSecond = videoActivity[group][missionTime + 1];
 
       // (1) check for video changes
-
       let id = activeVideoFileID;
 
       // (1.1) if the timeline just jumped or the video files changed, make sure we start the right video
@@ -113,10 +113,8 @@ export default function Videos() {
       if (videosNextSecond.length > 0 && activeVideoFileID !== videosNextSecond[0]) {
         // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
         id = videosNextSecond[0];
-      } else if (
+      } else if (videosNextSecond.length === 0) {
         // (1.2) check if no video is playing next second
-        videosNextSecond.length === 0
-      ) {
         id = "";
       }
 
@@ -154,7 +152,6 @@ export default function Videos() {
       if (Math.abs(currentTime - videoStartOffset) > 1) {
         players[name].current.pause();
         players[name].current.currentTime = videoStartOffset;
-        dispatch(buffering(name));
       }
     });
   }, 50);
@@ -222,6 +219,10 @@ export default function Videos() {
     if (videoMetadata) {
       posterClass = "";
     }
+    let IOErrorCSS = {};
+    if (videos.status[name] === "error") {
+      IOErrorCSS = { display: "block" };
+    }
 
     return (
       <div
@@ -229,6 +230,9 @@ export default function Videos() {
         className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
       >
         <div className={`${styles.playerPoster} ${posterClass}`}></div>
+        <div className={styles.IOError} style={IOErrorCSS}>
+          Imagery Online Video Error
+        </div>
         <video
           ref={players[name]}
           className={styles.player}
@@ -242,7 +246,7 @@ export default function Videos() {
             dispatch(ready(name));
           }}
           onWaiting={() => {
-            if (videos.ready[name] && videoID !== "") {
+            if (videos.ready[name] && videoID !== "" && videos.status[name] !== "error") {
               dispatch(buffering(name));
             }
           }}
@@ -265,9 +269,11 @@ export default function Videos() {
           }}
           onError={(e) => {
             // triggered with video from IO throws an error (403, 404 happens somewhat often)
-            const errorCode = e.target.error.code;
-            videos.status[name] === "";
-            videos.ready[name] === false;
+            const vidElement = e.target as HTMLVideoElement;
+            if (videos.status[name] !== "error") {
+              dispatch(videoError(name));
+            }
+            console.log(`video ${name} has thrown an error ${vidElement.error.code}`);
           }}
         ></video>
         <div className={styles.vidOverlay}>

@@ -32,9 +32,24 @@
   background: no-repeat url("/coda/images/eva_loader_bw.gif");
   background-size: cover;
 }
-.thumbPlayer {
-  width: 100px;
-  z-index: 0;
+.playerPoster {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.IOError {
+  position: absolute;
+  top: 60%;
+  left: 26%;
+  display: none;
+  background-color: red;
+  color: #dddddd;
+  padding: 10px;
+  border: 2px solid;
+  border-radius: 10px;
+  font-size: 2em;
 }
 
 .vidContainer {
