@@ -21,6 +21,7 @@ stages:
 test:
   script:
     - npm t
+  stage: test
 
 build:
   script:
@@ -35,7 +36,7 @@ pages:
     - npm run export
     - rm -rf public
     - mv out public
-  stage: deploy
+  stage: pages
   artifacts:
     paths:
       - public
