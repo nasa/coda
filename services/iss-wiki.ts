@@ -120,7 +120,7 @@ const getMWBot = memoize(_getMWBot);
  * Perform a
  */
 async function performAsk(bot: MWBot, query: string): Promise<WikiResults> {
-  hash.update(query);
+  hash.update(process.env.WIKI_API_URL + query);
   const cacheFile = `./.cache/${hash.copy().digest("hex")}.json`;
 
   let res = null as WikiResults;
