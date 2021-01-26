@@ -1,45 +1,22 @@
 import isNull from "lodash/isNull";
-import { GetServerSideProps } from "next";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import {
-  EVA,
-  getAsExecuted,
-  getAllEVAs,
-  getDayNight,
-  getCrew,
-  ParsedCrewResults,
-  Activity,
-  DayNight,
-  buildEVAStore,
-  getAllAsExecuted,
-} from "services/iss-wiki";
-import getVideoData, { buildVideoStore, Videos } from "services/io";
+import { EVA, buildEVAStore } from "services/iss-wiki";
+import { buildVideoStore, Videos } from "services/io";
 import {
   add as addVideos,
-  assignStartEnd,
-  generateTimingData,
   haveVideosFromDate,
-  TimingData,
   VideosState,
   initialState as videosInitialState,
 } from "store/videos";
-import {
-  evasSlice,
-  EVAsState,
-  getActivityPerformanceMissionTime,
-  getDayNightMissionTime,
-  getEVAStartMilliseconds,
-  setSelected,
-} from "store/evas";
+import { EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
-import { dateAsCanonicalString } from "utils/formatting";
 import { useEffect } from "react";
 import { ClockState, diff, isSameDate, set } from "store/clock";
 import useInterval from "utils/useInterval";
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 // /view always tries to collect newest videos from IO and updates the nav-timeline
@@ -74,7 +51,7 @@ export default function View() {
 
     if (
       !clock.applicationTime ||
-      Math.abs(diff(new Date(clock.applicationTime), applicationDate)) > ONE_DAY_MS
+      !isSameDate(new Date(clock.applicationTime), new Date(applicationDate))
     ) {
       dispatch(set(applicationDate.toISOString()));
     }
