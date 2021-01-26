@@ -25,5 +25,6 @@ const envs = {
 };
 
 module.exports = {
-  env: envs[process.env.APP_ENV || 'local']
+  env: envs[process.env.APP_ENV || 'local'],
+  basePath: '/coda',
 }

@@ -61,7 +61,7 @@ function Header() {
               style={{ position: "relative", width: "100px", marginLeft: "10px" }}
             >
               <img
-                src="/images/logo_coda.png"
+                src="/coda/images/logo_coda.png"
                 style={{
                   position: "absolute",
                   top: "50%",

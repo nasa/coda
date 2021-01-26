@@ -7,7 +7,7 @@
 .shareModalWrapper {
   position: absolute;
   background: #0f0f0f;
-  border: 2px solid #5E92A6;
+  border: 2px solid #5e92a6;
   border-radius: 15px;
   box-sizing: border-box;
   padding: 20px;
@@ -27,12 +27,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgb(0,0,0,0.8);
+  background-color: rgb(0, 0, 0, 0.8);
 }
 
 .modalHeadline {
   font-size: 1.5em;
-  color: #5E92A6;
+  color: #5e92a6;
   text-align: left;
   padding-bottom: 10px;
 }
@@ -49,7 +49,7 @@
   font-size: 1.1em;
   box-sizing: border-box;
   border-radius: 10px;
-  border: 2px solid rgba(255, 255, 255, .1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
   position: relative;
   padding: 5px;
@@ -63,7 +63,7 @@
 
 .copyURLButton {
   float: right;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   display: table;
   width: 100px;
   height: 20px;
@@ -79,13 +79,13 @@
 .modalButtonText {
   display: table-cell;
   text-align: center;
-  vertical-align: middle;  
+  vertical-align: middle;
 }
 
 .svgShare {
   width: 20px;
   height: 20px;
-  background: url(/images/share.svg) no-repeat center;
+  background: url(/coda/images/share.svg) no-repeat center;
   background-size: 20px 20px;
   margin-left: 0;
   margin-right: 0;
@@ -104,7 +104,7 @@
   height: 20px;
   border-radius: 20px;
   padding: 5px;
-  border: 2px solid #5E92A6;
+  border: 2px solid #5e92a6;
   background-color: #19181b;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
   cursor: pointer;
@@ -116,6 +116,6 @@
   width: 20px;
   height: 20px;
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 125" style="enable-background:new 0 0 100 100;" xml:space="preserve"> <g fill="white"> <path d="M81.8,73.3L58.5,50l23.3-23.3c2.3-2.3,2.3-6.2,0-8.5c-2.3-2.3-6.2-2.3-8.5,0L50,41.5L26.7,18.2c-2.3-2.3-6.2-2.3-8.5,0  s-2.3,6.2,0,8.5L41.5,50L18.2,73.3c-2.3,2.3-2.3,6.2,0,8.5c2.3,2.3,6.2,2.3,8.5,0L50,58.5l23.3,23.3c2.3,2.3,6.2,2.3,8.5,0  C84.2,79.5,84.2,75.7,81.8,73.3z"/> </g> </svg>')
-  no-repeat center;
+    no-repeat center;
   background-size: 25px 25px;
 }
