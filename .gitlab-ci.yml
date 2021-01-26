@@ -16,6 +16,7 @@ before_script:
 stages:
   - test
   - build
+  - pages
 
 test:
   script:
@@ -23,6 +24,20 @@ test:
 
 build:
   script:
-    - npm run build
+    - npm run build-prod
+  stage: build
+  artifacts:
+    paths:
+      - .next
+
+pages:
+  script:
+    - npm run export
+    - rm -rf public
+    - mv out public
+  stage: deploy
+  artifacts:
+    paths:
+      - public
   only:
     - live
