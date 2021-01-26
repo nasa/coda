@@ -20,7 +20,7 @@ const envs = {
     IO_API_URL: 'https://io.jsc.nasa.gov/api/search/rpp=500',
     IO_PROXY_ORIGIN: 'https://coda-dev.fit.nasa.gov',
     IO_HOST: 'https://io.jsc.nasa.gov',
-    WIKI_API_URL: 'https://wiki.jsc.nasa.gov/eva/api.php',
+    WIKI_API_URL: 'https://wiki.jsc.nasa.gov/iss/api.php',
   },
 };
 

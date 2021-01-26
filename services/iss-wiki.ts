@@ -15,6 +15,12 @@ import dayNight from "../mocks/fakedata/daynight.json";
 
 const COOKIE_JAR = "services/.cookies.json";
 
+if (typeof window === "undefined") {
+  // wiki.jsc.nasa.gov uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
+  require("mac-ca");
+  require("win-ca");
+}
+
 // to be clear, we're not hashing sensitive data, just filenames
 const hash = crypto.createHash("md5");
 
