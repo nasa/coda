@@ -237,7 +237,6 @@ export default function Videos() {
           ref={players[name]}
           className={styles.player}
           muted={muted}
-          src={videoURL}
           onCanPlay={() => {
             dispatch(ready(name));
           }}
