@@ -12,3 +12,4 @@ node_modules/
 
 # temporarily store BLE requests at build-time
 .cache
+out/
