@@ -12,8 +12,6 @@ export interface VideosState {
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
   ready: { [key: string]: boolean };
-  /** buffering or playing or novid */
-  status: { [key: string]: string };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
   /** UTC string of the last time we hit IO */
@@ -34,10 +32,6 @@ export const initialState: VideosState = {
     left: true,
     right: true,
   },
-  status: {
-    left: "",
-    right: "",
-  },
   errorMessage: "",
   lastChecked: "",
 };
@@ -49,24 +43,20 @@ export const videoSlice = createSlice({
     /** Set the video file ID to play on a named `<VideoPlayer />` */
     pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
-      state.status[action.payload.name] = "";
     },
 
     /** Mark videos are ready to be played. The payload is the video player name */
     ready: (state, action: { payload: string }) => {
       state.ready[action.payload] = true;
-      state.status[action.payload] = "ready";
     },
 
     /** Mark videos as not ready to be played. The payload is the video player name */
     buffering: (state, action: { payload: string }) => {
       state.ready[action.payload] = false;
-      state.status[action.payload] = "buffering";
     },
 
     videoError: (state, action: { payload: string }) => {
       state.ready[action.payload] = true;
-      state.status[action.payload] = "error";
     },
 
     /** Add new video files to the store */

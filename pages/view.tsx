@@ -179,7 +179,6 @@ export const getStaticProps: GetServerSideProps = async () => {
           selectedGroups: videosInitialState.selectedGroups,
           activeVideoFiles: videosInitialState.activeVideoFiles,
           ready: videosInitialState.ready,
-          status: videosInitialState.status,
           errorMessage: "",
         },
       },
