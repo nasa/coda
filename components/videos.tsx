@@ -25,9 +25,9 @@ export default function Videos() {
   // see https://mariusschulz.com/blog/typing-destructured-object-parameters-in-typescript
   // get query parameters asking for specific video downlink sources
   const {
-    query: { left = 1, right = 2 },
+    query: { left = "1", right = "2" },
   }: {
-    query: { left?: number; right?: number };
+    query: { left?: string; right?: string };
   } = useRouter();
 
   const store = useStore();
@@ -43,8 +43,16 @@ export default function Videos() {
   }
 
   //downlink channels for left and right
-  const [videoGroupLeft, setVideoGroupLeft] = useState(left - 1);
-  const [videoGroupRight, setVideoGroupRight] = useState(right - 1);
+  const [videoGroupLeft, setVideoGroupLeft] = useState(+left - 1);
+  const [videoGroupRight, setVideoGroupRight] = useState(+right - 1);
+
+  useEffect(() => {
+    setVideoGroupLeft(+left - 1);
+  }, [left]);
+
+  useEffect(() => {
+    setVideoGroupRight(+right - 1);
+  }, [right]);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
