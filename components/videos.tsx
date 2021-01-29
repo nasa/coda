@@ -6,7 +6,6 @@ import {
   buffering,
   pickVideoFile,
   ready,
-  videoError,
   selectVideoActivity,
   VideoActivity,
   VideosState,
@@ -57,7 +56,7 @@ export default function Videos() {
   const [mutedLeft, setMutedLeft] = useState(true);
   const [mutedRight, setMutedRight] = useState(true);
 
-  // metadata for video dimensions. Also used below to detect whether current video fully loaded
+  // metadata used below to detect whether current video fully loaded
   const [videoMetadataLeft, setVideoMetadataLeft] = useState(null);
   const [videoMetadataRight, setVideoMetadataRight] = useState(null);
 
@@ -141,11 +140,6 @@ export default function Videos() {
         return;
       }
 
-      // if (players[name].current.src == "") {
-      //   console.log("src: " + name + " :" + players[name].current.src);
-      //   players[name].current.load();
-      // }
-
       const { currentTime } = players[name].current;
 
       // (2.2) make sure the video times are correct
@@ -172,7 +166,6 @@ export default function Videos() {
     let videoStatus = name === "left" ? videoStatusLeft : videoStatusRight;
 
     function setVideoStatus(name: String, status: String) {
-      console.log(`setVideoStatus ${name} ${status}`);
       name === "left" ? setVideoStatusLeft(status) : setVideoStatusRight(status);
     }
 
@@ -200,9 +193,6 @@ export default function Videos() {
         }
       }
     }
-    console.log(
-      "videoElement " + name + " called with videoID " + videoID + " checking if playing..."
-    );
 
     if (
       // make sure the video is playing when the clock is running
@@ -214,12 +204,6 @@ export default function Videos() {
       // it is paused when it should be playing and video isn't buffering
       (async () => {
         try {
-          console.log(
-            "it is paused when it should be playing. Issuing PLAY command: " +
-              name +
-              " src:" +
-              videoURL
-          );
           await players[name].current.play();
         } catch (e) {
           // Swallow errors here because we have to try to play empty src
@@ -227,8 +211,6 @@ export default function Videos() {
           // console.error(e);
         }
       })();
-    } else {
-      console.log(`${name} doesn't deserve a play command`);
     }
 
     if (players[name].current && !players[name].current.paused && !clock.isRunning) {
@@ -238,20 +220,25 @@ export default function Videos() {
 
     const muted = name === "left" ? mutedLeft : mutedRight;
 
-    // Displays video background poster to depect novid, buffering, or blank if video loaded or buffering during playback
-    // Uses videoMetadata as an indicator whether the video element is currently playing something. is null when no vid
-
+    // Displays video background poster to depect novid, buffering,
+    // or blank if video loaded or buffering during playback
+    // videoMetadata used to determine whether a buffering event is happening on an already playing video
+    // or a new loading event
     let posterClass = styles.playerPosterNovid;
+    //hide noVid poster if video metadata has been loaded
+    if (videoMetadata) {
+      posterClass = "";
+    }
     if (videoStatus === "buffering") {
+      // if there is no videoMetadata then this is the buffering of a new video. Show loader.
       if (!videoMetadata) {
         posterClass = styles.playerPosterBuffering;
       } else {
         posterClass = "";
       }
     }
-    if (videoMetadata) {
-      posterClass = "";
-    }
+
+    // show IO error if a 400 error has been raised in the video player event handlers below
     let IOErrorCSS = {};
     if (videoStatus === "error" && videoURL !== "") {
       IOErrorCSS = { display: "block" };
@@ -274,7 +261,6 @@ export default function Videos() {
           autoPlay
           onCanPlay={() => {
             if (videos.ready[name] !== true) {
-              console.log("canplay. dispatching ready");
               dispatch(ready(name));
             }
           }}
@@ -283,7 +269,6 @@ export default function Videos() {
             dispatch(ready(name));
           }}
           onWaiting={() => {
-            console.log(`${name} onWaiting`);
             if (videos.ready[name] && videoURL !== "") {
               dispatch(buffering(name));
               setVideoStatus(name, "buffering");
@@ -293,9 +278,10 @@ export default function Videos() {
             setVideoStatus(name, "playing");
           }}
           onLoadedMetadata={(e) => {
+            // Used to later determine whether a buffering event is happening on an already playing video
+            // or a new loading event
             const vidElement = e.target as HTMLVideoElement;
             setVidElementMetadata(name, vidElement);
-            console.log("video has ever loaded " + name);
           }}
           onError={(e) => {
             const vidElement = e.target as HTMLVideoElement;
