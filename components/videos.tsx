@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState, useCallback } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime, isSameDate } from "store/clock";
 import {
@@ -71,6 +71,8 @@ export default function Videos() {
   // video status indicators
   const [videoStatusLeft, setVideoStatusLeft] = useState(null);
   const [videoStatusRight, setVideoStatusRight] = useState(null);
+  //a red herring state value used to force a refresh in the interval below when the clock changes
+  const [forceUpdateStateVal, forceUpdateState] = useState(false);
 
   useEffect(() => {
     const videoIDLeft = videos.activeVideoFiles["left"];
@@ -102,6 +104,7 @@ export default function Videos() {
         return;
       } else {
         missionTime = newMissionTime;
+        forceUpdateState(!forceUpdateStateVal);
       }
     }
 
@@ -258,7 +261,7 @@ export default function Videos() {
       >
         <div className={`${styles.playerPoster} ${posterClass}`}>
           <div className={styles.IOError} style={IOErrorCSS}>
-          Imagery Online Video Error
+            Imagery Online Video Error
           </div>
         </div>
         <video
