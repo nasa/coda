@@ -55,9 +55,9 @@ export const videoSlice = createSlice({
       state.ready[action.payload] = false;
     },
 
-    videoError: (state, action: { payload: string }) => {
-      state.ready[action.payload] = true;
-    },
+    // videoError: (state, action: { payload: string }) => {
+    //   state.ready[action.payload] = true;
+    // },
 
     /** Add new video files to the store */
     add: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {

@@ -174,6 +174,7 @@ export default function Videos() {
     const videoStatus = name === "left" ? videoStatusLeft : videoStatusRight;
 
     function setVideoStatus(name: String, status: String) {
+      console.log(`setVideoStatus ${name} ${status}`);
       name === "left" ? setVideoStatusLeft(status) : setVideoStatusRight(status);
     }
 
@@ -289,7 +290,6 @@ export default function Videos() {
           }}
           onPlaying={() => {
             setVideoStatus(name, "playing");
-            console.log(name + " is playing");
           }}
           onLoadedMetadata={(e) => {
             const vidElement = e.target as HTMLVideoElement;
@@ -300,7 +300,7 @@ export default function Videos() {
             // triggered with video from IO throws an error (403, 404 happens somewhat often)
             const vidElement = e.target as HTMLVideoElement;
             if (videoStatus !== "error") {
-              dispatch(videoError(name));
+              setVideoStatus(name, "error");
             }
             console.log(`video ${name} has thrown an error ${vidElement.error.code}`);
           }}
