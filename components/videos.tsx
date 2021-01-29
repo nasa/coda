@@ -257,9 +257,10 @@ export default function Videos() {
         key={`video_element__${name}`}
         className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
       >
-        <div className={`${styles.playerPoster} ${posterClass}`}></div>
-        <div className={styles.IOError} style={IOErrorCSS}>
+        <div className={`${styles.playerPoster} ${posterClass}`}>
+          <div className={styles.IOError} style={IOErrorCSS}>
           Imagery Online Video Error
+          </div>
         </div>
         <video
           ref={players[name]}
