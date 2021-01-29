@@ -33,6 +33,9 @@
   background-size: cover;
 }
 .playerPoster {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -40,11 +43,14 @@
   left: 0;
 }
 .IOError {
-  position: absolute;
+  /* position: absolute;
   top: 60%;
-  left: 26%;
+  left: 26%; */
   display: none;
   background-color: red;
+  margin: 0 auto;
+  width: 13em;
+  margin-top: 25%;
   color: #dddddd;
   padding: 10px;
   border: 2px solid;
