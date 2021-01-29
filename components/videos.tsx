@@ -173,11 +173,11 @@ export default function Videos() {
     const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
     let videoStatus = name === "left" ? videoStatusLeft : videoStatusRight;
 
-    function setVideoStatus(name: String, status: String) {
+    function setVideoStatus(name: string, status: string) {
       name === "left" ? setVideoStatusLeft(status) : setVideoStatusRight(status);
     }
 
-    function setVidElementMetadata(name: String, vidElement: HTMLVideoElement) {
+    function setVidElementMetadata(name: string, vidElement: HTMLVideoElement) {
       const metaData = {
         videoHeight: vidElement.videoHeight,
         videoWidth: vidElement.videoWidth,
@@ -196,7 +196,7 @@ export default function Videos() {
     } else {
       if (!videos.ready[name]) {
         // there is no video for right now, so don't block the clock
-        if (videos.ready[name] !== true) {
+        if (!videos.ready[name]) {
           dispatch(ready(name));
         }
       }
@@ -216,7 +216,6 @@ export default function Videos() {
         } catch (e) {
           // Swallow errors here because we have to try to play empty src
           // because HTML video won't unload a video when src is undefined
-          // console.error(e);
         }
       })();
     }
@@ -268,7 +267,7 @@ export default function Videos() {
           muted={muted}
           autoPlay
           onCanPlay={() => {
-            if (videos.ready[name] !== true) {
+            if (!videos.ready[name]) {
               dispatch(ready(name));
             }
           }}
