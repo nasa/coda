@@ -73,14 +73,12 @@ export default function Videos() {
       !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDLeft].start))
     ) {
       setVideoMetadataLeft(null);
-      players.left.current.load();
     }
     if (
       videos.activeVideoFiles.right === "" ||
       !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDRight].start))
     ) {
       setVideoMetadataRight(null);
-      players.right.current.load();
     }
   }, [clock.applicationTime, videos.activeVideoFiles]);
 
@@ -171,7 +169,7 @@ export default function Videos() {
   const videoElement = (name: string) => {
     const videoID = videos.activeVideoFiles[name];
     const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
-    const videoStatus = name === "left" ? videoStatusLeft : videoStatusRight;
+    let videoStatus = name === "left" ? videoStatusLeft : videoStatusRight;
 
     function setVideoStatus(name: String, status: String) {
       console.log(`setVideoStatus ${name} ${status}`);
@@ -189,7 +187,7 @@ export default function Videos() {
 
     // default video info
     let vidInfo = "";
-    let videoURL = undefined; //this empties the src attribute of the video and avoids trying to load empty url
+    let videoURL = ""; //this empties the src attribute of the video and avoids trying to load empty url
     if (videoID !== "") {
       const video = videos.videos[videoID];
       videoURL = video.videoURL;
@@ -224,7 +222,9 @@ export default function Videos() {
           );
           await players[name].current.play();
         } catch (e) {
-          console.error(e);
+          // Swallow errors here because we have to try to play empty src
+          // because HTML video won't unload a video when src is undefined
+          // console.error(e);
         }
       })();
     } else {
@@ -253,7 +253,7 @@ export default function Videos() {
       posterClass = "";
     }
     let IOErrorCSS = {};
-    if (videoStatus === "error" && videoURL !== undefined) {
+    if (videoStatus === "error" && videoURL !== "") {
       IOErrorCSS = { display: "block" };
     }
 
@@ -271,6 +271,7 @@ export default function Videos() {
           className={styles.player}
           src={videoURL}
           muted={muted}
+          autoPlay
           onCanPlay={() => {
             if (videos.ready[name] !== true) {
               console.log("canplay. dispatching ready");
@@ -283,7 +284,7 @@ export default function Videos() {
           }}
           onWaiting={() => {
             console.log(`${name} onWaiting`);
-            if (videos.ready[name] && videoURL !== undefined) {
+            if (videos.ready[name] && videoURL !== "") {
               dispatch(buffering(name));
               setVideoStatus(name, "buffering");
             }
@@ -297,12 +298,20 @@ export default function Videos() {
             console.log("video has ever loaded " + name);
           }}
           onError={(e) => {
-            // triggered with video from IO throws an error (403, 404 happens somewhat often)
             const vidElement = e.target as HTMLVideoElement;
-            if (videoStatus !== "error") {
+            if (!vidElement.error.message.includes("mpty")) {
+              //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
               setVideoStatus(name, "error");
+              console.error(
+                `video ${name} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+              );
+            } else {
+              setVideoStatus(name, "novid");
             }
-            console.log(`video ${name} has thrown an error ${vidElement.error.code}`);
+            //unblocking clock
+            if (videos.ready[name] !== true) {
+              dispatch(ready(name));
+            }
           }}
         ></video>
         <div className={styles.vidOverlay}>
