@@ -25,9 +25,9 @@ export default function Videos() {
   // see https://mariusschulz.com/blog/typing-destructured-object-parameters-in-typescript
   // get query parameters asking for specific video downlink sources
   const {
-    query: { left = 1, right = 2 },
+    query: { left = "1", right = "2" },
   }: {
-    query: { left?: number; right?: number };
+    query: { left?: string; right?: string };
   } = useRouter();
 
   const store = useStore();
@@ -43,8 +43,16 @@ export default function Videos() {
   }
 
   //downlink channels for left and right
-  const [leftVideo, setLeftVideo] = useState(left - 1);
-  const [rightVideo, setRightVideo] = useState(right - 1);
+  const [videoGroupLeft, setVideoGroupLeft] = useState(+left - 1);
+  const [videoGroupRight, setVideoGroupRight] = useState(+right - 1);
+
+  useEffect(() => {
+    setVideoGroupLeft(+left - 1);
+  }, [left]);
+
+  useEffect(() => {
+    setVideoGroupRight(+right - 1);
+  }, [right]);
 
   // define the name of the players
   // the names of the players should match the keys in `store.videos.selectedGroups`
@@ -56,9 +64,13 @@ export default function Videos() {
   const [mutedLeft, setMutedLeft] = useState(true);
   const [mutedRight, setMutedRight] = useState(true);
 
-  // metadata for video dimensions. Used to detect video aspect radio and adjust CSS accordingly
+  // metadata used below to detect whether current video fully loaded
   const [videoMetadataLeft, setVideoMetadataLeft] = useState(null);
   const [videoMetadataRight, setVideoMetadataRight] = useState(null);
+
+  // video status indicators
+  const [videoStatusLeft, setVideoStatusLeft] = useState(null);
+  const [videoStatusRight, setVideoStatusRight] = useState(null);
 
   useEffect(() => {
     const videoIDLeft = videos.activeVideoFiles["left"];
@@ -100,12 +112,11 @@ export default function Videos() {
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
-      const group = name === "left" ? leftVideo : rightVideo;
+      const group = name === "left" ? videoGroupLeft : videoGroupRight;
       const activeVideoFileID = videos.activeVideoFiles[name];
       const videosNextSecond = videoActivity[group][missionTime + 1];
 
       // (1) check for video changes
-
       let id = activeVideoFileID;
 
       // (1.1) if the timeline just jumped or the video files changed, make sure we start the right video
@@ -113,10 +124,10 @@ export default function Videos() {
       if (videosNextSecond.length > 0 && activeVideoFileID !== videosNextSecond[0]) {
         // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
         id = videosNextSecond[0];
-      } else if (
+      }
+
+      if (videosNextSecond.length === 0) {
         // (1.2) check if no video is playing next second
-        videosNextSecond.length === 0
-      ) {
         id = "";
       }
 
@@ -125,11 +136,7 @@ export default function Videos() {
         dispatch(pickVideoFile({ name, id }));
 
         //wipe out the metadata for this player so that aspect will be recalculated when the next video loads
-        if (name === "left") {
-          setVideoMetadataLeft(null);
-        } else {
-          setVideoMetadataRight(null);
-        }
+        name === "left" ? setVideoMetadataLeft(null) : setVideoMetadataRight(null);
 
         return;
       }
@@ -154,7 +161,6 @@ export default function Videos() {
       if (Math.abs(currentTime - videoStartOffset) > 1) {
         players[name].current.pause();
         players[name].current.currentTime = videoStartOffset;
-        dispatch(buffering(name));
       }
     });
   }, 50);
@@ -164,10 +170,25 @@ export default function Videos() {
    */
   const videoElement = (name: string) => {
     const videoID = videos.activeVideoFiles[name];
+    const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
+    let videoStatus = name === "left" ? videoStatusLeft : videoStatusRight;
+
+    function setVideoStatus(name: string, status: string) {
+      name === "left" ? setVideoStatusLeft(status) : setVideoStatusRight(status);
+    }
+
+    function setVidElementMetadata(name: string, vidElement: HTMLVideoElement) {
+      const metaData = {
+        videoHeight: vidElement.videoHeight,
+        videoWidth: vidElement.videoWidth,
+        duration: vidElement.duration,
+      };
+      name === "left" ? setVideoMetadataLeft(metaData) : setVideoMetadataRight(metaData);
+    }
 
     // default video info
-    let videoURL = "";
     let vidInfo = "";
+    let videoURL = ""; //this empties the src attribute of the video and avoids trying to load empty url
     if (videoID !== "") {
       const video = videos.videos[videoID];
       videoURL = video.videoURL;
@@ -175,28 +196,26 @@ export default function Videos() {
     } else {
       if (!videos.ready[name]) {
         // there is no video for right now, so don't block the clock
-        dispatch(ready(name));
+        if (!videos.ready[name]) {
+          dispatch(ready(name));
+        }
       }
     }
 
-    if (players[name].current && videoURL !== players[name].current.currentSrc) {
-      // TODO: this is a problem: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
-      players[name].current.load();
-    }
-
-    // make sure the video is playing when the clock is running
     if (
+      // make sure the video is playing when the clock is running
       clock.isRunning &&
       players[name].current &&
       players[name].current.paused &&
       videos.ready[name]
     ) {
-      // it is paused when it should be playing
+      // it is paused when it should be playing and video isn't buffering
       (async () => {
         try {
           await players[name].current.play();
         } catch (e) {
-          console.error(e);
+          // Swallow errors here because we have to try to play empty src
+          // because HTML video won't unload a video when src is undefined
         }
       })();
     }
@@ -208,19 +227,28 @@ export default function Videos() {
 
     const muted = name === "left" ? mutedLeft : mutedRight;
 
-    // Displays video background poster to depect novid, buffering, or blank if video loaded or buffering during playback
-    // Uses videoMetadata as an indicator whether the video element is currently playing something. is null when no vid
-    const videoMetadata = name === "left" ? videoMetadataLeft : videoMetadataRight;
+    // Displays video background poster to depect novid, buffering,
+    // or blank if video loaded or buffering during playback
+    // videoMetadata used to determine whether a buffering event is happening on an already playing video
+    // or a new loading event
     let posterClass = styles.playerPosterNovid;
-    if (videos.status[name] === "buffering") {
+    //hide noVid poster if video metadata has been loaded
+    if (videoMetadata) {
+      posterClass = "";
+    }
+    if (videoStatus === "buffering") {
+      // if there is no videoMetadata then this is the buffering of a new video. Show loader.
       if (!videoMetadata) {
         posterClass = styles.playerPosterBuffering;
       } else {
         posterClass = "";
       }
     }
-    if (videoMetadata) {
-      posterClass = "";
+
+    // show IO error if a 400 error has been raised in the video player event handlers below
+    let IOErrorCSS = {};
+    if (videoStatus === "error" && videoURL !== "") {
+      IOErrorCSS = { display: "block" };
     }
 
     return (
@@ -228,39 +256,55 @@ export default function Videos() {
         key={`video_element__${name}`}
         className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
       >
-        <div className={`${styles.playerPoster} ${posterClass}`}></div>
+        <div className={`${styles.playerPoster} ${posterClass}`}>
+          <div className={styles.IOError} style={IOErrorCSS}>
+          Imagery Online Video Error
+          </div>
+        </div>
         <video
           ref={players[name]}
           className={styles.player}
-          muted={muted}
           src={videoURL}
+          muted={muted}
+          autoPlay
           onCanPlay={() => {
-            dispatch(ready(name));
+            if (!videos.ready[name]) {
+              dispatch(ready(name));
+            }
           }}
           onEnded={() => {
             // ready up because we don't want a missing video to hold up the clock
             dispatch(ready(name));
           }}
           onWaiting={() => {
-            if (videos.ready[name] && videoID !== "") {
+            if (videos.ready[name] && videoURL !== "") {
               dispatch(buffering(name));
+              setVideoStatus(name, "buffering");
             }
           }}
+          onPlaying={() => {
+            setVideoStatus(name, "playing");
+          }}
           onLoadedMetadata={(e) => {
+            // Used to later determine whether a buffering event is happening on an already playing video
+            // or a new loading event
             const vidElement = e.target as HTMLVideoElement;
-            vidElement;
-            if (name === "left") {
-              setVideoMetadataLeft({
-                videoHeight: vidElement.videoHeight,
-                videoWidth: vidElement.videoWidth,
-                duration: vidElement.duration,
-              });
+            setVidElementMetadata(name, vidElement);
+          }}
+          onError={(e) => {
+            const vidElement = e.target as HTMLVideoElement;
+            if (!vidElement.error.message.includes("mpty")) {
+              //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
+              setVideoStatus(name, "error");
+              console.error(
+                `video ${name} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+              );
             } else {
-              setVideoMetadataRight({
-                videoHeight: vidElement.videoHeight,
-                videoWidth: vidElement.videoWidth,
-                duration: vidElement.duration,
-              });
+              setVideoStatus(name, "novid");
+            }
+            //unblocking clock
+            if (videos.ready[name] !== true) {
+              dispatch(ready(name));
             }
           }}
         ></video>
@@ -277,18 +321,14 @@ export default function Videos() {
     /** Identifies this video player so we know what group to play. It should match a key in `store.videos.selectedGroups` */
     name: string
   ) => {
-    let mutedClass;
-    if (name === "left") {
-      mutedClass = mutedLeft === true ? styles.unmute : styles.mute;
-    } else {
-      mutedClass = mutedRight === true ? styles.unmute : styles.mute;
-    }
+    const group = name === "left" ? videoGroupLeft : videoGroupRight;
+    const muted = name === "left" ? mutedLeft : mutedRight;
+    const mutedClass = muted === true ? styles.unmute : styles.mute;
+
     let currentMissionTime = getMissionTime(clock);
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
-          const group = name === "left" ? leftVideo : rightVideo;
-
           let buttonClassStyle = styles.vidButton;
           if (g === group) {
             buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
@@ -302,9 +342,9 @@ export default function Videos() {
               className={buttonClassStyle}
               onClick={() => {
                 if (name === "left") {
-                  setLeftVideo(g);
+                  setVideoGroupLeft(g);
                 } else {
-                  setRightVideo(g);
+                  setVideoGroupRight(g);
                 }
               }}
             >
@@ -317,11 +357,7 @@ export default function Videos() {
           <div
             className={`${styles.soundBtn} ${mutedClass}`}
             onClick={() => {
-              if (name === "left") {
-                setMutedLeft(!mutedLeft);
-              } else {
-                setMutedRight(!mutedRight);
-              }
+              name === "left" ? setMutedLeft(!mutedLeft) : setMutedRight(!mutedRight);
             }}
           ></div>
         </div>
