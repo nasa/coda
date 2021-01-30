@@ -7,9 +7,8 @@
     "local": "cross-env NODE_OPTIONS='--inspect' APP_ENV=local next dev",
     "dev": "cross-env NODE_OPTIONS='--inspect' APP_ENV=dev next dev",
     "prod": "cross-env NODE_OPTIONS='--inspect' APP_ENV=prod next dev",
-    "build": "rm -rf services/.cookies.json && cross-env APP_ENV=dev next build",
-    "build-prod": "rm -rf services/.cookies.json && cross-env APP_ENV=prod next build",
-    "export": "cross-env APP_ENV=dev next export",
+    "build": "cross-env APP_ENV=prod next build",
+    "export": "cross-env APP_ENV=prod next export",
     "start": "next start",
     "test": "jest",
     "tsc": "tsc --pretty"
