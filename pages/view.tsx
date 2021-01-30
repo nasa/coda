@@ -42,7 +42,7 @@ export default function View() {
       //get time from query param if exists
 
       //make cam proud
-      let [hh, mm, ss] = gmt !== null ? (gmt as string).split(":").map(Number) : [0, 0, 0];
+      const [hh, mm, ss] = gmt !== null ? (gmt as string).split(":").map(Number) : [0, 0, 0];
 
       const [year, month, day] = (date as string).split(/-|\//).map(Number);
       userDate = new Date(Date.UTC(year, month - 1, day, hh, mm, ss));
