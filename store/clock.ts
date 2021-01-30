@@ -42,6 +42,8 @@ export const clockSlice = createSlice({
     set: (state, action: { payload: string }) => {
       // convert to Date and back to make sure it's a valid ISO string
       state.applicationTime = new Date(action.payload).toISOString();
+      state.lastStarted = new Date().toISOString();
+      state.lastStopped = new Date().toISOString();
     },
 
     /**
