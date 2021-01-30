@@ -13,7 +13,10 @@ import fetch from "node-fetch";
 import { padZeros } from "utils/formatting";
 import dayNight from "../mocks/fakedata/daynight.json";
 
-const COOKIE_JAR = "services/.cookies.json";
+const COOKIE_JAR =
+  process.env.NEXT_PUBLIC_APP_ENV === "dev"
+    ? "services/.cookies-dev.json"
+    : "services/.cookies-prod.json";
 
 if (typeof window === "undefined") {
   // wiki.jsc.nasa.gov uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
