@@ -38,13 +38,14 @@ export default function View() {
   useEffect(() => {
     let userDate = new Date();
     //get date from query param if exists
-    if (date) {
+    if (date !== null) {
       //get time from query param if exists
-      if (gmt) {
-        const [hh = 0, mm = 0, ss = 0] = (gmt as string).split(":").map(Number);
-      }
+
+      //make cam proud
+      let [hh, mm, ss] = gmt !== null ? (gmt as string).split(":").map(Number) : [0, 0, 0];
+
       const [year, month, day] = (date as string).split(/-|\//).map(Number);
-      userDate = new Date(Date.UTC(year, month - 1, day));
+      userDate = new Date(Date.UTC(year, month - 1, day, hh, mm, ss));
 
       // ignore the date param if it is in the future! (CODA doesn't have precogs yet!)
       // https://youtu.be/m_0s8IZWkBg
