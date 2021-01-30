@@ -22,7 +22,10 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 export default function View() {
   const {
     // date should be in YYYY/MM/DD format
-    query: { date = null as string },
+    // GMT should be in hh:mm:ss format
+    query: { date = null, GMT = null },
+  }: {
+    query: { date?: string; GMT?: string };
   } = useRouter();
   const {
     clock,
@@ -34,9 +37,15 @@ export default function View() {
   // make sure the application is running on the correct date
   if (typeof window !== "undefined") {
     let applicationDate = new Date();
+    //get date from query param if exists
     if (date) {
-      const [Y, M, D] = (date as string).split("/").map(Number);
-      const userDate = new Date(Date.UTC(Y, M - 1, D, 0, 0, 0, 0));
+      //get time from query param if exists
+      let [hh, mm, ss] = [0, 0, 0];
+      if (GMT) {
+        [hh, mm, ss] = (GMT as string).split(":").map(Number);
+      }
+      const [Y, M, D] = (date as string).split(/[/-]+/).map(Number); //accept slash or dash delmiters
+      const userDate = new Date(Date.UTC(Y, M - 1, D, hh, mm, ss, 0));
 
       // only use the userDate if it's in the past (CODA doesn't have precogs!)
       if (diff(new Date(), userDate) >= 0) {
@@ -176,7 +185,7 @@ export const getStaticProps: GetServerSideProps = async () => {
         },
         videos: {
           videos: {},
-          selectedGroups: videosInitialState.selectedGroups,
+          videoDownlinks: videosInitialState.videoDownlinks,
           activeVideoFiles: videosInitialState.activeVideoFiles,
           ready: videosInitialState.ready,
           errorMessage: "",

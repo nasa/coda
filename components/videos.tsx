@@ -4,6 +4,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getMissionTime, isSameDate } from "store/clock";
 import {
   buffering,
+  setVideoDownlink,
   pickVideoFile,
   ready,
   selectVideoActivity,
@@ -43,15 +44,18 @@ export default function Videos() {
   }
 
   //downlink channels for left and right
-  const [videoGroupLeft, setVideoGroupLeft] = useState(+left - 1);
-  const [videoGroupRight, setVideoGroupRight] = useState(+right - 1);
-
   useEffect(() => {
-    setVideoGroupLeft(+left - 1);
+    // setVideoGroupLeft(+left - 1);
+    const name = "left";
+    const dlGroup = +left - 1;
+    dispatch(setVideoDownlink({ name, dlGroup }));
   }, [left]);
 
   useEffect(() => {
-    setVideoGroupRight(+right - 1);
+    // setVideoGroupRight(+right - 1);
+    const name = "right";
+    const dlGroup = +right - 1;
+    dispatch(setVideoDownlink({ name, dlGroup }));
   }, [right]);
 
   // define the name of the players
@@ -115,7 +119,7 @@ export default function Videos() {
 
     // perform video and timeline syncs against all video players
     videoPlayerNames.forEach((name: string) => {
-      const group = name === "left" ? videoGroupLeft : videoGroupRight;
+      const group = name === "left" ? videos.videoDownlinks.left : videos.videoDownlinks.right;
       const activeVideoFileID = videos.activeVideoFiles[name];
       const videosNextSecond = videoActivity[group][missionTime + 1];
 
@@ -324,7 +328,7 @@ export default function Videos() {
     /** Identifies this video player so we know what group to play. It should match a key in `store.videos.selectedGroups` */
     name: string
   ) => {
-    const group = name === "left" ? videoGroupLeft : videoGroupRight;
+    const group = name === "left" ? videos.videoDownlinks.left : videos.videoDownlinks.right;
     const muted = name === "left" ? mutedLeft : mutedRight;
     const mutedClass = muted === true ? styles.unmute : styles.mute;
 
@@ -344,11 +348,14 @@ export default function Videos() {
               type="button"
               className={buttonClassStyle}
               onClick={() => {
-                if (name === "left") {
-                  setVideoGroupLeft(g);
-                } else {
-                  setVideoGroupRight(g);
+                if (g !== group) {
+                  dispatch(setVideoDownlink({ name, dlGroup: g }));
                 }
+                // if (name === "left") {
+                //   setVideoGroupLeft(g);
+                // } else {
+                //   setVideoGroupRight(g);
+                // }
               }}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}

@@ -1,20 +1,14 @@
 import { useState, useRef } from "react";
 import { useSelector, useStore } from "react-redux";
 import { getApplicationUTC } from "store/clock";
-import { dateAsCanonicalString, timeFromZuluDate } from "utils/formatting";
+import { dateAsCanonicalString, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 
 export default function HeaderShare() {
   const store = useStore();
-  const {
-    evas: { EVAs, selectedEVA },
-  } = useSelector((state) => state);
 
-  const { clock } = store.getState();
-
-  // TODO: the fallback should be the day the user is on in /view
-  const EVADate = EVAs[selectedEVA]?.startDate || dateAsCanonicalString(new Date());
+  const { clock, videos } = store.getState();
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
@@ -35,12 +29,14 @@ export default function HeaderShare() {
 
     const utc = getApplicationUTC(clock);
     const dt = new Date(utc);
+    const missionDate = shortdateFromZuluDate(dt);
     const missionTime = timeFromZuluDate(dt);
 
     const urlRoot = location.origin + location.pathname;
-    const URL = urlRoot + "?date=" + EVADate + "&GMT=" + missionTime;
-
-    // "&v0=" + gSelectedVidGroup[0] + "&v1=" + gSelectedVidGroup[1];
+    let URL = `${urlRoot}?date=${missionDate}`;
+    URL += `&GMT=${missionTime}`;
+    URL += `&left=${videos.videoDownlinks.left + 1}`;
+    URL += `&right=${videos.videoDownlinks.right + 1}`;
 
     setShareURLtextValue(URL);
 
