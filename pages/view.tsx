@@ -14,7 +14,7 @@ import {
 import { EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { ClockState, diff, isSameDate, set } from "store/clock";
+import { ClockState, initialState as clockInitialState, diff, isSameDate, set } from "store/clock";
 import useInterval from "utils/useInterval";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
@@ -32,25 +32,26 @@ export default function View() {
   const dispatch = useDispatch();
 
   // make sure the application is running on the correct date
-  if (typeof window !== "undefined") {
-    let applicationDate = new Date();
-    if (date) {
-      const [Y, M, D] = (date as string).split("/").map(Number);
-      const userDate = new Date(Date.UTC(Y, M - 1, D, 0, 0, 0, 0));
+  useEffect(() => {
+    let userDate = new Date();
+    if (!isNull(date)) {
+      const [year, month, day] = (date as string).split(/-|\//).map(Number);
+      userDate = new Date(Date.UTC(year, month - 1, day));
 
-      // only use the userDate if it's in the past (CODA doesn't have precogs!)
-      if (diff(new Date(), userDate) >= 0) {
-        applicationDate = userDate;
+      // ignore the date param if it is in the future! (CODA doesn't have precogs yet!)
+      // https://youtu.be/m_0s8IZWkBg
+      const isFutureDate = diff(userDate, new Date()) > 0;
+      const isMalformedDate = isNaN(userDate.valueOf());
+
+      if (isFutureDate || isMalformedDate) {
+        userDate = new Date();
       }
     }
 
-    if (
-      !clock.applicationTime ||
-      !isSameDate(new Date(clock.applicationTime), new Date(applicationDate))
-    ) {
-      dispatch(set(applicationDate.toISOString()));
+    if (!clock.applicationTime || !isSameDate(new Date(clock.applicationTime), userDate)) {
+      dispatch(set(userDate.toISOString()));
     }
-  }
+  }, [date]);
 
   useEffect(() => {
     (async () => {
@@ -63,8 +64,8 @@ export default function View() {
       // try to find an EVA on this date
       let hit = false;
       for (let eva in evas.EVAs) {
-        const [Y, M, D] = evas.EVAs[eva].startDate.split("/");
-        if (isSameDate(new Date(Date.UTC(+Y, +M - 1, +D, 0, 0, 0, 0)), d)) {
+        const [year, month, day] = evas.EVAs[eva].startDate.split("/").map(Number);
+        if (isSameDate(new Date(Date.UTC(year, month - 1, day)), d)) {
           if (evas.selectedEVA !== eva) {
             // the new date has an EVA
             dispatch(setSelected(eva));
@@ -159,15 +160,7 @@ export const getStaticProps: GetServerSideProps = async () => {
   return {
     props: {
       initialReduxState: {
-        clock: {
-          ready: true,
-          isRunning: true,
-          // set the applicationTime so the clock is running when CODA loads
-          // we also need to set lastStarted on the client-side, see _app.js
-          applicationTime: null,
-          lastStarted: null,
-          lastStopped: null,
-        },
+        clock: clockInitialState,
         evas: {
           EVAs,
           selectedEVA: evaOnDate,
