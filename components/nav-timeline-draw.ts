@@ -495,7 +495,7 @@ export default class DrawNav {
     this.gNavCursorGroup.removeChildren();
     if (event.point.y > this.gTier1Top) {
       //if in tier1
-      mouseXSeconds = (event.point.x - 1) * this.gTier1SecondsPerPixel + 1;
+      mouseXSeconds = event.point.x * this.gTier1SecondsPerPixel;
       this.drawTier1NavBox(mouseXSeconds);
       this.drawTier2();
     } else {
