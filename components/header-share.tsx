@@ -1,14 +1,12 @@
 import { useState, useRef } from "react";
-import { useSelector, useStore } from "react-redux";
+import { useSelector } from "react-redux";
 import { getApplicationUTC } from "store/clock";
-import { dateAsCanonicalString, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
+import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 
 export default function HeaderShare() {
-  const store = useStore();
-
-  const { clock, videos } = store.getState();
+  const { clock, videos } = useSelector((state) => state);
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
