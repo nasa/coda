@@ -37,7 +37,8 @@ export default function View() {
   // make sure the application is running on the correct date
   useEffect(() => {
     let userDate = new Date();
-    if (!isNull(date)) {
+    //get date from query param if exists
+    if (date) {
       //get time from query param if exists
       let [hh, mm, ss] = [0, 0, 0];
       if (GMT) {
