@@ -22,7 +22,10 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 export default function View() {
   const {
     // date should be in YYYY/MM/DD format
-    query: { date = null as string },
+    // GMT should be in hh:mm:ss format
+    query: { date = null, GMT = null },
+  }: {
+    query: { date?: string; GMT?: string };
   } = useRouter();
   const {
     clock,
@@ -35,6 +38,11 @@ export default function View() {
   useEffect(() => {
     let userDate = new Date();
     if (!isNull(date)) {
+      //get time from query param if exists
+      let [hh, mm, ss] = [0, 0, 0];
+      if (GMT) {
+        [hh, mm, ss] = (GMT as string).split(":").map(Number);
+      }
       const [year, month, day] = (date as string).split(/-|\//).map(Number);
       userDate = new Date(Date.UTC(year, month - 1, day));
 
@@ -169,7 +177,7 @@ export const getStaticProps: GetServerSideProps = async () => {
         },
         videos: {
           videos: {},
-          selectedGroups: videosInitialState.selectedGroups,
+          videoDownlinks: videosInitialState.videoDownlinks,
           activeVideoFiles: videosInitialState.activeVideoFiles,
           ready: videosInitialState.ready,
           errorMessage: "",
