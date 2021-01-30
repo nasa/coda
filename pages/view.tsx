@@ -40,7 +40,10 @@ export default function View() {
 
       // ignore the date param if it is in the future! (CODA doesn't have precogs yet!)
       // https://youtu.be/m_0s8IZWkBg
-      if (diff(userDate, new Date()) > 0) {
+      const isFutureDate = diff(userDate, new Date()) > 0;
+      const isMalformedDate = isNaN(userDate.valueOf());
+
+      if (isFutureDate || isMalformedDate) {
         userDate = new Date();
       }
     }
