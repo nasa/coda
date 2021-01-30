@@ -23,9 +23,9 @@ export default function View() {
   const {
     // date should be in YYYY/MM/DD format
     // GMT should be in hh:mm:ss format
-    query: { date = null, GMT = null },
+    query: { date = null, gmt = null },
   }: {
-    query: { date?: string; GMT?: string };
+    query: { date?: string; gmt?: string };
   } = useRouter();
   const {
     clock,
@@ -40,9 +40,8 @@ export default function View() {
     //get date from query param if exists
     if (date) {
       //get time from query param if exists
-      let [hh, mm, ss] = [0, 0, 0];
-      if (GMT) {
-        [hh, mm, ss] = (GMT as string).split(":").map(Number);
+      if (gmt) {
+        const [hh = 0, mm = 0, ss = 0] = (gmt as string).split(":").map(Number);
       }
       const [year, month, day] = (date as string).split(/-|\//).map(Number);
       userDate = new Date(Date.UTC(year, month - 1, day));
@@ -60,7 +59,7 @@ export default function View() {
     if (!clock.applicationTime || !isSameDate(new Date(clock.applicationTime), userDate)) {
       dispatch(set(userDate.toISOString()));
     }
-  }, [date]);
+  }, [date, gmt]);
 
   useEffect(() => {
     (async () => {
