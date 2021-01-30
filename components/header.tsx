@@ -1,10 +1,11 @@
 import config from "../package.json";
 import Link from "next/link";
+import isNull from "lodash/isNull";
 import { useRouter } from "next/router";
 import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
-import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
+import { secondsToHHMM, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
@@ -30,7 +31,14 @@ function Header() {
   const [userDateValue, setUserDateValue] = useState("");
   const [editingDate, setEditingDate] = useState(false);
 
+  const [pet, setPET] = useState("--:--");
+
   const eva = evaSelector(evas);
+  let evaStartSec: number;
+  if (eva) {
+    const [hh, mm] = eva.startTime.split(":");
+    evaStartSec = 3600 * +hh + 60 * +mm;
+  }
 
   const dateInput = useRef(null) as MutableRefObject<HTMLInputElement>;
   const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
@@ -43,6 +51,11 @@ function Header() {
       const utc = getApplicationUTC(clock);
       setAppDateTimeValue(utc);
       missionTime = newMissionTime;
+
+      // set the PET if there's an EVA
+      if (!isNull(eva) && eva.startTime !== "") {
+        setPET(secondsToHHMM(missionTime - evaStartSec));
+      }
     }
   }, 50);
 
@@ -209,6 +222,15 @@ function Header() {
             </div>
           </div>
         </div>
+        {eva && (
+          <div className={styles.headerElementContainer}>
+            <div>
+              <div className={styles.pet} title="HH:MM">
+                PET: <span style={{ color: "white" }}>{pet}</span>
+              </div>
+            </div>
+          </div>
+        )}
         <div className={styles.headerElementContainer}>
           <div
             style={{

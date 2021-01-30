@@ -32,6 +32,13 @@
   white-space: nowrap;
 }
 
+.pet {
+  flex: 1;
+  font-size: 1.2em;
+  color: #9b9b9b;
+  white-space: nowrap;
+}
+
 /* .dateTime {
   background-color: #1e1e1e;
   color: #999999;
