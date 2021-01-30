@@ -21,8 +21,8 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function View() {
   const {
-    // date should be in YYYY/MM/DD format
-    // GMT should be in hh:mm:ss format
+    // date should be in yyyy/mm/dd or yyyy-mm-dd format
+    // gmt should be in hh:mm:ss format
     query: { date = null, gmt = null },
   }: {
     query: { date?: string; gmt?: string };
@@ -36,25 +36,40 @@ export default function View() {
 
   // make sure the application is running on the correct date
   useEffect(() => {
+    // default the date to today
     let userDate = new Date();
-    //get date from query param if exists
-    if (date !== null) {
-      //get time from query param if exists
 
-      //make cam proud
-      const [hh, mm, ss] = gmt !== null ? (gmt as string).split(":").map(Number) : [0, 0, 0];
+    // change the date if the user set the `date` query param
+    if (!isNull(date)) {
+      const [year, month, day] = date.split(/-|\//).map(Number);
+      userDate.setUTCFullYear(year);
+      userDate.setUTCMonth(month - 1);
+      userDate.setUTCDate(day);
+    }
 
-      const [year, month, day] = (date as string).split(/-|\//).map(Number);
-      userDate = new Date(Date.UTC(year, month - 1, day, hh, mm, ss));
+    // default the time to midnight, but change it if the user set the `gmt` query param
+    let [hh, mm, ss] = [0, 0, 0];
+    if (!isNull(gmt)) {
+      [hh, mm, ss] = gmt.split(":").map(Number);
+    }
+    userDate.setUTCHours(hh);
+    userDate.setUTCMinutes(mm);
+    userDate.setUTCSeconds(ss);
 
-      // ignore the date param if it is in the future! (CODA doesn't have precogs yet!)
-      // https://youtu.be/m_0s8IZWkBg
-      const isFutureDate = diff(userDate, new Date()) > 0;
-      const isMalformedDate = isNaN(userDate.valueOf());
+    // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
+    // https://youtu.be/m_0s8IZWkBg
+    const isFutureDate = diff(userDate, new Date()) > 0;
 
-      if (isFutureDate || isMalformedDate) {
-        userDate = new Date();
-      }
+    // we will ignore the datetime if it is invalid
+    const isMalformedDate = isNaN(userDate.valueOf());
+
+    if (isFutureDate || isMalformedDate) {
+      // set the datetime to 00:00 UTC today
+      const d = new Date();
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+      userDate = new Date(Date.UTC(year, month, day));
     }
 
     if (!clock.applicationTime || !isSameDate(new Date(clock.applicationTime), userDate)) {
