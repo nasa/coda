@@ -34,7 +34,7 @@ export default function HeaderShare() {
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;
-    URL += `&GMT=${missionTime}`;
+    URL += `&gmt=${missionTime}`;
     URL += `&left=${videos.videoDownlinks.left + 1}`;
     URL += `&right=${videos.videoDownlinks.right + 1}`;
 

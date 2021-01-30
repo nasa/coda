@@ -45,14 +45,12 @@ export default function Videos() {
 
   //downlink channels for left and right
   useEffect(() => {
-    // setVideoGroupLeft(+left - 1);
     const name = "left";
     const dlGroup = +left - 1;
     dispatch(setVideoDownlink({ name, dlGroup }));
   }, [left]);
 
   useEffect(() => {
-    // setVideoGroupRight(+right - 1);
     const name = "right";
     const dlGroup = +right - 1;
     dispatch(setVideoDownlink({ name, dlGroup }));
@@ -351,11 +349,6 @@ export default function Videos() {
                 if (g !== group) {
                   dispatch(setVideoDownlink({ name, dlGroup: g }));
                 }
-                // if (name === "left") {
-                //   setVideoGroupLeft(g);
-                // } else {
-                //   setVideoGroupRight(g);
-                // }
               }}
             >
               {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
