@@ -10,6 +10,7 @@ import {
   haveVideosFromDate,
   VideosState,
   initialState as videosInitialState,
+  fetchError,
 } from "store/videos";
 import { EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
@@ -118,6 +119,7 @@ export default function View() {
         // video data for this EVA
         videoStore = await buildVideoStore(year, month + 1, day);
       } catch (e) {
+        dispatch(fetchError(e.toString()));
         console.error(e);
       }
 
