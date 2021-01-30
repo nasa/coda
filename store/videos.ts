@@ -7,7 +7,7 @@ export interface VideosState {
   /** Keyed by the ID of the video, @see {VideoFile.id} */
   videos: { [key: string]: VideoFile };
   /** Match the video player to a group, @see {VideoFile.group}. Keyed by the name of the video player */
-  selectedGroups: { [key: string]: number };
+  videoDownlinks: { [key: string]: number };
   /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the name of the video player */
   activeVideoFiles: { [key: string]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
@@ -20,7 +20,7 @@ export interface VideosState {
 
 export const initialState: VideosState = {
   videos: {},
-  selectedGroups: {
+  videoDownlinks: {
     left: 0,
     right: 1,
   },
@@ -40,6 +40,12 @@ export const videoSlice = createSlice({
   name: "video",
   initialState,
   reducers: {
+    // Used to store which DL is selected in the video players.
+    // Needs to be in store because it is used in the share function.
+    setVideoDownlink: (state, action: { payload: { name: string; dlGroup: number } }) => {
+      state.videoDownlinks[action.payload.name] = action.payload.dlGroup;
+    },
+
     /** Set the video file ID to play on a named `<VideoPlayer />` */
     pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
       state.activeVideoFiles[action.payload.name] = action.payload.id;
@@ -63,7 +69,7 @@ export const videoSlice = createSlice({
   },
 });
 
-export const { pickVideoFile, ready, buffering, add } = videoSlice.actions;
+export const { setVideoDownlink, pickVideoFile, ready, buffering, add } = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
