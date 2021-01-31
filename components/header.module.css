@@ -30,7 +30,7 @@
   font-size: 0.8em;
   color: #9b9b9b;
   white-space: nowrap;
-  padding: 1px;
+  padding: 2px;
 }
 
 .pet {
@@ -38,9 +38,11 @@
   font-size: 0.8em;
   color: #9b9b9b;
   white-space: nowrap;
+  padding: 1px;
 }
 .petButton {
   font-size: 0.9em;
+  font-weight: 300;
   line-height: 0.9rem;
   height: 100%;
   width: 100%;
@@ -67,9 +69,10 @@
   border-radius: 4px;
 }
 
-.dateTimeField {
-  padding: 10px;
+.dateTimeField {  
   font-size: 1em;
+  font-weight: 300;
+  padding: 10px;
   border-width: 0px;
   background-color: #2b2a2d;
   color: #ffc000;
@@ -86,6 +89,7 @@
 .jumpButton {
   font-size: 1rem;
   line-height: 1rem;
+  font-weight: 300;
   height: 100%;
   background-color: #656269;
   border: none;
@@ -106,55 +110,14 @@
 .version {
   float: right;
   text-align: right;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   margin-right: 10px;
+  line-height: 1.5em;
 }
 
-.select {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
-.select select {
-  font-family: "Inter", sans-serif;
-  font-size: 1.1em;
-  cursor: pointer;
-  padding: 10px 15px;
-  border: 0px solid #000000;
-  border-radius: 5px;
-  background: #2b2a2d;
-  color: #ffc000;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-.select select::-ms-expand {
-  display: none;
-}
-.select select:hover,
-.select select:focus {
-  color: #ffc000;
-  background: #656269;
-}
-.select select:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-.select_arrow {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  pointer-events: none;
-  border-style: solid;
-  border-width: 11px 7px 0px 8px;
-  border-color: #7b7b7b transparent transparent transparent;
-}
-.select select:hover ~ .select_arrow,
-.select select:focus ~ .select_arrow {
-  border-top-color: #000000;
-}
-.select select:disabled ~ .select_arrow {
-  border-top-color: #cccccc;
+.shareArea {
+  padding: 0;
+  border: #ffc000 solid 1px;
 }
 
 .svgCODALogo {

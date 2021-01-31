@@ -7,7 +7,7 @@
 .shareModalWrapper {
   position: absolute;
   background: #0f0f0f;
-  border: 2px solid #5e92a6;
+  border: 1px solid #5e92a6;
   border-radius: 15px;
   box-sizing: border-box;
   padding: 20px;
@@ -70,7 +70,7 @@
   border-radius: 5px;
   padding: 5px;
   margin-top: 20px;
-  border: #ffc000 solid 3px;
+  border: #ffc000 solid 1px;
   background-color: #19181b;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
   cursor: pointer;
@@ -104,7 +104,7 @@
   height: 20px;
   border-radius: 20px;
   padding: 5px;
-  border: 2px solid #5e92a6;
+  border: 1px solid #5e92a6;
   background-color: #19181b;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
   cursor: pointer;
