@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { diff } from "store/clock";
 import styles from "./eva-dropdown.module.css";
 
 export default function EVADropdown() {
@@ -26,6 +27,8 @@ export default function EVADropdown() {
     }
   };
 
+  const today = new Date();
+
   return (
     <div className={styles.select}>
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
@@ -36,13 +39,27 @@ export default function EVADropdown() {
         ) : (
           <option disabled>Choose EVA</option>
         )}
-        {Object.keys(EVAs).map((eva) => {
-          return (
-            <option key={eva} value={eva}>
-              {EVAs[eva].name} - {EVAs[eva].displayTitle}
-            </option>
-          );
-        })}
+        {Object.keys(EVAs)
+          .filter((eva) => {
+            // don't show future EVAs
+            try {
+              // using the try-catch in case the wiki data is bad
+              const [year, month, day] = EVAs[eva].startDate.split("/").map(Number);
+              const dateOfEVA = new Date(Date.UTC(year, month - 1, day));
+              return diff(today, dateOfEVA) > 0;
+            } catch (e) {
+              return true;
+            }
+          })
+          // sort most recent to oldest
+          .reverse()
+          .map((eva) => {
+            return (
+              <option key={eva} value={eva}>
+                {EVAs[eva].name} - {EVAs[eva].displayTitle}
+              </option>
+            );
+          })}
       </select>
       <div className={styles.select_arrow}></div>
     </div>
