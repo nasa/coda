@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
-import { secondsToHHMM, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
+import { secondsToHHMMSS, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
@@ -54,7 +54,7 @@ function Header() {
 
       // set the PET if there's an EVA
       if (!isNull(eva) && eva.startTime !== "") {
-        setPET(secondsToHHMM(missionTime - evaStartSec));
+        setPET(secondsToHHMMSS(missionTime - evaStartSec));
       }
     }
   }, 50);
