@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { add, ClockState } from "store/clock";
+import { add, ClockState, isSameDate } from "store/clock";
 import { EVAsState } from "store/evas";
 import { VideosState } from "store/videos";
 import styles from "./status-bar.module.css";
@@ -8,7 +8,7 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
   const {
-    clock: { isRunning },
+    clock: { isRunning, applicationTime },
     evas: { errorMessage: evasErrorMessage, selectedEVA },
     videos: { ready: videosReady, lastChecked, errorMessage: videosErrorMessage },
   }: {
@@ -19,8 +19,29 @@ export default function StatusBar() {
 
   const errorMessages = evasErrorMessage !== "" || videosErrorMessage !== "";
 
-  const lastUpdate = new Date(lastChecked).toLocaleTimeString();
-  const nextUpdate = add(new Date(lastChecked), FIVE_MINS_MS).toLocaleTimeString();
+  const isToday = isSameDate(new Date(), new Date(applicationTime));
+
+  let lastUpdate = "pending";
+  let nextUpdate = "pending";
+  const lastCheckedDate = new Date(lastChecked);
+  if (!isNaN(lastCheckedDate.valueOf())) {
+    lastUpdate =
+      lastCheckedDate.toLocaleTimeString("en-us", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "UTC",
+        hour12: false,
+      }) + "Z";
+    nextUpdate =
+      add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "UTC",
+        hour12: false,
+      }) + "Z";
+  }
 
   return (
     <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
@@ -31,9 +52,11 @@ export default function StatusBar() {
       <span className={styles.statusText}>
         {!videosReady.left || !videosReady.right ? <span className={styles.spinner}></span> : " "}
         &nbsp;
-        {selectedEVA === "" && (
+        {isToday && (
           <span>
-            Last video update: {lastUpdate}. Next update scheduled for: {nextUpdate} |&nbsp;
+            Last video update: {lastUpdate}
+            {videosErrorMessage ? " (failed)" : ""}. Next video update scheduled for: {nextUpdate}{" "}
+            |&nbsp;
           </span>
         )}
         <span>IO {videosErrorMessage === "" ? "✓" : "✗"}&nbsp;</span>

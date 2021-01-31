@@ -65,11 +65,24 @@ export const videoSlice = createSlice({
     add: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
       state.videos = { ...state.videos, ...action.payload.videos };
       state.lastChecked = new Date().toUTCString();
+      state.errorMessage = "";
+    },
+
+    /** An error occured fetching video metadata */
+    fetchError: (state, action: { payload: string }) => {
+      state.errorMessage = action.payload;
     },
   },
 });
 
-export const { setVideoDownlink, pickVideoFile, ready, buffering, add } = videoSlice.actions;
+export const {
+  setVideoDownlink,
+  pickVideoFile,
+  ready,
+  buffering,
+  add,
+  fetchError,
+} = videoSlice.actions;
 
 const videosSelector = (state) => state.videos;
 
