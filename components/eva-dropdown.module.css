@@ -3,8 +3,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-left: 10px;
-  padding-right: 10px;
   width: 25em;
 }
 .select select {
@@ -12,7 +10,7 @@
   font-size: 1.1em;
   cursor: pointer;
   padding: 10px 15px;
-  border: 0px solid #000000;
+  border: 1px solid #ffc000;
   border-radius: 5px;
   background: #2b2a2d;
   color: #ffc000;
@@ -26,7 +24,7 @@
 .select select:hover,
 .select select:focus {
   color: #ffc000;
-  background: #656269;
+  /* background: #656269; */
 }
 .select select:disabled {
   opacity: 0.5;

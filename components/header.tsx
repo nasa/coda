@@ -126,14 +126,14 @@ function Header() {
           <EVADropdown />
         </div>
         <div className={styles.headerElementContainer}>
-          <div style={{ display: "flex", flexDirection: "row" }}>
+          <div className={styles.dateTimeSection}>
             <div>
               <input
                 ref={dateInput}
                 type="text"
                 size={10}
                 placeholder="yyyy-mm-dd"
-                className={styles.dateTime}
+                className={styles.dateTimeField}
                 id="missionDate"
                 name="missionDate"
                 value={editingDate ? userDateValue : renderDate}
@@ -171,7 +171,7 @@ function Header() {
                 size={8}
                 placeholder="hh:mm:ss"
                 title="GMT"
-                className={styles.dateTime}
+                className={styles.dateTimeField}
                 id="missionTime"
                 name="missionTime"
                 value={editingTime ? userTimeValue : renderTime}
@@ -201,10 +201,9 @@ function Header() {
                 }}
               />
             </div>
-            <div style={{ marginLeft: "5px" }}>
+            <div>
               <button
-                className={styles.littleHeaderButton}
-                id="goButton"
+                className={styles.jumpButton}
                 title="Jump to Date/Time"
                 onClick={handleDateTimeChange}
               >
@@ -218,6 +217,25 @@ function Header() {
             <div>
               <div className={styles.pet} title="HH:MM">
                 PET: <span style={{ color: "white" }}>{pet}</span>
+              </div>
+              <div className={styles.pet}>
+                <button
+                  className={styles.petButton}
+                  title="Jump to EVA start time"
+                  onClick={() => {
+                    const d = new Date(clock.applicationTime);
+                    const year = d.getUTCFullYear();
+                    const month = d.getUTCMonth();
+                    const day = d.getUTCDate();
+
+                    const [hh = 0, mm = 0, ss = 0] = eva.startTime.split(":");
+
+                    let date = new Date(Date.UTC(year, month, day, +hh, +mm, +ss));
+                    dispatch(set(date.toUTCString()));
+                  }}
+                >
+                  EVA Start -&gt;
+                </button>
               </div>
             </div>
           </div>
