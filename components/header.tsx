@@ -4,7 +4,7 @@ import isNull from "lodash/isNull";
 import { useRouter } from "next/router";
 import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
+import { ClockState, getApplicationUTC, getMissionTime, set } from "store/clock";
 import { secondsToHHMMSS, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
