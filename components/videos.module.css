@@ -96,11 +96,11 @@
 .vidButton {
   font-size: 1.1rem;
   font-weight: 300;
-  background-color: #656269;
+  background-color: #2b2a2d;
   border: none;
   border-top: 1px #ffc000 solid;
   border-bottom: 1px #ffc000 solid;
-  color: #3e3b44;
+  color: #656269;
   padding: 6px 20px;
   margin-bottom: 5px;
   border-right: #bdbdbd solid 1px;
@@ -110,7 +110,6 @@
   cursor: pointer;
 }
 .vidButton.active {
-  background-color: #656269;
   color: white;
 }
 .vidButton.active:hover {
@@ -140,7 +139,7 @@
   padding: 2px 3px;
   margin-right: 10px;
   border: #ffc000 solid 1.5px;
-  background-color: #19181b;
+  background-color: #2b2a2d;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
   cursor: pointer;
 }

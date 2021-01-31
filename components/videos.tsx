@@ -344,6 +344,7 @@ export default function Videos() {
             <button
               key={`vid${name}__button${g}`}
               type="button"
+              title={`Select downlink ${g + 1}`}
               className={buttonClassStyle}
               onClick={() => {
                 if (g !== group) {

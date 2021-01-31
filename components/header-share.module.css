@@ -2,6 +2,14 @@
   background-color: #2b2a2d;
   padding: 15px;
   cursor: pointer;
+  border-radius: 4px;
+}
+.headerModalButton:hover {
+  background-color: #ffc000;
+}
+.headerModalButton:hover .svgShare {
+  background: url(/coda/images/share_black.svg) no-repeat center;
+  background-size: 20px 20px;
 }
 
 .shareModalWrapper {

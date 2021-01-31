@@ -46,7 +46,8 @@
   line-height: 0.9rem;
   height: 100%;
   width: 100%;
-  background-color: #656269;
+  /* background-color: #656269; */
+  background-color: #2b2a2d;
   border: #ffc000 solid 1px;
   color: white; 
   padding-right: 10px;
@@ -91,7 +92,7 @@
   line-height: 1rem;
   font-weight: 300;
   height: 100%;
-  background-color: #656269;
+  background-color: #2b2a2d;
   border: none;
   border-left: #ffc000 solid 1px;
   color: white; 
@@ -118,6 +119,7 @@
 .shareArea {
   padding: 0;
   border: #ffc000 solid 1px;
+  border-radius: 4px;
 }
 
 .svgCODALogo {
