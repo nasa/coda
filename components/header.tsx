@@ -1,7 +1,7 @@
 import config from "../package.json";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
 import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
@@ -32,6 +32,9 @@ function Header() {
 
   const eva = evaSelector(evas);
 
+  const dateInput = useRef(null) as MutableRefObject<HTMLInputElement>;
+  const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
+
   useInterval(() => {
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
@@ -50,6 +53,33 @@ function Header() {
     renderTime = timeFromZuluDate(dt);
     renderDate = shortdateFromZuluDate(dt);
   }
+
+  /** Navigates to a new date or time */
+  const handleDateTimeChange = () => {
+    if (userDateValue !== "") {
+      const [Y, M, D] = userDateValue.split("-");
+      router.push(`/view?date=${Y}-${M}-${D}`);
+      return;
+    }
+
+    const d = new Date(clock.applicationTime);
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    const day = d.getUTCDate();
+
+    let date = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+
+    if (userTimeValue !== "") {
+      const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
+      date = new Date(Date.UTC(year, month, day, +hh, +mm, +ss));
+    }
+
+    dispatch(set(date.toUTCString()));
+    setUserTimeValue("");
+    setUserDateValue("");
+    setEditingTime(false);
+    setEditingDate(false);
+  };
 
   return (
     <div className={styles.headerContainer}>
@@ -84,8 +114,10 @@ function Header() {
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div>
               <input
+                ref={dateInput}
                 type="text"
                 size={10}
+                placeholder="yyyy-mm-dd"
                 className={styles.dateTime}
                 id="missionDate"
                 name="missionDate"
@@ -109,12 +141,21 @@ function Header() {
                   }
                 }}
                 onChange={(e) => setUserDateValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleDateTimeChange();
+                  }
+                }}
               />
             </div>
             <div>
               <input
+                ref={timeInput}
                 type="text"
                 size={8}
+                placeholder="hh:mm:ss"
+                title="GMT"
                 className={styles.dateTime}
                 id="missionTime"
                 name="missionTime"
@@ -137,6 +178,12 @@ function Header() {
                   }
                 }}
                 onChange={(e) => setUserTimeValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleDateTimeChange();
+                  }
+                }}
               />
             </div>
             <div style={{ marginLeft: "5px" }}>
@@ -144,36 +191,7 @@ function Header() {
                 className={styles.littleHeaderButton}
                 id="goButton"
                 title="Jump to Date/Time"
-                onClick={(e) => {
-                  let year: number;
-                  let month: number;
-                  let day: number;
-                  let date: Date;
-
-                  if (userDateValue !== "") {
-                    const [Y, M, D] = userDateValue.split("-");
-                    router.push(`/view?date=${Y}/${M}/${D}`);
-                    return;
-                  }
-
-                  const d = new Date(clock.applicationTime);
-                  year = d.getUTCFullYear();
-                  month = d.getUTCMonth();
-                  day = d.getUTCDate();
-
-                  date = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
-
-                  if (userTimeValue !== "") {
-                    const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
-                    date = new Date(Date.UTC(year, month, day, +hh, +mm, +ss));
-                  }
-
-                  dispatch(set(date.toUTCString()));
-                  setUserTimeValue("");
-                  setUserDateValue("");
-                  setEditingTime(false);
-                  setEditingDate(false);
-                }}
+                onClick={handleDateTimeChange}
               >
                 Jump
               </button>
