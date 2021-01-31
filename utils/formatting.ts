@@ -24,7 +24,7 @@ export function secondsToTimeStr(totalSeconds: number): string {
 }
 
 /**
- * Simple conversion of seconds to HH:MM. Will prepend a negative sign if necessary */
+ * Simple conversion of seconds to HH:MM:SS. Will prepend a negative sign if necessary */
 export function secondsToHHMMSS(secParam: number): string {
   const absSecParam = Math.abs(secParam);
   const hours = Math.floor(absSecParam / 3600);
