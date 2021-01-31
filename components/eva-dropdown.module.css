@@ -3,18 +3,17 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-left: 10px;
-  padding-right: 10px;
   width: 25em;
 }
 .select select {
   font-family: "Inter", sans-serif;
-  font-size: 1.1em;
+  font-size: 1em;
+  font-weight: 300;
   cursor: pointer;
-  padding: 10px 15px;
-  border: 0px solid #000000;
-  border-radius: 5px;
-  background: #2b2a2d;
+  padding: 11px 15px;
+  border: 1px solid #ffc000;
+  border-radius: 4px;
+  background: #2b2a2a;
   color: #ffc000;
   appearance: none;
   -webkit-appearance: none;
@@ -23,10 +22,8 @@
 .select select::-ms-expand {
   display: none;
 }
-.select select:hover,
-.select select:focus {
+.select select:hover, .select select:focus {  
   color: #ffc000;
-  background: #656269;
 }
 .select select:disabled {
   opacity: 0.5;
@@ -39,11 +36,11 @@
   pointer-events: none;
   border-style: solid;
   border-width: 11px 7px 0px 8px;
-  border-color: #7b7b7b transparent transparent transparent;
+  border-color: #ffc000 transparent transparent transparent;
 }
 .select select:hover ~ .select_arrow,
 .select select:focus ~ .select_arrow {
-  border-top-color: #000000;
+  border-top-color: #ffc000;
 }
 .select select:disabled ~ .select_arrow {
   border-top-color: #cccccc;

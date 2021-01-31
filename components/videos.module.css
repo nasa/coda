@@ -95,11 +95,12 @@
 
 .vidButton {
   font-size: 1.1rem;
-  font-weight: 200;
-  width: 110px;
-  background-color: #656269;
+  font-weight: 300;
+  background-color: #2b2a2d;
   border: none;
-  color: #3e3b44;
+  border-top: 1px #ffc000 solid;
+  border-bottom: 1px #ffc000 solid;
+  color: #656269;
   padding: 6px 20px;
   margin-bottom: 5px;
   border-right: #bdbdbd solid 1px;
@@ -109,25 +110,23 @@
   cursor: pointer;
 }
 .vidButton.active {
-  background-color: #656269;
   color: white;
 }
 .vidButton.active:hover {
-  font-weight: 700;
   background-color: #ffc000;
   color: black;
 }
 .vidButton.selected {
-  font-weight: 700;
   background-color: #ffc000;
   color: black;
 }
 .vidButton:first-of-type {
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
+  border-left: 1px #ffc000 solid;
 }
 .vidButton:last-of-type {
-  border-right: none;
+  border-right: 1px #ffc000 solid;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
@@ -137,10 +136,10 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  padding: 2px 4px;
+  padding: 2px 3px;
   margin-right: 10px;
-  border: #ffc000 solid 2px;
-  background-color: #19181b;
+  border: #ffc000 solid 1.5px;
+  background-color: #2b2a2d;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
   cursor: pointer;
 }
