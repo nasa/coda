@@ -1,4 +1,5 @@
 import config from "../package.json";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
@@ -60,15 +61,19 @@ function Header() {
               className={styles.headerTitle}
               style={{ position: "relative", width: "100px", marginLeft: "10px" }}
             >
-              <img
-                src="/coda/images/logo_coda.png"
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                }}
-              />
+              <Link href="/">
+                <a>
+                  <img
+                    src="/coda/images/logo_coda.png"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  />
+                </a>
+              </Link>
             </div>
           </div>
         </div>
