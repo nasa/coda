@@ -1,10 +1,11 @@
 import config from "../package.json";
 import Link from "next/link";
+import isNull from "lodash/isNull";
 import { useRouter } from "next/router";
 import { MutableRefObject, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
-import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
+import { ClockState, getApplicationUTC, getMissionTime, set } from "store/clock";
+import { secondsToHHMMSS, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
 import useInterval from "utils/useInterval";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
@@ -12,7 +13,7 @@ import HeaderShare from "components/header-share";
 import styles from "./header.module.css";
 import { evaSelector, EVAsState } from "store/evas";
 
-let missionTime = null;
+let missionTime = null as number;
 
 /**
  * Renders the top bar of CODA
@@ -30,7 +31,16 @@ function Header() {
   const [userDateValue, setUserDateValue] = useState("");
   const [editingDate, setEditingDate] = useState(false);
 
+  const [pet, setPET] = useState("--:--:--");
+
   const eva = evaSelector(evas);
+
+  let evaStartSec = null as number;
+  const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+  if (!isNull(eva) && !isNull(eva.startTime.match(reHHMM))) {
+    const [hh, mm] = eva.startTime.split(":");
+    evaStartSec = 3600 * +hh + 60 * +mm;
+  }
 
   const dateInput = useRef(null) as MutableRefObject<HTMLInputElement>;
   const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
@@ -43,6 +53,11 @@ function Header() {
       const utc = getApplicationUTC(clock);
       setAppDateTimeValue(utc);
       missionTime = newMissionTime;
+
+      // set the PET if there's an EVA
+      if (!isNull(evaStartSec)) {
+        setPET(secondsToHHMMSS(missionTime - evaStartSec));
+      }
     }
   }, 50);
 
@@ -195,20 +210,18 @@ function Header() {
               >
                 Jump
               </button>
-              {isSameDate(new Date(), new Date(clock.applicationTime)) && (
-                <button
-                  className={styles.littleHeaderButton}
-                  title="Jump to now"
-                  onClick={(e) => {
-                    dispatch(set(new Date().toUTCString()));
-                  }}
-                >
-                  Go Live
-                </button>
-              )}
             </div>
           </div>
         </div>
+        {!isNull(eva) && (
+          <div className={styles.headerElementContainer}>
+            <div>
+              <div className={styles.pet} title="HH:MM">
+                PET: <span style={{ color: "white" }}>{pet}</span>
+              </div>
+            </div>
+          </div>
+        )}
         <div className={styles.headerElementContainer}>
           <div
             style={{
@@ -217,7 +230,7 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            {eva && (
+            {!isNull(eva) && (
               <div>
                 <div className={styles.crewItem}>
                   EV1:{" "}

@@ -63,7 +63,7 @@ export default function Videos() {
     left: useRef() as MutableRefObject<HTMLVideoElement>,
     right: useRef() as MutableRefObject<HTMLVideoElement>,
   };
-  const [mutedLeft, setMutedLeft] = useState(true);
+  const [mutedLeft, setMutedLeft] = useState(false);
   const [mutedRight, setMutedRight] = useState(true);
 
   // metadata used below to detect whether current video fully loaded

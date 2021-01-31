@@ -23,6 +23,21 @@ export function secondsToTimeStr(totalSeconds: number): string {
   return timeStr;
 }
 
+/**
+ * Simple conversion of seconds to HH:MM:SS. Will prepend a negative sign if necessary */
+export function secondsToHHMMSS(secParam: number): string {
+  const absSecParam = Math.abs(secParam);
+  const hours = Math.floor(absSecParam / 3600);
+  const minutes = Math.floor((absSecParam - hours * 3600) / 60);
+  const seconds = absSecParam - hours * 3600 - minutes * 60;
+
+  let timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
+  if (secParam < 0) {
+    timeStr = "-" + timeStr;
+  }
+  return timeStr;
+}
+
 export function secondsToZuluString(seconds: number, timingData: TimingData): string {
   var zuluDate = secondsToZuluDate(seconds, timingData);
   var temp = zuluDate.toISOString().split("T")[1].split(":");
