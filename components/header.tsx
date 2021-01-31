@@ -208,17 +208,6 @@ function Header() {
               >
                 Jump
               </button>
-              {isSameDate(new Date(), new Date(clock.applicationTime)) && (
-                <button
-                  className={styles.littleHeaderButton}
-                  title="Jump to now"
-                  onClick={(e) => {
-                    dispatch(set(new Date().toUTCString()));
-                  }}
-                >
-                  Go Live
-                </button>
-              )}
             </div>
           </div>
         </div>
