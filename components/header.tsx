@@ -13,7 +13,7 @@ import HeaderShare from "components/header-share";
 import styles from "./header.module.css";
 import { evaSelector, EVAsState } from "store/evas";
 
-let missionTime = null;
+let missionTime = null as number;
 
 /**
  * Renders the top bar of CODA
@@ -31,11 +31,13 @@ function Header() {
   const [userDateValue, setUserDateValue] = useState("");
   const [editingDate, setEditingDate] = useState(false);
 
-  const [pet, setPET] = useState("--:--");
+  const [pet, setPET] = useState("--:--:--");
 
   const eva = evaSelector(evas);
-  let evaStartSec: number;
-  if (eva) {
+
+  let evaStartSec = null as number;
+  const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+  if (!isNull(eva) && !isNull(eva.startTime.match(reHHMM))) {
     const [hh, mm] = eva.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
@@ -53,7 +55,7 @@ function Header() {
       missionTime = newMissionTime;
 
       // set the PET if there's an EVA
-      if (!isNull(eva) && eva.startTime !== "") {
+      if (!isNull(evaStartSec)) {
         setPET(secondsToHHMMSS(missionTime - evaStartSec));
       }
     }
@@ -211,7 +213,7 @@ function Header() {
             </div>
           </div>
         </div>
-        {eva && (
+        {!isNull(eva) && (
           <div className={styles.headerElementContainer}>
             <div>
               <div className={styles.pet} title="HH:MM">
@@ -228,7 +230,7 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            {eva && (
+            {!isNull(eva) && (
               <div>
                 <div className={styles.crewItem}>
                   EV1:{" "}
