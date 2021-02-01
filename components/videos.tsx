@@ -210,6 +210,7 @@ export default function Videos() {
     if (
       // make sure the video is playing when the clock is running
       clock.isRunning &&
+      videoURL !== "" &&
       players[name].current &&
       players[name].current.paused &&
       videos.ready[name]
