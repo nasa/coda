@@ -164,8 +164,6 @@ export default function Videos() {
       }
 
       if (Math.abs(currentTime - videoStartOffset) > 1) {
-        players[name].current.pause();
-        dispatch(buffering(name));
         players[name].current.currentTime = videoStartOffset;
       }
     });
