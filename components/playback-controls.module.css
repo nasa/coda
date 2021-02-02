@@ -1,21 +1,98 @@
 .container {
   position: fixed;
-  bottom: 56px;
-  left: -20px;
-}
-
-.playPause {
-  display: table;
+  bottom: 70px;
+  left: 12px;
   width: 100px;
   height: 100px;
+}
+
+.jumpLeft {
+  position: absolute;
+  top: 50px;
+  left: -20px;  
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
+  z-index: 5;
+  cursor: pointer;
+  border: #ffc000 solid 3px;
+  background-color: #19181b;
+  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
+}
+
+.jumpLeftImg {
+  position: absolute;
+  left: 1px;
+  top: -1px;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 216.11 240.76"><g fill="white"><path d="M21,41.19C65.58-2,136.31-1.67,180.85,41.46A116,116,0,0,1,19.44,208.12c-9.34-9,4.58-23.41,13.91-14.37A96,96,0,1,0,166.93,55.83a94.83,94.83,0,0,0-131.55-.72l31.11-.5c12.73-.2,13,19.59.32,19.8l-55.15.88C6,75.38,1,71.92.19,65.57L0,9.7C-.2-3,19.59-3.34,19.8,9.39Z"/></g></svg>')
+    no-repeat center;
+  background-size: 32px 32px;
+}
+
+.jumpLeftText {
+  position: absolute;
+  top: 16px;
+  left: 15px;
+  font-family: Inter;
+  font-size: 0.7em;
+  cursor: pointer;
+}
+
+.jumpRight {
+  position: absolute;
+  top: 50px;
+  left: 65px;  
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  z-index: 5;
+  cursor: pointer;
+  border: #ffc000 solid 3px;
+  background-color: #19181b;
+  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
+}
+
+.jumpRightImg {
+  position: absolute;
+  left: -2px;
+  top: -1px;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 216.11 240.76"><g fill="white"><path d="M196.31,9.39c.2-12.73,20-12.41,19.8.32l-.19,55.87c-.81,6.35-5.81,9.81-11.47,9.72L149.3,74.4c-12.73-.2-12.41-20,.32-19.8l31.11.5a94.83,94.83,0,0,0-131.55.72A96,96,0,1,0,182.75,193.75c9.34-9,23.25,5.32,13.91,14.37A116,116,0,1,1,35.26,41.46C79.8-1.67,150.53-2,195.1,41.19Z"/></g></svg>')
+    no-repeat center;
+  background-size: 32px 32px;
+}
+
+.jumpRightText {
+  position: absolute;
+  top: 16px;
+  left: 15px;
+  font-family: Inter;
+  font-size: 0.7em;
+  cursor: pointer;
+}
+
+
+.playPause {
+  position: absolute;
+  top: 0px;
+  left: 10px;
+  display: table;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  z-index: 6;
 
   border: #ffc000 solid 3px;
   background-color: #19181b;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
 }
 
-.playPauseBtn {
+.playPauseImg {
   display: table-cell;
   text-align: center;
   vertical-align: middle;
@@ -29,10 +106,10 @@
 .playSVG {
   background: url('data:image/svg+xml;utf8,<svg version="1.1" id="Play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 20"  xml:space="preserve"> <g fill="white"> <path d="M15,10.001c0,0.299-0.305,0.514-0.305,0.514l-8.561,5.303C5.51,16.227,5,15.924,5,15.149V4.852 c0-0.777,0.51-1.078,1.135-0.67l8.561,5.305C14.695,9.487,15,9.702,15,10.001z" transform="translate(1 0)"/> </g> </svg>')
     no-repeat center;
-  background-size: 60px 60px;
+  background-size: 50px 50px;
 }
 .pauseSVG {
   background: url('data:image/svg+xml;utf8,<svg version="1.1" id="Paus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <g fill="white"> <path d="M15,3h-2c-0.553,0-1,0.048-1,0.6V16.4c0,0.552,0.447,0.6,1,0.6h2c0.553,0,1-0.048,1-0.6V3.6C16,3.048,15.553,3,15,3z M7,3H5 C4.447,3,4,3.048,4,3.6V16.4C4,16.952,4.447,17,5,17h2c0.553,0,1-0.048,1-0.6V3.6C8,3.048,7.553,3,7,3z"/> </g> </svg>')
     no-repeat center;
-  background-size: 50px 50px;
+  background-size: 40px 40px;
 }
