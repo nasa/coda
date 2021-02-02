@@ -164,7 +164,6 @@ export default function Videos() {
       }
 
       if (Math.abs(currentTime - videoStartOffset) > 1) {
-        players[name].current.pause();
         players[name].current.currentTime = videoStartOffset;
       }
     });
@@ -330,14 +329,13 @@ export default function Videos() {
     const muted = name === "left" ? mutedLeft : mutedRight;
     const mutedClass = muted === true ? styles.unmute : styles.mute;
 
-    let currentMissionTime = getMissionTime(clock);
     return (
       <div className={styles.vidPanel} key={`video_player__${name}`}>
         {availableGroups.map((g) => {
           let buttonClassStyle = styles.vidButton;
           if (g === group) {
             buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
-          } else if (videoActivity && videoActivity[g][currentMissionTime].length > 0) {
+          } else if (videoActivity && videoActivity[g][missionTime].length > 0) {
             buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
           }
           return (
