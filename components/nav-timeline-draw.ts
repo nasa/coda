@@ -48,7 +48,7 @@ export default class DrawNav {
   gAlphaRectOpacity = 0.4;
   gNaxBoxZoomFadeOpacity = 0.2;
 
-  gNavigatorFontFamily = "Roboto Mono";
+  gNavigatorFontFamily = "Ubuntu Mono";
   gNavigatorFontFamilyActivity = "Inter";
   //  gNavigatorFontFamily = "Inter";
   //  gNavigatorFontFamily = "Space Mono";
@@ -436,7 +436,7 @@ export default class DrawNav {
 
     let timeText = new paper.PointText({
       justification: "left",
-      fontWeight: "bold",
+      fontWeight: "normal",
       fontFamily: this.gNavigatorFontFamily,
       fontSize: 20,
       fillColor: "white",
@@ -446,7 +446,7 @@ export default class DrawNav {
     const cornerSize = new paper.Size(12, 12);
     let timeTextRect = new paper.Rectangle(timeText.bounds);
     //center rectangle behind text
-    timeTextRect.width = 135;
+    timeTextRect.width = 115;
     timeTextRect.height += 5;
     timeTextRect.top -= 2;
     if (timeText.point.x < 5) {

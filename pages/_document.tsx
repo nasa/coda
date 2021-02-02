@@ -12,15 +12,11 @@ class MyDocument extends Document {
           <link rel="manifest" href="/coda/favicon/site.webmanifest" />
           <link rel="mask-icon" href="/coda/favicon/safari-pinned-tab.svg" color="#5bbad5" />
           <link
-            href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
-            rel="stylesheet"
-          />
-          <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap"
             rel="stylesheet"
           />
           <link
-            href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
             rel="stylesheet"
           />
         </Head>
