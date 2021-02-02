@@ -37,8 +37,6 @@ export default function Main() {
     }
   }
 
-  // TODO: would be cool to listen to onKeyDown for the spacebar to play/pause
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
