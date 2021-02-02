@@ -145,7 +145,7 @@ function Header() {
                 }}
                 // match a yyyy-mm-dd or yyyy-m-d string
                 // https://stackoverflow.com/a/22061879
-                pattern="^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$"
+                pattern="^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$"
                 onFocus={() => {
                   setEditingDate(true);
                   setUserDateValue(renderDate);
