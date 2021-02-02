@@ -123,6 +123,7 @@ export default class DrawNav {
 
       let startLocY =
         this.gTier1Top +
+        1 +
         this.videoFiles[i]["group"] * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth + 1;
 
@@ -155,7 +156,8 @@ export default class DrawNav {
     for (let i = 0; i < evActivityArray.length; i++) {
       let startLocX = evActivityArray[i].startTimeSeconds * this.gTier1PixelsPerSecond;
       let endLocX = evActivityArray[i].endTimeSeconds * this.gTier1PixelsPerSecond;
-      let startLocY = this.gTier1Top + rowNum * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
+      let startLocY =
+        this.gTier1Top + 1 + rowNum * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth + 1;
       let activityLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
@@ -183,11 +185,13 @@ export default class DrawNav {
     }
     this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gTier1NavBoxLocX;
 
+    const navBoxTop = this.gTier1Top - 3;
+    const navBoxHeight = this.gTier1Height + 2;
     let navBoxRect = new paper.Rectangle(
       this.gTier1NavBoxLocX,
-      this.gTier1Top,
+      navBoxTop,
       navBoxWidth,
-      this.gTier1Height
+      navBoxHeight
     );
     const cornerSize = new paper.Size(2, 2);
     let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
@@ -197,7 +201,7 @@ export default class DrawNav {
     this.gTier1NavGroup.addChild(navBoxRectPath);
 
     //navBoxEffect
-    const startPoint = new paper.Point(this.gTier1NavBoxLocX - 2, this.gTier1Top + 3);
+    const startPoint = new paper.Point(this.gTier1NavBoxLocX - 2, navBoxTop + 3);
     const boxWidth = navBoxWidth + 4;
     const effectHeight = this.gTierSpacing + 1;
     const effectSideWidth = 30;
@@ -230,8 +234,8 @@ export default class DrawNav {
 
     //navBox effect orange bar full width
     const navBoxEffectBar = new paper.Path.Line({
-      from: [0, this.gTier1Top - this.gTierSpacing],
-      to: [this.gNavigatorWidth, this.gTier1Top - this.gTierSpacing],
+      from: [0, navBoxTop - this.gTierSpacing],
+      to: [this.gNavigatorWidth, navBoxTop - this.gTierSpacing],
       strokeColor: "#ffc000",
       strokeWidth: 4,
     });
@@ -414,8 +418,8 @@ export default class DrawNav {
 
     // tier1
     let cursorLocX = 0.5 + seconds * this.gTier1PixelsPerSecond;
-    let topPoint = new paper.Point(cursorLocX, this.gTier1Top + 3);
-    let bottomPoint = new paper.Point(cursorLocX, this.gTier1Top + this.gTier1Height - 2);
+    let topPoint = new paper.Point(cursorLocX, this.gTier1Top);
+    let bottomPoint = new paper.Point(cursorLocX, this.gTier1Top + this.gTier1Height - 3);
     let aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = color;
     aLine.strokeWidth = 2;
