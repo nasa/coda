@@ -383,16 +383,19 @@ export default class DrawNav {
       fLine.dashArray = [10, 10];
       this.gTier2Group.addChild(fLine);
 
+      // add some explanatory text
       const futureText = new paper.PointText({
         justification: "left",
-        fontFamily: graphFontFamily,
+        fontFamily: this.gNavigatorFontFamilyActivity,
         //fontWeight: 'bold',
-        fontSize: 9 + gFontScaleFactor,
-        fillColor: gColorTimeTicks,
+        fontSize: 15,
+        fillColor: "#AAAAAA",
+        content: "The Future",
       });
-      textTop = gTier3Top + gTier3Height - 5;
-      stageText.point = new paper.Point(itemLocX - 2, textTop);
-      stageText.rotate(-90);
+      const textTop = this.gTier2Top + 36;
+      futureText.point = new paper.Point(futureLocX - 43, textTop);
+      futureText.rotate(-90);
+      this.gTier2Group.addChild(futureText);
     }
   }
 
