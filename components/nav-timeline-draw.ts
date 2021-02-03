@@ -36,7 +36,7 @@ export default class DrawNav {
   gTier2Left: number;
 
   gColorCursor = new paper.Color("#ff0000");
-  gColorNavCursor = new paper.Color("#00ff00"); //'green';
+  gColorNavCursor = new paper.Color("#19181b");
   gColorTimeTicks = new paper.Color("#7b7b7b");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
@@ -410,7 +410,7 @@ export default class DrawNav {
 
   drawNavCursor = (seconds) => {
     this.gNavCursorGroup.removeChildren();
-    this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorCursor));
+    this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorNavCursor));
   };
 
   getCursorElement = (seconds, color) => {
@@ -493,7 +493,7 @@ export default class DrawNav {
     this.gTier2Left = 1;
   };
 
-  handleMouseMove = (event, cb) => {
+  handleMouseMove = (event, missionTimeSeconds, cb) => {
     let mouseXSeconds;
     this.gCursorGroup.removeChildren();
     this.gNavCursorGroup.removeChildren();
@@ -507,6 +507,7 @@ export default class DrawNav {
       mouseXSeconds =
         (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds;
     }
+    this.drawCursor(missionTimeSeconds);
     this.drawNavCursor(mouseXSeconds);
     cb();
   };

@@ -113,7 +113,8 @@ function NavTimeline() {
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current?.handleMouseMove(event, () => {
+      const missionTime = getMissionTime(clock);
+      drawNav.current?.handleMouseMove(event, missionTime, () => {
         if (!mouseOnNavigator) {
           mouseOnNavigator = true;
         }

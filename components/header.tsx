@@ -102,10 +102,7 @@ function Header() {
         <div className={styles.headerElementContainer}>
           <div style={{ display: "flex" }}>
             <div className={styles.svgNASALogo} />
-            <div
-              className={styles.headerTitle}
-              style={{ position: "relative", width: "100px", marginLeft: "10px" }}
-            >
+            <div className={styles.headerTitle} style={{ position: "relative", width: "100px" }}>
               <Link href="/">
                 <a>
                   <img

@@ -1,12 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
-import { ClockState, start, stop } from "store/clock";
+import { ClockState, start, stop, set } from "store/clock";
 import styles from "./playback-controls.module.css";
 
 export default function PlaybackControls() {
   const { clock }: { clock: ClockState } = useSelector((state) => state);
   const dispatch = useDispatch();
 
-  const handlePlayPause = (e) => {
+  const handlePlayPause = () => {
     if (clock.isRunning) {
       dispatch(stop());
     } else {
@@ -14,16 +14,43 @@ export default function PlaybackControls() {
     }
   };
 
-  let svgName;
+  const jumpTime = (seconds: number) => {
+    let dt = new Date(clock.applicationTime);
+    dt.setSeconds(dt.getSeconds() + seconds);
+    dispatch(set(dt.toISOString()));
+  };
+
+  let playPauseSvgName;
   if (clock.isRunning) {
-    svgName = styles.pauseSVG;
+    playPauseSvgName = styles.pauseSVG;
   } else {
-    svgName = styles.playSVG;
+    playPauseSvgName = styles.playSVG;
   }
   return (
     <div className={styles.container}>
       <div className={styles.playPause}>
-        <div className={`${styles.playPauseBtn} ${svgName}`} onClick={handlePlayPause}></div>
+        <div
+          className={`${styles.playPauseImg} ${playPauseSvgName}`}
+          onClick={handlePlayPause}
+        ></div>
+      </div>
+      <div
+        className={styles.jumpLeft}
+        onClick={() => {
+          jumpTime(-30);
+        }}
+      >
+        <div className={styles.jumpLeftImg}></div>
+        <div className={styles.jumpLeftText}>30</div>
+      </div>
+      <div
+        className={styles.jumpRight}
+        onClick={() => {
+          jumpTime(30);
+        }}
+      >
+        <div className={styles.jumpRightImg}></div>
+        <div className={styles.jumpRightText}>30</div>
       </div>
     </div>
   );
