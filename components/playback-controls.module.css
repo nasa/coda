@@ -1,6 +1,6 @@
 .container {
   position: fixed;
-  bottom: 70px;
+  bottom: 90px;
   left: 12px;
   width: 100px;
   height: 100px;
@@ -39,6 +39,7 @@
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
+  user-select: none;
 }
 
 .jumpRight {
@@ -74,6 +75,7 @@
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
+  user-select: none;
 }
 
 

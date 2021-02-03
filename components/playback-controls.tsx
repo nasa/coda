@@ -32,11 +32,6 @@ export default function PlaybackControls() {
         <div
           className={`${styles.playPauseImg} ${playPauseSvgName}`}
           onClick={handlePlayPause}
-          onMouseOver={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            console.log(`mouseOver`);
-          }}
         ></div>
       </div>
       <div
