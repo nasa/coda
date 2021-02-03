@@ -156,16 +156,13 @@ function NavTimeline() {
       return;
     }
 
-    if (mouseOnNavigator) {
-      // the user is mousing, don't update the nav out from under them
-      return;
-    }
-
     const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
     if (newMissionTime !== missionTime) {
-      drawNav.current.drawTier1NavBox(newMissionTime);
-      drawNav.current.drawTier2();
+      if (!mouseOnNavigator) {
+        drawNav.current.drawTier1NavBox(newMissionTime);
+        drawNav.current.drawTier2();
+      }
       drawNav.current.drawCursor(newMissionTime);
       missionTime = newMissionTime;
     }
