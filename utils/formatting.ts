@@ -48,7 +48,7 @@ function secondsToZuluDate(seconds: number, timingData: TimingData): Date {
   return new Date(timingData.video_earliestStart.getTime() + seconds * 1000);
 }
 
-function zuluDateToSeconds(zuluDate: Date, timingData: TimingData): number {
+export function zuluDateToSeconds(zuluDate: Date, timingData: TimingData): number {
   return (zuluDate.getTime() - timingData.video_earliestStart.getTime()) / 1000;
 }
 

@@ -89,13 +89,16 @@ function NavTimeline() {
       }
     }
 
+    const isToday = isSameDate(new Date(), new Date(clock.applicationTime));
+
     drawNav.current = new DrawNav(
       timingData,
       videoFiles,
       dayNight,
       activityPerformance,
       new Date(clock.applicationTime),
-      evas.selectedEVA
+      evas.selectedEVA,
+      isToday
     );
 
     drawNav.current.initGroups();

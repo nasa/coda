@@ -4,7 +4,7 @@ import paper from "paper";
 import { VideoFile } from "services/io";
 import { Activity, DayNight } from "services/iss-wiki";
 import { TimingData } from "store/videos";
-import { secondsToTimeStr, secondsToZuluString } from "utils/formatting";
+import { secondsToTimeStr, secondsToZuluString, zuluDateToSeconds } from "utils/formatting";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -66,7 +66,8 @@ export default class DrawNav {
     /** Keep track of dates for bookkeeping purposes */
     readonly dateRendered: Date,
     /** Keep track of which EVA was rendered for bookkeping purposes */
-    readonly evaRendered: string
+    readonly evaRendered: string,
+    readonly isToday: boolean
   ) {}
 
   initGroups() {
@@ -99,7 +100,7 @@ export default class DrawNav {
     // tierRectPath.strokeColor = tierBoxColor;
     // gTier1Group.addChild(tierRectPath);
 
-    //display time ticks
+    // display time ticks
     for (let i = 0; i < this.timingData["EVA_duration_seconds"]; i++) {
       // sillily complex thing to show time ticks on the hour
       if (
@@ -116,7 +117,7 @@ export default class DrawNav {
       }
     }
 
-    //display video segments
+    // display video segments
     for (let i = 0; i < this.videoFiles.length; i++) {
       let startLocX = this.videoFiles[i].missionSecondsStart * this.gTier1PixelsPerSecond;
       let endLocX = this.videoFiles[i].missionSecondsEnd * this.gTier1PixelsPerSecond;
@@ -141,14 +142,28 @@ export default class DrawNav {
       this.gTier1Group.addChild(vidLine);
     }
 
-    //display EV activity
-
+    // display EV activity
     if (!isEmpty(this.activityPerformance)) {
       this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
       this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
     }
     if (!isNull(this.dayNight) && !isEmpty(this.dayNight.events)) {
       this.drawTier1EVActivity(9, this.dayNight.events); // row 10 for day night  //TODO: pending access to this data for all EVAs. Wiki currently uncooperative.
+    }
+
+    // if isToday, indicate the "future" (https://www.youtube.com/watch?v=VVle0kopfes)
+    if (this.isToday) {
+      const secondsIntoToday = zuluDateToSeconds(new Date(), this.timingData);
+
+      let futureLocX = 0.5 + secondsIntoToday * this.gTier1PixelsPerSecond;
+      const futureLocY = this.gTier1Top + 15;
+      const futureLeftPoint = new paper.Point(futureLocX, futureLocY);
+      const futureRightPoint = new paper.Point(this.gNavigatorWidth, futureLocY);
+      const fLine = new paper.Path.Line(futureLeftPoint, futureRightPoint);
+      fLine.strokeColor = new paper.Color(50, 50, 50, 0.1);
+      fLine.strokeWidth = 90;
+      fLine.dashArray = [2, 2];
+      this.gTier1Group.addChild(fLine);
     }
   }
 
@@ -351,6 +366,36 @@ export default class DrawNav {
     }
     if (!isNull(this.dayNight) && !isEmpty(this.dayNight.events)) {
       this.drawTier2EVActivity(2, this.dayNight.events, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+    }
+
+    // if isToday, indicate the "future"
+    if (this.isToday) {
+      const secondsIntoToday = zuluDateToSeconds(new Date(), this.timingData);
+      const futureSecondsFromLeft = secondsIntoToday - this.gTier2StartSeconds;
+
+      const futureLocX = futureSecondsFromLeft * this.gTier2PixelsPerSecond;
+      const futureLocY = this.gTier2Top + 33;
+      const futureLeftPoint = new paper.Point(futureLocX, futureLocY);
+      const futureRightPoint = new paper.Point(this.gNavigatorWidth, futureLocY);
+      const fLine = new paper.Path.Line(futureLeftPoint, futureRightPoint);
+      fLine.strokeColor = new paper.Color(50, 50, 50, 0.1);
+      fLine.strokeWidth = 110;
+      fLine.dashArray = [10, 10];
+      this.gTier2Group.addChild(fLine);
+
+      // add some explanatory text
+      const futureText = new paper.PointText({
+        justification: "left",
+        fontFamily: this.gNavigatorFontFamilyActivity,
+        //fontWeight: 'bold',
+        fontSize: 15,
+        fillColor: "#AAAAAA",
+        content: "The Future",
+      });
+      const textTop = this.gTier2Top + 36;
+      futureText.point = new paper.Point(futureLocX - 43, textTop);
+      futureText.rotate(-90);
+      this.gTier2Group.addChild(futureText);
     }
   }
 
