@@ -156,13 +156,13 @@ function NavTimeline() {
       return;
     }
 
+    const { clock } = store.getState();
     const newMissionTime = getMissionTime(clock);
     if (mouseOnNavigator) {
       // the user is mousing, don't update the nav out from under them
       // but update the mission time indicator
       drawNav.current.drawCursor(newMissionTime);
     } else {
-      const { clock } = store.getState();
       if (newMissionTime !== missionTime) {
         drawNav.current.drawTier1NavBox(newMissionTime);
         drawNav.current.drawTier2();
