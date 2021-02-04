@@ -2,29 +2,21 @@ import get from "lodash/get";
 import isNull from "lodash/isNull";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getApplicationUTC, getMissionTime, isSameDate, set } from "store/clock";
+import { useDispatch, useSelector } from "react-redux";
+import { ClockState, isSameDate, changeTime } from "store/clock";
 import {
   evaSelector,
   EVAsState,
   getActivityPerformanceMissionTime,
   getEVAStartMilliseconds,
-  selectEVAStartMilliseconds,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
-import useInterval from "utils/useInterval";
 import DrawNav from "./nav-timeline-draw";
-
-// these vars only affect the canvas so avoid updating the React component state
-let missionTime = null;
-let mouseOnNavigator = false;
-let navReady = false;
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
  */
 function NavTimeline() {
-  const store = useStore();
   const {
     clock,
     evas,
@@ -40,9 +32,12 @@ function NavTimeline() {
 
   const eva = evaSelector(evas);
   const canvas = useRef();
+  const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
+  const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
+  const navReady: MutableRefObject<boolean> = useRef(false);
 
-  useEffect(() => {
+  const installTimeline = () => {
     // only setup the canvas once
     if (isNull(paper.project)) {
       paper.setup(canvas.current);
@@ -52,19 +47,13 @@ function NavTimeline() {
     const sameVideos =
       !isNull(drawNav.current) && drawNav.current.hasAlreadyRenderedVideos(videoFiles);
     const sameDate =
-      !isNull(drawNav.current) &&
-      isSameDate(drawNav.current.dateRendered, new Date(clock.applicationTime));
+      !isNull(drawNav.current) && isSameDate(drawNav.current.dateRendered, new Date(clock.date));
     const sameEVA = !isNull(drawNav.current) && evas.selectedEVA === drawNav.current.evaRendered;
-
-    // clock.applicationTime is a day off???
 
     if (paperRendered && sameVideos && sameDate && sameEVA) {
       // bail if there's no reason to rerender the timeline
       return;
     }
-
-    // clear out the timeline before rerendering
-    // paper.project.clear();
 
     const dayNight = eva?.dayNight || null;
 
@@ -89,14 +78,14 @@ function NavTimeline() {
       }
     }
 
-    const isToday = isSameDate(new Date(), new Date(clock.applicationTime));
+    const isToday = isSameDate(new Date(), new Date(clock.date));
 
     drawNav.current = new DrawNav(
       timingData,
       videoFiles,
       dayNight,
       activityPerformance,
-      new Date(clock.applicationTime),
+      new Date(clock.date),
       evas.selectedEVA,
       isToday
     );
@@ -104,69 +93,67 @@ function NavTimeline() {
     drawNav.current.initGroups();
     drawNav.current.setDynamicWidthVariables();
     drawNav.current.drawTier1();
-    drawNav.current.drawTier1NavBox(missionTime);
+    drawNav.current.drawTier1NavBox(time.current);
     drawNav.current.drawTier2();
 
     paper.view.onResize = function () {
       drawNav.current.setDynamicWidthVariables();
       drawNav.current.drawTier1();
-      drawNav.current.drawTier1NavBox(missionTime);
+      drawNav.current.drawTier1NavBox(time.current);
       drawNav.current.drawTier2();
-      drawNav.current.drawCursor(missionTime);
+      drawNav.current.drawCursor(time.current);
     };
 
     paper.view.onMouseMove = (event) => {
-      const missionTime = getMissionTime(clock);
-      drawNav.current?.handleMouseMove(event, missionTime, () => {
-        if (!mouseOnNavigator) {
-          mouseOnNavigator = true;
+      drawNav.current?.handleMouseMove(event, time.current, () => {
+        if (!mouseOnNavigator.current) {
+          mouseOnNavigator.current = true;
         }
       });
     };
     paper.view.onMouseUp = (event) => {
       drawNav.current.handleMouseUp(event, (hh: number, mm: number, ss: number) => {
-        const utc = getApplicationUTC(clock);
-        const Y = utc.getUTCFullYear();
-        const M = utc.getUTCMonth();
-        const D = utc.getUTCDate();
-
-        const dt = new Date(Date.UTC(Y, M, D, hh, mm, ss));
-        dispatch(set(dt.toISOString()));
+        const secondsIntoDate = ss + 60 * mm + 3600 * hh;
+        dispatch(changeTime(secondsIntoDate));
       });
     };
     paper.view.onMouseLeave = (event) => {
       drawNav.current?.handleMouseLeave(event, () => {
-        mouseOnNavigator = false;
+        mouseOnNavigator.current = false;
+        drawNav.current.drawTier1NavBox(time.current);
+        drawNav.current.drawTier2();
+        drawNav.current.drawCursor(time.current);
       });
     };
 
-    if (!navReady) {
-      navReady = true;
+    if (!navReady.current) {
+      navReady.current = true;
     }
+  };
 
-    return () => {
-      paper.project.remove();
-      drawNav.current = null;
-    };
-  }, [clock.applicationTime, evas.selectedEVA, videos.videos]);
+  useEffect(() => {
+    installTimeline();
+    return () => paper.project.remove();
+  }, [clock.date]);
 
-  useInterval(() => {
-    if (!navReady) {
+  useEffect(() => {
+    installTimeline();
+  }, [evas.selectedEVA, videos.videos]);
+
+  useEffect(() => {
+    time.current = clock.time;
+
+    if (!navReady.current) {
       // nothing to update if the paperjs timeline hasn't been instantiated
       return;
     }
 
-    const { clock } = store.getState();
-    const newMissionTime = getMissionTime(clock);
-    if (newMissionTime !== missionTime) {
-      if (!mouseOnNavigator) {
-        drawNav.current.drawTier1NavBox(newMissionTime);
-        drawNav.current.drawTier2();
-      }
-      drawNav.current.drawCursor(newMissionTime);
-      missionTime = newMissionTime;
+    if (!mouseOnNavigator) {
+      drawNav.current.drawTier1NavBox(time.current);
+      drawNav.current.drawTier2();
     }
-  }, 50);
+    drawNav.current.drawCursor(time.current);
+  }, [clock.time]);
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322

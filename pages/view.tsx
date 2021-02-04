@@ -15,7 +15,13 @@ import {
 import { EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { ClockState, initialState as clockInitialState, diff, isSameDate, set } from "store/clock";
+import {
+  ClockState,
+  initialState as clockInitialState,
+  diff,
+  isSameDate,
+  changeDate,
+} from "store/clock";
 import useInterval from "utils/useInterval";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
@@ -73,18 +79,18 @@ export default function View() {
       userDate = new Date(Date.UTC(year, month, day));
     }
 
-    if (!clock.applicationTime || !isSameDate(new Date(clock.applicationTime), userDate)) {
-      dispatch(set(userDate.toISOString()));
+    if (!clock.date || !isSameDate(new Date(clock.date), userDate)) {
+      dispatch(changeDate(userDate.toISOString()));
     }
   }, [date, gmt]);
 
   useEffect(() => {
     (async () => {
-      if (isNull(clock.applicationTime)) {
+      if (isNull(clock.date)) {
         return;
       }
 
-      const d = new Date(clock.applicationTime);
+      const d = new Date(clock.date);
 
       // try to find an EVA on this date
       let hit = false;
@@ -125,17 +131,17 @@ export default function View() {
 
       dispatch(addVideos({ videos: videoStore }));
     })();
-  }, [clock.applicationTime]);
+  }, [clock.date]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
     (async () => {
       // the clock hasn't been set, no point in looking for videos
-      if (isNull(clock.applicationTime)) {
+      if (isNull(clock.date)) {
         return;
       }
 
-      const d = new Date(clock.applicationTime);
+      const d = new Date(clock.date);
       if (!isSameDate(d, new Date())) {
         // the user is looking at a date in the past. no need to keep looking for new videos
         return;
@@ -160,7 +166,9 @@ export default function View() {
   return (
     <div>
       <Head>
-        <title>Viewer | {process.env.TITLE}</title>
+        <title>
+          {new Date(clock.date).toUTCString()} | {process.env.TITLE}
+        </title>
       </Head>
       <Main />
     </div>

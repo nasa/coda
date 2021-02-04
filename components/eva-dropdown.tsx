@@ -23,7 +23,8 @@ export default function EVADropdown() {
     e.preventDefault();
     setValue(e.target.value);
     if (e.target.value !== "") {
-      router.push(`/view?date=${EVAs[e.target.value].startDate}`);
+      const [year, month, day] = EVAs[e.target.value].startDate.split("/");
+      router.push(`/view?date=${year}-${month}-${day}`, "", { shallow: true });
     }
   };
 
