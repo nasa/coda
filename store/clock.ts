@@ -57,7 +57,6 @@ export const clockSlice = createSlice({
      * Make the application clock stop running
      */
     halt: (state) => {
-      console.log("halt");
       if (state.isRunning) {
         state.isRunning = false;
       }
