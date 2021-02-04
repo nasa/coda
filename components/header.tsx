@@ -209,7 +209,7 @@ function Header() {
             </div>
           </div>
         </div>
-        {!isNull(eva) && (
+        {!isNull(evaStartSec) && (
           <div className={styles.headerElementContainer}>
             <div>
               <div className={styles.pet} title="HH:MM">
