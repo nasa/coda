@@ -148,7 +148,7 @@ function NavTimeline() {
       return;
     }
 
-    if (!mouseOnNavigator) {
+    if (!mouseOnNavigator.current) {
       drawNav.current.drawTier1NavBox(time.current);
       drawNav.current.drawTier2();
     }
