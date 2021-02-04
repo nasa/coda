@@ -163,11 +163,18 @@ export default function View() {
     })();
   }, FIVE_MINS_MS);
 
+  let prefix = "Viewer";
+  if (!isNull(clock.date)) {
+    const d = new Date(clock.date);
+    const options = { timeZone: "UTC", year: "numeric", month: "short", day: "2-digit" };
+    prefix = d.toLocaleDateString("en-gb", options);
+  }
+
   return (
     <div>
       <Head>
         <title>
-          {new Date(clock.date).toUTCString()} | {process.env.TITLE}
+          {prefix} | {process.env.TITLE}
         </title>
       </Head>
       <Main />
