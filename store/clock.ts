@@ -35,7 +35,6 @@ export const clockSlice = createSlice({
      * Change the date the application is rendering
      */
     changeDate: (state, action: { payload: string }) => {
-      // convert to Date and back to make sure it's a valid ISO string
       const date = new Date(action.payload);
       state.date = midnightZulu(date).toUTCString();
     },
@@ -44,7 +43,6 @@ export const clockSlice = createSlice({
      * Change the date the application is rendering
      */
     changeTime: (state, action: { payload: number }) => {
-      // convert to Date and back to make sure it's a valid ISO string
       state.time = action.payload;
     },
 
