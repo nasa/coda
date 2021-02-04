@@ -162,7 +162,7 @@ Which APIs we're interact with
 
 ### Imagery Online (IO)
 
-The source of all the videos.
+The source of all the videos. The link in the IO footer for API docs 404s, but you can get docs by going to the root of search: [https://io.jsc.nasa.gov/api/search](https://io.jsc.nasa.gov/api/search). The docs don't say this, but there are only two actual query parameters. These are `?key=<key>` and `&format=json` the rest of what are identical to query parameters are not. They are some kind of cold fusion path variable in exactly the same format as query parameters. So all of your search API parameters all go right after the `/search/` like `/search/q=searchstring&as=1`. Then, you add your `?key=<key>&format=json `after them.
 
 Example call to IO:
 
