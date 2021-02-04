@@ -2,18 +2,15 @@ import config from "../package.json";
 import Link from "next/link";
 import isNull from "lodash/isNull";
 import { useRouter } from "next/router";
-import { MutableRefObject, useRef, useState } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getApplicationUTC, getMissionTime, set } from "store/clock";
-import { secondsToHHMMSS, shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
-import useInterval from "utils/useInterval";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { changeTime, ClockState } from "store/clock";
+import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
 
 import styles from "./header.module.css";
 import { evaSelector, EVAsState } from "store/evas";
-
-let missionTime = null as number;
 
 /**
  * Renders the top bar of CODA
@@ -21,13 +18,13 @@ let missionTime = null as number;
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const store = useStore();
   const { clock, evas }: { clock: ClockState; evas: EVAsState } = useSelector((state) => state);
 
+  const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
-  const [appDateTimeValue, setAppDateTimeValue] = useState(null);
   const [editingTime, setEditingTime] = useState(false);
 
+  const [renderDate, setRenderDate] = useState("2020-06-20");
   const [userDateValue, setUserDateValue] = useState("");
   const [editingDate, setEditingDate] = useState(false);
 
@@ -45,29 +42,18 @@ function Header() {
   const dateInput = useRef(null) as MutableRefObject<HTMLInputElement>;
   const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
 
-  useInterval(() => {
-    const { clock } = store.getState();
-    const newMissionTime = getMissionTime(clock);
-
-    if (newMissionTime !== missionTime) {
-      const utc = getApplicationUTC(clock);
-      setAppDateTimeValue(utc);
-      missionTime = newMissionTime;
-
-      // set the PET if there's an EVA
-      if (!isNull(evaStartSec)) {
-        setPET(secondsToHHMMSS(missionTime - evaStartSec));
-      }
+  useEffect(() => {
+    if (!isNull(evaStartSec)) {
+      setPET(secondsToHHMMSS(clock.time - evaStartSec));
     }
-  }, 50);
 
-  let renderTime = "00:00:00";
-  let renderDate = "2019-08-21";
-  if (appDateTimeValue) {
-    const dt = new Date(appDateTimeValue);
-    renderTime = timeFromZuluDate(dt);
-    renderDate = shortdateFromZuluDate(dt);
-  }
+    setRenderTime(secondsToHHMMSS(clock.time));
+  }, [clock.time]);
+
+  useEffect(() => {
+    const dt = new Date(clock.date);
+    setRenderDate(shortdateFromZuluDate(dt));
+  }, [clock.date]);
 
   /** Navigates to a new date or time */
   const handleDateTimeChange = () => {
@@ -77,19 +63,12 @@ function Header() {
       return;
     }
 
-    const d = new Date(clock.applicationTime);
-    const year = d.getUTCFullYear();
-    const month = d.getUTCMonth();
-    const day = d.getUTCDate();
-
-    let date = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
-
     if (userTimeValue !== "") {
       const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
-      date = new Date(Date.UTC(year, month, day, +hh, +mm, +ss));
+      const newTime = +ss + 60 * +mm + 3600 * +hh;
+      dispatch(changeTime(newTime));
     }
 
-    dispatch(set(date.toUTCString()));
     setUserTimeValue("");
     setUserDateValue("");
     setEditingTime(false);
@@ -220,15 +199,9 @@ function Header() {
                   className={styles.petButton}
                   title="Jump to EVA start time"
                   onClick={() => {
-                    const d = new Date(clock.applicationTime);
-                    const year = d.getUTCFullYear();
-                    const month = d.getUTCMonth();
-                    const day = d.getUTCDate();
-
                     const [hh = 0, mm = 0, ss = 0] = eva.startTime.split(":");
-
-                    let date = new Date(Date.UTC(year, month, day, +hh, +mm, +ss));
-                    dispatch(set(date.toUTCString()));
+                    const newTime = +ss + 60 * +mm + 3600 * +hh;
+                    dispatch(changeTime(newTime));
                   }}
                 >
                   EVA Start -&gt;

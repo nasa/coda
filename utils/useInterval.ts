@@ -2,12 +2,16 @@
 Borrowed from https://overreacted.io/making-setinterval-declarative-with-react-hooks/#just-show-me-the-code
 */
 
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Create an interval hook
  */
 export default function useInterval(callback: () => void, delay: number) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   const savedCallback = useRef(() => {});
 
   // Remember the latest callback.

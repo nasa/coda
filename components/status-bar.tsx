@@ -8,8 +8,8 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
   const {
-    clock: { isRunning, applicationTime },
-    evas: { errorMessage: evasErrorMessage, selectedEVA },
+    clock: { isRunning, date },
+    evas: { errorMessage: evasErrorMessage },
     videos: { ready: videosReady, lastChecked, errorMessage: videosErrorMessage },
   }: {
     clock: ClockState;
@@ -19,7 +19,7 @@ export default function StatusBar() {
 
   const errorMessages = evasErrorMessage !== "" || videosErrorMessage !== "";
 
-  const isToday = isSameDate(new Date(), new Date(applicationTime));
+  const isToday = isSameDate(new Date(), new Date(date));
 
   let lastUpdate = "pending";
   let nextUpdate = "pending";

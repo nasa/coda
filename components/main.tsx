@@ -4,10 +4,11 @@ import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
 import Videos from "components/videos";
-import { ClockState, run, halt } from "store/clock";
+import { ClockState, run, halt, tick } from "store/clock";
 import { VideosState } from "store/videos";
-
+import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
+import { useEffect } from "react";
 
 /**
  * Renders the main CODA application layout. Also handles checking whether the clock should be running
@@ -16,11 +17,9 @@ export default function Main() {
   const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
     (state) => state
   );
+  const dispatch = useDispatch();
 
-  // the server shouldn't be running clocks!!!
-  if (typeof window !== "undefined") {
-    const dispatch = useDispatch();
-
+  useEffect(() => {
     // (1) make sure the clock is running when it should
 
     // determine whether all the "modules" are ready, including the user
@@ -35,9 +34,13 @@ export default function Main() {
       // kill the clock if it should be paused
       dispatch(halt());
     }
-  }
+  }, [clock.ready, clock.isRunning, videos.ready]);
 
-  // TODO: would be cool to listen to onKeyDown for the spacebar to play/pause
+  useInterval(() => {
+    if (clock.isRunning) {
+      dispatch(tick());
+    }
+  }, 1000);
 
   return (
     <div className={styles.container}>
@@ -49,7 +52,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        {Object.keys(videos.videos).length > 0 && <NavTimeline />}
+        {Object.keys(videos.videos).length > 0 ? <NavTimeline /> : <div>No timeline</div>}
         <StatusBar />
       </div>
     </div>

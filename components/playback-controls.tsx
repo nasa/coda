@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { ClockState, start, stop, set } from "store/clock";
+import { changeTime, ClockState, start, stop } from "store/clock";
 import styles from "./playback-controls.module.css";
 
 export default function PlaybackControls() {
@@ -15,9 +15,7 @@ export default function PlaybackControls() {
   };
 
   const jumpTime = (seconds: number) => {
-    let dt = new Date(clock.applicationTime);
-    dt.setSeconds(dt.getSeconds() + seconds);
-    dispatch(set(dt.toISOString()));
+    dispatch(changeTime(clock.time + seconds));
   };
 
   let playPauseSvgName;

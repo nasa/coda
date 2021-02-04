@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, getMissionTime, isSameDate } from "store/clock";
+import { ClockState, isSameDate } from "store/clock";
 import {
   buffering,
   setVideoDownlink,
@@ -11,10 +11,7 @@ import {
   VideoActivity,
   VideosState,
 } from "store/videos";
-import useInterval from "utils/useInterval";
 import styles from "./videos.module.css";
-
-let missionTime = 0;
 
 /**
  * Renders the part of the CODA interface that includes audio and video players and selectors
@@ -73,41 +70,29 @@ export default function Videos() {
   // video status indicators
   const [videoStatusLeft, setVideoStatusLeft] = useState(null);
   const [videoStatusRight, setVideoStatusRight] = useState(null);
-  //a red herring state value used to force a refresh in the interval below when the clock changes
-  const [forceUpdateStateVal, forceUpdateState] = useState(false);
 
   useEffect(() => {
     const videoIDLeft = videos.activeVideoFiles["left"];
     const videoIDRight = videos.activeVideoFiles["right"];
     if (
       videos.activeVideoFiles.left === "" ||
-      !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDLeft].start))
+      !isSameDate(new Date(clock.date), new Date(videos.videos[videoIDLeft].start))
     ) {
       setVideoMetadataLeft(null);
     }
     if (
       videos.activeVideoFiles.right === "" ||
-      !isSameDate(new Date(clock.applicationTime), new Date(videos.videos[videoIDRight].start))
+      !isSameDate(new Date(clock.date), new Date(videos.videos[videoIDRight].start))
     ) {
       setVideoMetadataRight(null);
     }
-  }, [clock.applicationTime, videos.activeVideoFiles]);
+  }, [clock.date, videos.activeVideoFiles]);
 
   // this is the main loop where we (1) make sure the right video files are playing and (2) that they're synced with the timeline
-  useInterval(() => {
-    const { clock } = store.getState();
-    const newMissionTime = getMissionTime(clock);
-
-    /* don't do work if the time of the mission (in seconds) hasn't changed since the last time we checked
-    but only if the clock is running. This stops one buffering video from essentially blocking
-    beginning to buffer the other video */
-    if (clock.isRunning) {
-      if (newMissionTime === missionTime) {
-        return;
-      } else {
-        missionTime = newMissionTime;
-        forceUpdateState(!forceUpdateStateVal);
-      }
+  useEffect(() => {
+    // This stops one buffering video from essentially blocking beginning to buffer the other video
+    if (!clock.isRunning) {
+      return;
     }
 
     // we can't update videos if we don't have videos
@@ -119,7 +104,7 @@ export default function Videos() {
     videoPlayerNames.forEach((name: string) => {
       const group = name === "left" ? videos.videoDownlinks.left : videos.videoDownlinks.right;
       const activeVideoFileID = videos.activeVideoFiles[name];
-      const videosNextSecond = videoActivity[group][missionTime + 1];
+      const videosNextSecond = videoActivity[group][clock.time + 1];
 
       // (1) check for video changes
       let id = activeVideoFileID;
@@ -160,14 +145,14 @@ export default function Videos() {
       const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[name]];
       let videoStartOffset = 0;
       if (currentlyPlayingVideo) {
-        videoStartOffset = missionTime - currentlyPlayingVideo.missionSecondsStart;
+        videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
       }
 
       if (Math.abs(currentTime - videoStartOffset) > 1) {
         players[name].current.currentTime = videoStartOffset;
       }
     });
-  }, 50);
+  }, [clock.date, clock.time]);
 
   /**
    * Renders the actual HTML5 video
@@ -335,7 +320,7 @@ export default function Videos() {
           let buttonClassStyle = styles.vidButton;
           if (g === group) {
             buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
-          } else if (videoActivity && videoActivity[g][missionTime].length > 0) {
+          } else if (videoActivity && videoActivity[g][clock.time].length > 0) {
             buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
           }
           return (

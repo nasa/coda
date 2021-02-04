@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { useSelector } from "react-redux";
-import { getApplicationUTC } from "store/clock";
-import { shortdateFromZuluDate, timeFromZuluDate } from "utils/formatting";
+import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 
@@ -25,10 +24,9 @@ export default function HeaderShare() {
   function handleRequestOpen() {
     setCopyButtonText("COPY LINK");
 
-    const utc = getApplicationUTC(clock);
-    const dt = new Date(utc);
+    const dt = new Date(clock.date);
     const missionDate = shortdateFromZuluDate(dt);
-    const missionTime = timeFromZuluDate(dt);
+    const missionTime = secondsToHHMMSS(clock.time);
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;
