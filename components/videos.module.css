@@ -25,11 +25,11 @@
   left: 0;
 }
 .playerPosterNovid {
-  background: no-repeat url("/coda/images/eva_loader_bw_dim_static.gif");
+  background: no-repeat url("/coda/images/vintage_static.gif");
   background-size: cover;
 }
 .playerPosterBuffering {
-  background: no-repeat url("/coda/images/eva_loader_bw_dim.gif");
+  background: no-repeat url("/coda/images/vintage_loading.gif");
   background-size: cover;
 }
 .playerPoster {

@@ -120,15 +120,20 @@ export interface Videos {
 }
 
 /** Perform a request against IO with the given parameters */
-async function fetchIO(params: string): Promise<IOResponse> {
+async function fetchIO(params: string, type: string): Promise<IOResponse> {
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
     // mock the request with local data
     return Promise.resolve(mockIOData);
   }
 
-  let url = `${process.env.IO_API_URL}&${params}&as=2?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
+  // set as=2 for video results, or as=1 for photography results
+  const asParam = type === "videos" ? "&as=2" : "&as=1";
+
+  let url = `${process.env.IO_API_URL}${asParam}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
   // IO doesn't currently like our Origin and key so we need to use a proxy
   url = `${process.env.IO_PROXY_ORIGIN}/CODA_ISS/getio.php?IOParam=${encodeURIComponent(url)}`;
+
+  console.log(`IO URL: ${url}`);
 
   const options = {
     headers: {
@@ -169,7 +174,7 @@ export default async function getVideoData(
 
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 
-  const res = await fetchIO(queryParams);
+  const res = await fetchIO(queryParams, "videos");
   return parseIOResponse(res);
 }
 
