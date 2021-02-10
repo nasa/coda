@@ -35,15 +35,15 @@ export default function Videos({ id }: { id: number }) {
     videoActivity = selectVideoActivity(videos);
   }
 
-  useEffect(() => {
+  const getInitialDownlink = () => {
     const queryParam = query[`video${id}`];
     const downlink = (+queryParam || id) - 1;
     if (videos.downlinks[id] !== downlink) {
       dispatch(setVideoDownlink({ id, downlink }));
     }
-  }, [query]);
+  };
 
-  useEffect(() => {
+  const clearMetadata = () => {
     if (Object.keys(videos.videos).length === 0) {
       return;
     }
@@ -52,9 +52,9 @@ export default function Videos({ id }: { id: number }) {
     if (videoID || !isSameDate(new Date(clock.date), new Date(videoStart))) {
       setMetadata(null);
     }
-  }, [clock.date, videos.activeVideoFiles[id], videos.videos]);
+  };
 
-  const updateVideoFile = () => {
+  const changeVideoFile = () => {
     // This stops one buffering video from essentially blocking beginning to buffer the other video
     if (!clock.isRunning) {
       return;
@@ -93,7 +93,7 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  const syncVideo = () => {
+  const syncToClock = () => {
     // This stops one buffering video from essentially blocking beginning to buffer the other video
     if (!clock.isRunning) {
       return;
@@ -124,7 +124,7 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  const startStopVideo = () => {
+  const playOrPause = () => {
     if (
       // make sure the video is playing when the clock is running
       clock.isRunning &&
@@ -146,7 +146,7 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  const updateVideoSource = () => {
+  const updateSourceInfo = () => {
     const videoID = videos.activeVideoFiles[id];
 
     if (videoID !== "") {
@@ -169,10 +169,12 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  useEffect(startStopVideo, [clock.isRunning, clock.ready[id], clock.time, sourceURL]);
-  useEffect(syncVideo, [clock.time, videos.activeVideoFiles[id]]);
-  useEffect(updateVideoFile, [clock.time, videos.videos]);
-  useEffect(updateVideoSource, [videos.activeVideoFiles[id]]);
+  useEffect(changeVideoFile, [clock.time, videos.videos]);
+  useEffect(clearMetadata, [clock.date, videos.activeVideoFiles[id], videos.videos]);
+  useEffect(getInitialDownlink, [query]);
+  useEffect(playOrPause, [clock.isRunning, clock.ready[id], clock.time, sourceURL]);
+  useEffect(syncToClock, [clock.time, videos.activeVideoFiles[id]]);
+  useEffect(updateSourceInfo, [videos.activeVideoFiles[id]]);
 
   /**
    * Renders the actual HTML5 video
