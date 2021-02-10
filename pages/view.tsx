@@ -21,6 +21,7 @@ import {
   diff,
   isSameDate,
   changeDate,
+  changeTime,
 } from "store/clock";
 import useInterval from "utils/useInterval";
 
@@ -54,15 +55,6 @@ export default function View() {
       userDate.setUTCDate(day);
     }
 
-    // default the time to midnight, but change it if the user set the `gmt` query param
-    let [hh, mm, ss] = [0, 0, 0];
-    if (!isNull(gmt)) {
-      [hh, mm, ss] = gmt.split(":").map(Number);
-    }
-    userDate.setUTCHours(hh);
-    userDate.setUTCMinutes(mm);
-    userDate.setUTCSeconds(ss);
-
     // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
     // https://youtu.be/m_0s8IZWkBg
     const isFutureDate = diff(userDate, new Date()) > 0;
@@ -71,7 +63,7 @@ export default function View() {
     const isMalformedDate = isNaN(userDate.valueOf());
 
     if (isFutureDate || isMalformedDate) {
-      // set the datetime to 00:00 UTC today
+      // set the date today
       const d = new Date();
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth();
@@ -82,7 +74,23 @@ export default function View() {
     if (!clock.date || !isSameDate(new Date(clock.date), userDate)) {
       dispatch(changeDate(userDate.toISOString()));
     }
-  }, [date, gmt]);
+  }, [date]);
+
+  // make sure the application is running on the correct time
+  useEffect(() => {
+    // default the time to 00:00:00Z
+    let userTime = 0;
+
+    // change the time if the user set the `gmt` query param
+    if (!isNull(gmt)) {
+      const [hh, mm, ss = 0] = gmt.split(":").map(Number);
+      userTime = hh * 3600 + mm * 60 + ss;
+    }
+
+    if (userTime !== clock.time) {
+      dispatch(changeTime(userTime));
+    }
+  }, [gmt]);
 
   useEffect(() => {
     (async () => {
