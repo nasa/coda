@@ -50,7 +50,7 @@ export default function StatusBar() {
         {isRunning ? <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span> : "❙❙"}
       </span>
       <span className={styles.statusText}>
-        {!videosReady.left || !videosReady.right ? <span className={styles.spinner}></span> : " "}
+        {!videosReady[1] || !videosReady[2] ? <span className={styles.spinner}></span> : " "}
         &nbsp;
         {isToday && (
           <span>

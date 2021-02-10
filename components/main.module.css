@@ -4,6 +4,10 @@
   height: 100%;
 }
 
+.videos {
+  display: flex;
+}
+
 .header {
   flex: 0 1 auto;
 }

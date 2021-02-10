@@ -3,7 +3,7 @@ import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
-import Videos from "components/videos";
+import Video from "components/video";
 import { ClockState, run, halt, tick } from "store/clock";
 import { VideosState } from "store/videos";
 import useInterval from "utils/useInterval";
@@ -23,7 +23,7 @@ export default function Main() {
     // (1) make sure the clock is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady = clock.ready && videos.ready.right && videos.ready.left;
+    const everythingReady = clock.ready && videos.ready[1] && videos.ready[2];
 
     // (1.2) the clock is paused when it should be running
     if (everythingReady && !clock.isRunning) {
@@ -48,7 +48,10 @@ export default function Main() {
         <Header />
       </div>
       <div className={styles.body}>
-        <Videos />
+        <div className={styles.videos}>
+          <Video id={1} />
+          <Video id={2} />
+        </div>
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
