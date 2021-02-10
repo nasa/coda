@@ -195,10 +195,9 @@ export default function Videos() {
       // make sure the video is playing when the clock is running
       clock.isRunning &&
       players[name].current &&
-      players[name].current.paused &&
       videos.ready[name]
     ) {
-      // it is paused when it should be playing and video isn't buffering
+      // always try to play videos
       (async () => {
         try {
           await players[name].current.play();
