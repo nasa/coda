@@ -159,11 +159,9 @@ export default function Videos({ id }: { id: number }) {
       setSourceURL("");
       setInfo("");
 
+      // don't block the clock
       if (!videos.ready[id]) {
-        // don't block the clock
-        if (!videos.ready[id]) {
-          dispatch(ready(id));
-        }
+        dispatch(ready(id));
       }
     }
   };
