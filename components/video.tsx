@@ -125,24 +125,20 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const playOrPause = () => {
-    if (
-      // make sure the video is playing when the clock is running
-      clock.isRunning &&
-      videoElement.current.paused
-    ) {
-      // the video is paused when it should be playing
-      (async () => {
-        try {
+    (async () => {
+      try {
+        if (clock.isRunning) {
+          // make sure the video is playing when the clock is running
           await videoElement.current.play();
-        } catch (e) {
-          // Swallow errors here because we have to try to play empty src
-          // because HTML video won't unload a video when src is undefined
+        } else if (!clock.isRunning) {
+          // make sure the video is paused when the clock isn't running
+          await videoElement.current.pause();
         }
-      })();
-    } else if (!clock.isRunning && videoElement.current && !videoElement.current.paused) {
-      // the video is playing when it shouldn't be
-      (async () => await videoElement.current.pause())();
-    }
+      } catch (e) {
+        // Swallow errors here because we have to try to play empty src
+        // because HTML video won't unload a video when src is undefined
+      }
+    })();
   };
 
   const updateSourceInfo = () => {
