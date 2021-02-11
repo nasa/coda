@@ -128,7 +128,6 @@ export default function Videos({ id }: { id: number }) {
     if (
       // make sure the video is playing when the clock is running
       clock.isRunning &&
-      videos.ready[id] &&
       videoElement.current.paused
     ) {
       // the video is paused when it should be playing
