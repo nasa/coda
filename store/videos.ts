@@ -4,14 +4,14 @@ import { isSameDate } from "./clock";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {
-  /** Keyed by the ID of the video, @see {VideoFile.id} */
+  /** Keyed by the ID of the video file, @see {VideoFile.id} */
   videos: { [key: string]: VideoFile };
-  /** Match the video player to a group, @see {VideoFile.group}. Keyed by the name of the video player */
-  videoDownlinks: { [key: string]: number };
-  /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the name of the video player */
-  activeVideoFiles: { [key: string]: string };
-  /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the name of the video player */
-  ready: { [key: string]: boolean };
+  /** Match the video player to a group, @see {VideoFile.group}. Keyed by the ID of the video player */
+  downlinks: { [key: number]: number };
+  /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the ID of the video player */
+  activeVideoFiles: { [key: number]: string };
+  /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
+  ready: { [key: number]: boolean };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
   /** UTC string of the last time we hit IO */
@@ -20,17 +20,17 @@ export interface VideosState {
 
 export const initialState: VideosState = {
   videos: {},
-  videoDownlinks: {
-    left: 0,
-    right: 1,
+  downlinks: {
+    1: 0,
+    2: 1,
   },
   activeVideoFiles: {
-    left: "",
-    right: "",
+    1: "",
+    2: "",
   },
   ready: {
-    left: true,
-    right: true,
+    1: true,
+    2: true,
   },
   errorMessage: "",
   lastChecked: "",
@@ -42,22 +42,22 @@ export const videoSlice = createSlice({
   reducers: {
     // Used to store which DL is selected in the video players.
     // Needs to be in store because it is used in the share function.
-    setVideoDownlink: (state, action: { payload: { name: string; dlGroup: number } }) => {
-      state.videoDownlinks[action.payload.name] = action.payload.dlGroup;
+    setVideoDownlink: (state, action: { payload: { id: number; downlink: number } }) => {
+      state.downlinks[action.payload.id] = action.payload.downlink;
     },
 
     /** Set the video file ID to play on a named `<VideoPlayer />` */
-    pickVideoFile: (state, action: { payload: { name: string; id: string } }) => {
-      state.activeVideoFiles[action.payload.name] = action.payload.id;
+    pickVideoFile: (state, action: { payload: { id: number; videoID: string } }) => {
+      state.activeVideoFiles[action.payload.id] = action.payload.videoID;
     },
 
     /** Mark videos are ready to be played. The payload is the video player name */
-    ready: (state, action: { payload: string }) => {
+    ready: (state, action: { payload: number }) => {
       state.ready[action.payload] = true;
     },
 
     /** Mark videos as not ready to be played. The payload is the video player name */
-    buffering: (state, action: { payload: string }) => {
+    buffering: (state, action: { payload: number }) => {
       state.ready[action.payload] = false;
     },
 

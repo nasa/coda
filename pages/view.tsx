@@ -216,13 +216,7 @@ export const getStaticProps: GetServerSideProps = async () => {
           EVACrew: {},
           errorMessage: evaErrorMessage,
         },
-        videos: {
-          videos: {},
-          videoDownlinks: videosInitialState.videoDownlinks,
-          activeVideoFiles: videosInitialState.activeVideoFiles,
-          ready: videosInitialState.ready,
-          errorMessage: "",
-        },
+        videos: videosInitialState,
       },
     },
     // regenerate the props at most once per second if a request comes in
