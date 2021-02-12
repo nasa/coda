@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
@@ -11,6 +12,7 @@ import {
   VideoActivity,
   VideosState,
 } from "store/videos";
+import { secondsToHHMMSS, secondsToZuluString } from "utils/formatting";
 import styles from "./video.module.css";
 
 /**
@@ -259,9 +261,7 @@ export default function Videos({ id }: { id: number }) {
             }
           }}
         />
-        <div className={styles.vidOverlay}>
-          <div className={styles.vidInfo}>{info}</div>
-        </div>
+        {renderVideoOverlay()}
       </div>
     );
   };
@@ -293,6 +293,70 @@ export default function Videos({ id }: { id: number }) {
         </button>
       );
     });
+  };
+
+  const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
+
+  function handleCopyToClipboard(e) {
+    //shareURLtextarea.current.select();
+    // navigator.clipboard.writeText(shareURLtextarea.current.value);
+    document.execCommand("copy");
+    e.target.focus();
+    setCopyButtonText("LINK COPIED");
+  }
+
+  const renderVideoOverlay = () => {
+    const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
+    let videoStartOffset = 0;
+    let ioSearchLink = "";
+    let ioVideoURL = "";
+    let videoFilename = "";
+    let dateAdded = "";
+    if (currentlyPlayingVideo) {
+      videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
+      videoFilename = currentlyPlayingVideo.id;
+      ioSearchLink = `https://io.jsc.nasa.gov/app/search/results.cfm?q=${videoFilename}&rpp1=50`;
+      ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
+      dateAdded = currentlyPlayingVideo.md_creation_date;
+    }
+
+    return (
+      <div className={styles.vidOverlay}>
+        <div className={styles.overlayContainer}>
+          <div className={styles.overlayHeadline}>Imagery Online Video Details</div>
+          <div className={styles.overlayBody}>
+            <table className={styles.overlayTable}>
+              <tr>
+                <td>Description</td>
+                <td>{info}</td>
+              </tr>
+              <tr>
+                <td>Date Added</td>
+                <td>{dateAdded}</td>
+              </tr>
+              <tr>
+                <td>IO Asset Name</td>
+                <td>
+                  {videoFilename} <br />
+                  <a href={ioSearchLink} target="_blank">
+                    Open on IO
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td>Video URL</td>
+                <td>
+                  {ioVideoURL} <br />
+                  <a href={ioVideoURL} target="_blank">
+                    Open video file directly at {secondsToHHMMSS(videoStartOffset)}
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const mutedClass = muted === true ? styles.unmute : styles.mute;
