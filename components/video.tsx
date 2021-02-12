@@ -309,13 +309,17 @@ export default function Videos({ id }: { id: number }) {
     let videoStartOffset = 0;
     let ioSearchLink = "";
     let ioVideoURL = "";
+    let openVideoURLMessage = "";
     let videoFilename = "";
     let dateAdded = "";
+    let openOnIOMessage = "";
     if (currentlyPlayingVideo) {
       videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
       videoFilename = currentlyPlayingVideo.id;
       ioSearchLink = `https://io.jsc.nasa.gov/app/search/results.cfm?q=${videoFilename}&rpp1=50`;
       ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
+      openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
+      openOnIOMessage = `Open on IO`;
       dateAdded = currentlyPlayingVideo.md_creation_date;
     }
 
@@ -338,7 +342,7 @@ export default function Videos({ id }: { id: number }) {
                 <td>
                   {videoFilename} <br />
                   <a href={ioSearchLink} target="_blank">
-                    Open on IO
+                    {openOnIOMessage}
                   </a>
                 </td>
               </tr>
@@ -347,7 +351,7 @@ export default function Videos({ id }: { id: number }) {
                 <td>
                   {ioVideoURL} <br />
                   <a href={ioVideoURL} target="_blank">
-                    Open video file directly at {secondsToHHMMSS(videoStartOffset)}
+                    {openVideoURLMessage}
                   </a>
                 </td>
               </tr>
