@@ -55,7 +55,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        {Object.keys(videos.videos).length > 0 ? <NavTimeline /> : <div>No timeline</div>}
+        {Object.keys(videos.videos).length > 0 ? <NavTimeline /> : <div>Timeline Loading...</div>}
         <StatusBar />
       </div>
     </div>

@@ -105,7 +105,7 @@ function NavTimeline() {
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current?.handleMouseMove(event, time.current, () => {
+      drawNav.current.handleMouseMove(event, time.current, () => {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
@@ -150,8 +150,9 @@ function NavTimeline() {
 
     if (!mouseOnNavigator.current) {
       drawNav.current.drawTier1NavBox(time.current);
-      drawNav.current.drawTier2();
+      drawNav.current.drawTier1();
     }
+    drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
   }, [clock.time]);
 
