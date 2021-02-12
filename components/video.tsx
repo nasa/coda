@@ -23,7 +23,7 @@ export default function Videos({ id }: { id: number }) {
     (state) => state
   );
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(id !== 1);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -212,7 +212,6 @@ export default function Videos({ id }: { id: number }) {
           className={styles.player}
           src={sourceURL}
           muted={muted}
-          autoPlay
           onCanPlay={() => {
             if (!videos.ready[id]) {
               dispatch(ready(id));
