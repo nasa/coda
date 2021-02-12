@@ -128,9 +128,7 @@
   left: 0;
   height: 85%;
   width: 100%;
-  z-index: 1;
-
-  
+  z-index: 1;  
   box-sizing: border-box;
   padding: 40px;    
   outline: none;
