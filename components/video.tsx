@@ -325,12 +325,12 @@ export default function Videos({ id }: { id: number }) {
               </tr>
               <tr>
                 <td>Date Added</td>
-                <td>{dateAdded}</td>
+                <td className={styles.digiValue}>{dateAdded}</td>
               </tr>
               <tr>
                 <td>IO Asset Name</td>
                 <td>
-                  {videoFilename} <br />
+                  <span className={styles.digiValue}>{videoFilename}</span> <br />
                   <a href={ioSearchLink} target="_blank">
                     {openOnIOMessage}
                   </a>
@@ -339,7 +339,10 @@ export default function Videos({ id }: { id: number }) {
               <tr>
                 <td>Video URL</td>
                 <td>
-                  {ioVideoURL} <br />
+                  <span className={styles.digiValue} style={{ fontSize: "1em" }}>
+                    {ioVideoURL}
+                  </span>{" "}
+                  <br />
                   <a href={ioVideoURL} target="_blank">
                     {openVideoURLMessage}
                   </a>

@@ -222,6 +222,11 @@
   white-space: nowrap;
 }
 
+.overlayTable .digiValue {
+  font-family: Ubuntu Mono;
+  font-size: 1.1em;
+}
+
 
 .modalButtonText {
   display: table-cell;
