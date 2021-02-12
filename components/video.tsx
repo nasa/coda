@@ -23,7 +23,7 @@ export default function Videos({ id }: { id: number }) {
     (state) => state
   );
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
-  const [muted, setMuted] = useState(id !== 1);
+  const [muted, setMuted] = useState(true);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -165,7 +165,7 @@ export default function Videos({ id }: { id: number }) {
   useEffect(changeVideoFile, [clock.time, videos.videos]);
   useEffect(clearMetadata, [clock.date, videos.activeVideoFiles[id], videos.videos]);
   useEffect(getInitialDownlink, [query]);
-  useEffect(playOrPause, [clock.isRunning, clock.ready[id], clock.time, sourceURL]);
+  useEffect(playOrPause, [clock.isRunning, clock.time, sourceURL]);
   useEffect(syncToClock, [clock.time, videos.activeVideoFiles[id]]);
   useEffect(updateSourceInfo, [videos.activeVideoFiles[id]]);
 
