@@ -23,7 +23,7 @@ export default function Videos({ id }: { id: number }) {
     (state) => state
   );
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
-  const [muted, setMuted] = useState(id !== 1);
+  const [muted, setMuted] = useState(true);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
