@@ -294,16 +294,6 @@ export default function Videos({ id }: { id: number }) {
     });
   };
 
-  const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
-
-  function handleCopyToClipboard(e) {
-    //shareURLtextarea.current.select();
-    // navigator.clipboard.writeText(shareURLtextarea.current.value);
-    document.execCommand("copy");
-    e.target.focus();
-    setCopyButtonText("LINK COPIED");
-  }
-
   const renderVideoOverlay = () => {
     const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
     let videoStartOffset = 0;
