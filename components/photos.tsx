@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { ClockState, isSameDate } from "store/clock";
 import { PhotosState, selectPhotoFiles } from "store/photos";
 import styles from "./photos.module.css";
-import { secondsIntoDayFromZuluDateString } from "utils/formatting";
+import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
 import { PhotoFile } from "services/io";
 
 /**
@@ -18,8 +18,9 @@ export default function Photos() {
   const initialPhotoFile: PhotoFile = {
     id: "",
     description: "",
-    photoURL: "/coda/images/vintage_static.gif",
-    url: "",
+    lowResURL: "/coda/images/vintage_static.gif",
+    highResURL: "",
+    ioInfoURL: "",
     date_added: "",
     date_taken: "",
   };
@@ -45,15 +46,14 @@ export default function Photos() {
      */
     let thisPhotoFile = initialPhotoFile;
     for (let i = 0; i < photoFiles.length; i++) {
-      const isoTimestamp = new Date(photoFiles[i].date_taken).toISOString();
-      const secondsIntoToday = secondsIntoDayFromZuluDateString(isoTimestamp);
+      const secondsIntoToday = secondsIntoDayFromZuluDateString(photoFiles[i].date_taken);
       if (secondsIntoToday > clock.time) {
         break;
       }
       thisPhotoFile = photoFiles[i];
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
-      if (thisPhotoFile.photoURL !== activePhoto.photoURL) {
+      if (thisPhotoFile.lowResURL !== activePhoto.lowResURL) {
         setActivePhoto(thisPhotoFile);
       }
     }
@@ -61,15 +61,29 @@ export default function Photos() {
 
   useEffect(changePhoto, [clock.time, photos.photos]);
 
+  const openInNewTab = (url) => {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (newWindow) newWindow.opener = null;
+  };
+
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
-      <button>button</button>
+      <span>Time Taken: {timeFromZuluDate(new Date(activePhoto.date_taken))}</span>
+      <button
+        className={styles.photoButton}
+        onClick={() => {
+          openInNewTab(activePhoto.ioInfoURL);
+        }}
+      >
+        Photo IO Info
+      </button>
       <div
         key={`photo_element`}
         className={`${styles.photoContainer} ${styles.photoContainer4by3}`}
       >
-        <div className={styles.photoPoster}></div>
-        <img className={styles.photo} src={activePhoto.photoURL} />
+        <a href={activePhoto.highResURL} target="_blank">
+          <img className={styles.photo} src={activePhoto.lowResURL} />
+        </a>
         <div className={styles.photoOverlay}>
           <div className={styles.photoInfo}>{info}</div>
         </div>

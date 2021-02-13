@@ -288,7 +288,7 @@ export default function Videos({ id }: { id: number }) {
             }
           }}
         >
-          {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
+          {g < 6 ? `${g + 1}` : "non-D/L"}
         </button>
       );
     });

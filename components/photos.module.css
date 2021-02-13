@@ -43,7 +43,23 @@
 .photo {
   width: 100%;
   height: 100%;
+  object-fit: contain;
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.photoButton {
+  font-size: 1.1rem;
+  font-weight: 300;
+  background-color: #2b2a2d;
+  border: 1px #ffc000 solid;
+  border-radius: 4px;
+  color: white;
+  padding: 6px 20px;
+  margin-bottom: 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
 }
