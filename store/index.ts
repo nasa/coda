@@ -3,6 +3,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { clockSlice, initialState as clockInitialState } from "./clock";
 import { evasSlice, initialState as evasInitialState } from "./evas";
 import { videoSlice, initialState as videosInitialState } from "./videos";
+import { photoSlice } from "./photos";
 
 let store;
 
@@ -20,6 +21,7 @@ const initStore = (preloadedState = initialState) => {
       clock: clockSlice.reducer,
       evas: evasSlice.reducer,
       videos: videoSlice.reducer,
+      photos: photoSlice.reducer,
     }),
     preloadedState,
     devTools: true,
