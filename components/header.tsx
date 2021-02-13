@@ -188,6 +188,9 @@ function Header() {
             </div>
           </div>
         </div>
+        <div className={`${styles.headerElementContainer}`}>
+          <HeaderShare />
+        </div>
         {!isNull(evaStartSec) && (
           <div className={styles.headerElementContainer}>
             <div>
@@ -244,9 +247,6 @@ function Header() {
             <br />
             Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>
-        </div>
-        <div className={`${styles.headerElementContainer} ${styles.shareArea}`}>
-          <HeaderShare />
         </div>
       </div>
     </div>
