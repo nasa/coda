@@ -290,9 +290,13 @@ export async function getPhotoData(year: number, month: number, date: number): P
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
   /* s_dt - start date
    * e_dt - end date
-   * as=1 means filetype: photo
+   * as=1 - filetype: photo
+   * so=7 - sort oldest date taken first
+   * go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
+   * ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
+   * cx=9 - NASA Program 9 = ISS. Full list https://io.jsc.nasa.gov/api/search
    */
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1`;
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7`;
 
   const res = await fetchIO(queryParams);
   return parseIOPhotoResponse(res);
@@ -313,55 +317,6 @@ function parseIOPhotoResponse(res: IOResponse) {
 
 /** Parse the photo result for relevant information */
 function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
-  let className = "";
-  let content = "";
-  let group = -1;
-
-  const channel = getChannel(doc.collections_string);
-
-  if (channel) {
-    if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
-      className = `downlink-${channel}`;
-      group = parseInt(channel) - 1;
-    }
-  } else {
-    className = "non-downlink-video";
-    content = `Non-Downlink: ${doc.md_title}`;
-    group = 6;
-  }
-
-  // Create array of date elements from creation date
-  const dateArr = doc.md_creation_date
-    // regex match for the date
-    .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
-    // remove the first item (the full matched string)
-    .slice(1)
-    .map(function (n) {
-      return parseInt(n);
-    });
-
-  // trust the nasa_id over the md_creation_date
-  const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
-  if (id_metadata && id_metadata[1] === "5") {
-    dateArr[3] = +id_metadata[3];
-    dateArr[4] = +id_metadata[4];
-    dateArr[5] = 0;
-    className = "downlink-LOS";
-  }
-
-  // create date object. Note, month is 0-11 in javascript.
-  const UTCstartMilliseconds = Date.UTC(
-    dateArr[0],
-    dateArr[1] - 1,
-    dateArr[2],
-    dateArr[3],
-    dateArr[4],
-    dateArr[5]
-  );
-  const UTCstart = new Date(UTCstartMilliseconds);
-  const duration_ms = (doc.duration_seconds || 0) * 1000;
-  const UTCend = new Date(UTCstartMilliseconds + duration_ms);
-
   var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then stream the videos from our govcloud clone of IO videos
