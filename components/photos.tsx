@@ -22,7 +22,7 @@ export default function Photos() {
     highResURL: "",
     ioInfoURL: "",
     date_added: "",
-    date_taken: "",
+    date_taken: new Date(clock.date).toISOString(),
   };
   const [activePhoto, setActivePhoto] = useState(initialPhotoFile);
   const [info, setInfo] = useState("");
@@ -84,6 +84,14 @@ export default function Photos() {
         <span className={styles.photoHeaderText}>
           {timeFromZuluDate(new Date(activePhoto.date_taken))}Z
         </span>
+      </button>
+      <button
+        className={styles.photoButton}
+        onClick={() => {
+          openInNewTab(activePhoto.highResURL);
+        }}
+      >
+        High Res
       </button>
       <div
         key={`photo_element`}

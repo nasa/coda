@@ -50,7 +50,7 @@
 }
 
 .photoButton {
-  font-size: 1.1rem;
+  font-size: 1.0rem;
   font-weight: 300;
   background-color: #2b2a2d;
   border: 1px #ffc000 solid;
@@ -58,6 +58,7 @@
   color: white;
   padding: 6px 20px;
   margin-bottom: 5px;
+  margin-right: 5px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -73,7 +74,7 @@
 }
 
 .photoHeaderText {
-  font-size: 0.8em;
+  font-size: 1em;
   white-space: nowrap;
 }
 
