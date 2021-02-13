@@ -8,11 +8,13 @@ export interface PhotosState {
   photos: { [key: string]: PhotoFile };
   /** Message describing something that went wrong fetching photo metadata */
   errorMessage: string;
+  ready: boolean;
 }
 
 export const initialState: PhotosState = {
   photos: {},
   errorMessage: "",
+  ready: false,
 };
 
 const photosSelector = (state) => state.photos;
@@ -25,6 +27,7 @@ export const photoSlice = createSlice({
     addPhotos: (state, action: { payload: { photos: { [key: string]: PhotoFile } } }) => {
       state.photos = { ...state.photos, ...action.payload.photos };
       state.errorMessage = "";
+      state.ready = true;
     },
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
