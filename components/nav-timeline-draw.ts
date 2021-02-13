@@ -1,10 +1,15 @@
 import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
-import { VideoFile } from "services/io";
+import { VideoFile, PhotoFile } from "services/io";
 import { Activity, DayNight } from "services/iss-wiki";
 import { TimingData } from "store/videos";
-import { secondsToTimeStr, secondsToZuluString, zuluDateToSeconds } from "utils/formatting";
+import {
+  secondsToTimeStr,
+  secondsToZuluString,
+  secondsFromZuluDateString,
+  zuluDateToMissionSeconds,
+} from "utils/formatting";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -59,6 +64,7 @@ export default class DrawNav {
   constructor(
     readonly timingData: TimingData,
     readonly videoFiles: VideoFile[],
+    readonly photoFiles: PhotoFile[],
     readonly dayNight: DayNight,
     readonly activityPerformance: {
       [x: string]: Activity[];
@@ -153,7 +159,7 @@ export default class DrawNav {
 
     // if isToday, indicate the "future" (https://www.youtube.com/watch?v=VVle0kopfes)
     if (this.isToday) {
-      const secondsIntoToday = zuluDateToSeconds(new Date(), this.timingData);
+      const secondsIntoToday = zuluDateToMissionSeconds(new Date(), this.timingData);
 
       let futureLocX = 0.5 + secondsIntoToday * this.gTier1PixelsPerSecond;
       const futureLocY = this.gTier1Top + 15;
@@ -164,6 +170,20 @@ export default class DrawNav {
       fLine.strokeWidth = 90;
       fLine.dashArray = [2, 2];
       this.gTier1Group.addChild(fLine);
+    }
+
+    // display photo ticks
+    for (let i = 0; i < this.photoFiles.length; i++) {
+      const photoTimeSeconds = secondsFromZuluDateString(this.photoFiles[i].date_taken);
+
+      let itemLocX = photoTimeSeconds * this.gTier1PixelsPerSecond;
+
+      let topPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 10);
+      let bottomPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 5);
+      let aLine = new paper.Path.Line(topPoint, bottomPoint);
+      aLine.strokeColor = new paper.Color("green");
+
+      this.gTier1Group.addChild(aLine);
     }
   }
 
@@ -368,9 +388,29 @@ export default class DrawNav {
       this.drawTier2EVActivity(2, this.dayNight.events, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
     }
 
+    // display photo ticks
+
+    for (let i = 0; i < this.photoFiles.length; i++) {
+      const photoTimeSeconds = secondsFromZuluDateString(this.photoFiles[i].date_taken);
+      if (
+        photoTimeSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
+        photoTimeSeconds >= this.gTier2StartSeconds
+      ) {
+        let itemLocX =
+          this.gTier2Left +
+          (photoTimeSeconds - this.gTier2StartSeconds) * this.gTier2PixelsPerSecond;
+        let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 20);
+        let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
+        let aLine = new paper.Path.Line(topPoint, bottomPoint);
+        aLine.strokeColor = new paper.Color("green");
+
+        this.gTier2Group.addChild(aLine);
+      }
+    }
+
     // if isToday, indicate the "future"
     if (this.isToday) {
-      const secondsIntoToday = zuluDateToSeconds(new Date(), this.timingData);
+      const secondsIntoToday = zuluDateToMissionSeconds(new Date(), this.timingData);
       const futureSecondsFromLeft = secondsIntoToday - this.gTier2StartSeconds;
 
       const futureLocX = futureSecondsFromLeft * this.gTier2PixelsPerSecond;

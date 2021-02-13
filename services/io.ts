@@ -178,7 +178,7 @@ export async function getVideoData(year: number, month: number, date: number): P
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
   /* s_dt - start date
    * e_dt - end date
-   * as=2 means filetype: video
+   * as=2 - filetype: video
    */
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 

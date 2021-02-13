@@ -11,6 +11,7 @@ import {
   getEVAStartMilliseconds,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
+import { selectPhotoFiles, PhotosState } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 
 /**
@@ -21,14 +22,17 @@ function NavTimeline() {
     clock,
     evas,
     videos,
+    photos,
   }: {
     clock: ClockState;
     evas: EVAsState;
     videos: VideosState;
+    photos: PhotosState;
   } = useSelector((state) => state);
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
+  const photoFiles = selectPhotoFiles(photos);
 
   const eva = evaSelector(evas);
   const canvas = useRef();
@@ -52,6 +56,12 @@ function NavTimeline() {
 
     if (paperRendered && sameVideos && sameDate && sameEVA) {
       // bail if there's no reason to rerender the timeline
+      return;
+    }
+
+    //TODO: change this to match how the rest of this thing determines whether all of the data is available to render
+    if (photoFiles.length === 0) {
+      console.log("photos empty, bailing");
       return;
     }
 
@@ -83,6 +93,7 @@ function NavTimeline() {
     drawNav.current = new DrawNav(
       timingData,
       videoFiles,
+      photoFiles,
       dayNight,
       activityPerformance,
       new Date(clock.date),
@@ -138,7 +149,7 @@ function NavTimeline() {
 
   useEffect(() => {
     installTimeline();
-  }, [evas.selectedEVA, videos.videos]);
+  }, [evas.selectedEVA, videos.videos, photos.photos]);
 
   useEffect(() => {
     time.current = clock.time;
