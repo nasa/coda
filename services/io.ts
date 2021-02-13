@@ -119,6 +119,22 @@ export interface Videos {
   [key: string]: VideoFile;
 }
 
+/** Parsed metadata from an IO photo file result */
+export interface PhotoFile {
+  id: string;
+  content: string;
+  description: string;
+  photoURL: string;
+  url: string;
+  className: string;
+  date_added: string;
+  date_taken: string;
+}
+
+export interface Photos {
+  [key: string]: PhotoFile;
+}
+
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
@@ -126,7 +142,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
     return Promise.resolve(mockIOData);
   }
 
-  let url = `${process.env.IO_API_URL}&${params}&as=2?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
+  let url = `${process.env.IO_API_URL}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
   // IO doesn't currently like our Origin and key so we need to use a proxy
   url = `${process.env.IO_PROXY_ORIGIN}/CODA_ISS/getio.php?IOParam=${encodeURIComponent(url)}`;
 
@@ -152,11 +168,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
 /**
  * Fetch video data from IO
  */
-export default async function getVideoData(
-  year: number,
-  month: number,
-  date: number
-): Promise<Videos> {
+export async function getVideoData(year: number, month: number, date: number): Promise<Videos> {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
   const rangeStartDate = padZeros(date, 2);
@@ -166,20 +178,23 @@ export default async function getVideoData(
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
-
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
+  /* s_dt - start date
+   * e_dt - end date
+   * as=2 means filetype: video
+   */
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
   const res = await fetchIO(queryParams);
-  return parseIOResponse(res);
+  return parseIOVideoResponse(res);
 }
 
-function parseIOResponse(res: IOResponse) {
+function parseIOVideoResponse(res: IOResponse) {
   const { docs } = res.results.response;
   const videos: Videos = {};
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parseResultMetadata(doc, i);
+    const metadata = parseVideoResultMetadata(doc, i);
     videos[metadata.id] = metadata;
   }
 
@@ -187,7 +202,7 @@ function parseIOResponse(res: IOResponse) {
 }
 
 /** Parse the video result for relevant information */
-function parseResultMetadata(doc: Doc, i: number): VideoFile {
+function parseVideoResultMetadata(doc: Doc, i: number): VideoFile {
   let className = "";
   let content = "";
   let group = -1;
@@ -257,6 +272,113 @@ function parseResultMetadata(doc: Doc, i: number): VideoFile {
     priority: className === "downlink-LOS" ? 0 : 1,
     md_creation_date: doc.md_creation_date,
     group,
+  };
+}
+
+/**
+ * Fetch video data from IO
+ */
+export async function getPhotoData(year: number, month: number, date: number): Promise<Photos> {
+  const rangeStartYear = year;
+  const rangeStartMonth = padZeros(month, 2);
+  const rangeStartDate = padZeros(date, 2);
+  const rangeEndYear = year;
+  const rangeEndMonth = padZeros(month, 2);
+  const rangeEndDate = padZeros(date, 2);
+
+  const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
+  const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
+  /* s_dt - start date
+   * e_dt - end date
+   * as=1 means filetype: photo
+   */
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1`;
+
+  const res = await fetchIO(queryParams);
+  return parseIOPhotoResponse(res);
+}
+
+function parseIOPhotoResponse(res: IOResponse) {
+  const { docs } = res.results.response;
+  const photos: Photos = {};
+
+  for (let i = 0; i < docs.length; i++) {
+    const doc = docs[i];
+    const metadata = parsePhotoResultMetadata(doc, i);
+    photos[metadata.id] = metadata;
+  }
+
+  return photos;
+}
+
+/** Parse the photo result for relevant information */
+function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
+  let className = "";
+  let content = "";
+  let group = -1;
+
+  const channel = getChannel(doc.collections_string);
+
+  if (channel) {
+    if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
+      className = `downlink-${channel}`;
+      group = parseInt(channel) - 1;
+    }
+  } else {
+    className = "non-downlink-video";
+    content = `Non-Downlink: ${doc.md_title}`;
+    group = 6;
+  }
+
+  // Create array of date elements from creation date
+  const dateArr = doc.md_creation_date
+    // regex match for the date
+    .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
+    // remove the first item (the full matched string)
+    .slice(1)
+    .map(function (n) {
+      return parseInt(n);
+    });
+
+  // trust the nasa_id over the md_creation_date
+  const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
+  if (id_metadata && id_metadata[1] === "5") {
+    dateArr[3] = +id_metadata[3];
+    dateArr[4] = +id_metadata[4];
+    dateArr[5] = 0;
+    className = "downlink-LOS";
+  }
+
+  // create date object. Note, month is 0-11 in javascript.
+  const UTCstartMilliseconds = Date.UTC(
+    dateArr[0],
+    dateArr[1] - 1,
+    dateArr[2],
+    dateArr[3],
+    dateArr[4],
+    dateArr[5]
+  );
+  const UTCstart = new Date(UTCstartMilliseconds);
+  const duration_ms = (doc.duration_seconds || 0) * 1000;
+  const UTCend = new Date(UTCstartMilliseconds + duration_ms);
+
+  var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+
+  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // this allows dev to continue with VPN off
+  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
+
+  const photoURL = `${process.env.IO_HOST}${webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+
+  return {
+    id: doc.nasa_id,
+    content,
+    description: doc.description || "",
+    photoURL,
+    url,
+    className,
+    date_added: doc.date_added,
+    date_taken: doc.md_creation_date,
   };
 }
 
