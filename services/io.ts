@@ -123,8 +123,9 @@ export interface Videos {
 export interface PhotoFile {
   id: string;
   description: string;
-  photoURL: string;
-  url: string;
+  lowResURL: string;
+  highResURL: string;
+  ioInfoURL: string;
   date_added: string;
   date_taken: string;
 }
@@ -329,18 +330,20 @@ function parseIOPhotoResponse(res: IOResponse) {
 
 /** Parse the photo result for relevant information */
 function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
-  var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then stream the videos from our govcloud clone of IO videos
   // this allows dev to continue with VPN off
   const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
-  const photoURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const lowResURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const highResURL = `${process.env.IO_HOST}${webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   return {
     id: doc.nasa_id,
     description: doc.description || "",
-    photoURL,
-    url,
+    lowResURL,
+    highResURL,
+    ioInfoURL,
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
   };
