@@ -181,7 +181,7 @@ export default class DrawNav {
       let topPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 10);
       let bottomPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 5);
       let aLine = new paper.Path.Line(topPoint, bottomPoint);
-      aLine.strokeColor = new paper.Color("green");
+      aLine.strokeColor = new paper.Color("#66ff00");
 
       this.gTier1Group.addChild(aLine);
     }
@@ -401,7 +401,7 @@ export default class DrawNav {
         let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 20);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
-        aLine.strokeColor = new paper.Color("green");
+        aLine.strokeColor = new paper.Color("#66ff00");
         aLine.strokeWidth = 2;
 
         this.gTier2Group.addChild(aLine);

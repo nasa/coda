@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { ClockState, isSameDate } from "store/clock";
+import { ClockState } from "store/clock";
 import { PhotosState, selectPhotoFiles } from "store/photos";
 import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
@@ -68,14 +68,22 @@ export default function Photos() {
 
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
-      <span>Time Taken: {timeFromZuluDate(new Date(activePhoto.date_taken))}</span>
       <button
         className={styles.photoButton}
         onClick={() => {
           openInNewTab(activePhoto.ioInfoURL);
         }}
       >
-        Photo IO Info
+        Photo Details
+        <span
+          style={{ marginLeft: "15px" }}
+          className={`${styles.photoHeaderText} ${styles.dimText}`}
+        >
+          Taken:&nbsp;
+        </span>
+        <span className={styles.photoHeaderText}>
+          {timeFromZuluDate(new Date(activePhoto.date_taken))}Z
+        </span>
       </button>
       <div
         key={`photo_element`}

@@ -63,3 +63,20 @@
   display: inline-block;
   cursor: pointer;
 }
+.photoButton:hover {
+  background-color: #ffc000;
+  color: black;
+}
+.photoButton:hover span {
+  background-color: #ffc000;
+  color: black;
+}
+
+.photoHeaderText {
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.dimText {
+  color: #9b9b9b;    
+}
