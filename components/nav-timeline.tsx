@@ -59,11 +59,6 @@ function NavTimeline() {
       return;
     }
 
-    //TODO: change this to match how the rest of this thing determines whether all of the data is available to render
-    if (photoFiles.length === 0) {
-      return;
-    }
-
     const dayNight = eva?.dayNight || null;
 
     const activityPerformance = { EV1: [], EV2: [] };
@@ -148,7 +143,7 @@ function NavTimeline() {
 
   useEffect(() => {
     installTimeline();
-  }, [evas.selectedEVA, videos.videos, photos.photos]);
+  }, [evas.selectedEVA, videos.videos]);
 
   useEffect(() => {
     time.current = clock.time;

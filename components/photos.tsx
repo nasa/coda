@@ -25,7 +25,6 @@ export default function Photos() {
     date_taken: new Date(clock.date).toISOString(),
   };
   const [activePhoto, setActivePhoto] = useState(initialPhotoFile);
-  const [info, setInfo] = useState("");
 
   const photoFiles = selectPhotoFiles(photos);
 
@@ -101,7 +100,7 @@ export default function Photos() {
           <img className={styles.photo} src={activePhoto.lowResURL} />
         </a>
         <div className={styles.photoOverlay}>
-          <div className={styles.photoInfo}>{info}</div>
+          <div className={styles.photoInfo}>{activePhoto.description}</div>
         </div>
       </div>
     </div>
