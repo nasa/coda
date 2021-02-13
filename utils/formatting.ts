@@ -52,7 +52,7 @@ export function zuluDateToMissionSeconds(zuluDate: Date, timingData: TimingData)
   return (zuluDate.getTime() - timingData.video_earliestStart.getTime()) / 1000;
 }
 
-export function secondsFromZuluDateString(zuluString: string): number {
+export function secondsIntoDayFromZuluDateString(zuluString: string): number {
   const temp = zuluString.split("T")[0].split("-");
   const startOfDay = new Date(`${temp[0]}-${parseInt(temp[1])}-${temp[2]}`);
   const zuluDate = new Date(zuluString);
