@@ -389,7 +389,6 @@ export default class DrawNav {
     }
 
     // display photo ticks
-
     for (let i = 0; i < this.photoFiles.length; i++) {
       const photoTimeSeconds = secondsFromZuluDateString(this.photoFiles[i].date_taken);
       if (
@@ -403,6 +402,7 @@ export default class DrawNav {
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
         aLine.strokeColor = new paper.Color("green");
+        aLine.strokeWidth = 2;
 
         this.gTier2Group.addChild(aLine);
       }

@@ -306,9 +306,9 @@ export async function getPhotoData(year: number, month: number, date: number): P
    * so=7 - sort oldest date taken first
    * go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
    * ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
-   * cx=9 - NASA Program 9 = ISS. Full list https://io.jsc.nasa.gov/api/search
+   * cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
    */
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7`;
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
 
   const res = await fetchIO(queryParams);
   return parseIOPhotoResponse(res);
