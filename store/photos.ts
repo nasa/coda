@@ -15,6 +15,8 @@ export const initialState: PhotosState = {
   errorMessage: "",
 };
 
+const photosSelector = (state) => state.photos;
+
 export const photoSlice = createSlice({
   name: "photo",
   initialState,
@@ -32,3 +34,12 @@ export const photoSlice = createSlice({
 });
 
 export const { addPhotos, fetchError } = photoSlice.actions;
+
+// Probably totally unnecessary, but attempting to mimic how the videos store works
+export const selectPhotoFiles = createSelector(
+  photosSelector,
+  (photos: { [key: string]: PhotoFile } = {}) => {
+    const photosFiles = Object.keys(photos).map((i) => photos[i]);
+    return photosFiles;
+  }
+);
