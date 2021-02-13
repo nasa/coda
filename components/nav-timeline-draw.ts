@@ -7,7 +7,7 @@ import { TimingData } from "store/videos";
 import {
   secondsToTimeStr,
   secondsToZuluString,
-  secondsFromZuluDateString,
+  secondsIntoDayFromZuluDateString,
   zuluDateToMissionSeconds,
 } from "utils/formatting";
 
@@ -174,7 +174,7 @@ export default class DrawNav {
 
     // display photo ticks
     for (let i = 0; i < this.photoFiles.length; i++) {
-      const photoTimeSeconds = secondsFromZuluDateString(this.photoFiles[i].date_taken);
+      const photoTimeSeconds = secondsIntoDayFromZuluDateString(this.photoFiles[i].date_taken);
 
       let itemLocX = photoTimeSeconds * this.gTier1PixelsPerSecond;
 
@@ -390,7 +390,7 @@ export default class DrawNav {
 
     // display photo ticks
     for (let i = 0; i < this.photoFiles.length; i++) {
-      const photoTimeSeconds = secondsFromZuluDateString(this.photoFiles[i].date_taken);
+      const photoTimeSeconds = secondsIntoDayFromZuluDateString(this.photoFiles[i].date_taken);
       if (
         photoTimeSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
         photoTimeSeconds >= this.gTier2StartSeconds
