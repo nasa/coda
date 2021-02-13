@@ -1,0 +1,49 @@
+.mediaPanel {
+  flex: 1;
+  margin-top:auto;
+}
+
+.photoContainer {
+  width: 100%;
+  height: 0px;
+  position: relative;
+  background-color: #19181b;
+}
+.photoContainer:hover .photoOverlay {
+  visibility: visible;
+}
+.photoContainer .photoOverlay {
+  visibility: hidden;
+  position: absolute;
+  top: 50px;
+  left: 0;
+  z-index: 1;
+}
+.photoInfo {
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+.photoContainer4by3 {
+  padding-top: 75%;
+}
+.photoContainer16by9 {
+  padding-top: 56.25%;
+}
+
+.photoPoster {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: no-repeat url("/coda/images/vintage_static.gif");
+  background-size: cover;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}

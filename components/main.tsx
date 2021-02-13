@@ -4,8 +4,10 @@ import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
 import Video from "components/video";
+import Photos from "components/photos";
 import { ClockState, run, halt, tick } from "store/clock";
 import { VideosState } from "store/videos";
+import { PhotosState } from "store/photos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
@@ -14,7 +16,11 @@ import { useEffect } from "react";
  * Renders the main CODA application layout. Also handles checking whether the clock should be running
  */
 export default function Main() {
-  const { clock, videos }: { clock: ClockState; videos: VideosState } = useSelector(
+  const {
+    clock,
+    videos,
+    photos,
+  }: { clock: ClockState; videos: VideosState; photos: PhotosState } = useSelector(
     (state) => state
   );
   const dispatch = useDispatch();
@@ -23,7 +29,7 @@ export default function Main() {
     // (1) make sure the clock is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady = clock.ready && videos.ready[1] && videos.ready[2];
+    const everythingReady = clock.ready && videos.ready[1] && videos.ready[2] && photos.ready;
 
     // (1.2) the clock is paused when it should be running
     if (everythingReady && !clock.isRunning) {
@@ -34,7 +40,7 @@ export default function Main() {
       // kill the clock if it should be paused
       dispatch(halt());
     }
-  }, [clock.ready, clock.isRunning, videos.ready]);
+  }, [clock.ready, clock.isRunning, videos.ready, photos.ready]);
 
   useInterval(() => {
     if (clock.isRunning) {
@@ -51,11 +57,16 @@ export default function Main() {
         <div className={styles.videos}>
           <Video id={1} />
           <Video id={2} />
+          <Photos />
         </div>
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        {Object.keys(videos.videos).length > 0 ? <NavTimeline /> : <div>Timeline Loading...</div>}
+        {Object.keys(videos.videos).length > 0 ? (
+          <NavTimeline />
+        ) : (
+          <div style={{ fontFamily: "Ubuntu Mono" }}>Timeline Loading...</div>
+        )}
         <StatusBar />
       </div>
     </div>

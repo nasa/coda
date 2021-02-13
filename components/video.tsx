@@ -297,7 +297,7 @@ export default function Videos({ id }: { id: number }) {
   const mutedClass = muted === true ? styles.unmute : styles.mute;
 
   return (
-    <div className={styles.vidPanel} key={`video_player__${id}`}>
+    <div className={styles.mediaPanel} key={`video_player__${id}`}>
       {renderButtons()}
       <div className={styles.soundBtnOutline}>
         <div className={`${styles.soundBtn} ${mutedClass}`} onClick={() => setMuted(!muted)}></div>
