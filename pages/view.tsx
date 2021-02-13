@@ -6,7 +6,7 @@ import Main from "components/main";
 import { EVA, buildEVAStore } from "services/iss-wiki";
 import { buildVideoStore, Videos } from "services/io";
 import {
-  add as addVideos,
+  addVideos,
   haveVideosFromDate,
   VideosState,
   initialState as videosInitialState,

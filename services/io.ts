@@ -122,11 +122,9 @@ export interface Videos {
 /** Parsed metadata from an IO photo file result */
 export interface PhotoFile {
   id: string;
-  content: string;
   description: string;
   photoURL: string;
   url: string;
-  className: string;
   date_added: string;
   date_taken: string;
 }
@@ -276,6 +274,20 @@ function parseVideoResultMetadata(doc: Doc, i: number): VideoFile {
 }
 
 /**
+ * Pull a channel from the IO response of available channels. Exported for testing purposes.
+ */
+export function getChannel(collectionStrings: string[]): string {
+  for (let j = 0; j < collectionStrings.length; j++) {
+    const chMatch = collectionStrings[j].match(/US Downlink\|Channel (\d+)/);
+
+    if (chMatch) {
+      return chMatch[1];
+    }
+  }
+  return "";
+}
+
+/**
  * Fetch video data from IO
  */
 export async function getPhotoData(year: number, month: number, date: number): Promise<Photos> {
@@ -322,33 +334,16 @@ function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
   // if we are using mock data, then stream the videos from our govcloud clone of IO videos
   // this allows dev to continue with VPN off
   const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
-
-  const photoURL = `${process.env.IO_HOST}${webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const photoURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   return {
     id: doc.nasa_id,
-    content,
     description: doc.description || "",
     photoURL,
     url,
-    className,
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
   };
-}
-
-/**
- * Pull a channel from the IO response of available channels. Exported for testing purposes.
- */
-export function getChannel(collectionStrings: string[]): string {
-  for (let j = 0; j < collectionStrings.length; j++) {
-    const chMatch = collectionStrings[j].match(/US Downlink\|Channel (\d+)/);
-
-    if (chMatch) {
-      return chMatch[1];
-    }
-  }
-  return "";
 }
 
 /**
@@ -363,4 +358,16 @@ export async function buildVideoStore(
   const timingData = generateTimingData(videos);
   videos = assignStartEnd(videos, timingData);
   return videos;
+}
+
+/**
+ * Fetch and format all photos for passing to the redux store
+ */
+export async function buildPhotoStore(
+  year: number,
+  month: number,
+  date: number
+): Promise<{ [key: string]: PhotoFile }> {
+  let photos = await getPhotoData(year, month, date);
+  return photos;
 }

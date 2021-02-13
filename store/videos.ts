@@ -62,7 +62,7 @@ export const videoSlice = createSlice({
     },
 
     /** Add new video files to the store */
-    add: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
+    addVideos: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
       state.videos = { ...state.videos, ...action.payload.videos };
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
@@ -80,7 +80,7 @@ export const {
   pickVideoFile,
   ready,
   buffering,
-  add,
+  addVideos,
   fetchError,
 } = videoSlice.actions;
 
