@@ -246,12 +246,12 @@
 }
 
 .soundBtnOutline {
-  float: right;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  float: left;
+  width: 32px;
+  height: 28px;
+  border-radius: 4px;
   padding: 2px 3px;
-  margin-right: 10px;
+  margin-right: 5px;
   border: #ffc000 solid 1.5px;
   background-color: #2b2a2d;
   box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
@@ -259,8 +259,8 @@
 }
 
 .soundBtn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 28px;
   background-color: #656269;
   border: none;
   color: #3e3b44;
