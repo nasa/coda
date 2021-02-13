@@ -306,7 +306,7 @@ export default function Videos({ id }: { id: number }) {
     if (currentlyPlayingVideo) {
       videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
       videoFilename = currentlyPlayingVideo.id;
-      ioSearchLink = `https://io.jsc.nasa.gov/app/search/results.cfm?q=${videoFilename}&rpp1=50`;
+      ioSearchLink = currentlyPlayingVideo.url;
       ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
