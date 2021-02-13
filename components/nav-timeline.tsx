@@ -61,7 +61,6 @@ function NavTimeline() {
 
     //TODO: change this to match how the rest of this thing determines whether all of the data is available to render
     if (photoFiles.length === 0) {
-      console.log("photos empty, bailing");
       return;
     }
 
