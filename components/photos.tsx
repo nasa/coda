@@ -15,6 +15,7 @@ export default function Photos() {
   const { photos, clock }: { photos: PhotosState; clock: ClockState } = useSelector(
     (state) => state
   );
+
   const initialPhotoFile: PhotoFile = {
     id: "",
     description: "",
@@ -24,16 +25,17 @@ export default function Photos() {
     date_added: "",
     date_taken: new Date(clock.date).toISOString(),
   };
+
+  // a sorted array of photoFile objects delivered by the store when it's ready
+  const [photoFiles, setPhotoFiles] = useState([]);
   const [activePhoto, setActivePhoto] = useState(initialPhotoFile);
 
-  const photoFiles = selectPhotoFiles(photos);
+  useEffect(() => {
+    //populate the sorted array of photos only when the store changes to save processing time
+    setPhotoFiles(selectPhotoFiles(photos));
+  }, [photos.photos]);
 
   const changePhoto = () => {
-    // This stops one buffering video from essentially blocking beginning to buffer the other video
-    // if (!clock.isRunning) {
-    //   return;
-    // }
-
     if (!photos.ready) {
       return;
     }

@@ -309,10 +309,27 @@ export async function getPhotoData(year: number, month: number, date: number): P
    * ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
    * cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
    */
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
+  let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
 
-  const res = await fetchIO(queryParams);
-  return parseIOPhotoResponse(res);
+  let res = await fetchIO(queryParams);
+  const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
+
+  let photos2: { [key: string]: PhotoFile } = {};
+  // Call IO a second time with reverse sort order in an effort to get up to 1000 photos instead of the 500 restriction of the IO API
+  if (Object.keys(photos1).length >= 500) {
+    // so=6 - sort newest date taken first
+    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=6&cols=4`;
+    res = await fetchIO(queryParams);
+    photos2 = parseIOPhotoResponse(res);
+  }
+
+  // We sort the items in this new object when it's turned into an array for display in the store (photos.ts)
+  let photos: { [key: string]: PhotoFile } = {
+    ...photos1,
+    ...photos2,
+  };
+
+  return photos;
 }
 
 function parseIOPhotoResponse(res: IOResponse) {
