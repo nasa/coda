@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { ClockState } from "store/clock";
-import { PhotosState, selectPhotoFiles } from "store/photos";
+import { PhotosState, selectPhotoFiles, setActivePhoto } from "store/photos";
 import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
 import { PhotoFile } from "services/io";
@@ -11,7 +11,7 @@ import { PhotoFile } from "services/io";
  * Renders a video and the downlink buttons
  */
 export default function Photos() {
-  const { query } = useRouter();
+  const dispatch = useDispatch();
   const { photos, clock }: { photos: PhotosState; clock: ClockState } = useSelector(
     (state) => state
   );
@@ -28,11 +28,14 @@ export default function Photos() {
 
   // a sorted array of photoFile objects delivered by the store when it's ready
   const [photoFiles, setPhotoFiles] = useState([]);
-  const [activePhoto, setActivePhoto] = useState(initialPhotoFile);
 
   useEffect(() => {
     //populate the sorted array of photos only when the store changes to save processing time
     setPhotoFiles(selectPhotoFiles(photos));
+    //set store to initialPhotoFile which contains some placeholder elements derived from active app
+    if (photos.activePhoto.lowResURL === "") {
+      dispatch(setActivePhoto(initialPhotoFile));
+    }
   }, [photos.photos]);
 
   const changePhoto = () => {
@@ -54,8 +57,8 @@ export default function Photos() {
       thisPhotoFile = photoFiles[i];
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
-      if (thisPhotoFile.lowResURL !== activePhoto.lowResURL) {
-        setActivePhoto(thisPhotoFile);
+      if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
+        dispatch(setActivePhoto(thisPhotoFile));
       }
     }
   };
@@ -72,7 +75,7 @@ export default function Photos() {
       <button
         className={styles.photoButton}
         onClick={() => {
-          openInNewTab(activePhoto.ioInfoURL);
+          openInNewTab(photos.activePhoto.ioInfoURL);
         }}
       >
         Photo Details
@@ -83,13 +86,13 @@ export default function Photos() {
           Taken:&nbsp;
         </span>
         <span className={styles.photoHeaderText}>
-          {timeFromZuluDate(new Date(activePhoto.date_taken))}Z
+          {timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z
         </span>
       </button>
       <button
         className={styles.photoButton}
         onClick={() => {
-          openInNewTab(activePhoto.highResURL);
+          openInNewTab(photos.activePhoto.highResURL);
         }}
       >
         High Res
@@ -98,11 +101,11 @@ export default function Photos() {
         key={`photo_element`}
         className={`${styles.photoContainer} ${styles.photoContainer4by3}`}
       >
-        <a href={activePhoto.highResURL} target="_blank">
-          <img className={styles.photo} src={activePhoto.lowResURL} />
+        <a href={photos.activePhoto.highResURL} target="_blank">
+          <img className={styles.photo} src={photos.activePhoto.lowResURL} />
         </a>
         <div className={styles.photoOverlay}>
-          <div className={styles.photoInfo}>{activePhoto.description}</div>
+          <div className={styles.photoInfo}>{photos.activePhoto.description}</div>
         </div>
       </div>
     </div>

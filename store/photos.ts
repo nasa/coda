@@ -5,13 +5,25 @@ import { isSameDate } from "./clock";
 export interface PhotosState {
   /** Keyed by the ID of the photo file */
   photos: { [key: string]: PhotoFile };
+  activePhoto: PhotoFile;
   /** Message describing something that went wrong fetching photo metadata */
   errorMessage: string;
   ready: boolean;
 }
 
+export const initialPhotoFileState: PhotoFile = {
+  id: "",
+  description: "",
+  lowResURL: "",
+  highResURL: "",
+  ioInfoURL: "",
+  date_added: "",
+  date_taken: "",
+};
+
 export const initialState: PhotosState = {
   photos: {},
+  activePhoto: initialPhotoFileState,
   errorMessage: "",
   ready: false,
 };
@@ -28,6 +40,9 @@ export const photoSlice = createSlice({
       state.errorMessage = "";
       state.ready = true;
     },
+    setActivePhoto: (state, action: { payload: PhotoFile }) => {
+      state.activePhoto = action.payload;
+    },
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;
@@ -35,7 +50,7 @@ export const photoSlice = createSlice({
   },
 });
 
-export const { addPhotos, fetchError } = photoSlice.actions;
+export const { addPhotos, setActivePhoto, fetchError } = photoSlice.actions;
 
 // Deliver a sorted array of photos from the store
 export const selectPhotoFiles = createSelector(

@@ -11,8 +11,9 @@ import {
   getEVAStartMilliseconds,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
-import { selectPhotoFiles, PhotosState } from "store/photos";
+import { selectPhotoFiles, PhotosState, setActivePhoto } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
+import { secondsIntoDayFromZuluDateString } from "utils/formatting";
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
@@ -33,6 +34,7 @@ function NavTimeline() {
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
   const photoFiles = selectPhotoFiles(photos);
+  console.log("selecting photoFiles in nav");
 
   const eva = evaSelector(evas);
   const canvas = useRef();
@@ -110,7 +112,22 @@ function NavTimeline() {
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current.handleMouseMove(event, time.current, () => {
+      drawNav.current.handleMouseMove(event, time.current, (mouseSeconds) => {
+        //KEEP THIS COMMENTED-OUT CODE. THIS CHANGES PHOTO ON TIMELINE HOVER
+        // let thisPhotoFile = photoFiles[0];
+        // for (let i = 0; i < photoFiles.length; i++) {
+        //   const secondsIntoToday = secondsIntoDayFromZuluDateString(photoFiles[i].date_taken);
+        //   if (secondsIntoToday > mouseSeconds) {
+        //     break;
+        //   }
+        //   thisPhotoFile = photoFiles[i];
+        // }
+        // if (Object.keys(thisPhotoFile).length !== 0) {
+        //   if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
+        //     dispatch(setActivePhoto(thisPhotoFile));
+        //   }
+        // }
+
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
