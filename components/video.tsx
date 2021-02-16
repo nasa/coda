@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
@@ -11,6 +12,7 @@ import {
   VideoActivity,
   VideosState,
 } from "store/videos";
+import { secondsToHHMMSS, secondsToZuluString } from "utils/formatting";
 import styles from "./video.module.css";
 
 /**
@@ -27,7 +29,6 @@ export default function Videos({ id }: { id: number }) {
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
-  const [info, setInfo] = useState("");
 
   let videoActivity = null as VideoActivity;
 
@@ -148,12 +149,10 @@ export default function Videos({ id }: { id: number }) {
       // there is a video for this downlink
       const video = videos.videos[videoID];
       setSourceURL(video.videoURL);
-      setInfo(video.description);
     } else {
       // there is no video for this downlink
       // clear out the video player
       setSourceURL("");
-      setInfo("");
 
       // don't block the clock
       if (!videos.ready[id]) {
@@ -258,9 +257,7 @@ export default function Videos({ id }: { id: number }) {
             }
           }}
         />
-        <div className={styles.vidOverlay}>
-          <div className={styles.vidInfo}>{info}</div>
-        </div>
+        {renderVideoOverlay()}
       </div>
     );
   };
@@ -292,6 +289,71 @@ export default function Videos({ id }: { id: number }) {
         </button>
       );
     });
+  };
+
+  const renderVideoOverlay = () => {
+    const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
+    let videoStartOffset = 0;
+    let ioSearchLink = "";
+    let ioVideoURL = "";
+    let openVideoURLMessage = "";
+    let videoFilename = "";
+    let dateAdded = "";
+    let openOnIOMessage = "";
+    let info = "";
+    let displayClass = styles.hidden;
+    if (currentlyPlayingVideo) {
+      videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
+      videoFilename = currentlyPlayingVideo.id;
+      ioSearchLink = currentlyPlayingVideo.url;
+      ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
+      openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
+      openOnIOMessage = `Open on IO`;
+      dateAdded = currentlyPlayingVideo.md_creation_date;
+      info = currentlyPlayingVideo.description;
+      displayClass = "";
+    }
+
+    return (
+      <div className={`${styles.vidOverlay} ${displayClass}`}>
+        <div className={styles.overlayContainer}>
+          <div className={styles.overlayHeadline}>Imagery Online Video Details</div>
+          <div className={styles.overlayBody}>
+            <table className={styles.overlayTable}>
+              <tr>
+                <td>Description</td>
+                <td>{info}</td>
+              </tr>
+              <tr>
+                <td>Date Added</td>
+                <td className={styles.digiValue}>{dateAdded}</td>
+              </tr>
+              <tr>
+                <td>IO Asset Name</td>
+                <td>
+                  <span className={styles.digiValue}>{videoFilename}</span> <br />
+                  <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                    {openOnIOMessage}
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td>Video URL</td>
+                <td>
+                  <span className={styles.digiValue} style={{ fontSize: "1em" }}>
+                    {ioVideoURL}
+                  </span>{" "}
+                  <br />
+                  <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                    {openVideoURLMessage}
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const mutedClass = muted === true ? styles.unmute : styles.mute;
