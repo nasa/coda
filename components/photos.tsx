@@ -43,8 +43,7 @@ export default function Photos() {
       return;
     }
 
-    /* Loop through all returned photos
-     * (that API returns in order of date taken thanks to parameter we send in IO.ts)
+    /* Loop through all returned photos in order of date_taken
      * break as soon as we hit a photo that was taken after clock.time leaving the data we gathered
      * on the previous photo for use.
      */

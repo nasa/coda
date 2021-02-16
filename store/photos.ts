@@ -9,6 +9,8 @@ export interface PhotosState {
   /** Message describing something that went wrong fetching photo metadata */
   errorMessage: string;
   ready: boolean;
+  /** UTC string of the last time we hit IO */
+  photosLastChecked: string;
 }
 
 export const initialPhotoFileState: PhotoFile = {
@@ -26,6 +28,7 @@ export const initialState: PhotosState = {
   activePhoto: initialPhotoFileState,
   errorMessage: "",
   ready: false,
+  photosLastChecked: "",
 };
 
 const photosSelector = (state) => state.photos;
@@ -38,6 +41,7 @@ export const photoSlice = createSlice({
     addPhotos: (state, action: { payload: { photos: { [key: string]: PhotoFile } } }) => {
       state.photos = { ...state.photos, ...action.payload.photos };
       state.errorMessage = "";
+      state.photosLastChecked = new Date().toUTCString();
       state.ready = true;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {

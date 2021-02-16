@@ -1,6 +1,8 @@
 import { useSelector } from "react-redux";
+import { PhotoFile } from "services/io";
 import { add, ClockState, isSameDate } from "store/clock";
 import { EVAsState } from "store/evas";
+import { PhotosState } from "store/photos";
 import { VideosState } from "store/videos";
 import styles from "./status-bar.module.css";
 
@@ -11,13 +13,16 @@ export default function StatusBar() {
     clock: { isRunning, date },
     evas: { errorMessage: evasErrorMessage },
     videos: { ready: videosReady, lastChecked, errorMessage: videosErrorMessage },
+    photos: { ready: photosReady, photosLastChecked, errorMessage: photosErrorMessage },
   }: {
     clock: ClockState;
     evas: EVAsState;
     videos: VideosState;
+    photos: PhotosState;
   } = useSelector((store) => store);
 
-  const errorMessages = evasErrorMessage !== "" || videosErrorMessage !== "";
+  const errorMessages =
+    evasErrorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
 
   const isToday = isSameDate(new Date(), new Date(date));
 
@@ -59,7 +64,7 @@ export default function StatusBar() {
             |&nbsp;
           </span>
         )}
-        <span>IO {videosErrorMessage === "" ? "✓" : "✗"}&nbsp;</span>
+        <span>IO {videosErrorMessage === "" && photosErrorMessage === "" ? "✓" : "✗"}&nbsp;</span>
         <span>| ISS WIKI {evasErrorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;</span>
       </span>
     </div>
