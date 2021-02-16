@@ -20,7 +20,7 @@
 
 .headerModalButton:hover .svgShare {
   background: url(/coda/images/share_black.svg) no-repeat center;
-  background-size: 20px 20px;
+  background-size: 15px 15px;
 }
 
 .shareModalWrapper {
