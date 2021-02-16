@@ -316,40 +316,35 @@ export default function Videos({ id }: { id: number }) {
 
     return (
       <div className={`${styles.vidOverlay} ${displayClass}`}>
-        <div className={styles.overlayContainer}>
-          <div className={styles.overlayHeadline}>Imagery Online Video Details</div>
-          <div className={styles.overlayBody}>
-            <table className={styles.overlayTable}>
-              <tr>
-                <td>Description</td>
-                <td>{info}</td>
-              </tr>
-              <tr>
-                <td>Date Added</td>
-                <td className={styles.digiValue}>{dateAdded}</td>
-              </tr>
-              <tr>
-                <td>IO Asset Name</td>
-                <td>
-                  <span className={styles.digiValue}>{videoFilename}</span> <br />
-                  <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
-                    {openOnIOMessage}
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td>Video URL</td>
-                <td>
-                  <span className={styles.digiValue} style={{ fontSize: "1em" }}>
-                    {ioVideoURL}
-                  </span>{" "}
-                  <br />
-                  <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
-                    {openVideoURLMessage}
-                  </a>
-                </td>
-              </tr>
-            </table>
+        <div className={styles.overlayTable}>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
+            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateAdded}</div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
+            <div className={styles.overlayTableCell}>
+              <span className={styles.digiValue}>{videoFilename}</span> <br />
+              <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                {openOnIOMessage}
+              </a>
+            </div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</div>
+            <div className={styles.overlayTableCell}>
+              <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                {openVideoURLMessage}
+              </a>
+              <br />
+              <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
+                {ioVideoURL}
+              </span>
+            </div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</div>
+            <div className={styles.overlayTableCell}>{info}</div>
           </div>
         </div>
       </div>
