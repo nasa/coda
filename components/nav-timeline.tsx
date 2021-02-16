@@ -34,7 +34,6 @@ function NavTimeline() {
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
   const photoFiles = selectPhotoFiles(photos);
-  console.log("selecting photoFiles in nav");
 
   const eva = evaSelector(evas);
   const canvas = useRef();
