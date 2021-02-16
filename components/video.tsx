@@ -29,7 +29,6 @@ export default function Videos({ id }: { id: number }) {
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
-  const [info, setInfo] = useState("");
 
   let videoActivity = null as VideoActivity;
 
@@ -150,12 +149,10 @@ export default function Videos({ id }: { id: number }) {
       // there is a video for this downlink
       const video = videos.videos[videoID];
       setSourceURL(video.videoURL);
-      setInfo(video.description);
     } else {
       // there is no video for this downlink
       // clear out the video player
       setSourceURL("");
-      setInfo("");
 
       // don't block the clock
       if (!videos.ready[id]) {
@@ -303,6 +300,8 @@ export default function Videos({ id }: { id: number }) {
     let videoFilename = "";
     let dateAdded = "";
     let openOnIOMessage = "";
+    let info = "";
+    let displayClass = styles.hidden;
     if (currentlyPlayingVideo) {
       videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
       videoFilename = currentlyPlayingVideo.id;
@@ -311,10 +310,12 @@ export default function Videos({ id }: { id: number }) {
       openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
       dateAdded = currentlyPlayingVideo.md_creation_date;
+      info = currentlyPlayingVideo.description;
+      displayClass = "";
     }
 
     return (
-      <div className={styles.vidOverlay}>
+      <div className={`${styles.vidOverlay} ${displayClass}`}>
         <div className={styles.overlayContainer}>
           <div className={styles.overlayHeadline}>Imagery Online Video Details</div>
           <div className={styles.overlayBody}>

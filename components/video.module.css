@@ -121,6 +121,10 @@
   border-bottom-right-radius: 4px;
 }
 
+.vidContainer .hidden {
+  display: none;
+}
+
 .vidContainer .vidOverlay {
   visibility: hidden;
   position: absolute;
