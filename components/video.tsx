@@ -1,3 +1,4 @@
+import isNull from "lodash/isNull";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -14,6 +15,22 @@ import {
 } from "store/videos";
 import { secondsToHHMMSS, secondsToZuluString } from "utils/formatting";
 import styles from "./video.module.css";
+
+/**
+ * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+ */
+const isAutoplayError = (e: Error): boolean => {
+  // every browser displays a different error message
+  const chrome_autoplay_error = /play\(\) failed because the user didn't interact with the document first/i;
+  const firefox_autoplay_error = /The play method is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
+  const safari_autoplay_error = /The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
+
+  const isChromeError = !isNull(e.toString().match(chrome_autoplay_error));
+  const isFirefoxError = !isNull(e.toString().match(firefox_autoplay_error));
+  const isSafariError = !isNull(e.toString().match(safari_autoplay_error));
+
+  return isChromeError || isFirefoxError || isSafariError;
+};
 
 /**
  * Renders a video and the downlink buttons
@@ -130,14 +147,17 @@ export default function Videos({ id }: { id: number }) {
       try {
         if (clock.isRunning) {
           // make sure the video is playing when the clock is running
+          // if the video source is "", trying to play will "unload" the video and we'll show a poster instead
           await videoElement.current.play();
         } else if (!clock.isRunning) {
           // make sure the video is paused when the clock isn't running
           await videoElement.current.pause();
         }
       } catch (e) {
-        // Swallow errors here because we have to try to play empty src
-        // because HTML video won't unload a video when src is undefined
+        if (isAutoplayError(e)) {
+          // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next clock tick, we'll try to play again
+          setMuted(true);
+        }
       }
     })();
   };
