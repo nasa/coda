@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
 import { EVA, buildEVAStore } from "services/iss-wiki";
-import { buildVideoStore, Videos, buildPhotoStore, Photos, PhotoFile } from "services/io";
+import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
 import {
   addVideos,
   haveVideosFromDate,
@@ -171,7 +171,7 @@ export default function View() {
         // photos data for today
         photoStore = await buildPhotoStore(year, month + 1, day);
       } catch (e) {
-        dispatch(videosFetchError(e.toString()));
+        dispatch(photosFetchError(e.toString()));
         console.error(e);
       }
       dispatch(addPhotos({ photos: photoStore }));
