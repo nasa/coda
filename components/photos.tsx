@@ -133,12 +133,14 @@ export default function Photos() {
     <div className={styles.mediaPanel} key={`photo_viewer`}>
       <div style={{ textAlign: "right" }}>
         <span
-          style={{ marginLeft: "15px", paddingRight: "5px" }}
+          style={{ paddingRight: "5px" }}
           className={`${styles.photoHeaderText} ${styles.dimText}`}
         >
           {dateTakenLabel}
         </span>
-        <span className={styles.photoHeaderText}>{dateTakenValue}</span>
+        <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
+          {dateTakenValue}
+        </span>
       </div>
       <div
         key={`photo_element`}
