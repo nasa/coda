@@ -10,6 +10,5 @@
   },
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "workbench.editor.wrapTabs": true,  
+  } 
 }
