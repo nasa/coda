@@ -4,14 +4,20 @@ import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
 import { EVA, buildEVAStore } from "services/iss-wiki";
-import { buildVideoStore, Videos } from "services/io";
+import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
 import {
-  add as addVideos,
+  addVideos,
   haveVideosFromDate,
   VideosState,
   initialState as videosInitialState,
-  fetchError,
+  fetchError as videosFetchError,
 } from "store/videos";
+import {
+  addPhotos,
+  PhotosState,
+  initialState as photosInitialState,
+  fetchError as photosFetchError,
+} from "store/photos";
 import { EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -39,7 +45,10 @@ export default function View() {
     clock,
     evas,
     videos,
-  }: { clock: ClockState; evas: EVAsState; videos: VideosState } = useSelector((state) => state);
+    photos,
+  }: { clock: ClockState; evas: EVAsState; videos: VideosState; photos: PhotosState } = useSelector(
+    (state) => state
+  );
   const dispatch = useDispatch();
 
   // make sure the application is running on the correct date
@@ -133,11 +142,39 @@ export default function View() {
         // video data for this EVA
         videoStore = await buildVideoStore(year, month + 1, day);
       } catch (e) {
-        dispatch(fetchError(e.toString()));
+        dispatch(videosFetchError(e.toString()));
         console.error(e);
       }
-
       dispatch(addVideos({ videos: videoStore }));
+    })();
+  }, [clock.date]);
+
+  // Grab photos
+  useEffect(() => {
+    (async () => {
+      if (isNull(clock.date)) {
+        return;
+      }
+
+      if (Object.keys(photos.photos).length > 0) {
+        return;
+      }
+
+      const d = new Date(clock.date);
+
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+
+      let photoStore: Photos;
+      try {
+        // photos data for today
+        photoStore = await buildPhotoStore(year, month + 1, day);
+      } catch (e) {
+        dispatch(photosFetchError(e.toString()));
+        console.error(e);
+      }
+      dispatch(addPhotos({ photos: photoStore }));
     })();
   }, [clock.date]);
 
@@ -217,6 +254,7 @@ export const getStaticProps: GetServerSideProps = async () => {
           errorMessage: evaErrorMessage,
         },
         videos: videosInitialState,
+        photos: photosInitialState,
       },
     },
     // regenerate the props at most once per second if a request comes in

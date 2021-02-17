@@ -48,8 +48,14 @@ function secondsToZuluDate(seconds: number, timingData: TimingData): Date {
   return new Date(timingData.video_earliestStart.getTime() + seconds * 1000);
 }
 
-export function zuluDateToSeconds(zuluDate: Date, timingData: TimingData): number {
+export function zuluDateToMissionSeconds(zuluDate: Date, timingData: TimingData): number {
   return (zuluDate.getTime() - timingData.video_earliestStart.getTime()) / 1000;
+}
+
+export function secondsIntoDayFromZuluDateString(zuluString: string): number {
+  const startOfDay = new Date(`${zuluString.split("T")[0]}T00:00:00Z`);
+  const zuluDate = new Date(zuluString);
+  return (zuluDate.getTime() - startOfDay.getTime()) / 1000;
 }
 
 export function timeFromZuluDate(zuluDate: Date): string {

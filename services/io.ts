@@ -119,6 +119,21 @@ export interface Videos {
   [key: string]: VideoFile;
 }
 
+/** Parsed metadata from an IO photo file result */
+export interface PhotoFile {
+  id: string;
+  description: string;
+  lowResURL: string;
+  highResURL: string;
+  ioInfoURL: string;
+  date_added: string;
+  date_taken: string;
+}
+
+export interface Photos {
+  [key: string]: PhotoFile;
+}
+
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
@@ -126,7 +141,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
     return Promise.resolve(mockIOData);
   }
 
-  let url = `${process.env.IO_API_URL}&${params}&as=2?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
+  let url = `${process.env.IO_API_URL}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
   // IO doesn't currently like our Origin and key so we need to use a proxy
   url = `${process.env.IO_PROXY_ORIGIN}/CODA_ISS/getio.php?IOParam=${encodeURIComponent(url)}`;
 
@@ -152,11 +167,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
 /**
  * Fetch video data from IO
  */
-export default async function getVideoData(
-  year: number,
-  month: number,
-  date: number
-): Promise<Videos> {
+export async function getVideoData(year: number, month: number, date: number): Promise<Videos> {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
   const rangeStartDate = padZeros(date, 2);
@@ -166,20 +177,23 @@ export default async function getVideoData(
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
-
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
+  /* s_dt - start date
+   * e_dt - end date
+   * as=2 - filetype: video
+   */
+  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
   const res = await fetchIO(queryParams);
-  return parseIOResponse(res);
+  return parseIOVideoResponse(res);
 }
 
-function parseIOResponse(res: IOResponse) {
+function parseIOVideoResponse(res: IOResponse) {
   const { docs } = res.results.response;
   const videos: Videos = {};
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parseResultMetadata(doc, i);
+    const metadata = parseVideoResultMetadata(doc, i);
     videos[metadata.id] = metadata;
   }
 
@@ -187,7 +201,7 @@ function parseIOResponse(res: IOResponse) {
 }
 
 /** Parse the video result for relevant information */
-function parseResultMetadata(doc: Doc, i: number): VideoFile {
+function parseVideoResultMetadata(doc: Doc, i: number): VideoFile {
   let className = "";
   let content = "";
   let group = -1;
@@ -275,6 +289,84 @@ export function getChannel(collectionStrings: string[]): string {
 }
 
 /**
+ * Fetch video data from IO
+ */
+export async function getPhotoData(year: number, month: number, date: number): Promise<Photos> {
+  const rangeStartYear = year;
+  const rangeStartMonth = padZeros(month, 2);
+  const rangeStartDate = padZeros(date, 2);
+  const rangeEndYear = year;
+  const rangeEndMonth = padZeros(month, 2);
+  const rangeEndDate = padZeros(date, 2);
+
+  const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
+  const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
+  /* s_dt - start date
+   * e_dt - end date
+   * as=1 - filetype: photo
+   * so=7 - sort oldest date taken first
+   * go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
+   * ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
+   * cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
+   */
+  let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
+
+  let res = await fetchIO(queryParams);
+  const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
+
+  let photos2: { [key: string]: PhotoFile } = {};
+  // Call IO a second time with reverse sort order in an effort to get up to 1000 photos instead of the 500 restriction of the IO API
+  if (Object.keys(photos1).length >= 500) {
+    // so=6 - sort newest date taken first
+    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=6&cols=4`;
+    res = await fetchIO(queryParams);
+    photos2 = parseIOPhotoResponse(res);
+  }
+
+  // We sort the items in this new object when it's turned into an array for display in the store (photos.ts)
+  let photos: { [key: string]: PhotoFile } = {
+    ...photos1,
+    ...photos2,
+  };
+
+  return photos;
+}
+
+function parseIOPhotoResponse(res: IOResponse) {
+  const { docs } = res.results.response;
+  const photos: Photos = {};
+
+  for (let i = 0; i < docs.length; i++) {
+    const doc = docs[i];
+    const metadata = parsePhotoResultMetadata(doc, i);
+    photos[metadata.id] = metadata;
+  }
+
+  return photos;
+}
+
+/** Parse the photo result for relevant information */
+function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
+  var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+
+  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // this allows dev to continue with VPN off
+  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
+  const lowResURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const highResURL = `${process.env.IO_HOST}${webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+
+  return {
+    id: doc.nasa_id,
+    description: doc.description || "",
+    lowResURL,
+    highResURL,
+    ioInfoURL,
+    date_added: doc.date_added,
+    date_taken: doc.md_creation_date,
+  };
+}
+
+/**
  * Fetch and format all videos for passing to the redux store
  */
 export async function buildVideoStore(
@@ -286,4 +378,16 @@ export async function buildVideoStore(
   const timingData = generateTimingData(videos);
   videos = assignStartEnd(videos, timingData);
   return videos;
+}
+
+/**
+ * Fetch and format all photos for passing to the redux store
+ */
+export async function buildPhotoStore(
+  year: number,
+  month: number,
+  date: number
+): Promise<{ [key: string]: PhotoFile }> {
+  let photos = await getPhotoData(year, month, date);
+  return photos;
 }

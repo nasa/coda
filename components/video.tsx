@@ -305,7 +305,7 @@ export default function Videos({ id }: { id: number }) {
             }
           }}
         >
-          {g < 6 ? `D/L ${g + 1}` : "non-D/L"}
+          {g < 6 ? `${g + 1}` : "non-D/L"}
         </button>
       );
     });
@@ -329,47 +329,42 @@ export default function Videos({ id }: { id: number }) {
       ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = currentlyPlayingVideo.md_creation_date;
+      dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();
       info = currentlyPlayingVideo.description;
       displayClass = "";
     }
 
     return (
       <div className={`${styles.vidOverlay} ${displayClass}`}>
-        <div className={styles.overlayContainer}>
-          <div className={styles.overlayHeadline}>Imagery Online Video Details</div>
-          <div className={styles.overlayBody}>
-            <table className={styles.overlayTable}>
-              <tr>
-                <td>Description</td>
-                <td>{info}</td>
-              </tr>
-              <tr>
-                <td>Date Added</td>
-                <td className={styles.digiValue}>{dateAdded}</td>
-              </tr>
-              <tr>
-                <td>IO Asset Name</td>
-                <td>
-                  <span className={styles.digiValue}>{videoFilename}</span> <br />
-                  <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
-                    {openOnIOMessage}
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td>Video URL</td>
-                <td>
-                  <span className={styles.digiValue} style={{ fontSize: "1em" }}>
-                    {ioVideoURL}
-                  </span>{" "}
-                  <br />
-                  <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
-                    {openVideoURLMessage}
-                  </a>
-                </td>
-              </tr>
-            </table>
+        <div className={styles.overlayTable}>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
+            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateAdded}</div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
+            <div className={styles.overlayTableCell}>
+              <span className={styles.digiValue}>{videoFilename}</span> <br />
+              <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                {openOnIOMessage}
+              </a>
+            </div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</div>
+            <div className={styles.overlayTableCell}>
+              <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                {openVideoURLMessage}
+              </a>
+              <br />
+              <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
+                {ioVideoURL}
+              </span>
+            </div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</div>
+            <div className={styles.overlayTableCell}>{info}</div>
           </div>
         </div>
       </div>
@@ -379,7 +374,7 @@ export default function Videos({ id }: { id: number }) {
   const mutedClass = muted === true ? styles.unmute : styles.mute;
 
   return (
-    <div className={styles.vidPanel} key={`video_player__${id}`}>
+    <div className={styles.mediaPanel} key={`video_player__${id}`}>
       {renderButtons()}
       <div className={styles.soundBtnOutline}>
         <div className={`${styles.soundBtn} ${mutedClass}`} onClick={() => setMuted(!muted)}></div>

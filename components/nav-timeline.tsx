@@ -11,7 +11,9 @@ import {
   getEVAStartMilliseconds,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
+import { selectPhotoFiles, PhotosState, setActivePhoto } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
+import { secondsIntoDayFromZuluDateString } from "utils/formatting";
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
@@ -21,14 +23,17 @@ function NavTimeline() {
     clock,
     evas,
     videos,
+    photos,
   }: {
     clock: ClockState;
     evas: EVAsState;
     videos: VideosState;
+    photos: PhotosState;
   } = useSelector((state) => state);
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
+  const photoFiles = selectPhotoFiles(photos);
 
   const eva = evaSelector(evas);
   const canvas = useRef();
@@ -83,6 +88,7 @@ function NavTimeline() {
     drawNav.current = new DrawNav(
       timingData,
       videoFiles,
+      photoFiles,
       dayNight,
       activityPerformance,
       new Date(clock.date),
@@ -105,7 +111,22 @@ function NavTimeline() {
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current.handleMouseMove(event, time.current, () => {
+      drawNav.current.handleMouseMove(event, time.current, (mouseSeconds) => {
+        //KEEP THIS COMMENTED-OUT CODE. THIS CHANGES PHOTO ON TIMELINE HOVER
+        // let thisPhotoFile = photoFiles[0];
+        // for (let i = 0; i < photoFiles.length; i++) {
+        //   const secondsIntoToday = secondsIntoDayFromZuluDateString(photoFiles[i].date_taken);
+        //   if (secondsIntoToday > mouseSeconds) {
+        //     break;
+        //   }
+        //   thisPhotoFile = photoFiles[i];
+        // }
+        // if (Object.keys(thisPhotoFile).length !== 0) {
+        //   if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
+        //     dispatch(setActivePhoto(thisPhotoFile));
+        //   }
+        // }
+
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
@@ -137,8 +158,9 @@ function NavTimeline() {
   }, [clock.date]);
 
   useEffect(() => {
+    paper.project.remove(); // always kill previous timeline
     installTimeline();
-  }, [evas.selectedEVA, videos.videos]);
+  }, [evas.selectedEVA, videos.videos, photos.photos]);
 
   useEffect(() => {
     time.current = clock.time;
