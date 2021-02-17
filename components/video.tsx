@@ -339,15 +339,15 @@ export default function Videos({ id }: { id: number }) {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateAdded}</div>
+            <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
             <div className={styles.overlayTableCell}>
-              <span className={styles.digiValue}>{videoFilename}</span> <br />
               <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openOnIOMessage}
               </a>
+              <div className={styles.digiValue}>{videoFilename}</div>
             </div>
           </div>
           <div className={styles.overlayTableRow}>

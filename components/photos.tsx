@@ -2,10 +2,9 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ClockState } from "store/clock";
-import { PhotosState, selectPhotoFiles, setActivePhoto } from "store/photos";
+import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } from "store/photos";
 import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
-import { PhotoFile } from "services/io";
 
 /**
  * Renders a video and the downlink buttons
@@ -16,26 +15,12 @@ export default function Photos() {
     (state) => state
   );
 
-  const initialPhotoFile: PhotoFile = {
-    id: "",
-    description: "",
-    lowResURL: "/coda/images/vintage_static.gif",
-    highResURL: "",
-    ioInfoURL: "",
-    date_added: "",
-    date_taken: new Date(clock.date).toISOString(),
-  };
-
   // a sorted array of photoFile objects delivered by the store when it's ready
   const [photoFiles, setPhotoFiles] = useState([]);
 
   useEffect(() => {
     //populate the sorted array of photos only when the store changes to save processing time
     setPhotoFiles(selectPhotoFiles(photos));
-    //set store to initialPhotoFile which contains some placeholder elements derived from active app
-    if (photos.activePhoto.lowResURL === "") {
-      dispatch(setActivePhoto(initialPhotoFile));
-    }
   }, [photos.photos]);
 
   const changePhoto = () => {
@@ -47,7 +32,7 @@ export default function Photos() {
      * break as soon as we hit a photo that was taken after clock.time leaving the data we gathered
      * on the previous photo for use.
      */
-    let thisPhotoFile = initialPhotoFile;
+    let thisPhotoFile = initialPhotoFileState;
     for (let i = 0; i < photoFiles.length; i++) {
       const secondsIntoToday = secondsIntoDayFromZuluDateString(photoFiles[i].date_taken);
       if (secondsIntoToday > clock.time) {
@@ -85,8 +70,14 @@ export default function Photos() {
       ioHighResURL = photos.activePhoto.highResURL;
       openURLMessage = `Open high res file directly`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = new Date(photos.activePhoto.date_added).toUTCString();
-      dateTaken = new Date(photos.activePhoto.date_taken).toUTCString();
+      dateAdded =
+        photos.activePhoto.date_added !== ""
+          ? new Date(photos.activePhoto.date_added).toUTCString()
+          : "-";
+      dateTaken =
+        photos.activePhoto.date_taken !== ""
+          ? new Date(photos.activePhoto.date_taken).toUTCString()
+          : "-";
       displayClass = "";
     }
 
@@ -95,19 +86,19 @@ export default function Photos() {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
-            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateTaken}</div>
+            <div className={`${styles.overlayTableCell}`}>{dateTaken}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateAdded}</div>
+            <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
             <div className={styles.overlayTableCell}>
-              <span className={styles.digiValue}>{photoFilename}</span> <br />
               <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openOnIOMessage}
               </a>
+              <div className={styles.digiValue}>{photoFilename}</div>
             </div>
           </div>
           <div className={styles.overlayTableRow}>
@@ -131,38 +122,31 @@ export default function Photos() {
     );
   };
 
+  let dateTakenLabel = "";
+  let dateTakenValue = "";
+  if (photos.activePhoto.date_taken !== "") {
+    dateTakenLabel = "Taken:";
+    dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
+  }
+
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
-      <button
-        className={styles.photoButton}
-        onClick={() => {
-          openInNewTab(photos.activePhoto.ioInfoURL);
-        }}
-      >
-        Photo Details
+      <div style={{ textAlign: "right" }}>
         <span
-          style={{ marginLeft: "15px" }}
+          style={{ paddingRight: "5px" }}
           className={`${styles.photoHeaderText} ${styles.dimText}`}
         >
-          Taken:&nbsp;
+          {dateTakenLabel}
         </span>
-        <span className={styles.photoHeaderText}>
-          {timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z
+        <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
+          {dateTakenValue}
         </span>
-      </button>
-      <button
-        className={styles.photoButton}
-        onClick={() => {
-          openInNewTab(photos.activePhoto.highResURL);
-        }}
-      >
-        High Res
-      </button>
+      </div>
       <div
         key={`photo_element`}
         className={`${styles.photoContainer} ${styles.photoContainer4by3}`}
       >
-        <a href={photos.activePhoto.highResURL} target="_blank">
+        <a className={styles.photoLink} href={photos.activePhoto.highResURL} target="_blank">
           <img className={styles.photo} src={photos.activePhoto.lowResURL} />
         </a>
         {renderPhotoOverlay()}

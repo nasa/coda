@@ -16,7 +16,7 @@ export interface PhotosState {
 export const initialPhotoFileState: PhotoFile = {
   id: "",
   description: "",
-  lowResURL: "",
+  lowResURL: "/coda/images/vintage_static.gif",
   highResURL: "",
   ioInfoURL: "",
   date_added: "",
