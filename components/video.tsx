@@ -309,7 +309,7 @@ export default function Videos({ id }: { id: number }) {
       ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = currentlyPlayingVideo.md_creation_date;
+      dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();
       info = currentlyPlayingVideo.description;
       displayClass = "";
     }

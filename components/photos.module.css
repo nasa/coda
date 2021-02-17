@@ -15,10 +15,61 @@
 .photoContainer .photoOverlay {
   visibility: hidden;
   position: absolute;
-  top: 50px;
+  top: 0;
   left: 0;
-  z-index: 1;
+  height: 100%;
+  width: 100%;
+  z-index: 1;  
+  box-sizing: border-box;
+  padding: 30px;    
+  outline: none;
 }
+
+.overlayTable {
+  width: 100%;
+  max-height: 100%;
+  display: inline-block;
+  font-size: 0.9em;
+  background: rgb(15, 15, 15, 0.6);
+  border: 2px solid #ffc000;
+  border-radius: 10px;
+  border-collapse: collapse;
+  overflow-y: auto;
+}
+
+.overlayTable a {
+  text-decoration: underline;
+}
+
+.overlayTable .overlayTableRow {
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable .titleRow {
+  text-align: right;
+  width: 100px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+
+.overlayTable .overlayTableCell {
+  display: table-cell;
+  border-collapse: collapse;
+  vertical-align:top;
+  font-weight: 200;  
+  padding: 8px;  
+}
+
+
+.overlayTable .digiValue {
+  font-family: "Ubuntu Mono";
+  font-size: 1.1em;
+  white-space: pre-wrap;
+  word-break:break-all;
+}
+
 .photoInfo {
   font-size: 0.9rem;
   color: #ffffff;

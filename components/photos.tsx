@@ -69,6 +69,68 @@ export default function Photos() {
     if (newWindow) newWindow.opener = null;
   };
 
+  const renderPhotoOverlay = () => {
+    let ioSearchLink = "";
+    let ioHighResURL = "";
+    let openURLMessage = "";
+    let photoFilename = "";
+    let dateAdded = "";
+    let dateTaken = "";
+    let openOnIOMessage = "";
+    let info = "";
+    let displayClass = styles.hidden;
+    if (photos.activePhoto) {
+      photoFilename = photos.activePhoto.id;
+      ioSearchLink = photos.activePhoto.ioInfoURL;
+      ioHighResURL = photos.activePhoto.highResURL;
+      openURLMessage = `Open high res file directly`;
+      openOnIOMessage = `Open on IO`;
+      dateAdded = new Date(photos.activePhoto.date_added).toUTCString();
+      dateTaken = new Date(photos.activePhoto.date_taken).toUTCString();
+      displayClass = "";
+    }
+
+    return (
+      <div className={`${styles.photoOverlay} ${displayClass}`}>
+        <div className={styles.overlayTable}>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
+            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateTaken}</div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
+            <div className={`${styles.overlayTableCell} ${styles.digiValue}`}>{dateAdded}</div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
+            <div className={styles.overlayTableCell}>
+              <span className={styles.digiValue}>{photoFilename}</span> <br />
+              <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                {openOnIOMessage}
+              </a>
+            </div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</div>
+            <div className={styles.overlayTableCell}>
+              <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                {openURLMessage}
+              </a>
+              <br />
+              <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
+                {ioHighResURL}
+              </span>
+            </div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</div>
+            <div className={styles.overlayTableCell}>{info}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
       <button
@@ -103,9 +165,7 @@ export default function Photos() {
         <a href={photos.activePhoto.highResURL} target="_blank">
           <img className={styles.photo} src={photos.activePhoto.lowResURL} />
         </a>
-        <div className={styles.photoOverlay}>
-          <div className={styles.photoInfo}>{photos.activePhoto.description}</div>
-        </div>
+        {renderPhotoOverlay()}
       </div>
     </div>
   );
