@@ -312,24 +312,38 @@ export async function getPhotoData(year: number, month: number, date: number): P
   let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
 
   let res = await fetchIO(queryParams);
+  const { numfound } = res.results.response;
+  const callsRequired = Math.ceil(numfound / 500);
+  console.log(`callsRequired: ${callsRequired}`);
+
   const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
 
-  let photos2: { [key: string]: PhotoFile } = {};
-  // Call IO a second time with reverse sort order in an effort to get up to 1000 photos instead of the 500 restriction of the IO API
-  if (Object.keys(photos1).length >= 500) {
-    // so=6 - sort newest date taken first
-    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=6&cols=4`;
-    res = await fetchIO(queryParams);
-    photos2 = parseIOPhotoResponse(res);
+  if (callsRequired <= 1) {
+    return photos1;
+  } else {
+    let additionalAPICallsArray = [];
+    for (let i = 1; i < callsRequired; i++) {
+      let startNum = 500 * i + 1;
+      queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4&sr=${startNum}`;
+      additionalAPICallsArray[i - 1] = queryParams;
+    }
+
+    const promiseArray = additionalAPICallsArray.map(async (queryParams) => {
+      return await fetchIO(queryParams);
+    });
+
+    const resArray = await Promise.all(promiseArray);
+
+    let additionalPhotosArray: Photos[] = resArray.map((res) => {
+      return parseIOPhotoResponse(res);
+    });
+    let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
+    let photos: { [key: string]: PhotoFile } = {
+      ...photos1,
+      ...additionalPhotos,
+    };
+    return photos;
   }
-
-  // We sort the items in this new object when it's turned into an array for display in the store (photos.ts)
-  let photos: { [key: string]: PhotoFile } = {
-    ...photos1,
-    ...photos2,
-  };
-
-  return photos;
 }
 
 function parseIOPhotoResponse(res: IOResponse) {
