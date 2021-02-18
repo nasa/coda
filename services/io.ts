@@ -319,6 +319,7 @@ export async function getPhotoData(year: number, month: number, date: number): P
   const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
 
   if (callsRequired <= 1) {
+    // Only one API call was needed because we got fewer than 500 results. Just return it.
     return photos1;
   } else {
     // Construct an array of queryParams, one for each page required to reach numFound from first API call
