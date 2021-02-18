@@ -3,7 +3,7 @@ Methods for fetching from Imagery Online (IO)
 */
 import fetch from "isomorphic-unfetch";
 import { assignStartEnd, generateTimingData } from "store/videos";
-import { padZeros } from "utils/formatting";
+import { padZeros, secondsIntoDayFromZuluDateString } from "utils/formatting";
 
 if (typeof window === "undefined") {
   // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
@@ -128,6 +128,7 @@ export interface PhotoFile {
   ioInfoURL: string;
   date_added: string;
   date_taken: string;
+  date_takenAppSeconds: number;
 }
 
 export interface Photos {
@@ -385,6 +386,7 @@ function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
     ioInfoURL,
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
+    date_takenAppSeconds: secondsIntoDayFromZuluDateString(doc.md_creation_date),
   };
 }
 

@@ -96,6 +96,7 @@ function NavTimeline() {
       isToday
     );
 
+    console.log("drawing everything in nav-timeline.tsx");
     drawNav.current.initGroups();
     drawNav.current.setDynamicWidthVariables();
     drawNav.current.drawTier1();
@@ -105,28 +106,14 @@ function NavTimeline() {
     paper.view.onResize = function () {
       drawNav.current.setDynamicWidthVariables();
       drawNav.current.drawTier1();
+      drawNav.current.drawTier1Future();
       drawNav.current.drawTier1NavBox(time.current);
       drawNav.current.drawTier2();
       drawNav.current.drawCursor(time.current);
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current.handleMouseMove(event, time.current, (mouseSeconds) => {
-        //KEEP THIS COMMENTED-OUT CODE. THIS CHANGES PHOTO ON TIMELINE HOVER
-        // let thisPhotoFile = photoFiles[0];
-        // for (let i = 0; i < photoFiles.length; i++) {
-        //   const secondsIntoToday = secondsIntoDayFromZuluDateString(photoFiles[i].date_taken);
-        //   if (secondsIntoToday > mouseSeconds) {
-        //     break;
-        //   }
-        //   thisPhotoFile = photoFiles[i];
-        // }
-        // if (Object.keys(thisPhotoFile).length !== 0) {
-        //   if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
-        //     dispatch(setActivePhoto(thisPhotoFile));
-        //   }
-        // }
-
+      drawNav.current.handleMouseMove(event, time.current, () => {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
@@ -172,7 +159,7 @@ function NavTimeline() {
 
     if (!mouseOnNavigator.current) {
       drawNav.current.drawTier1NavBox(time.current);
-      drawNav.current.drawTier1();
+      drawNav.current.drawTier1Future();
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
