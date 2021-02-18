@@ -313,14 +313,15 @@ export async function getPhotoData(year: number, month: number, date: number): P
 
   let res = await fetchIO(queryParams);
   const { numfound } = res.results.response;
-  const callsRequired = Math.ceil(numfound / 500);
-  console.log(`callsRequired: ${callsRequired}`);
+  const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
+  // create array of photos from first API call
   const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
 
   if (callsRequired <= 1) {
     return photos1;
   } else {
+    // Construct an array of queryParams, one for each page required to reach numFound from first API call
     let additionalAPICallsArray = [];
     for (let i = 1; i < callsRequired; i++) {
       let startNum = 500 * i + 1;
@@ -328,16 +329,23 @@ export async function getPhotoData(year: number, month: number, date: number): P
       additionalAPICallsArray[i - 1] = queryParams;
     }
 
+    // create an array of promises for async IO calls
     const promiseArray = additionalAPICallsArray.map(async (queryParams) => {
       return await fetchIO(queryParams);
     });
 
+    // Call IO as many times as required in parallel. Waits for all calls to resolve into a results array
     const resArray = await Promise.all(promiseArray);
 
+    // Make array of photo objects from results array
     let additionalPhotosArray: Photos[] = resArray.map((res) => {
       return parseIOPhotoResponse(res);
     });
+
+    // Turn array of photo objects into one enormous photo object
     let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
+
+    // Merge the additional calls with the original and return it
     let photos: { [key: string]: PhotoFile } = {
       ...photos1,
       ...additionalPhotos,
