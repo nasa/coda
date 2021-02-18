@@ -323,22 +323,22 @@ export async function getPhotoData(year: number, month: number, date: number): P
     return photos1;
   } else {
     // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let additionalAPICallsArray = [];
+    let queryParamsArray = [];
     for (let i = 1; i < callsRequired; i++) {
       let startNum = 500 * i + 1;
       queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4&sr=${startNum}`;
-      additionalAPICallsArray[i - 1] = queryParams;
+      queryParamsArray.push(queryParams);
     }
 
     // create an array of promises for async IO calls
-    const promiseArray = additionalAPICallsArray.map(async (queryParams) => {
+    const promiseArray = queryParamsArray.map(async (queryParams) => {
       return await fetchIO(queryParams);
     });
 
-    // Call IO as many times as required in parallel. Waits for all calls to resolve into a results array
+    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
     const resArray = await Promise.all(promiseArray);
 
-    // Make array of photo objects from results array
+    // Parse out results into array of photo objects
     let additionalPhotosArray: Photos[] = resArray.map((res) => {
       return parseIOPhotoResponse(res);
     });
@@ -346,7 +346,7 @@ export async function getPhotoData(year: number, month: number, date: number): P
     // Turn array of photo objects into one enormous photo object
     let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
 
-    // Merge the additional calls with the original and return it
+    // Merge the additional photos with the photos from the first API call and return it
     let photos: { [key: string]: PhotoFile } = {
       ...photos1,
       ...additionalPhotos,
