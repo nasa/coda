@@ -321,38 +321,37 @@ export async function getPhotoData(year: number, month: number, date: number): P
   if (callsRequired <= 1) {
     // Only one API call was needed because we got fewer than 500 results. Just return it.
     return photos1;
-  } else {
-    // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray = [];
-    for (let i = 1; i < callsRequired; i++) {
-      let startNum = 500 * i + 1;
-      queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4&sr=${startNum}`;
-      queryParamsArray.push(queryParams);
-    }
-
-    // create an array of promises for async IO calls
-    const promiseArray = queryParamsArray.map(async (queryParams) => {
-      return await fetchIO(queryParams);
-    });
-
-    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
-    const resArray = await Promise.all(promiseArray);
-
-    // Parse out results into array of photo objects
-    let additionalPhotosArray: Photos[] = resArray.map((res) => {
-      return parseIOPhotoResponse(res);
-    });
-
-    // Turn array of photo objects into one enormous photo object
-    let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
-
-    // Merge the additional photos with the photos from the first API call and return it
-    let photos: { [key: string]: PhotoFile } = {
-      ...photos1,
-      ...additionalPhotos,
-    };
-    return photos;
   }
+  // Construct an array of queryParams, one for each page required to reach numFound from first API call
+  let queryParamsArray = [];
+  for (let i = 1; i < callsRequired; i++) {
+    let startNum = 500 * i + 1;
+    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4&sr=${startNum}`;
+    queryParamsArray.push(queryParams);
+  }
+
+  // create an array of promises for async IO calls
+  const promiseArray = queryParamsArray.map(async (queryParams) => {
+    return await fetchIO(queryParams);
+  });
+
+  // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
+  const resArray = await Promise.all(promiseArray);
+
+  // Parse out results into array of photo objects
+  const additionalPhotosArray: Photos[] = resArray.map((res) => {
+    return parseIOPhotoResponse(res);
+  });
+
+  // Turn array of photo objects into one enormous photo object
+  let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
+
+  // Merge the additional photos with the photos from the first API call and return it
+  const photos: { [key: string]: PhotoFile } = {
+    ...photos1,
+    ...additionalPhotos,
+  };
+  return photos;
 }
 
 function parseIOPhotoResponse(res: IOResponse) {
