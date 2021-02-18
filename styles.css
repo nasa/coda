@@ -1,9 +1,9 @@
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-feature-settings: "tnum"; /* mono-spaced digits */
 }
 
-body {  
+body {
   background-color: #3e3b44;
   /* overflow-x: hidden; */
   margin: 0;

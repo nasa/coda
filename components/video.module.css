@@ -132,9 +132,9 @@
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 1;  
+  z-index: 1;
   box-sizing: border-box;
-  padding: 30px;    
+  padding: 30px;
   outline: none;
 }
 
@@ -197,23 +197,20 @@
   border-right: 2px solid rgba(150, 150, 150, 0.5);
 }
 
-
 .overlayTable .overlayTableCell {
   display: table-cell;
   border-collapse: collapse;
-  vertical-align:top;
-  font-weight: 200;  
-  padding: 8px;  
+  vertical-align: top;
+  font-weight: 200;
+  padding: 8px;
 }
-
 
 .overlayTable .digiValue {
   font-family: "Ubuntu Mono";
   font-size: 1.0em;
   white-space: pre-wrap;
-  word-break:break-all;
+  word-break: break-all;
 }
-
 
 .modalButtonText {
   display: table-cell;
