@@ -120,16 +120,21 @@ export default function Photos() {
 
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
-      <div style={{ textAlign: "right" }}>
-        <span
-          style={{ paddingRight: "5px" }}
-          className={`${styles.photoHeaderText} ${styles.dimText}`}
-        >
-          {dateTakenLabel}
-        </span>
-        <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-          {dateTakenValue}
-        </span>
+      <div style={{ display: "flex" }}>
+        <div className={styles.infoButton}>
+          <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
+        </div>
+        <div style={{ marginLeft: "auto", marginTop: "auto" }}>
+          <span
+            style={{ paddingRight: "5px" }}
+            className={`${styles.photoHeaderText} ${styles.dimText}`}
+          >
+            {dateTakenLabel}
+          </span>
+          <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
+            {dateTakenValue}
+          </span>
+        </div>
       </div>
       <div
         key={`photo_element`}
