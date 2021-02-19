@@ -404,7 +404,7 @@ export default class DrawNav {
           this.gTier2Left +
           (this.photoFiles[i].dateTakenAppSeconds - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
-        let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 20);
+        let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 13);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
         aLine.strokeColor = this.gColorPhotoTicks;
