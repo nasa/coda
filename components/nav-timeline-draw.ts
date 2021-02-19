@@ -44,6 +44,7 @@ export default class DrawNav {
   gColorCursor = new paper.Color("#ff0000");
   gColorNavCursor = new paper.Color("#19181b");
   gColorTimeTicks = new paper.Color("#7b7b7b");
+  gColorPhotoTicks = new paper.Color("#4dc000");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
   gColorVideoBorder = "#2a282e";
@@ -117,22 +118,22 @@ export default class DrawNav {
     }
 
     // display video segments
+    const videoSegmentsTop = this.gTier1Top + 2;
     for (let i = 0; i < this.videoFiles.length; i++) {
       let startLocX = this.videoFiles[i].missionSecondsStart * this.gTier1PixelsPerSecond;
       let endLocX = this.videoFiles[i].missionSecondsEnd * this.gTier1PixelsPerSecond;
 
       let startLocY =
-        this.gTier1Top +
-        1 +
-        this.videoFiles[i]["group"] * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
-      let endLocY = startLocY + this.cChannelStrokeWidth + 1;
+        videoSegmentsTop +
+        this.videoFiles[i]["group"] * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+      let endLocY = startLocY + this.cChannelStrokeWidth - 1;
 
       const name = "vidItem_" + i.toString();
 
       let vidLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
         to: [endLocX, endLocY],
-        strokeWidth: 0.5,
+        strokeWidth: 0.1,
         strokeColor: this.gColorVideoBorder,
         fillColor: this.gColorVideo,
         name,
@@ -151,7 +152,7 @@ export default class DrawNav {
     }
 
     // display photo ticks
-
+    const rowNum = 10; //
     // track x locations to avoid rendering multiple lines on the same pixel
     const xLocations = new Set();
     for (let i = 0; i < this.photoFiles.length; i++) {
@@ -162,10 +163,12 @@ export default class DrawNav {
       }
       xLocations.add(wholePixelLocation);
 
-      let topPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 10);
-      let bottomPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 5);
+      const startLocY =
+        this.gTier1Top + 1 + rowNum * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+      const topPoint = new paper.Point(itemLocX, startLocY);
+      let bottomPoint = new paper.Point(itemLocX, startLocY + this.cChannelStrokeWidth - 1);
       let aLine = new paper.Path.Line(topPoint, bottomPoint);
-      aLine.strokeColor = new paper.Color("#66ff00");
+      aLine.strokeColor = this.gColorPhotoTicks;
 
       this.gTier1Group.addChild(aLine);
     }
@@ -190,16 +193,17 @@ export default class DrawNav {
   }
 
   drawTier1EVActivity(rowNum, evActivityArray: Activity[]) {
+    const videoSegmentsTop = this.gTier1Top + 2;
     for (let i = 0; i < evActivityArray.length; i++) {
       let startLocX = evActivityArray[i].startTimeSeconds * this.gTier1PixelsPerSecond;
       let endLocX = evActivityArray[i].endTimeSeconds * this.gTier1PixelsPerSecond;
       let startLocY =
-        this.gTier1Top + 1 + rowNum * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
-      let endLocY = startLocY + this.cChannelStrokeWidth + 1;
+        videoSegmentsTop + rowNum * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+      let endLocY = startLocY + this.cChannelStrokeWidth - 1;
       let activityLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
         to: [endLocX, endLocY],
-        strokeWidth: 0.5,
+        strokeWidth: 0.1,
         strokeColor: "black",
         // fillColor: gActivityBackgroundColor,
         fillColor: evActivityArray[i].color,
@@ -403,7 +407,7 @@ export default class DrawNav {
         let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 20);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
-        aLine.strokeColor = new paper.Color("#66ff00");
+        aLine.strokeColor = this.gColorPhotoTicks;
         aLine.strokeWidth = 2;
 
         this.gTier2Group.addChild(aLine);

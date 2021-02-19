@@ -1,6 +1,6 @@
 .mediaPanel {
   flex: 1;
-  margin-top:auto;
+  margin-top: auto;
 }
 
 .photoContainer {
@@ -19,9 +19,9 @@
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 1;  
+  z-index: 1;
   box-sizing: border-box;
-  padding: 30px;    
+  padding: 30px;
   outline: none;
 }
 
@@ -53,21 +53,19 @@
   border-right: 2px solid rgba(150, 150, 150, 0.5);
 }
 
-
 .overlayTable .overlayTableCell {
   display: table-cell;
   border-collapse: collapse;
-  vertical-align:top;
-  font-weight: 200;  
-  padding: 8px;  
+  vertical-align: top;
+  font-weight: 200;
+  padding: 8px;
 }
-
 
 .overlayTable .digiValue {
   font-family: "Ubuntu Mono";
-  font-size: 1.0em;
+  font-size: 1em;
   white-space: pre-wrap;
-  word-break:break-all;
+  word-break: break-all;
 }
 
 .photoInfo {
@@ -109,7 +107,7 @@
 }
 
 .photoButton {
-  font-size: 1.0rem;
+  font-size: 1rem;
   font-weight: 300;
   background-color: #2b2a2d;
   border: 1px #ffc000 solid;
@@ -138,5 +136,5 @@
 }
 
 .dimText {
-  color: #9b9b9b;    
+  color: #9b9b9b;
 }
