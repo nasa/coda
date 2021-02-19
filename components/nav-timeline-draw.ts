@@ -169,8 +169,17 @@ export default class DrawNav {
 
     // display photo ticks
     this.gTier1PhotoTicksGroup.removeChildren();
+
+    // track x locations to avoid rendering multiple lines on the same pixel
+    const xLocations = new Set();
+
     for (let i = 0; i < this.photoFiles.length; i++) {
       let itemLocX = this.photoFiles[i].date_takenAppSeconds * this.gTier1PixelsPerSecond;
+      const wholePixelLocation = Math.round(itemLocX);
+      if (xLocations.has(wholePixelLocation)) {
+        continue;
+      }
+      xLocations.add(wholePixelLocation);
 
       let topPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 10);
       let bottomPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 5);
@@ -427,7 +436,6 @@ export default class DrawNav {
         break;
       }
     }
-    this.gTier2PhotoTicksGroup.rasterize();
     this.gTier2Group.addChild(this.gTier2PhotoTicksGroup);
 
     // if isToday, indicate the "future"
