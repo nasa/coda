@@ -15,13 +15,7 @@ export default function Photos() {
     (state) => state
   );
 
-  // a sorted array of photoFile objects delivered by the store when it's ready
-  const [photoFiles, setPhotoFiles] = useState([]);
-
-  useEffect(() => {
-    //populate the sorted array of photos only when the store changes to save processing time
-    setPhotoFiles(selectPhotoFiles(photos));
-  }, [photos.photos]);
+  const photoFiles = selectPhotoFiles(photos);
 
   const changePhoto = () => {
     if (!photos.ready) {
@@ -48,11 +42,6 @@ export default function Photos() {
   };
 
   useEffect(changePhoto, [clock.time, photos.photos]);
-
-  const openInNewTab = (url) => {
-    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
-    if (newWindow) newWindow.opener = null;
-  };
 
   const renderPhotoOverlay = () => {
     let ioSearchLink = "";

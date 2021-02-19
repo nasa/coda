@@ -21,6 +21,7 @@ export const initialPhotoFileState: PhotoFile = {
   ioInfoURL: "",
   date_added: "",
   date_taken: "",
+  dateTakenAppSeconds: 0,
 };
 
 export const initialState: PhotosState = {
@@ -56,14 +57,11 @@ export const photoSlice = createSlice({
 
 export const { addPhotos, setActivePhoto, fetchError } = photoSlice.actions;
 
-// Deliver a sorted array of photos from the store
+// Deliver an array of photos from the store
 export const selectPhotoFiles = createSelector(
   photosSelector,
   (photos: { [key: string]: PhotoFile } = {}) => {
     const photosFiles = Object.keys(photos).map((i) => photos[i]);
-    photosFiles.sort((a, b) => {
-      return a.date_taken < b.date_taken ? -1 : a.date_taken > b.date_taken ? 1 : 0;
-    });
     return photosFiles;
   }
 );

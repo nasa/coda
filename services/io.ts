@@ -3,7 +3,7 @@ Methods for fetching from Imagery Online (IO)
 */
 import fetch from "isomorphic-unfetch";
 import { assignStartEnd, generateTimingData } from "store/videos";
-import { padZeros } from "utils/formatting";
+import { padZeros, secondsIntoDayFromZuluDateString } from "utils/formatting";
 
 if (typeof window === "undefined") {
   // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
@@ -128,6 +128,7 @@ export interface PhotoFile {
   ioInfoURL: string;
   date_added: string;
   date_taken: string;
+  dateTakenAppSeconds: number;
 }
 
 export interface Photos {
@@ -312,23 +313,45 @@ export async function getPhotoData(year: number, month: number, date: number): P
   let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
 
   let res = await fetchIO(queryParams);
+  const { numfound } = res.results.response;
+  const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
+
+  // create array of photos from first API call
   const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
 
-  let photos2: { [key: string]: PhotoFile } = {};
-  // Call IO a second time with reverse sort order in an effort to get up to 1000 photos instead of the 500 restriction of the IO API
-  if (Object.keys(photos1).length >= 500) {
-    // so=6 - sort newest date taken first
-    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=6&cols=4`;
-    res = await fetchIO(queryParams);
-    photos2 = parseIOPhotoResponse(res);
+  if (callsRequired <= 1) {
+    // Only one API call was needed because we got fewer than 500 results. Just return it.
+    return photos1;
+  }
+  // Construct an array of queryParams, one for each page required to reach numFound from first API call
+  let queryParamsArray = [];
+  for (let i = 1; i < callsRequired; i++) {
+    let startNum = 500 * i + 1;
+    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4&sr=${startNum}`;
+    queryParamsArray.push(queryParams);
   }
 
-  // We sort the items in this new object when it's turned into an array for display in the store (photos.ts)
-  let photos: { [key: string]: PhotoFile } = {
-    ...photos1,
-    ...photos2,
-  };
+  // create an array of promises for async IO calls
+  const promiseArray = queryParamsArray.map(async (queryParams) => {
+    return await fetchIO(queryParams);
+  });
 
+  // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
+  const resArray = await Promise.all(promiseArray);
+
+  // Parse out results into array of photo objects
+  const additionalPhotosArray: Photos[] = resArray.map((res) => {
+    return parseIOPhotoResponse(res);
+  });
+
+  // Turn array of photo objects into one enormous photo object
+  let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
+
+  // Merge the additional photos with the photos from the first API call and return it
+  const photos: { [key: string]: PhotoFile } = {
+    ...photos1,
+    ...additionalPhotos,
+  };
   return photos;
 }
 
@@ -363,6 +386,7 @@ function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
     ioInfoURL,
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
+    dateTakenAppSeconds: secondsIntoDayFromZuluDateString(doc.md_creation_date),
   };
 }
 

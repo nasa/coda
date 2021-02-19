@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import { clockSlice, initialState as clockInitialState } from "./clock";
 import { evasSlice, initialState as evasInitialState } from "./evas";
 import { videoSlice, initialState as videosInitialState } from "./videos";
