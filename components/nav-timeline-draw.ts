@@ -44,7 +44,7 @@ export default class DrawNav {
   gColorCursor = new paper.Color("#ff0000");
   gColorNavCursor = new paper.Color("#19181b");
   gColorTimeTicks = new paper.Color("#7b7b7b");
-  gColorPhotoTicks = new paper.Color("#4dc000");
+  gColorPhotoTicks = new paper.Color("#28B463");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
   gColorVideoBorder = "#2a282e";
