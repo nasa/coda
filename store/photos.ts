@@ -21,7 +21,7 @@ export const initialPhotoFileState: PhotoFile = {
   ioInfoURL: "",
   date_added: "",
   date_taken: "",
-  date_takenAppSeconds: 0,
+  dateTakenAppSeconds: 0,
 };
 
 export const initialState: PhotosState = {
@@ -61,12 +61,7 @@ export const { addPhotos, setActivePhoto, fetchError } = photoSlice.actions;
 export const selectPhotoFiles = createSelector(
   photosSelector,
   (photos: { [key: string]: PhotoFile } = {}) => {
-    console.log("Making new selectPhotoFiles array");
     const photosFiles = Object.keys(photos).map((i) => photos[i]);
-    // sorting no longer required due to improved IO chunking in io.ts
-    // photosFiles.sort((a, b) => {
-    //   return a.date_taken < b.date_taken ? -1 : a.date_taken > b.date_taken ? 1 : 0;
-    // });
     return photosFiles;
   }
 );

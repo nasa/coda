@@ -128,7 +128,7 @@ export interface PhotoFile {
   ioInfoURL: string;
   date_added: string;
   date_taken: string;
-  date_takenAppSeconds: number;
+  dateTakenAppSeconds: number;
 }
 
 export interface Photos {
@@ -386,7 +386,7 @@ function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
     ioInfoURL,
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
-    date_takenAppSeconds: secondsIntoDayFromZuluDateString(doc.md_creation_date),
+    dateTakenAppSeconds: secondsIntoDayFromZuluDateString(doc.md_creation_date),
   };
 }
 

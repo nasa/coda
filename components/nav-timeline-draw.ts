@@ -13,13 +13,11 @@ import {
 
 export default class DrawNav {
   gTier1Group: paper.Group;
-  gTier1PhotoTicksGroup: paper.Group;
   gTier1FutureGroup: paper.Group;
   gTier1NavGroup: paper.Group;
   gTier1NavBoxLocX: number;
 
   gTier2Group: paper.Group;
-  gTier2PhotoTicksGroup: paper.Group;
   gTier2BoarderGroup: paper.Group;
   gTier2StartSeconds: number;
 
@@ -82,20 +80,16 @@ export default class DrawNav {
   initGroups() {
     if (typeof this.gTier1Group !== "undefined") {
       this.gTier1Group.removeChildren();
-      this.gTier1PhotoTicksGroup.removeChildren();
       this.gTier1FutureGroup.removeChildren();
       this.gTier1NavGroup.removeChildren();
       this.gTier2Group.removeChildren();
-      this.gTier2PhotoTicksGroup.removeChildren();
       this.gCursorGroup.removeChildren();
       this.gNavCursorGroup.removeChildren();
     } else {
       this.gTier1Group = new paper.Group();
-      this.gTier1PhotoTicksGroup = new paper.Group();
       this.gTier1FutureGroup = new paper.Group();
       this.gTier1NavGroup = new paper.Group();
       this.gTier2Group = new paper.Group();
-      this.gTier2PhotoTicksGroup = new paper.Group();
       this.gTier2BoarderGroup = new paper.Group();
       this.gCursorGroup = new paper.Group();
       this.gNavCursorGroup = new paper.Group();
@@ -103,18 +97,7 @@ export default class DrawNav {
   }
 
   drawTier1() {
-    console.log("drawing Tier 1");
     this.gTier1Group.removeChildren();
-    let tierRect = new paper.Rectangle(
-      this.gTier1Left,
-      this.gTier1Top,
-      this.gNavigatorWidth,
-      this.gTier1Height
-    );
-    const cornerSize = new paper.Size(5, 5);
-    // let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
-    // tierRectPath.strokeColor = tierBoxColor;
-    // gTier1Group.addChild(tierRectPath);
 
     // display time ticks
     for (let i = 0; i < this.timingData["EVA_duration_seconds"]; i++) {
@@ -168,13 +151,11 @@ export default class DrawNav {
     }
 
     // display photo ticks
-    this.gTier1PhotoTicksGroup.removeChildren();
 
     // track x locations to avoid rendering multiple lines on the same pixel
     const xLocations = new Set();
-
     for (let i = 0; i < this.photoFiles.length; i++) {
-      let itemLocX = this.photoFiles[i].date_takenAppSeconds * this.gTier1PixelsPerSecond;
+      let itemLocX = this.photoFiles[i].dateTakenAppSeconds * this.gTier1PixelsPerSecond;
       const wholePixelLocation = Math.round(itemLocX);
       if (xLocations.has(wholePixelLocation)) {
         continue;
@@ -186,10 +167,8 @@ export default class DrawNav {
       let aLine = new paper.Path.Line(topPoint, bottomPoint);
       aLine.strokeColor = new paper.Color("#66ff00");
 
-      this.gTier1PhotoTicksGroup.addChild(aLine);
+      this.gTier1Group.addChild(aLine);
     }
-    this.gTier1PhotoTicksGroup.rasterize();
-    this.gTier1Group.addChild(this.gTier1PhotoTicksGroup);
   }
 
   drawTier1Future() {
@@ -412,15 +391,14 @@ export default class DrawNav {
     }
 
     // display photo ticks
-    this.gTier2PhotoTicksGroup.removeChildren();
     for (let i = 0; i < this.photoFiles.length; i++) {
       if (
-        this.photoFiles[i].date_takenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
-        this.photoFiles[i].date_takenAppSeconds >= this.gTier2StartSeconds
+        this.photoFiles[i].dateTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
+        this.photoFiles[i].dateTakenAppSeconds >= this.gTier2StartSeconds
       ) {
         let itemLocX =
           this.gTier2Left +
-          (this.photoFiles[i].date_takenAppSeconds - this.gTier2StartSeconds) *
+          (this.photoFiles[i].dateTakenAppSeconds - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
         let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 20);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
@@ -428,15 +406,14 @@ export default class DrawNav {
         aLine.strokeColor = new paper.Color("#66ff00");
         aLine.strokeWidth = 2;
 
-        this.gTier2PhotoTicksGroup.addChild(aLine);
+        this.gTier2Group.addChild(aLine);
       } else if (
-        this.photoFiles[i].date_takenAppSeconds >
+        this.photoFiles[i].dateTakenAppSeconds >
         this.gTier2StartSeconds + secondsOnTier2
       ) {
         break;
       }
     }
-    this.gTier2Group.addChild(this.gTier2PhotoTicksGroup);
 
     // if isToday, indicate the "future"
     if (this.isToday) {
