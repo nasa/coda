@@ -47,6 +47,9 @@ export default function Videos({ id }: { id: number }) {
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
 
+  const [infoToggle, setInfoToggle] = useState(false);
+  const [infoHover, setInfoHover] = useState(false);
+
   let videoActivity = null as VideoActivity;
 
   if (Object.keys(videos.videos).length > 0) {
@@ -302,6 +305,7 @@ export default function Videos({ id }: { id: number }) {
           onClick={() => {
             if (g !== group) {
               dispatch(setVideoDownlink({ id, downlink: g }));
+              setInfoToggle(false);
             }
           }}
         >
@@ -321,7 +325,7 @@ export default function Videos({ id }: { id: number }) {
     let dateAdded = "";
     let openOnIOMessage = "";
     let info = "";
-    let displayClass = styles.hidden;
+    let infoDisplayClass = "";
     if (currentlyPlayingVideo) {
       videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
       videoFilename = currentlyPlayingVideo.id;
@@ -331,11 +335,13 @@ export default function Videos({ id }: { id: number }) {
       openOnIOMessage = `Open on IO`;
       dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();
       info = currentlyPlayingVideo.description;
-      displayClass = "";
+    }
+    if (infoHover || infoToggle) {
+      infoDisplayClass = styles.photoOverlayVisible;
     }
 
     return (
-      <div className={`${styles.vidOverlay} ${displayClass}`}>
+      <div className={`${styles.vidOverlay} ${infoDisplayClass}`}>
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
@@ -373,11 +379,40 @@ export default function Videos({ id }: { id: number }) {
 
   const mutedClass = muted === true ? styles.unmute : styles.mute;
 
+  const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
+  let infoButtonStyle = "";
+  if (currentlyPlayingVideo) {
+    infoButtonStyle = styles.infoActive;
+  }
+  if (infoToggle) {
+    infoButtonStyle = styles.infoSelected;
+  }
   return (
     <div className={styles.mediaPanel} key={`video_player__${id}`}>
-      {renderButtons()}
-      <div className={styles.soundBtnOutline}>
-        <div className={`${styles.soundBtn} ${mutedClass}`} onClick={() => setMuted(!muted)}></div>
+      <div style={{ display: "flex", flexDirection: "row" }}>
+        <div
+          className={`${styles.infoButton} ${infoButtonStyle}`}
+          onMouseEnter={() => {
+            setInfoHover(currentlyPlayingVideo ? true : false);
+          }}
+          onMouseLeave={() => {
+            setInfoHover(false);
+          }}
+          onClick={() => {
+            if (currentlyPlayingVideo) {
+              setInfoToggle(!infoToggle);
+            }
+          }}
+        >
+          <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
+        </div>
+        {renderButtons()}
+        <div className={styles.soundBtnOutline}>
+          <div
+            className={`${styles.soundBtn} ${mutedClass}`}
+            onClick={() => setMuted(!muted)}
+          ></div>
+        </div>
       </div>
       {renderVideoElement()}
     </div>

@@ -16,7 +16,7 @@ export default function Photos() {
     (state) => state
   );
   const [infoToggle, setInfoToggle] = useState(false);
-  const [infoVisible, setInfoVisible] = useState(false);
+  const [infoHover, setInfoHover] = useState(false);
 
   const photoFiles = selectPhotoFiles(photos);
 
@@ -71,7 +71,7 @@ export default function Photos() {
           ? new Date(photos.activePhoto.date_taken).toUTCString()
           : "-";
 
-      if (infoVisible || infoToggle) {
+      if (infoHover || infoToggle) {
         infoDisplayClass = styles.photoOverlayVisible;
       }
     }
@@ -119,28 +119,31 @@ export default function Photos() {
 
   let dateTakenLabel = "";
   let dateTakenValue = "";
-  if (photos.activePhoto.date_taken !== "") {
+  let infoButtonStyle = "";
+  const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
+  if (currentlyActivePhoto) {
     dateTakenLabel = "Taken:";
     dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
+    infoButtonStyle = styles.infoActive;
   }
-
-  let infoButtonActive = "";
   if (infoToggle) {
-    infoButtonActive = styles.infoButtonActive;
+    infoButtonStyle = styles.infoSelected;
   }
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
       <div style={{ display: "flex" }}>
         <div
-          className={`${styles.infoButton} ${infoButtonActive}`}
+          className={`${styles.infoButton} ${infoButtonStyle}`}
           onMouseEnter={() => {
-            setInfoVisible(true);
+            setInfoHover(currentlyActivePhoto ? true : false);
           }}
           onMouseLeave={() => {
-            setInfoVisible(false);
+            setInfoHover(false);
           }}
           onClick={() => {
-            setInfoToggle(!infoToggle);
+            if (currentlyActivePhoto) {
+              setInfoToggle(!infoToggle);
+            }
           }}
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
