@@ -5,7 +5,6 @@ import { ClockState } from "store/clock";
 import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } from "store/photos";
 import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
-import { info } from "console";
 
 /**
  * Renders a video and the downlink buttons
@@ -120,8 +119,7 @@ export default function Photos() {
   let dateTakenLabel = "";
   let dateTakenValue = "";
   let infoButtonStyle = "";
-  const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
-  if (currentlyActivePhoto) {
+  if (photos.activePhoto) {
     dateTakenLabel = "Taken:";
     dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
     infoButtonStyle = styles.infoActive;
@@ -135,13 +133,15 @@ export default function Photos() {
         <div
           className={`${styles.infoButton} ${infoButtonStyle}`}
           onMouseEnter={() => {
-            setInfoHover(currentlyActivePhoto ? true : false);
+            if (photos.activePhoto) {
+              setInfoHover(true);
+            }
           }}
           onMouseLeave={() => {
             setInfoHover(false);
           }}
           onClick={() => {
-            if (currentlyActivePhoto) {
+            if (photos.activePhoto) {
               setInfoToggle(!infoToggle);
             }
           }}

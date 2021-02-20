@@ -96,7 +96,6 @@ function NavTimeline() {
       isToday
     );
 
-    console.log("drawing everything in nav-timeline.tsx");
     drawNav.current.initGroups();
     drawNav.current.setDynamicWidthVariables();
     drawNav.current.drawTier1();
