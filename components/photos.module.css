@@ -9,11 +9,8 @@
   position: relative;
   background-color: #19181b;
 }
-.photoContainer:hover .photoOverlay {
-  visibility: visible;
-}
-.photoContainer .photoOverlay {
-  visibility: hidden;
+.photoOverlay {
+  display: none;
   position: absolute;
   top: 0;
   left: 0;
@@ -151,15 +148,23 @@
   cursor: pointer;
 }
 .infoButton:hover {
+  border: 2px #ffc000 solid;
+  padding: 4px;
+}
+.infoButtonActive {
   background-color: #ffc000;
   color: black;
 }
-.infoButton:hover .infoIcon {
+.infoButtonActive .infoIcon {
   background-color: #ffc000;
   color: black;
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="black"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
     no-repeat center;
 }
+.photoOverlayVisible {
+  display: block;
+}
+
 .infoText {
   font-size: 1.1rem;
   font-weight: 400;

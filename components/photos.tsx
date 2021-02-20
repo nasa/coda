@@ -5,6 +5,7 @@ import { ClockState } from "store/clock";
 import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } from "store/photos";
 import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
+import { info } from "console";
 
 /**
  * Renders a video and the downlink buttons
@@ -14,6 +15,8 @@ export default function Photos() {
   const { photos, clock }: { photos: PhotosState; clock: ClockState } = useSelector(
     (state) => state
   );
+  const [infoToggle, setInfoToggle] = useState(false);
+  const [infoVisible, setInfoVisible] = useState(false);
 
   const photoFiles = selectPhotoFiles(photos);
 
@@ -52,7 +55,7 @@ export default function Photos() {
     let dateTaken = "";
     let openOnIOMessage = "";
     let info = "";
-    let displayClass = styles.hidden;
+    let infoDisplayClass = "";
     if (photos.activePhoto) {
       photoFilename = photos.activePhoto.id;
       ioSearchLink = photos.activePhoto.ioInfoURL;
@@ -67,11 +70,14 @@ export default function Photos() {
         photos.activePhoto.date_taken !== ""
           ? new Date(photos.activePhoto.date_taken).toUTCString()
           : "-";
-      displayClass = "";
+
+      if (infoVisible || infoToggle) {
+        infoDisplayClass = styles.photoOverlayVisible;
+      }
     }
 
     return (
-      <div className={`${styles.photoOverlay} ${displayClass}`}>
+      <div className={`${styles.photoOverlay} ${infoDisplayClass}`}>
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
@@ -118,10 +124,25 @@ export default function Photos() {
     dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
   }
 
+  let infoButtonActive = "";
+  if (infoToggle) {
+    infoButtonActive = styles.infoButtonActive;
+  }
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
       <div style={{ display: "flex" }}>
-        <div className={styles.infoButton}>
+        <div
+          className={`${styles.infoButton} ${infoButtonActive}`}
+          onMouseEnter={() => {
+            setInfoVisible(true);
+          }}
+          onMouseLeave={() => {
+            setInfoVisible(false);
+          }}
+          onClick={() => {
+            setInfoToggle(!infoToggle);
+          }}
+        >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
         <div style={{ marginLeft: "auto", marginTop: "auto" }}>
