@@ -184,6 +184,13 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
+  const toggleFullScreen = () => {
+    var el = videoElement.current;
+    if (el.requestFullscreen) {
+      el.requestFullscreen();
+    }
+  };
+
   useEffect(changeVideoFile, [clock.time, videos.videos]);
   useEffect(clearMetadata, [clock.date, videos.activeVideoFiles[id], videos.videos]);
   useEffect(getInitialDownlink, [query]);
@@ -262,6 +269,11 @@ export default function Videos({ id }: { id: number }) {
               duration: vidElement.duration,
             };
             setMetadata(metaData);
+          }}
+          onClick={() => {
+            if (currentlyPlayingVideo) {
+              toggleFullScreen();
+            }
           }}
           onError={(e) => {
             const vidElement = e.target as HTMLVideoElement;
