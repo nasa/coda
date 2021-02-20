@@ -46,6 +46,7 @@ export default function Photos() {
   useEffect(changePhoto, [clock.time, photos.photos]);
 
   const renderPhotoOverlay = () => {
+    const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
     let ioSearchLink = "";
     let ioHighResURL = "";
     let openURLMessage = "";
@@ -55,7 +56,7 @@ export default function Photos() {
     let openOnIOMessage = "";
     let info = "";
     let infoDisplayClass = "";
-    if (photos.activePhoto) {
+    if (currentlyActivePhoto) {
       photoFilename = photos.activePhoto.id;
       ioSearchLink = photos.activePhoto.ioInfoURL;
       ioHighResURL = photos.activePhoto.highResURL;
@@ -119,7 +120,8 @@ export default function Photos() {
   let dateTakenLabel = "";
   let dateTakenValue = "";
   let infoButtonStyle = "";
-  if (photos.activePhoto) {
+  const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
+  if (currentlyActivePhoto) {
     dateTakenLabel = "Taken:";
     dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
     infoButtonStyle = styles.infoActive;
@@ -133,7 +135,7 @@ export default function Photos() {
         <div
           className={`${styles.infoButton} ${infoButtonStyle}`}
           onMouseEnter={() => {
-            if (photos.activePhoto) {
+            if (currentlyActivePhoto) {
               setInfoHover(true);
             }
           }}
@@ -141,7 +143,7 @@ export default function Photos() {
             setInfoHover(false);
           }}
           onClick={() => {
-            if (photos.activePhoto) {
+            if (currentlyActivePhoto) {
               setInfoToggle(!infoToggle);
             }
           }}
