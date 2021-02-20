@@ -134,6 +134,7 @@ export default function Photos() {
       <div style={{ display: "flex" }}>
         <div
           className={`${styles.infoButton} ${infoButtonStyle}`}
+          title={`Click to toggle IO info`}
           onMouseEnter={() => {
             if (currentlyActivePhoto) {
               setInfoHover(true);

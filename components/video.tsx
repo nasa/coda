@@ -404,6 +404,7 @@ export default function Videos({ id }: { id: number }) {
       <div style={{ display: "flex", flexDirection: "row" }}>
         <div
           className={`${styles.infoButton} ${infoButtonStyle}`}
+          title={`Click to toggle IO info`}
           onMouseEnter={() => {
             setInfoHover(currentlyPlayingVideo ? true : false);
           }}
@@ -419,7 +420,7 @@ export default function Videos({ id }: { id: number }) {
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
         {renderButtons()}
-        <div className={styles.soundBtnOutline}>
+        <div className={styles.soundBtnOutline} title={`Click to mute/unmute`}>
           <div
             className={`${styles.soundBtn} ${mutedClass}`}
             onClick={() => setMuted(!muted)}
