@@ -6,7 +6,8 @@
   border: #ffc000 solid 1px;
 }
 .headerModalButton:hover {
-  background-color: #ffc000;
+  border: 2px #ffc000 solid;
+  padding: 12px;
 }
 
 .headerModalButton .svgShare {
@@ -16,11 +17,6 @@
   background-size: 15px 15px;
   margin-left: 0;
   margin-right: 0;
-}
-
-.headerModalButton:hover .svgShare {
-  background: url(/coda/images/share_black.svg) no-repeat center;
-  background-size: 15px 15px;
 }
 
 .shareModalWrapper {

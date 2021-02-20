@@ -104,8 +104,9 @@
   margin-right: 0;
 }
 .jumpButton:hover {
-  background-color: #ffc000;
-  color: black;
+  border: 2px #ffc000 solid;
+  padding-right: 8px;
+  padding-left: 9px;
 }
 
 .version {
