@@ -1,4 +1,5 @@
 import isNull from "lodash/isNull";
+import deepEqual from "lodash/isEqual";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,6 +31,7 @@ import {
   changeTime,
 } from "store/clock";
 import useInterval from "utils/useInterval";
+import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -47,7 +49,8 @@ export default function View() {
     videos,
     photos,
   }: { clock: ClockState; evas: EVAsState; videos: VideosState; photos: PhotosState } = useSelector(
-    (state) => state
+    (state: RootState) => state,
+    deepEqual
   );
   const dispatch = useDispatch();
 

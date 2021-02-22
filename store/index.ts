@@ -15,14 +15,18 @@ const initialState = {
 
 // server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
 
+const reducer = combineReducers({
+  clock: clockSlice.reducer,
+  evas: evasSlice.reducer,
+  videos: videoSlice.reducer,
+  photos: photoSlice.reducer,
+});
+
+export type RootState = ReturnType<typeof reducer>;
+
 const initStore = (preloadedState = initialState) => {
   const store = configureStore({
-    reducer: combineReducers({
-      clock: clockSlice.reducer,
-      evas: evasSlice.reducer,
-      videos: videoSlice.reducer,
-      photos: photoSlice.reducer,
-    }),
+    reducer,
     preloadedState,
     devTools: true,
     middleware: [...getDefaultMiddleware({ immutableCheck: false, serializableCheck: false })],

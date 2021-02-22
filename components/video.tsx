@@ -1,4 +1,5 @@
 import isNull from "lodash/isNull";
+import deepEqual from "lodash/isEqual";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -15,6 +16,7 @@ import {
 } from "store/videos";
 import { secondsToHHMMSS, secondsToZuluString } from "utils/formatting";
 import styles from "./video.module.css";
+import { RootState } from "store/index";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -39,7 +41,8 @@ export default function Videos({ id }: { id: number }) {
   const { query } = useRouter();
   const dispatch = useDispatch();
   const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
-    (state) => state
+    (state: RootState) => state,
+    deepEqual
   );
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(id !== 1);

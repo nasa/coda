@@ -1,4 +1,5 @@
 import get from "lodash/get";
+import deepEqual from "lodash/isEqual";
 import isNull from "lodash/isNull";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
@@ -14,6 +15,7 @@ import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/vide
 import { selectPhotoFiles, PhotosState, setActivePhoto } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 import { secondsIntoDayFromZuluDateString } from "utils/formatting";
+import { RootState } from "store/index";
 
 /**
  * Renders the navigation timeline presented at the top of the CODA window
@@ -29,7 +31,7 @@ function NavTimeline() {
     evas: EVAsState;
     videos: VideosState;
     photos: PhotosState;
-  } = useSelector((state) => state);
+  } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);

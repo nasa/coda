@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
+import deepEqual from "lodash/isEqual";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
@@ -11,6 +12,7 @@ import { PhotosState } from "store/photos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
+import { RootState } from "store/index";
 
 /**
  * Renders the main CODA application layout. Also handles checking whether the clock should be running
@@ -21,7 +23,8 @@ export default function Main() {
     videos,
     photos,
   }: { clock: ClockState; videos: VideosState; photos: PhotosState } = useSelector(
-    (state) => state
+    (state: RootState) => state,
+    deepEqual
   );
   const dispatch = useDispatch();
 

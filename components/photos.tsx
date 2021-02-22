@@ -1,10 +1,12 @@
 import { useRouter } from "next/router";
+import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ClockState } from "store/clock";
 import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } from "store/photos";
 import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
+import { RootState } from "store/index";
 
 /**
  * Renders a video and the downlink buttons
@@ -12,7 +14,8 @@ import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/format
 export default function Photos() {
   const dispatch = useDispatch();
   const { photos, clock }: { photos: PhotosState; clock: ClockState } = useSelector(
-    (state) => state
+    (state: RootState) => state,
+    deepEqual
   );
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
