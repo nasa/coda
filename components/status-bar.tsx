@@ -1,10 +1,12 @@
 import { useSelector } from "react-redux";
+import deepEqual from "lodash/isEqual";
 import { PhotoFile } from "services/io";
 import { add, ClockState, isSameDate } from "store/clock";
 import { EVAsState } from "store/evas";
 import { PhotosState } from "store/photos";
 import { VideosState } from "store/videos";
 import styles from "./status-bar.module.css";
+import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -19,7 +21,7 @@ export default function StatusBar() {
     evas: EVAsState;
     videos: VideosState;
     photos: PhotosState;
-  } = useSelector((store) => store);
+  } = useSelector((store: RootState) => store, deepEqual);
 
   const errorMessages =
     evasErrorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";

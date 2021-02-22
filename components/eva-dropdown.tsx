@@ -1,6 +1,8 @@
 import { useRouter } from "next/router";
+import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { RootState } from "store/index";
 import { diff } from "store/clock";
 import styles from "./eva-dropdown.module.css";
 
@@ -8,7 +10,7 @@ export default function EVADropdown() {
   const router = useRouter();
   const {
     evas: { EVAs, selectedEVA },
-  } = useSelector((state) => state);
+  } = useSelector((state: RootState) => state, deepEqual);
 
   const [value, setValue] = useState(selectedEVA);
 

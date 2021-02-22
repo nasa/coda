@@ -1,4 +1,5 @@
 import config from "../package.json";
+import deepEqual from "lodash/isEqual";
 import Link from "next/link";
 import isNull from "lodash/isNull";
 import { useRouter } from "next/router";
@@ -8,6 +9,7 @@ import { changeTime, ClockState } from "store/clock";
 import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
+import { RootState } from "store/index";
 
 import styles from "./header.module.css";
 import { evaSelector, EVAsState } from "store/evas";
@@ -18,7 +20,10 @@ import { evaSelector, EVAsState } from "store/evas";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { clock, evas }: { clock: ClockState; evas: EVAsState } = useSelector((state) => state);
+  const { clock, evas }: { clock: ClockState; evas: EVAsState } = useSelector(
+    (state: RootState) => state,
+    deepEqual
+  );
 
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");

@@ -1,9 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
+import deepEqual from "lodash/isEqual";
 import { changeTime, ClockState, start, stop } from "store/clock";
 import styles from "./playback-controls.module.css";
+import { RootState } from "store/index";
 
 export default function PlaybackControls() {
-  const { clock }: { clock: ClockState } = useSelector((state) => state);
+  const { clock }: { clock: ClockState } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
 
   const handlePlayPause = () => {

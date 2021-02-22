@@ -1,11 +1,13 @@
 import { useState, useRef } from "react";
+import deepEqual from "lodash/isEqual";
 import { useSelector } from "react-redux";
 import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
+import { RootState } from "store/index";
 
 export default function HeaderShare() {
-  const { clock, videos } = useSelector((state) => state);
+  const { clock, videos } = useSelector((state: RootState) => state, deepEqual);
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
