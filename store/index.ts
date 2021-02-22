@@ -25,6 +25,7 @@ const initStore = (preloadedState = initialState) => {
     }),
     preloadedState,
     devTools: true,
+    middleware: [...getDefaultMiddleware({ immutableCheck: false, serializableCheck: false })],
   });
   return store;
 };
