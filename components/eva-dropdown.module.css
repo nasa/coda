@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 25em;
+  width: 28em;
 }
 .select select {
   font-family: "Inter", sans-serif;
@@ -22,8 +22,10 @@
 .select select::-ms-expand {
   display: none;
 }
-.select select:hover, .select select:focus {  
-  color: #ffc000;
+.select select:hover,
+.select select:focus {
+  border: 2px #ffc000 solid;
+  padding: 10px 14px;
 }
 .select select:disabled {
   opacity: 0.5;

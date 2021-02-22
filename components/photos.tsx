@@ -14,6 +14,8 @@ export default function Photos() {
   const { photos, clock }: { photos: PhotosState; clock: ClockState } = useSelector(
     (state) => state
   );
+  const [infoToggle, setInfoToggle] = useState(false);
+  const [infoHover, setInfoHover] = useState(false);
 
   const photoFiles = selectPhotoFiles(photos);
 
@@ -44,6 +46,7 @@ export default function Photos() {
   useEffect(changePhoto, [clock.time, photos.photos]);
 
   const renderPhotoOverlay = () => {
+    const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
     let ioSearchLink = "";
     let ioHighResURL = "";
     let openURLMessage = "";
@@ -52,8 +55,8 @@ export default function Photos() {
     let dateTaken = "";
     let openOnIOMessage = "";
     let info = "";
-    let displayClass = styles.hidden;
-    if (photos.activePhoto) {
+    let infoDisplayClass = "";
+    if (currentlyActivePhoto) {
       photoFilename = photos.activePhoto.id;
       ioSearchLink = photos.activePhoto.ioInfoURL;
       ioHighResURL = photos.activePhoto.highResURL;
@@ -67,11 +70,14 @@ export default function Photos() {
         photos.activePhoto.date_taken !== ""
           ? new Date(photos.activePhoto.date_taken).toUTCString()
           : "-";
-      displayClass = "";
+
+      if (infoHover || infoToggle) {
+        infoDisplayClass = styles.photoOverlayVisible;
+      }
     }
 
     return (
-      <div className={`${styles.photoOverlay} ${displayClass}`}>
+      <div className={`${styles.photoOverlay} ${infoDisplayClass}`}>
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
@@ -113,23 +119,49 @@ export default function Photos() {
 
   let dateTakenLabel = "";
   let dateTakenValue = "";
-  if (photos.activePhoto.date_taken !== "") {
+  let infoButtonStyle = "";
+  const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
+  if (currentlyActivePhoto) {
     dateTakenLabel = "Taken:";
     dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
+    infoButtonStyle = styles.infoActive;
   }
-
+  if (infoToggle) {
+    infoButtonStyle = styles.infoSelected;
+  }
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
-      <div style={{ textAlign: "right" }}>
-        <span
-          style={{ paddingRight: "5px" }}
-          className={`${styles.photoHeaderText} ${styles.dimText}`}
+      <div style={{ display: "flex" }}>
+        <div
+          className={`${styles.infoButton} ${infoButtonStyle}`}
+          title={`Click to toggle IO info`}
+          onMouseEnter={() => {
+            if (currentlyActivePhoto) {
+              setInfoHover(true);
+            }
+          }}
+          onMouseLeave={() => {
+            setInfoHover(false);
+          }}
+          onClick={() => {
+            if (currentlyActivePhoto) {
+              setInfoToggle(!infoToggle);
+            }
+          }}
         >
-          {dateTakenLabel}
-        </span>
-        <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-          {dateTakenValue}
-        </span>
+          <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
+        </div>
+        <div style={{ marginLeft: "auto", marginTop: "auto" }}>
+          <span
+            style={{ paddingRight: "5px" }}
+            className={`${styles.photoHeaderText} ${styles.dimText}`}
+          >
+            {dateTakenLabel}
+          </span>
+          <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
+            {dateTakenValue}
+          </span>
+        </div>
       </div>
       <div
         key={`photo_element`}
