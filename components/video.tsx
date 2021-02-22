@@ -312,7 +312,7 @@ export default function Videos({ id }: { id: number }) {
         <button
           key={`vid${id}__button${g}`}
           type="button"
-          title={`Select downlink ${g + 1}`}
+          title={g < 6 ? `Select downlink ${g + 1}` : "Seleect other video"}
           className={buttonClassStyle}
           onClick={() => {
             if (g !== group) {
@@ -390,6 +390,7 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const mutedClass = muted === true ? styles.unmute : styles.mute;
+  const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
   const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
   let infoButtonStyle = "";
@@ -412,20 +413,17 @@ export default function Videos({ id }: { id: number }) {
             setInfoHover(false);
           }}
           onClick={() => {
-            if (currentlyPlayingVideo) {
-              setInfoToggle(!infoToggle);
-            }
+            setInfoToggle(!infoToggle);
           }}
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
         {renderButtons()}
-        <div className={styles.soundBtnOutline} title={`Click to mute/unmute`}>
-          <div
-            className={`${styles.soundBtn} ${mutedClass}`}
-            onClick={() => setMuted(!muted)}
-          ></div>
-        </div>
+        <div
+          className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
+          title={`Click to mute/unmute`}
+          onClick={() => setMuted(!muted)}
+        ></div>
       </div>
       {renderVideoElement()}
     </div>
