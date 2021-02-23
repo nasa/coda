@@ -220,7 +220,6 @@ interface EVAAsExecuted {
       "Has text title": string[];
       "Duration hour": number[];
       "Duration minute": number[];
-      "Depends on": any[];
       "Related article": any[];
       Color: string[];
       Actor: string[];
@@ -257,7 +256,6 @@ async function getAsExecuted(evaName: string, evNum: number) {
     |? Has text title
     |? Duration hour
     |? Duration minute
-    |? Depends on
     |? Related article
     |? Color
     |? Actor
@@ -312,7 +310,6 @@ async function _getAllAsExecuted(): Promise<AllExecution> {
     |? Has text title
     |? Duration hour
     |? Duration minute
-    |? Depends on
     |? Related article
     |? Color
     |? Actor
