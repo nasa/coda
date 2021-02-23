@@ -4,7 +4,7 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import { EVA, buildEVAStore } from "services/iss-wiki";
+import { EVA, buildEVAStore, updateEVA } from "services/iss-wiki";
 import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
 import {
   addVideos,
@@ -19,7 +19,7 @@ import {
   initialState as photosInitialState,
   fetchError as photosFetchError,
 } from "store/photos";
-import { EVAsState, setSelected } from "store/evas";
+import { addEVAs, EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import {
@@ -32,6 +32,7 @@ import {
 } from "store/clock";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
+import { update } from "lodash";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -208,6 +209,21 @@ export default function View() {
       }
 
       dispatch(addVideos({ videos: videoStore }));
+    })();
+  }, FIVE_MINS_MS);
+
+  // look for wiki info every 5 mins if the user is looking at today's date and there's an EVA
+  useInterval(() => {
+    (async () => {
+      let updatedEVA: { [key: string]: EVA };
+      try {
+        // EVA data from the wiki
+        updatedEVA = await updateEVA(evas.selectedEVA);
+      } catch (e) {
+        console.error(e);
+      }
+
+      dispatch(addEVAs(updatedEVA));
     })();
   }, FIVE_MINS_MS);
 
