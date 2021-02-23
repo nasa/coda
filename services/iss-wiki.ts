@@ -453,7 +453,10 @@ async function _getAllAsExecuted(evaName: string, evNum: number): Promise<AllExe
 }
 
 /** Memoized call to get as-executed data for a given EV on a given EVA */
-export const getAllAsExecuted: () => Promise<AllExecution> = memoize(_getAllAsExecuted);
+export const getAllAsExecuted: (
+  evaName?: string,
+  evNum?: number
+) => Promise<AllExecution> = memoize(_getAllAsExecuted);
 
 function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
   const res = {};
@@ -678,7 +681,7 @@ export async function buildEVAStore() {
       startTime: asPlanned[evaName].printouts["Start time"][0],
       duration,
       execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
-      crew: get(crews, formattedEVAName, {}),
+      crew: get(crews, formattedEVAName, {}) as { [crew: string]: string },
       // we need video data to calculate activityPerformance
       activityPerformance: { EV1: [], EV2: [] },
       // the wiki doesn't actually give us dayNight
