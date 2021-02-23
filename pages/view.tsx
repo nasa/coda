@@ -204,11 +204,10 @@ export default function View() {
       try {
         // video data for this EVA
         videoStore = await buildVideoStore(year, month + 1, day);
+        dispatch(addVideos({ videos: videoStore }));
       } catch (e) {
         console.error(e);
       }
-
-      dispatch(addVideos({ videos: videoStore }));
     })();
   }, FIVE_MINS_MS);
 
