@@ -3,6 +3,7 @@
  */
 import get from "lodash/get";
 import memoize from "lodash/memoize";
+import fetch from "isomorphic-unfetch";
 import { padZeros } from "utils/formatting";
 
 export interface EVA {
@@ -73,6 +74,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
 
   const isServer = typeof window === "undefined";
 
+  res = await proxyWikiFetch(query);
   if (isServer) {
     const serverFetch = await require("services/iss-wiki-server").default;
     res = await serverFetch(query, action);
@@ -83,10 +85,17 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
   return res;
 }
 
+/**
+ * Query the ISS Wiki through our proxy. Safe to call from the client
+ * @param query A wiki ask query string
+ */
 async function proxyWikiFetch(query: string): Promise<WikiResults> {
-  console.log("hey");
-  let res: WikiResults;
-  return res;
+  // the proxy doesn't like all the newlines in our nicely formatted queries. get rid of them
+  const strippedQuery = query.trim().replace(/\r?\n|\r/g, "");
+  const queryString = encodeURIComponent(`"${strippedQuery}"`);
+  const url = `${process.env.PROXY_ORIGIN}/coda_server/getwiki.php?wikiparam=${queryString}`;
+  const data = await fetch(url);
+  return await data.json();
 }
 
 interface WikiTimestamp {
@@ -396,8 +405,9 @@ export interface Crew {
  * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
  */
 async function getCrew(evaName: string) {
+  // `%2B` is a `+`
   const query = `
-    [[Crew involved with subject::+]]
+    [[Crew involved with subject::%2B]]
     [[From page::${evaName}]]
     |? Has full name
     |? Has role
@@ -428,7 +438,7 @@ export interface AllCrews {
   [key: string]: Crew;
 }
 
-/** Get crew assignment data for all EVAs */
+/** Get crew assignment data for all EVAs. Server-only because the proxy does not like the `+` in the query */
 async function _getAllCrew(): Promise<AllCrews> {
   const query = `
     [[Crew involved with subject::+]]
