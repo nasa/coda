@@ -159,8 +159,9 @@ interface EVADetails {
 
 /**
  * Get metadata about an EVA from the wiki
+ * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
  */
-export async function getEVADetails(evaName): Promise<ParsedEVADetails> {
+export async function getEVADetails(evaName: string): Promise<ParsedEVADetails> {
   const query = `
     [[ ${evaName} ]]
     |? EVA title
@@ -198,7 +199,7 @@ function parseDetailsObject(res: EVADetails): ParsedEVADetails {
     startTime: evaData["printouts"]["Start time"][0],
     duration: evaData["printouts"]["Duration"][0],
     fullURL: evaData["fullurl"],
-    evaDate: `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`,
+    evaDate: `${year}/${month}/${day}`,
   };
 }
 
@@ -234,7 +235,10 @@ const colorTranslator = {
   pink: "#FFC0CB",
 };
 
-/** Get as-executed data for a given EV on a given EVA */
+/**
+ * Get as-executed data for a given EV on a given EVA
+ * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
+ */
 async function getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
   const query = `
@@ -387,7 +391,10 @@ export interface Crew {
   SUIT_IV: string;
 }
 
-/** Get crew assignment data for a EVA */
+/**
+ * Get crew assignment data for a EVA. Client-only because the proxy needs the `+` in the query to get pre-encoded as `%2B`
+ * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
+ */
 async function getCrew(evaName: string) {
   const query = `
     [[Crew involved with subject::+]]
@@ -507,8 +514,11 @@ export async function buildEVAStore() {
   return EVAs;
 }
 
-/** Fetch data for a single EVA and format it for passing to the redux store */
-export async function updateEVA(evaName) {
+/**
+ * Fetch data for a single EVA and format it for passing to the redux store
+ * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
+ */
+export async function updateEVA(evaName: string) {
   const ret = {} as { [key: string]: EVA };
   const asPlanned = await getEVADetails(evaName);
   const execution = {
@@ -519,19 +529,18 @@ export async function updateEVA(evaName) {
 
   const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
   let duration = -1;
-  const [wikiDuration] = asPlanned[evaName].printouts.Duration;
   // for whatever reason, if no duration is specified the wiki gives us ":"
-  if (wikiDuration !== ":") {
-    const [h, m] = wikiDuration.split(":");
+  if (asPlanned.duration !== ":") {
+    const [h, m] = asPlanned.duration.split(":");
     duration = +h * 3600 + +m * 60;
   }
 
   ret[formattedEVAName] = {
     name: evaName,
-    wikiURL: asPlanned[evaName].fullurl,
-    displayTitle: asPlanned[evaName].printouts["EVA title"][0],
-    startDate: asPlanned[evaName].printouts["Start date"][0].raw.substring(2),
-    startTime: asPlanned[evaName].printouts["Start time"][0],
+    wikiURL: asPlanned.fullURL,
+    displayTitle: asPlanned.evaTitle,
+    startDate: asPlanned.evaDate,
+    startTime: asPlanned.startTime,
     duration,
     execution,
     crew,

@@ -218,12 +218,11 @@ export default function View() {
       let updatedEVA: { [key: string]: EVA };
       try {
         // EVA data from the wiki
-        updatedEVA = await updateEVA(evas.selectedEVA);
+        updatedEVA = await updateEVA(eva.name);
+        dispatch(addEVAs(updatedEVA));
       } catch (e) {
         console.error(e);
       }
-
-      dispatch(addEVAs(updatedEVA));
     })();
   }, FIVE_MINS_MS);
 
