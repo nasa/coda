@@ -19,7 +19,7 @@ import {
   initialState as photosInitialState,
   fetchError as photosFetchError,
 } from "store/photos";
-import { addEVAs, EVAsState, setSelected } from "store/evas";
+import { addEVAs, evaSelector, EVAsState, setSelected } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import {
@@ -54,6 +54,7 @@ export default function View() {
     deepEqual
   );
   const dispatch = useDispatch();
+  const eva = evaSelector(evas);
 
   // make sure the application is running on the correct date
   useEffect(() => {
@@ -214,6 +215,21 @@ export default function View() {
   // look for wiki info every 5 mins if the user is looking at today's date and there's an EVA
   useInterval(() => {
     (async () => {
+      // the clock hasn't been set, no point in checking for new wiki data
+      if (isNull(clock.date)) {
+        return;
+      }
+
+      if (evas.selectedEVA === "") {
+        return;
+      }
+
+      const d = new Date(clock.date);
+      if (!isSameDate(d, new Date())) {
+        // the user is looking at a date in the past. no need to keep looking for wiki updates
+        return;
+      }
+
       let updatedEVA: { [key: string]: EVA };
       try {
         // EVA data from the wiki
@@ -252,7 +268,7 @@ export const getStaticProps: GetServerSideProps = async () => {
   let evaOnDate = "";
   let evaErrorMessage = "";
 
-  let EVAs: { [key: string]: EVA };
+  let EVAs: { [key: string]: EVA } = {};
   try {
     EVAs = await buildEVAStore();
   } catch (e) {
