@@ -144,7 +144,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
 
   let url = `${process.env.IO_API_URL}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
   // IO doesn't currently like our Origin and key so we need to use a proxy
-  url = `${process.env.IO_PROXY_ORIGIN}/CODA_ISS/getio.php?IOParam=${encodeURIComponent(url)}`;
+  url = `${process.env.IO_PROXY_ORIGIN}/coda_server/getio.php?IOParam=${encodeURIComponent(url)}`;
 
   const options = {
     headers: {
