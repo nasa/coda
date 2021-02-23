@@ -8,7 +8,7 @@ import memoize from "lodash/memoize";
 import MWBot from "mwbot";
 import FileCookieStore from "tough-cookie-filestore";
 import request from "request";
-import fetch from "node-fetch";
+import fetch from "isomorphic-unfetch";
 import { WikiResponse, WikiResults } from "services/iss-wiki";
 
 const COOKIE_JAR =
