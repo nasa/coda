@@ -212,21 +212,10 @@ export default function View() {
     })();
   }, FIVE_MINS_MS);
 
-  // look for wiki info every 5 mins if the user is looking at today's date and there's an EVA
+  // look for wiki info every 5 mins if the user is looking at an EVA
   useInterval(() => {
     (async () => {
-      // the clock hasn't been set, no point in checking for new wiki data
-      if (isNull(clock.date)) {
-        return;
-      }
-
       if (evas.selectedEVA === "") {
-        return;
-      }
-
-      const d = new Date(clock.date);
-      if (!isSameDate(d, new Date())) {
-        // the user is looking at a date in the past. no need to keep looking for wiki updates
         return;
       }
 
