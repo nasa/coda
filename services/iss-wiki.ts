@@ -1,7 +1,6 @@
-/*
-Methods for fetching BLE data (aka Basic Level of Entitlement aka data anyone at NASA can see) from the ISS wiki. Caches responses whenever possible. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
-*/
-import dynamic from "next/dynamic";
+/**
+ * Methods for fetching BLE data (aka Basic Level of Entitlement aka data anyone at NASA can see) from the ISS Wiki. Browsers will use a proxy, servers will hit the ISS Wiki directly
+ */
 import get from "lodash/get";
 import memoize from "lodash/memoize";
 import { padZeros } from "utils/formatting";

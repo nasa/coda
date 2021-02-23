@@ -1,3 +1,6 @@
+/*
+Server-side implementations for hitting the ISS Wiki directly. Caches responses whenever possible. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+*/
 import crypto from "crypto";
 import { promises as fs } from "fs";
 import isNull from "lodash/isNull";
