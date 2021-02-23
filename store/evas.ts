@@ -25,10 +25,15 @@ export const evasSlice = createSlice({
     setSelected: (state, action: { payload: string }) => {
       state.selectedEVA = action.payload;
     },
+
+    /** Add one (or more) EVA(s) to the store */
+    addEVAs: (state: EVAsState, action: { payload: { [key: string]: EVA } }) => {
+      state.EVAs = { ...state.EVAs, ...action.payload };
+    },
   },
 });
 
-export const { setSelected } = evasSlice.actions;
+export const { setSelected, addEVAs } = evasSlice.actions;
 
 /** Start time of an EVA in UTC milliseconds */
 export const getEVAStartMilliseconds = (eva: EVA): number => {
