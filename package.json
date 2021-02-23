@@ -57,5 +57,8 @@
     "tough-cookie-filestore": "0.0.1",
     "ts-jest": "^26.4.4",
     "win-ca": "^3.4.5"
+  },
+  "browser": {
+    "services/iss-wiki-server": false
   }
 }
