@@ -13,6 +13,7 @@ module.exports = {
     '^utils/(.*)$': '<rootDir>/utils/$1',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/utils/jest-extends.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
