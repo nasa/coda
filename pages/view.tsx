@@ -4,7 +4,7 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import { EVA, buildEVAStore, fetchEVA, initEVAStore } from "services/iss-wiki";
+import { EVA, fetchEVA, initEVAStore } from "services/iss-wiki";
 import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
 import {
   addVideos,
@@ -25,6 +25,7 @@ import {
   EVAsState,
   setSelected,
   fetchError as evasFetchError,
+  EVAStore,
 } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -284,9 +285,9 @@ export const getStaticProps: GetServerSideProps = async () => {
   let evaOnDate = "";
   let evaErrorMessage = "";
 
-  let EVAs: { [key: string]: EVA } = {};
+  let EVAs: EVAStore = {};
   try {
-    EVAs = await buildEVAStore();
+    EVAs = await initEVAStore();
   } catch (e) {
     console.error(e);
     evaErrorMessage = "Error fetching EVA list";
