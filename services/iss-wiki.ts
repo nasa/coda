@@ -4,7 +4,7 @@
 import get from "lodash/get";
 import memoize from "lodash/memoize";
 import fetch from "isomorphic-unfetch";
-import { EVAStore } from "store/evas";
+import type { EVAStore } from "store/evas";
 
 export interface EVA {
   /** EVA name upper-cased with spaces, eg. `US EVA 55` */
