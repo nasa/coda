@@ -278,7 +278,7 @@ export default function View() {
 }
 
 /**
- * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client. This is where we perform all the requests to external APIs to get the data required to render the EVA
+ * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
  */
 export const getStaticProps: GetServerSideProps = async () => {
