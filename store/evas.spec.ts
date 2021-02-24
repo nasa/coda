@@ -86,5 +86,42 @@ describe("store/evasSlice", () => {
       expect(Object.keys(EVAs).length).toEqual(1);
       expect(EVAs["us_eva_100"]).toEqual(updatedEVA);
     });
+
+    it("should mark when the store was updated", () => {
+      const newEVA: EVA = {
+        name: "us_eva_100",
+        wikiURL: "",
+        displayTitle: "US EVA 100 TEST",
+        startDate: new Date().toISOString(),
+        startTime: "00:00",
+        duration: 0,
+        activityPerformance: { EV1: [], EV2: [] },
+        dayNight: { events: [], dataStartUTC: 0 },
+      };
+
+      const action = addEVAs({ us_eva_100: newEVA });
+
+      const { lastChecked } = evasSlice.reducer(initialState, action);
+      expect(new Date(lastChecked)).toHappenAround(new Date());
+    });
+
+    it("should clear out any error messages", () => {
+      const newEVA: EVA = {
+        name: "us_eva_100",
+        wikiURL: "",
+        displayTitle: "US EVA 100 TEST",
+        startDate: new Date().toISOString(),
+        startTime: "00:00",
+        duration: 0,
+        activityPerformance: { EV1: [], EV2: [] },
+        dayNight: { events: [], dataStartUTC: 0 },
+      };
+
+      const oldState = { ...initialState, errorMessage: "wiki imploded :(" };
+      const action = addEVAs({ us_eva_100: newEVA });
+
+      const { errorMessage } = evasSlice.reducer(oldState, action);
+      expect(errorMessage).toEqual("");
+    });
   });
 });
