@@ -111,7 +111,7 @@ export default function StatusBar() {
             |&nbsp;
           </span>
         )}
-        <span title={["IO Status", videosErrorMessage || "Good"].join(" | ")}>
+        <span title={["IO Status", videosErrorMessage || photosErrorMessage || "Good"].join(" | ")}>
           IO {videosErrorMessage === "" && photosErrorMessage === "" ? "✓" : "✗"}&nbsp;
         </span>
         <span title={["Wiki Status", evasErrorMessage || "Good"].join(" | ")}>
