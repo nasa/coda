@@ -4,7 +4,7 @@
 import get from "lodash/get";
 import memoize from "lodash/memoize";
 import fetch from "isomorphic-unfetch";
-import { padZeros } from "utils/formatting";
+import { EVAStore } from "store/evas";
 
 export interface EVA {
   /** EVA name upper-cased with spaces, eg. `US EVA 55` */
@@ -485,8 +485,44 @@ export interface DayNight {
   events?: Activity[];
 }
 
-/** Fetch all EVA data and format it for passing to the redux store */
-export async function buildEVAStore() {
+/**
+ * Fetch as-planned data to put in the store
+ */
+export async function initEVAStore(): Promise<EVAStore> {
+  const EVAs = {} as { [key: string]: EVA };
+  const asPlanned = await getAllEVAs();
+
+  Object.keys(asPlanned).forEach((evaName) => {
+    const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+    let duration = -1;
+    const [wikiDuration] = asPlanned[evaName].printouts.Duration;
+    // for whatever reason, if no duration is specified the wiki gives us ":"
+    if (wikiDuration !== ":") {
+      const [h, m] = wikiDuration.split(":");
+      duration = +h * 3600 + +m * 60;
+    }
+
+    EVAs[formattedEVAName] = {
+      name: evaName,
+      wikiURL: asPlanned[evaName].fullurl,
+      displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+      startDate: asPlanned[evaName].printouts["Start date"][0].raw.substring(2),
+      startTime: asPlanned[evaName].printouts["Start time"][0],
+      duration,
+      execution: { EV1: [], EV2: [] },
+      crew: { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" },
+      // we need video data to calculate activityPerformance
+      activityPerformance: { EV1: [], EV2: [] },
+      // the wiki doesn't actually give us dayNight
+      dayNight: { events: [], dataStartUTC: 0 },
+    };
+  });
+
+  return EVAs;
+}
+
+/** Fetch as-planned and as-executed EVA data and format it for passing to the redux store */
+export async function buildEVAStore(): Promise<EVAStore> {
   const EVAs = {} as { [key: string]: EVA };
   const asPlanned = await getAllEVAs();
   const asExecuted = await getAllAsExecuted();
@@ -522,10 +558,10 @@ export async function buildEVAStore() {
 }
 
 /**
- * Fetch data for a single EVA and format it for passing to the redux store
+ * Fetch data for a single EVA and format it for passing to the store
  * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
  */
-export async function updateEVA(evaName: string) {
+export async function fetchEVA(evaName: string): Promise<EVAStore> {
   const ret = {} as { [key: string]: EVA };
   const asPlanned = await getEVADetails(evaName);
   const execution = {

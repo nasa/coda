@@ -4,7 +4,7 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import { EVA, buildEVAStore, updateEVA } from "services/iss-wiki";
+import { EVA, buildEVAStore, fetchEVA, initEVAStore } from "services/iss-wiki";
 import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
 import {
   addVideos,
@@ -19,7 +19,13 @@ import {
   initialState as photosInitialState,
   fetchError as photosFetchError,
 } from "store/photos";
-import { addEVAs, evaSelector, EVAsState, setSelected } from "store/evas";
+import {
+  addEVAs,
+  evaSelector,
+  EVAsState,
+  setSelected,
+  fetchError as evasFetchError,
+} from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import {
@@ -201,19 +207,33 @@ export default function View() {
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
 
-      let videoStore: Videos;
       try {
         // video data for this EVA
-        videoStore = await buildVideoStore(year, month + 1, day);
+        const videoStore: Videos = await buildVideoStore(year, month + 1, day);
         dispatch(addVideos({ videos: videoStore }));
       } catch (e) {
+        dispatch(videosFetchError(e.toString()));
         console.error(e);
       }
     })();
   }, FIVE_MINS_MS);
 
-  // look for wiki info every 5 mins if the user is looking at an EVA
-  useInterval(() => {
+  // fetch updated data on all EVAs as soon as the page loads
+  useEffect(() => {
+    (async () => {
+      try {
+        // EVA data from the wiki
+        const updatedEVAs = await initEVAStore();
+        dispatch(addEVAs(updatedEVAs));
+      } catch (e) {
+        dispatch(evasFetchError(e.toString()));
+        console.error(e);
+      }
+    })();
+  }, []);
+
+  /** If the user is looking at an EVA, update that EVA in the store */
+  const updateEVA = () => {
     (async () => {
       if (evas.selectedEVA === "") {
         return;
@@ -222,13 +242,20 @@ export default function View() {
       let updatedEVA: { [key: string]: EVA };
       try {
         // EVA data from the wiki
-        updatedEVA = await updateEVA(eva.name);
+        updatedEVA = await fetchEVA(eva.name);
         dispatch(addEVAs(updatedEVA));
       } catch (e) {
+        dispatch(evasFetchError(e.toString()));
         console.error(e);
       }
     })();
-  }, FIVE_MINS_MS);
+  };
+
+  // fetch updated data as soon as the page loads if the user is looking at an EVA
+  useEffect(updateEVA, [evas.selectedEVA]);
+
+  // look for wiki info every 5 mins if the user is looking at an EVA
+  useInterval(updateEVA, FIVE_MINS_MS);
 
   let prefix = "Viewer";
   if (!isNull(clock.date)) {
