@@ -3,14 +3,15 @@ import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/
 import { clockSlice, initialState as clockInitialState } from "./clock";
 import { evasSlice, initialState as evasInitialState } from "./evas";
 import { videoSlice, initialState as videosInitialState } from "./videos";
-import { photoSlice } from "./photos";
+import { photoSlice, initialState as photosInitialState } from "./photos";
 
 let store;
 
-const initialState = {
+export const initialState = {
   clock: clockInitialState,
   evas: evasInitialState,
   videos: videosInitialState,
+  photos: photosInitialState,
 };
 
 // server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50

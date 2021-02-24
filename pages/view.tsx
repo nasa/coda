@@ -10,15 +10,9 @@ import {
   addVideos,
   haveVideosFromDate,
   VideosState,
-  initialState as videosInitialState,
   fetchError as videosFetchError,
 } from "store/videos";
-import {
-  addPhotos,
-  PhotosState,
-  initialState as photosInitialState,
-  fetchError as photosFetchError,
-} from "store/photos";
+import { addPhotos, PhotosState, fetchError as photosFetchError } from "store/photos";
 import {
   addEVAs,
   evaSelector,
@@ -29,17 +23,9 @@ import {
 } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import {
-  ClockState,
-  initialState as clockInitialState,
-  diff,
-  isSameDate,
-  changeDate,
-  changeTime,
-} from "store/clock";
+import { ClockState, diff, isSameDate, changeDate, changeTime } from "store/clock";
 import useInterval from "utils/useInterval";
-import { RootState } from "store/index";
-import { update } from "lodash";
+import { initialState, RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -296,15 +282,13 @@ export const getStaticProps: GetServerSideProps = async () => {
   return {
     props: {
       initialReduxState: {
-        clock: clockInitialState,
+        ...initialState,
         evas: {
           EVAs,
           selectedEVA: evaOnDate,
           EVACrew: {},
           errorMessage: evaErrorMessage,
         },
-        videos: videosInitialState,
-        photos: photosInitialState,
       },
     },
     // regenerate the props at most once per second if a request comes in
