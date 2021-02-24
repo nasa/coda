@@ -7,14 +7,15 @@ import { PhotosState } from "store/photos";
 import { VideosState } from "store/videos";
 import styles from "./status-bar.module.css";
 import { RootState } from "store/index";
+import { useEffect, useState } from "react";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
   const {
     clock: { isRunning, date },
-    evas: { errorMessage: evasErrorMessage },
-    videos: { ready: videosReady, lastChecked, errorMessage: videosErrorMessage },
+    evas: { errorMessage: evasErrorMessage, lastChecked: wikiLastChecked, selectedEVA },
+    videos: { ready: videosReady, lastChecked: ioLastChecked, errorMessage: videosErrorMessage },
     photos: { ready: photosReady, photosLastChecked, errorMessage: photosErrorMessage },
   }: {
     clock: ClockState;
@@ -26,29 +27,66 @@ export default function StatusBar() {
   const errorMessages =
     evasErrorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
 
-  const isToday = isSameDate(new Date(), new Date(date));
+  const [isToday, setIsToday] = useState(false);
+  useEffect(() => {
+    setIsToday(isSameDate(new Date(), new Date(date)));
+  }, [date]);
 
-  let lastUpdate = "pending";
-  let nextUpdate = "pending";
-  const lastCheckedDate = new Date(lastChecked);
-  if (!isNaN(lastCheckedDate.valueOf())) {
-    lastUpdate =
-      lastCheckedDate.toLocaleTimeString("en-us", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        timeZone: "UTC",
-        hour12: false,
-      }) + "Z";
-    nextUpdate =
-      add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        timeZone: "UTC",
-        hour12: false,
-      }) + "Z";
-  }
+  const [lastIOUpdate, setLastIOUpdate] = useState("pending");
+  const [nextIOUpdate, setNextIOUpdate] = useState("pending");
+  const ioStatusUpdate = () => {
+    const lastCheckedDate = new Date(ioLastChecked);
+    if (!isNaN(lastCheckedDate.valueOf())) {
+      const lastUpdate =
+        lastCheckedDate.toLocaleTimeString("en-us", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZone: "UTC",
+          hour12: false,
+        }) + "Z";
+      const nextUpdate =
+        add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZone: "UTC",
+          hour12: false,
+        }) + "Z";
+
+      setLastIOUpdate(lastUpdate);
+      setNextIOUpdate(nextUpdate);
+    }
+  };
+  useEffect(ioStatusUpdate, [ioLastChecked]);
+
+  const [lastWikiUpdate, setLastWikiUpdate] = useState("pending");
+  const [nextWikiUpdate, setNextWikiUpdate] = useState("pending");
+  const wikiStatusUpdate = () => {
+    const lastCheckedDate = new Date(wikiLastChecked);
+    if (!isNaN(lastCheckedDate.valueOf())) {
+      const lastUpdate =
+        lastCheckedDate.toLocaleTimeString("en-us", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZone: "UTC",
+          hour12: false,
+        }) + "Z";
+      const nextUpdate =
+        add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZone: "UTC",
+          hour12: false,
+        }) + "Z";
+
+      setLastWikiUpdate(lastUpdate);
+      setNextWikiUpdate(nextUpdate);
+    }
+  };
+  useEffect(wikiStatusUpdate, [wikiLastChecked]);
 
   return (
     <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
@@ -61,13 +99,24 @@ export default function StatusBar() {
         &nbsp;
         {isToday && (
           <span>
-            Last video update: {lastUpdate}
-            {videosErrorMessage ? " (failed)" : ""}. Next video update scheduled for: {nextUpdate}{" "}
+            Last video update: {lastIOUpdate}
+            {videosErrorMessage ? " (failed)" : ""}. Next video update scheduled for: {nextIOUpdate}{" "}
             |&nbsp;
           </span>
         )}
-        <span>IO {videosErrorMessage === "" && photosErrorMessage === "" ? "✓" : "✗"}&nbsp;</span>
-        <span>| ISS WIKI {evasErrorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;</span>
+        {selectedEVA !== "" && (
+          <span>
+            Last wiki update: {lastWikiUpdate}
+            {evasErrorMessage ? " (failed)" : ""}. Next wiki update scheduled for: {nextWikiUpdate}{" "}
+            |&nbsp;
+          </span>
+        )}
+        <span title={["IO Status", videosErrorMessage || photosErrorMessage || "Good"].join(" | ")}>
+          IO {videosErrorMessage === "" && photosErrorMessage === "" ? "✓" : "✗"}&nbsp;
+        </span>
+        <span title={["Wiki Status", evasErrorMessage || "Good"].join(" | ")}>
+          | ISS WIKI {evasErrorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;
+        </span>
       </span>
     </div>
   );

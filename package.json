@@ -23,7 +23,6 @@
     "@reduxjs/toolkit": "^1.5.0",
     "isomorphic-unfetch": "^3.1.0",
     "lodash": "^4.17.20",
-    "moment": "^2.29.1",
     "mwbot": "^1.0.10",
     "next": "^10.0.5",
     "node-fetch": "^2.6.1",
@@ -57,5 +56,8 @@
     "tough-cookie-filestore": "0.0.1",
     "ts-jest": "^26.4.4",
     "win-ca": "^3.4.5"
+  },
+  "browser": {
+    "services/iss-wiki-server": false
   }
 }

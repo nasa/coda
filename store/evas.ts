@@ -2,19 +2,24 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
 import type { TimingData } from "store/videos";
 
+/** Keyed in the format of underscored lowercase EVA name, eg. `us_eva_55` */
+export type EVAStore = { [key: string]: EVA };
+
 export interface EVAsState {
-  /** Keyed in the format of underscored lowercase EVA name, eg. `us_eva_55` */
-  EVAs: { [key: string]: EVA };
+  EVAs: EVAStore;
   /** Format of underscored lowercase EVA name, eg. `us_eva_55` */
   selectedEVA: string;
   /** Message describing something that went wrong fetching EVAs */
   errorMessage: string;
+  /** UTC string of the last time we hit IO */
+  lastChecked: string;
 }
 
 export const initialState: EVAsState = {
   EVAs: {},
   selectedEVA: "",
   errorMessage: "",
+  lastChecked: "",
 };
 
 export const evasSlice = createSlice({
@@ -25,10 +30,22 @@ export const evasSlice = createSlice({
     setSelected: (state, action: { payload: string }) => {
       state.selectedEVA = action.payload;
     },
+
+    /** Add one (or more) EVA(s) to the store */
+    addEVAs: (state: EVAsState, action: { payload: { [key: string]: EVA } }) => {
+      state.EVAs = { ...state.EVAs, ...action.payload };
+      state.lastChecked = new Date().toUTCString();
+      state.errorMessage = "";
+    },
+
+    /** An error occured fetching wiki data */
+    fetchError: (state, action: { payload: string }) => {
+      state.errorMessage = action.payload;
+    },
   },
 });
 
-export const { setSelected } = evasSlice.actions;
+export const { setSelected, addEVAs, fetchError } = evasSlice.actions;
 
 /** Start time of an EVA in UTC milliseconds */
 export const getEVAStartMilliseconds = (eva: EVA): number => {

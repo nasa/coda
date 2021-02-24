@@ -148,7 +148,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove(); // always kill previous timeline
     installTimeline();
-  }, [evas.selectedEVA, videos.videos, photos.photos]);
+  }, [eva, videos.videos, photos.photos]);
 
   useEffect(() => {
     time.current = clock.time;

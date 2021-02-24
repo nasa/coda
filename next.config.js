@@ -10,16 +10,16 @@ const envs = {
     NEXT_PUBLIC_APP_ENV: 'dev',
     TITLE: 'CODA (dev)',
     IO_API_URL: 'https://io.jsc.nasa.gov/api/search/rpp=500',
-    IO_PROXY_ORIGIN: 'https://coda-dev.fit.nasa.gov',
     IO_HOST: 'https://io.jsc.nasa.gov',
+    PROXY_ORIGIN: 'https://coda-dev.fit.nasa.gov',
     WIKI_API_URL: 'https://wiki-dev.fit.nasa.gov/iss/api.php',
   },
   prod: {
     NEXT_PUBLIC_APP_ENV: 'prod',
     TITLE: 'CODA',
     IO_API_URL: 'https://io.jsc.nasa.gov/api/search/rpp=500',
-    IO_PROXY_ORIGIN: 'https://coda-dev.fit.nasa.gov',
     IO_HOST: 'https://io.jsc.nasa.gov',
+    PROXY_ORIGIN: 'https://coda-dev.fit.nasa.gov',
     WIKI_API_URL: 'https://wiki.jsc.nasa.gov/iss/api.php',
   },
 };
