@@ -8,9 +8,6 @@ import styles from "./photos.module.css";
 import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
 import { RootState } from "store/index";
 
-/**
- * Renders a video and the downlink buttons
- */
 export default function Photos() {
   const dispatch = useDispatch();
   const { photos, clock }: { photos: PhotosState; clock: ClockState } = useSelector(
@@ -63,7 +60,7 @@ export default function Photos() {
       photoFilename = photos.activePhoto.id;
       ioSearchLink = photos.activePhoto.ioInfoURL;
       ioHighResURL = photos.activePhoto.highResURL;
-      openURLMessage = `Open high res file directly`;
+      openURLMessage = `Open high res`;
       openOnIOMessage = `Open on IO`;
       dateAdded =
         photos.activePhoto.date_added !== ""
@@ -100,7 +97,7 @@ export default function Photos() {
             </div>
           </div>
           <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</div>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>High Res</div>
             <div className={styles.overlayTableCell}>
               <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openURLMessage}
