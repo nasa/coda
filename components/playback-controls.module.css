@@ -9,7 +9,7 @@
 .jumpLeft {
   position: absolute;
   top: 50px;
-  left: -20px;  
+  left: -20px;
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -35,7 +35,7 @@
 .jumpLeftText {
   position: absolute;
   top: 16px;
-  left: 15px;
+  left: 19px;
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
@@ -45,7 +45,7 @@
 .jumpRight {
   position: absolute;
   top: 50px;
-  left: 65px;  
+  left: 65px;
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -71,13 +71,12 @@
 .jumpRightText {
   position: absolute;
   top: 16px;
-  left: 15px;
+  left: 18px;
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
   user-select: none;
 }
-
 
 .playPause {
   position: absolute;
