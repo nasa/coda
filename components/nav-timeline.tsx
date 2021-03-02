@@ -44,6 +44,13 @@ function NavTimeline() {
   const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
   const navReady: MutableRefObject<boolean> = useRef(false);
 
+  let evaStartSec = null as number;
+  const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+  if (!isNull(eva) && !isNull(eva.startTime.match(reHHMM))) {
+    const [hh, mm] = eva.startTime.split(":");
+    evaStartSec = 3600 * +hh + 60 * +mm;
+  }
+
   const installTimeline = () => {
     // only setup the canvas once
     if (isNull(paper.project)) {
@@ -95,6 +102,7 @@ function NavTimeline() {
       activityPerformance,
       new Date(clock.date),
       evas.selectedEVA,
+      evaStartSec,
       isToday
     );
 
