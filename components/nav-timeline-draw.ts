@@ -383,6 +383,20 @@ export default class DrawNav {
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
         aLine.strokeColor = this.gColorTimeTicks;
         this.gTier2Group.addChild(aLine);
+
+        // add some explanatory text
+        const timeText = new paper.PointText({
+          justification: "left",
+          fontFamily: this.gNavigatorFontFamilyActivity,
+          //fontWeight: 'bold',
+          fontSize: 15,
+          fillColor: this.gColorTimeTicks,
+          content: secondsToTimeStr(i),
+        });
+        const textTop = this.gTier2Top + 50;
+        timeText.point = new paper.Point(itemLocX - 32, textTop);
+        timeText.rotate(-90);
+        this.gTier2Group.addChild(timeText);
       }
     }
 
