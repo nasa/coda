@@ -4,6 +4,7 @@ import paper from "paper";
 import { VideoFile, PhotoFile } from "services/io";
 import { Activity, DayNight } from "services/iss-wiki";
 import { TimingData } from "store/videos";
+import { textSpanIntersectsWithTextSpan } from "typescript";
 import {
   secondsToTimeStr,
   secondsToZuluString,
@@ -497,7 +498,7 @@ export default class DrawNav {
           this.gTier2Group.addChild(aLine);
 
           // add some explanatory text
-          const futureText = new paper.PointText({
+          const text = new paper.PointText({
             justification: "left",
             fontFamily: this.gNavigatorFontFamilyActivity,
             //fontWeight: 'bold',
@@ -506,9 +507,23 @@ export default class DrawNav {
             content: "PET Start",
           });
           const textTop = this.gTier2Top + 50;
-          futureText.point = new paper.Point(itemLocX - 43, textTop);
-          futureText.rotate(-90);
-          this.gTier2Group.addChild(futureText);
+          text.point = new paper.Point(itemLocX - 45, textTop);
+          text.rotate(-90);
+
+          let textRect = new paper.Rectangle(text.bounds);
+          textRect.height = this.gTier2Height - 5;
+          textRect.top = this.gTier2Top;
+          textRect.width += 5;
+          textRect.left += -3;
+
+          let textRectPath = new paper.Path.Rectangle(textRect);
+
+          textRectPath.fillColor = new paper.Color("black");
+          textRectPath.opacity = 0.4;
+
+          this.gTier2Group.addChild(textRectPath);
+          this.gTier2Group.addChild(text);
+
           break;
         }
       }
@@ -635,7 +650,7 @@ export default class DrawNav {
     });
     timeText.content = " " + secondsToZuluString(seconds, this.timingData) + " ";
     timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, timeTextYPos);
-    const cornerSize = new paper.Size(8, 8);
+    const cornerSize = new paper.Size(4, 4);
     timeTextGroup.addChild(timeText);
 
     let timeTextRect = new paper.Rectangle(timeTextGroup.bounds);
