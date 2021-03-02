@@ -74,7 +74,6 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
 
   const isServer = typeof window === "undefined";
 
-  res = await proxyWikiFetch(query);
   if (isServer) {
     const serverFetch = await require("services/iss-wiki-server").default;
     res = await serverFetch(query, action);
