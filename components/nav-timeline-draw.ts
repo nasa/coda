@@ -9,6 +9,7 @@ import {
   secondsToZuluString,
   secondsIntoDayFromZuluDateString,
   zuluDateToMissionSeconds,
+  secondsToHHMMSS,
 } from "utils/formatting";
 
 export default class DrawNav {
@@ -27,7 +28,7 @@ export default class DrawNav {
   gNavigatorWidth: number;
   gNavigatorHeight: number;
 
-  gNavZoomFactor = 25;
+  gNavZoomFactor = 50;
   gTier1Height: number;
   gTier2Height: number;
   gTier1PixelsPerSecond: number;
@@ -41,7 +42,7 @@ export default class DrawNav {
   gTier1Left: number;
   gTier2Left: number;
 
-  gColorCursor = new paper.Color("#ff0000");
+  gColorCursor = new paper.Color("#d10b0b");
   gColorNavCursor = new paper.Color("#19181b");
   gColorTimeTicks = new paper.Color("#7b7b7b");
   gColorPhotoTicks = new paper.Color("#28B463");
@@ -75,6 +76,7 @@ export default class DrawNav {
     readonly dateRendered: Date,
     /** Keep track of which EVA was rendered for bookkeping purposes */
     readonly evaRendered: string,
+    readonly evaStartSec: number,
     readonly isToday: boolean
   ) {}
 
@@ -171,6 +173,20 @@ export default class DrawNav {
       aLine.strokeColor = this.gColorPhotoTicks;
 
       this.gTier1Group.addChild(aLine);
+    }
+
+    if (!isNull(this.evaStartSec)) {
+      for (let i = 0; i < this.timingData["EVA_duration_seconds"]; i++) {
+        if (i === this.evaStartSec) {
+          let itemLocX = i * this.gTier1PixelsPerSecond;
+          let topPoint = new paper.Point(itemLocX, this.gTier1Top);
+          let bottomPoint = new paper.Point(itemLocX, this.gTier1Top + this.gTier1Height - 3);
+          let aLine = new paper.Path.Line(topPoint, bottomPoint);
+          aLine.strokeColor = new paper.Color("white");
+          this.gTier1Group.addChild(aLine);
+          break;
+        }
+      }
     }
   }
 
@@ -462,6 +478,41 @@ export default class DrawNav {
       futureText.rotate(-90);
       this.gTier2Group.addChild(futureText);
     }
+
+    // if there is an EVA today, show PET marker
+    if (!isNull(this.evaStartSec)) {
+      for (
+        let i = Math.round(this.gTier2StartSeconds);
+        i < this.gTier2StartSeconds + secondsOnTier2;
+        i++
+      ) {
+        if (i === this.evaStartSec) {
+          let itemSecondsFromLeft = i - this.gTier2StartSeconds;
+
+          let itemLocX = this.gTier2Left + itemSecondsFromLeft * this.gTier2PixelsPerSecond;
+          let topPoint = new paper.Point(itemLocX, this.gTier2Top);
+          let bottomPoint = new paper.Point(itemLocX, this.gTier2Top - 2 + this.gTier2Height);
+          let aLine = new paper.Path.Line(topPoint, bottomPoint);
+          aLine.strokeColor = new paper.Color("white");
+          this.gTier2Group.addChild(aLine);
+
+          // add some explanatory text
+          const futureText = new paper.PointText({
+            justification: "left",
+            fontFamily: this.gNavigatorFontFamilyActivity,
+            //fontWeight: 'bold',
+            fontSize: 15,
+            fillColor: "white",
+            content: "PET Start",
+          });
+          const textTop = this.gTier2Top + 50;
+          futureText.point = new paper.Point(itemLocX - 43, textTop);
+          futureText.rotate(-90);
+          this.gTier2Group.addChild(futureText);
+          break;
+        }
+      }
+    }
   }
 
   drawTier2EVActivity = (evRow, evActivityArray, secondsOnTier2) => {
@@ -544,38 +595,65 @@ export default class DrawNav {
     aLine.strokeWidth = 2;
     cursorElementGroup.addChild(aLine);
 
+    //default values for days without EVA
+    let timeTextFontSize = 20;
+    let timeTextYPos = 20;
+    let timeTextFontFamily = this.gNavigatorFontFamily;
+    let timeTextRectWidth = 115;
+    let timeTextRectHeightNudge = 5;
+    let timeTextRectTopNudge = -2;
+
+    let timeTextGroup = new paper.Group();
+    // if this is an EVA day, then show PET in the cursor value
+    if (!isNull(this.evaStartSec)) {
+      let petText = new paper.PointText({
+        justification: "left",
+        fontWeight: "normal",
+        fontFamily: this.gNavigatorFontFamilyActivity,
+        fontSize: 12,
+        fillColor: "white",
+      });
+      petText.content = "PET: " + secondsToHHMMSS(Math.round(seconds - this.evaStartSec));
+      petText.point = new paper.Point(cursorLocX - petText.bounds.width / 2, 18);
+      timeTextGroup.addChild(petText);
+
+      //override GMT time display with values to accommodate PET text
+      timeTextFontSize = 15;
+      timeTextYPos = 35;
+      timeTextFontFamily = this.gNavigatorFontFamilyActivity;
+      timeTextRectWidth = 100;
+      timeTextRectHeightNudge = 8;
+      timeTextRectTopNudge = -5;
+    }
+
     let timeText = new paper.PointText({
       justification: "left",
       fontWeight: "normal",
-      fontFamily: this.gNavigatorFontFamily,
-      fontSize: 20,
+      fontFamily: timeTextFontFamily,
+      fontSize: timeTextFontSize,
       fillColor: "white",
     });
     timeText.content = " " + secondsToZuluString(seconds, this.timingData) + " ";
-    timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, 20);
-    const cornerSize = new paper.Size(12, 12);
-    let timeTextRect = new paper.Rectangle(timeText.bounds);
+    timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, timeTextYPos);
+    const cornerSize = new paper.Size(8, 8);
+    timeTextGroup.addChild(timeText);
+
+    let timeTextRect = new paper.Rectangle(timeTextGroup.bounds);
     //center rectangle behind text
-    timeTextRect.width = 115;
-    timeTextRect.height += 5;
-    timeTextRect.top -= 2;
-    if (timeText.point.x < 5) {
-      timeText.point.x = 5;
-    } else if (timeText.point.x > this.gNavigatorWidth - timeTextRect.width - 5) {
-      timeText.point.x = this.gNavigatorWidth - timeTextRect.width - 5;
+    timeTextRect.width = timeTextRectWidth;
+    timeTextRect.height += timeTextRectHeightNudge;
+    timeTextRect.top += timeTextRectTopNudge;
+    if (timeTextGroup.position.x - timeTextGroup.bounds.width / 2 < 5) {
+      timeTextGroup.position.x = 5 + timeTextGroup.bounds.width / 2;
+    } else if (timeTextGroup.position.x > this.gNavigatorWidth - timeTextGroup.bounds.width / 2) {
+      timeTextGroup.position.x = this.gNavigatorWidth - timeTextGroup.bounds.width / 2;
     }
-    timeTextRect.left = timeText.point.x;
-    timeTextRect.left -= 5;
+    timeTextRect.left = timeTextGroup.position.x - timeTextRectWidth / 2;
     let timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
-    //var timeTextRect = new paper.Path.Rectangle(timeText.bounds);
-    // timeTextRectPath.strokeColor = new paper.Color(color);
-    // timeTextRectPath.strokeWidth = 1;
     timeTextRectPath.fillColor = color;
-    timeTextRectPath.opacity = 0.8;
-    //timeTextRect.opacity = 0.5;
-    // timeTextRectPath.scale(1.1, 1.8);
+    timeTextRectPath.opacity = 0.7;
     cursorElementGroup.addChild(timeTextRectPath);
-    cursorElementGroup.addChild(timeText);
+    cursorElementGroup.addChild(timeTextGroup);
 
     return cursorElementGroup;
   };
