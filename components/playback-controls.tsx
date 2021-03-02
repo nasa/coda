@@ -37,20 +37,20 @@ export default function PlaybackControls() {
       <div
         className={styles.jumpLeft}
         onClick={() => {
-          jumpTime(-30);
+          jumpTime(-5);
         }}
       >
         <div className={styles.jumpLeftImg}></div>
-        <div className={styles.jumpLeftText}>30</div>
+        <div className={styles.jumpLeftText}>5</div>
       </div>
       <div
         className={styles.jumpRight}
         onClick={() => {
-          jumpTime(30);
+          jumpTime(5);
         }}
       >
         <div className={styles.jumpRightImg}></div>
-        <div className={styles.jumpRightText}>30</div>
+        <div className={styles.jumpRightText}>5</div>
       </div>
     </div>
   );
