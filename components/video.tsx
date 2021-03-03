@@ -79,11 +79,6 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const changeVideoFile = () => {
-    // This stops one buffering video from essentially blocking beginning to buffer the other video
-    if (!playhead.isRunning) {
-      return;
-    }
-
     // we can't update videos if we don't have videos
     if (!videoActivity) {
       return;
@@ -194,7 +189,7 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  useEffect(changeVideoFile, [playhead.seconds, videos.videos]);
+  useEffect(changeVideoFile, [playhead.seconds, videos.videos, videos.downlinks[id]]);
   useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[id], videos.videos]);
   useEffect(getInitialDownlink, [query]);
   useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
