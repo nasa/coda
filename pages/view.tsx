@@ -23,7 +23,7 @@ import {
 } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { ClockState, diff, isSameDate, changeDate, changeTime } from "store/clock";
+import { PlayheadState, diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { initialState, RootState } from "store/index";
 
@@ -38,14 +38,16 @@ export default function View() {
     query: { date?: string; gmt?: string };
   } = useRouter();
   const {
-    clock,
+    playhead,
     evas,
     videos,
     photos,
-  }: { clock: ClockState; evas: EVAsState; videos: VideosState; photos: PhotosState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+  }: {
+    playhead: PlayheadState;
+    evas: EVAsState;
+    videos: VideosState;
+    photos: PhotosState;
+  } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
   const eva = evaSelector(evas);
 
@@ -78,7 +80,7 @@ export default function View() {
       userDate = new Date(Date.UTC(year, month, day));
     }
 
-    if (!clock.date || !isSameDate(new Date(clock.date), userDate)) {
+    if (!playhead.date || !isSameDate(new Date(playhead.date), userDate)) {
       dispatch(changeDate(userDate.toISOString()));
     }
   }, [date]);
@@ -94,18 +96,18 @@ export default function View() {
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
-    if (userTime !== clock.time) {
+    if (userTime !== playhead.seconds) {
       dispatch(changeTime(userTime));
     }
   }, [gmt]);
 
   useEffect(() => {
     (async () => {
-      if (isNull(clock.date)) {
+      if (isNull(playhead.date)) {
         return;
       }
 
-      const d = new Date(clock.date);
+      const d = new Date(playhead.date);
 
       // try to find an EVA on this date
       let hit = false;
@@ -145,12 +147,12 @@ export default function View() {
       }
       dispatch(addVideos({ videos: videoStore }));
     })();
-  }, [clock.date]);
+  }, [playhead.date]);
 
   // Grab photos
   useEffect(() => {
     (async () => {
-      if (isNull(clock.date)) {
+      if (isNull(playhead.date)) {
         return;
       }
 
@@ -158,7 +160,7 @@ export default function View() {
         return;
       }
 
-      const d = new Date(clock.date);
+      const d = new Date(playhead.date);
 
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth();
@@ -174,17 +176,17 @@ export default function View() {
       }
       dispatch(addPhotos({ photos: photoStore }));
     })();
-  }, [clock.date]);
+  }, [playhead.date]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
     (async () => {
-      // the clock hasn't been set, no point in looking for videos
-      if (isNull(clock.date)) {
+      // the playhead hasn't been set, no point in looking for videos
+      if (isNull(playhead.date)) {
         return;
       }
 
-      const d = new Date(clock.date);
+      const d = new Date(playhead.date);
       if (!isSameDate(d, new Date())) {
         // the user is looking at a date in the past. no need to keep looking for new videos
         return;
@@ -245,8 +247,8 @@ export default function View() {
   useInterval(updateEVA, FIVE_MINS_MS);
 
   let prefix = "Viewer";
-  if (!isNull(clock.date)) {
-    const d = new Date(clock.date);
+  if (!isNull(playhead.date)) {
+    const d = new Date(playhead.date);
     const options = { timeZone: "UTC", year: "numeric", month: "short", day: "2-digit" };
     prefix = d.toLocaleDateString("en-gb", options);
   }

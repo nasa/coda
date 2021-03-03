@@ -1,15 +1,18 @@
 import { useDispatch, useSelector } from "react-redux";
 import deepEqual from "lodash/isEqual";
-import { changeTime, ClockState, start, stop } from "store/clock";
+import { changeTime, PlayheadState, start, stop } from "store/playhead";
 import styles from "./playback-controls.module.css";
 import { RootState } from "store/index";
 
 export default function PlaybackControls() {
-  const { clock }: { clock: ClockState } = useSelector((state: RootState) => state, deepEqual);
+  const { playhead }: { playhead: PlayheadState } = useSelector(
+    (state: RootState) => state,
+    deepEqual
+  );
   const dispatch = useDispatch();
 
   const handlePlayPause = () => {
-    if (clock.isRunning) {
+    if (playhead.isRunning) {
       dispatch(stop());
     } else {
       dispatch(start());
@@ -17,11 +20,11 @@ export default function PlaybackControls() {
   };
 
   const jumpTime = (seconds: number) => {
-    dispatch(changeTime(clock.time + seconds));
+    dispatch(changeTime(playhead.seconds + seconds));
   };
 
   let playPauseSvgName;
-  if (clock.isRunning) {
+  if (playhead.isRunning) {
     playPauseSvgName = styles.pauseSVG;
   } else {
     playPauseSvgName = styles.playSVG;

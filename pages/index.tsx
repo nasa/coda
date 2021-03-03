@@ -4,7 +4,7 @@ import EVADropdown from "components/eva-dropdown";
 import styles from "./index.module.css";
 import type { GetServerSideProps } from "next";
 import { EVA, getAllEVAs } from "services/iss-wiki";
-import { initialState as clockInitialState } from "store/clock";
+import { initialState as playheadInitialState } from "store/playhead";
 import { initialState as videosInitialState } from "store/videos";
 
 export default function Index() {
@@ -53,7 +53,7 @@ export const getStaticProps: GetServerSideProps = async () => {
   return {
     props: {
       initialReduxState: {
-        clock: clockInitialState,
+        playhead: playheadInitialState,
         evas: {
           EVAs,
           selectedEVA: "",

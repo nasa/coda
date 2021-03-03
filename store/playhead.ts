@@ -1,34 +1,34 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export interface ClockState {
+export interface PlayheadState {
   /** Seconds representing the time into the mission day, eg. `0` is 00:00:00Z, `86399` is 23:59:59Z */
-  time: number;
+  seconds: number;
   /** UTC date being viewed */
   date: string;
-  /** Whether the clock actually is running */
+  /** Whether the playhead actually is running */
   isRunning: boolean;
-  /** Whether the user wants the clock to be running */
+  /** Whether the user wants the playhead to be running */
   ready: boolean;
 }
 
-export const initialState: ClockState = {
+export const initialState: PlayheadState = {
   // assume a 00:00:00Z start
-  time: 0,
+  seconds: 0,
   date: null,
   isRunning: true,
   // assume a user wants the timeline to play as soon as they load the application
   ready: true,
 };
 
-export const clockSlice = createSlice({
-  name: "clock",
+export const playheadSlice = createSlice({
+  name: "playhead",
   initialState,
   reducers: {
     /**
-     * Bump the clock up by 1 second
+     * Bump the playhead up by 1 second
      */
     tick: (state) => {
-      state.time += 1;
+      state.seconds += 1;
     },
 
     /**
@@ -43,18 +43,18 @@ export const clockSlice = createSlice({
      * Change the date the application is rendering
      */
     changeTime: (state, action: { payload: number }) => {
-      state.time = action.payload;
+      state.seconds = action.payload;
     },
 
     /**
-     * Make the application clock run
+     * Make the application playhead run
      */
     run: (state) => {
       state.isRunning = true;
     },
 
     /**
-     * Make the application clock stop running
+     * Make the application playhead stop running
      */
     halt: (state) => {
       if (state.isRunning) {
@@ -63,14 +63,14 @@ export const clockSlice = createSlice({
     },
 
     /**
-     * The user is ready for the clock to run
+     * The user is ready for the playhead to run
      */
     start: (state) => {
       state.ready = true;
     },
 
     /**
-     * The user wants the clock to stop
+     * The user wants the playhead to stop
      */
     stop: (state) => {
       state.ready = false;
@@ -78,7 +78,7 @@ export const clockSlice = createSlice({
   },
 });
 
-export const { tick, changeDate, changeTime, start, stop, run, halt } = clockSlice.actions;
+export const { tick, changeDate, changeTime, start, stop, run, halt } = playheadSlice.actions;
 
 const midnightZulu = (d: Date): Date => {
   d.setUTCHours(0);

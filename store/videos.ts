@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { Videos, VideoFile } from "services/io";
-import { isSameDate } from "./clock";
+import { isSameDate } from "./playhead";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {

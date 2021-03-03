@@ -5,9 +5,14 @@ import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 import { RootState } from "store/index";
+import { VideosState } from "store/videos";
+import { PlayheadState } from "store/playhead";
 
 export default function HeaderShare() {
-  const { clock, videos } = useSelector((state: RootState) => state, deepEqual);
+  const { playhead, videos }: { playhead: PlayheadState; videos: VideosState } = useSelector(
+    (state: RootState) => state,
+    deepEqual
+  );
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
@@ -26,9 +31,9 @@ export default function HeaderShare() {
   function handleRequestOpen() {
     setCopyButtonText("COPY LINK");
 
-    const dt = new Date(clock.date);
+    const dt = new Date(playhead.date);
     const missionDate = shortdateFromZuluDate(dt);
-    const missionTime = secondsToHHMMSS(clock.time);
+    const missionTime = secondsToHHMMSS(playhead.seconds);
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;

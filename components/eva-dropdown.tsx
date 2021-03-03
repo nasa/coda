@@ -3,7 +3,7 @@ import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { diff } from "store/clock";
+import { diff } from "store/playhead";
 import styles from "./eva-dropdown.module.css";
 
 export default function EVADropdown() {

@@ -6,7 +6,7 @@ import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
 import Video from "components/video";
 import Photos from "components/photos";
-import { ClockState, run, halt, tick } from "store/clock";
+import { PlayheadState, run, halt, tick } from "store/playhead";
 import { VideosState } from "store/videos";
 import { PhotosState } from "store/photos";
 import useInterval from "utils/useInterval";
@@ -15,38 +15,38 @@ import { useEffect } from "react";
 import { RootState } from "store/index";
 
 /**
- * Renders the main CODA application layout. Also handles checking whether the clock should be running
+ * Renders the main CODA application layout. Also handles checking whether the playhead should be running
  */
 export default function Main() {
   const {
-    clock,
+    playhead,
     videos,
     photos,
-  }: { clock: ClockState; videos: VideosState; photos: PhotosState } = useSelector(
+  }: { playhead: PlayheadState; videos: VideosState; photos: PhotosState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // (1) make sure the clock is running when it should
+    // (1) make sure the playhead is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady = clock.ready && videos.ready[1] && videos.ready[2] && photos.ready;
+    const everythingReady = playhead.ready && videos.ready[1] && videos.ready[2] && photos.ready;
 
-    // (1.2) the clock is paused when it should be running
-    if (everythingReady && !clock.isRunning) {
+    // (1.2) the playhead is paused when it should be running
+    if (everythingReady && !playhead.isRunning) {
       dispatch(run());
     }
-    // (1.2) the clock is running when it should be paused
-    else if (!everythingReady && clock.isRunning) {
-      // kill the clock if it should be paused
+    // (1.2) the playhead is running when it should be paused
+    else if (!everythingReady && playhead.isRunning) {
+      // kill the playhead if it should be paused
       dispatch(halt());
     }
-  }, [clock.ready, clock.isRunning, videos.ready, photos.ready]);
+  }, [playhead.ready, playhead.isRunning, videos.ready, photos.ready]);
 
   useInterval(() => {
-    if (clock.isRunning) {
+    if (playhead.isRunning) {
       dispatch(tick());
     }
   }, 1000);
