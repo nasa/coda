@@ -1,6 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PhotoFile } from "services/io";
-import { isSameDate } from "./clock";
 
 export interface PhotosState {
   /** Keyed by the ID of the photo file */

@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import deepEqual from "lodash/isEqual";
 import { PhotoFile } from "services/io";
-import { add, ClockState, isSameDate } from "store/clock";
+import { add, PlayheadState, isSameDate } from "store/playhead";
 import { EVAsState } from "store/evas";
 import { PhotosState } from "store/photos";
 import { VideosState } from "store/videos";
@@ -13,12 +13,12 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
   const {
-    clock: { isRunning, date },
+    playhead: { isRunning, date },
     evas: { errorMessage: evasErrorMessage, lastChecked: wikiLastChecked, selectedEVA },
     videos: { ready: videosReady, lastChecked: ioLastChecked, errorMessage: videosErrorMessage },
     photos: { ready: photosReady, photosLastChecked, errorMessage: photosErrorMessage },
   }: {
-    clock: ClockState;
+    playhead: PlayheadState;
     evas: EVAsState;
     videos: VideosState;
     photos: PhotosState;

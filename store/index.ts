@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
-import { clockSlice, initialState as clockInitialState } from "./clock";
+import { playheadSlice, initialState as playheadInitialState } from "./playhead";
 import { evasSlice, initialState as evasInitialState } from "./evas";
 import { videoSlice, initialState as videosInitialState } from "./videos";
 import { photoSlice, initialState as photosInitialState } from "./photos";
@@ -8,7 +8,7 @@ import { photoSlice, initialState as photosInitialState } from "./photos";
 let store;
 
 export const initialState = {
-  clock: clockInitialState,
+  playhead: playheadInitialState,
   evas: evasInitialState,
   videos: videosInitialState,
   photos: photosInitialState,
@@ -17,7 +17,7 @@ export const initialState = {
 // server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
 
 const reducer = combineReducers({
-  clock: clockSlice.reducer,
+  playhead: playheadSlice.reducer,
   evas: evasSlice.reducer,
   videos: videoSlice.reducer,
   photos: photoSlice.reducer,

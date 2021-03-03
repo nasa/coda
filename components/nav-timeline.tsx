@@ -4,7 +4,7 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ClockState, isSameDate, changeTime } from "store/clock";
+import { PlayheadState, isSameDate, changeTime } from "store/playhead";
 import {
   evaSelector,
   EVAsState,
@@ -22,12 +22,12 @@ import { RootState } from "store/index";
  */
 function NavTimeline() {
   const {
-    clock,
+    playhead,
     evas,
     videos,
     photos,
   }: {
-    clock: ClockState;
+    playhead: PlayheadState;
     evas: EVAsState;
     videos: VideosState;
     photos: PhotosState;
@@ -61,7 +61,7 @@ function NavTimeline() {
     const sameVideos =
       !isNull(drawNav.current) && drawNav.current.hasAlreadyRenderedVideos(videoFiles);
     const sameDate =
-      !isNull(drawNav.current) && isSameDate(drawNav.current.dateRendered, new Date(clock.date));
+      !isNull(drawNav.current) && isSameDate(drawNav.current.dateRendered, new Date(playhead.date));
     const sameEVA = !isNull(drawNav.current) && evas.selectedEVA === drawNav.current.evaRendered;
 
     if (paperRendered && sameVideos && sameDate && sameEVA) {
@@ -92,7 +92,7 @@ function NavTimeline() {
       }
     }
 
-    const isToday = isSameDate(new Date(), new Date(clock.date));
+    const isToday = isSameDate(new Date(), new Date(playhead.date));
 
     drawNav.current = new DrawNav(
       timingData,
@@ -100,7 +100,7 @@ function NavTimeline() {
       photoFiles,
       dayNight,
       activityPerformance,
-      new Date(clock.date),
+      new Date(playhead.date),
       evas.selectedEVA,
       evaStartSec,
       isToday
@@ -151,7 +151,7 @@ function NavTimeline() {
   useEffect(() => {
     installTimeline();
     return () => paper.project.remove();
-  }, [clock.date]);
+  }, [playhead.date]);
 
   useEffect(() => {
     paper.project.remove(); // always kill previous timeline
@@ -159,7 +159,7 @@ function NavTimeline() {
   }, [eva, videos.videos, photos.photos]);
 
   useEffect(() => {
-    time.current = clock.time;
+    time.current = playhead.seconds;
 
     if (!navReady.current) {
       // nothing to update if the paperjs timeline hasn't been instantiated
@@ -172,7 +172,7 @@ function NavTimeline() {
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
-  }, [clock.time]);
+  }, [playhead.seconds]);
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322

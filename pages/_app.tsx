@@ -16,7 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
   // set lastStarted so the clock is running when CODA loads
   // we also need to set applicationTime on the server-side, see [eva].tsx
   if (stateFromServer) {
-    stateFromServer.clock.lastStarted = new Date().toISOString();
+    stateFromServer.playhead.lastStarted = new Date().toISOString();
   }
   const store = useStore(clone(stateFromServer));
 

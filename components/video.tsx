@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { ClockState, isSameDate } from "store/clock";
+import { PlayheadState, isSameDate } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
@@ -40,7 +40,7 @@ const isAutoplayError = (e: Error): boolean => {
 export default function Videos({ id }: { id: number }) {
   const { query } = useRouter();
   const dispatch = useDispatch();
-  const { videos, clock }: { videos: VideosState; clock: ClockState } = useSelector(
+  const { videos, playhead }: { videos: VideosState; playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
@@ -73,14 +73,14 @@ export default function Videos({ id }: { id: number }) {
     }
     const videoID = videos.activeVideoFiles[id];
     const videoStart = videos.videos[videoID]?.start || 0;
-    if (videoID || !isSameDate(new Date(clock.date), new Date(videoStart))) {
+    if (videoID || !isSameDate(new Date(playhead.date), new Date(videoStart))) {
       setMetadata(null);
     }
   };
 
   const changeVideoFile = () => {
     // This stops one buffering video from essentially blocking beginning to buffer the other video
-    if (!clock.isRunning) {
+    if (!playhead.isRunning) {
       return;
     }
 
@@ -91,7 +91,7 @@ export default function Videos({ id }: { id: number }) {
 
     const group = videos.downlinks[id];
     const activeVideoFileID = videos.activeVideoFiles[id];
-    const videosNextSecond = videoActivity[group][clock.time + 1];
+    const videosNextSecond = videoActivity[group][playhead.seconds + 1];
 
     // check for video changes
     let videoID = activeVideoFileID;
@@ -117,9 +117,9 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  const syncToClock = () => {
+  const syncToplayhead = () => {
     // This stops one buffering video from essentially blocking beginning to buffer the other video
-    if (!clock.isRunning) {
+    if (!playhead.isRunning) {
       return;
     }
 
@@ -140,7 +140,7 @@ export default function Videos({ id }: { id: number }) {
     const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
-      videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
+      videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
     }
 
     if (Math.abs(currentTime - videoStartOffset) > 1) {
@@ -151,17 +151,17 @@ export default function Videos({ id }: { id: number }) {
   const playOrPause = () => {
     (async () => {
       try {
-        if (clock.isRunning) {
-          // make sure the video is playing when the clock is running
+        if (playhead.isRunning) {
+          // make sure the video is playing when the playhead is running
           // if the video source is "", trying to play will "unload" the video and we'll show a poster instead
           await videoElement.current.play();
-        } else if (!clock.isRunning) {
-          // make sure the video is paused when the clock isn't running
+        } else if (!playhead.isRunning) {
+          // make sure the video is paused when the playhead isn't running
           await videoElement.current.pause();
         }
       } catch (e) {
         if (isAutoplayError(e)) {
-          // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next clock tick, we'll try to play again
+          // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
           setMuted(true);
         }
       }
@@ -180,7 +180,7 @@ export default function Videos({ id }: { id: number }) {
       // clear out the video player
       setSourceURL("");
 
-      // don't block the clock
+      // don't block the playhead
       if (!videos.ready[id]) {
         dispatch(ready(id));
       }
@@ -194,11 +194,11 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  useEffect(changeVideoFile, [clock.time, videos.videos]);
-  useEffect(clearMetadata, [clock.date, videos.activeVideoFiles[id], videos.videos]);
+  useEffect(changeVideoFile, [playhead.seconds, videos.videos]);
+  useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[id], videos.videos]);
   useEffect(getInitialDownlink, [query]);
-  useEffect(playOrPause, [clock.isRunning, clock.time, sourceURL]);
-  useEffect(syncToClock, [clock.time, videos.activeVideoFiles[id]]);
+  useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
+  useEffect(syncToplayhead, [playhead.seconds, videos.activeVideoFiles[id]]);
   useEffect(updateSourceInfo, [videos.activeVideoFiles[id]]);
 
   /**
@@ -250,7 +250,7 @@ export default function Videos({ id }: { id: number }) {
             }
           }}
           onEnded={() => {
-            // ready up because we don't want a missing video to hold up the clock
+            // ready up because we don't want a missing video to hold up the playhead
             dispatch(ready(id));
           }}
           onWaiting={() => {
@@ -289,7 +289,7 @@ export default function Videos({ id }: { id: number }) {
             } else {
               setStatus("novid");
             }
-            //unblocking clock
+            //unblocking playhead
             if (videos.ready[id] !== true) {
               dispatch(ready(id));
             }
@@ -308,7 +308,7 @@ export default function Videos({ id }: { id: number }) {
       let buttonClassStyle = styles.vidButton;
       if (g === group) {
         buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
-      } else if (videoActivity && videoActivity[g][clock.time].length > 0) {
+      } else if (videoActivity && videoActivity[g][playhead.seconds].length > 0) {
         buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
       }
       return (
@@ -342,7 +342,7 @@ export default function Videos({ id }: { id: number }) {
     let info = "";
     let infoDisplayClass = "";
     if (currentlyPlayingVideo) {
-      videoStartOffset = clock.time - currentlyPlayingVideo.missionSecondsStart;
+      videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
       videoFilename = currentlyPlayingVideo.id;
       ioSearchLink = currentlyPlayingVideo.url;
       ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;

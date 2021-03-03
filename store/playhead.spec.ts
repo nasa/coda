@@ -1,14 +1,22 @@
-import { clockSlice, initialState, run, halt, changeTime, changeDate, tick } from "store/clock";
+import {
+  playheadSlice,
+  initialState,
+  run,
+  halt,
+  changeTime,
+  changeDate,
+  tick,
+} from "store/playhead";
 
-describe("store/clockSlice", () => {
+describe("store/playheadSlice", () => {
   describe("tick", () => {
     it("should increment the time by 1", () => {
-      const time = 617;
+      const seconds = 617;
       const action = tick();
-      expect(action.type).toEqual("clock/tick");
+      expect(action.type).toEqual("playhead/tick");
 
-      const store = clockSlice.reducer({ ...initialState, time }, action);
-      expect(store.time).toEqual(time + 1);
+      const store = playheadSlice.reducer({ ...initialState, seconds }, action);
+      expect(store.seconds).toEqual(seconds + 1);
     });
   });
 
@@ -16,10 +24,10 @@ describe("store/clockSlice", () => {
     it("should set the current application date to 00:00:00 of the selected date", () => {
       const utc = new Date(Date.UTC(2020, 6, 20, 23, 4, 1)).toISOString();
       const { type, payload } = changeDate(utc);
-      expect(type).toEqual("clock/changeDate");
+      expect(type).toEqual("playhead/changeDate");
       expect(payload).toEqual(utc);
 
-      const { date } = clockSlice.reducer(initialState, { type, payload });
+      const { date } = playheadSlice.reducer(initialState, { type, payload });
       expect(new Date(date)).toHappenAround(new Date(Date.UTC(2020, 6, 20, 0, 0, 0)));
     });
   });
@@ -27,32 +35,32 @@ describe("store/clockSlice", () => {
   describe("changeTime", () => {
     it("should set the current application time within the date", () => {
       const { type, payload } = changeTime(10);
-      expect(type).toEqual("clock/changeTime");
+      expect(type).toEqual("playhead/changeTime");
       expect(payload).toEqual(10);
 
-      const { time } = clockSlice.reducer(initialState, { type, payload });
-      expect(time).toEqual(10);
+      const { seconds } = playheadSlice.reducer(initialState, { type, payload });
+      expect(seconds).toEqual(10);
     });
   });
 
   describe("run", () => {
-    it("should start the clock", () => {
+    it("should start the playhead", () => {
       const action = run();
-      expect(action.type).toEqual("clock/run");
+      expect(action.type).toEqual("playhead/run");
       expect(action.payload).toBeFalsy();
 
-      const { isRunning } = clockSlice.reducer(initialState, action);
+      const { isRunning } = playheadSlice.reducer(initialState, action);
       expect(isRunning).toEqual(true);
     });
   });
 
   describe("halt", () => {
-    it("should stop the clock", () => {
+    it("should stop the playhead", () => {
       const action = halt();
-      expect(action.type).toEqual("clock/halt");
+      expect(action.type).toEqual("playhead/halt");
       expect(action.payload).toBeFalsy();
 
-      const { isRunning } = clockSlice.reducer(initialState, action);
+      const { isRunning } = playheadSlice.reducer(initialState, action);
       expect(isRunning).toEqual(false);
     });
   });

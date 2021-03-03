@@ -5,7 +5,7 @@ import isNull from "lodash/isNull";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changeTime, ClockState } from "store/clock";
+import { changeTime, PlayheadState } from "store/playhead";
 import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
@@ -20,7 +20,7 @@ import { evaSelector, EVAsState } from "store/evas";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { clock, evas }: { clock: ClockState; evas: EVAsState } = useSelector(
+  const { playhead, evas }: { playhead: PlayheadState; evas: EVAsState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
@@ -49,16 +49,16 @@ function Header() {
 
   useEffect(() => {
     if (!isNull(evaStartSec)) {
-      setPET(secondsToHHMMSS(clock.time - evaStartSec));
+      setPET(secondsToHHMMSS(playhead.seconds - evaStartSec));
     }
 
-    setRenderTime(secondsToHHMMSS(clock.time));
-  }, [clock.time]);
+    setRenderTime(secondsToHHMMSS(playhead.seconds));
+  }, [playhead.seconds]);
 
   useEffect(() => {
-    const dt = new Date(clock.date);
+    const dt = new Date(playhead.date);
     setRenderDate(shortdateFromZuluDate(dt));
-  }, [clock.date]);
+  }, [playhead.date]);
 
   /** Navigates to a new date or time */
   const handleDateTimeChange = () => {
