@@ -16,13 +16,18 @@ describe("store/evasSlice", () => {
         dayNight: { events: [], dataStartUTC: 0 },
       };
 
-      const action = addEVAs({ us_eva_100: newEVA });
+      const payload = {};
+      // the date doesn't really matter
+      // there is no check that the date index matches the EVA start date
+      const date = "2020-12-31";
+      payload[date] = newEVA;
+      const action = addEVAs(payload);
       expect(action.type).toEqual("evas/addEVAs");
-      expect(action.payload["us_eva_100"]).toEqual(newEVA);
+      expect(action.payload[date]).toEqual(newEVA);
 
-      const { EVAs } = evasSlice.reducer(initialState, action);
-      expect(Object.keys(EVAs).length).toEqual(1);
-      expect(EVAs["us_eva_100"]).toEqual(newEVA);
+      const { objects } = evasSlice.reducer(initialState, action);
+      expect(Object.keys(objects).length).toEqual(1);
+      expect(objects[date]).toEqual(newEVA);
     });
 
     it("should add multiple EVAs to the store", () => {
@@ -47,15 +52,22 @@ describe("store/evasSlice", () => {
         dayNight: { events: [], dataStartUTC: 0 },
       };
 
-      const action = addEVAs({ us_eva_100: newEVA1, us_eva_101: newEVA2 });
+      const payload = {};
+      const date1 = "2020-12-30";
+      const date2 = "2020-12-31";
+      payload[date1] = newEVA1;
+      payload[date2] = newEVA2;
 
-      const { EVAs } = evasSlice.reducer(initialState, action);
-      expect(Object.keys(EVAs).length).toEqual(2);
-      expect(EVAs["us_eva_100"]).toEqual(newEVA1);
-      expect(EVAs["us_eva_101"]).toEqual(newEVA2);
+      const action = addEVAs(payload);
+
+      const { objects } = evasSlice.reducer(initialState, action);
+      expect(Object.keys(objects).length).toEqual(2);
+      expect(objects[date1]).toEqual(newEVA1);
+      expect(objects[date2]).toEqual(newEVA2);
     });
 
     it("should overwrite an existing EVA", () => {
+      const date = "2020-12-30";
       const oldEVA: EVA = {
         name: "us_eva_100",
         wikiURL: "",
@@ -66,7 +78,9 @@ describe("store/evasSlice", () => {
         activityPerformance: { EV1: [], EV2: [] },
         dayNight: { events: [], dataStartUTC: 0 },
       };
-      const oldState = { ...initialState, EVAs: { us_eva_100: oldEVA } };
+      const objects = {};
+      objects[date] = oldEVA;
+      const oldState = { ...initialState, objects };
 
       const updatedDisplayTitle = "US EVA 100 TEST FIXED";
       const updatedEVA: EVA = {
@@ -80,11 +94,13 @@ describe("store/evasSlice", () => {
         dayNight: { events: [], dataStartUTC: 0 },
       };
 
-      const action = addEVAs({ us_eva_100: updatedEVA });
+      const payload = {};
+      payload[date] = updatedEVA;
+      const action = addEVAs(payload);
 
-      const { EVAs } = evasSlice.reducer(oldState, action);
-      expect(Object.keys(EVAs).length).toEqual(1);
-      expect(EVAs["us_eva_100"]).toEqual(updatedEVA);
+      const { objects: updatedObjects } = evasSlice.reducer(oldState, action);
+      expect(Object.keys(updatedObjects).length).toEqual(1);
+      expect(updatedObjects[date]).toEqual(updatedEVA);
     });
 
     it("should mark when the store was updated", () => {
@@ -118,7 +134,11 @@ describe("store/evasSlice", () => {
       };
 
       const oldState = { ...initialState, errorMessage: "wiki imploded :(" };
-      const action = addEVAs({ us_eva_100: newEVA });
+
+      const payload = {};
+      const date = "2020-12-31";
+      payload[date] = newEVA;
+      const action = addEVAs(payload);
 
       const { errorMessage } = evasSlice.reducer(oldState, action);
       expect(errorMessage).toEqual("");
