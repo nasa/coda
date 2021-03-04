@@ -5,7 +5,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { PlayheadState } from "store/playhead";
 import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } from "store/photos";
 import styles from "./photos.module.css";
-import { secondsIntoDayFromZuluDateString, timeFromZuluDate } from "utils/formatting";
+
+import { appSecondsFromDateString, hhmmssFromDateString } from "utils/formatting";
+import { PhotoFile } from "services/io";
 import { RootState } from "store/index";
 
 export default function Photos() {
@@ -30,7 +32,7 @@ export default function Photos() {
      */
     let thisPhotoFile = initialPhotoFileState;
     for (let i = 0; i < photoFiles.length; i++) {
-      const secondsIntoToday = secondsIntoDayFromZuluDateString(photoFiles[i].date_taken);
+      const secondsIntoToday = appSecondsFromDateString(photoFiles[i].date_taken);
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
@@ -123,7 +125,7 @@ export default function Photos() {
   const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
   if (currentlyActivePhoto) {
     dateTakenLabel = "Taken:";
-    dateTakenValue = `${timeFromZuluDate(new Date(photos.activePhoto.date_taken))}Z`;
+    dateTakenValue = `${hhmmssFromDateString(photos.activePhoto.date_taken)}Z`;
     infoButtonStyle = styles.infoActive;
   }
   if (infoToggle) {

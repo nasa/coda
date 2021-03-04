@@ -9,75 +9,70 @@ export function padZeros(num: number, size: number): string {
 }
 
 /**
- * Convert the number of seconds to a formatted HH:MM:SS string
+ * Calculates seconds into day (appSeconds) of any isoString timestamp
  */
-export function secondsToTimeStr(totalSeconds: number): string {
-  var hours = Math.abs(Math.round(totalSeconds / 3600));
-  var minutes = (Math.abs(Math.round(totalSeconds / 60)) % 60) % 60;
-  var seconds = Math.abs(Math.round(totalSeconds)) % 60;
-  seconds = Math.floor(seconds);
-  var timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
-  if (totalSeconds < 0) {
-    timeStr = "-" + timeStr.substr(1); //change timeStr to negative, replacing leading zero in hours with "-"
-  }
-  return timeStr;
+export function appSecondsFromDateString(dateStringParam: string): number {
+  const isoString = isoStringFromAnyDateString(dateStringParam);
+  const startOfDay = new Date(`${isoString.split("T")[0]}T00:00:00Z`);
+  const isoDate = new Date(isoString);
+  return (isoDate.getTime() - startOfDay.getTime()) / 1000;
 }
 
 /**
- * Simple conversion of seconds to HH:MM:SS. Will prepend a negative sign if necessary */
-export function secondsToHHMMSS(secParam: number): string {
-  const absSecParam = Math.abs(secParam);
-  const hours = Math.floor(absSecParam / 3600);
-  const minutes = Math.floor((absSecParam - hours * 3600) / 60);
-  const seconds = absSecParam - hours * 3600 - minutes * 60;
+ * Formats any isoString timestamp into hh:mm:ss
+ */
+export function hhmmssFromDateString(dateStringParam: string): string {
+  if (dateStringParam === "") {
+    return "";
+  }
+  const isoString = isoStringFromAnyDateString(dateStringParam);
+  const tempDate = new Date(isoString);
+  const hh = padZeros(tempDate.getUTCHours(), 2);
+  const mm = padZeros(tempDate.getUTCMinutes(), 2);
+  const ss = padZeros(tempDate.getUTCSeconds(), 2);
+  return `${hh}:${mm}:${ss}`;
+}
 
-  let timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
-  if (secParam < 0) {
+/**
+ * Formats any appSeconds value into hh:mm:ss equivalent
+ */
+export function hhmmssFromSeconds(secondsParam: number): string {
+  var hours = Math.abs(Math.trunc(secondsParam / 3600));
+  var minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
+  var seconds = Math.abs(Math.trunc(secondsParam)) % 60;
+  seconds = Math.floor(seconds);
+  var timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
+  if (secondsParam < 0) {
     timeStr = "-" + timeStr;
   }
   return timeStr;
 }
 
-export function secondsToZuluString(seconds: number, timingData: TimingData): string {
-  var zuluDate = secondsToZuluDate(seconds, timingData);
-  var temp = zuluDate.toISOString().split("T")[1].split(":");
-  return temp[0] + ":" + temp[1] + ":" + temp[2].split(".")[0] + "Z";
-}
-
-function secondsToZuluDate(seconds: number, timingData: TimingData): Date {
-  return new Date(timingData.video_earliestStart.getTime() + seconds * 1000);
-}
-
-export function zuluDateToMissionSeconds(zuluDate: Date, timingData: TimingData): number {
-  return (zuluDate.getTime() - timingData.video_earliestStart.getTime()) / 1000;
-}
-
-export function secondsIntoDayFromZuluDateString(zuluString: string): number {
-  const startOfDay = new Date(`${zuluString.split("T")[0]}T00:00:00Z`);
-  const zuluDate = new Date(zuluString);
-  return (zuluDate.getTime() - startOfDay.getTime()) / 1000;
-}
-
-export function timeFromZuluDate(zuluDate: Date): string {
-  const hh = padZeros(zuluDate.getUTCHours(), 2);
-  const mm = padZeros(zuluDate.getUTCMinutes(), 2);
-  const ss = padZeros(zuluDate.getUTCSeconds(), 2);
-  return `${hh}:${mm}:${ss}`;
-}
-
-export function shortdateFromZuluDate(zuluDate: Date): string {
+/**
+ * Formats any isoString timestamp into yyyy-mm-dd
+ */
+export function shortdateFromDateString(dateString: string): string {
+  if (dateString === "") {
+    return "";
+  }
+  dateString = isoStringFromAnyDateString(dateString);
+  const tempDate = new Date(dateString);
   return (
-    padZeros(zuluDate.getUTCFullYear(), 2) +
+    tempDate.getUTCFullYear() +
     "-" +
-    padZeros(zuluDate.getUTCMonth() + 1, 2) +
+    padZeros(tempDate.getUTCMonth() + 1, 2) +
     "-" +
-    padZeros(zuluDate.getUTCDate(), 2)
+    padZeros(tempDate.getUTCDate(), 2)
   );
 }
 
-export function dateAsCanonicalString(d: Date): string {
-  const Y = d.getUTCFullYear();
-  const M = d.getUTCMonth();
-  const D = d.getUTCDate();
-  return `${Y}/${M}/${D}`;
+/**
+ * Takes a date string and returns an isoString, throwing an error if conversion is impossible
+ */
+function isoStringFromAnyDateString(dateString: string): string {
+  const tempDate = new Date(dateString); // works with ISO and UTC date strings
+  if (isNaN(tempDate.valueOf())) {
+    throw new Error("The date string couldn't be converted into a Date");
+  }
+  return tempDate.toISOString(); // guaranteed to have an ISO string. safe to string parse it
 }

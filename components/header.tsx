@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { changeTime, PlayheadState } from "store/playhead";
-import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
+import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EVADropdown from "components/eva-dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
@@ -49,15 +49,15 @@ function Header() {
 
   useEffect(() => {
     if (!isNull(evaStartSec)) {
-      setPET(secondsToHHMMSS(playhead.seconds - evaStartSec));
+      setPET(hhmmssFromSeconds(playhead.seconds - evaStartSec));
     }
 
-    setRenderTime(secondsToHHMMSS(playhead.seconds));
+    setRenderTime(hhmmssFromSeconds(playhead.seconds));
   }, [playhead.seconds]);
 
   useEffect(() => {
     const dt = new Date(playhead.date);
-    setRenderDate(shortdateFromZuluDate(dt));
+    setRenderDate(shortdateFromDateString(dt.toISOString()));
   }, [playhead.date]);
 
   /** Navigates to a new date or time */

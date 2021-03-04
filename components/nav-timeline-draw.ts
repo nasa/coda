@@ -5,13 +5,9 @@ import { VideoFile, PhotoFile } from "services/io";
 import { Activity, DayNight } from "services/iss-wiki";
 import { TimingData } from "store/videos";
 import { textSpanIntersectsWithTextSpan } from "typescript";
-import {
-  secondsToTimeStr,
-  secondsToZuluString,
-  secondsIntoDayFromZuluDateString,
-  zuluDateToMissionSeconds,
-  secondsToHHMMSS,
-} from "utils/formatting";
+import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
+
+import { PlayheadState } from "store/playhead";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -107,8 +103,8 @@ export default class DrawNav {
     for (let i = 0; i < this.timingData["EVA_duration_seconds"]; i++) {
       // sillily complex thing to show time ticks on the hour
       if (
-        parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
-        secondsToTimeStr(i).substring(6, 8) === "00"
+        parseInt(hhmmssFromSeconds(i).substring(3, 5)) % (10 * 60) === 0 &&
+        hhmmssFromSeconds(i).substring(6, 8) === "00"
       ) {
         let itemLocX = i * this.gTier1PixelsPerSecond;
         let topPoint = new paper.Point(itemLocX, this.gTier1Top);
@@ -195,7 +191,7 @@ export default class DrawNav {
     // if isToday, indicate the "future" (https://www.youtube.com/watch?v=VVle0kopfes)
     if (this.isToday) {
       this.gTier1FutureGroup.removeChildren();
-      const secondsIntoToday = zuluDateToMissionSeconds(new Date(), this.timingData);
+      const secondsIntoToday = appSecondsFromDateString(new Date().toISOString());
 
       let futureLocX = 0.5 + secondsIntoToday * this.gTier1PixelsPerSecond;
       const futureLocY = this.gTier1Top + 15;
@@ -304,15 +300,6 @@ export default class DrawNav {
     let secondsOnTier2 = this.gTier2SecondsPerPixel * this.gNavigatorWidth;
 
     this.gTier2Group.removeChildren();
-    let tierBottom = this.gTier1Top + this.gTier2Height;
-
-    // draw tier2 boarder
-    // let tierRect = new paper.Rectangle(1.5, gTier2Top, gNavigatorWidth, gTier2Height);
-    // let cornerSize = new paper.Size(3, 3);
-    // let tierRectPath = new paper.Path.Rectangle(tierRect, cornerSize);
-    // tierRectPath.strokeColor = tierBoxColor;
-    // gTier2Group.addChild(tierRectPath);
-
     //draw tier2 video background staff lines
     let yPos = this.gTier2Top;
     for (let i = 0; i < 6; i++) {
@@ -388,8 +375,8 @@ export default class DrawNav {
       i++
     ) {
       if (
-        parseInt(secondsToTimeStr(i).substring(3, 5)) % (10 * 60) === 0 &&
-        secondsToTimeStr(i).substring(6, 8) === "00"
+        parseInt(hhmmssFromSeconds(i).substring(3, 5)) % (10 * 60) === 0 &&
+        hhmmssFromSeconds(i).substring(6, 8) === "00"
       ) {
         let itemSecondsFromLeft = i - this.gTier2StartSeconds;
 
@@ -408,7 +395,7 @@ export default class DrawNav {
           //fontWeight: 'bold',
           fontSize: 15,
           fillColor: this.gColorTimeTicks,
-          content: secondsToTimeStr(i),
+          content: hhmmssFromSeconds(i),
         });
         const textTop = this.gTier2Top + 50;
         timeText.point = new paper.Point(itemLocX - 32, textTop);
@@ -427,6 +414,7 @@ export default class DrawNav {
 
     // display photo ticks
     for (let i = 0; i < this.photoFiles.length; i++) {
+      const photoTimeSeconds = appSecondsFromDateString(this.photoFiles[i].date_taken);
       if (
         this.photoFiles[i].dateTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
         this.photoFiles[i].dateTakenAppSeconds >= this.gTier2StartSeconds
@@ -452,7 +440,7 @@ export default class DrawNav {
 
     // if isToday, indicate the "future"
     if (this.isToday) {
-      const secondsIntoToday = zuluDateToMissionSeconds(new Date(), this.timingData);
+      const secondsIntoToday = appSecondsFromDateString(new Date().toISOString());
       const futureSecondsFromLeft = secondsIntoToday - this.gTier2StartSeconds;
 
       const futureLocX = futureSecondsFromLeft * this.gTier2PixelsPerSecond;
@@ -628,7 +616,7 @@ export default class DrawNav {
         fontSize: 12,
         fillColor: "white",
       });
-      petText.content = "PET: " + secondsToHHMMSS(Math.round(seconds - this.evaStartSec));
+      petText.content = "PET: " + hhmmssFromSeconds(Math.round(seconds - this.evaStartSec));
       petText.point = new paper.Point(cursorLocX - petText.bounds.width / 2, 18);
       timeTextGroup.addChild(petText);
 
@@ -648,7 +636,7 @@ export default class DrawNav {
       fontSize: timeTextFontSize,
       fillColor: "white",
     });
-    timeText.content = " " + secondsToZuluString(seconds, this.timingData) + " ";
+    timeText.content = " " + hhmmssFromSeconds(seconds) + "Z";
     timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, timeTextYPos);
     const cornerSize = new paper.Size(4, 4);
     timeTextGroup.addChild(timeText);

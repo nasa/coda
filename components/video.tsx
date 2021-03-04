@@ -14,7 +14,7 @@ import {
   VideoActivity,
   VideosState,
 } from "store/videos";
-import { secondsToHHMMSS, secondsToZuluString } from "utils/formatting";
+import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
 
@@ -346,7 +346,7 @@ export default function Videos({ id }: { id: number }) {
       videoFilename = currentlyPlayingVideo.id;
       ioSearchLink = currentlyPlayingVideo.url;
       ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
-      openVideoURLMessage = `Open video file directly at ${secondsToHHMMSS(videoStartOffset)}`;
+      openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
       dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();
       info = currentlyPlayingVideo.description;

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import deepEqual from "lodash/isEqual";
 import { useSelector } from "react-redux";
-import { secondsToHHMMSS, shortdateFromZuluDate } from "utils/formatting";
+import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 import { RootState } from "store/index";
@@ -32,8 +32,8 @@ export default function HeaderShare() {
     setCopyButtonText("COPY LINK");
 
     const dt = new Date(playhead.date);
-    const missionDate = shortdateFromZuluDate(dt);
-    const missionTime = secondsToHHMMSS(playhead.seconds);
+    const missionDate = shortdateFromDateString(dt.toISOString());
+    const missionTime = hhmmssFromSeconds(playhead.seconds);
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;
