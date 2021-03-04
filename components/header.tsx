@@ -35,7 +35,7 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  const eva = evaSelector(evas);
+  const eva = evaSelector(evas, playhead.date);
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times

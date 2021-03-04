@@ -6,6 +6,7 @@ import type { GetServerSideProps } from "next";
 import { EVA, getAllEVAs } from "services/iss-wiki";
 import { initialState as playheadInitialState } from "store/playhead";
 import { initialState as videosInitialState } from "store/videos";
+import { EVAStore } from "store/evas";
 
 export default function Index() {
   return (
@@ -30,7 +31,7 @@ export default function Index() {
  * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
  */
 export const getStaticProps: GetServerSideProps = async () => {
-  const EVAs = {} as { [key: string]: EVA };
+  const EVAs: EVAStore = {};
   try {
     const evas = await getAllEVAs();
     Object.keys(evas).forEach((evaName) => {
@@ -55,7 +56,7 @@ export const getStaticProps: GetServerSideProps = async () => {
       initialReduxState: {
         playhead: playheadInitialState,
         evas: {
-          EVAs,
+          objects: EVAs,
           selectedEVA: "",
         },
         videos: videosInitialState,

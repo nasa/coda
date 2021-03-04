@@ -5,13 +5,15 @@ import get from "lodash/get";
 import memoize from "lodash/memoize";
 import fetch from "isomorphic-unfetch";
 import type { EVAStore } from "store/evas";
+import { padZeros } from "utils/formatting";
 
 export interface EVA {
   /** EVA name upper-cased with spaces, eg. `US EVA 55` */
   name: string;
+  /** Full URL to the wiki */
   wikiURL: string;
   displayTitle: string;
-  /** UTC */
+  /** YYYY-MM-DD UTC */
   startDate: string;
   /** UTC */
   startTime: string;
@@ -207,7 +209,7 @@ function parseDetailsObject(res: EVADetails): ParsedEVADetails {
     startTime: evaData["printouts"]["Start time"][0],
     duration: evaData["printouts"]["Duration"][0],
     fullURL: evaData["fullurl"],
-    evaDate: `${year}/${month}/${day}`,
+    evaDate: `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`,
   };
 }
 
@@ -500,12 +502,16 @@ export async function initEVAStore(): Promise<EVAStore> {
       const [h, m] = wikiDuration.split(":");
       duration = +h * 3600 + +m * 60;
     }
+    const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
+      .substring(2)
+      .split("/");
+    const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
-    EVAs[formattedEVAName] = {
+    EVAs[startDate] = {
       name: evaName,
       wikiURL: asPlanned[evaName].fullurl,
       displayTitle: asPlanned[evaName].printouts["EVA title"][0],
-      startDate: asPlanned[evaName].printouts["Start date"][0].raw.substring(2),
+      startDate,
       startTime: asPlanned[evaName].printouts["Start time"][0],
       duration,
       execution: { EV1: [], EV2: [] },
@@ -536,12 +542,16 @@ export async function buildEVAStore(): Promise<EVAStore> {
       const [h, m] = wikiDuration.split(":");
       duration = +h * 3600 + +m * 60;
     }
+    const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
+      .substring(2)
+      .split("/");
+    const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
-    EVAs[formattedEVAName] = {
+    EVAs[startDate] = {
       name: evaName,
       wikiURL: asPlanned[evaName].fullurl,
       displayTitle: asPlanned[evaName].printouts["EVA title"][0],
-      startDate: asPlanned[evaName].printouts["Start date"][0].raw.substring(2),
+      startDate,
       startTime: asPlanned[evaName].printouts["Start time"][0],
       duration,
       execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
@@ -577,11 +587,13 @@ export async function fetchEVA(evaName: string): Promise<EVAStore> {
     duration = +h * 3600 + +m * 60;
   }
 
-  ret[formattedEVAName] = {
+  const startDate = asPlanned.evaDate;
+
+  ret[startDate] = {
     name: evaName,
     wikiURL: asPlanned.fullURL,
     displayTitle: asPlanned.evaTitle,
-    startDate: asPlanned.evaDate,
+    startDate,
     startTime: asPlanned.startTime,
     duration,
     execution,

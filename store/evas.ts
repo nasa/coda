@@ -1,14 +1,15 @@
+import get from "lodash/get";
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
 import type { TimingData } from "store/videos";
+import { PlayheadState } from "./playhead";
+import { padZeros } from "utils/formatting";
 
-/** Keyed in the format of underscored lowercase EVA name, eg. `us_eva_55` */
+/** Keyed by UTC date in the format of `yyyy-mm-dd` */
 export type EVAStore = { [key: string]: EVA };
 
 export interface EVAsState {
-  EVAs: EVAStore;
-  /** Format of underscored lowercase EVA name, eg. `us_eva_55` */
-  selectedEVA: string;
+  objects: EVAStore;
   /** Message describing something that went wrong fetching EVAs */
   errorMessage: string;
   /** UTC string of the last time we hit IO */
@@ -16,8 +17,7 @@ export interface EVAsState {
 }
 
 export const initialState: EVAsState = {
-  EVAs: {},
-  selectedEVA: "",
+  objects: {},
   errorMessage: "",
   lastChecked: "",
 };
@@ -26,14 +26,9 @@ export const evasSlice = createSlice({
   name: "evas",
   initialState,
   reducers: {
-    /** Set the currently selected EVA */
-    setSelected: (state, action: { payload: string }) => {
-      state.selectedEVA = action.payload;
-    },
-
     /** Add one (or more) EVA(s) to the store */
     addEVAs: (state: EVAsState, action: { payload: { [key: string]: EVA } }) => {
-      state.EVAs = { ...state.EVAs, ...action.payload };
+      state.objects = { ...state.objects, ...action.payload };
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
     },
@@ -45,12 +40,12 @@ export const evasSlice = createSlice({
   },
 });
 
-export const { setSelected, addEVAs, fetchError } = evasSlice.actions;
+export const { addEVAs, fetchError } = evasSlice.actions;
 
 /** Start time of an EVA in UTC milliseconds */
 export const getEVAStartMilliseconds = (eva: EVA): number => {
   const { startDate, startTime } = eva;
-  const [Y, M, D] = startDate.split("/").map(Number);
+  const [Y, M, D] = startDate.split("-").map(Number);
   const [hh, mm] = startTime.split(/:/).map(Number);
   return Date.UTC(Y, M - 1, D, hh, mm);
 };
@@ -113,6 +108,13 @@ export const getDayNightMissionTime = (dayNight: DayNight, timingData: TimingDat
   };
 };
 
-export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA] || null;
+/** Select the active EVA for the playhead */
+export const evaSelector = (state: EVAsState, date: PlayheadState["date"]): EVA => {
+  const d = new Date(date);
+  const yyyy = d.getUTCFullYear();
+  const mm = padZeros(d.getUTCMonth() + 1, 2);
+  const dd = padZeros(d.getUTCDate(), 2);
+  return get(state.objects, `${yyyy}-${mm}-${dd}`, null);
+};
 
 export const selectEVAStartMilliseconds = createSelector(evaSelector, getEVAStartMilliseconds);

@@ -1,3 +1,4 @@
+import get from "lodash/get";
 import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
 import type { GetServerSideProps } from "next";
@@ -17,7 +18,6 @@ import {
   addEVAs,
   evaSelector,
   EVAsState,
-  setSelected,
   fetchError as evasFetchError,
   EVAStore,
 } from "store/evas";
@@ -49,7 +49,8 @@ export default function View() {
     photos: PhotosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
-  const eva = evaSelector(evas);
+  const eva = evaSelector(evas, playhead.date);
+  const evaName = get(eva, "name", "");
 
   // make sure the application is running on the correct date
   useEffect(() => {
@@ -108,25 +109,6 @@ export default function View() {
       }
 
       const d = new Date(playhead.date);
-
-      // try to find an EVA on this date
-      let hit = false;
-      for (let eva in evas.EVAs) {
-        const [year, month, day] = evas.EVAs[eva].startDate.split("/").map(Number);
-        if (isSameDate(new Date(Date.UTC(year, month - 1, day)), d)) {
-          if (evas.selectedEVA !== eva) {
-            // the new date has an EVA
-            dispatch(setSelected(eva));
-          }
-          // we already know which EVA is happening on this date
-          hit = true;
-          break;
-        }
-      }
-      if (!hit && evas.selectedEVA !== "") {
-        // the user used to be looking at an EVA but no EVA is on this new date
-        dispatch(setSelected(""));
-      }
 
       // make sure we don't already have videos for this date
       if (haveVideosFromDate(videos, d)) {
@@ -224,7 +206,7 @@ export default function View() {
   /** If the user is looking at an EVA, update that EVA in the store */
   const updateEVA = () => {
     (async () => {
-      if (evas.selectedEVA === "") {
+      if (isNull(eva)) {
         return;
       }
 
@@ -241,7 +223,7 @@ export default function View() {
   };
 
   // fetch updated data as soon as the page loads if the user is looking at an EVA
-  useEffect(updateEVA, [evas.selectedEVA]);
+  useEffect(updateEVA, [evaName]);
 
   // look for wiki info every 5 mins if the user is looking at an EVA
   useInterval(updateEVA, FIVE_MINS_MS);
@@ -286,7 +268,7 @@ export const getStaticProps: GetServerSideProps = async () => {
       initialReduxState: {
         ...initialState,
         evas: {
-          EVAs,
+          objects: EVAs,
           selectedEVA: evaOnDate,
           EVACrew: {},
           errorMessage: evaErrorMessage,

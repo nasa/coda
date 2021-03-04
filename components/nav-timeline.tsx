@@ -2,7 +2,7 @@ import get from "lodash/get";
 import deepEqual from "lodash/isEqual";
 import isNull from "lodash/isNull";
 import paper from "paper";
-import { MutableRefObject, useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate, changeTime } from "store/playhead";
 import {
@@ -12,7 +12,7 @@ import {
   getEVAStartMilliseconds,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
-import { selectPhotoFiles, PhotosState, setActivePhoto } from "store/photos";
+import { selectPhotoFiles, PhotosState } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
@@ -36,7 +36,8 @@ function NavTimeline() {
   const videoFiles = selectVideoFiles(videos);
   const photoFiles = selectPhotoFiles(photos);
 
-  const eva = evaSelector(evas);
+  const eva = evaSelector(evas, playhead.date);
+  const evaName = get(eva, "name", "");
   const canvas = useRef();
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
@@ -54,18 +55,6 @@ function NavTimeline() {
     // only setup the canvas once
     if (isNull(paper.project)) {
       paper.setup(canvas.current);
-    }
-
-    const paperRendered = !isNull(paper.project) && !paper.project.isEmpty();
-    const sameVideos =
-      !isNull(drawNav.current) && drawNav.current.hasAlreadyRenderedVideos(videoFiles);
-    const sameDate =
-      !isNull(drawNav.current) && isSameDate(drawNav.current.dateRendered, new Date(playhead.date));
-    const sameEVA = !isNull(drawNav.current) && evas.selectedEVA === drawNav.current.evaRendered;
-
-    if (paperRendered && sameVideos && sameDate && sameEVA) {
-      // bail if there's no reason to rerender the timeline
-      return;
     }
 
     const dayNight = eva?.dayNight || null;
@@ -100,7 +89,7 @@ function NavTimeline() {
       dayNight,
       activityPerformance,
       new Date(playhead.date),
-      evas.selectedEVA,
+      evaName,
       evaStartSec,
       isToday
     );
@@ -153,8 +142,11 @@ function NavTimeline() {
   }, [playhead.date]);
 
   useEffect(() => {
-    paper.project.remove(); // always kill previous timeline
-    installTimeline();
+    drawNav.current.drawTier1();
+    drawNav.current.drawTier1Future();
+    drawNav.current.drawTier1NavBox(time.current);
+    drawNav.current.drawTier2();
+    drawNav.current.drawCursor(time.current);
   }, [eva, videos.videos, photos.photos]);
 
   useEffect(() => {
