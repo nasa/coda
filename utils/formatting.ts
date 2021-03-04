@@ -5,7 +5,7 @@ import { TimingData } from "store/videos";
  */
 export function padZeros(num: number, size: number): string {
   let s = num.toString();
-  return s.padStart(2, "0");
+  return s.padStart(size, "0");
 }
 
 /**
