@@ -14,7 +14,6 @@ import {
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
 import { selectPhotoFiles, PhotosState, setActivePhoto } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
-import { secondsIntoDayFromZuluDateString } from "utils/formatting";
 import { RootState } from "store/index";
 
 /**
