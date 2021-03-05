@@ -1,11 +1,9 @@
-import get from "lodash/get";
 import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
-import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import { EVA, fetchEVA, initEVAStore } from "services/iss-wiki";
+import { buildEVAStore } from "services/iss-wiki";
 import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
 import {
   addVideos,
@@ -14,18 +12,12 @@ import {
   fetchError as videosFetchError,
 } from "store/videos";
 import { addPhotos, PhotosState, fetchError as photosFetchError } from "store/photos";
-import {
-  addEVAs,
-  evaSelector,
-  EVAsState,
-  fetchError as evasFetchError,
-  EVAStore,
-} from "store/evas";
+import { addEVAs } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { PlayheadState, diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
-import { initialState, RootState } from "store/index";
+import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -39,18 +31,14 @@ export default function View() {
   } = useRouter();
   const {
     playhead,
-    evas,
     videos,
     photos,
   }: {
     playhead: PlayheadState;
-    evas: EVAsState;
     videos: VideosState;
     photos: PhotosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
-  const eva = evaSelector(evas, playhead.date);
-  const evaName = get(eva, "name", "");
 
   // make sure the application is running on the correct date
   useEffect(() => {
@@ -102,6 +90,7 @@ export default function View() {
     }
   }, [gmt]);
 
+  // grab videos
   useEffect(() => {
     (async () => {
       if (isNull(playhead.date)) {
@@ -187,44 +176,25 @@ export default function View() {
     })();
   }, FIVE_MINS_MS);
 
-  // fetch updated data on all EVAs as soon as the page loads
-  useEffect(() => {
+  /** Update the EVA store */
+  const updateEVAs = () => {
     (async () => {
       try {
         // EVA data from the wiki
-        const updatedEVAs = await initEVAStore();
+        const updatedEVAs = await buildEVAStore();
         dispatch(addEVAs(updatedEVAs));
       } catch (e) {
-        dispatch(evasFetchError(e.toString()));
-        console.error(e);
-      }
-    })();
-  }, []);
-
-  /** If the user is looking at an EVA, update that EVA in the store */
-  const updateEVA = () => {
-    (async () => {
-      if (isNull(eva)) {
-        return;
-      }
-
-      let updatedEVA: { [key: string]: EVA };
-      try {
-        // EVA data from the wiki
-        updatedEVA = await fetchEVA(eva.name);
-        dispatch(addEVAs(updatedEVA));
-      } catch (e) {
-        dispatch(evasFetchError(e.toString()));
+        // dispatch(evasFetchError(e.toString()));
         console.error(e);
       }
     })();
   };
 
-  // fetch updated data as soon as the page loads if the user is looking at an EVA
-  useEffect(updateEVA, [evaName]);
+  // fetch updated data when the date changes
+  useEffect(updateEVAs, [playhead.date]);
 
-  // look for wiki info every 5 mins if the user is looking at an EVA
-  useInterval(updateEVA, FIVE_MINS_MS);
+  // look for wiki info every 5 mins
+  useInterval(updateEVAs, FIVE_MINS_MS);
 
   let prefix = "Viewer";
   if (!isNull(playhead.date)) {
@@ -244,36 +214,3 @@ export default function View() {
     </div>
   );
 }
-
-/**
- * Server-side call to hydrate the props, ie. to put data in all the components on the server before sending files to the client
- * See https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
- */
-export const getStaticProps: GetServerSideProps = async () => {
-  let evaOnDate = "";
-  let evaErrorMessage = "";
-
-  let EVAs: EVAStore = {};
-  try {
-    EVAs = await initEVAStore();
-  } catch (e) {
-    console.error(e);
-    evaErrorMessage = "Error fetching EVA list";
-  }
-
-  return {
-    props: {
-      initialReduxState: {
-        ...initialState,
-        evas: {
-          objects: EVAs,
-          selectedEVA: evaOnDate,
-          EVACrew: {},
-          errorMessage: evaErrorMessage,
-        },
-      },
-    },
-    // regenerate the props at most once per second if a request comes in
-    revalidate: 1,
-  };
-};

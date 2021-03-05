@@ -1,9 +1,8 @@
-import { useSelector } from "react-redux";
+import { useSelector, useStore } from "react-redux";
 import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
-import { PhotoFile } from "services/io";
 import { add, PlayheadState, isSameDate } from "store/playhead";
-import { evaSelector, EVAsState } from "store/evas";
+import { evasSelector, idFromDate } from "store/evas";
 import { PhotosState } from "store/photos";
 import { VideosState } from "store/videos";
 import styles from "./status-bar.module.css";
@@ -17,10 +16,10 @@ export default function StatusBar() {
     playhead: { isRunning, date },
     evas,
     videos: { ready: videosReady, lastChecked: ioLastChecked, errorMessage: videosErrorMessage },
-    photos: { ready: photosReady, photosLastChecked, errorMessage: photosErrorMessage },
+    photos: { errorMessage: photosErrorMessage },
   }: {
     playhead: PlayheadState;
-    evas: EVAsState;
+    evas: RootState["evas"];
     videos: VideosState;
     photos: PhotosState;
   } = useSelector((store: RootState) => store, deepEqual);
@@ -28,7 +27,8 @@ export default function StatusBar() {
   const errorMessages =
     evas.errorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
 
-  const eva = evaSelector(evas, date);
+  const store = useStore();
+  const eva = evasSelector.selectById(store.getState(), idFromDate(date));
 
   const [isToday, setIsToday] = useState(false);
   useEffect(() => {

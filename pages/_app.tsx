@@ -1,7 +1,7 @@
 import clone from "lodash/clone";
 import type { AppProps } from "next/app";
 import { Provider } from "react-redux";
-import { useStore } from "store";
+import { useStore, initialState } from "store";
 import "../styles.css";
 
 // Enable API mocking locally in node
@@ -12,13 +12,7 @@ if (typeof window === "undefined" && process.env.NEXT_PUBLIC_APP_ENV === "local"
 
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }: AppProps) {
-  const stateFromServer = pageProps.initialReduxState;
-  // set lastStarted so the clock is running when CODA loads
-  // we also need to set applicationTime on the server-side, see [eva].tsx
-  if (stateFromServer) {
-    stateFromServer.playhead.lastStarted = new Date().toISOString();
-  }
-  const store = useStore(clone(stateFromServer));
+  const store = useStore(clone(initialState));
 
   return (
     <Provider store={store}>

@@ -462,54 +462,13 @@ export interface DayNight {
   events?: Activity[];
 }
 
-/**
- * Fetch as-planned data to put in the store
- */
-export async function initEVAStore(): Promise<EVAStore> {
-  const EVAs = {} as { [key: string]: EVA };
-  const asPlanned = await getAllEVAs();
-
-  Object.keys(asPlanned).forEach((evaName) => {
-    const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
-    let duration = -1;
-    const [wikiDuration] = asPlanned[evaName].printouts.Duration;
-    // for whatever reason, if no duration is specified the wiki gives us ":"
-    if (wikiDuration !== ":") {
-      const [h, m] = wikiDuration.split(":");
-      duration = +h * 3600 + +m * 60;
-    }
-    const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
-      .substring(2)
-      .split("/");
-    const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
-
-    EVAs[startDate] = {
-      name: evaName,
-      wikiURL: asPlanned[evaName].fullurl,
-      displayTitle: asPlanned[evaName].printouts["EVA title"][0],
-      startDate,
-      startTime: asPlanned[evaName].printouts["Start time"][0],
-      duration,
-      execution: { EV1: [], EV2: [] },
-      crew: { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" },
-      // we need video data to calculate activityPerformance
-      activityPerformance: { EV1: [], EV2: [] },
-      // the wiki doesn't actually give us dayNight
-      dayNight: { events: [], dataStartUTC: 0 },
-    };
-  });
-
-  return EVAs;
-}
-
 /** Fetch as-planned and as-executed EVA data and format it for passing to the redux store */
-export async function buildEVAStore(): Promise<EVAStore> {
-  const EVAs = {} as { [key: string]: EVA };
+export async function buildEVAStore(): Promise<EVA[]> {
   const asPlanned = await getAllEVAs();
   const asExecuted = await getAllAsExecuted();
   const crews = await getAllCrew();
 
-  Object.keys(asPlanned).forEach((evaName) => {
+  return Object.keys(asPlanned).map((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
     let duration = -1;
     const [wikiDuration] = asPlanned[evaName].printouts.Duration;
@@ -523,7 +482,7 @@ export async function buildEVAStore(): Promise<EVAStore> {
       .split("/");
     const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
-    EVAs[startDate] = {
+    return {
       name: evaName,
       wikiURL: asPlanned[evaName].fullurl,
       displayTitle: asPlanned[evaName].printouts["EVA title"][0],
@@ -538,47 +497,4 @@ export async function buildEVAStore(): Promise<EVAStore> {
       dayNight: { events: [], dataStartUTC: 0 },
     };
   });
-
-  return EVAs;
-}
-
-/**
- * Fetch data for a single EVA and format it for passing to the store
- * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
- */
-export async function fetchEVA(evaName: string): Promise<EVAStore> {
-  const ret = {} as { [key: string]: EVA };
-  const asPlanned = await getEVADetails(evaName);
-  const execution = {
-    EV1: await getAsExecuted(evaName, 1),
-    EV2: await getAsExecuted(evaName, 2),
-  };
-  const crew = await getCrew(evaName);
-
-  const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
-  let duration = -1;
-  // for whatever reason, if no duration is specified the wiki gives us ":"
-  if (asPlanned.duration !== ":") {
-    const [h, m] = asPlanned.duration.split(":");
-    duration = +h * 3600 + +m * 60;
-  }
-
-  const startDate = asPlanned.evaDate;
-
-  ret[startDate] = {
-    name: evaName,
-    wikiURL: asPlanned.fullURL,
-    displayTitle: asPlanned.evaTitle,
-    startDate,
-    startTime: asPlanned.startTime,
-    duration,
-    execution,
-    crew,
-    // we need video data to calculate activityPerformance
-    activityPerformance: { EV1: [], EV2: [] },
-    // the wiki doesn't actually give us dayNight
-    dayNight: { events: [], dataStartUTC: 0 },
-  };
-
-  return ret;
 }
