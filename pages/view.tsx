@@ -119,15 +119,14 @@ export default function View() {
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
 
-      let videoStore: Videos;
       try {
         // video data for this EVA
-        videoStore = await buildVideoStore(year, month + 1, day);
+        const videoStore = await buildVideoStore(year, month + 1, day);
+        dispatch(addVideos({ videos: videoStore }));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);
       }
-      dispatch(addVideos({ videos: videoStore }));
     })();
   }, [playhead.date]);
 
@@ -148,15 +147,14 @@ export default function View() {
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
 
-      let photoStore: Photos;
       try {
         // photos data for today
-        photoStore = await buildPhotoStore(year, month + 1, day);
+        const photoStore = await buildPhotoStore(year, month + 1, day);
+        dispatch(addPhotos({ photos: photoStore }));
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
         console.error(e);
       }
-      dispatch(addPhotos({ photos: photoStore }));
     })();
   }, [playhead.date]);
 
