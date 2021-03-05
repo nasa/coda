@@ -2,9 +2,6 @@
  * Methods for fetching BLE data (aka Basic Level of Entitlement aka data anyone at NASA can see) from the ISS Wiki. Browsers will use a proxy, servers will hit the ISS Wiki directly
  */
 import get from "lodash/get";
-import memoize from "lodash/memoize";
-import fetch from "isomorphic-unfetch";
-import type { EVAStore } from "store/evas";
 import { padZeros } from "utils/formatting";
 
 export interface EVA {
@@ -68,33 +65,17 @@ export interface WikiResponse {
 }
 
 /**
- * Perform a query against the ISS Wiki with the given query parameters
- * @param action Optional string for specifying the action type for local mocking
- */
-async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
-  let res: WikiResults;
-
-  const isServer = typeof window === "undefined";
-
-  if (isServer) {
-    const serverFetch = await require("services/iss-wiki-server").default;
-    res = await serverFetch(query, action);
-  } else {
-    res = await proxyWikiFetch(query);
-  }
-
-  return res;
-}
-
-/**
  * Query the ISS Wiki through our proxy. Safe to call from the client
  * @param query A wiki ask query string
  */
-async function proxyWikiFetch(query: string): Promise<WikiResults> {
+async function fetchWiki(query: string, action): Promise<WikiResults> {
   // the proxy doesn't like all the newlines in our nicely formatted queries. get rid of them
   const strippedQuery = query.trim().replace(/\r?\n|\r/g, "");
   const queryString = encodeURIComponent(`"${strippedQuery}"`);
-  const url = `${process.env.PROXY_ORIGIN}/coda_server/getwiki.php?wikiparam=${queryString}`;
+  let url = `${process.env.PROXY_ORIGIN}/coda_server/getwiki.php?wikiparam=${queryString}`;
+  if (process.env.NEXT_PUBLIC_APP_ENV !== "prod") {
+    url = url + "&dev=true";
+  }
   const data = await fetch(url);
   return await data.json();
 }
@@ -129,7 +110,7 @@ export interface EVASummaryResponse {
 }
 
 /** Get a summary of all EVAs on the wiki */
-async function _getAllEVAs(): Promise<EVASummaryResponse> {
+async function getAllEVAs(): Promise<EVASummaryResponse> {
   // wiki query parameters
   const query = `
     [[~US EVA*]]
@@ -144,9 +125,6 @@ async function _getAllEVAs(): Promise<EVASummaryResponse> {
   const res = await fetchWiki(query, "getEVAs");
   return res.query.results;
 }
-
-/** Memoized call to get a summary of all EVAs on the wiki */
-export const getAllEVAs: () => Promise<EVASummaryResponse> = memoize(_getAllEVAs);
 
 /** EVA Metadata */
 interface EVADetails {
@@ -304,7 +282,7 @@ export interface AllExecution {
 }
 
 /** Get as-executed data for a given EV on a given EVA */
-async function _getAllAsExecuted(): Promise<AllExecution> {
+async function getAllAsExecuted(): Promise<AllExecution> {
   const query = `
     [[From page::~US EVA*/*xecuted*]]
     |mainlabel=-|?Index
@@ -322,9 +300,6 @@ async function _getAllAsExecuted(): Promise<AllExecution> {
   const results: EVAAsExecuted = res.query.results;
   return parseAllAsExecuted(results);
 }
-
-/** Memoized call to get as-executed data for a given EV on a given EVA */
-export const getAllAsExecuted: () => Promise<AllExecution> = memoize(_getAllAsExecuted);
 
 function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
   const res = {};
@@ -398,14 +373,18 @@ export interface Crew {
   SUIT_IV: string;
 }
 
+/** The proxy needs the `+` in the query to get pre-encoded as `%2B`, while MWBot wants it as a `+` */
+const plus = () => {
+  return typeof window !== "undefined" ? "%2B" : "+";
+};
+
 /**
- * Get crew assignment data for a EVA. Client-only because the proxy needs the `+` in the query to get pre-encoded as `%2B`
+ * Get crew assignment data for a EVA
  * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
  */
 async function getCrew(evaName: string) {
-  // `%2B` is a `+`
   const query = `
-    [[Crew involved with subject::%2B]]
+    [[Crew involved with subject::${plus()}]]
     [[From page::${evaName}]]
     |? Has full name
     |? Has role
@@ -436,10 +415,10 @@ export interface AllCrews {
   [key: string]: Crew;
 }
 
-/** Get crew assignment data for all EVAs. Server-only because the proxy does not like the `+` in the query */
-async function _getAllCrew(): Promise<AllCrews> {
+/** Get crew assignment data for all EVAs */
+async function getAllCrew(): Promise<AllCrews> {
   const query = `
-    [[Crew involved with subject::+]]
+    [[Crew involved with subject::${plus()}]]
     [[From page::~US EVA*]]
     |? Has full name
     |? Has role
@@ -450,9 +429,6 @@ async function _getAllCrew(): Promise<AllCrews> {
   const results: EVACrewResults = res.query.results;
   return parseAllCrew(results);
 }
-
-/** Memoized call to get crew assignment data for all EVAs */
-export const getAllCrew: () => Promise<AllCrews> = memoize(_getAllCrew);
 
 function parseAllCrew(results: EVACrewResults): AllCrews {
   const res = {} as AllCrews;
