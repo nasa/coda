@@ -217,7 +217,7 @@ const colorTranslator = {
   green: "#28B463",
   purple: "#8E44AD",
   yellow: "#B7950B",
-  white: "#FFFFFF",
+  white: "#96a5a7",
   black: "#000000",
   pink: "#FFC0CB",
 };
