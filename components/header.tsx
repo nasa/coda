@@ -1,10 +1,10 @@
 import config from "../package.json";
 import deepEqual from "lodash/isEqual";
 import Link from "next/link";
-import isNull from "lodash/isNull";
+import isNil from "lodash/isNil";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { changeTime, PlayheadState } from "store/playhead";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EVADropdown from "components/eva-dropdown";
@@ -12,7 +12,7 @@ import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
 
 import styles from "./header.module.css";
-import { evaSelector, EVAsState } from "store/evas";
+import { evasSelector, idFromDate } from "store/evas";
 
 /**
  * Renders the top bar of CODA
@@ -20,7 +20,7 @@ import { evaSelector, EVAsState } from "store/evas";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { playhead, evas }: { playhead: PlayheadState; evas: EVAsState } = useSelector(
+  const { playhead }: { playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
@@ -35,11 +35,15 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  const eva = evaSelector(evas);
+  // const eva = evaSelector(evas, playhead.date);
+  const store = useStore();
+  // const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
+  const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
+  // console.log(store.getState().evas.entities);
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-  if (!isNull(eva) && !isNull(eva.startTime.match(reHHMM))) {
+  if (!isNil(eva) && !isNil(eva.startTime.match(reHHMM))) {
     const [hh, mm] = eva.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
@@ -48,7 +52,7 @@ function Header() {
   const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
 
   useEffect(() => {
-    if (!isNull(evaStartSec)) {
+    if (!isNil(evaStartSec)) {
       setPET(hhmmssFromSeconds(playhead.seconds - evaStartSec));
     }
 
@@ -196,7 +200,7 @@ function Header() {
         <div className={`${styles.headerElementContainer}`}>
           <HeaderShare />
         </div>
-        {!isNull(evaStartSec) && (
+        {!isNil(evaStartSec) && (
           <div className={styles.headerElementContainer}>
             <div>
               <div className={styles.pet} title="HH:MM">
@@ -226,7 +230,7 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            {!isNull(eva) && (
+            {!isNil(eva) && (
               <div>
                 <div className={styles.crewItem}>
                   EV1:{" "}

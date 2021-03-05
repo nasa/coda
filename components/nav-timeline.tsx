@@ -1,18 +1,18 @@
 import get from "lodash/get";
 import deepEqual from "lodash/isEqual";
-import isNull from "lodash/isNull";
+import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { PlayheadState, isSameDate, changeTime } from "store/playhead";
 import {
-  evaSelector,
-  EVAsState,
+  evasSelector,
   getActivityPerformanceMissionTime,
   getEVAStartMilliseconds,
+  idFromDate,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
-import { selectPhotoFiles, PhotosState, setActivePhoto } from "store/photos";
+import { selectPhotoFiles, PhotosState } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
@@ -22,22 +22,21 @@ import { RootState } from "store/index";
 function NavTimeline() {
   const {
     playhead,
-    evas,
     videos,
     photos,
   }: {
     playhead: PlayheadState;
-    evas: EVAsState;
     videos: VideosState;
     photos: PhotosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
+  const store = useStore();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
   const photoFiles = selectPhotoFiles(photos);
 
-  const eva = evaSelector(evas);
-  const canvas = useRef();
+  const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
+  const evaName = get(eva, "name", "");
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
   const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
@@ -45,36 +44,27 @@ function NavTimeline() {
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-  if (!isNull(eva) && !isNull(eva.startTime.match(reHHMM))) {
+  if (!isNil(eva) && !isNil(eva.startTime.match(reHHMM))) {
     const [hh, mm] = eva.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
 
+  const canvas = useRef();
+
+  /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
     // only setup the canvas once
-    if (isNull(paper.project)) {
+    if (isNil(paper.project)) {
       paper.setup(canvas.current);
-    }
-
-    const paperRendered = !isNull(paper.project) && !paper.project.isEmpty();
-    const sameVideos =
-      !isNull(drawNav.current) && drawNav.current.hasAlreadyRenderedVideos(videoFiles);
-    const sameDate =
-      !isNull(drawNav.current) && isSameDate(drawNav.current.dateRendered, new Date(playhead.date));
-    const sameEVA = !isNull(drawNav.current) && evas.selectedEVA === drawNav.current.evaRendered;
-
-    if (paperRendered && sameVideos && sameDate && sameEVA) {
-      // bail if there's no reason to rerender the timeline
-      return;
     }
 
     const dayNight = eva?.dayNight || null;
 
     const activityPerformance = { EV1: [], EV2: [] };
-    if (!isNull(eva)) {
+    if (!isNil(eva)) {
       const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);
       const EV1 = get(eva.execution, "EV1", null);
-      if (!isNull(EV1)) {
+      if (!isNil(EV1)) {
         activityPerformance.EV1 = getActivityPerformanceMissionTime(
           EV1,
           timingData,
@@ -82,7 +72,7 @@ function NavTimeline() {
         );
       }
       const EV2 = get(eva.execution, "EV2", null);
-      if (!isNull(EV2)) {
+      if (!isNil(EV2)) {
         activityPerformance.EV2 = getActivityPerformanceMissionTime(
           EV2,
           timingData,
@@ -100,7 +90,7 @@ function NavTimeline() {
       dayNight,
       activityPerformance,
       new Date(playhead.date),
-      evas.selectedEVA,
+      evaName,
       evaStartSec,
       isToday
     );
@@ -153,7 +143,7 @@ function NavTimeline() {
   }, [playhead.date]);
 
   useEffect(() => {
-    paper.project.remove(); // always kill previous timeline
+    paper.project.remove();
     installTimeline();
   }, [eva, videos.videos, photos.photos]);
 

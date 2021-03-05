@@ -1,8 +1,8 @@
-import { useSelector } from "react-redux";
+import { useSelector, useStore } from "react-redux";
+import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
-import { PhotoFile } from "services/io";
 import { add, PlayheadState, isSameDate } from "store/playhead";
-import { EVAsState } from "store/evas";
+import { evasSelector, idFromDate } from "store/evas";
 import { PhotosState } from "store/photos";
 import { VideosState } from "store/videos";
 import styles from "./status-bar.module.css";
@@ -14,18 +14,21 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 export default function StatusBar() {
   const {
     playhead: { isRunning, date },
-    evas: { errorMessage: evasErrorMessage, lastChecked: wikiLastChecked, selectedEVA },
+    evas,
     videos: { ready: videosReady, lastChecked: ioLastChecked, errorMessage: videosErrorMessage },
-    photos: { ready: photosReady, photosLastChecked, errorMessage: photosErrorMessage },
+    photos: { errorMessage: photosErrorMessage },
   }: {
     playhead: PlayheadState;
-    evas: EVAsState;
+    evas: RootState["evas"];
     videos: VideosState;
     photos: PhotosState;
   } = useSelector((store: RootState) => store, deepEqual);
 
   const errorMessages =
-    evasErrorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
+    evas.errorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
+
+  const store = useStore();
+  const eva = evasSelector.selectById(store.getState(), idFromDate(date));
 
   const [isToday, setIsToday] = useState(false);
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function StatusBar() {
   const [lastWikiUpdate, setLastWikiUpdate] = useState("pending");
   const [nextWikiUpdate, setNextWikiUpdate] = useState("pending");
   const wikiStatusUpdate = () => {
-    const lastCheckedDate = new Date(wikiLastChecked);
+    const lastCheckedDate = new Date(evas.lastChecked);
     if (!isNaN(lastCheckedDate.valueOf())) {
       const lastUpdate =
         lastCheckedDate.toLocaleTimeString("en-us", {
@@ -86,7 +89,7 @@ export default function StatusBar() {
       setNextWikiUpdate(nextUpdate);
     }
   };
-  useEffect(wikiStatusUpdate, [wikiLastChecked]);
+  useEffect(wikiStatusUpdate, [evas.lastChecked]);
 
   return (
     <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
@@ -104,18 +107,18 @@ export default function StatusBar() {
             |&nbsp;
           </span>
         )}
-        {selectedEVA !== "" && (
+        {!isNull(eva) && (
           <span>
             Last wiki update: {lastWikiUpdate}
-            {evasErrorMessage ? " (failed)" : ""}. Next wiki update scheduled for: {nextWikiUpdate}{" "}
+            {evas.errorMessage ? " (failed)" : ""}. Next wiki update scheduled for: {nextWikiUpdate}{" "}
             |&nbsp;
           </span>
         )}
         <span title={["IO Status", videosErrorMessage || photosErrorMessage || "Good"].join(" | ")}>
           IO {videosErrorMessage === "" && photosErrorMessage === "" ? "✓" : "✗"}&nbsp;
         </span>
-        <span title={["Wiki Status", evasErrorMessage || "Good"].join(" | ")}>
-          | ISS WIKI {evasErrorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;
+        <span title={["Wiki Status", evas.errorMessage || "Good"].join(" | ")}>
+          | ISS WIKI {evas.errorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;
         </span>
       </span>
     </div>

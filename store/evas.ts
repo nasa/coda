@@ -1,39 +1,36 @@
-import { createSelector, createSlice } from "@reduxjs/toolkit";
+import get from "lodash/get";
+import { createEntityAdapter, createSelector, createSlice } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
 import type { TimingData } from "store/videos";
+import { diff } from "./playhead";
+import { padZeros } from "utils/formatting";
+import { RootState } from ".";
 
-/** Keyed in the format of underscored lowercase EVA name, eg. `us_eva_55` */
-export type EVAStore = { [key: string]: EVA };
-
-export interface EVAsState {
-  EVAs: EVAStore;
-  /** Format of underscored lowercase EVA name, eg. `us_eva_55` */
-  selectedEVA: string;
-  /** Message describing something that went wrong fetching EVAs */
-  errorMessage: string;
-  /** UTC string of the last time we hit IO */
-  lastChecked: string;
+/** Parse the ID from an EVA, currently set to a `yyyy-mm-dd` string */
+export function idFromEVA(eva: EVA): string {
+  const { startDate } = eva;
+  const [yyyy, mm, dd] = startDate.split("-").map((d) => padZeros(+d, 2));
+  return `${yyyy}-${mm}-${dd}`;
 }
 
-export const initialState: EVAsState = {
-  EVAs: {},
-  selectedEVA: "",
+const evaAdapter = createEntityAdapter<EVA>({
+  selectId: idFromEVA,
+  // Keep the "all IDs" array sorted based on date descending
+  sortComparer: (a, b) => diff(new Date(a.startDate), new Date(b.startDate)),
+});
+
+export const initialState = evaAdapter.getInitialState({
   errorMessage: "",
   lastChecked: "",
-};
+});
 
 export const evasSlice = createSlice({
   name: "evas",
   initialState,
   reducers: {
-    /** Set the currently selected EVA */
-    setSelected: (state, action: { payload: string }) => {
-      state.selectedEVA = action.payload;
-    },
-
     /** Add one (or more) EVA(s) to the store */
-    addEVAs: (state: EVAsState, action: { payload: { [key: string]: EVA } }) => {
-      state.EVAs = { ...state.EVAs, ...action.payload };
+    addEVAs: (state, action) => {
+      evaAdapter.upsertMany(state, action);
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
     },
@@ -45,12 +42,26 @@ export const evasSlice = createSlice({
   },
 });
 
-export const { setSelected, addEVAs, fetchError } = evasSlice.actions;
+export const { addEVAs, fetchError } = evasSlice.actions;
+
+export const evasSelector = evaAdapter.getSelectors<RootState>((state) => state.evas);
+
+/**
+ * Get a potential EVA ID from an ISO or UTC date string
+ * @param date ISO or UTC date string
+ */
+export const idFromDate = (date: string): string => {
+  const d = new Date(date);
+  let yyyy = d.getUTCFullYear();
+  let mm = d.getUTCMonth() + 1;
+  let dd = d.getUTCDate();
+  return `${yyyy}-${padZeros(mm, 2)}-${padZeros(dd, 2)}`;
+};
 
 /** Start time of an EVA in UTC milliseconds */
 export const getEVAStartMilliseconds = (eva: EVA): number => {
   const { startDate, startTime } = eva;
-  const [Y, M, D] = startDate.split("/").map(Number);
+  const [Y, M, D] = startDate.split("-").map(Number);
   const [hh, mm] = startTime.split(/:/).map(Number);
   return Date.UTC(Y, M - 1, D, hh, mm);
 };
@@ -112,7 +123,3 @@ export const getDayNightMissionTime = (dayNight: DayNight, timingData: TimingDat
     events,
   };
 };
-
-export const evaSelector = (state: EVAsState) => state.EVAs[state.selectedEVA] || null;
-
-export const selectEVAStartMilliseconds = createSelector(evaSelector, getEVAStartMilliseconds);
