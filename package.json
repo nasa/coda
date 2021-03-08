@@ -11,7 +11,9 @@
     "export": "cross-env APP_ENV=prod next export",
     "start": "next start",
     "test": "jest",
-    "tsc": "tsc --pretty"
+    "tsc": "tsc --pretty",
+    "lint": "eslint . --color --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --color --fix --ext .js,.jsx,.ts,.tsx"
   },
   "repository": {
     "type": "git",
@@ -43,11 +45,15 @@
     "@types/node-fetch": "^2.5.8",
     "@types/react": "^16.14.2",
     "@types/react-redux": "^7.1.16",
-    "@types/tough-cookie-filestore": "0.0.0",
     "@types/request": "^2.48.5",
+    "@types/tough-cookie-filestore": "0.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.16.1",
+    "@typescript-eslint/parser": "^4.16.1",
     "cross-env": "^7.0.3",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
+    "eslint": "^7.21.0",
+    "eslint-plugin-react": "^7.22.0",
     "jest": "^26.6.3",
     "jest-canvas-mock": "^2.3.0",
     "mac-ca": "^1.0.6",

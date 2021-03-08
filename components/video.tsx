@@ -1,9 +1,8 @@
 import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate } from "store/playhead";
 import {
   buffering,
@@ -387,7 +386,6 @@ export default function Videos({ id }: { id: number }) {
     );
   };
 
-  const mutedClass = muted === true ? styles.unmute : styles.mute;
   const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
   const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];

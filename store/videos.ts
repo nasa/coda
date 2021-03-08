@@ -201,7 +201,7 @@ export const selectVideoActivity = createSelector(
       for (let second = 0; second < timingData.EVA_duration_seconds; second++) {
         // capture all the IDs of the video files that are playing for this group this second
         const vidsThisGroupThisSecond: string[] = [];
-        videos.forEach((video, i) => {
+        videos.forEach((video) => {
           if (
             video.group === group &&
             second >= video.missionSecondsStart &&

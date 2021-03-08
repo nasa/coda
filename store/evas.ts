@@ -1,5 +1,4 @@
-import get from "lodash/get";
-import { createEntityAdapter, createSelector, createSlice } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
 import type { TimingData } from "store/videos";
 import { diff } from "./playhead";

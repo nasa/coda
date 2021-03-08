@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -7,7 +6,6 @@ import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } 
 import styles from "./photos.module.css";
 
 import { appSecondsFromDateString, hhmmssFromDateString } from "utils/formatting";
-import { PhotoFile } from "services/io";
 import { RootState } from "store/index";
 
 export default function Photos() {
