@@ -194,7 +194,7 @@ function parseIOVideoResponse(res: IOResponse) {
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parseVideoResultMetadata(doc, i);
+    const metadata = parseVideoResultMetadata(doc);
     videos[metadata.id] = metadata;
   }
 
@@ -202,7 +202,7 @@ function parseIOVideoResponse(res: IOResponse) {
 }
 
 /** Parse the video result for relevant information */
-function parseVideoResultMetadata(doc: Doc, i: number): VideoFile {
+function parseVideoResultMetadata(doc: Doc): VideoFile {
   let className = "";
   let content = "";
   let group = -1;
@@ -361,7 +361,7 @@ function parseIOPhotoResponse(res: IOResponse) {
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parsePhotoResultMetadata(doc, i);
+    const metadata = parsePhotoResultMetadata(doc);
     photos[metadata.id] = metadata;
   }
 
@@ -369,7 +369,7 @@ function parseIOPhotoResponse(res: IOResponse) {
 }
 
 /** Parse the photo result for relevant information */
-function parsePhotoResultMetadata(doc: Doc, i: number): PhotoFile {
+function parsePhotoResultMetadata(doc: Doc): PhotoFile {
   var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then stream the videos from our govcloud clone of IO videos

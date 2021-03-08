@@ -55,7 +55,7 @@ export default function HeaderShare() {
       <div
         className={styles.headerModalButton}
         title="Share this moment"
-        onClick={(e) => {
+        onClick={() => {
           handleRequestOpen();
         }}
       >

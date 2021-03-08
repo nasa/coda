@@ -4,10 +4,7 @@ import paper from "paper";
 import { VideoFile, PhotoFile } from "services/io";
 import { Activity, DayNight } from "services/iss-wiki";
 import { TimingData } from "store/videos";
-import { textSpanIntersectsWithTextSpan } from "typescript";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
-
-import { PlayheadState } from "store/playhead";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -414,7 +411,6 @@ export default class DrawNav {
 
     // display photo ticks
     for (let i = 0; i < this.photoFiles.length; i++) {
-      const photoTimeSeconds = appSecondsFromDateString(this.photoFiles[i].date_taken);
       if (
         this.photoFiles[i].dateTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
         this.photoFiles[i].dateTakenAppSeconds >= this.gTier2StartSeconds

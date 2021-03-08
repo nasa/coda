@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
 import { buildEVAStore } from "services/iss-wiki";
-import { buildVideoStore, Videos, buildPhotoStore, Photos } from "services/io";
+import { buildVideoStore, Videos, buildPhotoStore } from "services/io";
 import {
   addVideos,
   haveVideosFromDate,

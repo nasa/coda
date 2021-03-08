@@ -1,5 +1,3 @@
-import { TimingData } from "store/videos";
-
 /**
  * Return a zero padded string of a number
  */

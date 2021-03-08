@@ -68,7 +68,7 @@ export interface WikiResponse {
  * Query the ISS Wiki through our proxy. Safe to call from the client
  * @param query A wiki ask query string
  */
-async function fetchWiki(query: string, action): Promise<WikiResults> {
+async function fetchWiki(query: string, _action): Promise<WikiResults> {
   // the proxy doesn't like all the newlines in our nicely formatted queries. get rid of them
   const strippedQuery = query.trim().replace(/\r?\n|\r/g, "");
   const queryString = encodeURIComponent(`"${strippedQuery}"`);
@@ -226,7 +226,7 @@ const colorTranslator = {
  * Get as-executed data for a given EV on a given EVA
  * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
  */
-async function getAsExecuted(evaName: string, evNum: number) {
+async function _getAsExecuted(evaName: string, evNum: number) {
   const actorName = `Actor${evNum + 1}`;
   const query = `
     [[From page::~${evaName}/*xecuted*]]
@@ -382,7 +382,7 @@ const plus = () => {
  * Get crew assignment data for a EVA
  * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
  */
-async function getCrew(evaName: string) {
+async function _getCrew(evaName: string) {
   const query = `
     [[Crew involved with subject::${plus()}]]
     [[From page::${evaName}]]
