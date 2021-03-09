@@ -1,0 +1,90 @@
+body {
+  background-color: #3e3b44;
+  overflow: hidden;
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#headerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #19181b;
+  color: white;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#headerLeft {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.QRHeaderText {
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial,
+    sans-serif;
+  font-size: 1.5vw;
+  margin-left: 0.5vw;
+}
+
+#headerCenter {
+  font-family: monospace;
+  font-weight: 600;
+  font-size: 3vw;
+  text-align: center;
+  max-height: 10vh;
+}
+
+#headerRight {
+  flex: 1;
+}
+
+#qrcode {
+  width: 90vw;
+  height: 80vw; /* height:width ratio = 9/16 = .5625  */
+  max-height: 80vh;
+  max-width: 90vh; /* 16/9 = 1.778 */
+  margin: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0; /* vertical center */
+  left: 0;
+  right: 0; /* horizontal center */
+  padding: 20px;
+  color: white;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial,
+    sans-serif;
+  font-size: 1.5em;
+}
+
+.NASALogo {
+  width: 4vw;
+  height: 50px;
+  background: url(img/logo_NASA.svg) no-repeat center;
+  background-size: 4vw 50px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.EMSSLogo {
+  margin-left: auto;
+  width: 6vw;
+  height: 50px;
+  background: url(img/EMSS_wordmark.svg) no-repeat center;
+  background-size: 6vw 50px;
+}
+
+.CODALogo {
+  margin-left: 1vw;
+  width: 6vw;
+  height: 50px;
+  background: url(img/CODA_wordmark.svg) no-repeat center;
+  background-size: 6vw 50px;
+}
