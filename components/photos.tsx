@@ -1,8 +1,8 @@
 import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, useStore } from "react-redux";
 import { PlayheadState } from "store/playhead";
-import { PhotosState, initialPhotoFileState, selectPhotoFiles, setActivePhoto } from "store/photos";
+import { initialPhotoFileState, setActivePhoto, photosSelector, PhotosState } from "store/photos";
 import styles from "./photos.module.css";
 
 import { appSecondsFromDateString, hhmmssFromDateString } from "utils/formatting";
@@ -17,10 +17,11 @@ export default function Photos() {
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
 
-  const photoFiles = selectPhotoFiles(photos);
+  const store = useStore();
+  const photoFiles = photosSelector.selectAll(store.getState());
 
   const changePhoto = () => {
-    if (!photos.ready) {
+    if (!photos.ready || photoFiles.length <= 1) {
       return;
     }
 
@@ -43,7 +44,7 @@ export default function Photos() {
     }
   };
 
-  useEffect(changePhoto, [playhead.seconds, photos.photos]);
+  useEffect(changePhoto, [playhead.seconds, photoFiles]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.date_taken !== "";

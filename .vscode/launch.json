@@ -4,9 +4,17 @@
     {
       "type": "node",
       "request": "attach",
-      "name": "Launch Program",
+      "name": "Launch Node",
       "skipFiles": ["<node_internals>/**"],
       "port": 9229
+    },
+    {
+      "type": "chrome",
+       "request": "attach",
+       "name": "Attach to Chrome",
+       "port": 9222,
+       "urlFilter": "http://localhost:3000/*",
+       "webRoot": "${workspaceFolder}"
     }
   ]
 }

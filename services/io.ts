@@ -131,10 +131,6 @@ export interface PhotoFile {
   dateTakenAppSeconds: number;
 }
 
-export interface Photos {
-  [key: string]: PhotoFile;
-}
-
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
@@ -292,7 +288,11 @@ export function getChannel(collectionStrings: string[]): string {
 /**
  * Fetch video data from IO
  */
-export async function getPhotoData(year: number, month: number, date: number): Promise<Photos> {
+export async function getPhotoData(
+  year: number,
+  month: number,
+  date: number
+): Promise<PhotoFile[]> {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
   const rangeStartDate = padZeros(date, 2);
@@ -317,7 +317,7 @@ export async function getPhotoData(year: number, month: number, date: number): P
   const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
   // create array of photos from first API call
-  const photos1: { [key: string]: PhotoFile } = parseIOPhotoResponse(res);
+  const photos1: PhotoFile[] = parseIOPhotoResponse(res);
 
   if (callsRequired <= 1) {
     // Only one API call was needed because we got fewer than 500 results. Just return it.
@@ -340,31 +340,28 @@ export async function getPhotoData(year: number, month: number, date: number): P
   const resArray = await Promise.all(promiseArray);
 
   // Parse out results into array of photo objects
-  const additionalPhotosArray: Photos[] = resArray.map((res) => {
+
+  const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
     return parseIOPhotoResponse(res);
   });
 
-  // Turn array of photo objects into one enormous photo object
-  let additionalPhotos: Photos = Object.assign({}, ...additionalPhotosArray);
+  // Turn array of photoFile arays into one enormous photoFile array
+  let additionalPhotos: PhotoFile[] = additionalPhotosArray.flat(1);
 
   // Merge the additional photos with the photos from the first API call and return it
-  const photos: { [key: string]: PhotoFile } = {
-    ...photos1,
-    ...additionalPhotos,
-  };
+  const photos: PhotoFile[] = [...photos1, ...additionalPhotos];
   return photos;
 }
 
-function parseIOPhotoResponse(res: IOResponse) {
+function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {
   const { docs } = res.results.response;
-  const photos: Photos = {};
+  const photos: PhotoFile[] = [];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
     const metadata = parsePhotoResultMetadata(doc);
-    photos[metadata.id] = metadata;
+    photos.push(metadata);
   }
-
   return photos;
 }
 
@@ -413,7 +410,7 @@ export async function buildPhotoStore(
   year: number,
   month: number,
   date: number
-): Promise<{ [key: string]: PhotoFile }> {
+): Promise<PhotoFile[]> {
   let photos = await getPhotoData(year, month, date);
   return photos;
 }

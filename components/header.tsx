@@ -35,11 +35,8 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  // const eva = evaSelector(evas, playhead.date);
   const store = useStore();
-  // const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
   const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
-  // console.log(store.getState().evas.entities);
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times

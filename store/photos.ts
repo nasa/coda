@@ -1,9 +1,10 @@
-import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { PhotoFile } from "services/io";
+import { RootState } from ".";
+
+const photoAdapter = createEntityAdapter<PhotoFile>();
 
 export interface PhotosState {
-  /** Keyed by the ID of the photo file */
-  photos: { [key: string]: PhotoFile };
   activePhoto: PhotoFile;
   /** Message describing something that went wrong fetching photo metadata */
   errorMessage: string;
@@ -23,23 +24,22 @@ export const initialPhotoFileState: PhotoFile = {
   dateTakenAppSeconds: 0,
 };
 
-export const initialState: PhotosState = {
-  photos: {},
+export const initialState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
   errorMessage: "",
   ready: false,
   photosLastChecked: "",
-};
+});
 
-const photosSelector = (state) => state.photos;
+export const photosSelector = photoAdapter.getSelectors<RootState>((state) => state.photos);
 
 export const photoSlice = createSlice({
   name: "photo",
   initialState,
   reducers: {
-    /** Add new video files to the store */
-    addPhotos: (state, action: { payload: { photos: { [key: string]: PhotoFile } } }) => {
-      state.photos = { ...state.photos, ...action.payload.photos };
+    /** Add new photo files to the store */
+    addPhotos: (state, action) => {
+      photoAdapter.upsertMany(state, action);
       state.errorMessage = "";
       state.photosLastChecked = new Date().toUTCString();
       state.ready = true;
@@ -55,12 +55,3 @@ export const photoSlice = createSlice({
 });
 
 export const { addPhotos, setActivePhoto, fetchError } = photoSlice.actions;
-
-// Deliver an array of photos from the store
-export const selectPhotoFiles = createSelector(
-  photosSelector,
-  (photos: { [key: string]: PhotoFile } = {}) => {
-    const photosFiles = Object.keys(photos).map((i) => photos[i]);
-    return photosFiles;
-  }
-);

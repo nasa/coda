@@ -47,8 +47,8 @@ body {
 }
 
 #qrcode {
-  width: 90vw;
-  height: 80vw; /* height:width ratio = 9/16 = .5625  */
+  width: 80vw;
+  height: 80vw;
   max-height: 80vh;
   max-width: 90vh; /* 16/9 = 1.778 */
   margin: auto;

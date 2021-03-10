@@ -12,7 +12,7 @@ import {
   idFromDate,
 } from "store/evas";
 import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
-import { selectPhotoFiles, PhotosState } from "store/photos";
+import { photosSelector } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
@@ -23,17 +23,15 @@ function NavTimeline() {
   const {
     playhead,
     videos,
-    photos,
   }: {
     playhead: PlayheadState;
     videos: VideosState;
-    photos: PhotosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
   const store = useStore();
   const timingData = selectVideoTimingData(videos);
   const videoFiles = selectVideoFiles(videos);
-  const photoFiles = selectPhotoFiles(photos);
+  const photoFiles = photosSelector.selectAll(store.getState());
 
   const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
   const evaName = get(eva, "name", "");
@@ -145,7 +143,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [eva, videos.videos, photos.photos]);
+  }, [eva, videos.videos, photoFiles]);
 
   useEffect(() => {
     time.current = playhead.seconds;

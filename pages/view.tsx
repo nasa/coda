@@ -1,7 +1,7 @@
 import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
 import Head from "next/head";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import Main from "components/main";
 import { buildEVAStore } from "services/iss-wiki";
 import { buildVideoStore, Videos, buildPhotoStore } from "services/io";
@@ -11,7 +11,7 @@ import {
   VideosState,
   fetchError as videosFetchError,
 } from "store/videos";
-import { addPhotos, PhotosState, fetchError as photosFetchError } from "store/photos";
+import { addPhotos, photosSelector, fetchError as photosFetchError } from "store/photos";
 import { addEVAs } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -32,13 +32,14 @@ export default function View() {
   const {
     playhead,
     videos,
-    photos,
   }: {
     playhead: PlayheadState;
     videos: VideosState;
-    photos: PhotosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
+
+  const store = useStore();
+  const photoFiles = photosSelector.selectAll(store.getState());
 
   // make sure the application is running on the correct date
   useEffect(() => {
@@ -126,7 +127,7 @@ export default function View() {
         return;
       }
 
-      if (Object.keys(photos.photos).length > 0) {
+      if (photoFiles.length > 0) {
         return;
       }
 
@@ -139,7 +140,7 @@ export default function View() {
       try {
         // photos data for today
         const photoStore = await buildPhotoStore(year, month + 1, day);
-        dispatch(addPhotos({ photos: photoStore }));
+        dispatch(addPhotos(photoStore));
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
         console.error(e);
