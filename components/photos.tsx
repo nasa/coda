@@ -2,7 +2,7 @@ import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch, useStore } from "react-redux";
 import { PlayheadState } from "store/playhead";
-import { initialPhotoFileState, setActivePhoto, photosSelector, PhotosState } from "store/photos";
+import { initialPhotoFileState, setActivePhoto, photosSelector } from "store/photos";
 import styles from "./photos.module.css";
 
 import { appSecondsFromDateString, hhmmssFromDateString } from "utils/formatting";
@@ -10,7 +10,7 @@ import { RootState } from "store/index";
 
 export default function Photos() {
   const dispatch = useDispatch();
-  const { photos, playhead }: { photos: PhotosState; playhead: PlayheadState } = useSelector(
+  const { photos, playhead }: { photos; playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
