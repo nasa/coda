@@ -2,6 +2,13 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { PhotoFile } from "services/io";
 import { RootState } from ".";
 
+export interface PhotosState {
+  activePhoto: PhotoFile;
+  /** Message describing something that went wrong fetching photo metadata */
+  errorMessage: string;
+  dateTakenAppSeconds: 0;
+}
+
 const photoAdapter = createEntityAdapter<PhotoFile>();
 
 export const initialPhotoFileState: PhotoFile = {
