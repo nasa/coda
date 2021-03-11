@@ -8,7 +8,6 @@ import { buildVideoStore, buildPhotoStore } from "services/io";
 import {
   addVideos,
   haveVideosFromDate,
-  VideosState,
   fetchError as videosFetchError,
   videoSelector,
 } from "store/videos";
@@ -32,10 +31,8 @@ export default function View() {
   } = useRouter();
   const {
     playhead,
-    videos,
   }: {
     playhead: PlayheadState;
-    videos: VideosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
 
