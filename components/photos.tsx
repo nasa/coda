@@ -21,7 +21,7 @@ export default function Photos() {
   const photoFiles = photosSelector.selectAll(store.getState());
 
   const changePhoto = () => {
-    if (!photos.ready || photoFiles.length <= 1) {
+    if (!photos.ready) {
       return;
     }
 

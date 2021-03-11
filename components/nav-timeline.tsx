@@ -11,7 +11,7 @@ import {
   getEVAStartMilliseconds,
   idFromDate,
 } from "store/evas";
-import { selectVideoFiles, selectVideoTimingData, VideosState } from "store/videos";
+import { videoSelector } from "store/videos";
 import { photosSelector } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
@@ -22,15 +22,12 @@ import { RootState } from "store/index";
 function NavTimeline() {
   const {
     playhead,
-    videos,
   }: {
     playhead: PlayheadState;
-    videos: VideosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
   const store = useStore();
-  const timingData = selectVideoTimingData(videos);
-  const videoFiles = selectVideoFiles(videos);
+  const videoFiles = videoSelector.selectAll(store.getState());
   const photoFiles = photosSelector.selectAll(store.getState());
 
   const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
@@ -65,7 +62,7 @@ function NavTimeline() {
       if (!isNil(EV1)) {
         activityPerformance.EV1 = getActivityPerformanceMissionTime(
           EV1,
-          timingData,
+          eva.startDate,
           activityStartUTCMilliseconds
         );
       }
@@ -73,7 +70,7 @@ function NavTimeline() {
       if (!isNil(EV2)) {
         activityPerformance.EV2 = getActivityPerformanceMissionTime(
           EV2,
-          timingData,
+          eva.startDate,
           activityStartUTCMilliseconds
         );
       }
@@ -82,7 +79,6 @@ function NavTimeline() {
     const isToday = isSameDate(new Date(), new Date(playhead.date));
 
     drawNav.current = new DrawNav(
-      timingData,
       videoFiles,
       photoFiles,
       dayNight,
@@ -143,7 +139,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [eva, videos.videos, photoFiles]);
+  }, [eva, videoFiles, photoFiles]);
 
   useEffect(() => {
     time.current = playhead.seconds;

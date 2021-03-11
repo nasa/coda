@@ -2,7 +2,7 @@ import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { PlayheadState, isSameDate } from "store/playhead";
 import {
   buffering,
@@ -12,7 +12,9 @@ import {
   selectVideoActivity,
   VideoActivity,
   VideosState,
+  videoSelector,
 } from "store/videos";
+import { VideoFile } from "services/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
@@ -43,6 +45,9 @@ export default function Videos({ id }: { id: number }) {
     (state: RootState) => state,
     deepEqual
   );
+  const store = useStore();
+  const videoFiles: VideoFile[] = videoSelector.selectAll(store.getState());
+
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(id !== 1);
   const [metadata, setMetadata] = useState(null);
@@ -54,8 +59,8 @@ export default function Videos({ id }: { id: number }) {
 
   let videoActivity = null as VideoActivity;
 
-  if (Object.keys(videos.videos).length > 0) {
-    videoActivity = selectVideoActivity(videos);
+  if (videoFiles.length > 0) {
+    videoActivity = selectVideoActivity(store.getState());
   }
 
   const getInitialDownlink = () => {
@@ -67,11 +72,11 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const clearMetadata = () => {
-    if (Object.keys(videos.videos).length === 0) {
+    if (videoFiles.length === 0) {
       return;
     }
     const videoID = videos.activeVideoFiles[id];
-    const videoStart = videos.videos[videoID]?.start || 0;
+    const videoStart = videoFiles[videoID]?.start || 0;
     if (videoID || !isSameDate(new Date(playhead.date), new Date(videoStart))) {
       setMetadata(null);
     }
@@ -131,7 +136,10 @@ export default function Videos({ id }: { id: number }) {
 
     // make sure the video times are correct
 
-    const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
+    const currentlyPlayingVideo = videoSelector.selectById(
+      store.getState(),
+      videos.activeVideoFiles[id]
+    );
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
       videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
@@ -167,7 +175,7 @@ export default function Videos({ id }: { id: number }) {
 
     if (videoID !== "") {
       // there is a video for this downlink
-      const video = videos.videos[videoID];
+      const video = videoSelector.selectById(store.getState(), videoID);
       setSourceURL(video.videoURL);
     } else {
       // there is no video for this downlink
@@ -188,8 +196,8 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  useEffect(changeVideoFile, [playhead.seconds, videos.videos, videos.downlinks[id]]);
-  useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[id], videos.videos]);
+  useEffect(changeVideoFile, [playhead.seconds, videoFiles, videos.downlinks[id]]);
+  useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[id], videoFiles]);
   useEffect(getInitialDownlink, [query]);
   useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
   useEffect(syncToplayhead, [playhead.seconds, videos.activeVideoFiles[id]]);
@@ -325,7 +333,10 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const renderVideoOverlay = () => {
-    const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
+    const currentlyPlayingVideo = videoSelector.selectById(
+      store.getState(),
+      videos.activeVideoFiles[id]
+    );
     let videoStartOffset = 0;
     let ioSearchLink = "";
     let ioVideoURL = "";
@@ -388,7 +399,10 @@ export default function Videos({ id }: { id: number }) {
 
   const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
-  const currentlyPlayingVideo = videos.videos[videos.activeVideoFiles[id]];
+  const currentlyPlayingVideo = videoSelector.selectById(
+    store.getState(),
+    videos.activeVideoFiles[id]
+  );
   let infoButtonStyle = "";
   if (currentlyPlayingVideo) {
     infoButtonStyle = styles.infoActive;

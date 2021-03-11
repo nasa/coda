@@ -1,6 +1,5 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
-import type { TimingData } from "store/videos";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
 import { RootState } from ".";
@@ -67,15 +66,14 @@ export const getEVAStartMilliseconds = (eva: EVA): number => {
 
 /** Translate as-performed EVA activities to mission time */
 export const getActivityPerformanceMissionTime = (
-  asExecuted,
-  timingData,
-  activityStartUTCMilliseconds
+  asExecuted: Activity[],
+  evaDate: string,
+  activityStartUTCMilliseconds: number
 ) => {
   const res = [] as Activity[];
 
   // get activity times in the mission timeframe
-  let thisStartTimeSeconds =
-    (activityStartUTCMilliseconds - timingData.video_earliestStart.getTime()) / 1000;
+  let thisStartTimeSeconds = (activityStartUTCMilliseconds - new Date(evaDate).getTime()) / 1000;
 
   for (let a = 0; a < asExecuted.length; a++) {
     const { color, content, duration } = asExecuted[a];
@@ -95,12 +93,14 @@ export const getActivityPerformanceMissionTime = (
 };
 
 /** Translate day/night cycles to mission time */
-export const getDayNightMissionTime = (dayNight: DayNight, timingData: TimingData): DayNight => {
+export const getDayNightMissionTime = (dayNight: DayNight): DayNight => {
   const events = [] as Activity[];
+  const startOfDay = new Date(
+    `${new Date(dayNight.dataStartUTC).toUTCString().split("T")[0]}T00:00:00Z`
+  );
 
   // slightly different for dayNight object
-  let thisStartTimeSeconds =
-    (dayNight.dataStartUTC - timingData.video_earliestStart.getTime()) / 1000;
+  let thisStartTimeSeconds = (dayNight.dataStartUTC - startOfDay.getTime()) / 1000;
 
   for (let e = 0; e < dayNight.events.length; e++) {
     const { color, content, duration } = dayNight.events[e];

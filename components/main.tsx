@@ -1,4 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import deepEqual from "lodash/isEqual";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
@@ -7,8 +7,7 @@ import StatusBar from "components/status-bar";
 import Video from "components/video";
 import Photos from "components/photos";
 import { PlayheadState, run, halt, tick } from "store/playhead";
-import { VideosState } from "store/videos";
-import { PhotosState } from "store/photos";
+import { VideosState, videoSelector } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
@@ -22,11 +21,13 @@ export default function Main() {
     playhead,
     videos,
     photos,
-  }: { playhead: PlayheadState; videos: VideosState; photos: PhotosState } = useSelector(
+  }: { playhead: PlayheadState; videos: VideosState; photos } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
   const dispatch = useDispatch();
+  const store = useStore();
+  const videoFiles = videoSelector.selectAll(store.getState());
 
   useEffect(() => {
     // (1) make sure the playhead is running when it should
@@ -65,7 +66,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        {Object.keys(videos.videos).length > 0 ? (
+        {videoFiles.length > 0 ? (
           <NavTimeline />
         ) : (
           <div style={{ fontFamily: "Ubuntu Mono" }}>Timeline Loading...</div>
