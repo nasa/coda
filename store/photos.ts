@@ -4,15 +4,6 @@ import { RootState } from ".";
 
 const photoAdapter = createEntityAdapter<PhotoFile>();
 
-export interface PhotosState {
-  activePhoto: PhotoFile;
-  /** Message describing something that went wrong fetching photo metadata */
-  errorMessage: string;
-  ready: boolean;
-  /** UTC string of the last time we hit IO */
-  photosLastChecked: string;
-}
-
 export const initialPhotoFileState: PhotoFile = {
   id: "",
   description: "",
