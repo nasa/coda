@@ -4,7 +4,7 @@
     {
       "type": "node",
       "request": "attach",
-      "name": "Launch Node",
+      "name": "Node: Attach to Chrome",
       "skipFiles": ["<node_internals>/**"],
       "port": 9229
     },
