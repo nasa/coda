@@ -11,8 +11,8 @@ import {
   getEVAStartMilliseconds,
   idFromDate,
 } from "store/evas";
-import { videoSelector } from "store/videos";
-import { photosSelector } from "store/photos";
+import { videoSelectors } from "store/videos";
+import { photosSelectors } from "store/photos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
@@ -27,8 +27,8 @@ function NavTimeline() {
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
   const store = useStore();
-  const videoFiles = videoSelector.selectAll(store.getState());
-  const photoFiles = photosSelector.selectAll(store.getState());
+  const videoFiles = videoSelectors.selectAll(store.getState());
+  const photoFiles = photosSelectors.selectAll(store.getState());
 
   const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
   const evaName = get(eva, "name", "");

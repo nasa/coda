@@ -7,7 +7,8 @@ import StatusBar from "components/status-bar";
 import Video from "components/video";
 import Photos from "components/photos";
 import { PlayheadState, run, halt, tick } from "store/playhead";
-import { VideosState, videoSelector } from "store/videos";
+import { PhotosState } from "store/photos";
+import { VideosState, videoSelectors } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
@@ -21,13 +22,13 @@ export default function Main() {
     playhead,
     videos,
     photos,
-  }: { playhead: PlayheadState; videos: VideosState; photos } = useSelector(
+  }: { playhead: PlayheadState; videos: VideosState; photos: PhotosState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
   const dispatch = useDispatch();
   const store = useStore();
-  const videoFiles = videoSelector.selectAll(store.getState());
+  const videoFiles = videoSelectors.selectAll(store.getState());
 
   useEffect(() => {
     // (1) make sure the playhead is running when it should

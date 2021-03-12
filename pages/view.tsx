@@ -9,9 +9,9 @@ import {
   addVideos,
   haveVideosFromDate,
   fetchError as videosFetchError,
-  videoSelector,
+  videoSelectors,
 } from "store/videos";
-import { addPhotos, photosSelector, fetchError as photosFetchError } from "store/photos";
+import { addPhotos, photosSelectors, fetchError as photosFetchError } from "store/photos";
 import { addEVAs } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -37,8 +37,8 @@ export default function View() {
   const dispatch = useDispatch();
 
   const store = useStore();
-  const photoFiles = photosSelector.selectAll(store.getState());
-  const videoFiles = videoSelector.selectAll(store.getState());
+  const photoFiles = photosSelectors.selectAll(store.getState());
+  const videoFiles = videoSelectors.selectAll(store.getState());
 
   // make sure the application is running on the correct date
   useEffect(() => {

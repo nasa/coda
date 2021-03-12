@@ -12,7 +12,7 @@ import {
   selectVideoActivity,
   VideoActivity,
   VideosState,
-  videoSelector,
+  videoSelectors,
 } from "store/videos";
 import { VideoFile } from "services/io";
 import { hhmmssFromSeconds } from "utils/formatting";
@@ -46,7 +46,7 @@ export default function Videos({ id }: { id: number }) {
     deepEqual
   );
   const store = useStore();
-  const videoFiles: VideoFile[] = videoSelector.selectAll(store.getState());
+  const videoFiles: VideoFile[] = videoSelectors.selectAll(store.getState());
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(id !== 1);
@@ -136,7 +136,7 @@ export default function Videos({ id }: { id: number }) {
 
     // make sure the video times are correct
 
-    const currentlyPlayingVideo = videoSelector.selectById(
+    const currentlyPlayingVideo = videoSelectors.selectById(
       store.getState(),
       videos.activeVideoFiles[id]
     );
@@ -175,7 +175,7 @@ export default function Videos({ id }: { id: number }) {
 
     if (videoID !== "") {
       // there is a video for this downlink
-      const video = videoSelector.selectById(store.getState(), videoID);
+      const video = videoSelectors.selectById(store.getState(), videoID);
       setSourceURL(video.videoURL);
     } else {
       // there is no video for this downlink
@@ -333,7 +333,7 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const renderVideoOverlay = () => {
-    const currentlyPlayingVideo = videoSelector.selectById(
+    const currentlyPlayingVideo = videoSelectors.selectById(
       store.getState(),
       videos.activeVideoFiles[id]
     );
@@ -399,7 +399,7 @@ export default function Videos({ id }: { id: number }) {
 
   const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
-  const currentlyPlayingVideo = videoSelector.selectById(
+  const currentlyPlayingVideo = videoSelectors.selectById(
     store.getState(),
     videos.activeVideoFiles[id]
   );

@@ -37,7 +37,7 @@ export const initialState = videoAdapter.getInitialState({
   lastChecked: "",
 });
 
-export const videoSelector = videoAdapter.getSelectors<RootState>((state) => state.videos);
+export const videoSelectors = videoAdapter.getSelectors<RootState>((state) => state.videos);
 
 export const videoSlice = createSlice({
   name: "video",
@@ -110,7 +110,7 @@ export type VideoActivity = string[][][];
  * overlap across files in IO for a given downlink. *
  */
 export const selectVideoActivity = createSelector(
-  videoSelector.selectAll,
+  videoSelectors.selectAll,
   (videos: VideoFile[]): VideoActivity => {
     const cSecondsIn24Hours = 86400;
     const res: VideoActivity = [];
