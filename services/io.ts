@@ -113,11 +113,6 @@ export interface VideoFile {
   missionSecondsEnd?: number;
 }
 
-// /** Keyed by @see {VideoFile.id} */
-// export interface Videos {
-//   [key: string]: VideoFile;
-// }
-
 /** Parsed metadata from an IO photo file result */
 export interface PhotoFile {
   id: string;
