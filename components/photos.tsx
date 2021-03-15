@@ -1,7 +1,7 @@
 import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch, useStore } from "react-redux";
-import { PlayheadState, diff } from "store/playhead";
+import { PlayheadState } from "store/playhead";
 import { initialPhotoFileState, setActivePhoto, photosSelectors } from "store/photos";
 import styles from "./photos.module.css";
 

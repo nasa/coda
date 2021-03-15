@@ -1,4 +1,3 @@
-import config from "../package.json";
 import deepEqual from "lodash/isEqual";
 import Link from "next/link";
 import isNil from "lodash/isNil";
