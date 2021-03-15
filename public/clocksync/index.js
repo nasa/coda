@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("headerCenter").innerHTML = outputStr;
 
     var milliseconds = currUTCDate.substring(20, 23);
-    if (parseInt(milliseconds) > 100) {
+    if (parseInt(milliseconds) > 500) {
       clearInterval(t);
       waitForTopOfSecond();
     }
