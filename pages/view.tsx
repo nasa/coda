@@ -4,14 +4,14 @@ import Head from "next/head";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import Main from "components/main";
 import { buildEVAStore } from "services/iss-wiki";
-import { buildVideoStore, Videos, buildPhotoStore } from "services/io";
+import { buildVideoStore, buildPhotoStore } from "services/io";
 import {
   addVideos,
   haveVideosFromDate,
-  VideosState,
   fetchError as videosFetchError,
+  videoSelectors,
 } from "store/videos";
-import { addPhotos, photosSelector, fetchError as photosFetchError } from "store/photos";
+import { addPhotos, photosSelectors, fetchError as photosFetchError } from "store/photos";
 import { addEVAs } from "store/evas";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -31,15 +31,14 @@ export default function View() {
   } = useRouter();
   const {
     playhead,
-    videos,
   }: {
     playhead: PlayheadState;
-    videos: VideosState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
 
   const store = useStore();
-  const photoFiles = photosSelector.selectAll(store.getState());
+  const photoFiles = photosSelectors.selectAll(store.getState());
+  const videoFiles = videoSelectors.selectAll(store.getState());
 
   // make sure the application is running on the correct date
   useEffect(() => {
@@ -101,7 +100,7 @@ export default function View() {
       const d = new Date(playhead.date);
 
       // make sure we don't already have videos for this date
-      if (haveVideosFromDate(videos, d)) {
+      if (haveVideosFromDate(videoFiles, d)) {
         return;
       }
 
@@ -112,7 +111,7 @@ export default function View() {
       try {
         // video data for this EVA
         const videoStore = await buildVideoStore(year, month + 1, day);
-        dispatch(addVideos({ videos: videoStore }));
+        dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);
@@ -168,8 +167,8 @@ export default function View() {
 
       try {
         // video data for this EVA
-        const videoStore: Videos = await buildVideoStore(year, month + 1, day);
-        dispatch(addVideos({ videos: videoStore }));
+        const videoStore = await buildVideoStore(year, month + 1, day);
+        dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);

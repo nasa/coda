@@ -3,7 +3,6 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { VideoFile, PhotoFile } from "services/io";
 import { Activity, DayNight } from "services/iss-wiki";
-import { TimingData } from "store/videos";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 
 export default class DrawNav {
@@ -58,8 +57,9 @@ export default class DrawNav {
   cChannelStrokeWidth = 4;
   cVidBarGapWidth = 1;
 
+  cSecondsIn24Hours = 86400;
+
   constructor(
-    readonly timingData: TimingData,
     readonly videoFiles: VideoFile[],
     readonly photoFiles: PhotoFile[],
     readonly dayNight: DayNight,
@@ -97,7 +97,7 @@ export default class DrawNav {
     this.gTier1Group.removeChildren();
 
     // display time ticks
-    for (let i = 0; i < this.timingData["EVA_duration_seconds"]; i++) {
+    for (let i = 0; i < this.cSecondsIn24Hours; i++) {
       // sillily complex thing to show time ticks on the hour
       if (
         parseInt(hhmmssFromSeconds(i).substring(3, 5)) % (10 * 60) === 0 &&
@@ -170,7 +170,7 @@ export default class DrawNav {
     }
 
     if (!isNull(this.evaStartSec)) {
-      for (let i = 0; i < this.timingData["EVA_duration_seconds"]; i++) {
+      for (let i = 0; i < this.cSecondsIn24Hours; i++) {
         if (i === this.evaStartSec) {
           let itemLocX = i * this.gTier1PixelsPerSecond;
           let topPoint = new paper.Point(itemLocX, this.gTier1Top);
@@ -661,12 +661,12 @@ export default class DrawNav {
     this.gNavigatorWidth = paper.view.size.width;
     this.gNavigatorHeight = paper.view.size.height;
 
-    this.gTier1PixelsPerSecond = this.gNavigatorWidth / this.timingData["EVA_duration_seconds"];
-    this.gTier1SecondsPerPixel = this.timingData["EVA_duration_seconds"] / this.gNavigatorWidth;
+    this.gTier1PixelsPerSecond = this.gNavigatorWidth / this.cSecondsIn24Hours;
+    this.gTier1SecondsPerPixel = this.cSecondsIn24Hours / this.gNavigatorWidth;
     this.gTier2PixelsPerSecond =
-      this.gNavigatorWidth / (this.timingData["EVA_duration_seconds"] / this.gNavZoomFactor);
+      this.gNavigatorWidth / (this.cSecondsIn24Hours / this.gNavZoomFactor);
     this.gTier2SecondsPerPixel =
-      this.timingData["EVA_duration_seconds"] / this.gNavZoomFactor / this.gNavigatorWidth;
+      this.cSecondsIn24Hours / this.gNavZoomFactor / this.gNavigatorWidth;
 
     this.gTier1Height = 50;
     this.gTier2Height = 99;

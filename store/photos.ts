@@ -2,16 +2,16 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { PhotoFile } from "services/io";
 import { RootState } from ".";
 
-const photoAdapter = createEntityAdapter<PhotoFile>();
-
 export interface PhotosState {
   activePhoto: PhotoFile;
   /** Message describing something that went wrong fetching photo metadata */
   errorMessage: string;
+  dateTakenAppSeconds: 0;
   ready: boolean;
-  /** UTC string of the last time we hit IO */
   photosLastChecked: string;
 }
+
+const photoAdapter = createEntityAdapter<PhotoFile>();
 
 export const initialPhotoFileState: PhotoFile = {
   id: "",
@@ -31,7 +31,7 @@ export const initialState = photoAdapter.getInitialState({
   photosLastChecked: "",
 });
 
-export const photosSelector = photoAdapter.getSelectors<RootState>((state) => state.photos);
+export const photosSelectors = photoAdapter.getSelectors<RootState>((state) => state.photos);
 
 export const photoSlice = createSlice({
   name: "photo",

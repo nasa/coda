@@ -1,11 +1,13 @@
-import { createSelector, createSlice } from "@reduxjs/toolkit";
-import type { Videos, VideoFile } from "services/io";
+import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
+import { createSelector } from "reselect";
+import type { VideoFile } from "services/io";
 import { isSameDate } from "./playhead";
+import { RootState } from ".";
+
+const videoAdapter = createEntityAdapter<VideoFile>();
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export interface VideosState {
-  /** Keyed by the ID of the video file, @see {VideoFile.id} */
-  videos: { [key: string]: VideoFile };
   /** Match the video player to a group, @see {VideoFile.group}. Keyed by the ID of the video player */
   downlinks: { [key: number]: number };
   /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the ID of the video player */
@@ -18,8 +20,7 @@ export interface VideosState {
   lastChecked: string;
 }
 
-export const initialState: VideosState = {
-  videos: {},
+export const initialState = videoAdapter.getInitialState({
   downlinks: {
     1: 0,
     2: 1,
@@ -34,7 +35,9 @@ export const initialState: VideosState = {
   },
   errorMessage: "",
   lastChecked: "",
-};
+});
+
+export const videoSelectors = videoAdapter.getSelectors<RootState>((state) => state.videos);
 
 export const videoSlice = createSlice({
   name: "video",
@@ -42,13 +45,13 @@ export const videoSlice = createSlice({
   reducers: {
     // Used to store which DL is selected in the video players.
     // Needs to be in store because it is used in the share function.
-    setVideoDownlink: (state, action: { payload: { id: number; downlink: number } }) => {
-      state.downlinks[action.payload.id] = action.payload.downlink;
+    setVideoDownlink: (state, action: { payload: { playerID: number; downlink: number } }) => {
+      state.downlinks[action.payload.playerID] = action.payload.downlink;
     },
 
     /** Set the video file ID to play on a named `<VideoPlayer />` */
-    pickVideoFile: (state, action: { payload: { id: number; videoID: string } }) => {
-      state.activeVideoFiles[action.payload.id] = action.payload.videoID;
+    pickVideoFile: (state, action: { payload: { playerID: number; videoID: string } }) => {
+      state.activeVideoFiles[action.payload.playerID] = action.payload.videoID;
     },
 
     /** Mark videos are ready to be played. The payload is the video player name */
@@ -62,8 +65,8 @@ export const videoSlice = createSlice({
     },
 
     /** Add new video files to the store */
-    addVideos: (state, action: { payload: { videos: { [key: string]: VideoFile } } }) => {
-      state.videos = { ...state.videos, ...action.payload.videos };
+    addVideos: (state, action) => {
+      videoAdapter.upsertMany(state, action);
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
     },
@@ -84,89 +87,15 @@ export const {
   fetchError,
 } = videoSlice.actions;
 
-const videosSelector = (state) => state.videos;
-
-/** High level information about the start and end of videos for an EVA */
-export interface TimingData {
-  video_earliestStart: Date;
-  video_latestEnd: Date;
-  EVA_duration_seconds: number;
-}
-
-/**
- * Calculate start, end, and duration of the EVA based on video data
- */
-export const generateTimingData = (videos: Videos): TimingData => {
-  const timingData: TimingData = {
-    video_earliestStart: null,
-    video_latestEnd: null,
-    EVA_duration_seconds: 0,
-  };
-
-  // Always start at 00:00:00Z and end at 23:59:59Z
-
-  // get the date from the first video
-  let firstVideoKey = Object.keys(videos)[0];
-  // FIXME: figure out why typescript sees this as a string half the time and a date the other half depending on reload (or just leave it)
-  // see: https://stackoverflow.com/questions/32156823/typeerror-formats-datetimestring-toisostring-is-not-a-function
-  const stringStartDate = videos[firstVideoKey].start.toString();
-
-  let EVADay = new Date(stringStartDate).toISOString().substring(0, 10);
-  timingData.video_earliestStart = new Date(EVADay + "T00:00:00Z");
-  timingData.video_latestEnd = new Date(EVADay + "T23:59:59Z");
-
-  timingData.EVA_duration_seconds =
-    (+timingData.video_latestEnd - +timingData.video_earliestStart) / 1000;
-
-  return timingData;
-};
-
-export const selectVideoTimingData = createSelector(videosSelector, generateTimingData);
-
-/**
- * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
- */
-export const videoSorter = (a: VideoFile, b: VideoFile) => {
-  return (
-    +(a.priority < b.priority) ||
-    +(a.priority === b.priority) ||
-    +(a.durationSeconds < b.durationSeconds) ||
-    +(a.durationSeconds === b.durationSeconds)
-  );
-};
-
-/**
- * Assing the mission start, mission end, and durations to videos
- */
-export const assignStartEnd = (videos: Videos, timingData: TimingData) => {
-  return Object.fromEntries(
-    Object.keys(videos).map((v) => {
-      const newVideoFile = Object.assign({}, videos[v]);
-      newVideoFile.missionSecondsStart =
-        (new Date(newVideoFile.start).getTime() - timingData.video_earliestStart.getTime()) / 1000;
-      newVideoFile.missionSecondsEnd =
-        (new Date(newVideoFile.end).getTime() - timingData.video_earliestStart.getTime()) / 1000;
-      newVideoFile.durationSeconds =
-        newVideoFile.missionSecondsEnd - newVideoFile.missionSecondsStart;
-
-      return [v, newVideoFile];
-    })
-  );
-};
-
-/**
- * Get an array of video files sorted by priority and duration with mission timeframes
- */
-export const selectVideoFiles = createSelector(
-  videosSelector,
-  (videos: { [key: string]: VideoFile } = {}) => {
-    const videoFiles = Object.keys(videos).map((v) => videos[v]);
-    videoFiles.sort(videoSorter);
-    return videoFiles;
-  }
-);
-
-/**
+/** Identify what videos are active at every second
+ * this produces a nested array: [groups][missionSeconds][list of videos]
+ * groups are downlink channels, currently 0 - 6 for ISS
+ * missionSeconds starts at 0 and ends at the end of the day (currently 24 hours of seconds)
+ * list of videos is an array of video names that are labeled in IO as having occurred on this group (downlink)
+ * at this second. We currently only ever use the first element in this array because the array is sorted by
+ * longest video. The thought here is that the longest video in IO at any given time is probably the most reliable
+ * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
+ * overlap across files in IO for a given downlink. *
  * Nested as:
  *
  * ```md
@@ -178,27 +107,16 @@ export const selectVideoFiles = createSelector(
  * ``` */
 export type VideoActivity = string[][][];
 
-/** Identify what videos are active at every second
- * this produces a nested array: [groups][missionSeconds][list of videos]
- * groups are downlink channels, currently 0 - 6 for ISS
- * missionSeconds starts at 0 and ends at the end of the day (currently 24 hours of seconds)
- * list of videos is an array of video names that are labeled in IO as having occurred on this group (downlink)
- * at this second. We currently only ever use the first element in this array because the array is sorted by
- * longest video. The thought here is that the longest video in IO at any given time is probably the most reliable
- * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
- * overlap across files in IO for a given downlink. *
- */
 export const selectVideoActivity = createSelector(
-  // presorted video files
-  selectVideoFiles,
-  selectVideoTimingData,
-  (videos: VideoFile[], timingData: TimingData): VideoActivity => {
+  videoSelectors.selectAll,
+  (videos: VideoFile[]): VideoActivity => {
+    const cSecondsIn24Hours = 86400;
     const res: VideoActivity = [];
     // iterate through the possible group numbers, which is only 0-6 right now
     for (let group = 0; group <= 6; group++) {
       const groupSecondsArray: string[][] = [];
       // capture every second of the mission
-      for (let second = 0; second < timingData.EVA_duration_seconds; second++) {
+      for (let second = 0; second < cSecondsIn24Hours; second++) {
         // capture all the IDs of the video files that are playing for this group this second
         const vidsThisGroupThisSecond: string[] = [];
         videos.forEach((video) => {
@@ -219,10 +137,9 @@ export const selectVideoActivity = createSelector(
 );
 
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */
-export const haveVideosFromDate = (videos: VideosState, date: Date): boolean => {
-  const files = selectVideoFiles(videos) as VideoFile[];
-  for (let f in files) {
-    if (isSameDate(new Date(files[f].start), date)) {
+export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => {
+  for (let v in videos) {
+    if (isSameDate(new Date(videos[v].start), date)) {
       return true;
     }
   }

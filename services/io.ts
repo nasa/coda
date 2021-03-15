@@ -2,7 +2,6 @@
 Methods for fetching from Imagery Online (IO)
 */
 import fetch from "isomorphic-unfetch";
-import { assignStartEnd, generateTimingData } from "store/videos";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
 
 if (typeof window === "undefined") {
@@ -114,11 +113,6 @@ export interface VideoFile {
   missionSecondsEnd?: number;
 }
 
-/** Keyed by @see {VideoFile.id} */
-export interface Videos {
-  [key: string]: VideoFile;
-}
-
 /** Parsed metadata from an IO photo file result */
 export interface PhotoFile {
   id: string;
@@ -164,7 +158,11 @@ async function fetchIO(params: string): Promise<IOResponse> {
 /**
  * Fetch video data from IO
  */
-export async function getVideoData(year: number, month: number, date: number): Promise<Videos> {
+export async function getVideoData(
+  year: number,
+  month: number,
+  date: number
+): Promise<VideoFile[]> {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
   const rangeStartDate = padZeros(date, 2);
@@ -186,16 +184,29 @@ export async function getVideoData(year: number, month: number, date: number): P
 
 function parseIOVideoResponse(res: IOResponse) {
   const { docs } = res.results.response;
-  const videos: Videos = {};
+  const videos: VideoFile[] = [];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
     const metadata = parseVideoResultMetadata(doc);
-    videos[metadata.id] = metadata;
+    videos.push(metadata);
   }
+  videos.sort(videoSorter);
 
   return videos;
 }
+
+/**
+ * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
+ */
+export const videoSorter = (a: VideoFile, b: VideoFile) => {
+  return (
+    +(a.priority < b.priority) ||
+    +(a.priority === b.priority) ||
+    +(a.durationSeconds < b.durationSeconds) ||
+    +(a.durationSeconds === b.durationSeconds)
+  );
+};
 
 /** Parse the video result for relevant information */
 function parseVideoResultMetadata(doc: Doc): VideoFile {
@@ -256,7 +267,13 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
 
   const videoURL = `${process.env.IO_HOST}${webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
-  return {
+  // derive mission second values for this video
+  const startOfDay = new Date(`${UTCstart.toISOString().split("T")[0]}T00:00:00Z`);
+  const missionSecondsStart = (UTCstart.getTime() - startOfDay.getTime()) / 1000;
+  const missionSecondsEnd = (UTCend.getTime() - startOfDay.getTime()) / 1000;
+  const durationSeconds = missionSecondsEnd - missionSecondsStart;
+
+  const videoFile: VideoFile = {
     id: doc.nasa_id,
     content,
     description: doc.description || "",
@@ -268,7 +285,12 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
     priority: className === "downlink-LOS" ? 0 : 1,
     md_creation_date: doc.md_creation_date,
     group,
+    missionSecondsStart,
+    missionSecondsEnd,
+    durationSeconds,
   };
+
+  return videoFile;
 }
 
 /**
@@ -394,12 +416,8 @@ export async function buildVideoStore(
   year: number,
   month: number,
   date: number
-): Promise<{ [key: string]: VideoFile }> {
-  let videos = await getVideoData(year, month, date);
-  if (Object.keys(videos).length > 0) {
-    const timingData = generateTimingData(videos);
-    videos = assignStartEnd(videos, timingData);
-  }
+): Promise<VideoFile[]> {
+  const videos = await getVideoData(year, month, date);
   return videos;
 }
 
@@ -411,6 +429,6 @@ export async function buildPhotoStore(
   month: number,
   date: number
 ): Promise<PhotoFile[]> {
-  let photos = await getPhotoData(year, month, date);
+  const photos = await getPhotoData(year, month, date);
   return photos;
 }
