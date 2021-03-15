@@ -60,8 +60,8 @@ export default function Main() {
       </div>
       <div className={styles.body}>
         <div className={styles.videos}>
-          <Video id={1} />
-          <Video id={2} />
+          <Video playerID={1} />
+          <Video playerID={2} />
           <Photos />
         </div>
       </div>

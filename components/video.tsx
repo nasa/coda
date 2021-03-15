@@ -14,7 +14,7 @@ import {
   VideosState,
   videoSelectors,
 } from "store/videos";
-import { VideoFile } from "services/io";
+import type { VideoFile } from "services/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
@@ -38,18 +38,18 @@ const isAutoplayError = (e: Error): boolean => {
 /**
  * Renders a video and the downlink buttons
  */
-export default function Videos({ id }: { id: number }) {
+export default function Videos({ playerID }: { playerID: number }) {
   const { query } = useRouter();
   const dispatch = useDispatch();
   const { videos, playhead }: { videos: VideosState; playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
-  const store = useStore();
-  const videoFiles: VideoFile[] = videoSelectors.selectAll(store.getState());
+  const storeState = useStore().getState();
+  const videoFiles: VideoFile[] = videoSelectors.selectAll(storeState);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
-  const [muted, setMuted] = useState(id !== 1);
+  const [muted, setMuted] = useState(playerID !== 1);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -60,14 +60,14 @@ export default function Videos({ id }: { id: number }) {
   let videoActivity = null as VideoActivity;
 
   if (videoFiles.length > 0) {
-    videoActivity = selectVideoActivity(store.getState());
+    videoActivity = selectVideoActivity(storeState);
   }
 
   const getInitialDownlink = () => {
-    const queryParam = query[`video${id}`];
-    const downlink = (+queryParam || id) - 1;
-    if (videos.downlinks[id] !== downlink) {
-      dispatch(setVideoDownlink({ id, downlink }));
+    const queryParam = query[`video${playerID}`];
+    const downlink = (+queryParam || playerID) - 1;
+    if (videos.downlinks[playerID] !== downlink) {
+      dispatch(setVideoDownlink({ playerID, downlink }));
     }
   };
 
@@ -75,7 +75,7 @@ export default function Videos({ id }: { id: number }) {
     if (videoFiles.length === 0) {
       return;
     }
-    const videoID = videos.activeVideoFiles[id];
+    const videoID = videos.activeVideoFiles[playerID];
     const videoStart = videoFiles[videoID]?.start || 0;
     if (videoID || !isSameDate(new Date(playhead.date), new Date(videoStart))) {
       setMetadata(null);
@@ -88,8 +88,8 @@ export default function Videos({ id }: { id: number }) {
       return;
     }
 
-    const group = videos.downlinks[id];
-    const activeVideoFileID = videos.activeVideoFiles[id];
+    const group = videos.downlinks[playerID];
+    const activeVideoFileID = videos.activeVideoFiles[playerID];
     const videosNextSecond = videoActivity[group][playhead.seconds + 1];
 
     // check for video changes
@@ -109,7 +109,7 @@ export default function Videos({ id }: { id: number }) {
 
     // if the video source needs to change, change it
     if (videoID !== activeVideoFileID) {
-      dispatch(pickVideoFile({ id, videoID }));
+      dispatch(pickVideoFile({ playerID, videoID }));
 
       // wipe out the metadata for this videoElement so that aspect will be recalculated when the next video loads
       setMetadata(null);
@@ -137,8 +137,8 @@ export default function Videos({ id }: { id: number }) {
     // make sure the video times are correct
 
     const currentlyPlayingVideo = videoSelectors.selectById(
-      store.getState(),
-      videos.activeVideoFiles[id]
+      storeState,
+      videos.activeVideoFiles[playerID]
     );
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
@@ -171,11 +171,11 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const updateSourceInfo = () => {
-    const videoID = videos.activeVideoFiles[id];
+    const videoID = videos.activeVideoFiles[playerID];
 
     if (videoID !== "") {
       // there is a video for this downlink
-      const video = videoSelectors.selectById(store.getState(), videoID);
+      const video = videoSelectors.selectById(storeState, videoID);
       setSourceURL(video.videoURL);
     } else {
       // there is no video for this downlink
@@ -183,8 +183,8 @@ export default function Videos({ id }: { id: number }) {
       setSourceURL("");
 
       // don't block the playhead
-      if (!videos.ready[id]) {
-        dispatch(ready(id));
+      if (!videos.ready[playerID]) {
+        dispatch(ready(playerID));
       }
     }
   };
@@ -196,12 +196,12 @@ export default function Videos({ id }: { id: number }) {
     }
   };
 
-  useEffect(changeVideoFile, [playhead.seconds, videoFiles, videos.downlinks[id]]);
-  useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[id], videoFiles]);
+  useEffect(changeVideoFile, [playhead.seconds, videoFiles, videos.downlinks[playerID]]);
+  useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[playerID], videoFiles]);
   useEffect(getInitialDownlink, [query]);
   useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
-  useEffect(syncToplayhead, [playhead.seconds, videos.activeVideoFiles[id]]);
-  useEffect(updateSourceInfo, [videos.activeVideoFiles[id]]);
+  useEffect(syncToplayhead, [playhead.seconds, videos.activeVideoFiles[playerID]]);
+  useEffect(updateSourceInfo, [videos.activeVideoFiles[playerID]]);
 
   /**
    * Renders the actual HTML5 video
@@ -233,7 +233,7 @@ export default function Videos({ id }: { id: number }) {
 
     return (
       <div
-        key={`video_element__${id}`}
+        key={`video_element__${playerID}`}
         className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
       >
         <div className={`${styles.playerPoster} ${posterClass}`}>
@@ -247,17 +247,17 @@ export default function Videos({ id }: { id: number }) {
           src={sourceURL}
           muted={muted}
           onCanPlay={() => {
-            if (!videos.ready[id]) {
-              dispatch(ready(id));
+            if (!videos.ready[playerID]) {
+              dispatch(ready(playerID));
             }
           }}
           onEnded={() => {
             // ready up because we don't want a missing video to hold up the playhead
-            dispatch(ready(id));
+            dispatch(ready(playerID));
           }}
           onWaiting={() => {
-            if (videos.ready[id] && sourceURL !== "") {
-              dispatch(buffering(id));
+            if (videos.ready[playerID] && sourceURL !== "") {
+              dispatch(buffering(playerID));
               setStatus("buffering");
             }
           }}
@@ -286,14 +286,14 @@ export default function Videos({ id }: { id: number }) {
               //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
               setStatus("error");
               console.error(
-                `video ${id} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+                `video ${playerID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
               );
             } else {
               setStatus("novid");
             }
             //unblocking playhead
-            if (videos.ready[id] !== true) {
-              dispatch(ready(id));
+            if (videos.ready[playerID] !== true) {
+              dispatch(ready(playerID));
             }
           }}
         />
@@ -303,7 +303,7 @@ export default function Videos({ id }: { id: number }) {
   };
 
   const renderButtons = () => {
-    const group = videos.downlinks[id];
+    const group = videos.downlinks[playerID];
     const availableGroups = [0, 1, 2, 3, 4, 5, 6];
 
     return availableGroups.map((g) => {
@@ -315,13 +315,13 @@ export default function Videos({ id }: { id: number }) {
       }
       return (
         <button
-          key={`vid${id}__button${g}`}
+          key={`vid${playerID}__button${g}`}
           type="button"
-          title={g < 6 ? `Select downlink ${g + 1}` : "Seleect other video"}
+          title={g < 6 ? `Select downlink ${g + 1}` : "Select other video"}
           className={buttonClassStyle}
           onClick={() => {
             if (g !== group) {
-              dispatch(setVideoDownlink({ id, downlink: g }));
+              dispatch(setVideoDownlink({ playerID, downlink: g }));
               setInfoToggle(false);
             }
           }}
@@ -334,8 +334,8 @@ export default function Videos({ id }: { id: number }) {
 
   const renderVideoOverlay = () => {
     const currentlyPlayingVideo = videoSelectors.selectById(
-      store.getState(),
-      videos.activeVideoFiles[id]
+      storeState,
+      videos.activeVideoFiles[playerID]
     );
     let videoStartOffset = 0;
     let ioSearchLink = "";
@@ -400,8 +400,8 @@ export default function Videos({ id }: { id: number }) {
   const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
   const currentlyPlayingVideo = videoSelectors.selectById(
-    store.getState(),
-    videos.activeVideoFiles[id]
+    storeState,
+    videos.activeVideoFiles[playerID]
   );
   let infoButtonStyle = "";
   if (currentlyPlayingVideo) {
@@ -411,7 +411,7 @@ export default function Videos({ id }: { id: number }) {
     infoButtonStyle = styles.infoSelected;
   }
   return (
-    <div className={styles.mediaPanel} key={`video_player__${id}`}>
+    <div className={styles.mediaPanel} key={`video_player__${playerID}`}>
       <div style={{ display: "flex", flexDirection: "row" }}>
         <div
           className={`${styles.infoButton} ${infoButtonStyle}`}

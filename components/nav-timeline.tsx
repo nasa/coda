@@ -26,11 +26,11 @@ function NavTimeline() {
     playhead: PlayheadState;
   } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
-  const store = useStore();
-  const videoFiles = videoSelectors.selectAll(store.getState());
-  const photoFiles = photosSelectors.selectAll(store.getState());
+  const storeState = useStore().getState();
+  const videoFiles = videoSelectors.selectAll(storeState);
+  const photoFiles = photosSelectors.selectAll(storeState);
 
-  const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
+  const eva = evasSelector.selectById(storeState, idFromDate(playhead.date));
   const evaName = get(eva, "name", "");
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);

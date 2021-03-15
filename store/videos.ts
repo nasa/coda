@@ -45,13 +45,13 @@ export const videoSlice = createSlice({
   reducers: {
     // Used to store which DL is selected in the video players.
     // Needs to be in store because it is used in the share function.
-    setVideoDownlink: (state, action: { payload: { id: number; downlink: number } }) => {
-      state.downlinks[action.payload.id] = action.payload.downlink;
+    setVideoDownlink: (state, action: { payload: { playerID: number; downlink: number } }) => {
+      state.downlinks[action.payload.playerID] = action.payload.downlink;
     },
 
     /** Set the video file ID to play on a named `<VideoPlayer />` */
-    pickVideoFile: (state, action: { payload: { id: number; videoID: string } }) => {
-      state.activeVideoFiles[action.payload.id] = action.payload.videoID;
+    pickVideoFile: (state, action: { payload: { playerID: number; videoID: string } }) => {
+      state.activeVideoFiles[action.payload.playerID] = action.payload.videoID;
     },
 
     /** Mark videos are ready to be played. The payload is the video player name */

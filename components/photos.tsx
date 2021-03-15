@@ -6,7 +6,7 @@ import { initialPhotoFileState, setActivePhoto, photosSelectors } from "store/ph
 import styles from "./photos.module.css";
 
 import { appSecondsFromDateString, hhmmssFromDateString } from "utils/formatting";
-import { RootState } from "store/index";
+import type { RootState } from "store/index";
 
 export default function Photos() {
   const dispatch = useDispatch();
