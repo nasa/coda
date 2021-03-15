@@ -1,11 +1,15 @@
 import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch, useStore } from "react-redux";
-import { PlayheadState } from "store/playhead";
+import { PlayheadState, diff } from "store/playhead";
 import { initialPhotoFileState, setActivePhoto, photosSelectors } from "store/photos";
 import styles from "./photos.module.css";
 
-import { appSecondsFromDateString, hhmmssFromDateString } from "utils/formatting";
+import {
+  appSecondsFromDateString,
+  hhmmssFromDateString,
+  hhmmssFromSeconds,
+} from "utils/formatting";
 import type { RootState } from "store/index";
 
 export default function Photos() {
@@ -120,9 +124,13 @@ export default function Photos() {
 
   let dateTakenLabel = "";
   let dateTakenValue = "";
+  let timeSinceTaken = "";
   let infoButtonStyle = "";
   const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
   if (currentlyActivePhoto) {
+    timeSinceTaken = `(${hhmmssFromSeconds(
+      Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.date_taken))
+    )} ago)`;
     dateTakenLabel = "Taken:";
     dateTakenValue = `${hhmmssFromDateString(photos.activePhoto.date_taken)}Z`;
     infoButtonStyle = styles.infoActive;
@@ -161,6 +169,12 @@ export default function Photos() {
           </span>
           <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
             {dateTakenValue}
+          </span>
+          <span
+            style={{ marginRight: "5px" }}
+            className={`${styles.photoHeaderText} ${styles.dimText}`}
+          >
+            {timeSinceTaken}
           </span>
         </div>
       </div>
