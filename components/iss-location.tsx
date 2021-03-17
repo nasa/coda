@@ -11,21 +11,12 @@ import Marker from "./iss-location-marker";
 import { ephemeraSelectors } from "store/ephemera";
 import type { Ephemeris } from "services/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
-import { isNull } from "lodash";
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 //tlejs not importable as per module docs
-const {
-  getLatLngObj,
-  getEpochTimestamp,
-  getSatelliteInfo,
-  getFirstTimeDerivative,
-  getSecondTimeDerivative,
-  getBstarDrag,
-  getEccentricity,
-} = require("tle.js/dist/tlejs.cjs");
+const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
 
 export default function ISSLocation() {
   const {
@@ -38,8 +29,6 @@ export default function ISSLocation() {
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
   const mapContainer = useRef(null);
-
-  const [TLE, setTLE] = useState("");
 
   //just need any location for getSatelliteInfo
   const houstonLatLng = {
@@ -91,7 +80,6 @@ export default function ISSLocation() {
     if (tle.length === 0) {
       return;
     }
-    setTLE(tle);
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
     const latLonObj = getLatLngObj(tle, playHeadISODate);

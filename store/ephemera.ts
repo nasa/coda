@@ -1,4 +1,4 @@
-import { createEntityAdapter, createSlice, createSelector } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { Ephemeris } from "services/spacetrack";
 import { RootState } from ".";
 import { diff } from "./playhead";

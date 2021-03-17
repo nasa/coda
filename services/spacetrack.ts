@@ -1,5 +1,4 @@
 import fetch from "isomorphic-unfetch";
-import { changeTime, PlayheadState } from "store/playhead";
 import { padZeros } from "utils/formatting";
 
 export type Ephemeris = {
