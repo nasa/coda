@@ -74,3 +74,9 @@ function isoStringFromAnyDateString(dateString: string): string {
   }
   return tempDate.toISOString(); // guaranteed to have an ISO string. safe to string parse it
 }
+
+export function getPlayheadISOString(playheadDate: string, playheadSeconds: number) {
+  const iso = isoStringFromAnyDateString(playheadDate);
+  const hhmmss = hhmmssFromSeconds(playheadSeconds);
+  return `${iso.split("T")[0]}T${hhmmss}Z`;
+}

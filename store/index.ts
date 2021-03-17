@@ -4,6 +4,7 @@ import { playheadSlice, initialState as playheadInitialState } from "./playhead"
 import { evasSlice, initialState as evasInitialState } from "./evas";
 import { videoSlice, initialState as videosInitialState } from "./videos";
 import { photoSlice, initialState as photosInitialState } from "./photos";
+import { ephemeraSlice, initialState as ephemeraInitialState } from "./ephemera";
 
 let store;
 
@@ -12,6 +13,7 @@ export const initialState = {
   evas: evasInitialState,
   videos: videosInitialState,
   photos: photosInitialState,
+  ephemera: ephemeraInitialState,
 };
 
 // server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
@@ -21,6 +23,7 @@ const reducer = combineReducers({
   evas: evasSlice.reducer,
   videos: videoSlice.reducer,
   photos: photoSlice.reducer,
+  ephemera: ephemeraSlice.reducer,
 });
 
 export type RootState = ReturnType<typeof reducer>;

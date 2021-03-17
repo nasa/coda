@@ -4,7 +4,10 @@
   height: 100%;
 }
 
-.videos {
+.bodyRow1 {
+  display: flex;
+}
+.bodyRow2 {
   display: flex;
 }
 

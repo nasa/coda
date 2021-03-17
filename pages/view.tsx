@@ -5,6 +5,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import Main from "components/main";
 import { buildEVAStore } from "services/iss-wiki";
 import { buildVideoStore, buildPhotoStore } from "services/io";
+import { buildEphemerisStore } from "services/spacetrack";
 import {
   addVideos,
   haveVideosFromDate,
@@ -13,6 +14,7 @@ import {
 } from "store/videos";
 import { addPhotos, photosSelectors, fetchError as photosFetchError } from "store/photos";
 import { addEVAs } from "store/evas";
+import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { PlayheadState, diff, isSameDate, changeDate, changeTime } from "store/playhead";
@@ -142,6 +144,30 @@ export default function View() {
         dispatch(addPhotos(photoStore));
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
+        console.error(e);
+      }
+    })();
+  }, [playhead.date]);
+
+  // Grab ISS orbit ephemeris data
+  useEffect(() => {
+    (async () => {
+      if (isNull(playhead.date)) {
+        return;
+      }
+
+      const d = new Date(playhead.date);
+
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+
+      try {
+        // photos data for today
+        const ephemerisStore = await buildEphemerisStore(year, month + 1, day);
+        dispatch(addEphemera(ephemerisStore));
+      } catch (e) {
+        dispatch(ephemeraFetchError(e.toString()));
         console.error(e);
       }
     })();

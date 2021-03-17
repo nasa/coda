@@ -11,6 +11,7 @@ class MyDocument extends Document {
           <link rel="icon" type="image/png" sizes="16x16" href="/coda/favicon/favicon-16x16.png" />
           <link rel="manifest" href="/coda/favicon/site.webmanifest" />
           <link rel="mask-icon" href="/coda/favicon/safari-pinned-tab.svg" color="#5bbad5" />
+          <link href="/coda/mapbox_custom.css" rel="stylesheet" />
           <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap"
             rel="stylesheet"
@@ -19,6 +20,7 @@ class MyDocument extends Document {
             href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
             rel="stylesheet"
           />
+          <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
         </Head>
         <body>
           <Main />

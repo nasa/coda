@@ -6,6 +6,7 @@ import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
 import Video from "components/video";
 import Photos from "components/photos";
+import ISSLocation from "components/iss-location";
 import { PlayheadState, run, halt, tick } from "store/playhead";
 import { PhotosState } from "store/photos";
 import { VideosState, videoSelectors } from "store/videos";
@@ -59,10 +60,13 @@ export default function Main() {
         <Header />
       </div>
       <div className={styles.body}>
-        <div className={styles.videos}>
+        <div className={styles.bodyRow1}>
           <Video playerID={1} />
           <Video playerID={2} />
           <Photos />
+        </div>
+        <div className={styles.bodyRow2}>
+          <ISSLocation />
         </div>
       </div>
       <div className={styles.footer}>

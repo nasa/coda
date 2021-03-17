@@ -1,0 +1,12 @@
+.container {
+  min-width: 493px;
+  width: 33.33%;
+  /* position: absolute; */
+  background-color: #19181b;
+  /* float: right; */
+  margin-top: 5px;
+}
+
+.placeholderDiv {
+  flex: 3;
+}
