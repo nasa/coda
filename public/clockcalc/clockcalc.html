@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>QR Time Calc</title>
+
+    <script src="clockcalc.js"></script>
+
+</head>
+<body>
+    <div class="input">
+        <h2>Manually Calculate GoPro Video File Start Time from QR Data</h2>        
+        <div>Date in QR image<input type="text" id="qrdate" value="2021-03-12T08:47:11"/>Zulu (ISO)</div>
+        <div>Seconds into video of QR image:<input type="text" id="seconds" value="4"/></div>
+        <div>Reported metadata start date of video containing QR image<input type="text" id="qrvidstartdate" value="2013-02-16T23:56:53">Zulu (ISO)</div>
+        <div>Reported metadata start date of any other video in set<input type="text" id="otherstartdate" value="2013-02-18T07:43:18">Zulu (ISO)</div>
+    </div>
+    <button onclick="runCalc();">Calculate</button>
+    <BR>
+    <div class="output">
+        <div>Calculated QR video start time: <span id="qrcalcstart"></span></div>
+        <div>Calculated time offset: <span id="offset"></span></div>
+        <div>Calculated other video start time: <span id="othercalcstart"></span></div>
+    </div>
+</body>
+</html>
