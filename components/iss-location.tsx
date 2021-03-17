@@ -1,5 +1,6 @@
 import { RootState } from "store/index";
 import { useState, useEffect, useRef } from "react";
+// import useInterval from "utils/useInterval";
 import ReactDOM from "react-dom";
 import { useSelector, useStore } from "react-redux";
 import deepEqual from "lodash/isEqual";
@@ -25,9 +26,12 @@ export default function ISSLocation() {
     playhead: PlayheadState;
   } = useSelector((state: RootState) => state, deepEqual);
   const ephemera = ephemeraSelectors.selectAll(useStore().getState());
+  // const [TLE, setTLE] = useState(null);
 
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
+  // const [markerIntervalTicks, setMarkerIntervalTicks] = useState(0);
+
   const mapContainer = useRef(null);
 
   //just need any location for getSatelliteInfo
@@ -45,7 +49,7 @@ export default function ISSLocation() {
         container: mapContainer.current,
         style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
         center: houstonLatLng, // starting position [lng, lat]
-        zoom: 2, // starting zoom
+        zoom: 1, // starting zoom
         attributionControl: false,
         antialias: true,
       });
@@ -73,21 +77,49 @@ export default function ISSLocation() {
       return;
     }
 
-    // playheadZuluDate = new Date(playhead.date)
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
 
     const tle = getAppropriateTLE(ephemera, playHeadISODate);
     if (tle.length === 0) {
       return;
     }
+    // setTLE(tle);
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
     const latLonObj = getLatLngObj(tle, playHeadISODate);
 
-    //move the map and center the marker
-    map.setCenter(latLonObj);
+    //center the map every x seconds
+    if (playhead.seconds % 5 === 0) {
+      map.setCenter(latLonObj);
+    }
+    // move the marker
     marker.setLngLat(latLonObj);
   }, [ephemera, playhead.date, playhead.seconds]);
+
+  // //move marker much more quickly than once per second
+  // useInterval(() => {
+  //   if (!TLE) {
+  //     return;
+  //   }
+  //   const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
+
+  //   //increment milliseconds
+  //   if (markerIntervalTicks > 10) {
+  //     setMarkerIntervalTicks(0);
+  //   } else {
+  //     setMarkerIntervalTicks(markerIntervalTicks + 1);
+  //   }
+
+  //   const playHeadDateWithAddedMS = new Date(playHeadISODate).getTime() + markerIntervalTicks * 100;
+  //   const playheadISOWithAddedMS = new Date(playHeadDateWithAddedMS).toISOString();
+
+  //   //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
+  //   const latLonObj = getLatLngObj(TLE, playheadISOWithAddedMS);
+  //   console.log(playheadISOWithAddedMS);
+
+  //   // move the marker
+  //   marker.setLngLat(latLonObj);
+  // }, 100);
 
   return (
     <>
