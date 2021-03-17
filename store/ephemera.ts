@@ -19,7 +19,6 @@ const ephemerisAdapter = createEntityAdapter<Ephemeris>({
 });
 
 export const initialState = ephemerisAdapter.getInitialState({
-  ready: false,
   errorMessage: "",
 });
 
@@ -35,7 +34,6 @@ export const ephemeraSlice = createSlice({
     addEphemera: (state, action) => {
       ephemerisAdapter.upsertMany(state, action);
       state.errorMessage = "";
-      state.ready = true;
     },
     fetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;
