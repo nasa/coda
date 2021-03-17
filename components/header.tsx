@@ -1,4 +1,3 @@
-import config from "../package.json";
 import deepEqual from "lodash/isEqual";
 import Link from "next/link";
 import isNil from "lodash/isNil";
@@ -249,7 +248,7 @@ function Header() {
       <div className={styles.rightSection}>
         <div className={styles.headerElementContainer}>
           <div className={styles.version}>
-            Beta v{config.version}
+            Beta Version
             <br />
             Contact: <a href="mailto:benjamin.f.feist@nasa.gov">benjamin.f.feist@nasa.gov</a>
           </div>
