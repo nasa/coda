@@ -11,7 +11,7 @@ import Marker from "./iss-location-marker";
 
 import { ephemeraSelectors } from "store/ephemera";
 import type { Ephemeris } from "services/spacetrack";
-import { getPlayheadISOString, hhmmssmmmFromSeconds } from "utils/formatting";
+import { getPlayheadISOString } from "utils/formatting";
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -160,7 +160,7 @@ export default function ISSLocation() {
     return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
   }
 
-  function isMarkerVisible(): boolean {
+  function _isMarkerVisible(): boolean {
     var cc = map.getContainer();
     var els = cc.getElementsByClassName("marker");
     var ccRect = cc.getBoundingClientRect();
