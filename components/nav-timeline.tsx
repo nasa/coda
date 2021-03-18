@@ -4,7 +4,7 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { PlayheadState, isSameDate, changeTime } from "store/playhead";
+import { PlayheadState, isSameDate, changeTime, changeHoverTime } from "store/playhead";
 import {
   evasSelector,
   getActivityPerformanceMissionTime,
@@ -105,9 +105,12 @@ function NavTimeline() {
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current.handleMouseMove(event, time.current, () => {
+      drawNav.current.handleMouseMove(event, time.current, (thisHoverSeconds) => {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
+        }
+        if (playhead.hoverSeconds !== thisHoverSeconds) {
+          dispatch(changeHoverTime(thisHoverSeconds));
         }
       });
     };
@@ -123,6 +126,7 @@ function NavTimeline() {
         drawNav.current.drawTier1NavBox(time.current);
         drawNav.current.drawTier2();
         drawNav.current.drawCursor(time.current);
+        dispatch(changeHoverTime(0));
       });
     };
 

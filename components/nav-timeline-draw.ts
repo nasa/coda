@@ -696,7 +696,7 @@ export default class DrawNav {
     }
     this.drawCursor(missionTimeSeconds);
     this.drawNavCursor(mouseXSeconds);
-    cb();
+    cb(mouseXSeconds);
   };
 
   handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {

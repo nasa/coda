@@ -11,7 +11,7 @@ import Marker from "./iss-location-marker";
 
 import { ephemeraSelectors } from "store/ephemera";
 import type { Ephemeris } from "services/spacetrack";
-import { getPlayheadISOString } from "utils/formatting";
+import { getPlayheadISOString, hhmmssmmmFromSeconds } from "utils/formatting";
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -19,7 +19,17 @@ import "mapbox-gl/dist/mapbox-gl.css";
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
 
+type MapMarker = {
+  marker: any; //the MapBox marker reference
+  markerNode: any; //the real DOM id of the marker
+};
+
 export default function ISSLocation() {
+  const initialMarker: MapMarker = {
+    marker: null,
+    markerNode: null,
+  };
+
   const {
     playhead,
   }: {
@@ -29,7 +39,8 @@ export default function ISSLocation() {
   // const [TLE, setTLE] = useState(null);
 
   const [map, setMap] = useState(null);
-  const [marker, setMarker] = useState(null);
+  const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
+  const [hoverMarker, setHoverMarker] = useState(initialMarker);
   // const [markerIntervalTicks, setMarkerIntervalTicks] = useState(0);
 
   const mapContainer = useRef(null);
@@ -54,13 +65,19 @@ export default function ISSLocation() {
         antialias: true,
       });
 
-      // create marker node
-      const markerNode = document.createElement("div");
-      ReactDOM.render(<Marker id={"marker"} />, markerNode);
-      // add marker to map
-      const thisMarker = new mapboxgl.Marker(markerNode).setLngLat(houstonLatLng);
-      thisMarker.addTo(thisMap);
-      setMarker(thisMarker);
+      // create playhead marker node
+      const playheadMarkerNode = document.createElement("div");
+      ReactDOM.render(<Marker id="playheadMarker" type="playheadMarker" />, playheadMarkerNode);
+      const thisPlayheadMarker = new mapboxgl.Marker(playheadMarkerNode).setLngLat(houstonLatLng);
+      thisPlayheadMarker.addTo(thisMap);
+      setPlayheadMarker({ marker: thisPlayheadMarker, markerNode: playheadMarkerNode });
+
+      // create hover marker node
+      const hoverMarkerNode = document.createElement("div");
+      ReactDOM.render(<Marker id="hoverMarker" type="hoverMarker" />, hoverMarkerNode);
+      const thisHoverMarker = new mapboxgl.Marker(hoverMarkerNode).setLngLat(houstonLatLng);
+      thisHoverMarker.addTo(thisMap);
+      setHoverMarker({ marker: thisHoverMarker, markerNode: hoverMarkerNode });
 
       thisMap.on("load", () => {
         setMap(thisMap);
@@ -83,18 +100,27 @@ export default function ISSLocation() {
     if (tle.length === 0) {
       return;
     }
-    // setTLE(tle);
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
-    const latLonObj = getLatLngObj(tle, playHeadISODate);
+    const playheadLatLonObj = getLatLngObj(tle, playHeadISODate);
+    playheadMarker.marker.setLngLat(playheadLatLonObj);
+
+    //position hover marker
+    if (playhead.hoverSeconds !== 0) {
+      hoverMarker.markerNode.style.visibility = "visible";
+      const hoverISODate = getPlayheadISOString(playhead.date, playhead.hoverSeconds);
+      const hoverLatLonObj = getLatLngObj(tle, hoverISODate);
+      hoverMarker.marker.setLngLat(hoverLatLonObj);
+    } else {
+      hoverMarker.markerNode.style.visibility = "hidden";
+    }
 
     //center the map every x seconds
     if (playhead.seconds % 5 === 0) {
-      map.setCenter(latLonObj);
+      // map.setCenter(latLonObj);
     }
     // move the marker
-    marker.setLngLat(latLonObj);
-  }, [ephemera, playhead.date, playhead.seconds]);
+  }, [ephemera, playhead.date, playhead.seconds, playhead.hoverSeconds]);
 
   // //move marker much more quickly than once per second
   // useInterval(() => {
