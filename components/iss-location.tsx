@@ -45,7 +45,7 @@ export default function ISSLocation() {
     mapboxgl.accessToken =
       "pk.eyJ1IjoiYmZlaXN0IiwiYSI6ImNpbDJva2hseTNnZnd1Z20zNmU0cDExdXUifQ.3acQyDaKU1HS8k5hqPmp1w";
     const initializeMap = ({ setMap, mapContainer }) => {
-      const map = new mapboxgl.Map({
+      const thisMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
         center: houstonLatLng, // starting position [lng, lat]
@@ -59,12 +59,12 @@ export default function ISSLocation() {
       ReactDOM.render(<Marker id={"marker"} />, markerNode);
       // add marker to map
       const thisMarker = new mapboxgl.Marker(markerNode).setLngLat(houstonLatLng);
-      thisMarker.addTo(map);
+      thisMarker.addTo(thisMap);
       setMarker(thisMarker);
 
-      map.on("load", () => {
-        setMap(map);
-        map.resize();
+      thisMap.on("load", () => {
+        setMap(thisMap);
+        thisMap.resize();
       });
     };
 
@@ -129,6 +129,24 @@ export default function ISSLocation() {
       </div>
     </>
   );
+
+  function intersectRect(r1, r2) {
+    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+  }
+
+  function isMarkerVisible(): boolean {
+    var cc = map.getContainer();
+    var els = cc.getElementsByClassName("marker");
+    var ccRect = cc.getBoundingClientRect();
+    var visibles = [];
+    for (var i = 0; i < els.length; i++) {
+      var el = els.item(i);
+      var elRect = el.getBoundingClientRect();
+      intersectRect(ccRect, elRect) && visibles.push(el);
+    }
+    if (visibles.length > 0) console.log(visibles);
+    return visibles.length > 0;
+  }
 }
 
 function getAppropriateTLE(ephemera: Ephemeris[], dateTimeWanted: string): string {
