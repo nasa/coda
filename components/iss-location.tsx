@@ -1,17 +1,15 @@
-import { RootState } from "store/index";
 import { useState, useEffect, useRef } from "react";
-// import useInterval from "utils/useInterval";
-import ReactDOM from "react-dom";
 import { useSelector, useStore } from "react-redux";
+import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
+import { RootState } from "store/index";
 import { PlayheadState, diff } from "store/playhead";
-
-import styles from "./iss-location.module.css";
-import Marker from "./iss-location-marker";
-
 import { ephemeraSelectors } from "store/ephemera";
 import type { Ephemeris } from "services/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
+
+import styles from "./iss-location.module.css";
+import Marker from "./iss-location-marker";
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -81,24 +79,23 @@ export default function ISSLocation() {
       const hoverISODate = getPlayheadISOString(playhead.date, playhead.hoverSeconds);
       const tle = getAppropriateTLE(ephemera, hoverISODate);
 
-      // console.log(hoverISODate);
       const hoverLatLonObj = getLatLngObj(tle, hoverISODate);
       hoverMarker.marker.setLngLat(hoverLatLonObj);
     } else {
       hoverMarker.markerNode.style.visibility = "hidden";
-      // map.panTo(playheadLatLonObj);
+      //position playhead marker
       updateOrbitLine(map, playHeadISODate);
 
       if (lockToggle) {
         map.panTo(playheadLatLonObj);
       }
     }
-    // move the marker
   }, [ephemera, playhead.date, playhead.seconds, playhead.hoverSeconds]);
 
-  let lockButtonStyle = styles.infoActive;
+  // toggle button display settings
+  let lockButtonStyle = styles.toggleActive;
   if (lockToggle) {
-    lockButtonStyle = styles.infoSelected;
+    lockButtonStyle = styles.toggleSelected;
   }
 
   return (
@@ -114,8 +111,8 @@ export default function ISSLocation() {
         ></div>
         <div className={styles.overlay}>
           <div
-            className={`${styles.infoButton} ${lockButtonStyle}`}
-            title={`Click to toggle IO info`}
+            className={`${styles.toggleButton} ${lockButtonStyle}`}
+            title={`Click to toggle map scrolling in relation to ISS position`}
             onClick={() => {
               setLockToggle(!lockToggle);
             }}
@@ -133,8 +130,6 @@ export default function ISSLocation() {
       style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
       center: houstonLatLng, // starting position [lng, lat]
       zoom: 1, // starting zoom
-      // center: [-122.486052, 37.830348],
-      // zoom: 15,
       attributionControl: false,
       antialias: true,
     });

@@ -3,10 +3,6 @@ import type { Ephemeris } from "services/spacetrack";
 import { RootState } from ".";
 import { diff } from "./playhead";
 
-export interface EphemerisState {
-  ready: boolean;
-}
-
 export function idFromEphemeris(ephemeris: Ephemeris): string {
   const { FILE } = ephemeris;
   return FILE;
