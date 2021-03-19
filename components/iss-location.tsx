@@ -98,32 +98,6 @@ export default function ISSLocation() {
     lockButtonStyle = styles.toggleSelected;
   }
 
-  return (
-    <>
-      {/* <div className={styles.placeholderDiv}></div> */}
-      <div className={styles.container}>
-        <div
-          ref={(el) => (mapContainer.current = el)}
-          style={{ height: 250 }}
-          onMouseDown={() => {
-            setLockToggle(false);
-          }}
-        ></div>
-        <div className={styles.overlay}>
-          <div
-            className={`${styles.toggleButton} ${lockButtonStyle}`}
-            title={`Click to toggle map scrolling in relation to ISS position`}
-            onClick={() => {
-              setLockToggle(!lockToggle);
-            }}
-          >
-            Lock Map to ISS
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
   function initializeMap({ setMap, mapContainer }) {
     const thisMap = new mapboxgl.Map({
       container: mapContainer.current,
@@ -276,9 +250,40 @@ export default function ISSLocation() {
       },
     });
   }
+
+  return (
+    <>
+      {/* <div className={styles.placeholderDiv}></div> */}
+      <div className={styles.container}>
+        <div
+          ref={(el) => (mapContainer.current = el)}
+          style={{ height: 250 }}
+          onMouseDown={() => {
+            setLockToggle(false);
+          }}
+        ></div>
+        <div className={styles.overlay}>
+          <div
+            className={`${styles.toggleButton} ${lockButtonStyle}`}
+            title={`Click to toggle map scrolling in relation to ISS position`}
+            onClick={() => {
+              setLockToggle(!lockToggle);
+            }}
+          >
+            Lock Map to ISS
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
-function getNextPosition(isoDate: string, secondsInc: number, ephemera: Ephemeris[]) {
+type lngLat = {
+  lng: number;
+  lat: number;
+};
+
+function getNextPosition(isoDate: string, secondsInc: number, ephemera: Ephemeris[]): lngLat {
   const nextIncrementDate = new Date(isoDate);
   nextIncrementDate.setSeconds(nextIncrementDate.getSeconds() + secondsInc);
   const nextIncremenetDateISO = nextIncrementDate.toISOString();
