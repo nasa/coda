@@ -37,7 +37,8 @@ export type Ephemeris = {
 };
 
 async function fetchSpacetrack(dateStr: string): Promise<Ephemeris[]> {
-  const url = "http://coda-data.apolloinrealtime.org/spacetrack_iss/get_iss.php?date=" + dateStr;
+  const url =
+    "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php?date=" + dateStr;
 
   let res: Response;
 
