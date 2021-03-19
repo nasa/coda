@@ -41,7 +41,7 @@ export default function ISSLocation() {
   const [map, setMap] = useState(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
   const [hoverMarker, setHoverMarker] = useState(initialMarker);
-  // const [markerIntervalTicks, setMarkerIntervalTicks] = useState(0);
+  const [lockToggle, setLockToggle] = useState(true);
 
   const mapContainer = useRef(null);
 
@@ -55,141 +55,263 @@ export default function ISSLocation() {
   useEffect(() => {
     mapboxgl.accessToken =
       "pk.eyJ1IjoiYmZlaXN0IiwiYSI6ImNpbDJva2hseTNnZnd1Z20zNmU0cDExdXUifQ.3acQyDaKU1HS8k5hqPmp1w";
-    const initializeMap = ({ setMap, mapContainer }) => {
-      const thisMap = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
-        center: houstonLatLng, // starting position [lng, lat]
-        zoom: 1, // starting zoom
-        attributionControl: false,
-        antialias: true,
-      });
-
-      // create playhead marker node
-      const playheadMarkerNode = document.createElement("div");
-      ReactDOM.render(<Marker id="playheadMarker" type="playheadMarker" />, playheadMarkerNode);
-      const thisPlayheadMarker = new mapboxgl.Marker(playheadMarkerNode).setLngLat(houstonLatLng);
-      thisPlayheadMarker.addTo(thisMap);
-      setPlayheadMarker({ marker: thisPlayheadMarker, markerNode: playheadMarkerNode });
-
-      // create hover marker node
-      const hoverMarkerNode = document.createElement("div");
-      ReactDOM.render(<Marker id="hoverMarker" type="hoverMarker" />, hoverMarkerNode);
-      const thisHoverMarker = new mapboxgl.Marker(hoverMarkerNode).setLngLat(houstonLatLng);
-      thisHoverMarker.addTo(thisMap);
-      setHoverMarker({ marker: thisHoverMarker, markerNode: hoverMarkerNode });
-
-      thisMap.on("load", () => {
-        setMap(thisMap);
-        thisMap.resize();
-      });
-    };
 
     if (!map) initializeMap({ setMap, mapContainer });
   }, [map]);
 
-  //put TLE in state when ephemera changes
+  //update map based on changes in seconds / hoverSeconds
   useEffect(() => {
     if (!map || !playhead.date || ephemera.length === 0) {
       return;
     }
 
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
-
     const tle = getAppropriateTLE(ephemera, playHeadISODate);
-    if (tle.length === 0) {
-      return;
-    }
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
     const playheadLatLonObj = getLatLngObj(tle, playHeadISODate);
+    if (playheadMarker.markerNode.style.visibility === "hidden") {
+      playheadMarker.markerNode.style.visibility = "visible";
+    }
     playheadMarker.marker.setLngLat(playheadLatLonObj);
 
     //position hover marker
     if (playhead.hoverSeconds !== 0) {
       hoverMarker.markerNode.style.visibility = "visible";
       const hoverISODate = getPlayheadISOString(playhead.date, playhead.hoverSeconds);
+      const tle = getAppropriateTLE(ephemera, hoverISODate);
+
+      // console.log(hoverISODate);
       const hoverLatLonObj = getLatLngObj(tle, hoverISODate);
       hoverMarker.marker.setLngLat(hoverLatLonObj);
     } else {
       hoverMarker.markerNode.style.visibility = "hidden";
-    }
+      // map.panTo(playheadLatLonObj);
+      updateOrbitLine(map, playHeadISODate);
 
-    //center the map every x seconds
-    if (playhead.seconds % 5 === 0) {
-      // map.setCenter(latLonObj);
+      if (lockToggle) {
+        map.panTo(playheadLatLonObj);
+      }
     }
     // move the marker
   }, [ephemera, playhead.date, playhead.seconds, playhead.hoverSeconds]);
 
-  // //move marker much more quickly than once per second
-  // useInterval(() => {
-  //   if (!TLE) {
-  //     return;
-  //   }
-  //   const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
-
-  //   //increment milliseconds
-  //   if (markerIntervalTicks > 10) {
-  //     setMarkerIntervalTicks(0);
-  //   } else {
-  //     setMarkerIntervalTicks(markerIntervalTicks + 1);
-  //   }
-
-  //   const playHeadDateWithAddedMS = new Date(playHeadISODate).getTime() + markerIntervalTicks * 100;
-  //   const playheadISOWithAddedMS = new Date(playHeadDateWithAddedMS).toISOString();
-
-  //   //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
-  //   const latLonObj = getLatLngObj(TLE, playheadISOWithAddedMS);
-  //   console.log(playheadISOWithAddedMS);
-
-  //   // move the marker
-  //   marker.setLngLat(latLonObj);
-  // }, 100);
+  let lockButtonStyle = styles.infoActive;
+  if (lockToggle) {
+    lockButtonStyle = styles.infoSelected;
+  }
 
   return (
     <>
-      <div className={styles.placeholderDiv}></div>
-      <div key={`iss-position_element`} className={styles.container}>
-        <div ref={(el) => (mapContainer.current = el)} style={{ height: 250 }}></div>
+      {/* <div className={styles.placeholderDiv}></div> */}
+      <div className={styles.container}>
+        <div
+          ref={(el) => (mapContainer.current = el)}
+          style={{ height: 250 }}
+          onMouseDown={() => {
+            setLockToggle(false);
+          }}
+        ></div>
+        <div className={styles.overlay}>
+          <div
+            className={`${styles.infoButton} ${lockButtonStyle}`}
+            title={`Click to toggle IO info`}
+            onClick={() => {
+              setLockToggle(!lockToggle);
+            }}
+          >
+            Lock Map to ISS
+          </div>
+        </div>
       </div>
     </>
   );
 
-  function intersectRect(r1, r2) {
-    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+  function initializeMap({ setMap, mapContainer }) {
+    const thisMap = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
+      center: houstonLatLng, // starting position [lng, lat]
+      zoom: 1, // starting zoom
+      // center: [-122.486052, 37.830348],
+      // zoom: 15,
+      attributionControl: false,
+      antialias: true,
+    });
+
+    thisMap.on("load", () => {
+      // // create playhead marker node
+      addMapMarker(thisMap, "playheadMarker", setPlayheadMarker);
+
+      // // create hover marker node
+      addMapMarker(thisMap, "hoverMarker", setHoverMarker);
+
+      addOrbitLine(thisMap);
+
+      setMap(thisMap);
+      thisMap.resize();
+    });
   }
 
-  function _isMarkerVisible(): boolean {
-    var cc = map.getContainer();
-    var els = cc.getElementsByClassName("marker");
-    var ccRect = cc.getBoundingClientRect();
-    var visibles = [];
-    for (var i = 0; i < els.length; i++) {
-      var el = els.item(i);
-      var elRect = el.getBoundingClientRect();
-      intersectRect(ccRect, elRect) && visibles.push(el);
-    }
-    if (visibles.length > 0) console.log(visibles);
-    return visibles.length > 0;
+  function addMapMarker(thisMap, typeName, setMarker) {
+    const markerNode = document.createElement("div");
+    markerNode.style.visibility = "hidden";
+    const element = <Marker id={`${typeName}`} type={`${typeName}`} />;
+    ReactDOM.render(element, markerNode);
+    const marker = new mapboxgl.Marker(markerNode).setLngLat(houstonLatLng);
+    marker.addTo(thisMap);
+    setMarker({ marker: marker, markerNode: markerNode });
   }
+
+  function addOrbitLine(thisMap) {
+    //part 1 always used
+    thisMap.addSource("orbitLine1", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: [],
+        },
+      },
+    });
+
+    //part 1 in case line crosses dateline
+    thisMap.addSource("orbitLine2", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: [],
+        },
+      },
+    });
+
+    thisMap.addLayer({
+      id: "orbitLine1",
+      type: "line",
+      source: "orbitLine1",
+      layout: {
+        visibility: "visible",
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#ffc000",
+        "line-width": 1.5,
+      },
+    });
+
+    thisMap.addLayer({
+      id: "orbitLine2",
+      type: "line",
+      source: "orbitLine2",
+      layout: {
+        visibility: "visible",
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#ffc000",
+        "line-width": 1.5,
+      },
+    });
+  }
+
+  function updateOrbitLine(thisMap, isoDate) {
+    const secondsStart = -2000;
+    const secondsEnd = 3800;
+    const secondsStep = 10;
+
+    const coordinates1 = [];
+    const coordinates2 = [];
+    let prevIncrement = -1;
+    let prevLng = -1;
+
+    let dateLineHit = false;
+    let dateLineIncNum = 0;
+    for (let i = secondsStart; i < secondsEnd; i = i + secondsStep) {
+      const nextPosition = getNextPosition(isoDate, i, ephemera);
+
+      let lngIncrement;
+      let lngStepSize;
+      if (prevLng !== -1) {
+        lngIncrement = Math.abs(nextPosition.lng - prevLng);
+        lngStepSize = Math.abs(lngIncrement - prevIncrement);
+      }
+
+      // if crossing date line, start drawing the second line
+      // (this avoids a segment that wraps around the earth)
+      if (prevIncrement !== -1 && lngStepSize > 100) {
+        dateLineHit = true;
+        dateLineIncNum = i;
+        break;
+      }
+      coordinates1.push([nextPosition.lng, nextPosition.lat]);
+      prevLng = nextPosition.lng;
+      prevIncrement = lngIncrement;
+    }
+
+    // draw second line that continues across the date line if path crosses date line
+    if (dateLineHit) {
+      for (let i = dateLineIncNum; i < secondsEnd; i = i + secondsStep) {
+        const nextPosition = getNextPosition(isoDate, i, ephemera);
+        coordinates2.push([nextPosition.lng, nextPosition.lat]);
+      }
+    }
+
+    thisMap.getSource("orbitLine1").setData({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: coordinates1,
+      },
+    });
+
+    thisMap.getSource("orbitLine2").setData({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: coordinates2,
+      },
+    });
+  }
+}
+
+function getNextPosition(isoDate: string, secondsInc: number, ephemera: Ephemeris[]) {
+  const nextIncrementDate = new Date(isoDate);
+  nextIncrementDate.setSeconds(nextIncrementDate.getSeconds() + secondsInc);
+  const nextIncremenetDateISO = nextIncrementDate.toISOString();
+  const tle = getAppropriateTLE(ephemera, nextIncremenetDateISO);
+  const nextPosition = getLatLngObj(tle, nextIncremenetDateISO);
+  return nextPosition;
 }
 
 function getAppropriateTLE(ephemera: Ephemeris[], dateTimeWanted: string): string {
   let thisDateDiff;
   let lastDateDiff = -1;
-  let mostRecentEphemeris = "";
-  // chew through ephemiris data looking for the most recent TLE for the timestamp of interest
+
+  let tleObj = ephemera[0];
+  let mostRecentEphemeris = `${tleObj.TLE_LINE0}
+                  ${tleObj.TLE_LINE1}
+                  ${tleObj.TLE_LINE2}`;
+
+  // chew through ephemiris data looking for the TLE closest to the timestamp of interest
   for (let i = 0; i < ephemera.length; i++) {
-    thisDateDiff = diff(new Date(ephemera[i].EPOCH + "Z"), new Date(dateTimeWanted));
-    if (i !== 0 && Math.abs(thisDateDiff) > Math.abs(lastDateDiff)) {
-      // we have passed the TLE epoch closest to the wanted date (before the wanted date)
-      const tleObj = ephemera[i - 1];
+    thisDateDiff = Math.abs(diff(new Date(ephemera[i].EPOCH + "Z"), new Date(dateTimeWanted)));
+    if (i !== 0 && thisDateDiff < lastDateDiff) {
+      tleObj = ephemera[i];
       mostRecentEphemeris = `${tleObj.TLE_LINE0}
                   ${tleObj.TLE_LINE1}
                   ${tleObj.TLE_LINE2}`;
     }
     lastDateDiff = thisDateDiff;
   }
+
   return mostRecentEphemeris;
 }
