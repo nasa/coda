@@ -4,7 +4,7 @@ import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
 import { PlayheadState, diff } from "store/playhead";
-import { ephemeraSelectors } from "store/ephemera";
+import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
 import type { Ephemeris } from "services/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
 
@@ -67,7 +67,7 @@ export default function ISSLocation() {
     const tle = getAppropriateTLE(ephemera, playHeadISODate);
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
-    const playheadLatLonObj = getLatLngObj(tle, playHeadISODate);
+    const playheadLatLonObj = getLatLngObj(tle, new Date(playHeadISODate).getTime());
     if (playheadMarker.markerNode.style.visibility === "hidden") {
       playheadMarker.markerNode.style.visibility = "visible";
     }
@@ -79,7 +79,7 @@ export default function ISSLocation() {
       const hoverISODate = getPlayheadISOString(playhead.date, playhead.hoverSeconds);
       const tle = getAppropriateTLE(ephemera, hoverISODate);
 
-      const hoverLatLonObj = getLatLngObj(tle, hoverISODate);
+      const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
       hoverMarker.marker.setLngLat(hoverLatLonObj);
     } else {
       hoverMarker.markerNode.style.visibility = "hidden";
@@ -288,30 +288,6 @@ function getNextPosition(isoDate: string, secondsInc: number, ephemera: Ephemeri
   nextIncrementDate.setSeconds(nextIncrementDate.getSeconds() + secondsInc);
   const nextIncremenetDateISO = nextIncrementDate.toISOString();
   const tle = getAppropriateTLE(ephemera, nextIncremenetDateISO);
-  const nextPosition = getLatLngObj(tle, nextIncremenetDateISO);
+  const nextPosition = getLatLngObj(tle, new Date(nextIncremenetDateISO).getTime());
   return nextPosition;
-}
-
-function getAppropriateTLE(ephemera: Ephemeris[], dateTimeWanted: string): string {
-  let thisDateDiff;
-  let lastDateDiff = -1;
-
-  let tleObj = ephemera[0];
-  let mostRecentEphemeris = `${tleObj.TLE_LINE0}
-                  ${tleObj.TLE_LINE1}
-                  ${tleObj.TLE_LINE2}`;
-
-  // chew through ephemiris data looking for the TLE closest to the timestamp of interest
-  for (let i = 0; i < ephemera.length; i++) {
-    thisDateDiff = Math.abs(diff(new Date(ephemera[i].EPOCH + "Z"), new Date(dateTimeWanted)));
-    if (i !== 0 && thisDateDiff < lastDateDiff) {
-      tleObj = ephemera[i];
-      mostRecentEphemeris = `${tleObj.TLE_LINE0}
-                  ${tleObj.TLE_LINE1}
-                  ${tleObj.TLE_LINE2}`;
-    }
-    lastDateDiff = thisDateDiff;
-  }
-
-  return mostRecentEphemeris;
 }

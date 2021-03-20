@@ -13,6 +13,7 @@ import {
 } from "store/evas";
 import { videoSelectors } from "store/videos";
 import { photosSelectors } from "store/photos";
+
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
@@ -25,8 +26,11 @@ function NavTimeline() {
   }: {
     playhead: PlayheadState;
   } = useSelector((state: RootState) => state, deepEqual);
+
   const dispatch = useDispatch();
   const storeState = useStore().getState();
+  const dayNight = storeState.ephemera.dayNight;
+
   const videoFiles = videoSelectors.selectAll(storeState);
   const photoFiles = photosSelectors.selectAll(storeState);
 
@@ -53,7 +57,7 @@ function NavTimeline() {
       paper.setup(canvas.current);
     }
 
-    const dayNight = eva?.dayNight || null;
+    // const dayNight = eva?.dayNight || null;
 
     const activityPerformance = { EV1: [], EV2: [] };
     if (!isNil(eva)) {
@@ -143,7 +147,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [eva, videoFiles, photoFiles]);
+  }, [eva, videoFiles, photoFiles, dayNight]);
 
   useEffect(() => {
     time.current = playhead.seconds;
