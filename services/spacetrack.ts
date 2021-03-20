@@ -1,7 +1,7 @@
 import fetch from "isomorphic-unfetch";
 import { padZeros, hhmmssFromSeconds } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
-import { getTimes } from "services/suncalc";
+import { getTimes } from "utils/suncalc";
 
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
 
