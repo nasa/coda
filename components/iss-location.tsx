@@ -13,6 +13,7 @@ import Marker from "./iss-location-marker";
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import Terminator from "utils/terminator";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
@@ -81,10 +82,13 @@ export default function ISSLocation() {
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
       hoverMarker.marker.setLngLat(hoverLatLonObj);
+
+      updateTerminator(map, hoverISODate);
     } else {
       hoverMarker.markerNode.style.visibility = "hidden";
       //position playhead marker
       updateOrbitLine(map, playHeadISODate);
+      updateTerminator(map, playHeadISODate);
 
       if (lockToggle) {
         map.panTo(playheadLatLonObj);
@@ -109,14 +113,17 @@ export default function ISSLocation() {
     });
 
     thisMap.on("load", () => {
-      // // create playhead marker node
+      // add terminator
+      addTerminator(thisMap);
+
+      // create playhead marker node
       addMapMarker(thisMap, "playheadMarker", setPlayheadMarker);
-
-      // // create hover marker node
+      // create hover marker node
       addMapMarker(thisMap, "hoverMarker", setHoverMarker);
-
+      // add orbit path
       addOrbitLine(thisMap);
 
+      thisMap.addControl(new mapboxgl.NavigationControl());
       setMap(thisMap);
       thisMap.resize();
     });
@@ -251,13 +258,44 @@ export default function ISSLocation() {
     });
   }
 
+  function addTerminator(thisMap) {
+    thisMap.addSource("terminator", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: [],
+        },
+      },
+    });
+
+    thisMap.addLayer({
+      id: "terminator",
+      type: "fill",
+      source: "terminator",
+      layout: {},
+      paint: {
+        "fill-outline-color": "#888",
+        "fill-color": "#000",
+        "fill-opacity": 0.2,
+      },
+    });
+  }
+
+  function updateTerminator(thisMap, isoDate) {
+    const terminatorGeoJSON = Terminator({ resolution: 1, time: new Date(isoDate) });
+    thisMap.getSource("terminator").setData(terminatorGeoJSON);
+  }
+
   return (
     <>
       {/* <div className={styles.placeholderDiv}></div> */}
       <div className={styles.container}>
         <div
           ref={(el) => (mapContainer.current = el)}
-          style={{ height: 250 }}
+          className={styles.mapButtonContainer}
           onMouseDown={() => {
             setLockToggle(false);
           }}

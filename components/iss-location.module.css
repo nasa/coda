@@ -11,11 +11,15 @@
   left: 0;
 }
 
+.mapButtonContainer {
+  height: 250px;
+}
+
 .toggleButton {
   width: 130px;
   display: flex;
   background-color: #2b2a2d;
-  border: 1px #ffc000 solid;
+  border: 1px #dbc275 solid;
   border-radius: 4px;
   color: #656269;
   padding: 5px;

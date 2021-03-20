@@ -152,7 +152,7 @@ export default class DrawNav {
     for (let i = 0; i < this.dayNight.length - 1; i++) {
       const startSeconds = this.dayNight[i].appSeconds;
       const endSeconds = this.dayNight[i + 1].appSeconds;
-      const fillColor = this.dayNight[i].daylight ? "yellow" : "black";
+      const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
 
       let startLocX = startSeconds * this.gTier1PixelsPerSecond;
       let endLocX = endSeconds * this.gTier1PixelsPerSecond;
@@ -432,8 +432,8 @@ export default class DrawNav {
     for (let i = 0; i < this.dayNight.length - 1; i++) {
       const startSeconds = this.dayNight[i].appSeconds;
       const endSeconds = this.dayNight[i + 1].appSeconds;
-      const fillColor = this.dayNight[i].daylight ? "yellow" : "black";
-      const textColor = this.dayNight[i].daylight ? "black" : "white";
+      const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
+      const textColor = this.dayNight[i].daylight ? "black" : "#dddddd";
       if (
         startSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
         endSeconds >= this.gTier2StartSeconds
