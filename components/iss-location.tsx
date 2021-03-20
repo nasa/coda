@@ -3,7 +3,7 @@ import { useSelector, useStore } from "react-redux";
 import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
-import { PlayheadState, diff } from "store/playhead";
+import { PlayheadState } from "store/playhead";
 import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
 import type { Ephemeris } from "services/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
