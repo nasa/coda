@@ -4,7 +4,7 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { PlayheadState, isSameDate, changeTime } from "store/playhead";
+import { PlayheadState, isSameDate, changeTime, changeHoverTime } from "store/playhead";
 import {
   evasSelector,
   getActivityPerformanceMissionTime,
@@ -13,6 +13,8 @@ import {
 } from "store/evas";
 import { videoSelectors } from "store/videos";
 import { photosSelectors } from "store/photos";
+import { EphemeraState } from "store/ephemera";
+
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
@@ -22,11 +24,16 @@ import { RootState } from "store/index";
 function NavTimeline() {
   const {
     playhead,
+    ephemera,
   }: {
     playhead: PlayheadState;
+    ephemera: EphemeraState;
   } = useSelector((state: RootState) => state, deepEqual);
+
   const dispatch = useDispatch();
   const storeState = useStore().getState();
+  const dayNight = ephemera.dayNight;
+
   const videoFiles = videoSelectors.selectAll(storeState);
   const photoFiles = photosSelectors.selectAll(storeState);
 
@@ -52,8 +59,6 @@ function NavTimeline() {
     if (isNil(paper.project)) {
       paper.setup(canvas.current);
     }
-
-    const dayNight = eva?.dayNight || null;
 
     const activityPerformance = { EV1: [], EV2: [] };
     if (!isNil(eva)) {
@@ -105,9 +110,12 @@ function NavTimeline() {
     };
 
     paper.view.onMouseMove = (event) => {
-      drawNav.current.handleMouseMove(event, time.current, () => {
+      drawNav.current.handleMouseMove(event, time.current, (thisHoverSeconds) => {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
+        }
+        if (playhead.hoverSeconds !== thisHoverSeconds) {
+          dispatch(changeHoverTime(thisHoverSeconds));
         }
       });
     };
@@ -123,6 +131,7 @@ function NavTimeline() {
         drawNav.current.drawTier1NavBox(time.current);
         drawNav.current.drawTier2();
         drawNav.current.drawCursor(time.current);
+        dispatch(changeHoverTime(0));
       });
     };
 
@@ -139,7 +148,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [eva, videoFiles, photoFiles]);
+  }, [eva, videoFiles, photoFiles, dayNight]);
 
   useEffect(() => {
     time.current = playhead.seconds;

@@ -1,8 +1,9 @@
 import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
-import { VideoFile, PhotoFile } from "services/io";
-import { Activity, DayNight } from "services/iss-wiki";
+import type { VideoFile, PhotoFile } from "services/io";
+import type { DayNightObj } from "services/spacetrack";
+import { Activity } from "services/iss-wiki";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 
 export default class DrawNav {
@@ -62,7 +63,7 @@ export default class DrawNav {
   constructor(
     readonly videoFiles: VideoFile[],
     readonly photoFiles: PhotoFile[],
-    readonly dayNight: DayNight,
+    readonly dayNight: DayNightObj[],
     readonly activityPerformance: {
       [x: string]: Activity[];
     },
@@ -143,8 +144,25 @@ export default class DrawNav {
       this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
       this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
     }
-    if (!isNull(this.dayNight) && !isEmpty(this.dayNight.events)) {
-      this.drawTier1EVActivity(9, this.dayNight.events); // row 10 for day night  //TODO: pending access to this data for all EVAs. Wiki currently uncooperative.
+
+    //dayNight
+    for (let i = 0; i < this.dayNight.length - 1; i++) {
+      const startSeconds = this.dayNight[i].appSeconds;
+      const endSeconds = this.dayNight[i + 1].appSeconds;
+      const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
+
+      let startLocX = startSeconds * this.gTier1PixelsPerSecond;
+      let endLocX = endSeconds * this.gTier1PixelsPerSecond;
+      let startLocY = videoSegmentsTop + 9 * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+      let endLocY = startLocY + this.cChannelStrokeWidth - 1;
+      let activityLine = new paper.Path.Rectangle({
+        from: [startLocX, startLocY],
+        to: [endLocX, endLocY],
+        strokeWidth: 0.1,
+        strokeColor: "black",
+        fillColor: fillColor,
+      });
+      this.gTier1Group.addChild(activityLine);
     }
 
     // display photo ticks
@@ -405,8 +423,47 @@ export default class DrawNav {
       this.drawTier2EVActivity(0, this.activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
       this.drawTier2EVActivity(1, this.activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
     }
-    if (!isNull(this.dayNight) && !isEmpty(this.dayNight.events)) {
-      this.drawTier2EVActivity(2, this.dayNight.events, secondsOnTier2); // row 10 for day night  //TODO: disabled pending access to this data for all EVAs
+
+    //dayNight
+    const dayNightHeight = 20;
+    for (let i = 0; i < this.dayNight.length - 1; i++) {
+      const startSeconds = this.dayNight[i].appSeconds;
+      const endSeconds = this.dayNight[i + 1].appSeconds;
+      const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
+      const textColor = this.dayNight[i].daylight ? "black" : "#dddddd";
+      if (
+        startSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
+        endSeconds >= this.gTier2StartSeconds
+      ) {
+        let startLocX =
+          this.gTier2Left + (startSeconds - this.gTier2StartSeconds) * this.gTier2PixelsPerSecond;
+        let endLocX =
+          this.gTier2Left + (endSeconds - this.gTier2StartSeconds) * this.gTier2PixelsPerSecond;
+
+        let startY = this.gTier2Top + 7 * (this.cChannelStrokeWidth + this.cVidBarGapWidth); //there are 7 video channels, start EV activity tracking below them
+        let startLocY = startY + 2 * dayNightHeight;
+        let endLocY = startLocY + dayNightHeight;
+
+        let activityLine = new paper.Path.Rectangle({
+          from: [startLocX, startLocY],
+          to: [endLocX, endLocY],
+          strokeWidth: 0.5,
+          strokeColor: this.gColorVideoBorder,
+          fillColor: fillColor,
+        });
+        this.gTier2Group.addChild(activityLine);
+
+        let activityText = new paper.PointText({
+          justification: "left",
+          fontFamily: this.gNavigatorFontFamilyActivity,
+          fontSize: 13,
+          fillColor: textColor,
+        });
+        let textTop = startLocY + 14;
+        activityText.point = new paper.Point(startLocX + 2, textTop);
+        activityText.content = this.dayNight[i].daylight ? "Insolation" : "Eclipse";
+        this.gTier2Group.addChild(activityText);
+      }
     }
 
     // display photo ticks
@@ -696,7 +753,7 @@ export default class DrawNav {
     }
     this.drawCursor(missionTimeSeconds);
     this.drawNavCursor(mouseXSeconds);
-    cb();
+    cb(mouseXSeconds);
   };
 
   handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {

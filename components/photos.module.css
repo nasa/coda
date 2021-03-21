@@ -103,30 +103,6 @@
   left: 0;
 }
 
-.photoButton {
-  font-size: 1rem;
-  font-weight: 300;
-  background-color: #2b2a2d;
-  border: 1px #ffc000 solid;
-  border-radius: 4px;
-  color: white;
-  padding: 6px 20px;
-  margin-bottom: 5px;
-  margin-right: 5px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  cursor: pointer;
-}
-.photoButton:hover {
-  background-color: #ffc000;
-  color: black;
-}
-.photoButton:hover span {
-  background-color: #ffc000;
-  color: black;
-}
-
 .photoHeaderText {
   font-size: 1em;
   white-space: nowrap;

@@ -21,8 +21,7 @@ export default function Photos() {
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
 
-  const store = useStore();
-  const photoFiles = photosSelectors.selectAll(store.getState());
+  const photoFiles = photosSelectors.selectAll(useStore().getState());
 
   const changePhoto = () => {
     if (!photos.ready) {

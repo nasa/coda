@@ -47,6 +47,28 @@ export function hhmmssFromSeconds(secondsParam: number): string {
 }
 
 /**
+ * Formats any appSeconds value into hh:mm:ss.mmm equivalent
+ */
+export function hhmmssmmmFromSeconds(secondsParam: number): string {
+  const hours = Math.abs(Math.trunc(secondsParam / 3600));
+  const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
+  let seconds = Math.abs(Math.trunc(secondsParam)) % 60;
+  const milliseconds = (secondsParam - Math.trunc(secondsParam)).toFixed(3);
+  var timeStr =
+    padZeros(hours, 2) +
+    ":" +
+    padZeros(minutes, 2) +
+    ":" +
+    padZeros(seconds, 2) +
+    "." +
+    milliseconds.toString().substr(2);
+  if (secondsParam < 0) {
+    timeStr = "-" + timeStr;
+  }
+  return timeStr;
+}
+
+/**
  * Formats any isoString timestamp into yyyy-mm-dd
  */
 export function shortdateFromDateString(dateString: string): string {
@@ -73,4 +95,10 @@ function isoStringFromAnyDateString(dateString: string): string {
     throw new Error("The date string couldn't be converted into a Date");
   }
   return tempDate.toISOString(); // guaranteed to have an ISO string. safe to string parse it
+}
+
+export function getPlayheadISOString(playheadDate: string, playheadSeconds: number) {
+  const iso = isoStringFromAnyDateString(playheadDate);
+  const hhmmssmmm = hhmmssmmmFromSeconds(playheadSeconds);
+  return `${iso.split("T")[0]}T${hhmmssmmm}Z`;
 }

@@ -1,0 +1,61 @@
+.container {
+  min-width: 493px;
+  width: 100%;
+  height: 100%;
+  /* position: absolute; */
+  background-color: #19181b;
+}
+
+.overlay {
+  position: relative;
+  top: -250px;
+  left: 0;
+}
+
+.mapContainer {
+  height: 100%;
+}
+
+.toggleButton {
+  width: 130px;
+  display: flex;
+  background-color: #2b2a2d;
+  border: 1px #dbc275 solid;
+  border-radius: 4px;
+  color: #656269;
+  padding: 5px;
+  margin-top: 5px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+.toggleIcon {
+  display: inline-block;
+  width: 25px;
+  height: 21px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="%23656269"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
+    #2b2a2d no-repeat center;
+  background-size: 21px 21px;
+}
+
+.toggleButton.toggleActive {
+  color: white;
+}
+.toggleButton.toggleActive .infoIcon {
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="white"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
+    #2b2a2d no-repeat center;
+}
+.toggleButton.toggleActive:hover {
+  border: 2px #ffc000 solid;
+  padding: 4px;
+}
+
+.toggleButton.toggleSelected {
+  background-color: #ffc000;
+  color: black;
+}
+.toggleButton.toggleSelected .toggleIcon {
+  background-color: #ffc000;
+  color: black;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="black"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
+    no-repeat center;
+}
