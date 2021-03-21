@@ -8,7 +8,7 @@ import Video from "components/video";
 import Photos from "components/photos";
 import ISSLocation from "components/iss-location";
 import { PlayheadState, run, halt, tick } from "store/playhead";
-import { PhotosState } from "store/photos";
+import { PhotosState, photosSelectors } from "store/photos";
 import { VideosState, videoSelectors } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
@@ -30,6 +30,7 @@ export default function Main() {
   const dispatch = useDispatch();
   const store = useStore();
   const videoFiles = videoSelectors.selectAll(store.getState());
+  const photoFiles = photosSelectors.selectAll(store.getState());
 
   useEffect(() => {
     // (1) make sure the playhead is running when it should
@@ -74,7 +75,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        {videoFiles.length > 0 ? (
+        {videoFiles.length > 0 || photoFiles.length > 0 ? (
           <NavTimeline />
         ) : (
           <div style={{ fontFamily: "Ubuntu Mono" }}>Timeline Loading...</div>
