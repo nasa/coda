@@ -13,6 +13,7 @@ import {
 } from "store/evas";
 import { videoSelectors } from "store/videos";
 import { photosSelectors } from "store/photos";
+import { EphemeraState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
@@ -23,13 +24,15 @@ import { RootState } from "store/index";
 function NavTimeline() {
   const {
     playhead,
+    ephemera,
   }: {
     playhead: PlayheadState;
+    ephemera: EphemeraState;
   } = useSelector((state: RootState) => state, deepEqual);
 
   const dispatch = useDispatch();
   const storeState = useStore().getState();
-  const dayNight = storeState.ephemera.dayNight;
+  const dayNight = ephemera.dayNight;
 
   const videoFiles = videoSelectors.selectAll(storeState);
   const photoFiles = photosSelectors.selectAll(storeState);
