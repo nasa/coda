@@ -23,7 +23,7 @@ class MyDocument extends Document {
           <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
           <link href="/coda/global.css" rel="stylesheet" />
         </Head>
-        <body style={{ height: "100vh" }}>
+        <body>
           <Main />
           <NextScript />
         </body>
