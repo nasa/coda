@@ -21,18 +21,9 @@ class MyDocument extends Document {
             rel="stylesheet"
           />
           <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
+          <link href="/coda/global.css" rel="stylesheet" />
         </Head>
         <body style={{ height: "100vh" }}>
-          {/* This is a nasty hack needed to make any nextjs application full screen height */}
-          <style global jsx>{`
-            html,
-            body,
-            body > div:first-child,
-            div#__next,
-            div#__next > div {
-              height: 100%;
-            }
-          `}</style>
           <Main />
           <NextScript />
         </body>
