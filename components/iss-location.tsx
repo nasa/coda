@@ -321,7 +321,7 @@ export default function ISSLocation() {
       <div className={styles.container}>
         <div
           ref={mapContainer}
-          className={styles.mapButtonContainer}
+          className={styles.mapContainer}
           onMouseDown={() => {
             setLockToggle(false);
           }}

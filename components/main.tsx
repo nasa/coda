@@ -66,7 +66,10 @@ export default function Main() {
           <Photos />
         </div>
         <div className={styles.bodyRow2}>
-          <ISSLocation />
+          <div style={{ flex: "1 1 auto" }}>
+            <ISSLocation />
+          </div>
+          <div style={{ flex: "0 1 170px" }}></div>
         </div>
       </div>
       <div className={styles.footer}>
