@@ -57,8 +57,6 @@ function NavTimeline() {
       paper.setup(canvas.current);
     }
 
-    // const dayNight = eva?.dayNight || null;
-
     const activityPerformance = { EV1: [], EV2: [] };
     if (!isNil(eva)) {
       const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);

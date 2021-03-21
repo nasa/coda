@@ -3,8 +3,9 @@ import { createSlice } from "@reduxjs/toolkit";
 export interface PlayheadState {
   /** Seconds representing the time into the mission day, eg. `0` is 00:00:00Z, `86399` is 23:59:59Z */
   seconds: number;
-  /** UTC date being viewed */
+  /** Seconds representing the time into the mission day that the mouse is hovering on via the nav-timeline */
   hoverSeconds: number;
+  /** UTC date being viewed */
   date: string;
   /** Whether the playhead actually is running */
   isRunning: boolean;
@@ -48,6 +49,9 @@ export const playheadSlice = createSlice({
       state.seconds = action.payload;
     },
 
+    /**
+     * Change the date the cursor is hovering on via the nav-timeline
+     */
     changeHoverTime: (state, action: { payload: number }) => {
       state.hoverSeconds = action.payload;
     },

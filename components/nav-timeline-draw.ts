@@ -144,9 +144,6 @@ export default class DrawNav {
       this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
       this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
     }
-    // if (!isNull(this.dayNight) && !isEmpty(this.dayNight.events)) {
-    //   this.drawTier1EVActivity(9, this.dayNight.events); // row 10 for day night  //TODO: pending access to this data for all EVAs. Wiki currently uncooperative.
-    // }
 
     //dayNight
     for (let i = 0; i < this.dayNight.length - 1; i++) {

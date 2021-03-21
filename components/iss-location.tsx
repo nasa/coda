@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createElement } from "react";
+import type { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { useSelector, useStore } from "react-redux";
 import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
@@ -11,9 +12,10 @@ import { getPlayheadISOString } from "utils/formatting";
 import styles from "./iss-location.module.css";
 import Marker from "./iss-location-marker";
 
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
+import type { FeatureCollection, Geometry } from "geojson";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
@@ -35,9 +37,8 @@ export default function ISSLocation() {
     playhead: PlayheadState;
   } = useSelector((state: RootState) => state, deepEqual);
   const ephemera = ephemeraSelectors.selectAll(useStore().getState());
-  // const [TLE, setTLE] = useState(null);
 
-  const [map, setMap] = useState(null);
+  const [map, setMap] = useState<Map>(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
   const [hoverMarker, setHoverMarker] = useState(initialMarker);
   const [lockToggle, setLockToggle] = useState(true);
@@ -55,7 +56,7 @@ export default function ISSLocation() {
     mapboxgl.accessToken =
       "pk.eyJ1IjoiYmZlaXN0IiwiYSI6ImNpbDJva2hseTNnZnd1Z20zNmU0cDExdXUifQ.3acQyDaKU1HS8k5hqPmp1w";
 
-    if (!map) initializeMap({ setMap, mapContainer });
+    if (!map) initializeMap(setMap, mapContainer);
   }, [map]);
 
   //update map based on changes in seconds / hoverSeconds
@@ -102,7 +103,10 @@ export default function ISSLocation() {
     lockButtonStyle = styles.toggleSelected;
   }
 
-  function initializeMap({ setMap, mapContainer }) {
+  function initializeMap(
+    setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
+    mapContainer: MutableRefObject<any>
+  ) {
     const thisMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
@@ -129,7 +133,11 @@ export default function ISSLocation() {
     });
   }
 
-  function addMapMarker(thisMap, typeName, setMarker) {
+  function addMapMarker(
+    thisMap: any,
+    typeName: string,
+    setMarker: Dispatch<SetStateAction<MapMarker>>
+  ) {
     const markerNode = document.createElement("div");
     markerNode.style.visibility = "hidden";
     const element = <Marker id={`${typeName}`} type={`${typeName}`} />;
@@ -139,7 +147,7 @@ export default function ISSLocation() {
     setMarker({ marker: marker, markerNode: markerNode });
   }
 
-  function addOrbitLine(thisMap) {
+  function addOrbitLine(thisMap: Map) {
     //part 1 always used
     thisMap.addSource("orbitLine1", {
       type: "geojson",
@@ -197,7 +205,7 @@ export default function ISSLocation() {
     });
   }
 
-  function updateOrbitLine(thisMap, isoDate) {
+  function updateOrbitLine(thisMap: Map, isoDate: string) {
     const secondsStart = -2000;
     const secondsEnd = 3800;
     const secondsStep = 10;
@@ -239,7 +247,11 @@ export default function ISSLocation() {
       }
     }
 
-    thisMap.getSource("orbitLine1").setData({
+    // complex override due to typescript types not being correct in npm library
+    const orbitLine1: mapboxgl.GeoJSONSource = thisMap.getSource(
+      "orbitLine1"
+    ) as mapboxgl.GeoJSONSource;
+    orbitLine1.setData({
       type: "Feature",
       properties: {},
       geometry: {
@@ -248,7 +260,11 @@ export default function ISSLocation() {
       },
     });
 
-    thisMap.getSource("orbitLine2").setData({
+    // complex override due to typescript types not being correct in npm library
+    const orbitLine2: mapboxgl.GeoJSONSource = thisMap.getSource(
+      "orbitLine2"
+    ) as mapboxgl.GeoJSONSource;
+    orbitLine2.setData({
       type: "Feature",
       properties: {},
       geometry: {
@@ -258,7 +274,7 @@ export default function ISSLocation() {
     });
   }
 
-  function addTerminator(thisMap) {
+  function addTerminator(thisMap: Map) {
     thisMap.addSource("terminator", {
       type: "geojson",
       data: {
@@ -284,17 +300,27 @@ export default function ISSLocation() {
     });
   }
 
-  function updateTerminator(thisMap, isoDate) {
-    const terminatorGeoJSON = Terminator({ resolution: 1, time: new Date(isoDate) });
-    thisMap.getSource("terminator").setData(terminatorGeoJSON);
+  function updateTerminator(thisMap: Map, isoDate: string) {
+    const terminatorObj = new Terminator({ resolution: 1, time: new Date(isoDate) });
+    const terminatorGeoJSON: FeatureCollection<
+      Geometry,
+      {
+        [name: string]: any;
+      }
+    > = terminatorObj.getTerminator();
+
+    // complex override due to typescript types not being correct in npm library
+    const terminator: mapboxgl.GeoJSONSource = thisMap.getSource(
+      "terminator"
+    ) as mapboxgl.GeoJSONSource;
+    terminator.setData(terminatorGeoJSON);
   }
 
   return (
     <>
-      {/* <div className={styles.placeholderDiv}></div> */}
       <div className={styles.container}>
         <div
-          ref={(el) => (mapContainer.current = el)}
+          ref={mapContainer}
           className={styles.mapButtonContainer}
           onMouseDown={() => {
             setLockToggle(false);

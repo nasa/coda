@@ -46,8 +46,7 @@ export type Ephemeris = {
 };
 
 async function fetchSpacetrack(dateStr: string): Promise<Ephemeris[]> {
-  const url =
-    "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php?date=" + dateStr;
+  const url = process.env.SPACETRACK_API_URL + "?date=" + dateStr;
 
   let res: Response;
 
@@ -64,7 +63,7 @@ export type DayNightObj = {
   daylight: boolean;
 };
 
-function calcDayNight(ephemera, dateStr): DayNightObj[] {
+function calcDayNight(ephemera: Ephemeris[], dateStr: string): DayNightObj[] {
   const secondsIn24Hours = 86400;
   const startDate = new Date(dateStr + "T00:00:00Z");
 
@@ -99,7 +98,7 @@ function calcDayNight(ephemera, dateStr): DayNightObj[] {
   return dayNightObjArray;
 }
 
-function isSunlit(date, lng, lat, heightMeters) {
+function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   const sunTimes = getTimes(date, lat, lng, heightMeters);
 
   // get time between sunset start and golden hour.

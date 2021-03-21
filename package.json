@@ -23,6 +23,8 @@
   "license": "ISC",
   "dependencies": {
     "@reduxjs/toolkit": "^1.5.0",
+    "@types/geojson": "^7946.0.7",
+    "@types/mapbox-gl": "^2.1.1",
     "isomorphic-unfetch": "^3.1.0",
     "lodash": "^4.17.20",
     "mapbox-gl": "^2.1.1",

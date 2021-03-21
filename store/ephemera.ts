@@ -41,12 +41,18 @@ export const ephemeraSlice = createSlice({
 
 export const { addEphemera, fetchError } = ephemeraSlice.actions;
 
+/**
+ * Returns a Two-Line Element (TLE) from space-track.org that is closest to dateTimeWanted
+ * @param ephemera
+ * @param dateTimeWanted
+ * @returns TLE string
+ */
 export function getAppropriateTLE(ephemera: Ephemeris[], dateTimeWanted: string): string {
   let thisDateDiff;
   let lastDateDiff = -1;
 
   let tleObj = ephemera[0];
-  let mostRecentEphemeris = `${tleObj.TLE_LINE0}
+  let mostRecentTLE = `${tleObj.TLE_LINE0}
                   ${tleObj.TLE_LINE1}
                   ${tleObj.TLE_LINE2}`;
 
@@ -55,12 +61,12 @@ export function getAppropriateTLE(ephemera: Ephemeris[], dateTimeWanted: string)
     thisDateDiff = Math.abs(diff(new Date(ephemera[i].EPOCH + "Z"), new Date(dateTimeWanted)));
     if (i !== 0 && thisDateDiff < lastDateDiff) {
       tleObj = ephemera[i];
-      mostRecentEphemeris = `${tleObj.TLE_LINE0}
+      mostRecentTLE = `${tleObj.TLE_LINE0}
                   ${tleObj.TLE_LINE1}
                   ${tleObj.TLE_LINE2}`;
     }
     lastDateDiff = thisDateDiff;
   }
 
-  return mostRecentEphemeris;
+  return mostRecentTLE;
 }
