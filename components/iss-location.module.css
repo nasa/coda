@@ -8,7 +8,7 @@
 
 .overlay {
   position: relative;
-  top: -250px;
+  bottom: 110px;
   left: 0;
 }
 
@@ -24,7 +24,6 @@
   border-radius: 4px;
   color: #656269;
   padding: 5px;
-  margin-top: 5px;
   margin-left: 5px;
   cursor: pointer;
 }
