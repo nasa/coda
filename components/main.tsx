@@ -75,11 +75,7 @@ export default function Main() {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        {videoFiles.length > 0 || photoFiles.length > 0 ? (
-          <NavTimeline />
-        ) : (
-          <div style={{ fontFamily: "Ubuntu Mono" }}>Timeline Loading...</div>
-        )}
+        <NavTimeline />
         <StatusBar />
       </div>
     </div>
