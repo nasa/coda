@@ -144,7 +144,9 @@
     return acos((sin(h) - sin(phi) * sin(d)) / (cos(phi) * cos(d)));
   }
   function observerAngle(height) {
-    const refractionCorrection = -2.0; //normally -2.076 on Earth due to atmospheric refraction, but we're in space
+    // Normally -2.076 on Earth due to atmospheric refraction, but we're in space
+    // Ref: https://en.wikipedia.org/wiki/Sunrise_equation
+    const refractionCorrection = -2.0;
     return (refractionCorrection * Math.sqrt(height)) / 60;
   }
 
