@@ -121,7 +121,7 @@ export default function ISSLocation() {
       // add orbit path
       addOrbitLine(thisMap);
 
-      thisMap.addControl(new mapboxgl.NavigationControl(), "top-left");
+      thisMap.addControl(new mapboxgl.NavigationControl(), "top-right");
       setMap(thisMap);
       thisMap.resize();
     });
