@@ -18,7 +18,6 @@
 }
 
 .mapboxgl-ctrl-group button:hover {
-  /* border: 1px #ffc000 solid !important; */
   border-color: #ffc000 !important;
 }
 
