@@ -301,7 +301,7 @@ export function getChannel(collectionStrings: string[]): string {
     const chMatch = collectionStrings[j].match(/US Downlink\|Channel (\d+)/);
 
     if (chMatch) {
-      return chMatch[1];
+      return padZeros(parseInt(chMatch[1]), 2);
     }
   }
   return "";
