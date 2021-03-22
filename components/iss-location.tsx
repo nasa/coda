@@ -97,12 +97,6 @@ export default function ISSLocation() {
     }
   }, [ephemera, playhead.date, playhead.seconds, playhead.hoverSeconds]);
 
-  // toggle button display settings
-  let lockButtonStyle = styles.toggleActive;
-  if (lockToggle) {
-    lockButtonStyle = styles.toggleSelected;
-  }
-
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
     mapContainer: MutableRefObject<any>
@@ -127,7 +121,7 @@ export default function ISSLocation() {
       // add orbit path
       addOrbitLine(thisMap);
 
-      thisMap.addControl(new mapboxgl.NavigationControl());
+      thisMap.addControl(new mapboxgl.NavigationControl(), "top-left");
       setMap(thisMap);
       thisMap.resize();
     });
@@ -316,6 +310,11 @@ export default function ISSLocation() {
     terminator.setData(terminatorGeoJSON);
   }
 
+  // toggle button display settings
+  let lockButtonStyle = styles.toggleActive;
+  if (lockToggle) {
+    lockButtonStyle = styles.toggleSelected;
+  }
   return (
     <>
       <div className={styles.container}>
