@@ -50,7 +50,7 @@ export default function Videos({ playerID }: { playerID: number }) {
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
-  const [manuallyMuted, setManuallyMuted] = useState(false);
+  const [mutedDisplay, setMutedDisplay] = useState(playerID !== 1);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -156,20 +156,18 @@ export default function Videos({ playerID }: { playerID: number }) {
     if (videoID !== "") {
       const video = videoSelectors.selectById(storeState, videoID);
       // mute videos that were recorded during LOS because they contain the audio from the downlink time, not the time of recording
-      console.log(video.className);
       if (video.className === "downlink-LOS") {
+        console.log("LOS");
         setMuted(true);
       } else {
-        if (!manuallyMuted) {
+        if (!mutedDisplay) {
           try {
-            console.log(playerID);
-            if (playerID !== 2) {
-              setMuted(false);
-            }
+            setMuted(false);
           } catch (e) {
             if (isAutoplayError(e)) {
               // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
               setMuted(true);
+              setMutedDisplay(true);
             }
           }
         }
@@ -189,6 +187,7 @@ export default function Videos({ playerID }: { playerID: number }) {
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
           setMuted(true);
+          setMutedDisplay(true);
         }
       }
     })();
@@ -421,7 +420,7 @@ export default function Videos({ playerID }: { playerID: number }) {
     );
   };
 
-  const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
+  const mutedOutlineClass = mutedDisplay === true ? styles.unmute : styles.mute;
 
   const currentlyPlayingVideo = videoSelectors.selectById(
     storeState,
@@ -457,9 +456,7 @@ export default function Videos({ playerID }: { playerID: number }) {
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
           title={`Click to mute/unmute`}
           onClick={() => {
-            const newMuteValue = !muted;
-            setMuted(newMuteValue);
-            setManuallyMuted(newMuteValue);
+            setMutedDisplay(!mutedDisplay);
           }}
         ></div>
       </div>
