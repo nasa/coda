@@ -157,7 +157,6 @@ export default function Videos({ playerID }: { playerID: number }) {
       const video = videoSelectors.selectById(storeState, videoID);
       // mute videos that were recorded during LOS because they contain the audio from the downlink time, not the time of recording
       if (video.className === "downlink-LOS") {
-        console.log("LOS");
         setMuted(true);
       } else {
         if (!mutedDisplay) {
