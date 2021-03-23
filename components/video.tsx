@@ -50,6 +50,7 @@ export default function Videos({ playerID }: { playerID: number }) {
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
+  const [manuallyMuted, setManuallyMuted] = useState(false);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -151,6 +152,29 @@ export default function Videos({ playerID }: { playerID: number }) {
   };
 
   const playOrPause = () => {
+    const videoID = videos.activeVideoFiles[playerID];
+    if (videoID !== "") {
+      const video = videoSelectors.selectById(storeState, videoID);
+      // mute videos that were recorded during LOS because they contain the audio from the downlink time, not the time of recording
+      console.log(video.className);
+      if (video.className === "downlink-LOS") {
+        setMuted(true);
+      } else {
+        if (!manuallyMuted) {
+          try {
+            console.log(playerID);
+            if (playerID !== 2) {
+              setMuted(false);
+            }
+          } catch (e) {
+            if (isAutoplayError(e)) {
+              // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
+              setMuted(true);
+            }
+          }
+        }
+      }
+    }
     (async () => {
       try {
         if (playhead.isRunning) {
@@ -432,7 +456,11 @@ export default function Videos({ playerID }: { playerID: number }) {
         <div
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
           title={`Click to mute/unmute`}
-          onClick={() => setMuted(!muted)}
+          onClick={() => {
+            const newMuteValue = !muted;
+            setMuted(newMuteValue);
+            setManuallyMuted(newMuteValue);
+          }}
         ></div>
       </div>
       {renderVideoElement()}
