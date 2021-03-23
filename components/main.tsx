@@ -1,4 +1,4 @@
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import deepEqual from "lodash/isEqual";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
@@ -8,8 +8,8 @@ import Video from "components/video";
 import Photos from "components/photos";
 import ISSLocation from "components/iss-location";
 import { PlayheadState, run, halt, tick } from "store/playhead";
-import { PhotosState, photosSelectors } from "store/photos";
-import { VideosState, videoSelectors } from "store/videos";
+import { PhotosState } from "store/photos";
+import { VideosState } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
@@ -28,9 +28,6 @@ export default function Main() {
     deepEqual
   );
   const dispatch = useDispatch();
-  const store = useStore();
-  const videoFiles = videoSelectors.selectAll(store.getState());
-  const photoFiles = photosSelectors.selectAll(store.getState());
 
   useEffect(() => {
     // (1) make sure the playhead is running when it should
