@@ -1,4 +1,5 @@
 import isNull from "lodash/isNull";
+import isNil from "lodash/isNil";
 import deepEqual from "lodash/isEqual";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -50,7 +51,6 @@ export default function Videos({ playerID }: { playerID: number }) {
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
-  const [mutedDisplay, setMutedDisplay] = useState(playerID !== 1);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -152,26 +152,6 @@ export default function Videos({ playerID }: { playerID: number }) {
   };
 
   const playOrPause = () => {
-    const videoID = videos.activeVideoFiles[playerID];
-    if (videoID !== "") {
-      const video = videoSelectors.selectById(storeState, videoID);
-      // mute videos that were recorded during LOS because they contain the audio from the downlink time, not the time of recording
-      if (video.className === "downlink-LOS") {
-        setMuted(true);
-      } else {
-        if (!mutedDisplay) {
-          try {
-            setMuted(false);
-          } catch (e) {
-            if (isAutoplayError(e)) {
-              // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
-              setMuted(true);
-              setMutedDisplay(true);
-            }
-          }
-        }
-      }
-    }
     (async () => {
       try {
         if (playhead.isRunning) {
@@ -186,7 +166,6 @@ export default function Videos({ playerID }: { playerID: number }) {
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
           setMuted(true);
-          setMutedDisplay(true);
         }
       }
     })();
@@ -253,6 +232,16 @@ export default function Videos({ playerID }: { playerID: number }) {
       IOErrorCSS = { display: "block" };
     }
 
+    const videoID = videos.activeVideoFiles[playerID];
+    let video: VideoFile;
+    if (videoID !== "") {
+      video = videoSelectors.selectById(storeState, videoID);
+    }
+
+    // the audio in LOS downlinked videos is never synced to the video
+    const isLOSVideo = !isNil(video) && video.className === "downlink-LOS";
+    const shouldMute = muted || isLOSVideo;
+
     return (
       <div
         key={`video_element__${playerID}`}
@@ -267,7 +256,7 @@ export default function Videos({ playerID }: { playerID: number }) {
           ref={videoElement}
           className={styles.player}
           src={sourceURL}
-          muted={muted}
+          muted={shouldMute}
           onCanPlay={() => {
             if (!videos.ready[playerID]) {
               dispatch(ready(playerID));
@@ -419,7 +408,7 @@ export default function Videos({ playerID }: { playerID: number }) {
     );
   };
 
-  const mutedOutlineClass = mutedDisplay === true ? styles.unmute : styles.mute;
+  const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
   const currentlyPlayingVideo = videoSelectors.selectById(
     storeState,
@@ -455,7 +444,7 @@ export default function Videos({ playerID }: { playerID: number }) {
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
           title={`Click to mute/unmute`}
           onClick={() => {
-            setMutedDisplay(!mutedDisplay);
+            setMuted(!muted);
           }}
         ></div>
       </div>
