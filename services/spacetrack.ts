@@ -103,12 +103,17 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
 
   // get time between sunset start and golden hour.
   let sunlightEnd = new Date((sunTimes.sunsetStart.getTime() + sunTimes.goldenHour.getTime()) / 2);
-  // const sunlightEnd = sunTimes.dusk;
-  if (date > sunTimes.sunriseEnd && date < sunlightEnd) {
-    return true;
-  } else {
-    return false;
+
+  let sunlight = true;
+  // if sunrise or sunset are NaN then it's high beta angle season and the sun never sets
+  if (!isNaN(sunTimes.sunriseEnd.getTime()) && !isNaN(sunlightEnd.getTime())) {
+    if (date > sunTimes.sunriseEnd && date < sunlightEnd) {
+      sunlight = true;
+    } else {
+      sunlight = false;
+    }
   }
+  return sunlight;
 }
 
 export async function buildEphemerisStore(
