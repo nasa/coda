@@ -1,4 +1,5 @@
 import isNull from "lodash/isNull";
+import isNil from "lodash/isNil";
 import deepEqual from "lodash/isEqual";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
@@ -231,6 +232,16 @@ export default function Videos({ playerID }: { playerID: number }) {
       IOErrorCSS = { display: "block" };
     }
 
+    const videoID = videos.activeVideoFiles[playerID];
+    let video: VideoFile;
+    if (videoID !== "") {
+      video = videoSelectors.selectById(storeState, videoID);
+    }
+
+    // the audio in LOS downlinked videos is never synced to the video
+    const isLOSVideo = !isNil(video) && video.className === "downlink-LOS";
+    const shouldMute = muted || isLOSVideo;
+
     return (
       <div
         key={`video_element__${playerID}`}
@@ -245,7 +256,7 @@ export default function Videos({ playerID }: { playerID: number }) {
           ref={videoElement}
           className={styles.player}
           src={sourceURL}
-          muted={muted}
+          muted={shouldMute}
           onCanPlay={() => {
             if (!videos.ready[playerID]) {
               dispatch(ready(playerID));
@@ -432,7 +443,9 @@ export default function Videos({ playerID }: { playerID: number }) {
         <div
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
           title={`Click to mute/unmute`}
-          onClick={() => setMuted(!muted)}
+          onClick={() => {
+            setMuted(!muted);
+          }}
         ></div>
       </div>
       {renderVideoElement()}
