@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(currUTCDate);
         keepLooking = false;
         makeQR();
-        t = setInterval(makeQR, 100000);
+        t = setInterval(makeQR, 1000);
       }
     }
   }
