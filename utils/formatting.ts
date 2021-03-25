@@ -1,3 +1,5 @@
+import { isNaN } from "lodash";
+
 /**
  * Return a zero padded string of a number
  */

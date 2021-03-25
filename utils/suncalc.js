@@ -144,7 +144,10 @@
     return acos((sin(h) - sin(phi) * sin(d)) / (cos(phi) * cos(d)));
   }
   function observerAngle(height) {
-    return (-2.076 * Math.sqrt(height)) / 60;
+    // Normally -2.076 on Earth due to atmospheric refraction, but we're in space
+    // Ref: https://en.wikipedia.org/wiki/Sunrise_equation
+    const refractionCorrection = -2.0;
+    return (refractionCorrection * Math.sqrt(height)) / 60;
   }
 
   // returns set time for the given sun altitude
