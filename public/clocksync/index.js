@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (parseInt(milliseconds) < 10) {
         console.log(currUTCDate);
         keepLooking = false;
-        t = setInterval(makeQR, 1000);
+        makeQR();
+        t = setInterval(makeQR, 100000);
       }
     }
   }
@@ -30,9 +31,11 @@ document.addEventListener("DOMContentLoaded", function () {
     qr.make();
     document.getElementById("qrcode").innerHTML = qr.createSvgTag({
       cellSize: 1,
-      margin: 1,
+      margin: 5,
       scalable: true,
     });
+    // const cellSize = 10;
+    // document.getElementById("qrcode").innerHTML = qr.createImgTag(cellSize, cellSize * 4);
 
     document.getElementById("headerCenter").innerHTML = outputStr;
 
