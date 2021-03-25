@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     while (keepLooking) {
       var currUTCDate = new Date().toISOString();
       var milliseconds = currUTCDate.substring(20, 23);
-      if (milliseconds === "000") {
+      if (parseInt(milliseconds) < 10) {
         console.log(currUTCDate);
         keepLooking = false;
         t = setInterval(makeQR, 1000);

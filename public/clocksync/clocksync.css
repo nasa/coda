@@ -2,12 +2,13 @@ body {
   background-color: #3e3b44;
   overflow: hidden;
   margin: 0;
+  height: 100%;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -19,6 +20,7 @@ body {
   color: white;
   padding-left: 10px;
   padding-right: 10px;
+  flex: 0 1 auto;
 }
 
 #headerLeft {
@@ -37,31 +39,40 @@ body {
 #headerCenter {
   font-family: monospace;
   font-weight: 600;
-  font-size: 3vw;
+  /* font-size: 3vw; */
   text-align: center;
-  max-height: 10vh;
+  /* max-height: 10vh; */
 }
 
 #headerRight {
   flex: 1;
 }
 
+#bodyContainer {
+  flex: 1 1 auto;
+  height: 100%;
+  width: 100%;
+}
+
 #qrcode {
-  width: 80vw;
-  height: 80vw;
-  max-height: 80vh;
-  max-width: 90vh; /* 16/9 = 1.778 */
-  margin: auto;
+  /* height: 100%; */
+  /* margin: auto; */
+  /* padding: 20px; */
   position: absolute;
-  top: 0;
-  bottom: 0; /* vertical center */
-  left: 0;
-  right: 0; /* horizontal center */
-  padding: 20px;
   color: white;
   font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial,
     sans-serif;
-  font-size: 1.5em;
+  /* font-size: 1.5em; */
+}
+
+.square {
+  width: 50%;
+}
+
+.square:after {
+  content: "";
+  display: block;
+  padding-bottom: 100%;
 }
 
 .NASALogo {

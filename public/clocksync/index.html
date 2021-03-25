@@ -1,34 +1,33 @@
 <html>
-    <head>
-        <meta name="viewport" content="width=device-width">
-        <meta name="viewport" content="initial-scale=1.0">
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="initial-scale=1.0" />
 
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <link rel="stylesheet" href="style.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <link rel="stylesheet" href="clocksync.css" />
 
-
-        <script src="lib/qrcode.js"></script>
-        <script src="index.js"></script>
-    </head>
-    <body>
-        <div class="container">
-            <div id="headerContainer">
-                <div id="headerLeft">
-                    <div class="NASALogo"></div>                    
-                    <div class="CODALogo"></div>
-                    <div class="QRHeaderText">Clock Sync</div>
-
-            </div>
-                <div id="headerCenter"></div>
-                <div id="headerRight">
-                    <div style="text-align: right;">
-                        <div class="EMSSLogo"></div>
-                    </div>
-                </div>
-            </div>  
-            <div id="qrcode" style="flex: 1">Loading...</div>
+    <script src="lib/qrcode.js"></script>
+    <script src="index.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div id="headerContainer">
+        <div id="headerLeft">
+          <div class="NASALogo"></div>
+          <div class="CODALogo"></div>
+          <div class="QRHeaderText">Clock Sync</div>
         </div>
-    </body>
+        <div id="headerCenter"></div>
+        <div id="headerRight">
+          <div style="text-align: right">
+            <div class="EMSSLogo"></div>
+          </div>
+        </div>
+      </div>
+      <div id="bodyContainer">
+        <div id="qrcode" class="square">Loading...</div>
+      </div>
+    </div>
+  </body>
 </html>
-
