@@ -10,9 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
     while (keepLooking) {
       var currUTCDate = new Date().toISOString();
       var milliseconds = currUTCDate.substring(20, 23);
-      if (milliseconds === "000") {
+      if (parseInt(milliseconds) < 10) {
         console.log(currUTCDate);
         keepLooking = false;
+        makeQR();
         t = setInterval(makeQR, 1000);
       }
     }
@@ -30,9 +31,11 @@ document.addEventListener("DOMContentLoaded", function () {
     qr.make();
     document.getElementById("qrcode").innerHTML = qr.createSvgTag({
       cellSize: 1,
-      margin: 1,
+      margin: 5,
       scalable: true,
     });
+    // const cellSize = 10;
+    // document.getElementById("qrcode").innerHTML = qr.createImgTag(cellSize, cellSize * 4);
 
     document.getElementById("headerCenter").innerHTML = outputStr;
 
