@@ -4,6 +4,10 @@ _Collaborative Operations Data Activation_
 
 Consolidating the context of missions, training, and testing into an easy to use platform to relive and revisit each moment. For more info, see https://wiki.jsc.nasa.gov/exploration/index.php/CODA.
 
+**The main viewer**: https://coda.pages.fit.nasa.gov/coda/view
+
+**The clocksync app**: https://coda.pages.fit.nasa.gov/coda/clocksync/index.html
+
 ## Development
 
 This section is only necessary if you're working with the CODA codebase.
