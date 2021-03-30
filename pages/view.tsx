@@ -45,14 +45,12 @@ export default function View() {
   // make sure the application is running on the correct date
   useEffect(() => {
     // default the date to today
-    let userDate = new Date();
-
-    // change the date if the user set the `date` query param
-    if (!isNull(date)) {
-      const [year, month, day] = date.split(/-|\//).map(Number);
-      userDate.setUTCFullYear(year);
-      userDate.setUTCMonth(month - 1);
-      userDate.setUTCDate(day);
+    let userDate = null;
+    if (isNull(date)) {
+      userDate = new Date();
+    } else {
+      // change the date if the user set the `date` query param
+      userDate = new Date(date);
     }
 
     // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
