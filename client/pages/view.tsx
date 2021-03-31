@@ -238,7 +238,7 @@ export default function View() {
     <div>
       <Head>
         <title>
-          {prefix} | {process.env.TITLE}!
+          {prefix} | {process.env.TITLE}
         </title>
       </Head>
       <Main />
