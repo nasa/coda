@@ -17,7 +17,7 @@ stages:
   - test
   - build
   - pages
-  - deploy
+  - deploy_dev
 
 test:
   script:
@@ -46,8 +46,11 @@ pages:
   only:
     - live
 
-deploy:
-  stage: deploy
+deploy_dev:
+  stage: deploy_dev
+  environment:
+    name: development
+    url: https://coda-dev.fit.nasa.gov/coda_node
   before_script:
     ## See https://docs.gitlab.com/ee/ci/ssh_keys/index.html#ssh-keys-when-using-the-docker-executor
     ##
