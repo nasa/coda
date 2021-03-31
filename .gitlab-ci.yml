@@ -8,7 +8,7 @@ cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - node_modules/
-    - .next/cache/
+    - client/.next/cache/
 
 before_script:
   - npm install
@@ -17,6 +17,7 @@ stages:
   - test
   - build
   - pages
+  - deploy
 
 test:
   script:
@@ -43,3 +44,55 @@ pages:
       - public
   only:
     - live
+
+deploy:
+  stage: deploy
+  before_script:
+    ## See https://docs.gitlab.com/ee/ci/ssh_keys/index.html#ssh-keys-when-using-the-docker-executor
+    ##
+    ## Install ssh-agent if not already installed, it is required by Docker.
+    ## (change apt-get to yum if you use an RPM-based image)
+    ##
+    - "command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )"
+
+    ##
+    ## Install rsync
+    ##
+    - "which rsync || ( apt-get update -y && apt-get install rsync -y )"
+    - "which nmap || ( apt-get update -y && apt-get install nmap -y )"
+
+    ##
+    ## Run ssh-agent (inside the build environment)
+    ##
+    - eval $(ssh-agent -s)
+
+    ##
+    ## Create the SSH directory and give it the right permissions
+    ##
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+
+    ##
+    ## Add the FIT server host to known_hosts
+    ##
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+    ##
+    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+    ## We're using tr to fix line endings which makes ed25519 keys work
+    ## without extra base64 encoding.
+    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
+    ##
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  script:
+    # TODO: maybe just try curl'ing coda-dev.jsc.nasa.gov to see if we can even connect from here
+    # TODO: I bet FIT is blocking port 22 for the gitlab runner's IP range
+    # - ssh -vvv bfeist@jsfitdcoda.ndc.nasa.gov "cat /home/bfeist/coda/package.json"
+    - ip addr
+    # sync the source code on the server
+    - rsync -avrcz --delete --exclude-from=.gitignore --exclude=.git "$PWD" bfeist@jsfitdcoda.ndc.nasa.gov:/home/bfeist/coda
+    # restart the application
+    # - ssh bfeist@jsfitdcoda.ndc.nasa.gov "systemctl restart coda-dev"
+  only:
+    - /^.*--deploy$/

@@ -1,0 +1,16 @@
+[Unit]
+Description=coda-dev node application
+Documentation=https://gitlab.fit.nasa.gov/coda/coda
+After=network.target
+
+[Service]
+Environment=NODE_PORT=3000
+Environment=APP_ENV=prod
+Environment=NODE_ENV=production
+Type=simple
+WorkingDirectory=/home/bfeist/coda
+ExecStart=/usr/bin/npm run production
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
