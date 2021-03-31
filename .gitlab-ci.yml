@@ -87,7 +87,7 @@ deploy:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   script:
     # sync the source code on the server
-    - rsync -avrcz --delete --exclude=node_modules --exclude=.env* "$PWD" bfeist@jsfitdcoda.ndc.nasa.gov:/home/bfeist/coda
+    - rsync -avrcz --delete --exclude=node_modules --exclude=.env* --exclude=.git "$PWD" bfeist@jsfitdcoda.ndc.nasa.gov:/home/bfeist/coda
     # rebuild the app then restart node on the VM
     - ssh bfeist@jsfitdcoda.ndc.nasa.gov "cd /home/bfeist/coda && npm i && systemctl --user restart coda-dev"
   only:
