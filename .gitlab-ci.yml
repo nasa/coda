@@ -86,15 +86,9 @@ deploy:
     ##
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   script:
-    # TODO: maybe just try curl'ing coda-dev.jsc.nasa.gov to see if we can even connect from here
-    # TODO: I bet FIT is blocking port 22 for the gitlab runner's IP range
-    # - ssh -vvv bfeist@jsfitdcoda.ndc.nasa.gov "cat /home/bfeist/coda/package.json"
-    - nmap jsfitdcoda.ndc.nasa.gov
     # sync the source code on the server
     - rsync -avrcz --delete --exclude-from=.gitignore --exclude=.git "$PWD" bfeist@jsfitdcoda.ndc.nasa.gov:/home/bfeist/coda
-    # restart the application
-    # 1. npm i && npm run build
-    # 2. then restart the server
-    # - ssh bfeist@jsfitdcoda.ndc.nasa.gov "systemctl --user restart coda-dev"
+    # rebuild the app then restart node on the VM
+    - ssh bfeist@jsfitdcoda.ndc.nasa.gov "cd /home/bfeist/coda && npm i && npm run build && systemctl --user restart coda-dev"
   only:
     - /^.*--deploy$/

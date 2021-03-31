@@ -7,7 +7,6 @@
     "local": "cross-env NODE_OPTIONS='--inspect' APP_ENV=local next dev",
     "dev": "cross-env NODE_OPTIONS='--inspect' APP_ENV=dev next dev",
     "prod": "cross-env NODE_OPTIONS='--inspect' APP_ENV=prod next dev",
-    "production": "NODE_ENV=production npm i && npm run build && npm run serve",
     "build": "cross-env APP_ENV=prod next build client",
     "export": "cross-env APP_ENV=prod next export",
     "serve": "cross-env APP_ENV=prod ts-node --transpile-only server/",
