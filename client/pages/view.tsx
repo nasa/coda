@@ -234,13 +234,11 @@ export default function View() {
     prefix = d.toLocaleDateString("en-gb", options);
   }
 
-  console.log("testing from coda-dev");
-
   return (
     <div>
       <Head>
         <title>
-          {prefix} | {process.env.TITLE}
+          {prefix} | {process.env.TITLE}!
         </title>
       </Head>
       <Main />
