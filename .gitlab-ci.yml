@@ -59,7 +59,6 @@ deploy:
     ## Install rsync
     ##
     - "which rsync || ( apt-get update -y && apt-get install rsync -y )"
-    - "which nmap || ( apt-get update -y && apt-get install nmap -y )"
 
     ##
     ## Run ssh-agent (inside the build environment)
