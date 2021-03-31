@@ -12,6 +12,7 @@ if (typeof window === "undefined" && process.env.NEXT_PUBLIC_APP_ENV === "local"
 
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }: AppProps) {
+  console.log("deleteme");
   const store = useStore(clone(initialState));
 
   return (
