@@ -21,7 +21,6 @@ import {
 } from "store/photos";
 import { addEVAs } from "store/evas";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { PlayheadState, diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
@@ -29,15 +28,7 @@ import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-export default function View() {
-  const {
-    // date should be in yyyy/mm/dd or yyyy-mm-dd format
-    // gmt should be in hh:mm:ss format
-    query: { date = null, gmt = null },
-  }: {
-    query: { date?: string; gmt?: string };
-  } = useRouter();
-
+const View = (props) => {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -52,9 +43,9 @@ export default function View() {
     let userDate = null;
 
     const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-    if (!isNull(date) && !isNull(date.match(yyyymmdd))) {
+    if (!isNull(props.date) && !isNull(props.date.match(yyyymmdd))) {
       // change the date if the user set the `date` query param
-      userDate = new Date(date);
+      userDate = new Date(props.date);
     } else {
       // default the date to today
       userDate = new Date();
@@ -79,23 +70,21 @@ export default function View() {
     if (!playhead.date || !isSameDate(new Date(playhead.date), userDate)) {
       dispatch(changeDate(userDate.toISOString()));
     }
-  }, [date]);
 
-  // make sure the application is running on the correct time
-  useEffect(() => {
+    // make sure the application is running on the correct time
     // default the time to 00:00:00Z
     let userTime = 0;
 
     // change the time if the user set the `gmt` query param
-    if (!isNull(gmt)) {
-      const [hh, mm, ss = 0] = gmt.split(":").map(Number);
+    if (!isNull(props.gmt)) {
+      const [hh, mm, ss = 0] = props.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
     if (userTime !== playhead.seconds) {
       dispatch(changeTime(userTime));
     }
-  }, [gmt]);
+  }, []);
 
   // grab videos
   useEffect(() => {
@@ -251,4 +240,16 @@ export default function View() {
       <Main />
     </div>
   );
-}
+};
+
+View.getInitialProps = async ({ query }) => {
+  const date = query.date === undefined ? null : query.date;
+  const gmt = query.gmt === undefined ? null : query.gmt;
+
+  return {
+    gmt,
+    date,
+  };
+};
+
+export default View;
