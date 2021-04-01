@@ -9,7 +9,7 @@ Environment=APP_ENV=prod
 Environment=NODE_ENV=production
 Type=simple
 WorkingDirectory=/home/bfeist/coda
-ExecStart=/usr/bin/npm run production
+ExecStart=/usr/bin/npm run start
 Restart=on-failure
 
 [Install]
