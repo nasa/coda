@@ -101,4 +101,4 @@ deploy_dev:
     # rebuild the app then restart node on the VM
     - ssh bfeist@jsfitdcoda.ndc.nasa.gov "cd /home/bfeist/coda && npm i && systemctl --user restart coda-dev"
   only:
-    - /^.*--deploy$/
+    - /^.*--dev$/
