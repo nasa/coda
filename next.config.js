@@ -7,27 +7,20 @@ const envs = {
     WIKI_API_URL: "http://wiki-mock/eva/api.php",
     SPACETRACK_API_URL: "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php",
   },
-  dev: {
-    NEXT_PUBLIC_APP_ENV: "dev",
-    TITLE: "CODA (dev)",
-    IO_API_URL: "https://io.jsc.nasa.gov/api/search/rpp=500",
-    IO_HOST: "https://io.jsc.nasa.gov",
-    PROXY_ORIGIN: "https://coda-dev.fit.nasa.gov",
-    WIKI_API_URL: "https://wiki-dev.fit.nasa.gov/iss/api.php",
-    SPACETRACK_API_URL: "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php",
-  },
-  prod: {
+  production: {
     NEXT_PUBLIC_APP_ENV: "prod",
     TITLE: "CODA",
     IO_API_URL: "https://io.jsc.nasa.gov/api/search/rpp=500",
     IO_HOST: "https://io.jsc.nasa.gov",
     PROXY_ORIGIN: "https://coda-dev.fit.nasa.gov",
+    // FYI, this is the dev wiki, which can be useful for testing changes to the info we're pulling from the wiki
+    // WIKI_API_URL: "https://wiki-dev.fit.nasa.gov/iss/api.php",
     WIKI_API_URL: "https://wiki.jsc.nasa.gov/iss/api.php",
     SPACETRACK_API_URL: "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php",
   },
 };
 
 module.exports = {
-  env: envs[process.env.APP_ENV || "local"],
+  env: envs[process.env.NODE_ENV || "production"],
   basePath: "/coda_node",
 };
