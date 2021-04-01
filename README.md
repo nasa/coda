@@ -8,13 +8,33 @@ Consolidating the context of missions, training, and testing into an easy to use
 
 **The clocksync app**: https://coda.pages.fit.nasa.gov/coda/clocksync/index.html
 
+## Deployment
+
+This section is only necessary if you're working with the CODA codebase.
+
+We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged when new code is merged into the following branches:
+
+| **Branch** | **Environment** | **URL**                           |
+| ---------- | --------------- | --------------------------------- |
+| `prod`     | production      | https://coda.fit.nasa.gov         |
+| `staging`  | staging         | https://coda-staging.fit.nasa.gov |
+| `.*--dev`  | development     | https://coda-dev.fit.nasa.gov     |
+
+You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
+
+The rules for deployments are as follows:
+
+- Anyone can push a branch that ends in `--dev` at any time to deploy to development. This is a great place to quickly test changes in a real deployed environment.
+- MRs for new features go into staging. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users.
+- MRs to production are only allowed from staging. MRs to production must also include a manual approval that the staging environment looks good before promoting.
+
 ## Development
 
 This section is only necessary if you're working with the CODA codebase.
 
 ### Your Code Editor
 
-You probably want to use [VSCode](https://code.visualstudio.com/). It provides the best-in-class IDE experience when working with TypeScript.
+You probably want to use [VS Code](https://code.visualstudio.com/). It provides the best-in-class IDE experience when working with TypeScript.
 
 ### Software Dependencies
 
@@ -28,15 +48,13 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 
 2. Install JavaScript dependencies: `npm i`
 3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
-4. (Optional) Create a `.env.local` file at the root of the repo. It must contain:
+4. Create a `.env.local` file at the root of the repo. It must contain:
 
 ```
-WIKI_USER=the-wiki-bot-account-username
-WIKI_PASSWORD=and-the-associated-password
 NEXT_PUBLIC_IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
 ```
 
-Ask Ben, James, or Cameron for the keys and account info if you don't have them.
+Ask Ben, James, or Cameron for the key if you don't have it.
 
 ### Dev Server
 
