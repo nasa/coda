@@ -37,8 +37,7 @@ build:
 pages:
   script:
     - npm run export
-    - rm -rf public
-    - mv out public
+    - mv client/out public
   stage: pages
   artifacts:
     paths:
