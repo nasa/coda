@@ -28,6 +28,48 @@ The rules for deployments are as follows:
 - MRs for new features go into staging. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users.
 - MRs to production are only allowed from staging. MRs to production must also include a manual approval that the staging environment looks good before promoting.
 
+### Server Strategy
+
+**Dependencies**
+
+- Node 14
+- Any Linux distro with systemd (FIT uses [CentOS](https://www.centos.org/) 8)
+- Apache (loose requirement, nginx is also an option)
+
+We run CODA as a Node server and keep it alive with [systemd](https://www.freedesktop.org/wiki/Software/systemd/). Why systemd? We're running on CentOS 8 FIT VMs. CentOS, like most major Linux distros, uses systemd to manage core services. It's fairly easy to configure and it's really good at keeping a process alive.
+
+### First Time Setup
+
+Perform these steps on the VM as the user who will be running CODA.
+
+1. Configure Apache (or nginx) to proxy ports 80 and 443 to port 3000
+1. Install an SSH key on the VM for the user you want to run CODA as. Follow [these instruction on GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/index.html) to set the `SSH_PRIVATE_KEY` variable under the GitLab CI/CD settings
+1. Get an initial copy of this repo on the VM at `~/coda`
+1. Copy `systemd/coda-dev.service` (in this repo) to `~/.config/systemd/user/coda-dev.service` for the user that will be running CODA.
+1. `systemctl enable --user coda-dev`. You should see a confirmation message that the service was created
+1. `loginctl enable-linger [USERNAME]`. This tells systemd to keep running your user services even when you logout
+
+At this point, we're ready to start deploying to the server but CODA is not running. You should do a test run.
+
+1. `cd ~/coda && npm i && npm run build`. Transpile all the TypeScript and build all the HTML, CSS, and JS files
+1. `npm run start`. Do a quick manual run of CODA. You should see the server spin up. `ctrl-c` to close it
+1. `systemctl start --user coda-dev`. Tell systemd to run and monitor CODA. You won't see anything printed in the console
+1. `curl localhost:3000` and see if you get a response. If so, yay! You're done
+1. `systemctl status --user coda-dev`. You'll see the status of the service, including the command systemd ran to start the server. It should be green and running. You'll see an exit code if not
+1. `journalctl -u coda-dev`. This should give you server logs (TODO doesn't seem to be working?)
+
+If everything is good, no further steps are necessary. Make sure `.gitlab-ci.yml` is setup with this VM's DNS entry and this user and you should be ready to deploy. If the server did not spin up, check the logs.
+
+### Changing the systemd service
+
+Do you need to change how the server is being run and monitored by systemd? The reasons you might want to do this is to modify environment variables, change working directories, or something else specific to systemd. If it's just a matter of a TypeScript thing, you should look at changing the `start` script in `package.json` first, in which case the instructions below do not apply.
+
+1. Change `systemd/coda-dev.service` in this repo (to keep it version controlled).
+1. Copy your changes to `~/.config/systemd/user/coda-dev.service` on the VM
+1. systemctl --user daemon-reload
+
+The next time you `systemctl --user restart coda-dev`, your changes will be applied.
+
 ## Development
 
 This section is only necessary if you're working with the CODA codebase.
@@ -60,7 +102,7 @@ Ask Ben, James, or Cameron for the key if you don't have it.
 ### Dev Server
 
 ```sh
-npm run start
+npm run dev
 ```
 
 Then head over to [](http://coda.local:3000/coda_node) (or [](http://localhost:3000/coda_node) if you didn't setup your hosts file)
