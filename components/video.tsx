@@ -1,6 +1,6 @@
 import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
-import { useRouter } from "next/router";
+import deepEqual from "lodash/isEqual";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate } from "store/playhead";
@@ -19,6 +19,7 @@ import type { VideoFile } from "typings/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
+import type { QueryParams } from "pages/view";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -39,8 +40,10 @@ const isAutoplayError = (e: Error): boolean => {
 /**
  * Renders a video and the downlink buttons
  */
-export default function Videos({ playerID }: { playerID: number }) {
-  const { query } = useRouter();
+export default function Video(props) {
+  const playerID = props.playerID;
+  const query: QueryParams = props.query;
+
   const dispatch = useDispatch();
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);

@@ -43,9 +43,9 @@ const View = (props) => {
     let userDate = null;
 
     const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-    if (!isNull(props.date) && !isNull(props.date.match(yyyymmdd))) {
+    if (!isNull(props.query.date) && !isNull(props.query.date.match(yyyymmdd))) {
       // change the date if the user set the `date` query param
-      userDate = new Date(props.date);
+      userDate = new Date(props.query.date);
     } else {
       // default the date to today
       userDate = new Date();
@@ -76,8 +76,8 @@ const View = (props) => {
     let userTime = 0;
 
     // change the time if the user set the `gmt` query param
-    if (!isNull(props.gmt)) {
-      const [hh, mm, ss = 0] = props.gmt.split(":").map(Number);
+    if (!isNull(props.query.gmt)) {
+      const [hh, mm, ss = 0] = props.query.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
@@ -237,7 +237,7 @@ const View = (props) => {
           {prefix} | {process.env.TITLE}
         </title>
       </Head>
-      <Main />
+      <Main {...props} />
     </div>
   );
 };
@@ -245,11 +245,26 @@ const View = (props) => {
 View.getInitialProps = async ({ query }) => {
   const date = query.date === undefined ? null : query.date;
   const gmt = query.gmt === undefined ? null : query.gmt;
+  const video1 = query.video1 === undefined ? null : query.video1;
+  const video2 = query.video2 === undefined ? null : query.video2;
 
-  return {
+  const returnVal: QueryParams = {
     gmt,
     date,
+    video1,
+    video2,
+  };
+
+  return {
+    query: returnVal,
   };
 };
+
+export interface QueryParams {
+  date: string;
+  gmt: string;
+  video1: string;
+  video2: string;
+}
 
 export default View;

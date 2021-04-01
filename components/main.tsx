@@ -13,11 +13,11 @@ import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
 import { RootState } from "store/index";
-
+import type { QueryParams } from "pages/view";
 /**
  * Renders the main CODA application layout. Also handles checking whether the playhead should be running
  */
-export default function Main() {
+export default function Main(query: QueryParams) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -54,8 +54,8 @@ export default function Main() {
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
-          <Video playerID={1} />
-          <Video playerID={2} />
+          <Video playerID={1} {...query} />
+          <Video playerID={2} {...query} />
           <Photos />
         </div>
         <div className={styles.bodyRow2}>
