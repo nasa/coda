@@ -69,7 +69,7 @@ function calcDayNight(ephemera: Ephemeris[], dateStr: string): DayNightObj[] {
 
   const dayNightObjArray = [];
   let prevDaylight = null;
-  //30 seconds resolution on day/night times
+  //5 seconds resolution on day/night times
   for (let i = 0; i < secondsIn24Hours; i = i + 5) {
     const iISODate = startDate.toISOString().split("T")[0] + "T" + hhmmssFromSeconds(i) + "Z";
     const iDate = new Date(iISODate);
@@ -102,7 +102,7 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   const sunTimes = getTimes(date, lat, lng, heightMeters);
 
   // get time between sunset start and golden hour.
-  let sunlightEnd = new Date((sunTimes.sunsetStart.getTime() + sunTimes.goldenHour.getTime()) / 2);
+  let sunlightEnd = new Date((sunTimes.sunset.getTime() + sunTimes.goldenHour.getTime()) / 2);
 
   let sunlight = true;
   // if sunrise or sunset are NaN then it's high beta angle season and the sun never sets
