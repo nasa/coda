@@ -20,7 +20,7 @@
         "./components/*"
       ],
       "public/*": [
-        "../public/*"
+        "./public/*"
       ],
       "services/*": [
         "./services/*"
@@ -41,7 +41,7 @@
     "**/*.ts",
     "**/*.tsx",
     "next.config.js",
-    "client/mocks/index.js"
+    "mocks/index.js"
   ],
   "exclude": [
     "node_modules"

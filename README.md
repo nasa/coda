@@ -47,8 +47,7 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 - `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
 
 2. Install JavaScript dependencies: `npm i`
-3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
-4. Create a `.env.local` file at the root of the repo. It must contain:
+3. Create a `.env.local` file at the root of the repo. It must contain:
 
 ```
 NEXT_PUBLIC_IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
@@ -56,15 +55,17 @@ NEXT_PUBLIC_IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
 
 Ask Ben, James, or Cameron for the key if you don't have it.
 
+4. (Optional) Change your hosts file to map `coda.local` to `127.0.0.1`.
+
 ### Dev Server
 
-You have three options for running the site locally.
+```sh
+npm run start
+```
 
-1. `npm run local` - runs the local version which uses mock data and does not hit any NASA APIs. Currently the mock data is from US EVA 55. Does not require a `.env` file
-2. `npm run dev` - runs the dev version which gets EVA data from wiki-dev.fit.nasa.gov and video data from IO. Requires the `.env` file mentioned above
-3. `npm run prod` - runs the prod version which gets EVA data from wiki.jsc.nasa.gov and video data from IO. Requires the `.env` file mentioned above
+Then head over to [](http://coda.local:3000/coda_node) (or [](http://localhost:3000/coda_node) if you didn't setup your hosts file)
 
-Then head over to [](http://coda-iss.develop:3000) (or [](http://localhost:3000) if you didn't setup your hosts file)
+This command sets up a hot-reloading fullstack node server. If you make any changes to the client, you should see them appear automatically in the browser. If you make any changes to the server, you should see the server restart.
 
 Bonus: the site is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging) when you run it locally. Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
 
@@ -72,15 +73,13 @@ Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) 
 
 ### Run Tests
 
-We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
-
-- [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
-
-Run tests with:
-
 ```sh
 npm t
 ```
+
+We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
+
+- [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
 
 Do you want to test times? Here's an [example with mock timers](https://gitlab.fit.nasa.gov/coda/coda/-/blob/dccecad058c9edfa54f79771c1ad1dd35551e3c9/store/clock.spec.ts#L220).
 

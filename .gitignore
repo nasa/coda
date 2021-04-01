@@ -1,15 +1,22 @@
-Adobe Premiere Pro Auto-Save
+# Adobe Premiere Pro Auto-Save
 .idea
-.DS_Store
 *.iml
+
+# macos
+.DS_Store
 
 # javascript
 node_modules/
+
+# nextjs
 .next/
+out/
+
+# production
+dist/
+
+# local cache
+.cache
 
 # don't commit secrets!
 .env*
-
-# temporarily store BLE requests at build-time
-.cache
-out/

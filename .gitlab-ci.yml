@@ -37,7 +37,8 @@ build:
 pages:
   script:
     - npm run export
-    - mv client/out public
+    - rm -rf public
+    - mv out public
   stage: pages
   artifacts:
     paths:
@@ -45,6 +46,10 @@ pages:
   only:
     - live
 
+##
+## A hidden job for setting up SSH that is never executed by itself. Instead, we use the `extends`
+## keyword in other jobs to execute this script and setup SSH during deployments
+##
 .setup_ssh:
   before_script:
     ## See https://docs.gitlab.com/ee/ci/ssh_keys/index.html#ssh-keys-when-using-the-docker-executor
