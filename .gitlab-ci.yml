@@ -8,7 +8,7 @@ cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - node_modules/
-    - client/.next/cache/
+    - .next/cache/
 
 before_script:
   - npm install
@@ -32,7 +32,7 @@ build:
   artifacts:
     paths:
       - .next
-      - client/.next
+      - dist
 
 pages:
   script:
