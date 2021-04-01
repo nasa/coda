@@ -5,15 +5,15 @@ module.exports = {
     "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$":
       "<rootDir>/__mocks__/fileMock.js",
     "\\.(css|scss)$": "identity-obj-proxy",
-    "^__mocks__(.*)$": "<rootDir>/client/__mocks__$1",
-    "^components/(.*)$": "<rootDir>/client/components/$1",
-    "^public/(.*)$": "<rootDir>/client/public/$1",
-    "^services/(.*)$": "<rootDir>/client/services/$1",
-    "^store/(.*)$": "<rootDir>/client/store/$1",
-    "^utils/(.*)$": "<rootDir>/client/utils/$1",
+    "^__mocks__(.*)$": "<rootDir>/__mocks__$1",
+    "^components/(.*)$": "<rootDir>/components/$1",
+    "^public/(.*)$": "<rootDir>/public/$1",
+    "^services/(.*)$": "<rootDir>/services/$1",
+    "^store/(.*)$": "<rootDir>/store/$1",
+    "^utils/(.*)$": "<rootDir>/utils/$1",
   },
   setupFiles: ["<rootDir>/jest.setup.js"],
-  setupFilesAfterEnv: ["<rootDir>/client/utils/jest-extends.ts"],
+  setupFilesAfterEnv: ["<rootDir>/utils/jest-extends.ts"],
   testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/", "<rootDir>/out"],
   globals: {
     "ts-jest": {
