@@ -225,7 +225,12 @@ export default function View() {
   let prefix = "Viewer";
   if (!isNull(playhead.date)) {
     const d = new Date(playhead.date);
-    const options = { timeZone: "UTC", year: "numeric", month: "short", day: "2-digit" };
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    };
     prefix = d.toLocaleDateString("en-gb", options);
   }
 
