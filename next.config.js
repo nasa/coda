@@ -22,5 +22,5 @@ const envs = {
 
 module.exports = {
   env: envs[process.env.NODE_ENV || "production"],
-  basePath: "/coda_node",
+  basePath: "/coda",
 };

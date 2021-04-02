@@ -16,7 +16,7 @@ const photoAdapter = createEntityAdapter<PhotoFile>();
 export const initialPhotoFileState: PhotoFile = {
   id: "",
   description: "",
-  lowResURL: "/coda_node/images/vintage_static.gif",
+  lowResURL: "/coda/images/vintage_static.gif",
   highResURL: "",
   ioInfoURL: "",
   date_added: "",

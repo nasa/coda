@@ -105,7 +105,7 @@ Ask Ben, James, or Cameron for the key if you don't have it.
 npm run dev
 ```
 
-Then head over to [](http://coda.local:3000/coda_node) (or [](http://localhost:3000/coda_node) if you didn't setup your hosts file)
+Then head over to [](http://coda.local:3000/coda) (or [](http://localhost:3000/coda) if you didn't setup your hosts file)
 
 This command sets up a hot-reloading fullstack node server. If you make any changes to the client, you should see them appear automatically in the browser. If you make any changes to the server, you should see the server restart.
 
