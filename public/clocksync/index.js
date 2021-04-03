@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function compareServerTime() {
     clientTime = new Date();
-    const resource = "http://coda-data.apolloinrealtime.org/gettime.php";
+    const resource = "https://apolloinrealtime.org/coda_clocksync/server/gettime.php";
     const response = await fetch(resource);
     const serverTimeObj = await response.json();
     serverTime = new Date(serverTimeObj.serverTime);
