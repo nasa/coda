@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const currUTCDate = new Date().toISOString();
       const seconds = currUTCDate.substring(17, 19);
       if (seconds !== lastSeconds) {
-        makeQR();
+        makeQR(currUTCDate);
         if (seconds % 5 === 0) {
           compareServerTime();
         }
@@ -32,9 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function makeQR() {
-    const currTimestamp = new Date();
-    const currUTCDate = currTimestamp.toISOString();
+  function makeQR(currUTCDate) {
     const typeNumber = 0;
     const errorCorrectionLevel = "H";
     const qr = qrcode(typeNumber, errorCorrectionLevel);
