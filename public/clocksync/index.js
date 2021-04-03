@@ -1,48 +1,50 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var t;
+  let clientTime = null;
+  let serverTime = null;
 
-  waitForTopOfSecond();
+  (async () => {
+    const t = setInterval(waitForTopOfSecond, 1000);
+  })();
+
+  async function compareServerTime() {
+    clientTime = new Date();
+    const resource = "http://coda-data.apolloinrealtime.org/gettime.php";
+    const response = await fetch(resource);
+    const serverTimeObj = await response.json();
+    serverTime = new Date(serverTimeObj.serverTime);
+    document.getElementById("timeComparisonValue").innerHTML =
+      clientTime.getTime() - serverTime.getTime();
+  }
 
   function waitForTopOfSecond() {
-    //start timer at the top of the next second
-    var keepLooking = true;
-    var i = 0;
-    while (keepLooking) {
-      var currUTCDate = new Date().toISOString();
-      var milliseconds = currUTCDate.substring(20, 23);
-      if (parseInt(milliseconds) < 10) {
-        console.log(currUTCDate);
-        keepLooking = false;
+    const lastSeconds = new Date().toISOString().substring(17, 19);
+    // loop until the second rolls over and then display the QR code
+    while (true) {
+      const currUTCDate = new Date().toISOString();
+      const seconds = currUTCDate.substring(17, 19);
+      if (seconds !== lastSeconds) {
         makeQR();
-        t = setInterval(makeQR, 1000);
+        if (seconds % 5 === 0) {
+          compareServerTime();
+        }
+        break;
       }
     }
   }
 
   function makeQR() {
-    currTimestamp = new Date();
-    var currUTCDate = currTimestamp.toISOString();
-    outputStr = currUTCDate;
-
-    var typeNumber = 0;
-    var errorCorrectionLevel = "H";
-    var qr = qrcode(typeNumber, errorCorrectionLevel);
-    qr.addData(outputStr, "Byte");
+    const currTimestamp = new Date();
+    const currUTCDate = currTimestamp.toISOString();
+    const typeNumber = 0;
+    const errorCorrectionLevel = "H";
+    const qr = qrcode(typeNumber, errorCorrectionLevel);
+    qr.addData(currUTCDate, "Byte");
     qr.make();
     document.getElementById("qrcode").innerHTML = qr.createSvgTag({
       cellSize: 1,
       margin: 5,
       scalable: true,
     });
-    // const cellSize = 10;
-    // document.getElementById("qrcode").innerHTML = qr.createImgTag(cellSize, cellSize * 4);
-
-    document.getElementById("headerCenter").innerHTML = outputStr;
-
-    var milliseconds = currUTCDate.substring(20, 23);
-    if (parseInt(milliseconds) > 500) {
-      clearInterval(t);
-      waitForTopOfSecond();
-    }
+    document.getElementById("headerCenter").innerHTML = currUTCDate;
   }
 });
