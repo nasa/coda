@@ -8,10 +8,15 @@ document.addEventListener("DOMContentLoaded", function () {
     clientTime = new Date();
     const resource = "https://apolloinrealtime.org/coda_clocksync/server/gettime.php";
     const response = await fetch(resource);
-    const serverTimeObj = await response.json();
-    serverTime = new Date(serverTimeObj.serverTime);
-    document.getElementById("timeComparisonValue").innerHTML =
-      clientTime.getTime() - serverTime.getTime();
+    let serverTimeObj;
+    if (response.ok) {
+      serverTimeObj = await response.json();
+      serverTime = new Date(serverTimeObj.serverTime);
+      document.getElementById("timeComparisonValue").innerHTML =
+        clientTime.getTime() - serverTime.getTime();
+    } else {
+      console.log("Server time sanity check failed");
+    }
   }
 
   async function waitForTopOfSecond() {
@@ -23,11 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (seconds !== lastSeconds) {
         makeQR(currUTCDate);
         if (seconds % 5 === 0) {
-          try {
-            await compareServerTime();
-          } catch (e) {
-            console.log("Server time sanity check failed: ", e);
-          }
+          compareServerTime();
         }
         break;
       }
