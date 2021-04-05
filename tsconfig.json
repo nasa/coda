@@ -16,11 +16,21 @@
     "module": "esnext",
     "moduleResolution": "node",
     "paths": {
-      "components/*": ["./components/*"],
-      "public/*": ["./public/*"],
-      "services/*": ["./services/*"],
-      "store/*": ["./store/*"],
-      "utils/*": ["./utils/*"],
+      "components/*": [
+        "./components/*"
+      ],
+      "public/*": [
+        "./public/*"
+      ],
+      "services/*": [
+        "./services/*"
+      ],
+      "store/*": [
+        "./store/*"
+      ],
+      "utils/*": [
+        "./utils/*"
+      ],
     },
     "resolveJsonModule": true,
     "isolatedModules": true,

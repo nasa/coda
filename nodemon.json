@@ -1,0 +1,10 @@
+{
+  "verbose": true,
+  "debug": false,
+  "env": { "TS_NODE_PROJECT": "tsconfig.server.json" },
+  "exec": "node --inspect -r ts-node/register/transpile-only ./server/index.ts",
+  "ignore": ["node_modules", "**/*.d.ts", "*.spec.ts"],
+  "watch": ["./server"],
+  "ext": "ts",
+  "inspect": true
+}

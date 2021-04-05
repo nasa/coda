@@ -18,6 +18,7 @@
       "services/*": ["./services/*"],
       "static/*": ["./static/*"],
       "store/*": ["./store/*"],
+      "utils/*": ["./utils/*"],
     },
     "resolveJsonModule": true,
     "isolatedModules": true,

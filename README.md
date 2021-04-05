@@ -8,13 +8,75 @@ Consolidating the context of missions, training, and testing into an easy to use
 
 **The clocksync app**: https://coda.pages.fit.nasa.gov/coda/clocksync/index.html
 
+## Deployment
+
+This section is only necessary if you're working with the CODA codebase.
+
+We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged when new code is merged into the following branches:
+
+| **Branch** | **Environment** | **URL**                           |
+| ---------- | --------------- | --------------------------------- |
+| `prod`     | production      | https://coda.fit.nasa.gov         |
+| `staging`  | staging         | https://coda-staging.fit.nasa.gov |
+| `.*--dev`  | development     | https://coda-dev.fit.nasa.gov     |
+
+You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
+
+The rules for deployments are as follows:
+
+- Anyone can push a branch that ends in `--dev` at any time to deploy to development. This is a great place to quickly test changes in a real deployed environment.
+- MRs for new features go into staging. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users.
+- MRs to production are only allowed from staging. MRs to production must also include a manual approval that the staging environment looks good before promoting.
+
+### Server Strategy
+
+**Dependencies**
+
+- Node 14
+- Any Linux distro with systemd (FIT uses [CentOS](https://www.centos.org/) 8)
+- Apache (loose requirement, nginx is also an option)
+
+We run CODA as a Node server and keep it alive with [systemd](https://www.freedesktop.org/wiki/Software/systemd/). Why systemd? We're running on CentOS 8 FIT VMs. CentOS, like most major Linux distros, uses systemd to manage core services. It's fairly easy to configure and it's really good at keeping a process alive.
+
+### First Time Setup
+
+Perform these steps on the VM as the user who will be running CODA.
+
+1. Configure Apache (or nginx) to proxy ports 80 and 443 to port 3000
+1. Install an SSH key on the VM for the user you want to run CODA as. Follow [these instruction on GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/index.html) to set the `SSH_PRIVATE_KEY` variable under the GitLab CI/CD settings
+1. Get an initial copy of this repo on the VM at `~/coda`
+1. Copy `systemd/coda-dev.service` (in this repo) to `~/.config/systemd/user/coda-dev.service` for the user that will be running CODA.
+1. `systemctl enable --user coda-dev`. You should see a confirmation message that the service was created
+1. `loginctl enable-linger [USERNAME]`. This tells systemd to keep running your user services even when you logout
+
+At this point, we're ready to start deploying to the server but CODA is not running. You should do a test run.
+
+1. `cd ~/coda && npm i && npm run build`. Transpile all the TypeScript and build all the HTML, CSS, and JS files
+1. `npm run start`. Do a quick manual run of CODA. You should see the server spin up. `ctrl-c` to close it
+1. `systemctl start --user coda-dev`. Tell systemd to run and monitor CODA. You won't see anything printed in the console
+1. `curl localhost:3000` and see if you get a response. If so, yay! You're done
+1. `systemctl status --user coda-dev`. You'll see the status of the service, including the command systemd ran to start the server. It should be green and running. You'll see an exit code if not
+1. `journalctl -u coda-dev`. This should give you server logs (TODO doesn't seem to be working?)
+
+If everything is good, no further steps are necessary. Make sure `.gitlab-ci.yml` is setup with this VM's DNS entry and this user and you should be ready to deploy. If the server did not spin up, check the logs.
+
+### Changing the systemd service
+
+Do you need to change how the server is being run and monitored by systemd? The reasons you might want to do this is to modify environment variables, change working directories, or something else specific to systemd. If it's just a matter of a TypeScript thing, you should look at changing the `start` script in `package.json` first, in which case the instructions below do not apply.
+
+1. Change `systemd/coda-dev.service` in this repo (to keep it version controlled).
+1. Copy your changes to `~/.config/systemd/user/coda-dev.service` on the VM
+1. systemctl --user daemon-reload
+
+The next time you `systemctl --user restart coda-dev`, your changes will be applied.
+
 ## Development
 
 This section is only necessary if you're working with the CODA codebase.
 
 ### Your Code Editor
 
-You probably want to use [VSCode](https://code.visualstudio.com/). It provides the best-in-class IDE experience when working with TypeScript.
+You probably want to use [VS Code](https://code.visualstudio.com/). It provides the best-in-class IDE experience when working with TypeScript.
 
 ### Software Dependencies
 
@@ -27,26 +89,25 @@ You probably want to use [VSCode](https://code.visualstudio.com/). It provides t
 - `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
 
 2. Install JavaScript dependencies: `npm i`
-3. (Optional) Change your hosts file to map `coda-iss.develop` to `127.0.0.1`.
-4. (Optional) Create a `.env.local` file at the root of the repo. It must contain:
+3. Create a `.env.local` file at the root of the repo. It must contain:
 
 ```
-WIKI_USER=the-wiki-bot-account-username
-WIKI_PASSWORD=and-the-associated-password
 NEXT_PUBLIC_IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
 ```
 
-Ask Ben, James, or Cameron for the keys and account info if you don't have them.
+Ask Ben, James, or Cameron for the key if you don't have it.
+
+4. (Optional) Change your hosts file to map `coda.local` to `127.0.0.1`.
 
 ### Dev Server
 
-You have three options for running the site locally.
+```sh
+npm run dev
+```
 
-1. `npm run local` - runs the local version which uses mock data and does not hit any NASA APIs. Currently the mock data is from US EVA 55. Does not require a `.env` file
-2. `npm run dev` - runs the dev version which gets EVA data from wiki-dev.fit.nasa.gov and video data from IO. Requires the `.env` file mentioned above
-3. `npm run prod` - runs the prod version which gets EVA data from wiki.jsc.nasa.gov and video data from IO. Requires the `.env` file mentioned above
+Then head over to [](http://coda.local:3000/coda) (or [](http://localhost:3000/coda) if you didn't setup your hosts file)
 
-Then head over to [](http://coda-iss.develop:3000) (or [](http://localhost:3000) if you didn't setup your hosts file)
+This command sets up a hot-reloading fullstack node server. If you make any changes to the client, you should see them appear automatically in the browser. If you make any changes to the server, you should see the server restart.
 
 Bonus: the site is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging) when you run it locally. Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
 
@@ -54,15 +115,13 @@ Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) 
 
 ### Run Tests
 
-We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
-
-- [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
-
-Run tests with:
-
 ```sh
 npm t
 ```
+
+We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
+
+- [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
 
 Do you want to test times? Here's an [example with mock timers](https://gitlab.fit.nasa.gov/coda/coda/-/blob/dccecad058c9edfa54f79771c1ad1dd35551e3c9/store/clock.spec.ts#L220).
 
