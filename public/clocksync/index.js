@@ -2,9 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let clientTime = null;
   let serverTime = null;
 
-  (async () => {
-    const t = setInterval(waitForTopOfSecond, 1000);
-  })();
+  const t = setInterval(waitForTopOfSecond, 1000);
 
   async function compareServerTime() {
     clientTime = new Date();
@@ -16,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
       clientTime.getTime() - serverTime.getTime();
   }
 
-  function waitForTopOfSecond() {
+  async function waitForTopOfSecond() {
     const lastSeconds = new Date().toISOString().substring(17, 19);
     // loop until the second rolls over and then display the QR code
     while (true) {
@@ -25,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (seconds !== lastSeconds) {
         makeQR(currUTCDate);
         if (seconds % 5 === 0) {
-          compareServerTime();
+          await compareServerTime();
         }
         break;
       }
