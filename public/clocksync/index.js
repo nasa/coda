@@ -23,7 +23,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (seconds !== lastSeconds) {
         makeQR(currUTCDate);
         if (seconds % 5 === 0) {
-          await compareServerTime();
+          try {
+            await compareServerTime();
+          } catch (e) {
+            console.log("Server time sanity check failed: ", e);
+          }
         }
         break;
       }
