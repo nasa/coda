@@ -1,8 +1,14 @@
 import deepEqual from "lodash/isEqual";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch, useStore } from "react-redux";
 import { PlayheadState } from "store/playhead";
-import { initialPhotoFileState, setActivePhoto, photosSelectors } from "store/photos";
+import {
+  initialPhotoFileState,
+  setActivePhoto,
+  setCollectionFilters,
+  photosSelectors,
+  PhotosState,
+} from "store/photos";
 import styles from "./photos.module.css";
 
 import {
@@ -14,12 +20,13 @@ import type { RootState } from "store/index";
 
 export default function Photos() {
   const dispatch = useDispatch();
-  const { photos, playhead }: { photos; playhead: PlayheadState } = useSelector(
+  const { photos, playhead }: { photos: PhotosState; playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
+  const [filterToggle, setFilterToggle] = useState(false);
 
   const photoFiles = photosSelectors.selectAll(useStore().getState());
 
@@ -38,13 +45,33 @@ export default function Photos() {
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
-      thisPhotoFile = photoFiles[i];
+
+      //filter photos against collectionFilters
+      let showThisPhoto = false;
+      for (let j = 0; j < photos.collectionFilters.length; j++) {
+        if (
+          photoFiles[i].collections_string === photos.collectionFilters[j].fullList &&
+          photos.collectionFilters[j].selected
+        ) {
+          showThisPhoto = true;
+          break;
+        }
+      }
+      if (showThisPhoto) {
+        thisPhotoFile = photoFiles[i];
+      }
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
       if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
         dispatch(setActivePhoto(thisPhotoFile));
       }
     }
+  };
+
+  const changeFilter = (index, value) => {
+    let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
+    filters[index].selected = value;
+    dispatch(setCollectionFilters(filters));
   };
 
   useEffect(changePhoto, [playhead.seconds, photoFiles]);
@@ -76,7 +103,7 @@ export default function Photos() {
           : "-";
 
       if (infoHover || infoToggle) {
-        infoDisplayClass = styles.photoOverlayVisible;
+        infoDisplayClass = styles.overlayVisible;
       }
     }
 
@@ -90,6 +117,12 @@ export default function Photos() {
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
             <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
+          </div>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</div>
+            <div className={`${styles.overlayTableCell}`}>
+              {photos.activePhoto.collections_string_pretty}
+            </div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
@@ -121,6 +154,42 @@ export default function Photos() {
     );
   };
 
+  const renderPhotoFilter = () => {
+    const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
+
+    let displayClass = "";
+    if (currentlyActivePhoto) {
+      if (filterToggle && (!infoHover || infoToggle)) {
+        displayClass = styles.overlayVisible;
+      }
+    }
+
+    return (
+      <div className={`${styles.photoOverlay} ${displayClass}`}>
+        <div className={styles.overlayTable}>
+          {photos.collectionFilters.map((value, index) => {
+            return (
+              <>
+                <div className={styles.overlayTableRow}>
+                  <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>
+                    <input
+                      type="checkbox"
+                      checked={photos.collectionFilters[index].selected}
+                      onChange={() => {
+                        changeFilter(index, !photos.collectionFilters[index].selected);
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.overlayTableCell}`}>{value.display}</div>
+                </div>
+              </>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   let dateTakenLabel = "";
   let dateTakenValue = "";
   let timeSinceTaken = "";
@@ -136,6 +205,10 @@ export default function Photos() {
   }
   if (infoToggle) {
     infoButtonStyle = styles.infoSelected;
+  }
+  let filterButtonStyle = "";
+  if (filterToggle) {
+    filterButtonStyle = styles.filterSelected;
   }
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
@@ -158,6 +231,19 @@ export default function Photos() {
           }}
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
+        </div>
+        <div
+          className={`${styles.filterbutton}  ${filterButtonStyle}`}
+          title={`Click to filter imagery`}
+          onMouseEnter={() => {}}
+          onMouseLeave={() => {}}
+          onClick={() => {
+            if (currentlyActivePhoto) {
+              setFilterToggle(!filterToggle);
+            }
+          }}
+        >
+          <div className={styles.infoText}>Filter</div>
         </div>
         <div style={{ marginLeft: "auto", marginTop: "auto" }}>
           <span
@@ -184,7 +270,13 @@ export default function Photos() {
         <a className={styles.photoLink} href={photos.activePhoto.highResURL} target="_blank">
           <img className={styles.photo} src={photos.activePhoto.lowResURL} />
         </a>
-        {renderPhotoOverlay()}
+        {(() => {
+          if (infoHover || infoToggle) {
+            return renderPhotoOverlay();
+          } else {
+            return renderPhotoFilter();
+          }
+        })()}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ Methods for fetching from Imagery Online (IO)
 */
 import fetch from "isomorphic-unfetch";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
+import type { CollectionsFilter } from "store/photos";
 
 if (typeof window === "undefined") {
   // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
@@ -123,6 +124,8 @@ export interface PhotoFile {
   date_added: string;
   date_taken: string;
   dateTakenAppSeconds: number;
+  collections_string: string;
+  collections_string_pretty: string;
 }
 
 /** Perform a request against IO with the given parameters */
@@ -397,7 +400,7 @@ function parsePhotoResultMetadata(doc: Doc): PhotoFile {
   const lowResURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
   const highResURL = `${process.env.IO_HOST}${webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
 
-  return {
+  const photoFile: PhotoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
     lowResURL,
@@ -406,7 +409,27 @@ function parsePhotoResultMetadata(doc: Doc): PhotoFile {
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
     dateTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
+    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
+    collections_string_pretty: cleanCollectionsString(
+      doc.collections_string[doc.collections_string.length - 1]
+    ),
   };
+
+  return photoFile;
+}
+
+function cleanCollectionsString(colStr) {
+  const fullTree = colStr.split("|");
+
+  let cleaned = fullTree[fullTree.length - 1];
+  cleaned = cleaned.replace(fullTree[1], "");
+  if (cleaned === "Night Pass" || cleaned === "Day Pass") {
+    cleaned = fullTree[2].replace(fullTree[1], "") + " " + cleaned;
+  }
+  if (cleaned === "Photo") {
+    cleaned = fullTree[2].replace(fullTree[1], "");
+  }
+  return cleaned;
 }
 
 /**
@@ -431,4 +454,35 @@ export async function buildPhotoStore(
 ): Promise<PhotoFile[]> {
   const photos = await getPhotoData(year, month, date);
   return photos;
+}
+
+export function buildPhotoCollections(photos: PhotoFile[]) {
+  const collections: CollectionsFilter[] = [];
+  const uniqueList = [];
+  for (let i = 0; i <= photos.length; i++) {
+    if (photos[i] !== undefined) {
+      if (!uniqueList.includes(photos[i].collections_string)) {
+        const collectionsObject: CollectionsFilter = {
+          fullList: photos[i].collections_string,
+          display: photos[i].collections_string_pretty,
+          selected: true,
+        };
+        collections.push(collectionsObject);
+        uniqueList.push(photos[i].collections_string);
+      }
+    }
+  }
+  //sort collections alphabetically.
+  collections.sort(function (a, b) {
+    var valA = a.display.toUpperCase(); // ignore upper and lowercase
+    var valB = b.display.toUpperCase(); // ignore upper and lowercase
+    if (valA < valB) {
+      return -1;
+    }
+    if (valA > valB) {
+      return 1;
+    }
+    return 0;
+  });
+  return collections;
 }

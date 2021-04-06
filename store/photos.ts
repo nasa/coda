@@ -1,4 +1,5 @@
-import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice, createSelector } from "@reduxjs/toolkit";
+import { last } from "lodash";
 import type { PhotoFile } from "services/io";
 import { RootState } from ".";
 
@@ -9,6 +10,13 @@ export interface PhotosState {
   dateTakenAppSeconds: 0;
   ready: boolean;
   photosLastChecked: string;
+  collectionFilters: CollectionsFilter[];
+}
+
+export interface CollectionsFilter {
+  fullList: string;
+  display: string;
+  selected: boolean;
 }
 
 const photoAdapter = createEntityAdapter<PhotoFile>();
@@ -22,6 +30,7 @@ export const initialPhotoFileState: PhotoFile = {
   date_added: "",
   date_taken: "",
   dateTakenAppSeconds: 0,
+  collections_string: "",
 };
 
 export const initialState = photoAdapter.getInitialState({
@@ -29,6 +38,7 @@ export const initialState = photoAdapter.getInitialState({
   errorMessage: "",
   ready: false,
   photosLastChecked: "",
+  collectionFilters: [],
 });
 
 export const photosSelectors = photoAdapter.getSelectors<RootState>((state) => state.photos);
@@ -51,7 +61,10 @@ export const photoSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;
     },
+    setCollectionFilters: (state, action: { payload: CollectionsFilter[] }) => {
+      state.collectionFilters = action.payload;
+    },
   },
 });
 
-export const { addPhotos, setActivePhoto, fetchError } = photoSlice.actions;
+export const { addPhotos, setActivePhoto, setCollectionFilters, fetchError } = photoSlice.actions;
