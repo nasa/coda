@@ -3,7 +3,7 @@ Methods for fetching from Imagery Online (IO)
 */
 import fetch from "isomorphic-unfetch";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
-import type { CollectionsFilter } from "store/photos";
+import type { CollectionFilters } from "store/photos";
 
 if (typeof window === "undefined") {
   // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
@@ -457,12 +457,12 @@ export async function buildPhotoStore(
 }
 
 export function buildPhotoCollections(photos: PhotoFile[]) {
-  const collections: CollectionsFilter[] = [];
+  const collections: CollectionFilters[] = [];
   const uniqueList = [];
   for (let i = 0; i <= photos.length; i++) {
     if (photos[i] !== undefined) {
       if (!uniqueList.includes(photos[i].collections_string)) {
-        const collectionsObject: CollectionsFilter = {
+        const collectionsObject: CollectionFilters = {
           fullList: photos[i].collections_string,
           display: photos[i].collections_string_pretty,
           selected: true,

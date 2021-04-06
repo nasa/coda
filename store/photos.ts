@@ -10,10 +10,10 @@ export interface PhotosState {
   dateTakenAppSeconds: 0;
   ready: boolean;
   photosLastChecked: string;
-  collectionFilters: CollectionsFilter[];
+  collectionFilters: CollectionFilters[];
 }
 
-export interface CollectionsFilter {
+export interface CollectionFilters {
   fullList: string;
   display: string;
   selected: boolean;
@@ -31,6 +31,7 @@ export const initialPhotoFileState: PhotoFile = {
   date_taken: "",
   dateTakenAppSeconds: 0,
   collections_string: "",
+  collections_string_pretty: "",
 };
 
 export const initialState = photoAdapter.getInitialState({
@@ -61,7 +62,7 @@ export const photoSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;
     },
-    setCollectionFilters: (state, action: { payload: CollectionsFilter[] }) => {
+    setCollectionFilters: (state, action: { payload: CollectionFilters[] }) => {
       state.collectionFilters = action.payload;
     },
   },

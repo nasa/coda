@@ -74,7 +74,7 @@ export default function Photos() {
     dispatch(setCollectionFilters(filters));
   };
 
-  useEffect(changePhoto, [playhead.seconds, photoFiles]);
+  useEffect(changePhoto, [playhead.seconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
@@ -158,10 +158,8 @@ export default function Photos() {
     const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
 
     let displayClass = "";
-    if (currentlyActivePhoto) {
-      if (filterToggle && (!infoHover || infoToggle)) {
-        displayClass = styles.overlayVisible;
-      }
+    if (filterToggle && (!infoHover || infoToggle)) {
+      displayClass = styles.overlayVisible;
     }
 
     return (

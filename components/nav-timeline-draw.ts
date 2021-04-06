@@ -5,6 +5,7 @@ import type { VideoFile, PhotoFile } from "services/io";
 import type { DayNightObj } from "services/spacetrack";
 import { Activity } from "services/iss-wiki";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
+import { CollectionFilters } from "store/photos";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -40,6 +41,7 @@ export default class DrawNav {
   gColorNavCursor = new paper.Color("#19181b");
   gColorTimeTicks = new paper.Color("#7b7b7b");
   gColorPhotoTicks = new paper.Color("#28B463");
+  gColorPhotoTicksFiltered = new paper.Color("#0c331c");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
   gColorVideoBorder = "#2a282e";
@@ -63,6 +65,7 @@ export default class DrawNav {
   constructor(
     readonly videoFiles: VideoFile[],
     readonly photoFiles: PhotoFile[],
+    readonly collectionFilters: CollectionFilters[],
     readonly dayNight: DayNightObj[],
     readonly activityPerformance: {
       [x: string]: Activity[];
@@ -177,12 +180,27 @@ export default class DrawNav {
       }
       xLocations.add(wholePixelLocation);
 
+      let showThisPhoto = false;
+      for (let j = 0; j < this.collectionFilters.length; j++) {
+        if (
+          this.photoFiles[i].collections_string === this.collectionFilters[j].fullList &&
+          this.collectionFilters[j].selected
+        ) {
+          showThisPhoto = true;
+          break;
+        }
+      }
+
       const startLocY =
         this.gTier1Top + 1 + rowNum * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
       const topPoint = new paper.Point(itemLocX, startLocY);
       let bottomPoint = new paper.Point(itemLocX, startLocY + this.cChannelStrokeWidth - 1);
       let aLine = new paper.Path.Line(topPoint, bottomPoint);
-      aLine.strokeColor = this.gColorPhotoTicks;
+      if (showThisPhoto) {
+        aLine.strokeColor = this.gColorPhotoTicks;
+      } else {
+        aLine.strokeColor = this.gColorPhotoTicksFiltered;
+      }
 
       this.gTier1Group.addChild(aLine);
     }
@@ -472,6 +490,17 @@ export default class DrawNav {
         this.photoFiles[i].dateTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
         this.photoFiles[i].dateTakenAppSeconds >= this.gTier2StartSeconds
       ) {
+        let showThisPhoto = false;
+        for (let j = 0; j < this.collectionFilters.length; j++) {
+          if (
+            this.photoFiles[i].collections_string === this.collectionFilters[j].fullList &&
+            this.collectionFilters[j].selected
+          ) {
+            showThisPhoto = true;
+            break;
+          }
+        }
+
         let itemLocX =
           this.gTier2Left +
           (this.photoFiles[i].dateTakenAppSeconds - this.gTier2StartSeconds) *
@@ -479,7 +508,11 @@ export default class DrawNav {
         let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 13);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
-        aLine.strokeColor = this.gColorPhotoTicks;
+        if (showThisPhoto) {
+          aLine.strokeColor = this.gColorPhotoTicks;
+        } else {
+          aLine.strokeColor = this.gColorPhotoTicksFiltered;
+        }
         aLine.strokeWidth = 2;
 
         this.gTier2Group.addChild(aLine);
