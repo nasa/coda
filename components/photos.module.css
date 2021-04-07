@@ -190,6 +190,8 @@
   border: 2px #ffc000 solid;
   padding: 4px;
 }
+.tableInput {
+}
 
 .overlayVisible {
   display: block;
