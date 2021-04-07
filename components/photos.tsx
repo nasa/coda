@@ -17,7 +17,6 @@ import {
   hhmmssFromSeconds,
 } from "utils/formatting";
 import type { RootState } from "store/index";
-import { symbolName } from "typescript";
 
 export default function Photos() {
   const dispatch = useDispatch();
