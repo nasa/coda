@@ -194,20 +194,19 @@ export default function Photos() {
           </div>
           {photos.collectionFilters.map((value, index) => {
             return (
-              <>
-                <div className={styles.overlayTableRow}>
-                  <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>
-                    <input
-                      type="checkbox"
-                      checked={photos.collectionFilters[index].selected}
-                      onChange={() => {
-                        changeFilter(index, !photos.collectionFilters[index].selected);
-                      }}
-                    />
-                  </div>
-                  <div className={`${styles.overlayTableCell}`}>{value.display}</div>
+              <div className={styles.overlayTableRow}>
+                <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>
+                  <input
+                    className={styles.tableInput}
+                    type="checkbox"
+                    checked={photos.collectionFilters[index].selected}
+                    onChange={() => {
+                      changeFilter(index, !photos.collectionFilters[index].selected);
+                    }}
+                  />
                 </div>
-              </>
+                <div className={`${styles.overlayTableCell}`}>{value.display}</div>
+              </div>
             );
           })}
         </div>
