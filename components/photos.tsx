@@ -259,8 +259,6 @@ export default function Photos() {
         <div
           className={`${styles.filterButton}  ${filterButtonStyle}`}
           title={`Click to filter imagery`}
-          onMouseEnter={() => {}}
-          onMouseLeave={() => {}}
           onClick={() => {
             setFilterToggle(!filterToggle);
           }}
@@ -292,13 +290,7 @@ export default function Photos() {
         <a className={styles.photoLink} href={photos.activePhoto.highResURL} target="_blank">
           <img className={styles.photo} src={photos.activePhoto.lowResURL} />
         </a>
-        {(() => {
-          if (infoHover || infoToggle) {
-            return renderPhotoOverlay();
-          } else {
-            return renderPhotoFilter();
-          }
-        })()}
+        {infoHover || infoToggle ? renderPhotoOverlay() : renderPhotoFilter()}
       </div>
     </div>
   );
