@@ -155,7 +155,7 @@
     no-repeat center;
 }
 
-.filterbutton {
+.filterButton {
   display: flex;
   background-color: #2b2a2d;
   border: 1px #ffc000 solid;
@@ -166,9 +166,29 @@
   margin-right: 5px;
   cursor: pointer;
 }
-.filterbutton.filterSelected {
+.filterButton.filterSelected {
   background-color: #ffc000;
   color: black;
+}
+
+.tableButton {
+  font-size: 0.9rem;
+  font-weight: 400;
+
+  background-color: #2b2a2d;
+  border: 1px #ffc000 solid;
+  border-radius: 4px;
+  color: white;
+  padding: 5px;
+  margin-bottom: 2px;
+  margin-right: 5px;
+  margin-left: 5px;
+  user-select: none;
+  cursor: pointer;
+}
+.tableButton:hover {
+  border: 2px #ffc000 solid;
+  padding: 4px;
 }
 
 .overlayVisible {

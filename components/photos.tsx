@@ -1,5 +1,5 @@
 import deepEqual from "lodash/isEqual";
-import { MutableRefObject, useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch, useStore } from "react-redux";
 import { PlayheadState } from "store/playhead";
 import {
@@ -17,6 +17,7 @@ import {
   hhmmssFromSeconds,
 } from "utils/formatting";
 import type { RootState } from "store/index";
+import { symbolName } from "typescript";
 
 export default function Photos() {
   const dispatch = useDispatch();
@@ -68,11 +69,19 @@ export default function Photos() {
     }
   };
 
-  const changeFilter = (index, value) => {
+  function changeFilter(index, value) {
     let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
     filters[index].selected = value;
     dispatch(setCollectionFilters(filters));
-  };
+  }
+
+  function changeAllFilters(value) {
+    let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
+    for (let i = 0; i < filters.length; i++) {
+      filters[i].selected = value;
+    }
+    dispatch(setCollectionFilters(filters));
+  }
 
   useEffect(changePhoto, [playhead.seconds, photoFiles, photos]);
 
@@ -155,8 +164,6 @@ export default function Photos() {
   };
 
   const renderPhotoFilter = () => {
-    const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
-
     let displayClass = "";
     if (filterToggle && (!infoHover || infoToggle)) {
       displayClass = styles.overlayVisible;
@@ -165,6 +172,27 @@ export default function Photos() {
     return (
       <div className={`${styles.photoOverlay} ${displayClass}`}>
         <div className={styles.overlayTable}>
+          <div className={styles.overlayTableRow}>
+            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}></div>
+            <div className={`${styles.overlayTableCell}`}>
+              <button
+                className={styles.tableButton}
+                onClick={() => {
+                  changeAllFilters(true);
+                }}
+              >
+                Check All
+              </button>
+              <button
+                className={styles.tableButton}
+                onClick={() => {
+                  changeAllFilters(false);
+                }}
+              >
+                Check None
+              </button>
+            </div>
+          </div>
           {photos.collectionFilters.map((value, index) => {
             return (
               <>
@@ -231,17 +259,15 @@ export default function Photos() {
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
         <div
-          className={`${styles.filterbutton}  ${filterButtonStyle}`}
+          className={`${styles.filterButton}  ${filterButtonStyle}`}
           title={`Click to filter imagery`}
           onMouseEnter={() => {}}
           onMouseLeave={() => {}}
           onClick={() => {
-            if (currentlyActivePhoto) {
-              setFilterToggle(!filterToggle);
-            }
+            setFilterToggle(!filterToggle);
           }}
         >
-          <div className={styles.infoText}>Filter</div>
+          <div className={styles.infoText}>Filter Photos</div>
         </div>
         <div style={{ marginLeft: "auto", marginTop: "auto" }}>
           <span

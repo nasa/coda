@@ -1,5 +1,4 @@
-import { createEntityAdapter, createSlice, createSelector } from "@reduxjs/toolkit";
-import { last } from "lodash";
+import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { PhotoFile } from "services/io";
 import { RootState } from ".";
 
