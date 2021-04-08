@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import Main from "components/main";
 import { buildEVAStore } from "services/iss-wiki";
-import { buildVideoStore, buildPhotoStore } from "services/io";
+import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "services/io";
 import { buildEphemerisStore } from "services/spacetrack";
 import {
   addVideos,
@@ -12,7 +12,12 @@ import {
   fetchError as videosFetchError,
   videoSelectors,
 } from "store/videos";
-import { addPhotos, photosSelectors, fetchError as photosFetchError } from "store/photos";
+import {
+  addPhotos,
+  photosSelectors,
+  fetchError as photosFetchError,
+  setCollectionFilters,
+} from "store/photos";
 import { addEVAs } from "store/evas";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useRouter } from "next/router";
@@ -142,6 +147,8 @@ export default function View() {
         // photos data for today
         const photoStore = await buildPhotoStore(year, month + 1, day);
         dispatch(addPhotos(photoStore));
+        const photoCollectionsFilter = buildPhotoCollections(photoStore);
+        dispatch(setCollectionFilters(photoCollectionsFilter));
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
         console.error(e);

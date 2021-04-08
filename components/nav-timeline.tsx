@@ -12,7 +12,7 @@ import {
   idFromDate,
 } from "store/evas";
 import { videoSelectors } from "store/videos";
-import { photosSelectors } from "store/photos";
+import { photosSelectors, PhotosState } from "store/photos";
 import { EphemeraState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
@@ -25,9 +25,11 @@ function NavTimeline() {
   const {
     playhead,
     ephemera,
+    photos,
   }: {
     playhead: PlayheadState;
     ephemera: EphemeraState;
+    photos: PhotosState;
   } = useSelector((state: RootState) => state, deepEqual);
 
   const dispatch = useDispatch();
@@ -86,6 +88,7 @@ function NavTimeline() {
     drawNav.current = new DrawNav(
       videoFiles,
       photoFiles,
+      photos.collectionFilters,
       dayNight,
       activityPerformance,
       new Date(playhead.date),
@@ -148,7 +151,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [eva, videoFiles, photoFiles, dayNight]);
+  }, [eva, videoFiles, photoFiles, dayNight, photos]);
 
   useEffect(() => {
     time.current = playhead.seconds;
@@ -159,6 +162,7 @@ function NavTimeline() {
     }
 
     if (!mouseOnNavigator.current) {
+      drawNav.current.drawTier1();
       drawNav.current.drawTier1NavBox(time.current);
       drawNav.current.drawTier1Future();
     }

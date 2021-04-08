@@ -9,6 +9,13 @@ export interface PhotosState {
   dateTakenAppSeconds: 0;
   ready: boolean;
   photosLastChecked: string;
+  collectionFilters: CollectionFilters[];
+}
+
+export interface CollectionFilters {
+  fullList: string;
+  display: string;
+  selected: boolean;
 }
 
 const photoAdapter = createEntityAdapter<PhotoFile>();
@@ -22,6 +29,8 @@ export const initialPhotoFileState: PhotoFile = {
   date_added: "",
   date_taken: "",
   dateTakenAppSeconds: 0,
+  collections_string: "",
+  collections_string_pretty: "",
 };
 
 export const initialState = photoAdapter.getInitialState({
@@ -29,6 +38,7 @@ export const initialState = photoAdapter.getInitialState({
   errorMessage: "",
   ready: false,
   photosLastChecked: "",
+  collectionFilters: [],
 });
 
 export const photosSelectors = photoAdapter.getSelectors<RootState>((state) => state.photos);
@@ -51,7 +61,10 @@ export const photoSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;
     },
+    setCollectionFilters: (state, action: { payload: CollectionFilters[] }) => {
+      state.collectionFilters = action.payload;
+    },
   },
 });
 
-export const { addPhotos, setActivePhoto, fetchError } = photoSlice.actions;
+export const { addPhotos, setActivePhoto, setCollectionFilters, fetchError } = photoSlice.actions;
