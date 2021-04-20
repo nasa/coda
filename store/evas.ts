@@ -3,7 +3,6 @@ import type { EntityState } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
-import { RootState } from ".";
 
 /** Parse the ID from an EVA, currently set to a `yyyy-mm-dd` string */
 export function idFromEVA(eva: EVA): string {

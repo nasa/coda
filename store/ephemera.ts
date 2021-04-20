@@ -1,7 +1,6 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import type { Ephemeris, DayNightObj } from "services/spacetrack";
-import { RootState } from ".";
 import { diff } from "./playhead";
 
 export function idFromEphemeris(ephemeris: Ephemeris): string {
