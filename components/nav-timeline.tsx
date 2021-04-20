@@ -3,17 +3,18 @@ import deepEqual from "lodash/isEqual";
 import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate, changeTime, changeHoverTime } from "store/playhead";
 import {
+  EVAsEntityState,
   evasSelector,
   getActivityPerformanceMissionTime,
   getEVAStartMilliseconds,
   idFromDate,
 } from "store/evas";
-import { videoSelectors } from "store/videos";
-import { photosSelectors, PhotosState } from "store/photos";
-import { EphemeraState } from "store/ephemera";
+import { videoSelectors, VideosEntityState } from "store/videos";
+import { photosSelectors, PhotosEntityState } from "store/photos";
+import type { EphemeraEntityState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
@@ -26,20 +27,23 @@ function NavTimeline() {
     playhead,
     ephemera,
     photos,
+    videos,
+    evas,
   }: {
     playhead: PlayheadState;
-    ephemera: EphemeraState;
-    photos: PhotosState;
+    ephemera: EphemeraEntityState;
+    photos: PhotosEntityState;
+    videos: VideosEntityState;
+    evas: EVAsEntityState;
   } = useSelector((state: RootState) => state, deepEqual);
 
   const dispatch = useDispatch();
-  const storeState = useStore().getState();
   const dayNight = ephemera.dayNight;
 
-  const videoFiles = videoSelectors.selectAll(storeState);
-  const photoFiles = photosSelectors.selectAll(storeState);
+  const videoFiles = videoSelectors.selectAll(videos);
+  const photoFiles = photosSelectors.selectAll(photos);
 
-  const eva = evasSelector.selectById(storeState, idFromDate(playhead.date));
+  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
   const evaName = get(eva, "name", "");
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);

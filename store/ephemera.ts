@@ -1,4 +1,5 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import type { EntityState } from "@reduxjs/toolkit";
 import type { Ephemeris, DayNightObj } from "services/spacetrack";
 import { RootState } from ".";
 import { diff } from "./playhead";
@@ -8,10 +9,10 @@ export function idFromEphemeris(ephemeris: Ephemeris): string {
   return FILE;
 }
 
-export interface EphemeraState {
+export type EphemeraEntityState = EntityState<Ephemeris> & {
   dayNight: DayNightObj[];
   errorMessage: string;
-}
+};
 
 const ephemerisAdapter = createEntityAdapter<Ephemeris>({
   selectId: idFromEphemeris,
@@ -24,8 +25,8 @@ export const initialState = ephemerisAdapter.getInitialState({
   dayNight: {},
 });
 
-export const ephemeraSelectors = ephemerisAdapter.getSelectors<RootState>(
-  (state) => state.ephemera
+export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(
+  (state) => state
 );
 
 export const ephemeraSlice = createSlice({

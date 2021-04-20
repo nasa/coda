@@ -1,13 +1,13 @@
 import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
-import { useSelector, useDispatch, useStore } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { PlayheadState } from "store/playhead";
 import {
   initialPhotoFileState,
   setActivePhoto,
   setCollectionFilters,
   photosSelectors,
-  PhotosState,
+  PhotosEntityState,
 } from "store/photos";
 import styles from "./photos.module.css";
 
@@ -20,7 +20,7 @@ import type { RootState } from "store/index";
 
 export default function Photos() {
   const dispatch = useDispatch();
-  const { photos, playhead }: { photos: PhotosState; playhead: PlayheadState } = useSelector(
+  const { photos, playhead }: { photos: PhotosEntityState; playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
@@ -28,7 +28,7 @@ export default function Photos() {
   const [infoHover, setInfoHover] = useState(false);
   const [filterToggle, setFilterToggle] = useState(false);
 
-  const photoFiles = photosSelectors.selectAll(useStore().getState());
+  const photoFiles = photosSelectors.selectAll(photos);
 
   const changePhoto = () => {
     if (!photos.ready) {

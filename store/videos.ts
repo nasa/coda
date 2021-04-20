@@ -1,13 +1,11 @@
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
+import type { EntityState } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import type { VideoFile } from "services/io";
 import { isSameDate } from "./playhead";
-import { RootState } from ".";
-
-const videoAdapter = createEntityAdapter<VideoFile>();
 
 /** Info about videos from IO and the desired high-level state of the video players */
-export interface VideosState {
+export type VideosEntityState = EntityState<VideoFile> & {
   /** Match the video player to a group, @see {VideoFile.group}. Keyed by the ID of the video player */
   downlinks: { [key: number]: number };
   /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the ID of the video player */
@@ -18,9 +16,11 @@ export interface VideosState {
   errorMessage: string;
   /** UTC string of the last time we hit IO */
   lastChecked: string;
-}
+};
 
-export const initialState = videoAdapter.getInitialState({
+const videoAdapter = createEntityAdapter<VideoFile>();
+
+export const initialState: VideosEntityState = videoAdapter.getInitialState({
   downlinks: {
     1: 0,
     2: 1,
@@ -37,7 +37,7 @@ export const initialState = videoAdapter.getInitialState({
   lastChecked: "",
 });
 
-export const videoSelectors = videoAdapter.getSelectors<RootState>((state) => state.videos);
+export const videoSelectors = videoAdapter.getSelectors<VideosEntityState>((state) => state);
 
 export const videoSlice = createSlice({
   name: "video",

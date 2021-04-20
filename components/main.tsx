@@ -8,8 +8,8 @@ import Video from "components/video";
 import Photos from "components/photos";
 import ISSLocation from "components/iss-location";
 import { PlayheadState, run, halt, tick } from "store/playhead";
-import { PhotosState } from "store/photos";
-import { VideosState } from "store/videos";
+import { PhotosEntityState } from "store/photos";
+import { VideosEntityState } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
@@ -23,10 +23,11 @@ export default function Main() {
     playhead,
     videos,
     photos,
-  }: { playhead: PlayheadState; videos: VideosState; photos: PhotosState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+  }: {
+    playhead: PlayheadState;
+    videos: VideosEntityState;
+    photos: PhotosEntityState;
+  } = useSelector((state: RootState) => state, deepEqual);
   const dispatch = useDispatch();
 
   useEffect(() => {

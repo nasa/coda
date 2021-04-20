@@ -1,4 +1,5 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import type { EntityState } from "@reduxjs/toolkit";
 import type { Activity, DayNight, EVA } from "services/iss-wiki";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
@@ -11,13 +12,18 @@ export function idFromEVA(eva: EVA): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+export type EVAsEntityState = EntityState<EVA> & {
+  errorMessage: string;
+  lastChecked: string;
+};
+
 const evaAdapter = createEntityAdapter<EVA>({
   selectId: idFromEVA,
   // Keep the "all IDs" array sorted based on date descending
   sortComparer: (a, b) => diff(new Date(a.startDate), new Date(b.startDate)),
 });
 
-export const initialState = evaAdapter.getInitialState({
+export const initialState: EVAsEntityState = evaAdapter.getInitialState({
   errorMessage: "",
   lastChecked: "",
 });
@@ -42,7 +48,7 @@ export const evasSlice = createSlice({
 
 export const { addEVAs, fetchError } = evasSlice.actions;
 
-export const evasSelector = evaAdapter.getSelectors<RootState>((state) => state.evas);
+export const evasSelector = evaAdapter.getSelectors<EVAsEntityState>((state) => state);
 
 /**
  * Get a potential EVA ID from an ISO or UTC date string

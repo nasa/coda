@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import deepEqual from "lodash/isEqual";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate } from "store/playhead";
 import {
   buffering,
@@ -12,8 +12,8 @@ import {
   ready,
   selectVideoActivity,
   VideoActivity,
-  VideosState,
   videoSelectors,
+  VideosEntityState,
 } from "store/videos";
 import type { VideoFile } from "services/io";
 import { hhmmssFromSeconds } from "utils/formatting";
@@ -42,12 +42,11 @@ const isAutoplayError = (e: Error): boolean => {
 export default function Videos({ playerID }: { playerID: number }) {
   const { query } = useRouter();
   const dispatch = useDispatch();
-  const { videos, playhead }: { videos: VideosState; playhead: PlayheadState } = useSelector(
+  const { videos, playhead }: { videos: VideosEntityState; playhead: PlayheadState } = useSelector(
     (state: RootState) => state,
     deepEqual
   );
-  const storeState = useStore().getState();
-  const videoFiles: VideoFile[] = videoSelectors.selectAll(storeState);
+  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
@@ -61,8 +60,10 @@ export default function Videos({ playerID }: { playerID: number }) {
   let videoActivity = null as VideoActivity;
 
   if (videoFiles.length > 0) {
-    videoActivity = selectVideoActivity(storeState);
+    videoActivity = selectVideoActivity(videos);
   }
+
+  console.log("Videos()");
 
   const getInitialDownlink = () => {
     const queryParam = query[`video${playerID}`];
@@ -138,7 +139,7 @@ export default function Videos({ playerID }: { playerID: number }) {
     // make sure the video times are correct
 
     const currentlyPlayingVideo = videoSelectors.selectById(
-      storeState,
+      videos,
       videos.activeVideoFiles[playerID]
     );
     let videoStartOffset = 0;
@@ -176,7 +177,7 @@ export default function Videos({ playerID }: { playerID: number }) {
 
     if (videoID !== "") {
       // there is a video for this downlink
-      const video = videoSelectors.selectById(storeState, videoID);
+      const video = videoSelectors.selectById(videos, videoID);
       setSourceURL(video.videoURL);
     } else {
       // there is no video for this downlink
@@ -235,7 +236,7 @@ export default function Videos({ playerID }: { playerID: number }) {
     const videoID = videos.activeVideoFiles[playerID];
     let video: VideoFile;
     if (videoID !== "") {
-      video = videoSelectors.selectById(storeState, videoID);
+      video = videoSelectors.selectById(videos, videoID);
     }
 
     // the audio in LOS downlinked videos is never synced to the video
@@ -345,7 +346,7 @@ export default function Videos({ playerID }: { playerID: number }) {
 
   const renderVideoOverlay = () => {
     const currentlyPlayingVideo = videoSelectors.selectById(
-      storeState,
+      videos,
       videos.activeVideoFiles[playerID]
     );
     let videoStartOffset = 0;
@@ -411,7 +412,7 @@ export default function Videos({ playerID }: { playerID: number }) {
   const mutedOutlineClass = muted === true ? styles.unmute : styles.mute;
 
   const currentlyPlayingVideo = videoSelectors.selectById(
-    storeState,
+    videos,
     videos.activeVideoFiles[playerID]
   );
   let infoButtonStyle = "";

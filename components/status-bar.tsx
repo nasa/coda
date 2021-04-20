@@ -1,10 +1,10 @@
-import { useSelector, useStore } from "react-redux";
+import { useSelector } from "react-redux";
 import isNull from "lodash/isNull";
 import deepEqual from "lodash/isEqual";
 import { add, PlayheadState, isSameDate } from "store/playhead";
-import { evasSelector, idFromDate } from "store/evas";
-import { PhotosState } from "store/photos";
-import { VideosState } from "store/videos";
+import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
+import { PhotosEntityState } from "store/photos";
+import { VideosEntityState } from "store/videos";
 import styles from "./status-bar.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
@@ -19,16 +19,15 @@ export default function StatusBar() {
     photos: { errorMessage: photosErrorMessage },
   }: {
     playhead: PlayheadState;
-    evas: RootState["evas"];
-    videos: VideosState;
-    photos: PhotosState;
+    evas: EVAsEntityState;
+    videos: VideosEntityState;
+    photos: PhotosEntityState;
   } = useSelector((store: RootState) => store, deepEqual);
 
   const errorMessages =
     evas.errorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
 
-  const store = useStore();
-  const eva = evasSelector.selectById(store.getState(), idFromDate(date));
+  const eva = evasSelector.selectById(evas, idFromDate(date));
 
   const [isToday, setIsToday] = useState(false);
   useEffect(() => {
