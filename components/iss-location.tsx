@@ -16,6 +16,7 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
+import type { PlayheadHoverState } from "store/playheadHover";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
@@ -33,9 +34,11 @@ export default function ISSLocation() {
 
   const {
     playhead,
+    playheadHover,
     ephemera,
   }: {
     playhead: PlayheadState;
+    playheadHover: PlayheadHoverState;
     ephemera: EphemeraEntityState;
   } = useSelector((state: RootState) => state, deepEqual);
   const todayEphemera = ephemeraSelectors.selectAll(ephemera);
@@ -78,9 +81,9 @@ export default function ISSLocation() {
     playheadMarker.marker.setLngLat(playheadLatLonObj);
 
     //position hover marker
-    if (playhead.hoverSeconds !== 0) {
+    if (playheadHover.hoverSeconds !== 0) {
       hoverMarker.markerNode.style.visibility = "visible";
-      const hoverISODate = getPlayheadISOString(playhead.date, playhead.hoverSeconds);
+      const hoverISODate = getPlayheadISOString(playhead.date, playheadHover.hoverSeconds);
       const tle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
@@ -97,7 +100,7 @@ export default function ISSLocation() {
         map.panTo(playheadLatLonObj);
       }
     }
-  }, [ephemera, playhead.date, playhead.seconds, playhead.hoverSeconds]);
+  }, [ephemera, playhead.date, playhead.seconds, playheadHover.hoverSeconds]);
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,

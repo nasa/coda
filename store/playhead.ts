@@ -3,8 +3,6 @@ import { createSlice } from "@reduxjs/toolkit";
 export interface PlayheadState {
   /** Seconds representing the time into the mission day, eg. `0` is 00:00:00Z, `86399` is 23:59:59Z */
   seconds: number;
-  /** Seconds representing the time into the mission day that the mouse is hovering on via the nav-timeline */
-  hoverSeconds: number;
   /** UTC date being viewed */
   date: string;
   /** Whether the playhead actually is running */
@@ -16,7 +14,6 @@ export interface PlayheadState {
 export const initialState: PlayheadState = {
   // assume a 00:00:00Z start
   seconds: 0,
-  hoverSeconds: 0,
   date: null,
   isRunning: true,
   // assume a user wants the timeline to play as soon as they load the application
@@ -47,13 +44,6 @@ export const playheadSlice = createSlice({
      */
     changeTime: (state, action: { payload: number }) => {
       state.seconds = action.payload;
-    },
-
-    /**
-     * Change the date the cursor is hovering on via the nav-timeline
-     */
-    changeHoverTime: (state, action: { payload: number }) => {
-      state.hoverSeconds = action.payload;
     },
 
     /**
@@ -88,16 +78,7 @@ export const playheadSlice = createSlice({
   },
 });
 
-export const {
-  tick,
-  changeDate,
-  changeTime,
-  changeHoverTime,
-  start,
-  stop,
-  run,
-  halt,
-} = playheadSlice.actions;
+export const { tick, changeDate, changeTime, start, stop, run, halt } = playheadSlice.actions;
 
 const midnightZulu = (d: Date): Date => {
   d.setUTCHours(0);

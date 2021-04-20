@@ -63,8 +63,6 @@ export default function Videos({ playerID }: { playerID: number }) {
     videoActivity = selectVideoActivity(videos);
   }
 
-  console.log("Videos()");
-
   const getInitialDownlink = () => {
     const queryParam = query[`video${playerID}`];
     const downlink = (+queryParam || playerID) - 1;

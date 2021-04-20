@@ -4,7 +4,8 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PlayheadState, isSameDate, changeTime, changeHoverTime } from "store/playhead";
+import { PlayheadState, isSameDate, changeTime } from "store/playhead";
+import { changeHoverTime, PlayheadHoverState } from "store/playheadHover";
 import {
   EVAsEntityState,
   evasSelector,
@@ -25,12 +26,14 @@ import { RootState } from "store/index";
 function NavTimeline() {
   const {
     playhead,
+    playheadHover,
     ephemera,
     photos,
     videos,
     evas,
   }: {
     playhead: PlayheadState;
+    playheadHover: PlayheadHoverState;
     ephemera: EphemeraEntityState;
     photos: PhotosEntityState;
     videos: VideosEntityState;
@@ -121,7 +124,7 @@ function NavTimeline() {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
-        if (playhead.hoverSeconds !== thisHoverSeconds) {
+        if (playheadHover.hoverSeconds !== thisHoverSeconds) {
           dispatch(changeHoverTime(thisHoverSeconds));
         }
       });
