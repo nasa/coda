@@ -1,4 +1,3 @@
-import deepEqual from "lodash/isEqual";
 import Link from "next/link";
 import isNil from "lodash/isNil";
 import { useRouter } from "next/router";
@@ -19,10 +18,9 @@ import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { playhead, evas }: { playhead: PlayheadState; evas: EVAsEntityState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");

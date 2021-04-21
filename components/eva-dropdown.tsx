@@ -1,4 +1,3 @@
-import deepEqual from "lodash/isEqual";
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import { useRouter } from "next/router";
@@ -11,11 +10,8 @@ import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 import { padZeros } from "utils/formatting";
 
 export default function EVADropdown() {
-  const {
-    evas,
-  }: {
-    evas: EVAsEntityState;
-  } = useSelector((state: RootState) => state, deepEqual);
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+
   const router = useRouter();
   const date = useSelector((state: RootState) => state.playhead.date);
 

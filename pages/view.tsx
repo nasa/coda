@@ -1,5 +1,4 @@
 import isNull from "lodash/isNull";
-import deepEqual from "lodash/isEqual";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
@@ -38,15 +37,11 @@ export default function View() {
   }: {
     query: { date?: string; gmt?: string };
   } = useRouter();
-  const {
-    videos,
-    photos,
-    playhead,
-  }: {
-    videos: VideosEntityState;
-    photos: PhotosEntityState;
-    playhead: PlayheadState;
-  } = useSelector((state: RootState) => state, deepEqual);
+
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+
   const dispatch = useDispatch();
 
   const photoFiles = photosSelectors.selectAll(photos);

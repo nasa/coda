@@ -2,11 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { useSelector } from "react-redux";
 import ReactDOM from "react-dom";
-import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
 import { PlayheadState } from "store/playhead";
 import { EphemeraEntityState, ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import type { Ephemeris } from "services/spacetrack";
+import type { EphemerisFile } from "services/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";
@@ -32,15 +31,10 @@ export default function ISSLocation() {
     markerNode: null,
   };
 
-  const {
-    playhead,
-    playheadHover,
-    ephemera,
-  }: {
-    playhead: PlayheadState;
-    playheadHover: PlayheadHoverState;
-    ephemera: EphemeraEntityState;
-  } = useSelector((state: RootState) => state, deepEqual);
+  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+
   const todayEphemera = ephemeraSelectors.selectAll(ephemera);
 
   const [map, setMap] = useState<Map>(null);
@@ -351,7 +345,7 @@ type lngLat = {
   lat: number;
 };
 
-function getNextPosition(isoDate: string, secondsInc: number, ephemera: Ephemeris[]): lngLat {
+function getNextPosition(isoDate: string, secondsInc: number, ephemera: EphemerisFile[]): lngLat {
   const nextIncrementDate = new Date(isoDate);
   nextIncrementDate.setSeconds(nextIncrementDate.getSeconds() + secondsInc);
   const nextIncremenetDateISO = nextIncrementDate.toISOString();

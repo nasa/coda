@@ -1,6 +1,5 @@
 import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
-import deepEqual from "lodash/isEqual";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -42,10 +41,12 @@ const isAutoplayError = (e: Error): boolean => {
 export default function Videos({ playerID }: { playerID: number }) {
   const { query } = useRouter();
   const dispatch = useDispatch();
-  const { videos, playhead }: { videos: VideosEntityState; playhead: PlayheadState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+
+  console.log("Videos()");
+
   const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;

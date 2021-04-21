@@ -1,18 +1,15 @@
 import { useState, useRef } from "react";
-import deepEqual from "lodash/isEqual";
 import { useSelector } from "react-redux";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 import { RootState } from "store/index";
-import { VideosState } from "store/videos";
+import { VideosEntityState } from "store/videos";
 import { PlayheadState } from "store/playhead";
 
 export default function HeaderShare() {
-  const { playhead, videos }: { playhead: PlayheadState; videos: VideosState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");

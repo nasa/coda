@@ -1,6 +1,5 @@
 import { useSelector } from "react-redux";
 import isNull from "lodash/isNull";
-import deepEqual from "lodash/isEqual";
 import { add, PlayheadState, isSameDate } from "store/playhead";
 import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 import { PhotosEntityState } from "store/photos";
@@ -12,32 +11,25 @@ import { useEffect, useState } from "react";
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
-  const {
-    playhead: { isRunning, date },
-    evas,
-    videos: { ready: videosReady, lastChecked: ioLastChecked, errorMessage: videosErrorMessage },
-    photos: { errorMessage: photosErrorMessage },
-  }: {
-    playhead: PlayheadState;
-    evas: EVAsEntityState;
-    videos: VideosEntityState;
-    photos: PhotosEntityState;
-  } = useSelector((store: RootState) => store, deepEqual);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
   const errorMessages =
-    evas.errorMessage !== "" || videosErrorMessage !== "" || photosErrorMessage !== "";
+    evas.errorMessage !== "" || videos.errorMessage !== "" || photos.errorMessage !== "";
 
-  const eva = evasSelector.selectById(evas, idFromDate(date));
+  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
 
   const [isToday, setIsToday] = useState(false);
   useEffect(() => {
-    setIsToday(isSameDate(new Date(), new Date(date)));
-  }, [date]);
+    setIsToday(isSameDate(new Date(), new Date(playhead.date)));
+  }, [playhead.date]);
 
   const [lastIOUpdate, setLastIOUpdate] = useState("pending");
   const [nextIOUpdate, setNextIOUpdate] = useState("pending");
   const ioStatusUpdate = () => {
-    const lastCheckedDate = new Date(ioLastChecked);
+    const lastCheckedDate = new Date(videos.lastChecked);
     if (!isNaN(lastCheckedDate.valueOf())) {
       const lastUpdate =
         lastCheckedDate.toLocaleTimeString("en-us", {
@@ -60,7 +52,7 @@ export default function StatusBar() {
       setNextIOUpdate(nextUpdate);
     }
   };
-  useEffect(ioStatusUpdate, [ioLastChecked]);
+  useEffect(ioStatusUpdate, [videos.lastChecked]);
 
   const [lastWikiUpdate, setLastWikiUpdate] = useState("pending");
   const [nextWikiUpdate, setNextWikiUpdate] = useState("pending");
@@ -94,16 +86,20 @@ export default function StatusBar() {
     <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
       <span className={styles.playPause}>
         &nbsp;
-        {isRunning ? <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span> : "❙❙"}
+        {playhead.isRunning ? (
+          <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span>
+        ) : (
+          "❙❙"
+        )}
       </span>
       <span className={styles.statusText}>
-        {!videosReady[1] || !videosReady[2] ? <span className={styles.spinner}></span> : " "}
+        {!videos.ready[1] || !videos.ready[2] ? <span className={styles.spinner}></span> : " "}
         &nbsp;
         {isToday && (
           <span>
             Last video update: {lastIOUpdate}
-            {videosErrorMessage ? " (failed)" : ""}. Next video update scheduled for: {nextIOUpdate}{" "}
-            |&nbsp;
+            {videos.errorMessage ? " (failed)" : ""}. Next video update scheduled for:{" "}
+            {nextIOUpdate} |&nbsp;
           </span>
         )}
         {!isNull(eva) && (
@@ -113,8 +109,10 @@ export default function StatusBar() {
             |&nbsp;
           </span>
         )}
-        <span title={["IO Status", videosErrorMessage || photosErrorMessage || "Good"].join(" | ")}>
-          IO {videosErrorMessage === "" && photosErrorMessage === "" ? "✓" : "✗"}&nbsp;
+        <span
+          title={["IO Status", videos.errorMessage || photos.errorMessage || "Good"].join(" | ")}
+        >
+          IO {videos.errorMessage === "" && photos.errorMessage === "" ? "✓" : "✗"}&nbsp;
         </span>
         <span title={["Wiki Status", evas.errorMessage || "Good"].join(" | ")}>
           | ISS WIKI {evas.errorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;

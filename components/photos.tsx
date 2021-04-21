@@ -1,4 +1,3 @@
-import deepEqual from "lodash/isEqual";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { PlayheadState } from "store/playhead";
@@ -20,10 +19,10 @@ import type { RootState } from "store/index";
 
 export default function Photos() {
   const dispatch = useDispatch();
-  const { photos, playhead }: { photos: PhotosEntityState; playhead: PlayheadState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
   const [filterToggle, setFilterToggle] = useState(false);

@@ -1,5 +1,4 @@
 import get from "lodash/get";
-import deepEqual from "lodash/isEqual";
 import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
@@ -24,21 +23,12 @@ import { RootState } from "store/index";
  * Renders the navigation timeline presented at the top of the CODA window
  */
 function NavTimeline() {
-  const {
-    playhead,
-    playheadHover,
-    ephemera,
-    photos,
-    videos,
-    evas,
-  }: {
-    playhead: PlayheadState;
-    playheadHover: PlayheadHoverState;
-    ephemera: EphemeraEntityState;
-    photos: PhotosEntityState;
-    videos: VideosEntityState;
-    evas: EVAsEntityState;
-  } = useSelector((state: RootState) => state, deepEqual);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
+  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
 
   const dispatch = useDispatch();
   const dayNight = ephemera.dayNight;
