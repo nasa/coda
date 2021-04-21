@@ -75,9 +75,9 @@ export default function ISSLocation() {
     playheadMarker.marker.setLngLat(playheadLatLonObj);
 
     //position hover marker
-    if (playheadHover.hoverSeconds !== 0) {
+    if (playheadHover.seconds !== 0) {
       hoverMarker.markerNode.style.visibility = "visible";
-      const hoverISODate = getPlayheadISOString(playhead.date, playheadHover.hoverSeconds);
+      const hoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
       const tle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
@@ -94,7 +94,7 @@ export default function ISSLocation() {
         map.panTo(playheadLatLonObj);
       }
     }
-  }, [ephemera, playhead.date, playhead.seconds, playheadHover.hoverSeconds]);
+  }, [ephemera, playhead.date, playhead.seconds, playheadHover.seconds]);
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,

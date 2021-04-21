@@ -115,7 +115,7 @@ function NavTimeline() {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
-        if (playheadHover.hoverSeconds !== thisHoverSeconds) {
+        if (playheadHover.seconds !== thisHoverSeconds) {
           dispatch(changeHoverTime(thisHoverSeconds));
         }
       });
