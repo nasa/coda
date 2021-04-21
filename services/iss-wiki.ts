@@ -76,12 +76,20 @@ async function fetchWiki(query: string, _action: string): Promise<WikiResults> {
   // we're in the local environment. fake the request using a mock service worker
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
   if (isLocal) {
-    const res = await fetch(process.env.WIKI_API_URL, {
-      headers: {
-        "X-MOCK-ACTION": _action,
-      },
-    });
-    return res.json();
+    console.log(`Mocking request for: ${_action}...`);
+
+    let mockData: WikiResponse;
+    switch (_action) {
+      case "getAllEVAs":
+        const getAllEVAsMockData = require("../mocks/fakedata/getAllEVAs.json");
+        return await Promise.resolve(getAllEVAsMockData);
+      case "getAllAsExecuted":
+        const getAllAsExecutedMockData = require("../mocks/fakedata/getAllAsExecuted.json");
+        return await Promise.resolve(getAllAsExecutedMockData);
+      case "getAllCrew":
+        const getAllCrewMockData = require("../mocks/fakedata/getAllCrew.json");
+        return await Promise.resolve(getAllCrewMockData);
+    }
   } else {
     let url = `${process.env.PROXY_ORIGIN}/coda_server/getwiki.php?wikiparam=${queryString}`;
     if (process.env.NEXT_PUBLIC_APP_ENV !== "prod") {

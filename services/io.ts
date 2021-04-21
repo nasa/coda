@@ -173,10 +173,11 @@ export async function getVideoData(
   let res;
   console.log("env var:" + process.env.NEXT_PUBLIC_APP_ENV);
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    console.log("Mocking request for getVideoData()");
     let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");
 
     // mock the request with local data
-    res = Promise.resolve(mockIOData);
+    res = await Promise.resolve(mockIOData);
   } else {
     res = await fetchIO(queryParams);
   }
@@ -337,10 +338,11 @@ export async function getPhotoData(
 
   let res;
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    console.log("Mocking request for getPhotoData()");
     const mockIOData: IOResponse = require("../mocks/fakedata/io_photos.json");
 
     // mock the request with local data
-    res = Promise.resolve(mockIOData);
+    res = await Promise.resolve(mockIOData);
   } else {
     res = await fetchIO(queryParams);
   }
