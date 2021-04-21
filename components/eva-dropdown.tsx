@@ -2,20 +2,21 @@ import get from "lodash/get";
 import isNil from "lodash/isNil";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useSelector, useStore } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff } from "store/playhead";
 import styles from "./eva-dropdown.module.css";
-import { evasSelector, idFromDate } from "store/evas";
+import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 import { padZeros } from "utils/formatting";
 
 export default function EVADropdown() {
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+
   const router = useRouter();
-  const store = useStore();
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  const allEVAs = evasSelector.selectAll(store.getState());
-  const selectedEVA = evasSelector.selectById(store.getState(), idFromDate(date));
+  const allEVAs = evasSelector.selectAll(evas);
+  const selectedEVA = evasSelector.selectById(evas, idFromDate(date));
   const evaName = get(selectedEVA, "name", "");
 
   const [value, setValue] = useState("");
@@ -28,9 +29,7 @@ export default function EVADropdown() {
     e.preventDefault();
     setValue(e.target.value);
     if (e.target.value !== "") {
-      const [year, month, day] = evasSelector
-        .selectById(store.getState(), e.target.value)
-        .startDate.split("-");
+      const [year, month, day] = evasSelector.selectById(evas, e.target.value).startDate.split("-");
       router.push(`/view?date=${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`, "", {
         shallow: true,
       });

@@ -6,11 +6,11 @@ import { getTimes } from "utils/suncalc";
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
 
 type EphemerisStore = {
-  ephemera: Ephemeris[];
+  ephemera: EphemerisFile[];
   dayNight: {};
 };
 
-export type Ephemeris = {
+export interface EphemerisFile {
   COMMENT: string;
   ORIGINATOR: string;
   NORAD_CAT_ID: string;
@@ -43,9 +43,9 @@ export type Ephemeris = {
   APOGEE: string;
   PERIGEE: string;
   DECAYED: string;
-};
+}
 
-async function fetchSpacetrack(dateStr: string): Promise<Ephemeris[]> {
+async function fetchSpacetrack(dateStr: string): Promise<EphemerisFile[]> {
   const url = process.env.SPACETRACK_API_URL + "?date=" + dateStr;
 
   let res: Response;
@@ -63,7 +63,7 @@ export type DayNightObj = {
   daylight: boolean;
 };
 
-function calcDayNight(ephemera: Ephemeris[], dateStr: string): DayNightObj[] {
+function calcDayNight(ephemera: EphemerisFile[], dateStr: string): DayNightObj[] {
   const secondsIn24Hours = 86400;
   const startDate = new Date(dateStr + "T00:00:00Z");
 

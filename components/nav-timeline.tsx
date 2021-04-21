@@ -1,19 +1,20 @@
 import get from "lodash/get";
-import deepEqual from "lodash/isEqual";
 import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
-import { PlayheadState, isSameDate, changeTime, changeHoverTime } from "store/playhead";
+import { useDispatch, useSelector } from "react-redux";
+import { PlayheadState, isSameDate, changeTime } from "store/playhead";
+import { changeHoverTime, PlayheadHoverState } from "store/playheadHover";
 import {
+  EVAsEntityState,
   evasSelector,
   getActivityPerformanceMissionTime,
   getEVAStartMilliseconds,
   idFromDate,
 } from "store/evas";
-import { videoSelectors } from "store/videos";
-import { photosSelectors, PhotosState } from "store/photos";
-import { EphemeraState } from "store/ephemera";
+import { videoSelectors, VideosEntityState } from "store/videos";
+import { photosSelectors, PhotosEntityState } from "store/photos";
+import type { EphemeraEntityState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
@@ -22,24 +23,20 @@ import { RootState } from "store/index";
  * Renders the navigation timeline presented at the top of the CODA window
  */
 function NavTimeline() {
-  const {
-    playhead,
-    ephemera,
-    photos,
-  }: {
-    playhead: PlayheadState;
-    ephemera: EphemeraState;
-    photos: PhotosState;
-  } = useSelector((state: RootState) => state, deepEqual);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
+  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
 
   const dispatch = useDispatch();
-  const storeState = useStore().getState();
   const dayNight = ephemera.dayNight;
 
-  const videoFiles = videoSelectors.selectAll(storeState);
-  const photoFiles = photosSelectors.selectAll(storeState);
+  const videoFiles = videoSelectors.selectAll(videos);
+  const photoFiles = photosSelectors.selectAll(photos);
 
-  const eva = evasSelector.selectById(storeState, idFromDate(playhead.date));
+  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
   const evaName = get(eva, "name", "");
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
@@ -102,6 +99,8 @@ function NavTimeline() {
     drawNav.current.drawTier1();
     drawNav.current.drawTier1NavBox(time.current);
     drawNav.current.drawTier2();
+    drawNav.current.drawTier1Future();
+    drawNav.current.drawCursor(time.current);
 
     paper.view.onResize = function () {
       drawNav.current.setDynamicWidthVariables();
@@ -109,7 +108,6 @@ function NavTimeline() {
       drawNav.current.drawTier1Future();
       drawNav.current.drawTier1NavBox(time.current);
       drawNav.current.drawTier2();
-      drawNav.current.drawCursor(time.current);
     };
 
     paper.view.onMouseMove = (event) => {
@@ -117,7 +115,7 @@ function NavTimeline() {
         if (!mouseOnNavigator.current) {
           mouseOnNavigator.current = true;
         }
-        if (playhead.hoverSeconds !== thisHoverSeconds) {
+        if (playheadHover.seconds !== thisHoverSeconds) {
           dispatch(changeHoverTime(thisHoverSeconds));
         }
       });
@@ -168,7 +166,7 @@ function NavTimeline() {
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
-  }, [playhead.seconds]);
+  }, [playhead]);
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322

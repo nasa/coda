@@ -1,5 +1,4 @@
 import { useDispatch, useSelector } from "react-redux";
-import deepEqual from "lodash/isEqual";
 import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
@@ -8,8 +7,8 @@ import Video from "components/video";
 import Photos from "components/photos";
 import ISSLocation from "components/iss-location";
 import { PlayheadState, run, halt, tick } from "store/playhead";
-import { PhotosState } from "store/photos";
-import { VideosState } from "store/videos";
+import { PhotosEntityState } from "store/photos";
+import { VideosEntityState } from "store/videos";
 import useInterval from "utils/useInterval";
 import styles from "./main.module.css";
 import { useEffect } from "react";
@@ -19,14 +18,10 @@ import { RootState } from "store/index";
  * Renders the main CODA application layout. Also handles checking whether the playhead should be running
  */
 export default function Main() {
-  const {
-    playhead,
-    videos,
-    photos,
-  }: { playhead: PlayheadState; videos: VideosState; photos: PhotosState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+
   const dispatch = useDispatch();
 
   useEffect(() => {

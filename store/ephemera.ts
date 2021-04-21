@@ -1,31 +1,31 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { Ephemeris, DayNightObj } from "services/spacetrack";
-import { RootState } from ".";
+import type { EntityState } from "@reduxjs/toolkit";
+import type { EphemerisFile, DayNightObj } from "services/spacetrack";
 import { diff } from "./playhead";
 
-export function idFromEphemeris(ephemeris: Ephemeris): string {
+export function idFromEphemeris(ephemeris: EphemerisFile): string {
   const { FILE } = ephemeris;
   return FILE;
 }
 
-export interface EphemeraState {
+export type EphemeraEntityState = EntityState<EphemerisFile> & {
   dayNight: DayNightObj[];
   errorMessage: string;
-}
+};
 
-const ephemerisAdapter = createEntityAdapter<Ephemeris>({
+const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
   selectId: idFromEphemeris,
   // Keep the "all IDs" array sorted based on date descending
   sortComparer: (a, b) => diff(new Date(a.EPOCH), new Date(b.EPOCH)),
 });
 
-export const initialState = ephemerisAdapter.getInitialState({
+export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
   errorMessage: "",
-  dayNight: {},
+  dayNight: [{ appSeconds: 0, daylight: false }],
 });
 
-export const ephemeraSelectors = ephemerisAdapter.getSelectors<RootState>(
-  (state) => state.ephemera
+export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(
+  (state) => state
 );
 
 export const ephemeraSlice = createSlice({
@@ -52,7 +52,7 @@ export const { addEphemera, fetchError } = ephemeraSlice.actions;
  * @param dateTimeWanted
  * @returns TLE string
  */
-export function getAppropriateTLE(ephemera: Ephemeris[], dateTimeWanted: string): string {
+export function getAppropriateTLE(ephemera: EphemerisFile[], dateTimeWanted: string): string {
   let thisDateDiff;
   let lastDateDiff = -1;
 

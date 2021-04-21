@@ -1,9 +1,8 @@
-import deepEqual from "lodash/isEqual";
 import Link from "next/link";
 import isNil from "lodash/isNil";
 import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { changeTime, PlayheadState } from "store/playhead";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EVADropdown from "components/eva-dropdown";
@@ -11,7 +10,7 @@ import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
 
 import styles from "./header.module.css";
-import { evasSelector, idFromDate } from "store/evas";
+import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 
 /**
  * Renders the top bar of CODA
@@ -19,10 +18,9 @@ import { evasSelector, idFromDate } from "store/evas";
 function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { playhead }: { playhead: PlayheadState } = useSelector(
-    (state: RootState) => state,
-    deepEqual
-  );
+
+  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
@@ -34,8 +32,7 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  const store = useStore();
-  const eva = evasSelector.selectById(store.getState(), idFromDate(playhead.date));
+  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times

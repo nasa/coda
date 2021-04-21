@@ -1,7 +1,6 @@
 import isNull from "lodash/isNull";
-import deepEqual from "lodash/isEqual";
 import Head from "next/head";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
 import { buildEVAStore } from "services/iss-wiki";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "services/io";
@@ -11,12 +10,14 @@ import {
   haveVideosFromDate,
   fetchError as videosFetchError,
   videoSelectors,
+  VideosEntityState,
 } from "store/videos";
 import {
   addPhotos,
   photosSelectors,
   fetchError as photosFetchError,
   setCollectionFilters,
+  PhotosEntityState,
 } from "store/photos";
 import { addEVAs } from "store/evas";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
@@ -36,16 +37,15 @@ export default function View() {
   }: {
     query: { date?: string; gmt?: string };
   } = useRouter();
-  const {
-    playhead,
-  }: {
-    playhead: PlayheadState;
-  } = useSelector((state: RootState) => state, deepEqual);
+
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+
   const dispatch = useDispatch();
 
-  const store = useStore();
-  const photoFiles = photosSelectors.selectAll(store.getState());
-  const videoFiles = videoSelectors.selectAll(store.getState());
+  const photoFiles = photosSelectors.selectAll(photos);
+  const videoFiles = videoSelectors.selectAll(videos);
 
   // make sure the application is running on the correct date
   useEffect(() => {

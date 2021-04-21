@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
-import { useSelector, useStore } from "react-redux";
+import { useSelector } from "react-redux";
 import ReactDOM from "react-dom";
-import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
 import { PlayheadState } from "store/playhead";
-import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import type { Ephemeris } from "services/spacetrack";
+import { EphemeraEntityState, ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
+import type { EphemerisFile } from "services/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";
@@ -16,6 +15,7 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
+import type { PlayheadHoverState } from "store/playheadHover";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
@@ -31,12 +31,11 @@ export default function ISSLocation() {
     markerNode: null,
   };
 
-  const {
-    playhead,
-  }: {
-    playhead: PlayheadState;
-  } = useSelector((state: RootState) => state, deepEqual);
-  const ephemera = ephemeraSelectors.selectAll(useStore().getState());
+  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+
+  const todayEphemera = ephemeraSelectors.selectAll(ephemera);
 
   const [map, setMap] = useState<Map>(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
@@ -61,12 +60,12 @@ export default function ISSLocation() {
 
   //update map based on changes in seconds / hoverSeconds
   useEffect(() => {
-    if (!map || !playhead.date || ephemera.length === 0) {
+    if (!map || !playhead.date || todayEphemera.length === 0) {
       return;
     }
 
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
-    const tle = getAppropriateTLE(ephemera, playHeadISODate);
+    const tle = getAppropriateTLE(todayEphemera, playHeadISODate);
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
     const playheadLatLonObj = getLatLngObj(tle, new Date(playHeadISODate).getTime());
@@ -76,10 +75,10 @@ export default function ISSLocation() {
     playheadMarker.marker.setLngLat(playheadLatLonObj);
 
     //position hover marker
-    if (playhead.hoverSeconds !== 0) {
+    if (playheadHover.seconds !== 0) {
       hoverMarker.markerNode.style.visibility = "visible";
-      const hoverISODate = getPlayheadISOString(playhead.date, playhead.hoverSeconds);
-      const tle = getAppropriateTLE(ephemera, hoverISODate);
+      const hoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
+      const tle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
       hoverMarker.marker.setLngLat(hoverLatLonObj);
@@ -95,7 +94,7 @@ export default function ISSLocation() {
         map.panTo(playheadLatLonObj);
       }
     }
-  }, [ephemera, playhead.date, playhead.seconds, playhead.hoverSeconds]);
+  }, [ephemera, playhead.date, playhead.seconds, playheadHover.seconds]);
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
@@ -212,7 +211,7 @@ export default function ISSLocation() {
     let dateLineHit = false;
     let dateLineIncNum = 0;
     for (let i = secondsStart; i < secondsEnd; i = i + secondsStep) {
-      const nextPosition = getNextPosition(isoDate, i, ephemera);
+      const nextPosition = getNextPosition(isoDate, i, todayEphemera);
 
       let lngIncrement;
       let lngStepSize;
@@ -236,7 +235,7 @@ export default function ISSLocation() {
     // draw second line that continues across the date line if path crosses date line
     if (dateLineHit) {
       for (let i = dateLineIncNum; i < secondsEnd; i = i + secondsStep) {
-        const nextPosition = getNextPosition(isoDate, i, ephemera);
+        const nextPosition = getNextPosition(isoDate, i, todayEphemera);
         coordinates2.push([nextPosition.lng, nextPosition.lat]);
       }
     }
@@ -346,7 +345,7 @@ type lngLat = {
   lat: number;
 };
 
-function getNextPosition(isoDate: string, secondsInc: number, ephemera: Ephemeris[]): lngLat {
+function getNextPosition(isoDate: string, secondsInc: number, ephemera: EphemerisFile[]): lngLat {
   const nextIncrementDate = new Date(isoDate);
   nextIncrementDate.setSeconds(nextIncrementDate.getSeconds() + secondsInc);
   const nextIncremenetDateISO = nextIncrementDate.toISOString();
