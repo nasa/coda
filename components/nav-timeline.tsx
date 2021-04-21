@@ -99,6 +99,8 @@ function NavTimeline() {
     drawNav.current.drawTier1();
     drawNav.current.drawTier1NavBox(time.current);
     drawNav.current.drawTier2();
+    drawNav.current.drawTier1Future();
+    drawNav.current.drawCursor(time.current);
 
     paper.view.onResize = function () {
       drawNav.current.setDynamicWidthVariables();
@@ -106,7 +108,6 @@ function NavTimeline() {
       drawNav.current.drawTier1Future();
       drawNav.current.drawTier1NavBox(time.current);
       drawNav.current.drawTier2();
-      drawNav.current.drawCursor(time.current);
     };
 
     paper.view.onMouseMove = (event) => {
@@ -165,7 +166,7 @@ function NavTimeline() {
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
-  }, [playhead.seconds]);
+  }, [playhead]);
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322
