@@ -45,8 +45,6 @@ export default function Videos({ playerID }: { playerID: number }) {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
-  console.log("Videos()");
-
   const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
