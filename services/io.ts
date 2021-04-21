@@ -171,7 +171,6 @@ export async function getVideoData(
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
   let res;
-  console.log("env var:" + process.env.NEXT_PUBLIC_APP_ENV);
   if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
     console.log("Mocking request for getVideoData()");
     let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");

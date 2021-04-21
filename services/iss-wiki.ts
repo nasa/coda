@@ -78,7 +78,6 @@ async function fetchWiki(query: string, _action: string): Promise<WikiResults> {
   if (isLocal) {
     console.log(`Mocking request for: ${_action}...`);
 
-    let mockData: WikiResponse;
     switch (_action) {
       case "getAllEVAs":
         const getAllEVAsMockData = require("../mocks/fakedata/getAllEVAs.json");
@@ -166,52 +165,6 @@ interface EVADetails {
   };
 }
 
-/**
- * Get metadata about an EVA from the wiki
- * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
- */
-// export async function getEVADetails(evaName: string): Promise<ParsedEVADetails> {
-//   const query = `
-//     [[ ${evaName} ]]
-//     |? EVA title
-//     |? Start date
-//     |? Start time
-//     |? Duration
-//   `;
-//   const res = await fetchWiki(query, "getEVADetails");
-//   const results: EVADetails = res.query.results;
-//   return parseDetailsObject(results);
-// }
-
-// export interface ParsedEVADetails {
-//   evaName: string;
-//   evaTitle: string;
-//   /** GMT HH:MM */
-//   startTime: string;
-//   /** H:MM */
-//   duration: string;
-//   /** Wiki URL */
-//   fullURL: string;
-//   /** YYYY-MM-DD */
-//   evaDate: string;
-// }
-
-// /** Get useful information about an EVA from what the wiki gave us */
-// function parseDetailsObject(res: EVADetails): ParsedEVADetails {
-//   const evaName = Object.keys(res)[0];
-//   const evaData = res[evaName];
-//   const evaDate = evaData["printouts"]["Start date"][0]["raw"].substring(2);
-//   const [year, month, day] = evaDate.split("/");
-//   return {
-//     evaName,
-//     evaTitle: evaData["printouts"]["EVA title"][0],
-//     startTime: evaData["printouts"]["Start time"][0],
-//     duration: evaData["printouts"]["Duration"][0],
-//     fullURL: evaData["fullurl"],
-//     evaDate: `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`,
-//   };
-// }
-
 interface EVAAsExecuted {
   /** keyed in the form of `US EVA 55/As-executed summary timeline# 868b8afb495ff99585ccfea0263fec03` */
   [key: string]: {
@@ -242,57 +195,6 @@ const colorTranslator = {
   black: "#000000",
   pink: "#FFC0CB",
 };
-
-/**
- * Get as-executed data for a given EV on a given EVA
- * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
- */
-// async function _getAsExecuted(evaName: string, evNum: number) {
-//   const actorName = `Actor${evNum + 1}`;
-//   const query = `
-//     [[From page::~${evaName}/*xecuted*]]
-//     [[Assigned to::${actorName}]]
-//     |mainlabel=-|?Index
-//     |? Has text title
-//     |? Duration hour
-//     |? Duration minute
-//     |? Related article
-//     |? Color
-//     |? Actor
-//     |named args=yes
-//     |sort=Actor, Index
-//   `;
-//   const res = await fetchWiki(query, `getAsExecutedEV${evNum}`);
-//   const results: EVAAsExecuted = res.query.results;
-//   return parseAsExecuted(results);
-// }
-
-// function parseAsExecuted(results: EVAAsExecuted): Activity[] {
-//   const res = [];
-
-//   Object.keys(results).forEach((r) => {
-//     const durationHour = results[r]["printouts"]["Duration hour"][0];
-//     const durationMinute = results[r]["printouts"]["Duration minute"][0];
-//     const durationTotalSeconds = +durationHour * 3600 + +durationMinute * 60;
-
-//     let colorString = results[r]["printouts"]["Color"][0];
-//     if (colorString in colorTranslator) {
-//       colorString = colorTranslator[colorString];
-//     } else {
-//       console.error("color not found: " + colorString);
-//     }
-//     const activity: Activity = {
-//       content: results[r]["printouts"]["Has text title"][0],
-//       duration: durationTotalSeconds,
-//       color: colorString,
-//     };
-//     if (activity.color === "gray") activity.color = "grey";
-
-//     res.push(activity);
-//   });
-
-//   return res;
-// }
 
 export interface AllExecution {
   /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
