@@ -11,12 +11,6 @@ if (typeof window === "undefined") {
   require("win-ca");
 }
 
-let mockIOData: IOResponse;
-if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
-  // get mock data for later
-  mockIOData = require("../mocks/fakedata/io.json");
-}
-
 /**
  * Response from a search on Imagery Online
  */
@@ -130,11 +124,6 @@ export interface PhotoFile {
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
-  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
-    // mock the request with local data
-    return Promise.resolve(mockIOData);
-  }
-
   let url = `${process.env.IO_API_URL}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
   // IO doesn't currently like our Origin and key so we need to use a proxy
   url = `${process.env.PROXY_ORIGIN}/coda_server/getio.php?IOParam=${encodeURIComponent(url)}`;
@@ -181,7 +170,16 @@ export async function getVideoData(
    */
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
-  const res = await fetchIO(queryParams);
+  let res;
+  console.log("env var:" + process.env.NEXT_PUBLIC_APP_ENV);
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");
+
+    // mock the request with local data
+    res = Promise.resolve(mockIOData);
+  } else {
+    res = await fetchIO(queryParams);
+  }
   return parseIOVideoResponse(res);
 }
 
@@ -337,14 +335,24 @@ export async function getPhotoData(
    */
   let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
 
-  let res = await fetchIO(queryParams);
+  let res;
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    const mockIOData: IOResponse = require("../mocks/fakedata/io_photos.json");
+
+    // mock the request with local data
+    res = Promise.resolve(mockIOData);
+  } else {
+    res = await fetchIO(queryParams);
+  }
+
   const { numfound } = res.results.response;
   const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
   // create array of photos from first API call
   const photos1: PhotoFile[] = parseIOPhotoResponse(res);
 
-  if (callsRequired <= 1) {
+  if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    // If using mock data, just return the first 500 in the mock response
     // Only one API call was needed because we got fewer than 500 results. Just return it.
     return photos1;
   }

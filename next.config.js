@@ -2,10 +2,11 @@ const envs = {
   local: {
     NEXT_PUBLIC_APP_ENV: "local",
     TITLE: "CODA (local)",
+    IO_API_URL: "https://io.jsc.nasa.gov/api/search/rpp=500",
     IO_HOST: "https://emss.s3-us-gov-east-1.amazonaws.com",
     IO_MOCK_WEBPATH: "/coda/CODA_data/US_EVA_55",
     WIKI_API_URL: "http://wiki-mock/eva/api.php",
-    SPACETRACK_API_URL: "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php",
+    SPACETRACK_API_URL: "http://coda-data.apolloinrealtime.org/spacetrack_iss/get_iss.php",
   },
   production: {
     NEXT_PUBLIC_APP_ENV: "prod",
