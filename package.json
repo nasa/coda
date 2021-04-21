@@ -5,7 +5,7 @@
   "main": "server/index.ts",
   "scripts": {
     "build": "next build && tsc --project tsconfig.server.json",
-    "dev": "nodemon",
+    "dev": "cross-env NODE_ENV=production nodemon",
     "local": "cross-env NODE_ENV=local nodemon",
     "export": "next export",
     "start": "cross-env NODE_ENV=production node dist/index.js",
