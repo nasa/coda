@@ -10,7 +10,7 @@ export default function Index() {
       </Head>
       Welcome to CODA! Check out the{" "}
       <Link href="/view">
-        <a>latest videos</a>
+        <a>latest videos!</a>
       </Link>
     </div>
   );
