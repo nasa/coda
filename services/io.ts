@@ -262,11 +262,11 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
 
   var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // if we are using mock data, then stream a mock video file in place of all video files
   // this allows dev to continue with VPN off
-  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
-
-  const videoURL = `${process.env.IO_HOST}${webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const videoURL = process.env.IO_MOCK_MEDIA_URL
+    ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
+    : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   // derive mission second values for this video
   const startOfDay = new Date(`${UTCstart.toISOString().split("T")[0]}T00:00:00Z`);
@@ -403,11 +403,14 @@ function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {
 function parsePhotoResultMetadata(doc: Doc): PhotoFile {
   var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // if we are using mock data, then use a mock photo that is not export restricted
   // this allows dev to continue with VPN off
-  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
-  const lowResURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const highResURL = `${process.env.IO_HOST}${webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const lowResURL = process.env.IO_MOCK_MEDIA_URL
+    ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1_small.jpg"
+    : `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const highResURL = process.env.IO_MOCK_MEDIA_URL
+    ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
+    : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,

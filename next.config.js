@@ -4,7 +4,7 @@ const envs = {
     TITLE: "CODA (local)",
     IO_API_URL: "https://io.jsc.nasa.gov/api/search/rpp=500",
     IO_HOST: "https://emss.s3-us-gov-east-1.amazonaws.com",
-    IO_MOCK_WEBPATH: "/coda/CODA_data/US_EVA_55",
+    IO_MOCK_MEDIA_URL: "https://emss.s3-us-gov-east-1.amazonaws.com/coda_data/",
     WIKI_API_URL: "http://wiki-mock/eva/api.php",
     SPACETRACK_API_URL: "http://coda-data.apolloinrealtime.org/spacetrack_iss/get_iss.php",
   },
