@@ -14,49 +14,53 @@ This section is only necessary if you're working with the CODA codebase.
 
 We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged when new code is merged into the following branches:
 
-| **Branch** | **Environment** | **URL**                           |
-| ---------- | --------------- | --------------------------------- |
-| `prod`     | production      | https://coda.fit.nasa.gov         |
-| `staging`  | staging         | https://coda-staging.fit.nasa.gov |
-| `.*--dev`  | development     | https://coda-dev.fit.nasa.gov     |
+| **Branch** | **Environment** | **URL**                        |
+| ---------- | --------------- | ------------------------------ |
+| `prod`     | production      | https://coda.fit.nasa.gov      |
+| `int`      | integration     | https://coda-int.fit.nasa.gov  |
+| `.*--dev`  | development     | https://coda-dev.fit.nasa.gov  |
+| `.*--dev2` | development2    | https://coda-dev2.fit.nasa.gov |
 
 You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
 
 The rules for deployments are as follows:
 
-- Anyone can push a branch that ends in `--dev` at any time to deploy to development. This is a great place to quickly test changes in a real deployed environment.
-- MRs for new features go into staging. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users.
-- MRs to production are only allowed from staging. MRs to production must also include a manual approval that the staging environment looks good before promoting.
+- Anyone can push a branch that ends in `--dev` or `--dev2` at any time to deploy to a development server. This is a great place to quickly test changes in a real deployed environment.
+- MRs for new features go into integration. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users. Create merge requests into this branch by setting the MR's "Target branch" to `int`.
+- MRs to production:
+  - Are only allowed from integration. This means the merge request will have a "Target branch" of `prod` and "Source branch" of `int`.
+  - Include a manual action within the CI pipeline that prevents deploy to production until the integration environment looks good.
 
 ### Server Strategy
 
 **Dependencies**
 
 - Node 14
-- Any Linux distro with systemd (FIT uses [CentOS](https://www.centos.org/) 8)
-- Apache (loose requirement, nginx is also an option)
+- Any Linux distro with systemd. FIT uses [CentOS](https://www.centos.org/) 7 mostly (coda-dev is CentOS 8 pre-release for now)
+- A reverse proxy (CODA is using Nginx, except coda-dev using Apache)
 
-We run CODA as a Node server and keep it alive with [systemd](https://www.freedesktop.org/wiki/Software/systemd/). Why systemd? We're running on CentOS 8 FIT VMs. CentOS, like most major Linux distros, uses systemd to manage core services. It's fairly easy to configure and it's really good at keeping a process alive.
+We run CODA as a Node server and keep it alive with [systemd](https://www.freedesktop.org/wiki/Software/systemd/). Why systemd? We're running on CentOS 7 FIT VMs. CentOS, like most major Linux distros, uses systemd to manage core services. It's fairly easy to configure and it's really good at keeping a process alive.
 
 ### First Time Setup
 
+CODA's FIT servers are maintained with [FITBox](https://gitlab.fit.nasa.gov/fitbox/fitbox) using [this FITBox config](https://gitlab.fit.nasa.gov/coda/coda-fitbox-config). The steps below cover what needs to be done to get the CODA application up and running. Details for setting up supporting software is not included. The FITBox config outlines precisely how to get a CentOS 7 server up and running.
+
 Perform these steps on the VM as the user who will be running CODA.
 
-1. Configure Apache (or nginx) to proxy ports 80 and 443 to port 3000
-1. Install an SSH key on the VM for the user you want to run CODA as. Follow [these instruction on GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/index.html) to set the `SSH_PRIVATE_KEY` variable under the GitLab CI/CD settings
+1. Configure Nginx to proxy ports 80 and/or 443 to port 3000
+1. Install an SSH key on the VM for the user you want to run CODA. Follow [these instruction on GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/index.html) to set the `SSH_PRIVATE_KEY` variable under the GitLab CI/CD settings
 1. Get an initial copy of this repo on the VM at `~/coda`
-1. Copy `systemd/coda-dev.service` (in this repo) to `~/.config/systemd/user/coda-dev.service` for the user that will be running CODA.
-1. `systemctl enable --user coda-dev`. You should see a confirmation message that the service was created
-1. `loginctl enable-linger [USERNAME]`. This tells systemd to keep running your user services even when you logout
+1. Create a systemd service file for coda (see [here](https://gitlab.fit.nasa.gov/coda/coda-fitbox-role/-/blob/master/templates/coda.service.j2) for an example) and placed in `/usr/lib/systemd/system/coda.service`
+1. `sudo systemctl enable coda`. You should see a confirmation message that the service was created
 
 At this point, we're ready to start deploying to the server but CODA is not running. You should do a test run.
 
 1. `cd ~/coda && npm i && npm run build`. Transpile all the TypeScript and build all the HTML, CSS, and JS files
 1. `npm run start`. Do a quick manual run of CODA. You should see the server spin up. `ctrl-c` to close it
-1. `systemctl start --user coda-dev`. Tell systemd to run and monitor CODA. You won't see anything printed in the console
+1. `sudo systemctl start coda`. Tell systemd to run and monitor CODA. You won't see anything printed in the console
 1. `curl localhost:3000` and see if you get a response. If so, yay! You're done
-1. `systemctl status --user coda-dev`. You'll see the status of the service, including the command systemd ran to start the server. It should be green and running. You'll see an exit code if not
-1. `journalctl -u coda-dev`. This should give you server logs (TODO doesn't seem to be working?)
+1. `systemctl status coda`. You'll see the status of the service, including the command systemd ran to start the server. It should be green and running. You'll see an exit code if not
+1. `sudo journalctl -u coda`. This should give you server logs.
 
 If everything is good, no further steps are necessary. Make sure `.gitlab-ci.yml` is setup with this VM's DNS entry and this user and you should be ready to deploy. If the server did not spin up, check the logs.
 
@@ -64,11 +68,7 @@ If everything is good, no further steps are necessary. Make sure `.gitlab-ci.yml
 
 Do you need to change how the server is being run and monitored by systemd? The reasons you might want to do this is to modify environment variables, change working directories, or something else specific to systemd. If it's just a matter of a TypeScript thing, you should look at changing the `start` script in `package.json` first, in which case the instructions below do not apply.
 
-1. Change `systemd/coda-dev.service` in this repo (to keep it version controlled).
-1. Copy your changes to `~/.config/systemd/user/coda-dev.service` on the VM
-1. systemctl --user daemon-reload
-
-The next time you `systemctl --user restart coda-dev`, your changes will be applied.
+If you change `/usr/lib/systemd/system/coda.service`, run `systemctl --user daemon-reload` to pick up the changes, then `systemctl restart coda-dev` to restart.
 
 ## Development
 

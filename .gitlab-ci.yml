@@ -17,7 +17,7 @@ stages:
   - test
   - build
   - pages
-  - deploy_dev
+  - deploy_to_server
 
 test:
   script:
@@ -81,17 +81,42 @@ pages:
     - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
 
+    ## Since servers may have different private keys, we need to be able to set a variable
+    ## for each job saying what the name of the key in GitLab Variables is called. This
+    ## extracts the key based on the passed in variable name.
+    - SSH_PRIVATE_KEY_VALUE=${!SSH_PRIVATE_KEY_VAR_NAME}
+
     ##
     ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
     ## We're using tr to fix line endings which makes ed25519 keys work
     ## without extra base64 encoding.
     ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
     ##
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - echo "$SSH_PRIVATE_KEY_VALUE" | tr -d '\r' | ssh-add -
 
+.deploy_template:
+  extends: .setup_ssh
+  stage: deploy_to_server
+  script:
+    # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
+    - rsync -acrvz --delete --exclude=node_modules --exclude=.env* --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
+    # check dependencies and restart the server
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      cd /opt/fitbox/apps/coda &&
+
+      echo -e '\nInstall dependencies' &&
+      npm i &&
+
+      echo -e '\nRestart the server' &&
+      sudo systemctl restart coda"
+
+# TODO: we need to update this when we switch over coda-dev to a fitbox template
 deploy_dev:
   extends: .setup_ssh
-  stage: deploy_dev
+  stage: deploy_to_server
+  variables:
+    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY
   environment:
     name: development
     url: https://coda-dev.fit.nasa.gov/coda
@@ -102,3 +127,37 @@ deploy_dev:
     - ssh bfeist@jsfitdcoda.ndc.nasa.gov "cd /home/bfeist/coda && npm i && systemctl --user restart coda-dev"
   only:
     - /^.*--dev$/
+
+deploy_to_dev2:
+  extends: .deploy_template
+  variables:
+    ENVIRONMENT_HOSTNAME: jsfitdcoda02
+    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV2
+  environment:
+    name: development2
+    url: https://coda-dev2.fit.nasa.gov/coda
+  only:
+    - /^.*--dev2$/
+
+deploy_to_integration:
+  extends: .deploy_template
+  variables:
+    ENVIRONMENT_HOSTNAME: jsfiticoda
+    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
+  environment:
+    name: integration
+    url: https://coda-int.fit.nasa.gov/coda
+  only:
+    - int
+
+deploy_to_production:
+  extends: .deploy_template
+  variables:
+    ENVIRONMENT_HOSTNAME: jsfitpcoda
+    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
+  environment:
+    name: production
+    url: https://coda.fit.nasa.gov/coda
+  when: manual
+  only:
+    - prod
