@@ -97,21 +97,33 @@ NEXT_PUBLIC_IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
 
 Ask Ben, James, or Cameron for the key if you don't have it.
 
-4. (Optional) Change your hosts file to map `coda.local` to `127.0.0.1`.
+4. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
 
-### Dev Server
+### Local Dev Environment
 
 ```sh
 npm run dev
 ```
 
-Then head over to [](http://coda.local:3000/coda) (or [](http://localhost:3000/coda) if you didn't setup your hosts file)
+Then head over to (http://coda-local.nasa.gov:3000/coda)
 
 This command sets up a hot-reloading fullstack node server. If you make any changes to the client, you should see them appear automatically in the browser. If you make any changes to the server, you should see the server restart.
 
 Bonus: the site is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging) when you run it locally. Once the dev server is up and running, just F5 to attach to it (assuming you haven't changed the default keybindings). You should be able to set breakpoints and inspect code execution.
 
 Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) on how the debugger is setup.
+
+### Local Dev Environment Outside of NASA Network
+
+```sh
+npm run local
+```
+
+Then hit (http://coda-local.nasa.gov:3000/coda/view?date=2021-03-13)
+
+Setup is the same as the Dev Server above, but pulls mock API response json from the /mocks folder and streams placeholder video and shows a placeholder folder that is located on govcloud.
+
+This allows the application to run without being dependant on the NASA network or placing SBU data outside of the NASA network
 
 ### Run Tests
 
