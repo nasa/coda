@@ -50,12 +50,22 @@ async function fetchSpacetrack(dateStr: string): Promise<EphemerisFile[]> {
 
   let res: Response;
 
-  try {
-    res = await fetch(url);
-  } catch (e) {
-    throw e;
+  //provide mock json response from mocks/fakedata/ if running in "local"
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    console.log("Mocking request for fetchSpacetrack()");
+    let mockSpacetrackData: EphemerisFile[] = require("../mocks/fakedata/ephemera.json");
+
+    // mock the request with local data
+    const mockResult = await Promise.resolve(mockSpacetrackData);
+    return mockResult;
+  } else {
+    try {
+      res = await fetch(url);
+    } catch (e) {
+      throw e;
+    }
+    return res.json();
   }
-  return res.json();
 }
 
 export type DayNightObj = {

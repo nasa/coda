@@ -11,12 +11,6 @@ if (typeof window === "undefined") {
   require("win-ca");
 }
 
-let mockIOData: IOResponse;
-if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
-  // get mock data for later
-  mockIOData = require("../mocks/fakedata/io.json");
-}
-
 /**
  * Response from a search on Imagery Online
  */
@@ -130,11 +124,6 @@ export interface PhotoFile {
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string): Promise<IOResponse> {
-  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
-    // mock the request with local data
-    return Promise.resolve(mockIOData);
-  }
-
   let url = `${process.env.IO_API_URL}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
   // IO doesn't currently like our Origin and key so we need to use a proxy
   url = `${process.env.PROXY_ORIGIN}/coda_server/getio.php?IOParam=${encodeURIComponent(url)}`;
@@ -181,7 +170,16 @@ export async function getVideoData(
    */
   const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
-  const res = await fetchIO(queryParams);
+  let res;
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    console.log("Mocking request for getVideoData()");
+    let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");
+
+    // mock the request with local data
+    res = await Promise.resolve(mockIOData);
+  } else {
+    res = await fetchIO(queryParams);
+  }
   return parseIOVideoResponse(res);
 }
 
@@ -264,11 +262,11 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
 
   var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // if we are using mock data, then stream a mock video file in place of all video files
   // this allows dev to continue with VPN off
-  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
-
-  const videoURL = `${process.env.IO_HOST}${webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const videoURL = process.env.IO_MOCK_MEDIA_URL
+    ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
+    : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   // derive mission second values for this video
   const startOfDay = new Date(`${UTCstart.toISOString().split("T")[0]}T00:00:00Z`);
@@ -337,14 +335,25 @@ export async function getPhotoData(
    */
   let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
 
-  let res = await fetchIO(queryParams);
+  let res;
+  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    console.log("Mocking request for getPhotoData()");
+    const mockIOData: IOResponse = require("../mocks/fakedata/io_photos.json");
+
+    // mock the request with local data
+    res = await Promise.resolve(mockIOData);
+  } else {
+    res = await fetchIO(queryParams);
+  }
+
   const { numfound } = res.results.response;
   const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
   // create array of photos from first API call
   const photos1: PhotoFile[] = parseIOPhotoResponse(res);
 
-  if (callsRequired <= 1) {
+  if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
+    // If using mock data, just return the first 500 in the mock response
     // Only one API call was needed because we got fewer than 500 results. Just return it.
     return photos1;
   }
@@ -394,11 +403,14 @@ function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {
 function parsePhotoResultMetadata(doc: Doc): PhotoFile {
   var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  // if we are using mock data, then stream the videos from our govcloud clone of IO videos
+  // if we are using mock data, then use a mock photo that is not export restricted
   // this allows dev to continue with VPN off
-  const webpath = process.env.IO_MOCK_WEBPATH ? process.env.IO_MOCK_WEBPATH : doc.webpath;
-  const lowResURL = `${process.env.IO_HOST}${webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const highResURL = `${process.env.IO_HOST}${webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const lowResURL = process.env.IO_MOCK_MEDIA_URL
+    ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1_small.jpg"
+    : `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const highResURL = process.env.IO_MOCK_MEDIA_URL
+    ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
+    : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,

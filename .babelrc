@@ -1,5 +1,8 @@
 {
   "env": {
+    "local": {
+      "presets": ["next/babel"]
+    },
     "development": {
       "presets": ["next/babel"]
     },

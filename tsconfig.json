@@ -41,7 +41,6 @@
     "**/*.ts",
     "**/*.tsx",
     "next.config.js",
-    "mocks/index.js"
   ],
   "exclude": [
     "node_modules"
