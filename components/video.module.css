@@ -26,11 +26,11 @@
   left: 0;
 }
 .playerPosterNovid {
-  background: no-repeat url("/coda/images/vintage_static.gif");
+  background: no-repeat url("/images/vintage_static.gif");
   background-size: cover;
 }
 .playerPosterBuffering {
-  background: no-repeat url("/coda/images/vintage_loading.gif");
+  background: no-repeat url("/images/vintage_loading.gif");
   background-size: cover;
 }
 .playerPoster {
@@ -205,7 +205,7 @@
 .svgShare {
   width: 20px;
   height: 20px;
-  background: url(/coda/images/share.svg) no-repeat center;
+  background: url(/images/share.svg) no-repeat center;
   background-size: 20px 20px;
   margin-left: 0;
   margin-right: 0;

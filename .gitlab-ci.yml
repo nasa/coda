@@ -135,7 +135,7 @@ deploy_to_dev2:
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV2
   environment:
     name: development2
-    url: https://coda-dev2.fit.nasa.gov/coda
+    url: https://coda-dev2.fit.nasa.gov
   only:
     - /^.*--dev2$/
 

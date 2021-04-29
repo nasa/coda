@@ -87,7 +87,7 @@ function Header() {
               <Link href="/">
                 <a>
                   <img
-                    src="/coda/images/logo_coda.png"
+                    src="/images/logo_coda.png"
                     style={{
                       position: "absolute",
                       top: "50%",
