@@ -1,6 +1,5 @@
 import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
-import deepEqual from "lodash/isEqual";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate } from "store/playhead";

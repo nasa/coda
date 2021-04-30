@@ -242,7 +242,7 @@ const View = (props) => {
   );
 };
 
-View.getInitialProps = async ({ query }) => {
+export async function getServerSideProps({ query }) {
   const date = query.date === undefined ? null : query.date;
   const gmt = query.gmt === undefined ? null : query.gmt;
   const video1 = query.video1 === undefined ? null : query.video1;
@@ -256,9 +256,11 @@ View.getInitialProps = async ({ query }) => {
   };
 
   return {
-    query: returnVal,
+    props: {
+      query: returnVal,
+    },
   };
-};
+}
 
 export interface QueryParams {
   date: string;
