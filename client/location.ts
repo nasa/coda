@@ -6,7 +6,7 @@ async function fetchSpacetrack(
   month: number,
   date: number
 ): Promise<WrappedResponse<EphemerisStore>> {
-  const res = await fetch(`/api/spacetrack?year=${year}&month=${month}&date=${date}`);
+  const res = await fetch(`/api/location/iss?year=${year}&month=${month}&date=${date}`);
   return res.json();
 }
 
