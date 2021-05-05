@@ -154,7 +154,7 @@ export async function getAllEVAs(): Promise<EVASummaryResponse> {
     |limit=10000
   `;
   const res = await fetchWiki(query, "getAllEVAs");
-  return res.query.results;
+  return res.data.query.results;
 }
 
 // Activities in the executed timeline on the wiki have colors associated with them (so the timeline has different colored bars)
@@ -188,8 +188,10 @@ export async function getAllAsExecuted(): Promise<AllExecution> {
     |sort=Actor, Index
     |limit=1000000
   `;
+
+  // TODO: use retriever here instead
   const res = await fetchWiki(query, "getAllAsExecuted");
-  const results: EVAAsExecuted = res.query.results;
+  const results: EVAAsExecuted = res.data.query.results;
   return parseAllAsExecuted(results);
 }
 
@@ -257,7 +259,7 @@ export async function getAllCrew(): Promise<AllCrews> {
     |limit=10000
   `;
   const res = await fetchWiki(query, "getAllCrew");
-  const results: EVACrewResults = res.query.results;
+  const results: EVACrewResults = res.data.query.results;
   return parseAllCrew(results);
 }
 

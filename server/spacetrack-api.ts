@@ -31,11 +31,21 @@ async function fetchSpacetrack(
 
   const dateParam = `${year}-${month}-${date}`;
   const queryURL = `${SPACETRACK_BASE}>${dateParam}%2000:00:00,>${dateParam}%2023:59:59/orderby/EPOCH desc/limit/100/emptyresult/show`;
-  const url = `${SPACETRACK_LOGIN}identity=${process.env.SPACETRACK_USER}&password=${process.env.SPACETRACK_PASSWORD}&query=${queryURL}`;
+  const url = `${SPACETRACK_LOGIN}identity=${process.env.SPACETRACK_USER}&password=${
+    process.env.SPACETRACK_PASSWORD
+  }&query=${encodeURI(queryURL)}`;
 
-  const res = await fetch(url, { method: "POST" });
+  try {
+    // TODO: this is a problem!
+    const res = await fetch(url, { method: "POST" });
+    const b = await res.text();
+    console.log(b);
 
-  return await res.json();
+    return await res.json();
+  } catch (e) {
+    console.error(e);
+  }
+  return [];
 }
 
 function calcDayNight(
@@ -96,6 +106,7 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   return sunlight;
 }
 
+/** Get spacetrack ephemeris data for ISS */
 export async function getISS(
   year: number,
   month: number,
@@ -105,6 +116,8 @@ export async function getISS(
   const preferNew = isSameDate(now, new Date(Date.UTC(year, month, date)));
 
   let res: WrappedResponse<EphemerisStore> = null;
+
+  // try with the date asked for first
   try {
     const retriever = async (): Promise<EphemerisStore> => {
       const ephemera = await fetchSpacetrack(year, month, date);

@@ -9,26 +9,30 @@ import type { AllCrews, AllExecution, EVA, EVASummaryResponse } from "typings/wi
 /** Fetch a summary of all EVAs on the wiki */
 async function fetchAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
   const res = await fetch("/api/wiki/all-evas");
-  return await res.json();
+  let wrappedResponse: WrappedResponse<EVASummaryResponse> = await res.json();
+  return wrappedResponse.data;
 }
 
 /** Fetch as-executed data for all EVAs */
 async function fetchAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
   const res = await fetch("/api/wiki/all-as-executed");
-  return await res.json();
+  let wrappedResponse: WrappedResponse<AllExecution> = await res.json();
+  return wrappedResponse.data;
 }
 
 /** Fetch all crew members for all EVAs */
 async function fetchAllCrew(): Promise<WrappedResponse<AllCrews>> {
   const res = await fetch("/api/wiki/all-crew");
-  return await res.json();
+  let wrappedResponse: WrappedResponse<AllCrews> = await res.json();
+  console.log(wrappedResponse);
+  return wrappedResponse.data;
 }
 
 /** Fetch as-planned and as-executed EVA data and format it for passing to the redux store */
 export async function buildEVAStore(): Promise<EVA[]> {
-  const asPlanned = (await fetchAllEVAs()).data;
-  const asExecuted = (await fetchAllAsExecuted()).data;
-  const crews = (await fetchAllCrew()).data;
+  const asPlanned = await fetchAllEVAs();
+  const asExecuted = await fetchAllAsExecuted();
+  const crews = await fetchAllCrew();
 
   return Object.keys(asPlanned).map((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
