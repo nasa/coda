@@ -24,7 +24,6 @@ async function fetchAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
 async function fetchAllCrew(): Promise<WrappedResponse<AllCrews>> {
   const res = await fetch("/api/wiki/all-crew");
   let wrappedResponse: WrappedResponse<AllCrews> = await res.json();
-  console.log(wrappedResponse);
   return wrappedResponse.data;
 }
 

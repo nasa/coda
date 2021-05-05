@@ -166,12 +166,12 @@ export default function View() {
       const d = new Date(playhead.date);
 
       const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
+      const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
       try {
         // photos data for today
-        const ephemerisStore = await buildEphemerisStore(year, month + 1, day);
+        const ephemerisStore = await buildEphemerisStore(year, month, day);
         dispatch(addEphemera(ephemerisStore));
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
@@ -195,12 +195,12 @@ export default function View() {
       }
 
       const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
+      const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day);
+        const videoStore = await buildVideoStore(year, month, day);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));

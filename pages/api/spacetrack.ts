@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // TODO: check if the date is sane
 
   try {
-    const data = getISS(+year, +month, +date);
+    const data = await getISS(+year, +month, +date);
     res.status(200).json(data);
   } catch (e) {
     console.error(e);

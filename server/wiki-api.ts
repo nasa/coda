@@ -102,15 +102,13 @@ async function fetchWiki(query: string, action?: string): Promise<WrappedRespons
     };
   }
 
-  let res: WrappedResponse<WikiResults>;
+  let res: WikiResults;
 
   const bot = await getMWBot();
-  /** Use the MWBot to perform an ask request against the wiki */
-  const retriever = async () => await bot.request({ action: "ask", format: "json", query });
 
   try {
     // optmistically try to fetch from the wiki before we know for sure we're logged in
-    res = await fetchWithCache<WikiResults>(`wiki/${query}`, retriever);
+    res = await bot.request({ action: "ask", format: "json", query });
   } catch (e) {
     if (isAPIError(e)) {
       // we weren't logged in. let's log in
@@ -128,20 +126,18 @@ async function fetchWiki(query: string, action?: string): Promise<WrappedRespons
     }
     // we are logged in now. retry the request
     try {
-      res = await fetchWithCache<WikiResults>(`wiki/${query}`, retriever, {
-        staleOk: true,
-      });
+      res = await bot.request({ action: "ask", format: "json", query });
     } catch (e) {
       console.error("Wiki request error");
       throw e;
     }
   }
 
-  return res;
+  return { data: res };
 }
 
 /** Get a summary of all EVAs on the wiki */
-export async function getAllEVAs(): Promise<EVASummaryResponse> {
+export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
   // wiki query parameters
   const query = `
     [[~US EVA*]]
@@ -153,8 +149,21 @@ export async function getAllEVAs(): Promise<EVASummaryResponse> {
     |sort=Start date
     |limit=10000
   `;
-  const res = await fetchWiki(query, "getAllEVAs");
-  return res.data.query.results;
+
+  let mocked = false;
+  const retriever = async () => {
+    const res = await fetchWiki(query, "getAllEVAs");
+    mocked = !!res.mocked;
+    return res.data.query.results;
+  };
+
+  const response = await fetchWithCache<EVASummaryResponse>(`wiki/${query}`, retriever, {
+    staleOk: true,
+  });
+  if (mocked) {
+    response.mocked = true;
+  }
+  return response;
 }
 
 // Activities in the executed timeline on the wiki have colors associated with them (so the timeline has different colored bars)
@@ -174,7 +183,7 @@ const colorTranslator = {
 };
 
 /** Get as-executed data for a given EV on a given EVA */
-export async function getAllAsExecuted(): Promise<AllExecution> {
+export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
   const query = `
     [[From page::~US EVA*/*xecuted*]]
     |mainlabel=-|?Index
@@ -189,10 +198,21 @@ export async function getAllAsExecuted(): Promise<AllExecution> {
     |limit=1000000
   `;
 
-  // TODO: use retriever here instead
-  const res = await fetchWiki(query, "getAllAsExecuted");
-  const results: EVAAsExecuted = res.data.query.results;
-  return parseAllAsExecuted(results);
+  let mocked = false;
+  const retriever = async () => {
+    const res = await fetchWiki(query, "getAllAsExecuted");
+    const results: EVAAsExecuted = res.data.query.results;
+    mocked = !!res.mocked;
+    return parseAllAsExecuted(results);
+  };
+
+  const response = await fetchWithCache<AllExecution>(`wiki/${query}`, retriever, {
+    staleOk: true,
+  });
+  if (mocked) {
+    response.mocked = true;
+  }
+  return response;
 }
 
 function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
@@ -249,7 +269,7 @@ const plus = () => {
 };
 
 /** Get crew assignment data for all EVAs */
-export async function getAllCrew(): Promise<AllCrews> {
+export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
   const query = `
     [[Crew involved with subject::${plus()}]]
     [[From page::~US EVA*]]
@@ -258,9 +278,22 @@ export async function getAllCrew(): Promise<AllCrews> {
     |? Has EMU Page
     |limit=10000
   `;
-  const res = await fetchWiki(query, "getAllCrew");
-  const results: EVACrewResults = res.data.query.results;
-  return parseAllCrew(results);
+
+  let mocked = false;
+  const retriever = async () => {
+    const res = await fetchWiki(query, "getAllCrew");
+    const results: EVACrewResults = res.data.query.results;
+    mocked = !!res.mocked;
+    return parseAllCrew(results);
+  };
+
+  const response = await fetchWithCache<AllCrews>(`wiki/${query}`, retriever, {
+    staleOk: true,
+  });
+  if (mocked) {
+    response.mocked = true;
+  }
+  return response;
 }
 
 function parseAllCrew(results: EVACrewResults): AllCrews {
