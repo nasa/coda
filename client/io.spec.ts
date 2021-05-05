@@ -1,4 +1,4 @@
-import { getChannel } from "./io";
+import { getChannel } from "server/io-api";
 
 describe("getChannel()", () => {
   it("should return a channel string when one is available", () => {
