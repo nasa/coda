@@ -1,9 +1,9 @@
 import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
-import type { VideoFile, PhotoFile } from "services/io";
-import type { DayNightObj } from "services/spacetrack";
-import { Activity } from "services/iss-wiki";
+import type { VideoFile, PhotoFile } from "client/io";
+import type { DayNightObj } from "client/spacetrack";
+import { Activity } from "../typings/wiki";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import { CollectionFilters } from "store/photos";
 

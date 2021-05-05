@@ -1,140 +1,53 @@
 /*
 Methods for fetching from Imagery Online (IO)
+
+Known query parameters:
+    s_dt - start date
+    e_dt - end date
+    as=2 - filetype: video
+    as=1 - filetype: photo
+    so=7 - sort oldest date taken first
+    go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
+    ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
+    cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
 */
-import fetch from "isomorphic-unfetch";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
+import fetchWithCache from "./cache-client";
 import type { CollectionFilters } from "store/photos";
-
-if (typeof window === "undefined") {
-  // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
-  require("mac-ca");
-  require("win-ca");
-}
-
-/**
- * Response from a search on Imagery Online
- */
-type IOResponse = {
-  results: {
-    responseheader: any;
-    facet_counts: any;
-    response: {
-      start: number;
-      /** Info about videos from the search */
-      docs: Doc[];
-      numfound: number;
-    };
-  };
-};
-
-/** Represents a single video search result as received from IO */
-type Doc = {
-  audio_file_restricted: 0 | 1 | number;
-  hh: 0 | 1 | number;
-  duration_seconds: number;
-  on_public_site: number;
-  tw: number;
-  md_online_01: number;
-  on_flickr: 0 | 1 | number;
-  lw: number;
-  hw: number;
-  /** Title of the EVA, eg. `US EVA 55` */
-  md_title?: string;
-  description?: string;
-  md_orbit_ground: number;
-  has_audio_file: 0 | 1 | number;
-  asset_type: number;
-  /** eg. `mp4` - just the extension, no leading dot */
-  file_extension_video: string;
-  /** eg. `iss060m532` */
-  nasa_prefix?: string;
-  /**
-   * eg. `iss060m532331624`. There is an exception for video recorded during LOS
-   * Breakdown:
-   * ```md
-   * iss  = ISS video
-   * 053  = Expedition 53
-   * m    = moving imagery e.g. video
-   * 53   = Downlink 3, downlinked after an LOS. Realtime downlink would be 03
-   * 278  = GMT day 278
-   * 1939 = Actual start time of the video
-   * ```
-   *
-   * Note that 19:39 is the actual GMT start time of this video for a non-realtime
-   * downlink. The "Start GMT" listed in IO is wrong, stating GMT 0600.
-   * */
-  nasa_id: string;
-  /** eg. `/photos/vrps/12674` */
-  webpath: string;
-  id: number;
-  metadata_template: number;
-  /** The suffix is found at the end of .nasa_id, eg. `331624` */
-  nasa_suffix?: number;
-  /** eg. `jpg` - just the extension, no leading dot */
-  file_extension_lores: string;
-  /** eg. `["P2344036/ISS Missions|ISS-060|Video|US Downlink|Channel 03"]` */
-  collections_string: string[];
-  avg_rating: number;
-  collections: (string | number)[];
-  file_extension_thum: string;
-  /** UTC eg. `2019-08-21T14:47:22Z` */
-  date_added: string;
-  flickr_photo_id: number;
-  th: number;
-  collections_list: (string | number)[];
-  /** UTC eg. `2019-08-21T17:11:12Z` */
-  md_creation_date: string;
-  lh: number;
-  md_interior_exterior: number;
-  _version_: number;
-};
-
-/** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
-export interface VideoFile {
-  id: string;
-  content: string;
-  description: string;
-  start: string;
-  end: string;
-  url: string;
-  videoURL: string;
-  className: string;
-  priority: number;
-  md_creation_date: string;
-  /** Collection that this file falls under */
-  group: number;
-  durationSeconds?: number;
-  missionSecondsStart?: number;
-  missionSecondsEnd?: number;
-}
-
-/** Parsed metadata from an IO photo file result */
-export interface PhotoFile {
-  id: string;
-  description: string;
-  lowResURL: string;
-  highResURL: string;
-  ioInfoURL: string;
-  date_added: string;
-  date_taken: string;
-  dateTakenAppSeconds: number;
-  collections_string: string;
-  collections_string_pretty: string;
-}
+import type { IOResponse } from "typings";
+import type { Doc, PhotoFile, VideoFile } from "typings/io";
 
 /** Perform a request against IO with the given parameters */
-async function fetchIO(params: string): Promise<IOResponse> {
-  let url = `${process.env.IO_API_URL}&${params}?key=${process.env.NEXT_PUBLIC_IO_KEY}&format=json`;
-  // IO doesn't currently like our Origin and key so we need to use a proxy
-  url = `${process.env.PROXY_ORIGIN}/coda_server/getio.php?IOParam=${encodeURIComponent(url)}`;
+async function fetchIO(params: string, action?: string): Promise<IOResponse> {
+  const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
+  if (isLocal) {
+    if (action === "videoData") {
+      // we're in the local environment. mock the request
+      console.log("Mocking request for getVideoData()");
+      let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");
+
+      // mock the request with local data
+      return await Promise.resolve(mockIOData);
+    }
+
+    if (action === "photoData") {
+      console.log("Mocking request for getPhotoData()");
+      const mockIOData: IOResponse = require("../mocks/fakedata/io_photos.json");
+
+      // mock the request with local data
+      return await Promise.resolve(mockIOData);
+    }
+  }
+
+  const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
       "Accept-Encoding": "gzip,deflate,br",
       "Accept-Language": "en-US,en;q=0.9",
       Connection: "keep-alive",
-      Origin: "https://coda-dev.fit.nasa.gov",
+      Origin: process.env.HOST,
     },
   };
 
@@ -147,14 +60,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
   return res.json();
 }
 
-/**
- * Fetch video data from IO
- */
-export async function getVideoData(
-  year: number,
-  month: number,
-  date: number
-): Promise<VideoFile[]> {
+function formatDateQuery(year: number, month: number, date: number): string {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
   const rangeStartDate = padZeros(date, 2);
@@ -164,23 +70,27 @@ export async function getVideoData(
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
-  /* s_dt - start date
-   * e_dt - end date
-   * as=2 - filetype: video
-   */
-  const queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=2`;
 
-  let res;
-  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
-    console.log("Mocking request for getVideoData()");
-    let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");
+  return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
+}
 
-    // mock the request with local data
-    res = await Promise.resolve(mockIOData);
-  } else {
-    res = await fetchIO(queryParams);
-  }
-  return parseIOVideoResponse(res);
+/**
+ * Fetch video data from IO
+ */
+export async function getVideoData(
+  year: number,
+  month: number,
+  date: number
+): Promise<VideoFile[]> {
+  const dateQuery = formatDateQuery(year, month, date);
+
+  const retriever = async () => {
+    const queryParams = `${dateQuery}&as=2`;
+    const res = await fetchIO(queryParams, "videoData");
+    return parseIOVideoResponse(res);
+  };
+
+  return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, { cacheAge: 60 });
 }
 
 function parseIOVideoResponse(res: IOResponse) {
@@ -316,75 +226,54 @@ export async function getPhotoData(
   month: number,
   date: number
 ): Promise<PhotoFile[]> {
-  const rangeStartYear = year;
-  const rangeStartMonth = padZeros(month, 2);
-  const rangeStartDate = padZeros(date, 2);
-  const rangeEndYear = year;
-  const rangeEndMonth = padZeros(month, 2);
-  const rangeEndDate = padZeros(date, 2);
+  const dateQuery = formatDateQuery(year, month, date);
 
-  const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
-  const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
-  /* s_dt - start date
-   * e_dt - end date
-   * as=1 - filetype: photo
-   * so=7 - sort oldest date taken first
-   * go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
-   * ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
-   * cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
-   */
-  let queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4`;
+  const retriever = async () => {
+    let queryParams = `${dateQuery}&as=1&so=7&cols=4`;
 
-  let res;
-  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
-    console.log("Mocking request for getPhotoData()");
-    const mockIOData: IOResponse = require("../mocks/fakedata/io_photos.json");
+    const res = await fetchIO(queryParams, "photoData");
 
-    // mock the request with local data
-    res = await Promise.resolve(mockIOData);
-  } else {
-    res = await fetchIO(queryParams);
-  }
+    const { numfound } = res.results.response;
+    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
-  const { numfound } = res.results.response;
-  const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
+    // create array of photos from first API call
+    const photos1: PhotoFile[] = parseIOPhotoResponse(res);
 
-  // create array of photos from first API call
-  const photos1: PhotoFile[] = parseIOPhotoResponse(res);
+    if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
+      // If using mock data, just return the first 500 in the mock response
+      // Only one API call was needed because we got fewer than 500 results. Just return it.
+      return photos1;
+    }
 
-  if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
-    // If using mock data, just return the first 500 in the mock response
-    // Only one API call was needed because we got fewer than 500 results. Just return it.
-    return photos1;
-  }
-  // Construct an array of queryParams, one for each page required to reach numFound from first API call
-  let queryParamsArray = [];
-  for (let i = 1; i < callsRequired; i++) {
-    let startNum = 500 * i + 1;
-    queryParams = `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}&as=1&so=7&cols=4&sr=${startNum}`;
-    queryParamsArray.push(queryParams);
-  }
+    // Construct an array of queryParams, one for each page required to reach numFound from first API call
+    let queryParamsArray = [];
+    for (let i = 1; i < callsRequired; i++) {
+      let startNum = 500 * i + 1;
+      queryParams = `${dateQuery}&as=1&so=7&cols=4&sr=${startNum}`;
+      queryParamsArray.push(queryParams);
+    }
 
-  // create an array of promises for async IO calls
-  const promiseArray = queryParamsArray.map(async (queryParams) => {
-    return await fetchIO(queryParams);
-  });
+    // create an array of promises for async IO calls
+    const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
 
-  // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
-  const resArray = await Promise.all(promiseArray);
+    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
+    const resArray = await Promise.all(promiseArray);
 
-  // Parse out results into array of photo objects
+    // Parse out results into array of photo objects
 
-  const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
-    return parseIOPhotoResponse(res);
-  });
+    const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
+      return parseIOPhotoResponse(res);
+    });
 
-  // Turn array of photoFile arays into one enormous photoFile array
-  let additionalPhotos: PhotoFile[] = additionalPhotosArray.flat(1);
+    // Turn array of photoFile arays into one enormous photoFile array
+    let additionalPhotos: PhotoFile[] = additionalPhotosArray.flat(1);
 
-  // Merge the additional photos with the photos from the first API call and return it
-  const photos: PhotoFile[] = [...photos1, ...additionalPhotos];
-  return photos;
+    // Merge the additional photos with the photos from the first API call and return it
+    const photos: PhotoFile[] = [...photos1, ...additionalPhotos];
+    return photos;
+  };
+
+  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, { cacheAge: 60 });
 }
 
 function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {

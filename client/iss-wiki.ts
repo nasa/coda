@@ -2,15 +2,7 @@
  * Methods for fetching data from the ISS Wiki. Browsers will use a proxy, servers will hit the ISS Wiki directly
  */
 import get from "lodash/get";
-import type {
-  Activity,
-  AllExecution,
-  EVA,
-  EVAAsExecuted,
-  EVASummaryResponse,
-  WikiResponse,
-  WikiResults,
-} from "typings/wiki";
+import type { AllCrews, AllExecution, EVA, EVASummaryResponse } from "typings/wiki";
 import { padZeros } from "utils/formatting";
 
 /** Fetch a summary of all EVAs on the wiki */
@@ -19,9 +11,15 @@ async function fetchAllEVAs(): Promise<EVASummaryResponse> {
   return await res.json();
 }
 
-/** Fetch as-executed data for a given EV on a given EVA */
+/** Fetch as-executed data for all EVAs */
 async function fetchAllAsExecuted(): Promise<AllExecution> {
   const res = await fetch("/api/wiki/all-as-executed");
+  return await res.json();
+}
+
+/** Fetch all crew members for all EVAs */
+async function fetchAllCrew(): Promise<AllCrews> {
+  const res = await fetch("/api/wiki/all-crew");
   return await res.json();
 }
 
@@ -29,7 +27,7 @@ async function fetchAllAsExecuted(): Promise<AllExecution> {
 export async function buildEVAStore(): Promise<EVA[]> {
   const asPlanned = await fetchAllEVAs();
   const asExecuted = await fetchAllAsExecuted();
-  const crews = await getAllCrew();
+  const crews = await fetchAllCrew();
 
   return Object.keys(asPlanned).map((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();

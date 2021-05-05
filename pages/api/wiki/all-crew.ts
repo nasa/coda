@@ -1,14 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAllEVAs } from "server/wiki-api";
+import { getAllCrew } from "server/wiki-api";
 
 /**
- * `/api/wiki/all-evas`
+ * `/api/wiki/all-crew`
  *
- * Get all as-planned EVA data in the wiki
+ * Get all EVA crew data in the wiki
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const evas = await getAllEVAs();
+    const evas = await getAllCrew();
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);

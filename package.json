@@ -5,7 +5,7 @@
   "main": "server/index.ts",
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--inspect' next dev",
     "local": "cross-env NODE_ENV=local npm run dev",
     "export": "next export",
     "start": "cross-env NODE_ENV=production next start",
@@ -24,6 +24,7 @@
     "@reduxjs/toolkit": "^1.5.0",
     "@types/geojson": "^7946.0.7",
     "@types/mapbox-gl": "^2.1.1",
+    "cacache": "^15.0.6",
     "isomorphic-unfetch": "^3.1.0",
     "lodash": "^4.17.20",
     "mapbox-gl": "^2.1.1",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.12.7",
     "@sinonjs/fake-timers": "^6.0.1",
+    "@types/cacache": "^15.0.0",
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/jest": "^26.0.20",
     "@types/lodash": "^4.14.168",

@@ -14,7 +14,7 @@ import {
   videoSelectors,
   VideosEntityState,
 } from "store/videos";
-import type { VideoFile } from "services/io";
+import type { VideoFile } from "client/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";

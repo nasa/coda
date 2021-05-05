@@ -2,9 +2,9 @@ import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import { buildEVAStore } from "services/iss-wiki";
-import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "services/io";
-import { buildEphemerisStore } from "services/spacetrack";
+import { buildEVAStore } from "client/iss-wiki";
+import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/io";
+import { buildEphemerisStore } from "client/spacetrack";
 import {
   addVideos,
   haveVideosFromDate,

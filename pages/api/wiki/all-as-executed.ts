@@ -3,8 +3,8 @@ import { getAllAsExecuted } from "server/wiki-api";
 
 /**
  * `/api/wiki/all-as-executed`
- * @param _req
- * @param res
+ *
+ * Get all as-executed EVA data in the wiki
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {

@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { PlayheadState } from "store/playhead";
 import { EphemeraEntityState, ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import type { EphemerisFile } from "services/spacetrack";
+import type { EphemerisFile } from "client/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";

@@ -1,6 +1,6 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { PhotoFile } from "services/io";
+import type { PhotoFile } from "client/io";
 
 export type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;

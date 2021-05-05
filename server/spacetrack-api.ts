@@ -1,77 +1,39 @@
-import fetch from "isomorphic-unfetch";
-import { padZeros, hhmmssFromSeconds } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
 import { getTimes } from "utils/suncalc";
+import type { DayNightObj, EphemerisFile } from "typings/spacetrack";
+import { isSameDate } from "store/playhead";
+import { hhmmssFromSeconds } from "utils/formatting";
+import fetchWithCache from "./cache-client";
 
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
 
-type EphemerisStore = {
-  ephemera: EphemerisFile[];
-  dayNight: {};
-};
-
-export interface EphemerisFile {
-  COMMENT: string;
-  ORIGINATOR: string;
-  NORAD_CAT_ID: string;
-  OBJECT_NAME: string;
-  OBJECT_TYPE: string;
-  CLASSIFICATION_TYP: string;
-  INTLDES: string;
-  EPOCH: string;
-  EPOCH_MICROSECONDS: string;
-  MEAN_MOTION: string;
-  ECCENTRICITY: string;
-  INCLINATION: string;
-  RA_OF_ASC_NODE: string;
-  ARG_OF_PERICENTER: string;
-  MEAN_ANOMALY: string;
-  EPHEMERIS_TYPE: string;
-  ELEMENT_SET_NO: string;
-  REV_AT_EPOCH: string;
-  BSTAR: string;
-  MEAN_MOTION_DOT: string;
-  MEAN_MOTION_DDOT: string;
-  FILE: string;
-  TLE_LINE0: string;
-  TLE_LINE1: string;
-  TLE_LINE2: string;
-  OBJECT_ID: string;
-  OBJECT_NUMBER: string;
-  SEMIMAJOR_AXIS: string;
-  PERIOD: string;
-  APOGEE: string;
-  PERIGEE: string;
-  DECAYED: string;
-}
+const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";
+const SPACETRACK_BASE =
+  "https://www.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/";
 
 async function fetchSpacetrack(dateStr: string): Promise<EphemerisFile[]> {
-  const url = process.env.SPACETRACK_API_URL + "?date=" + dateStr;
+  const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
-  let res: Response;
-
-  //provide mock json response from mocks/fakedata/ if running in "local"
-  if (process.env.NEXT_PUBLIC_APP_ENV === "local") {
+  if (isLocal) {
     console.log("Mocking request for fetchSpacetrack()");
     let mockSpacetrackData: EphemerisFile[] = require("../mocks/fakedata/ephemera.json");
 
     // mock the request with local data
     const mockResult = await Promise.resolve(mockSpacetrackData);
     return mockResult;
-  } else {
-    try {
-      res = await fetch(url);
-    } catch (e) {
-      throw e;
-    }
-    return res.json();
   }
-}
 
-export type DayNightObj = {
-  appSeconds: number;
-  daylight: boolean;
-};
+  const url = process.env.SPACETRACK_API_URL + "?date=" + dateStr;
+
+  let res: Response;
+
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    throw e;
+  }
+  return res.json();
+}
 
 function calcDayNight(ephemera: EphemerisFile[], dateStr: string): DayNightObj[] {
   const secondsIn24Hours = 86400;
@@ -126,17 +88,16 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   return sunlight;
 }
 
-export async function buildEphemerisStore(
-  year: number,
-  month: number,
-  date: number
-): Promise<EphemerisStore> {
-  const dateStr = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-  const ephemera = await fetchSpacetrack(dateStr);
-  const dayNight = calcDayNight(ephemera, dateStr);
+export async function getISS(year: number, month: number, date: number): Promise<EphemerisFile[]> {
+  const now = new Date();
+  const preferNew = isSameDate(now, new Date(year, month, date));
+  const dateParam = `${year}-${month}-${date}`;
 
-  return {
-    ephemera: ephemera,
-    dayNight: dayNight,
+  const queryURL = `${SPACETRACK_BASE}>${dateParam}%2000:00:00,>${dateParam}%2023:59:59/orderby/EPOCH desc/limit/100/emptyresult/show`;
+
+  const retriever = async (): Promise<EphemerisFile[]> => {
+    //
   };
+
+  return fetchWithCache<EphemerisFile[]>(`spacetrack/${dateParam}`, retriever, { preferNew });
 }

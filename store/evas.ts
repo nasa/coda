@@ -1,6 +1,6 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { Activity, DayNight, EVA } from "services/iss-wiki";
+import type { Activity, DayNight, EVA } from "client/iss-wiki";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
 

@@ -16,14 +16,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "paths": {
+      "client/*": [
+        "client/*"
+      ],
       "components/*": [
         "./components/*"
       ],
       "public/*": [
         "./public/*"
-      ],
-      "services/*": [
-        "./services/*"
       ],
       "store/*": [
         "./store/*"

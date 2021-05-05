@@ -1,31 +1,25 @@
 /*
 Server-side implementations for hitting the ISS Wiki directly. Caches responses whenever possible. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
 */
-import crypto from "crypto";
 import { promises as fs } from "fs";
-import isNull from "lodash/isNull";
+import get from "lodash/get";
 import memoize from "lodash/memoize";
 import MWBot from "mwbot";
 import FileCookieStore from "tough-cookie-filestore";
-import request, { get } from "request";
+import request from "request";
 import type {
   WikiResults,
   WikiResponse,
   Activity,
   AllCrews,
   AllExecution,
-  Crew,
   EVAAsExecuted,
   EVACrewResults,
   EVASummaryResponse,
 } from "typings/wiki";
-import cacheJSON from "./cache-client";
+import retrieveJSON from "./cache-client";
 
 const COOKIE_JAR = `server/.cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
-
-// wiki.jsc.nasa.gov uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
-require("mac-ca");
-require("win-ca");
 
 /** Get a read-only "bot" for the wiki */
 async function _getMWBot() {
@@ -98,7 +92,7 @@ function isAPIError(e: any | WikiResponse): e is WikiResponse {
 async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
-  // we're in the local environment. fake the request using a mock service worker
+  // we're in the local environment. fake the request
   if (isLocal) {
     return await mockData(query, action);
   }
@@ -111,7 +105,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
 
   try {
     // optmistically try to fetch from the wiki before we know for sure we're logged in
-    res = await cacheJSON<WikiResults>("wiki", query, retriever, 300);
+    res = await retrieveJSON<WikiResults>(`wiki/${query}`, retriever);
   } catch (e) {
     if (isAPIError(e)) {
       // we weren't logged in. let's log in
@@ -129,7 +123,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
     }
     // we are logged in now. retry the request
     try {
-      res = await cacheJSON<WikiResults>("wiki", query, retriever, 300, true);
+      res = await retrieveJSON<WikiResults>(`wiki/${query}`, retriever, { staleOk: true });
     } catch (e) {
       console.error("Wiki request error");
       throw e;
@@ -245,42 +239,8 @@ const plus = () => {
   return typeof window !== "undefined" ? "%2B" : "+";
 };
 
-/**
- * Get crew assignment data for a EVA
- * @param evaName the EVA's name on the wiki, eg. `US EVA 55`
- */
-async function _getCrew(evaName: string) {
-  const query = `
-    [[Crew involved with subject::${plus()}]]
-    [[From page::${evaName}]]
-    |? Has full name
-    |? Has role
-    |? Has EMU Page
-  `;
-
-  const res = await fetchWiki(query, "getCrew");
-  const results: EVACrewResults = res.query.results;
-  return parseCrew(results);
-}
-
-function parseCrew(results: EVACrewResults): Crew {
-  let crewObject: Crew = {
-    EV1: "",
-    EV2: "",
-    SUIT_IV: "",
-  };
-  for (let objKey in results) {
-    let useableKey = results[objKey]["printouts"]["Has role"][0]["fulltext"]
-      .replace(/ /g, "_")
-      .toUpperCase();
-    crewObject[useableKey] = results[objKey]["printouts"]["Has full name"][0]["fulltext"];
-  }
-
-  return crewObject;
-}
-
 /** Get crew assignment data for all EVAs */
-async function getAllCrew(): Promise<AllCrews> {
+export async function getAllCrew(): Promise<AllCrews> {
   const query = `
     [[Crew involved with subject::${plus()}]]
     [[From page::~US EVA*]]
