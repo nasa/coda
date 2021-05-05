@@ -265,8 +265,11 @@ export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
   `;
 
   const res = await fetchWiki(query, "getAllCrew");
-  const results: EVACrewResults = res.data.query.results;
-  return parseAllCrew(results);
+  const results = parseAllCrew(res.data.query.results);
+  return {
+    mocked: res.mocked,
+    data: results,
+  };
 }
 
 function parseAllCrew(results: EVACrewResults): AllCrews {
@@ -296,7 +299,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
   return res;
 }
 
-/** Fetch as-planned and as-executed EVA data and format it for passing to the redux store */
+/** Fetch as-planned and as-executed EVA data and standardize the format */
 export async function buildEVAStore(): Promise<WrappedResponse<EVA[]>> {
   let mocked = false;
   const retriever = async () => {
@@ -337,7 +340,10 @@ export async function buildEVAStore(): Promise<WrappedResponse<EVA[]>> {
     });
   };
 
-  const response = await fetchWithCache<EVA[]>("wiki/all", retriever, { staleOk: true });
+  const response = await fetchWithCache<EVA[]>("wiki/all", retriever, {
+    cacheAge: 60,
+    staleOk: true,
+  });
   if (mocked) {
     response.mocked = true;
   }
