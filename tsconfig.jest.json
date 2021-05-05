@@ -14,10 +14,12 @@
     "paths": {
       "__mocks__/*": ["./__mocks__/*"],
       "components/*": ["./components/*"],
+      "client/*": ["./client/*"],
       "public/*": ["./public/*"],
-      "services/*": ["./services/*"],
+      "server/*": ["./server/*"],
       "static/*": ["./static/*"],
       "store/*": ["./store/*"],
+      "typings/*": ["./typings/*"],
       "utils/*": ["./utils/*"],
     },
     "resolveJsonModule": true,

@@ -25,8 +25,14 @@
       "public/*": [
         "./public/*"
       ],
+      "server/*": [
+        "./server/*"
+      ],
       "store/*": [
         "./store/*"
+      ],
+      "typings/*": [
+        "./typings/*"
       ],
       "utils/*": [
         "./utils/*"
