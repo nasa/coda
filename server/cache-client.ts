@@ -105,3 +105,8 @@ export default async function retrieveJSON<T>(
 
   return { cacheRead, cacheWrite, data: res };
 }
+
+/** Nuke the cache */
+export async function clear() {
+  await cacache.rm.all(process.env.CACHE_ROOT);
+}
