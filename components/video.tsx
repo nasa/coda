@@ -14,10 +14,10 @@ import {
   videoSelectors,
   VideosEntityState,
 } from "store/videos";
-import type { VideoFile } from "client/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
-import { RootState } from "store/index";
+import type { RootState } from "store/index";
+import type { VideoFile } from "typings/io";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes

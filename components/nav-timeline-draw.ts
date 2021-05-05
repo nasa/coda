@@ -1,11 +1,11 @@
 import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
-import type { VideoFile, PhotoFile } from "client/io";
-import type { DayNightObj } from "client/spacetrack";
-import { Activity } from "../typings/wiki";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import { CollectionFilters } from "store/photos";
+import type { VideoFile, PhotoFile } from "typings/io";
+import type { DayNightObj } from "typings/spacetrack";
+import type { Activity } from "typings/wiki";
 
 export default class DrawNav {
   gTier1Group: paper.Group;

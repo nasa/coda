@@ -1,8 +1,8 @@
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
-import type { VideoFile } from "client/io";
 import { isSameDate } from "./playhead";
+import type { VideoFile } from "typings/io";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export type VideosEntityState = EntityState<VideoFile> & {

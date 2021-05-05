@@ -1,8 +1,8 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { Activity, DayNight, EVA } from "client/iss-wiki";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
+import type { EVA, Activity, DayNight } from "typings/wiki";
 
 /** Parse the ID from an EVA, currently set to a `yyyy-mm-dd` string */
 export function idFromEVA(eva: EVA): string {

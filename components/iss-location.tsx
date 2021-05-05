@@ -5,8 +5,9 @@ import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { PlayheadState } from "store/playhead";
 import { EphemeraEntityState, ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import type { EphemerisFile } from "client/spacetrack";
 import { getPlayheadISOString } from "utils/formatting";
+import type { PlayheadHoverState } from "store/playheadHover";
+import type { EphemerisFile } from "typings/spacetrack";
 
 import styles from "./iss-location.module.css";
 import Marker from "./iss-location-marker";
@@ -15,7 +16,6 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
-import type { PlayheadHoverState } from "store/playheadHover";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
