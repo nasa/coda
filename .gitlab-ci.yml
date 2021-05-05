@@ -139,25 +139,27 @@ deploy_to_dev2:
   only:
     - /^.*--dev2$/
 
-deploy_to_integration:
-  extends: .deploy_template
-  variables:
-    ENVIRONMENT_HOSTNAME: jsfiticoda
-    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
-  environment:
-    name: integration
-    url: https://coda-int.fit.nasa.gov/coda
-  only:
-    - int
+# TODO: uncomment when int is provisioned
+# deploy_to_integration:
+#   extends: .deploy_template
+#   variables:
+#     ENVIRONMENT_HOSTNAME: jsfiticoda
+#     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
+#   environment:
+#     name: integration
+#     url: https://coda-int.fit.nasa.gov
+#   only:
+#     - int
 
-deploy_to_production:
-  extends: .deploy_template
-  variables:
-    ENVIRONMENT_HOSTNAME: jsfitpcoda
-    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
-  environment:
-    name: production
-    url: https://coda.fit.nasa.gov/coda
-  when: manual
-  only:
-    - prod
+# TODO: uncomment when prod is provisioned
+# deploy_to_production:
+#   extends: .deploy_template
+#   variables:
+#     ENVIRONMENT_HOSTNAME: jsfitpcoda
+#     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
+#   environment:
+#     name: production
+#     url: https://coda.fit.nasa.gov/coda
+#   when: manual
+#   only:
+#     - prod
