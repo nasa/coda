@@ -56,7 +56,7 @@ function calcDayNight(
   date: number
 ): DayNightObj[] {
   const secondsIn24Hours = 86400;
-  const startDate = new Date(Date.UTC(year, month, date));
+  const startDate = new Date(Date.UTC(year, month - 1, date));
 
   const dayNightObjArray = [];
   let prevDaylight = null;
@@ -114,7 +114,8 @@ export async function getISS(
   date: number
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
-  const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
+  const today = new Date(Date.UTC(year, month - 1, date));
+  const isToday = isSameDate(now, today);
   let noTLEs = false;
 
   let res: WrappedResponse<EphemerisStore> = null;
@@ -133,17 +134,15 @@ export async function getISS(
     return { dayNight, ephemera };
   };
 
-  const identifier = isToday
-    ? "today"
-    : `${padZeros(year, 2)}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
+  const identifier = isToday ? "today" : `${year}-${month}-${date}`;
   res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
-    preferNew: isToday,
+    preferNew: true,
+    // preferNew: isToday,
     cacheAge: Infinity,
   });
 
   if (isToday && noTLEs) {
     // couldn't get a response for today. try yesterday
-    const today = new Date(Date.UTC(year, month - 1, date));
     const yesterday = new Date(today.valueOf() - ONE_DAY_MS);
     const yesterdayYear = yesterday.getUTCFullYear();
     const yesterdayMonth = yesterday.getUTCMonth() + 1;
@@ -155,11 +154,12 @@ export async function getISS(
 
     const retrieverYesterday = async (): Promise<EphemerisStore> => {
       const ephemera = await fetchSpacetrack(yesterdayYear, yesterdayMonth, yesterdayDate);
-      const dayNight = calcDayNight(ephemera, yesterdayYear, yesterdayMonth, yesterdayDate);
+      const dayNight = calcDayNight(ephemera, yesterdayYear, yesterdayMonth - 1, yesterdayDate);
       return { dayNight, ephemera };
     };
 
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retrieverYesterday, {
+      preferNew: true,
       cacheAge: Infinity,
     });
   }
