@@ -16,9 +16,11 @@ import type {
   EVAAsExecuted,
   EVACrewResults,
   EVASummaryResponse,
+  EVA,
 } from "typings/wiki";
 import fetchWithCache from "./cache-client";
 import type { WrappedResponse } from "typings";
+import { padZeros } from "utils/formatting";
 
 const COOKIE_JAR = `server/.cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
@@ -150,20 +152,12 @@ export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>>
     |limit=10000
   `;
 
-  let mocked = false;
-  const retriever = async () => {
-    const res = await fetchWiki(query, "getAllEVAs");
-    mocked = !!res.mocked;
-    return res.data.query.results;
+  const res = await fetchWiki(query, "getAllEVAs");
+  const results = res.data.query.results;
+  return {
+    mocked: res.mocked,
+    data: results,
   };
-
-  const response = await fetchWithCache<EVASummaryResponse>(`wiki/${query}`, retriever, {
-    staleOk: true,
-  });
-  if (mocked) {
-    response.mocked = true;
-  }
-  return response;
 }
 
 // Activities in the executed timeline on the wiki have colors associated with them (so the timeline has different colored bars)
@@ -198,21 +192,12 @@ export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>>
     |limit=1000000
   `;
 
-  let mocked = false;
-  const retriever = async () => {
-    const res = await fetchWiki(query, "getAllAsExecuted");
-    const results: EVAAsExecuted = res.data.query.results;
-    mocked = !!res.mocked;
-    return parseAllAsExecuted(results);
+  const res = await fetchWiki(query, "getAllAsExecuted");
+  const results: AllExecution = parseAllAsExecuted(res.data.query.results);
+  return {
+    mocked: res.mocked,
+    data: results,
   };
-
-  const response = await fetchWithCache<AllExecution>(`wiki/${query}`, retriever, {
-    staleOk: true,
-  });
-  if (mocked) {
-    response.mocked = true;
-  }
-  return response;
 }
 
 function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
@@ -279,21 +264,9 @@ export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
     |limit=10000
   `;
 
-  let mocked = false;
-  const retriever = async () => {
-    const res = await fetchWiki(query, "getAllCrew");
-    const results: EVACrewResults = res.data.query.results;
-    mocked = !!res.mocked;
-    return parseAllCrew(results);
-  };
-
-  const response = await fetchWithCache<AllCrews>(`wiki/${query}`, retriever, {
-    staleOk: true,
-  });
-  if (mocked) {
-    response.mocked = true;
-  }
-  return response;
+  const res = await fetchWiki(query, "getAllCrew");
+  const results: EVACrewResults = res.data.query.results;
+  return parseAllCrew(results);
 }
 
 function parseAllCrew(results: EVACrewResults): AllCrews {
@@ -321,4 +294,52 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
   });
 
   return res;
+}
+
+/** Fetch as-planned and as-executed EVA data and format it for passing to the redux store */
+export async function buildEVAStore(): Promise<WrappedResponse<EVA[]>> {
+  let mocked = false;
+  const retriever = async () => {
+    const { data: asPlanned, mocked: asPlannedMocked } = await getAllEVAs();
+    const { data: asExecuted, mocked: asExecutedMocked } = await getAllAsExecuted();
+    const { data: crews, mocked: crewsMocked } = await getAllCrew();
+
+    mocked = asPlannedMocked || asExecutedMocked || crewsMocked;
+
+    return Object.keys(asPlanned).map((evaName) => {
+      const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+      let duration = -1;
+      const [wikiDuration] = asPlanned[evaName].printouts.Duration;
+      // for whatever reason, if no duration is specified the wiki gives us ":"
+      if (wikiDuration !== ":") {
+        const [h, m] = wikiDuration.split(":");
+        duration = +h * 3600 + +m * 60;
+      }
+      const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
+        .substring(2)
+        .split("/");
+      const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
+
+      return {
+        name: evaName,
+        wikiURL: asPlanned[evaName].fullurl,
+        displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+        startDate,
+        startTime: asPlanned[evaName].printouts["Start time"][0],
+        duration,
+        execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
+        crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
+        // we need video data to calculate activityPerformance
+        activityPerformance: { EV1: [], EV2: [] },
+        // the wiki doesn't actually give us dayNight
+        dayNight: { events: [], dataStartUTC: 0 },
+      };
+    });
+  };
+
+  const response = await fetchWithCache<EVA[]>("wiki/all", retriever, { staleOk: true });
+  if (mocked) {
+    response.mocked = true;
+  }
+  return response;
 }
