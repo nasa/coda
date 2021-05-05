@@ -107,65 +107,61 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   return sunlight;
 }
 
-/** Get spacetrack ephemeris data for ISS */
+/** Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it */
 export async function getISS(
   year: number,
   month: number,
   date: number
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
-  const preferNew = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
+  const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
+  let noTLEs = false;
 
   let res: WrappedResponse<EphemerisStore> = null;
 
   // try with the date asked for first
-  try {
-    const retriever = async (): Promise<EphemerisStore> => {
-      const ephemera = await fetchSpacetrack(year, month, date);
+  const retrieverToday = async (): Promise<EphemerisStore> => {
+    const ephemera = await fetchSpacetrack(year, month, date);
 
-      if (ephemera.length === 0) {
-        throw new Error(`No data available for '${dateParam}'`);
-      }
+    if (ephemera.length === 0) {
+      // can happen when no TLE is available for today yet
+      noTLEs = true;
+      return { dayNight: {}, ephemera };
+    }
 
-      const dayNight = calcDayNight(ephemera, year, month, date);
+    const dayNight = calcDayNight(ephemera, year, month, date);
+    return { dayNight, ephemera };
+  };
+
+  const identifier = isToday
+    ? "today"
+    : `${padZeros(year, 2)}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
+  res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
+    preferNew: isToday,
+    cacheAge: Infinity,
+  });
+
+  if (isToday && noTLEs) {
+    // couldn't get a response for today. try yesterday
+    const today = new Date(Date.UTC(year, month - 1, date));
+    const yesterday = new Date(today.valueOf() - ONE_DAY_MS);
+    const yesterdayYear = yesterday.getUTCFullYear();
+    const yesterdayMonth = yesterday.getUTCMonth() + 1;
+    const yesterdayDate = yesterday.getUTCDate();
+    const dateParam = `${padZeros(yesterdayYear, 2)}-${padZeros(yesterdayMonth, 2)}-${padZeros(
+      yesterdayDate,
+      2
+    )}`;
+
+    const retrieverYesterday = async (): Promise<EphemerisStore> => {
+      const ephemera = await fetchSpacetrack(yesterdayYear, yesterdayMonth, yesterdayDate);
+      const dayNight = calcDayNight(ephemera, yesterdayYear, yesterdayMonth, yesterdayDate);
       return { dayNight, ephemera };
     };
 
-    const dateParam = `${padZeros(year, 2)}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-    res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retriever, {
-      preferNew,
+    res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retrieverYesterday, {
+      cacheAge: Infinity,
     });
-  } catch (e) {
-    // couldn't get a response for today. try yesterday
-    try {
-      const today = new Date(Date.UTC(year, month - 1, date));
-      const yesterday = new Date(today.valueOf() - ONE_DAY_MS);
-      const yesterdayYear = yesterday.getUTCFullYear();
-      const yesterdayMonth = yesterday.getUTCMonth() + 1;
-      const yesterdayDate = yesterday.getUTCDate();
-      const dateParam = `${padZeros(yesterdayYear, 2)}-${padZeros(yesterdayMonth, 2)}-${padZeros(
-        yesterdayDate,
-        2
-      )}`;
-
-      const retriever = async (): Promise<EphemerisStore> => {
-        const ephemera = await fetchSpacetrack(yesterdayYear, yesterdayMonth, yesterdayDate);
-
-        if (ephemera.length === 0) {
-          throw new Error(`No data available for '${dateParam}'`);
-        }
-
-        const dayNight = calcDayNight(ephemera, yesterdayYear, yesterdayMonth, yesterdayDate);
-        return { dayNight, ephemera };
-      };
-
-      res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retriever, {
-        preferNew,
-      });
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
   }
 
   return res;
