@@ -10,7 +10,7 @@ async function fetchVideoData(
   month: number,
   date: number
 ): Promise<WrappedResponse<VideoFile[]>> {
-  const res = await fetch(`/api/io/videos?year=${year}&month=${month}&date=${date}`);
+  const res = await fetch(`/api/media/videos?year=${year}&month=${month}&date=${date}`);
   return await res.json();
 }
 
@@ -19,7 +19,7 @@ async function fetchPhotoData(
   month: number,
   date: number
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const res = await fetch(`/api/io/photos?year=${year}&month=${month}&date=${date}`);
+  const res = await fetch(`/api/media/photos?year=${year}&month=${month}&date=${date}`);
   return await res.json();
 }
 

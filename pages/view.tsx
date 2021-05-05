@@ -2,9 +2,9 @@ import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main";
-import { buildEVAStore } from "client/iss-wiki";
-import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/io";
-import { buildEphemerisStore } from "client/spacetrack";
+import { fetchEVAs } from "client/evas";
+import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/media";
+import { buildEphemerisStore } from "client/location";
 import {
   addVideos,
   haveVideosFromDate,
@@ -214,7 +214,7 @@ export default function View() {
     (async () => {
       try {
         // EVA data from the wiki
-        const updatedEVAs = await buildEVAStore();
+        const updatedEVAs = await fetchEVAs();
         dispatch(addEVAs(updatedEVAs));
       } catch (e) {
         // dispatch(evasFetchError(e.toString()));

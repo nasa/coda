@@ -11,11 +11,11 @@ Known query parameters:
     ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
     cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
 */
+import { isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
-import fetchWithCache from "./cache-client";
-import type { CollectionFilters } from "store/photos";
 import type { IOResponse, WrappedResponse } from "typings";
 import type { Doc, PhotoFile, VideoFile } from "typings/io";
+import fetchWithCache from "./cache-client";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -82,6 +82,8 @@ export async function getVideoData(
   month: number,
   date: number
 ): Promise<WrappedResponse<VideoFile[]>> {
+  const now = new Date();
+  const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
   const dateQuery = formatDateQuery(year, month, date);
 
   const retriever = async () => {
@@ -90,7 +92,9 @@ export async function getVideoData(
     return parseIOVideoResponse(res);
   };
 
-  return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, { cacheAge: 60 });
+  return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, {
+    preferNew: isToday,
+  });
 }
 
 function parseIOVideoResponse(res: IOResponse) {
@@ -273,7 +277,7 @@ export async function getPhotoData(
     return photos;
   };
 
-  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, { cacheAge: 60 });
+  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, { cacheAge: 3600 });
 }
 
 function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {
