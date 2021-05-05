@@ -2,16 +2,9 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
    <suppress>
       <notes><![CDATA[
-      file name: postcss:7.0.35
+      file name: browserslist:4.16.1
       ]]></notes>
-      <packageUrl regex="true">^pkg:npm/postcss@.*$</packageUrl>
-      <cpe>cpe:/a:postcss:postcss</cpe>
-   </suppress>
-   <suppress>
-      <notes><![CDATA[
-      file name: postcss:8.1.7
-      ]]></notes>
-      <packageUrl regex="true">^pkg:npm/postcss@.*$</packageUrl>
-      <cpe>cpe:/a:postcss:postcss</cpe>
+      <packageUrl regex="true">^pkg:npm/browserslist@.*$</packageUrl>
+      <cpe>cpe:/a:browserslist_project:browserslist</cpe>
    </suppress>
 </suppressions>
