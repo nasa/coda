@@ -5,7 +5,7 @@ import { promises as fs } from "fs";
 import get from "lodash/get";
 import memoize from "lodash/memoize";
 import MWBot from "mwbot";
-import FileCookieStore from "tough-cookie-filestore";
+import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
 import type {
   WikiResults,
