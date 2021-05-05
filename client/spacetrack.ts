@@ -16,6 +16,5 @@ export async function buildEphemerisStore(
   date: number
 ): Promise<EphemerisStore> {
   const res = await fetchSpacetrack(year, month, date);
-  console.log(res);
   return res.data;
 }
