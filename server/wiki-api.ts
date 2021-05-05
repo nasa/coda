@@ -22,7 +22,7 @@ import fetchWithCache from "./cache-client";
 import type { WrappedResponse } from "typings";
 import { padZeros } from "utils/formatting";
 
-const COOKIE_JAR = `server/.cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
+const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
 /** Get a read-only "bot" for the wiki */
 async function _getMWBot() {
