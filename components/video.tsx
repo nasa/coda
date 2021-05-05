@@ -115,12 +115,7 @@ export default function Videos({ playerID }: { playerID: number }) {
     }
   };
 
-  const syncToplayhead = () => {
-    // This stops one buffering video from essentially blocking beginning to buffer the other video
-    if (!playhead.isRunning) {
-      return;
-    }
-
+  const syncToPlayhead = () => {
     // we can't update videos if we don't have videos
     if (!videoActivity) {
       return;
@@ -174,8 +169,8 @@ export default function Videos({ playerID }: { playerID: number }) {
 
     if (videoID !== "") {
       // there is a video for this downlink
-      const video = videoSelectors.selectById(videos, videoID);
-      setSourceURL(video.videoURL);
+      const currentlyPlayingVideo = videoSelectors.selectById(videos, videoID);
+      setSourceURL(currentlyPlayingVideo.videoURL);
     } else {
       // there is no video for this downlink
       // clear out the video player
@@ -195,12 +190,25 @@ export default function Videos({ playerID }: { playerID: number }) {
     }
   };
 
+  const cueVideoToPlayhead = () => {
+    //cue the new video to the right start time to avoid buffering the beginning of the video needlessly
+    if (sourceURL !== "") {
+      const currentlyPlayingVideo = videoSelectors.selectById(
+        videos,
+        videos.activeVideoFiles[playerID]
+      );
+      const videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+      videoElement.current.currentTime = videoStartOffset;
+    }
+  };
+
   useEffect(changeVideoFile, [playhead.seconds, videoFiles, videos.downlinks[playerID]]);
   useEffect(clearMetadata, [playhead.date, videos.activeVideoFiles[playerID], videoFiles]);
   useEffect(getInitialDownlink, [query]);
   useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
-  useEffect(syncToplayhead, [playhead.seconds, videos.activeVideoFiles[playerID]]);
+  useEffect(syncToPlayhead, [playhead.seconds, videos.activeVideoFiles[playerID]]);
   useEffect(updateSourceInfo, [videos.activeVideoFiles[playerID]]);
+  useEffect(cueVideoToPlayhead, [sourceURL]);
 
   /**
    * Renders the actual HTML5 video
