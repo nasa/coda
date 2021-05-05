@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 /**
  * `/api/cache/clear`
  *
- * Clear everything in the cache
+ * Nuke everything in the cache
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
