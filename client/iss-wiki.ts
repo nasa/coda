@@ -2,32 +2,33 @@
  * Methods for fetching data from the ISS Wiki. Browsers will use a proxy, servers will hit the ISS Wiki directly
  */
 import get from "lodash/get";
-import type { AllCrews, AllExecution, EVA, EVASummaryResponse } from "typings/wiki";
 import { padZeros } from "utils/formatting";
+import type { WrappedResponse } from "typings";
+import type { AllCrews, AllExecution, EVA, EVASummaryResponse } from "typings/wiki";
 
 /** Fetch a summary of all EVAs on the wiki */
-async function fetchAllEVAs(): Promise<EVASummaryResponse> {
+async function fetchAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
   const res = await fetch("/api/wiki/all-evas");
   return await res.json();
 }
 
 /** Fetch as-executed data for all EVAs */
-async function fetchAllAsExecuted(): Promise<AllExecution> {
+async function fetchAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
   const res = await fetch("/api/wiki/all-as-executed");
   return await res.json();
 }
 
 /** Fetch all crew members for all EVAs */
-async function fetchAllCrew(): Promise<AllCrews> {
+async function fetchAllCrew(): Promise<WrappedResponse<AllCrews>> {
   const res = await fetch("/api/wiki/all-crew");
   return await res.json();
 }
 
 /** Fetch as-planned and as-executed EVA data and format it for passing to the redux store */
 export async function buildEVAStore(): Promise<EVA[]> {
-  const asPlanned = await fetchAllEVAs();
-  const asExecuted = await fetchAllAsExecuted();
-  const crews = await fetchAllCrew();
+  const asPlanned = (await fetchAllEVAs()).data;
+  const asExecuted = (await fetchAllAsExecuted()).data;
+  const crews = (await fetchAllCrew()).data;
 
   return Object.keys(asPlanned).map((evaName) => {
     const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();

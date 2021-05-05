@@ -1,4 +1,3 @@
-import isNull from "lodash/isNull";
 import { getISS } from "server/spacetrack-api";
 import type { NextApiRequest, NextApiResponse } from "next";
 

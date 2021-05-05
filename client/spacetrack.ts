@@ -1,18 +1,20 @@
-import { padZeros, hhmmssFromSeconds } from "utils/formatting";
+import type { WrappedResponse } from "typings";
+import type { EphemerisStore } from "typings/spacetrack";
 
-import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
+async function fetchSpacetrack(
+  year: number,
+  month: number,
+  date: number
+): Promise<WrappedResponse<EphemerisStore>> {
+  const res = await fetch(`/api/spacetrack?year=${year}&month=${month}&date=${date}`);
+  return res.json();
+}
 
 export async function buildEphemerisStore(
   year: number,
   month: number,
   date: number
 ): Promise<EphemerisStore> {
-  const dateStr = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-  const ephemera = await fetchSpacetrack(dateStr);
-  const dayNight = calcDayNight(ephemera, dateStr);
-
-  return {
-    ephemera: ephemera,
-    dayNight: dayNight,
-  };
+  const { data } = await fetchSpacetrack(year, month, date);
+  return data;
 }

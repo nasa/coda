@@ -14,7 +14,7 @@ Known query parameters:
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import type { CollectionFilters } from "store/photos";
-import type { IOResponse } from "typings";
+import type { IOResponse, WrappedResponse } from "typings";
 import type { Doc, PhotoFile, VideoFile } from "typings/io";
 
 /** Perform a request against IO with the given parameters */
@@ -81,7 +81,7 @@ export async function getVideoData(
   year: number,
   month: number,
   date: number
-): Promise<VideoFile[]> {
+): Promise<WrappedResponse<VideoFile[]>> {
   const dateQuery = formatDateQuery(year, month, date);
 
   const retriever = async () => {
@@ -225,7 +225,7 @@ export async function getPhotoData(
   year: number,
   month: number,
   date: number
-): Promise<PhotoFile[]> {
+): Promise<WrappedResponse<PhotoFile[]>> {
   const dateQuery = formatDateQuery(year, month, date);
 
   const retriever = async () => {
@@ -331,59 +331,4 @@ function cleanCollectionsString(colStr) {
     cleaned = fullTree[2].replace(fullTree[1], "");
   }
   return cleaned;
-}
-
-/**
- * Fetch and format all videos for passing to the redux store
- */
-export async function buildVideoStore(
-  year: number,
-  month: number,
-  date: number
-): Promise<VideoFile[]> {
-  const videos = await getVideoData(year, month, date);
-  return videos;
-}
-
-/**
- * Fetch and format all photos for passing to the redux store
- */
-export async function buildPhotoStore(
-  year: number,
-  month: number,
-  date: number
-): Promise<PhotoFile[]> {
-  const photos = await getPhotoData(year, month, date);
-  return photos;
-}
-
-export function buildPhotoCollections(photos: PhotoFile[]) {
-  const collections: CollectionFilters[] = [];
-  const uniqueList = [];
-  for (let i = 0; i <= photos.length; i++) {
-    if (photos[i] !== undefined) {
-      if (!uniqueList.includes(photos[i].collections_string)) {
-        const collectionsObject: CollectionFilters = {
-          fullList: photos[i].collections_string,
-          display: photos[i].collections_string_pretty,
-          selected: true,
-        };
-        collections.push(collectionsObject);
-        uniqueList.push(photos[i].collections_string);
-      }
-    }
-  }
-  //sort collections alphabetically.
-  collections.sort(function (a, b) {
-    var valA = a.display.toUpperCase(); // ignore upper and lowercase
-    var valB = b.display.toUpperCase(); // ignore upper and lowercase
-    if (valA < valB) {
-      return -1;
-    }
-    if (valA > valB) {
-      return 1;
-    }
-    return 0;
-  });
-  return collections;
 }

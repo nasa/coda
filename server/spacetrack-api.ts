@@ -1,17 +1,23 @@
-import { getAppropriateTLE } from "store/ephemera";
-import { getTimes } from "utils/suncalc";
-import type { DayNightObj, EphemerisFile } from "typings/spacetrack";
-import { isSameDate } from "store/playhead";
 import { hhmmssFromSeconds } from "utils/formatting";
+import { getTimes } from "utils/suncalc";
+import { getAppropriateTLE } from "store/ephemera";
+import { isSameDate } from "store/playhead";
 import fetchWithCache from "./cache-client";
+import type { DayNightObj, EphemerisFile, EphemerisStore } from "typings/spacetrack";
+import type { WrappedResponse } from "typings";
 
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";
 const SPACETRACK_BASE =
   "https://www.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/";
 
-async function fetchSpacetrack(dateStr: string): Promise<EphemerisFile[]> {
+async function fetchSpacetrack(
+  year: number,
+  month: number,
+  date: number
+): Promise<EphemerisFile[]> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
@@ -23,21 +29,23 @@ async function fetchSpacetrack(dateStr: string): Promise<EphemerisFile[]> {
     return mockResult;
   }
 
-  const url = process.env.SPACETRACK_API_URL + "?date=" + dateStr;
+  const dateParam = `${year}-${month}-${date}`;
+  const queryURL = `${SPACETRACK_BASE}>${dateParam}%2000:00:00,>${dateParam}%2023:59:59/orderby/EPOCH desc/limit/100/emptyresult/show`;
+  const url = `${SPACETRACK_LOGIN}identity=${process.env.SPACETRACK_USER}&password=${process.env.SPACETRACK_PASSWORD}&query=${queryURL}`;
 
-  let res: Response;
+  const res = await fetch(url, { method: "POST" });
 
-  try {
-    res = await fetch(url);
-  } catch (e) {
-    throw e;
-  }
-  return res.json();
+  return await res.json();
 }
 
-function calcDayNight(ephemera: EphemerisFile[], dateStr: string): DayNightObj[] {
+function calcDayNight(
+  ephemera: EphemerisFile[],
+  year: number,
+  month: number,
+  date: number
+): DayNightObj[] {
   const secondsIn24Hours = 86400;
-  const startDate = new Date(dateStr + "T00:00:00Z");
+  const startDate = new Date(Date.UTC(year, month, date));
 
   const dayNightObjArray = [];
   let prevDaylight = null;
@@ -88,16 +96,55 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   return sunlight;
 }
 
-export async function getISS(year: number, month: number, date: number): Promise<EphemerisFile[]> {
+export async function getISS(
+  year: number,
+  month: number,
+  date: number
+): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
-  const preferNew = isSameDate(now, new Date(year, month, date));
-  const dateParam = `${year}-${month}-${date}`;
+  const preferNew = isSameDate(now, new Date(Date.UTC(year, month, date)));
 
-  const queryURL = `${SPACETRACK_BASE}>${dateParam}%2000:00:00,>${dateParam}%2023:59:59/orderby/EPOCH desc/limit/100/emptyresult/show`;
+  let res: WrappedResponse<EphemerisStore> = null;
+  try {
+    const retriever = async (): Promise<EphemerisStore> => {
+      const ephemera = await fetchSpacetrack(year, month, date);
 
-  const retriever = async (): Promise<EphemerisFile[]> => {
-    //
-  };
+      if (ephemera.length === 0) {
+        throw new Error(`No data available for '${dateParam}'`);
+      }
 
-  return fetchWithCache<EphemerisFile[]>(`spacetrack/${dateParam}`, retriever, { preferNew });
+      const dayNight = calcDayNight(ephemera, year, month, date);
+      return { dayNight, ephemera };
+    };
+
+    const dateParam = `${year}-${month}-${date}`;
+    res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retriever, {
+      preferNew,
+    });
+  } catch (e) {
+    // couldn't get a response for today. try yesterday
+    const today = new Date(Date.UTC(year, month, date));
+    const yesterday = new Date(today.valueOf() - ONE_DAY_MS);
+    const yesterdayYear = yesterday.getUTCFullYear();
+    const yesterdayMonth = yesterday.getUTCMonth() + 1;
+    const yesterdayDate = yesterday.getUTCDate();
+    const dateParam = `${yesterdayYear}-${yesterdayMonth}-${yesterdayDate}`;
+
+    const retriever = async (): Promise<EphemerisStore> => {
+      const ephemera = await fetchSpacetrack(yesterdayYear, yesterdayMonth, yesterdayDate);
+
+      if (ephemera.length === 0) {
+        throw new Error(`No data available for '${dateParam}'`);
+      }
+
+      const dayNight = calcDayNight(ephemera, yesterdayYear, yesterdayMonth, yesterdayDate);
+      return { dayNight, ephemera };
+    };
+
+    res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retriever, {
+      preferNew,
+    });
+  }
+
+  return res;
 }

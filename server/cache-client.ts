@@ -2,6 +2,7 @@ import cacache from "cacache";
 import crypto from "crypto";
 import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
+import { WrappedResponse } from "typings";
 
 // IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
 require("mac-ca");
@@ -15,12 +16,15 @@ interface Options {
   staleOk?: boolean;
   /** Default false. Always retrieve new data. Only return cached data if the `retriever` fails */
   preferNew?: boolean;
+  /** Default false. Instead of throwing errors, act like the `retriever` succeeded and return an `error` property in the response */
+  errorOk?: boolean;
 }
 
 const defaultOptions: Options = {
   cacheAge: 300,
   staleOk: false,
   preferNew: false,
+  errorOk: false,
 };
 
 /**
@@ -28,13 +32,12 @@ const defaultOptions: Options = {
  * @param service Name of the service requesting data
  * @param identifier Identifies this specific request
  * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
- * @returns
  */
 export default async function retrieveJSON<T>(
   identifier: string,
   retriever: () => Promise<T>,
   options?: Options
-): Promise<T> {
+): Promise<WrappedResponse<T>> {
   const opts = { ...defaultOptions, ...options };
 
   // to be clear, we're not hashing sensitive data, just filenames
@@ -46,6 +49,7 @@ export default async function retrieveJSON<T>(
   let cachedRes = null as string;
 
   let cacheIsHot = false;
+  let cacheRead = false;
 
   const cacheInfo = await cacache.get.info(process.env.CACHE_ROOT, cacheKey);
 
@@ -57,6 +61,7 @@ export default async function retrieveJSON<T>(
       res = JSON.parse(cachedRes);
 
       cacheIsHot = diff(new Date(), new Date(cacheInfo.time)) / 1000 < opts.cacheAge;
+      cacheRead = true;
     }
   } catch (e) {
     // something went wrong reading or parsing the cache, no problem
@@ -65,7 +70,7 @@ export default async function retrieveJSON<T>(
 
   if (cacheIsHot && !opts.preferNew) {
     // nothing else to do! give the caller the data
-    return res;
+    return { cacheRead, data: res };
   }
 
   try {
@@ -73,22 +78,30 @@ export default async function retrieveJSON<T>(
   } catch (e) {
     if (!isNull(res) && (opts.staleOk || opts.preferNew)) {
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
-      console.warn(`Stale data is being returned for '${service}' and '${identifier}'`);
-      return res;
+      console.warn(`Stale data is being returned for '${identifier}'`);
+      return { data: res, cacheRead: true };
     }
 
-    // let the caller decide what to do with this unhandled error
-    throw e;
+    if (opts.errorOk) {
+      // the caller is fine with an error response
+      return { error: e.toString() };
+    } else {
+      // let the caller decide what to do with this unhandled error
+      throw e;
+    }
   }
+
+  let cacheWrite = false;
 
   // cache the results for later
   try {
     // write to the cache
     await cacache.put(process.env.CACHE_ROOT, cacheKey, Buffer.from(JSON.stringify(res)));
+    cacheWrite = true;
   } catch (e) {
     console.warn(`Could not cache: '${identifier}'`);
     console.warn(e);
   }
 
-  return res;
+  return { cacheRead, cacheWrite, data: res };
 }

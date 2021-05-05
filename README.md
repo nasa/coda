@@ -92,10 +92,12 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 3. Create a `.env.local` file at the root of the repo. It must contain:
 
 ```
-IO_KEY=the-auth-key-we-have-for-io-thats-not-really-a-secret
+IO_KEY=
 CACHE_ROOT=/path/to/cache/root
 WIKI_USER=
 WIKI_PASSWORD=
+SPACETRACK_USER=
+SPACETRACK_PASSWORD=
 ```
 
 Ask Ben, James, or Cameron for the key if you don't have it.

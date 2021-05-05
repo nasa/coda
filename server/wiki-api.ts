@@ -17,7 +17,8 @@ import type {
   EVACrewResults,
   EVASummaryResponse,
 } from "typings/wiki";
-import retrieveJSON from "./cache-client";
+import fetchWithCache from "./cache-client";
+import type { WrappedResponse } from "typings";
 
 const COOKIE_JAR = `server/.cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
@@ -89,15 +90,19 @@ function isAPIError(e: any | WikiResponse): e is WikiResponse {
  * @param query Wikimedia query string
  * @param action Optional action type for local mocking
  */
-async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
+async function fetchWiki(query: string, action?: string): Promise<WrappedResponse<WikiResults>> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   // we're in the local environment. fake the request
   if (isLocal) {
-    return await mockData(query, action);
+    const data = await mockData(query, action);
+    return {
+      data,
+      mocked: true,
+    };
   }
 
-  let res: WikiResults;
+  let res: WrappedResponse<WikiResults>;
 
   const bot = await getMWBot();
   /** Use the MWBot to perform an ask request against the wiki */
@@ -105,7 +110,7 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
 
   try {
     // optmistically try to fetch from the wiki before we know for sure we're logged in
-    res = await retrieveJSON<WikiResults>(`wiki/${query}`, retriever);
+    res = await fetchWithCache<WikiResults>(`wiki/${query}`, retriever);
   } catch (e) {
     if (isAPIError(e)) {
       // we weren't logged in. let's log in
@@ -123,7 +128,9 @@ async function fetchWiki(query: string, action?: string): Promise<WikiResults> {
     }
     // we are logged in now. retry the request
     try {
-      res = await retrieveJSON<WikiResults>(`wiki/${query}`, retriever, { staleOk: true });
+      res = await fetchWithCache<WikiResults>(`wiki/${query}`, retriever, {
+        staleOk: true,
+      });
     } catch (e) {
       console.error("Wiki request error");
       throw e;

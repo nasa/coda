@@ -2,14 +2,23 @@
 Client-side methods for fetching from Imagery Online (IO)
 */
 import type { CollectionFilters } from "store/photos";
-import { PhotoFile, VideoFile } from "typings/io";
+import type { WrappedResponse } from "typings";
+import type { PhotoFile, VideoFile } from "typings/io";
 
-async function fetchVideoData(year: number, month: number, date: number): Promise<VideoFile[]> {
+async function fetchVideoData(
+  year: number,
+  month: number,
+  date: number
+): Promise<WrappedResponse<VideoFile[]>> {
   const res = await fetch(`/api/io/videos?year=${year}&month=${month}&date=${date}`);
   return await res.json();
 }
 
-async function fetchPhotoData(year: number, month: number, date: number): Promise<PhotoFile[]> {
+async function fetchPhotoData(
+  year: number,
+  month: number,
+  date: number
+): Promise<WrappedResponse<PhotoFile[]>> {
   const res = await fetch(`/api/io/photos?year=${year}&month=${month}&date=${date}`);
   return await res.json();
 }
@@ -22,7 +31,7 @@ export async function buildVideoStore(
   month: number,
   date: number
 ): Promise<VideoFile[]> {
-  const videos = await fetchVideoData(year, month, date);
+  const videos = (await fetchVideoData(year, month, date))?.data;
   return videos;
 }
 
@@ -34,7 +43,7 @@ export async function buildPhotoStore(
   month: number,
   date: number
 ): Promise<PhotoFile[]> {
-  const photos = await fetchPhotoData(year, month, date);
+  const photos = (await fetchPhotoData(year, month, date))?.data;
   return photos;
 }
 

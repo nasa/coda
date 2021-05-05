@@ -25,3 +25,13 @@ export interface IOResponse {
     };
   };
 }
+
+/** The base type for all responses from the CODA API */
+export interface WrappedResponse<T> {
+  data?: T;
+  cacheRead?: boolean;
+  cacheWrite?: boolean;
+  isCache?: boolean;
+  error?: string;
+  mocked?: boolean;
+}

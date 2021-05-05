@@ -21,7 +21,6 @@ const envs = {
     // seconds to keep the server-side API hits cached (assuming we get a response)
     CACHE_AGE: "300",
     CACHE_ROOT: "./server/.cache/",
-    // SPACETRACK_API_URL: "https://coda-dev.fit.nasa.gov/coda_server/spacetrack_iss/get_iss.php",
   },
   production: {
     NEXT_PUBLIC_APP_ENV: "prod",
