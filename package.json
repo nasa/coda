@@ -64,7 +64,6 @@
     "jest-canvas-mock": "^2.3.0",
     "mac-ca": "^1.0.6",
     "msw": "^0.21.3",
-    "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "tough-cookie-filestore": "0.0.1",
     "ts-jest": "^26.4.4",
