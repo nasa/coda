@@ -21,7 +21,7 @@ interface Options {
 }
 
 const defaultOptions: Options = {
-  cacheAge: 300,
+  cacheAge: +process.env.DEFAULT_CACHE_AGE,
   staleOk: false,
   preferNew: false,
   errorOk: false,

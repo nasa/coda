@@ -8,7 +8,7 @@ const envs = {
     IO_MOCK_MEDIA_URL: "https://emss.s3-us-gov-east-1.amazonaws.com/coda_data/",
     WIKI_API_URL: "http://wiki-mock/eva/api.php",
     // default seconds to consider cache entries hot
-    CACHE_AGE: "300",
+    DEFAULT_CACHE_AGE: 300,
     // where the cache should live
     CACHE_ROOT: "./server/.cache-local/",
   },
@@ -21,7 +21,7 @@ const envs = {
     // FYI, this is the dev wiki, which can be useful for testing changes to the info we're pulling from the wiki
     // WIKI_API_URL: "https://wiki-dev.fit.nasa.gov/iss/api.php",
     WIKI_API_URL: "https://wiki.jsc.nasa.gov/iss/api.php",
-    CACHE_AGE: "300",
+    DEFAULT_CACHE_AGE: 300,
     CACHE_ROOT: "./server/.cache-dev/",
   },
   production: {
@@ -31,7 +31,7 @@ const envs = {
     IO_API_URL: "https://io.jsc.nasa.gov/api/search/rpp=500",
     IO_HOST: "https://io.jsc.nasa.gov",
     WIKI_API_URL: "https://wiki.jsc.nasa.gov/iss/api.php",
-    CACHE_AGE: "300",
+    DEFAULT_CACHE_AGE: 300,
     CACHE_ROOT: "./server/.cache/",
   },
 };
