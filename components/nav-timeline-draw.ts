@@ -2,10 +2,10 @@ import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
-import { CollectionFilters } from "store/photos";
+import type { CollectionFilters } from "store/photos";
 import type { VideoFile, PhotoFile } from "typings/io";
 import type { DayNightObj } from "typings/spacetrack";
-import type { Activity } from "typings/wiki";
+import { Activity } from "typings/wiki";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -125,7 +125,7 @@ export default class DrawNav {
 
       let startLocY =
         videoSegmentsTop +
-        this.videoFiles[i]["group"] * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+        this.videoFiles[i].group * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth - 1;
 
       const name = "vidItem_" + i.toString();
@@ -135,10 +135,15 @@ export default class DrawNav {
         to: [endLocX, endLocY],
         strokeWidth: 0.1,
         strokeColor: this.gColorVideoBorder,
-        fillColor: this.gColorVideo,
         name,
       });
-      if (this.videoFiles[i].className === "downlink-LOS") vidLine.fillColor = this.gColorVideoLOS;
+      vidLine.fillColor =
+        this.videoFiles[i].className === "downlink-LOS" ? this.gColorVideoLOS : this.gColorVideo;
+
+      if (this.videoFiles[i].group === 6) {
+        vidLine.fillColor = new paper.Color("white");
+        vidLine.opacity = 0.4;
+      }
       this.gTier1Group.addChild(vidLine);
     }
 
@@ -392,11 +397,15 @@ export default class DrawNav {
           to: [endLocX, endLocY],
           strokeWidth: 1,
           strokeColor: this.gColorVideoBorder,
-          fillColor: this.gColorVideo,
           name: name,
         });
-        if (this.videoFiles[i].className === "downlink-LOS")
-          vidLine.fillColor = this.gColorVideoLOS;
+        vidLine.fillColor =
+          this.videoFiles[i].className === "downlink-LOS" ? this.gColorVideoLOS : this.gColorVideo;
+
+        if (this.videoFiles[i].group === 6) {
+          vidLine.fillColor = new paper.Color("white");
+          vidLine.opacity = 0.4;
+        }
         this.gTier2Group.addChild(vidLine);
       }
     }

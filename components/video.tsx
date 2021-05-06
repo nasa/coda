@@ -395,8 +395,10 @@ export default function Videos({ playerID }: { playerID: number }) {
     };
 
     let buttonClassStyle = styles.vidButton;
+    let arrowClass = styles.select_arrow;
     if (videos.downlinks[playerID] === 6) {
       buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
+      arrowClass = styles.select_arrow_dark;
     } else if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
       buttonClassStyle = `${styles.vidButton} ${styles.active}`;
     }
@@ -407,23 +409,12 @@ export default function Videos({ playerID }: { playerID: number }) {
     }
     return (
       <>
-        <button
-          type="button"
-          title="Select other video"
-          className={`${buttonClassStyle} ${styles.nonDLButton}`}
-          onClick={() => {
-            if (videos.downlinks[playerID] !== 6) {
-              dispatch(setVideoDownlink({ playerID, downlink: 6 }));
-              dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
-              setInfoToggle(false);
-            }
-          }}
+        <div
+          className={styles.selectContainer}
+          title={getPrettyVideoTitle(videos.nonDownlinkIDs[playerID])}
         >
-          Oth
-        </button>
-        <div className={styles.selectContainer}>
           <select
-            className={`${styles.select} ${selectActiveStyle} `}
+            className={`${buttonClassStyle} ${styles.nonDLButton} ${styles.selectNonDL} ${selectActiveStyle}`}
             value={videos.nonDownlinkIDs[playerID]}
             onChange={(e) => {
               dispatch(setVideoDownlink({ playerID, downlink: 6 }));
@@ -431,9 +422,12 @@ export default function Videos({ playerID }: { playerID: number }) {
               setInfoToggle(false);
             }}
           >
+            <option disabled value="">
+              Non-D/L
+            </option>
             {optionList()}
           </select>
-          <div className={styles.select_arrow}></div>
+          <div className={arrowClass}></div>
         </div>
       </>
     );
