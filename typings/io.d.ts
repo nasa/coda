@@ -77,6 +77,8 @@ export interface VideoFile {
   durationSeconds?: number;
   missionSecondsStart?: number;
   missionSecondsEnd?: number;
+  collections_string: string;
+  collections_string_pretty: string;
 }
 
 /** Parsed metadata from an IO photo file result */

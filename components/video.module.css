@@ -89,7 +89,7 @@
   border-top: 1px #ffc000 solid;
   border-bottom: 1px #ffc000 solid;
   color: #656269;
-  padding: 6px 20px;
+  padding: 6px 15px;
   margin-bottom: 5px;
   border-right: #bdbdbd solid 1px;
   text-align: center;
@@ -103,7 +103,7 @@
 .vidButton.active:hover {
   border-top: 3px #ffc000 solid;
   border-bottom: 3px #ffc000 solid;
-  padding: 4px 20px;
+  padding: 4px 15px;
 }
 .vidButton.selected {
   background-color: #ffc000;
@@ -114,7 +114,7 @@
   border-bottom-left-radius: 4px;
   border-left: 1px #ffc000 solid;
 }
-.vidButton:last-of-type {
+.vidButton:nth-of-type(6) {
   border-right: 1px #ffc000 solid;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
@@ -216,6 +216,7 @@
   height: 28px;
   border-radius: 4px;
   padding: 2px 3px;
+  margin-left: 2px;
   margin-right: 5px;
   border: #ffc000 solid 1.5px;
   background-color: #2b2a2d;
@@ -245,7 +246,7 @@
   color: #656269;
   padding: 5px;
   margin-bottom: 5px;
-  margin-right: 5px;
+  margin-right: 2px;
   cursor: pointer;
 }
 .infoIcon {
@@ -289,4 +290,116 @@
   font-weight: 400;
   margin-right: 5px;
   margin-left: 5px;
+}
+
+.selectContainer {
+  position: relative;
+}
+
+.nonDLButton {
+  width: 7em;
+  margin-left: 2px;
+  border-radius: 4px;
+  border-left: 1px #ffc000 solid;
+  padding: 6px 10px !important;
+}
+.nonDLButton.active:hover {
+  border-top: 3px #ffc000 solid;
+  border-bottom: 3px #ffc000 solid;
+  /* border-right: 3px #ffc000 solid !important; */
+  padding-top: 4px !important;
+  padding-right: 10px !important;
+  padding-bottom: 4px !important;
+  padding-left: 10px !important;
+}
+
+.select {
+  width: 70px;
+  font-family: "Inter", sans-serif;
+  font-size: 1em;
+  font-weight: 300;
+  cursor: pointer;
+  padding-top: 8px;
+  padding-right: 20px;
+  padding-bottom: 8px;
+  padding-left: 3px;
+  border: 1px solid #ffc000;
+  border-left: none;
+  background: #2b2a2a;
+  color: white;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  outline: none;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.select.selectActive:hover {
+  border-top: 3px #ffc000 solid;
+  border-bottom: 3px #ffc000 solid;
+  padding-top: 6px;
+  padding-right: 20px;
+  padding-bottom: 6px;
+  padding-left: 3px;
+}
+
+.select_arrow {
+  position: absolute;
+  top: 12px;
+  right: 5px;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 11px 7px 0px 8px;
+  border-color: #ffc000 transparent transparent transparent;
+}
+.select select:hover ~ .select_arrow,
+.select select:focus ~ .select_arrow {
+  border-top-color: #ffc000;
+}
+.select select:disabled ~ .select_arrow {
+  border-top-color: #cccccc;
+}
+
+.selectNonDL {
+  text-overflow: ellipsis;
+  font-family: "Inter", sans-serif;
+  background-color: #2b2a2d;
+  border: 1px solid #ffc000;
+  border-right: 1px #ffc000 solid;
+  color: #656269;
+  padding: 6px 15px;
+  margin-bottom: 5px;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.1em;
+  font-weight: 300;
+  cursor: pointer;
+  background: #2b2a2a;
+  color: white;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  outline: none;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.select_arrow_dark {
+  position: absolute;
+  top: 12px;
+  right: 5px;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 11px 7px 0px 8px;
+  border-color: #444444 transparent transparent transparent;
+}
+.select_arrow_dark:focus {
+  border-color: #444444 transparent transparent transparent;
+}
+.selectNonDL select:hover ~ .select_arrow_dark,
+.selectNonDL select:focus ~ .select_arrow_dark {
+  border-top-color: #444444;
+}
+.selectNonDL select:disabled ~ .select_arrow_dark {
+  border-top-color: #cccccc;
 }

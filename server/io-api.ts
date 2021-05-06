@@ -203,6 +203,10 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
     missionSecondsStart,
     missionSecondsEnd,
     durationSeconds,
+    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
+    collections_string_pretty: cleanCollectionsString(
+      doc.collections_string[doc.collections_string.length - 1]
+    ),
   };
 
   return videoFile;
@@ -328,7 +332,7 @@ function cleanCollectionsString(colStr) {
 
   let cleaned = fullTree[fullTree.length - 1];
   cleaned = cleaned.replace(fullTree[1], "");
-  if (fullTree[2].includes("Earth Obs")) {
+  if (fullTree[2]?.includes("Earth Obs")) {
     cleaned = fullTree[2].replace(fullTree[1], "") + " " + cleaned;
   }
   if (cleaned === "Photo") {

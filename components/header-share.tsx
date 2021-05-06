@@ -37,6 +37,12 @@ export default function HeaderShare() {
     URL += `&gmt=${missionTime}`;
     URL += `&video1=${videos.downlinks[1] + 1}`;
     URL += `&video2=${videos.downlinks[2] + 1}`;
+    if (videos.nonDownlinkIDs[1] !== "") {
+      URL += `&nonDLvideo1=${videos.nonDownlinkIDs[1]}`;
+    }
+    if (videos.nonDownlinkIDs[2] !== "") {
+      URL += `&nonDLvideo2=${videos.nonDownlinkIDs[2]}`;
+    }
 
     setShareURLtextValue(URL);
 

@@ -8,6 +8,8 @@ import type { VideoFile } from "typings/io";
 export type VideosEntityState = EntityState<VideoFile> & {
   /** Match the video player to a group, @see {VideoFile.group}. Keyed by the ID of the video player */
   downlinks: { [key: number]: number };
+  /** ID of nonDownlinkVideoSelected */
+  nonDownlinkIDs: { [key: number]: string };
   /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the ID of the video player */
   activeVideoFiles: { [key: number]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
@@ -24,6 +26,10 @@ export const initialState: VideosEntityState = videoAdapter.getInitialState({
   downlinks: {
     1: 0,
     2: 1,
+  },
+  nonDownlinkIDs: {
+    1: "",
+    2: "",
   },
   activeVideoFiles: {
     1: "",
@@ -49,8 +55,15 @@ export const videoSlice = createSlice({
       state.downlinks[action.payload.playerID] = action.payload.downlink;
     },
 
+    setVideoNonDownlinkID: (
+      state,
+      action: { payload: { playerID: number; nonDownlinkID: string } }
+    ) => {
+      state.nonDownlinkIDs[action.payload.playerID] = action.payload.nonDownlinkID;
+    },
+
     /** Set the video file ID to play on a named `<VideoPlayer />` */
-    pickVideoFile: (state, action: { payload: { playerID: number; videoID: string } }) => {
+    setActiveVideoFile: (state, action: { payload: { playerID: number; videoID: string } }) => {
       state.activeVideoFiles[action.payload.playerID] = action.payload.videoID;
     },
 
@@ -80,7 +93,8 @@ export const videoSlice = createSlice({
 
 export const {
   setVideoDownlink,
-  pickVideoFile,
+  setVideoNonDownlinkID,
+  setActiveVideoFile,
   ready,
   buffering,
   addVideos,
@@ -92,10 +106,12 @@ export const {
  * groups are downlink channels, currently 0 - 6 for ISS
  * missionSeconds starts at 0 and ends at the end of the day (currently 24 hours of seconds)
  * list of videos is an array of video names that are labeled in IO as having occurred on this group (downlink)
- * at this second. We currently only ever use the first element in this array because the array is sorted by
+ * at this second. For downlink videos, we currently only ever use the first element in this array because the array is sorted by
  * longest video. The thought here is that the longest video in IO at any given time is probably the most reliable
  * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
- * overlap across files in IO for a given downlink. *
+ * overlap across files in IO for a given downlink. For non-downlink videos we use this list to populate a display
+ * of all non-downlink videos at a given time.
+ *
  * Nested as:
  *
  * ```md
