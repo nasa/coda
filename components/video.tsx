@@ -7,17 +7,18 @@ import { PlayheadState, isSameDate } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
-  pickVideoFile,
+  setVideoNonDownlinkID,
+  setActiveVideoFile,
   ready,
   selectVideoActivity,
   VideoActivity,
   videoSelectors,
   VideosEntityState,
 } from "store/videos";
+import type { VideoFile } from "typings/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
-import type { RootState } from "store/index";
-import type { VideoFile } from "typings/io";
+import { RootState } from "store/index";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -63,8 +64,15 @@ export default function Videos({ playerID }: { playerID: number }) {
   }
 
   const getInitialDownlink = () => {
-    const queryParam = query[`video${playerID}`];
-    const downlink = (+queryParam || playerID) - 1;
+    const dlParam = query[`video${playerID}`];
+    const downlink = (+dlParam || playerID) - 1;
+
+    //set nonDownlinkVideo selected if non-downlink video has been selected
+    const nonDLParam = query[`nonDLvideo${playerID}`] as string;
+    if (downlink === 6) {
+      dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: nonDLParam }));
+    }
+
     if (videos.downlinks[playerID] !== downlink) {
       dispatch(setVideoDownlink({ playerID, downlink }));
     }
@@ -106,9 +114,20 @@ export default function Videos({ playerID }: { playerID: number }) {
       videoID = "";
     }
 
+    if (group === 6) {
+      videoID = videos.nonDownlinkIDs[playerID];
+      if (videosNextSecond.length > 0 && !videosNextSecond.includes(videoID)) {
+        videoID = videosNextSecond[0];
+        dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: videoID }));
+      }
+      if (videosNextSecond.length === 0 && videoID !== "") {
+        dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
+      }
+    }
+
     // if the video source needs to change, change it
     if (videoID !== activeVideoFileID) {
-      dispatch(pickVideoFile({ playerID, videoID }));
+      dispatch(setActiveVideoFile({ playerID, videoID }));
 
       // wipe out the metadata for this videoElement so that aspect will be recalculated when the next video loads
       setMetadata(null);
@@ -167,7 +186,7 @@ export default function Videos({ playerID }: { playerID: number }) {
   const updateSourceInfo = () => {
     const videoID = videos.activeVideoFiles[playerID];
 
-    if (videoID !== "") {
+    if (videoID !== "" && videoID !== undefined) {
       // there is a video for this downlink
       const currentlyPlayingVideo = videoSelectors.selectById(videos, videoID);
       setSourceURL(currentlyPlayingVideo.videoURL);
@@ -321,14 +340,14 @@ export default function Videos({ playerID }: { playerID: number }) {
 
   const renderButtons = () => {
     const group = videos.downlinks[playerID];
-    const availableGroups = [0, 1, 2, 3, 4, 5, 6];
+    const availableGroups = [0, 1, 2, 3, 4, 5];
 
     return availableGroups.map((g) => {
       let buttonClassStyle = styles.vidButton;
       if (g === group) {
-        buttonClassStyle = `${buttonClassStyle} ${styles.selected}`;
+        buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
       } else if (videoActivity && videoActivity[g][playhead.seconds].length > 0) {
-        buttonClassStyle = `${buttonClassStyle} ${styles.active}`;
+        buttonClassStyle = `${styles.vidButton} ${styles.active}`;
       }
       return (
         <button
@@ -339,6 +358,7 @@ export default function Videos({ playerID }: { playerID: number }) {
           onClick={() => {
             if (g !== group) {
               dispatch(setVideoDownlink({ playerID, downlink: g }));
+              dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
               setInfoToggle(false);
             }
           }}
@@ -347,6 +367,76 @@ export default function Videos({ playerID }: { playerID: number }) {
         </button>
       );
     });
+  };
+
+  const getPrettyVideoTitle = (videoID) => {
+    for (let i = 0; i < videoFiles.length; i++) {
+      if (videoFiles[i].id === videoID) {
+        return videoFiles[i].collections_string_pretty + " - " + videoID;
+      }
+    }
+  };
+
+  const renderNonDl = () => {
+    const optionList = () => {
+      if (videoActivity) {
+        const nonDlVideoIDs = videoActivity[6][playhead.seconds];
+        // for (let i = 0; i < nonDlVideoIDs.length; i++) {}
+        return nonDlVideoIDs.map((v) => {
+          return (
+            <option value={v} key={v}>
+              {getPrettyVideoTitle(v)}
+            </option>
+          );
+        });
+      } else {
+        return;
+      }
+    };
+
+    let buttonClassStyle = styles.vidButton;
+    if (videos.downlinks[playerID] === 6) {
+      buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
+    } else if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
+      buttonClassStyle = `${styles.vidButton} ${styles.active}`;
+    }
+
+    let selectActiveStyle = "";
+    if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
+      selectActiveStyle = styles.selectActive;
+    }
+    return (
+      <>
+        <button
+          type="button"
+          title="Select other video"
+          className={`${buttonClassStyle} ${styles.nonDLButton}`}
+          onClick={() => {
+            if (videos.downlinks[playerID] !== 6) {
+              dispatch(setVideoDownlink({ playerID, downlink: 6 }));
+              dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
+              setInfoToggle(false);
+            }
+          }}
+        >
+          Oth
+        </button>
+        <div className={styles.selectContainer}>
+          <select
+            className={`${styles.select} ${selectActiveStyle} `}
+            value={videos.nonDownlinkIDs[playerID]}
+            onChange={(e) => {
+              dispatch(setVideoDownlink({ playerID, downlink: 6 }));
+              dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: e.target.value }));
+              setInfoToggle(false);
+            }}
+          >
+            {optionList()}
+          </select>
+          <div className={styles.select_arrow}></div>
+        </div>
+      </>
+    );
   };
 
   const renderVideoOverlay = () => {
@@ -446,6 +536,7 @@ export default function Videos({ playerID }: { playerID: number }) {
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
         {renderButtons()}
+        {renderNonDl()}
         <div
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
           title={`Click to mute/unmute`}

@@ -203,6 +203,10 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
     missionSecondsStart,
     missionSecondsEnd,
     durationSeconds,
+    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
+    collections_string_pretty: cleanCollectionsString(
+      doc.collections_string[doc.collections_string.length - 1]
+    ),
   };
 
   return videoFile;

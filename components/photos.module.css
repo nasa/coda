@@ -120,7 +120,7 @@
   color: #656269;
   padding: 5px;
   margin-bottom: 5px;
-  margin-right: 5px;
+  margin-right: 2px;
   cursor: pointer;
 }
 .infoIcon {
@@ -189,8 +189,6 @@
 .tableButton:hover {
   border: 2px #ffc000 solid;
   padding: 4px;
-}
-.tableInput {
 }
 
 .overlayVisible {
