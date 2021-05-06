@@ -136,8 +136,7 @@ export async function getISS(
 
   const identifier = isToday ? "today" : `${year}-${month}-${date}`;
   res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
-    preferNew: true,
-    // preferNew: isToday,
+    preferNew: isToday,
     cacheAge: Infinity,
   });
 
@@ -159,7 +158,6 @@ export async function getISS(
     };
 
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retrieverYesterday, {
-      preferNew: true,
       cacheAge: Infinity,
     });
   }

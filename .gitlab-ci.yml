@@ -1,3 +1,8 @@
+# README
+# This defines the pipeline of jobs that runs when you push to gitlab
+# To check the validity of this file, try the live editor:
+# https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
+
 # Official framework image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/node/tags/
 image: node:14
@@ -7,25 +12,75 @@ image: node:14
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
-    - node_modules/
     - .next/cache/
-
-before_script:
-  - npm install
 
 stages:
   - test
   - build
   - pages
   - deploy_to_server
+# also run standard FIT dependency and package checks
+# https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates
+include:
+  - project: "developer-ecosystem/ci-job-templates"
+    ref: master
+    file: "/rollups/all-projects.gitlab-ci.yml"
+
+# manually overwrite the dependency-check to add our own suppression.xml
+dependency-check:
+  # Run job during the "test" stage of the pipeline
+  stage: test
+  image:
+    # Specify the Docker image to be used for the job, which is a customized image for running OWASP
+    # dependency-check in a GitLab CI job
+    name: $CI_REGISTRY/developer-ecosystem/dependency-check:latest
+    # Entrypoint is overridden to allow a script to be run
+    entrypoint: [""]
+  before_script:
+    - npm ci
+  script:
+    # Run dependency-check from the location installed in the Docker container with the following arguments:
+    # --scan "./"                                         Scans all files and folders within the working folder,
+    #                                                     which contains the repository files as well as any
+    #                                                     artifacts from prior jobs in the pipeline
+    # --format ALL                                        Saves output in all formats so that HTML and JSON
+    #                                                     files are available
+    # --project "$CI_PROJECT_NAME"                        Use the GitLab project name, which is included in
+    #                                                     the report
+    # --failOnCVSS 0                                      Forces job to fail if any vulnerabilities are found
+    # --suppression /suppressions/fp-cpe-suppression.xml  Suppress false positives where the dependency is
+    #                                                     improperly identified
+    # --suppression /suppressions/fp-cve-suppression.xml  Suppress false positives where the dependency is
+    #                                                     properly identified, but the  CVE is a false positive
+    - /usr/share/dependency-check/bin/dependency-check.sh --scan "./" --format ALL --project "$CI_PROJECT_NAME" --failOnCVSS 0 --suppression /suppressions/fp-cpe-suppression.xml --suppression /suppressions/fp-cve-suppression.xml --suppression ./ci/suppression.xml
+  # Allow failure will report a failure, but continue execution of the pipeline
+  allow_failure: true
+  artifacts:
+    # Saving artifacts always forces them to be saved on failure as well as success
+    when: always
+    # Save the HTML and JSON formatted results as artifacts
+    paths:
+      - "./dependency-check-report.html"
+      - "./dependency-check-report.json"
+
+stages:
+  - test
+  - pre-build
+  - build
+  - pages
+  - deploy_to_server
 
 test:
+  before_script:
+    - npm ci
   script:
     - npm run lint
     - npm t
   stage: test
 
 build:
+  before_script:
+    - npm ci
   script:
     - npm run build
   stage: build
@@ -35,6 +90,8 @@ build:
       - dist
 
 pages:
+  before_script:
+    - npm ci
   script:
     - npm run export
     - rm -rf public
@@ -138,7 +195,6 @@ deploy_to_dev2:
     url: https://coda-dev2.fit.nasa.gov
   only:
     - /^.*--dev2$/
-
 # TODO: uncomment when int is provisioned
 # deploy_to_integration:
 #   extends: .deploy_template

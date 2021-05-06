@@ -14,22 +14,25 @@ This section is only necessary if you're working with the CODA codebase.
 
 We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged when new code is merged into the following branches:
 
-| **Branch** | **Environment** | **URL**                        |
-| ---------- | --------------- | ------------------------------ |
-| `prod`     | production      | https://coda.fit.nasa.gov      |
-| `int`      | integration     | https://coda-int.fit.nasa.gov  |
-| `.*--dev`  | development     | https://coda-dev.fit.nasa.gov  |
-| `.*--dev2` | development2    | https://coda-dev2.fit.nasa.gov |
+| **Branch** | **Environment**  | **URL**                              |
+| ---------- | ---------------- | ------------------------------------ |
+| `prod`     | production       | https://coda.fit.nasa.gov            |
+| `int`      | integration      | https://coda-int.fit.nasa.gov        |
+| `.*--dev`  | development      | https://coda-dev.fit.nasa.gov        |
+| `.*--dev2` | development2     | https://coda-dev2.fit.nasa.gov       |
+| pages      | redirect to prod | https://coda.pages.fit.nasa.gov/coda |
 
 You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
 
 The rules for deployments are as follows:
 
 - Anyone can push a branch that ends in `--dev` or `--dev2` at any time to deploy to a development server. This is a great place to quickly test changes in a real deployed environment.
-- MRs for new features go into integration. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users. Create merge requests into this branch by setting the MR's "Target branch" to `int`.
+- MRs for new features go into integration. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users. Merge requests are made against `int` by default.
 - MRs to production:
   - Are only allowed from integration. This means the merge request will have a "Target branch" of `prod` and "Source branch" of `int`.
   - Include a manual action within the CI pipeline that prevents deploy to production until the integration environment looks good.
+
+The `pages` branch only exists to redirect old GitLab Pages URLs to the production site.
 
 ### Server Strategy
 
@@ -41,7 +44,7 @@ The rules for deployments are as follows:
 
 We run CODA as a Node server and keep it alive with [systemd](https://www.freedesktop.org/wiki/Software/systemd/). Why systemd? We're running on CentOS 7 FIT VMs. CentOS, like most major Linux distros, uses systemd to manage core services. It's fairly easy to configure and it's really good at keeping a process alive.
 
-### First Time Setup
+#### First Time Setup
 
 CODA's FIT servers are maintained with [FITBox](https://gitlab.fit.nasa.gov/fitbox/fitbox) using [this FITBox config](https://gitlab.fit.nasa.gov/coda/coda-fitbox-config). The steps below cover what needs to be done to get the CODA application up and running. Details for setting up supporting software is not included. The FITBox config outlines precisely how to get a CentOS 7 server up and running.
 
@@ -64,7 +67,7 @@ At this point, we're ready to start deploying to the server but CODA is not runn
 
 If everything is good, no further steps are necessary. Make sure `.gitlab-ci.yml` is setup with this VM's DNS entry and this user and you should be ready to deploy. If the server did not spin up, check the logs.
 
-### Changing the systemd service
+#### Changing the systemd service
 
 Do you need to change how the server is being run and monitored by systemd? The reasons you might want to do this is to modify environment variables, change working directories, or something else specific to systemd. If it's just a matter of a TypeScript thing, you should look at changing the `start` script in `package.json` first, in which case the instructions below do not apply.
 
@@ -93,14 +96,13 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 
 ```
 IO_KEY=
-CACHE_ROOT=/path/to/cache/root
 WIKI_USER=
 WIKI_PASSWORD=
 SPACETRACK_USER=
 SPACETRACK_PASSWORD=
 ```
 
-Ask Ben, James, or Cameron for the key if you don't have it.
+Ask Ben, James, or Cameron for the keys if you don't have them. You can also overwrite any of the variables found in `next.config.js`.
 
 4. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
 
@@ -281,13 +283,3 @@ some of them HD
 ### ISS Wiki
 
 We use the wiki dev server for our dev server.
-
-## Deployments
-
-TODO
-
-GitLab CI variable file
-
-```
-NODE_EXTRA_CERTS_FILE=
-```

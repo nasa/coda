@@ -10,7 +10,7 @@ const envs = {
     // default seconds to consider cache entries hot
     DEFAULT_CACHE_AGE: 300,
     // where the cache should live
-    CACHE_ROOT: "./server/.cache-local/",
+    CACHE_ROOT: "./.cache/local/",
   },
   development: {
     NEXT_PUBLIC_APP_ENV: "development",
@@ -22,7 +22,7 @@ const envs = {
     // WIKI_API_URL: "https://wiki-dev.fit.nasa.gov/iss/api.php",
     WIKI_API_URL: "https://wiki.jsc.nasa.gov/iss/api.php",
     DEFAULT_CACHE_AGE: 300,
-    CACHE_ROOT: "./server/.cache-dev/",
+    CACHE_ROOT: "./.cache/dev/",
   },
   production: {
     NEXT_PUBLIC_APP_ENV: "prod",
@@ -32,7 +32,7 @@ const envs = {
     IO_HOST: "https://io.jsc.nasa.gov",
     WIKI_API_URL: "https://wiki.jsc.nasa.gov/iss/api.php",
     DEFAULT_CACHE_AGE: 300,
-    CACHE_ROOT: "./server/.cache/",
+    CACHE_ROOT: "./.cache/prod/",
   },
 };
 

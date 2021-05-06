@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+set -e
+
+# Paper.js docs include an ancient version of jquery (1.10) that gets flagged by dependency checks. just get rid of the local copy of Paper.js docs
+rm -rf node_modules/paper/dist/docs
+echo "postinstall: Removed Paper.js' vendored copy of an ancient version of jQuery\n"
