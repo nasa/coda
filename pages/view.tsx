@@ -81,9 +81,7 @@ export default function View(props: { query: QueryParams }) {
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
-    // if (userTime !== playhead.seconds) {
     dispatch(changeTime(userTime));
-    // }
   }, []);
 
   // grab videos
