@@ -1,6 +1,5 @@
 import Link from "next/link";
 import isNil from "lodash/isNil";
-import { useRouter } from "next/router";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { changeTime, PlayheadState } from "store/playhead";
@@ -16,7 +15,6 @@ import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
  * Renders the top bar of CODA
  */
 function Header() {
-  const router = useRouter();
   const dispatch = useDispatch();
 
   const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
@@ -61,7 +59,7 @@ function Header() {
   const handleDateTimeChange = () => {
     if (userDateValue !== "") {
       const [Y, M, D] = userDateValue.split("-");
-      router.push(`/view?date=${Y}-${M}-${D}`);
+      window.location.assign(`/view?date=${Y}-${M}-${D}`);
       return;
     }
 

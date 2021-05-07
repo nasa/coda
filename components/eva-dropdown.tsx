@@ -1,6 +1,5 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
@@ -12,7 +11,6 @@ import { padZeros } from "utils/formatting";
 export default function EVADropdown() {
   const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
 
-  const router = useRouter();
   const date = useSelector((state: RootState) => state.playhead.date);
 
   const allEVAs = evasSelector.selectAll(evas);
