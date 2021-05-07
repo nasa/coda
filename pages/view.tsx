@@ -28,7 +28,7 @@ import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-const View = (props: { query: QueryParams }) => {
+export default function View(props: { query: QueryParams }) {
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -240,7 +240,7 @@ const View = (props: { query: QueryParams }) => {
       <Main {...props} />
     </div>
   );
-};
+}
 
 export async function getServerSideProps({ query }) {
   const date = query.date === undefined ? null : query.date;
@@ -280,5 +280,3 @@ export interface QueryParams {
   /** ID of the non-D/L video the user wants to view in player 2 */
   nonDLvideo2: string;
 }
-
-export default View;
