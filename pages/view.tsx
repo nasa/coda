@@ -22,14 +22,14 @@ import {
 import { addEVAs } from "store/evas";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useEffect } from "react";
-import { PlayheadState, diff, isSameDate, changeDate, changeTime } from "store/playhead";
+import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 const View = (props: { query: QueryParams }) => {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
@@ -67,7 +67,7 @@ const View = (props: { query: QueryParams }) => {
       userDate = new Date(Date.UTC(year, month, day));
     }
 
-    if (!playhead.date || !isSameDate(new Date(playhead.date), userDate)) {
+    if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
       dispatch(changeDate(userDate.toISOString()));
     }
 
@@ -81,19 +81,19 @@ const View = (props: { query: QueryParams }) => {
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
-    if (userTime !== playhead.seconds) {
-      dispatch(changeTime(userTime));
-    }
+    // if (userTime !== playhead.seconds) {
+    dispatch(changeTime(userTime));
+    // }
   }, []);
 
   // grab videos
   useEffect(() => {
     (async () => {
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
 
       // make sure we don't already have videos for this date
       if (haveVideosFromDate(videoFiles, d)) {
@@ -113,12 +113,12 @@ const View = (props: { query: QueryParams }) => {
         console.error(e);
       }
     })();
-  }, [playhead.date]);
+  }, [playheadDate]);
 
   // Grab photos
   useEffect(() => {
     (async () => {
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
@@ -126,7 +126,7 @@ const View = (props: { query: QueryParams }) => {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
 
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth();
@@ -143,16 +143,16 @@ const View = (props: { query: QueryParams }) => {
         console.error(e);
       }
     })();
-  }, [playhead.date]);
+  }, [playheadDate]);
 
   // Grab ISS orbit ephemeris data
   useEffect(() => {
     (async () => {
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
 
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth() + 1;
@@ -167,17 +167,17 @@ const View = (props: { query: QueryParams }) => {
         console.error(e);
       }
     })();
-  }, [playhead.date]);
+  }, [playheadDate]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
     (async () => {
       // the playhead hasn't been set, no point in looking for videos
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
       if (!isSameDate(d, new Date())) {
         // the user is looking at a date in the past. no need to keep looking for new videos
         return;
@@ -213,14 +213,14 @@ const View = (props: { query: QueryParams }) => {
   };
 
   // fetch updated data when the date changes
-  useEffect(updateEVAs, [playhead.date]);
+  useEffect(updateEVAs, [playheadDate]);
 
   // look for wiki info every 5 mins
   useInterval(updateEVAs, FIVE_MINS_MS);
 
   let prefix = "Viewer";
-  if (!isNull(playhead.date)) {
-    const d = new Date(playhead.date);
+  if (!isNull(playheadDate)) {
+    const d = new Date(playheadDate);
     const options: Intl.DateTimeFormatOptions = {
       timeZone: "UTC",
       year: "numeric",

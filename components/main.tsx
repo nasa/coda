@@ -6,7 +6,7 @@ import StatusBar from "components/status-bar";
 import Video from "components/video";
 import Photos from "components/photos";
 import ISSLocation from "components/iss-location";
-import { PlayheadState, run, halt, tick } from "store/playhead";
+import { run, halt, tick } from "store/playhead";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
 import useInterval from "utils/useInterval";
@@ -18,7 +18,8 @@ import type { QueryParams } from "pages/view";
  * Renders the main CODA application layout. Also handles checking whether the playhead should be running
  */
 export default function Main(props: { query: QueryParams }) {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadReady = useSelector((state: RootState) => state.playhead.ready);
+  const playheadIsRunning = useSelector((state: RootState) => state.playhead.isRunning);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
@@ -28,21 +29,21 @@ export default function Main(props: { query: QueryParams }) {
     // (1) make sure the playhead is running when it should
 
     // determine whether all the "modules" are ready, including the user
-    const everythingReady = playhead.ready && videos.ready[1] && videos.ready[2] && photos.ready;
+    const everythingReady = playheadReady && videos.ready[1] && videos.ready[2] && photos.ready;
 
     // (1.2) the playhead is paused when it should be running
-    if (everythingReady && !playhead.isRunning) {
+    if (everythingReady && !playheadIsRunning) {
       dispatch(run());
     }
     // (1.2) the playhead is running when it should be paused
-    else if (!everythingReady && playhead.isRunning) {
+    else if (!everythingReady && playheadIsRunning) {
       // kill the playhead if it should be paused
       dispatch(halt());
     }
-  }, [playhead.ready, playhead.isRunning, videos.ready, photos.ready]);
+  }, [playheadReady, playheadIsRunning, videos.ready, photos.ready]);
 
   useInterval(() => {
-    if (playhead.isRunning) {
+    if (playheadIsRunning) {
       dispatch(tick());
     }
   }, 1000);
