@@ -247,12 +247,16 @@ export async function getServerSideProps({ query }) {
   const gmt = query.gmt === undefined ? null : query.gmt;
   const video1 = query.video1 === undefined ? null : query.video1;
   const video2 = query.video2 === undefined ? null : query.video2;
+  const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
+  const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
 
   const returnVal: QueryParams = {
     gmt,
     date,
     video1,
     video2,
+    nonDLvideo1,
+    nonDLvideo2,
   };
 
   return {
@@ -267,10 +271,14 @@ export interface QueryParams {
   date: string;
   /** UTC hh:mm the user wants to view */
   gmt: string;
-  /** Downlink number the user wants to view */
+  /** Downlink number the user wants to view in player 1 */
   video1: string;
-  /** Downlink number the user wants to view */
+  /** Downlink number the user wants to view in player 2 */
   video2: string;
+  /** ID of the non-D/L video the user wants to view in player 1 */
+  nonDLvideo1: string;
+  /** ID of the non-D/L video the user wants to view in player 2 */
+  nonDLvideo2: string;
 }
 
 export default View;
