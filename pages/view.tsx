@@ -39,38 +39,38 @@ export default function View(props: { query: QueryParams }) {
   const videoFiles = videoSelectors.selectAll(videos);
 
   // make sure the application is running on the correct date
+  let userDate = null;
+
+  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
+  if (!isNull(props.query.date) && !isNull(props.query.date.match(yyyymmdd))) {
+    // change the date if the user set the `date` query param
+    userDate = new Date(props.query.date);
+  } else {
+    // default the date to today
+    userDate = new Date();
+  }
+
+  // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
+  // https://youtu.be/m_0s8IZWkBg
+  const isFutureDate = diff(userDate, new Date()) > 0;
+
+  // we will ignore the datetime if it is invalid
+  const isMalformedDate = isNaN(userDate.valueOf());
+
+  if (isFutureDate || isMalformedDate) {
+    // set the date today
+    const d = new Date();
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    const day = d.getUTCDate();
+    userDate = new Date(Date.UTC(year, month, day));
+  }
+
+  if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
+    dispatch(changeDate(userDate.toISOString()));
+  }
+
   useEffect(() => {
-    let userDate = null;
-
-    const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-    if (!isNull(props.query.date) && !isNull(props.query.date.match(yyyymmdd))) {
-      // change the date if the user set the `date` query param
-      userDate = new Date(props.query.date);
-    } else {
-      // default the date to today
-      userDate = new Date();
-    }
-
-    // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
-    // https://youtu.be/m_0s8IZWkBg
-    const isFutureDate = diff(userDate, new Date()) > 0;
-
-    // we will ignore the datetime if it is invalid
-    const isMalformedDate = isNaN(userDate.valueOf());
-
-    if (isFutureDate || isMalformedDate) {
-      // set the date today
-      const d = new Date();
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
-      const day = d.getUTCDate();
-      userDate = new Date(Date.UTC(year, month, day));
-    }
-
-    if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      dispatch(changeDate(userDate.toISOString()));
-    }
-
     // make sure the application is running on the correct time
     // default the time to 00:00:00Z
     let userTime = 0;
