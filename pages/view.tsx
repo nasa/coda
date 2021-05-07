@@ -21,24 +21,15 @@ import {
 } from "store/photos";
 import { addEVAs } from "store/evas";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { PlayheadState, diff, isSameDate, changeDate, changeTime } from "store/playhead";
+import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-export default function View() {
-  const {
-    // date should be in yyyy/mm/dd or yyyy-mm-dd format
-    // gmt should be in hh:mm:ss format
-    query: { date = null, gmt = null },
-  }: {
-    query: { date?: string; gmt?: string };
-  } = useRouter();
-
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+export default function View(props: { query: QueryParams }) {
+  const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
@@ -48,63 +39,59 @@ export default function View() {
   const videoFiles = videoSelectors.selectAll(videos);
 
   // make sure the application is running on the correct date
+  let userDate = null;
+
+  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
+  if (!isNull(props.query.date) && !isNull(props.query.date.match(yyyymmdd))) {
+    // change the date if the user set the `date` query param
+    userDate = new Date(props.query.date);
+  } else {
+    // default the date to today
+    userDate = new Date();
+  }
+
+  // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
+  // https://youtu.be/m_0s8IZWkBg
+  const isFutureDate = diff(userDate, new Date()) > 0;
+
+  // we will ignore the datetime if it is invalid
+  const isMalformedDate = isNaN(userDate.valueOf());
+
+  if (isFutureDate || isMalformedDate) {
+    // set the date today
+    const d = new Date();
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    const day = d.getUTCDate();
+    userDate = new Date(Date.UTC(year, month, day));
+  }
+
+  if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
+    dispatch(changeDate(userDate.toISOString()));
+  }
+
   useEffect(() => {
-    let userDate = null;
-
-    const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-    if (!isNull(date) && !isNull(date.match(yyyymmdd))) {
-      // change the date if the user set the `date` query param
-      userDate = new Date(date);
-    } else {
-      // default the date to today
-      userDate = new Date();
-    }
-
-    // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
-    // https://youtu.be/m_0s8IZWkBg
-    const isFutureDate = diff(userDate, new Date()) > 0;
-
-    // we will ignore the datetime if it is invalid
-    const isMalformedDate = isNaN(userDate.valueOf());
-
-    if (isFutureDate || isMalformedDate) {
-      // set the date today
-      const d = new Date();
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
-      const day = d.getUTCDate();
-      userDate = new Date(Date.UTC(year, month, day));
-    }
-
-    if (!playhead.date || !isSameDate(new Date(playhead.date), userDate)) {
-      dispatch(changeDate(userDate.toISOString()));
-    }
-  }, [date]);
-
-  // make sure the application is running on the correct time
-  useEffect(() => {
+    // make sure the application is running on the correct time
     // default the time to 00:00:00Z
     let userTime = 0;
 
     // change the time if the user set the `gmt` query param
-    if (!isNull(gmt)) {
-      const [hh, mm, ss = 0] = gmt.split(":").map(Number);
+    if (!isNull(props.query.gmt)) {
+      const [hh, mm, ss = 0] = props.query.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
-    if (userTime !== playhead.seconds) {
-      dispatch(changeTime(userTime));
-    }
-  }, [gmt]);
+    dispatch(changeTime(userTime));
+  }, []);
 
   // grab videos
   useEffect(() => {
     (async () => {
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
 
       // make sure we don't already have videos for this date
       if (haveVideosFromDate(videoFiles, d)) {
@@ -124,12 +111,12 @@ export default function View() {
         console.error(e);
       }
     })();
-  }, [playhead.date]);
+  }, [playheadDate]);
 
   // Grab photos
   useEffect(() => {
     (async () => {
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
@@ -137,7 +124,7 @@ export default function View() {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
 
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth();
@@ -154,16 +141,16 @@ export default function View() {
         console.error(e);
       }
     })();
-  }, [playhead.date]);
+  }, [playheadDate]);
 
   // Grab ISS orbit ephemeris data
   useEffect(() => {
     (async () => {
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
 
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth() + 1;
@@ -178,17 +165,17 @@ export default function View() {
         console.error(e);
       }
     })();
-  }, [playhead.date]);
+  }, [playheadDate]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
     (async () => {
       // the playhead hasn't been set, no point in looking for videos
-      if (isNull(playhead.date)) {
+      if (isNull(playheadDate)) {
         return;
       }
 
-      const d = new Date(playhead.date);
+      const d = new Date(playheadDate);
       if (!isSameDate(d, new Date())) {
         // the user is looking at a date in the past. no need to keep looking for new videos
         return;
@@ -224,14 +211,14 @@ export default function View() {
   };
 
   // fetch updated data when the date changes
-  useEffect(updateEVAs, [playhead.date]);
+  useEffect(updateEVAs, [playheadDate]);
 
   // look for wiki info every 5 mins
   useInterval(updateEVAs, FIVE_MINS_MS);
 
   let prefix = "Viewer";
-  if (!isNull(playhead.date)) {
-    const d = new Date(playhead.date);
+  if (!isNull(playheadDate)) {
+    const d = new Date(playheadDate);
     const options: Intl.DateTimeFormatOptions = {
       timeZone: "UTC",
       year: "numeric",
@@ -248,7 +235,46 @@ export default function View() {
           {prefix} | {process.env.TITLE}
         </title>
       </Head>
-      <Main />
+      <Main {...props} />
     </div>
   );
+}
+
+export async function getServerSideProps({ query }) {
+  const date = query.date === undefined ? null : query.date;
+  const gmt = query.gmt === undefined ? null : query.gmt;
+  const video1 = query.video1 === undefined ? null : query.video1;
+  const video2 = query.video2 === undefined ? null : query.video2;
+  const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
+  const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
+
+  const returnVal: QueryParams = {
+    gmt,
+    date,
+    video1,
+    video2,
+    nonDLvideo1,
+    nonDLvideo2,
+  };
+
+  return {
+    props: {
+      query: returnVal,
+    },
+  };
+}
+
+export interface QueryParams {
+  /** yyyy-mm-dd the user wants to view */
+  date: string;
+  /** UTC hh:mm the user wants to view */
+  gmt: string;
+  /** Downlink number the user wants to view in player 1 */
+  video1: string;
+  /** Downlink number the user wants to view in player 2 */
+  video2: string;
+  /** ID of the non-D/L video the user wants to view in player 1 */
+  nonDLvideo1: string;
+  /** ID of the non-D/L video the user wants to view in player 2 */
+  nonDLvideo2: string;
 }
