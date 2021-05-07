@@ -39,7 +39,7 @@ const isAutoplayError = (e: Error): boolean => {
 /**
  * Renders a video and the downlink buttons
  */
-export default function Video(props) {
+export default function Video(props: { playerID: number; query: QueryParams }) {
   const playerID = props.playerID;
   const query: QueryParams = props.query;
 

@@ -30,9 +30,7 @@ export default function EVADropdown() {
     setValue(e.target.value);
     if (e.target.value !== "") {
       const [year, month, day] = evasSelector.selectById(evas, e.target.value).startDate.split("-");
-      router.push(`/view?date=${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`, "", {
-        shallow: true,
-      });
+      window.location.assign(`/view?date=${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`);
     }
   };
 

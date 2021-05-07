@@ -17,7 +17,7 @@ import type { QueryParams } from "pages/view";
 /**
  * Renders the main CODA application layout. Also handles checking whether the playhead should be running
  */
-export default function Main(query: QueryParams) {
+export default function Main(props: { query: QueryParams }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -54,8 +54,8 @@ export default function Main(query: QueryParams) {
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
-          <Video playerID={1} {...query} />
-          <Video playerID={2} {...query} />
+          <Video playerID={1} {...props} />
+          <Video playerID={2} {...props} />
           <Photos />
         </div>
         <div className={styles.bodyRow2}>

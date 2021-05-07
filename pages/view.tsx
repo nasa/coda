@@ -28,7 +28,7 @@ import { RootState } from "store/index";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-const View = (props) => {
+const View = (props: { query: QueryParams }) => {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -263,9 +263,13 @@ export async function getServerSideProps({ query }) {
 }
 
 export interface QueryParams {
+  /** yyyy-mm-dd the user wants to view */
   date: string;
+  /** UTC hh:mm the user wants to view */
   gmt: string;
+  /** Downlink number the user wants to view */
   video1: string;
+  /** Downlink number the user wants to view */
   video2: string;
 }
 
