@@ -7,24 +7,17 @@
 # https://hub.docker.com/r/library/node/tags/
 image: node:14
 
-# This folder is cached between builds
-# http://docs.gitlab.com/ee/ci/yaml/README.html#cache
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .next/cache/
-
-stages:
-  - test
-  - build
-  - pages
-  - deploy_to_server
 # also run standard FIT dependency and package checks
 # https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates
 include:
   - project: "developer-ecosystem/ci-job-templates"
     ref: master
     file: "/rollups/all-projects.gitlab-ci.yml"
+
+stages:
+  - test
+  - pre-build
+  - pages
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
@@ -63,159 +56,10 @@ dependency-check:
       - "./dependency-check-report.html"
       - "./dependency-check-report.json"
 
-stages:
-  - test
-  - pre-build
-  - build
-  - pages
-  - deploy_to_server
-
-test:
-  before_script:
-    - npm ci
-  script:
-    - npm run lint
-    - npm t
-  stage: test
-
-build:
-  before_script:
-    - npm ci
-  script:
-    - npm run build
-  stage: build
-  artifacts:
-    paths:
-      - .next
-      - dist
-
 pages:
-  before_script:
-    - npm ci
-  script:
-    - npm run export
-    - rm -rf public
-    - mv out public
   stage: pages
   artifacts:
     paths:
       - public
   only:
     - live
-
-##
-## A hidden job for setting up SSH that is never executed by itself. Instead, we use the `extends`
-## keyword in other jobs to execute this script and setup SSH during deployments
-##
-.setup_ssh:
-  before_script:
-    ## See https://docs.gitlab.com/ee/ci/ssh_keys/index.html#ssh-keys-when-using-the-docker-executor
-    ##
-    ## Install ssh-agent if not already installed, it is required by Docker.
-    ## (change apt-get to yum if you use an RPM-based image)
-    ##
-    - "command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )"
-
-    ##
-    ## Install rsync
-    ##
-    - "which rsync || ( apt-get update -y && apt-get install rsync -y )"
-
-    ##
-    ## Run ssh-agent (inside the build environment)
-    ##
-    - eval $(ssh-agent -s)
-
-    ##
-    ## Create the SSH directory and give it the right permissions
-    ##
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-
-    ##
-    ## Add the FIT server host to known_hosts
-    ##
-    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-
-    ## Since servers may have different private keys, we need to be able to set a variable
-    ## for each job saying what the name of the key in GitLab Variables is called. This
-    ## extracts the key based on the passed in variable name.
-    - SSH_PRIVATE_KEY_VALUE=${!SSH_PRIVATE_KEY_VAR_NAME}
-
-    ##
-    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
-    ## We're using tr to fix line endings which makes ed25519 keys work
-    ## without extra base64 encoding.
-    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
-    ##
-    - echo "$SSH_PRIVATE_KEY_VALUE" | tr -d '\r' | ssh-add -
-
-.deploy_template:
-  extends: .setup_ssh
-  stage: deploy_to_server
-  script:
-    # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
-    - rsync -acrvz --delete --exclude=node_modules --exclude=.env* --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
-    # check dependencies and restart the server
-    - >
-      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
-      cd /opt/fitbox/apps/coda &&
-
-      echo -e '\nInstall dependencies' &&
-      npm i &&
-
-      echo -e '\nRestart the server' &&
-      sudo systemctl restart coda"
-
-# TODO: we need to update this when we switch over coda-dev to a fitbox template
-deploy_dev:
-  extends: .setup_ssh
-  stage: deploy_to_server
-  variables:
-    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY
-  environment:
-    name: development
-    url: https://coda-dev.fit.nasa.gov/coda
-  script:
-    # sync the source code on the server at /home/bfeist/coda
-    - rsync -acrvz --delete --exclude=node_modules --exclude=.env* --exclude=.git "$PWD" bfeist@jsfitdcoda.ndc.nasa.gov:/home/bfeist
-    # rebuild the app then restart node on the VM
-    - ssh bfeist@jsfitdcoda.ndc.nasa.gov "cd /home/bfeist/coda && npm i && systemctl --user restart coda-dev"
-  only:
-    - /^.*--dev$/
-
-deploy_to_dev2:
-  extends: .deploy_template
-  variables:
-    ENVIRONMENT_HOSTNAME: jsfitdcoda02
-    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV2
-  environment:
-    name: development2
-    url: https://coda-dev2.fit.nasa.gov
-  only:
-    - /^.*--dev2$/
-# TODO: uncomment when int is provisioned
-# deploy_to_integration:
-#   extends: .deploy_template
-#   variables:
-#     ENVIRONMENT_HOSTNAME: jsfiticoda
-#     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
-#   environment:
-#     name: integration
-#     url: https://coda-int.fit.nasa.gov
-#   only:
-#     - int
-
-# TODO: uncomment when prod is provisioned
-# deploy_to_production:
-#   extends: .deploy_template
-#   variables:
-#     ENVIRONMENT_HOSTNAME: jsfitpcoda
-#     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
-#   environment:
-#     name: production
-#     url: https://coda.fit.nasa.gov/coda
-#   when: manual
-#   only:
-#     - prod
