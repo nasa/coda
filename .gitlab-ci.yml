@@ -156,7 +156,7 @@ pages:
   stage: deploy_to_server
   script:
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
-    - rsync -acrvz --delete --exclude=node_modules --exclude=.env* --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
+    - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
     # check dependencies and restart the server
     - >
       ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
