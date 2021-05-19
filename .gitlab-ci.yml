@@ -166,6 +166,7 @@ pages:
       npm i &&
 
       echo -e '\nRestart the server' &&
+      sudo systemctl daemon-reload &&
       sudo systemctl restart coda"
 
 # TODO: we need to update this when we switch over coda-dev to a fitbox template
