@@ -178,9 +178,11 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
 
   // if we are using mock data, then stream a mock video file in place of all video files
   // this allows dev to continue with VPN off
-  const videoURL = process.env.IO_MOCK_MEDIA_URL
-    ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
-    : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
+  const videoURL =
+    isLocal && process.env.IO_MOCK_MEDIA_URL
+      ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
+      : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   // derive mission second values for this video
   const startOfDay = new Date(`${UTCstart.toISOString().split("T")[0]}T00:00:00Z`);
@@ -302,12 +304,15 @@ function parsePhotoResultMetadata(doc: Doc): PhotoFile {
 
   // if we are using mock data, then use a mock photo that is not export restricted
   // this allows dev to continue with VPN off
-  const lowResURL = process.env.IO_MOCK_MEDIA_URL
-    ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1_small.jpg"
-    : `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const highResURL = process.env.IO_MOCK_MEDIA_URL
-    ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
-    : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
+  const lowResURL =
+    isLocal && process.env.IO_MOCK_MEDIA_URL
+      ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1_small.jpg"
+      : `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const highResURL =
+    isLocal && process.env.IO_MOCK_MEDIA_URL
+      ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
+      : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,

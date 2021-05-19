@@ -232,7 +232,7 @@ export default function View(props: { query: QueryParams }) {
     <div>
       <Head>
         <title>
-          {prefix} | {process.env.TITLE}
+          {prefix} | {process.env.NEXT_PUBLIC_TITLE}
         </title>
       </Head>
       <Main {...props} />

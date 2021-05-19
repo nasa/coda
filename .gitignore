@@ -15,4 +15,4 @@ dist/
 .cache*
 
 # don't commit secrets!
-.env*
+.env.local
