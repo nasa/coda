@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CODA | Redirect</title>
+  </head>
+  <body>
+    <p>
+      You are being redirected to the new<sup>*</sup> CODA production website.
+      If you are not redirected in 5 seconds, please click here:
+      <a
+        id="link"
+        style="font-family: 'Courier New', Courier, monospace"
+        href=""
+      ></a
+      >.
+    </p>
+    <p style="font-size: smaller"><sup>*</sup> new as of 2021-05-20</p>
+  </body>
+  <script>
+    const pathname = window.location.pathname.replace(/\/coda/, "");
+    const queryParams = window.location.search;
+    const url = `https://coda.fit.nasa.gov${pathname}${queryParams}`;
+    const a = document.querySelector("#link");
+    a.textContent = url;
+    a.setAttribute("href", url);
+    setTimeout(() => {
+      window.location.assign(url);
+    }, 3000);
+  </script>
+</html>
