@@ -195,7 +195,7 @@ deploy_to_production:
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
   environment:
     name: production
-    url: https://coda.fit.nasa.gov/coda
+    url: https://coda.fit.nasa.gov
   when: manual
   only:
     - prod
