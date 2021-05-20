@@ -14,17 +14,18 @@ cache:
   paths:
     - .next/cache/
 
-stages:
-  - test
-  - build
-  - pages
-  - deploy_to_server
 # also run standard FIT dependency and package checks
 # https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates
 include:
   - project: "developer-ecosystem/ci-job-templates"
     ref: master
     file: "/rollups/all-projects.gitlab-ci.yml"
+
+stages:
+  - test
+  - pre-build
+  - build
+  - deploy_to_server
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
@@ -63,13 +64,6 @@ dependency-check:
       - "./dependency-check-report.html"
       - "./dependency-check-report.json"
 
-stages:
-  - test
-  - pre-build
-  - build
-  - pages
-  - deploy_to_server
-
 test:
   before_script:
     - npm ci
@@ -88,20 +82,6 @@ build:
     paths:
       - .next
       - dist
-
-pages:
-  before_script:
-    - npm ci
-  script:
-    - npm run export
-    - rm -rf public
-    - mv out public
-  stage: pages
-  artifacts:
-    paths:
-      - public
-  only:
-    - live
 
 ##
 ## A hidden job for setting up SSH that is never executed by itself. Instead, we use the `extends`
