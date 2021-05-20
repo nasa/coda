@@ -7,14 +7,29 @@
     <title>CODA | Redirect</title>
   </head>
   <body>
-    You are being redirected to the new CODA production website. If you are not
-    redirected in 5 seconds, please click here:
-    <a href="https://coda.fit.nasa.gov">https://coda.fit.nasa.gov</a>
+    <script>
+      const pathname = window.location.pathname.replace(/\/coda/, "");
+      const queryParams = window.location.search;
+      const url = `https://coda.fit.nasa.gov${pathname}${queryParams}`;
+    </script>
+    <p>
+      You are being redirected to the new<sup>*</sup> CODA production website.
+      If you are not redirected in 5 seconds, please click here:
+      <a
+        id="link"
+        style="font-family: 'Courier New', Courier, monospace"
+        href=""
+      ></a
+      >.
+    </p>
+    <p style="font-size: smaller"><sup>*</sup> new as of 2021-05-20</p>
   </body>
   <script>
+    const a = document.querySelector("#link");
+    a.textContent = url;
+    a.setAttribute("href", url);
     setTimeout(() => {
-      const queryParams = window.location.search;
-      window.location.assign(`https://coda.fit.nasa.gov/view${queryParams}`);
+      window.location.assign(url);
     }, 3000);
   </script>
 </html>
