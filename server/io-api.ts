@@ -16,6 +16,7 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import type { IOResponse, WrappedResponse } from "typings";
 import type { Doc, PhotoFile, VideoFile } from "typings/io";
 import fetchWithCache from "./cache-client";
+import fetchWithTimeout from "./fetch-with-timeout";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -42,6 +43,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
 
   const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
+    timeout: 10000,
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
       "Accept-Encoding": "gzip,deflate,br",
@@ -53,7 +55,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
 
   let res: Response;
   try {
-    res = await fetch(url, options);
+    res = await fetchWithTimeout(url, options);
   } catch (e) {
     throw e;
   }
