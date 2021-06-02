@@ -4,8 +4,7 @@ import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { CollectionFilters } from "store/photos";
 import type { VideoFile, PhotoFile } from "typings/io";
-import type { DayNightObj } from "typings/spacetrack";
-import { Activity } from "typings/wiki";
+import type { Activity, DayNightObj } from "typings";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -67,7 +66,7 @@ export default class DrawNav {
     readonly photoFiles: PhotoFile[],
     readonly collectionFilters: CollectionFilters[],
     readonly dayNight: DayNightObj[],
-    readonly activityPerformance: {
+    readonly asPerformed: {
       [x: string]: Activity[];
     },
     /** Keep track of dates for bookkeeping purposes */
@@ -125,7 +124,7 @@ export default class DrawNav {
 
       let startLocY =
         videoSegmentsTop +
-        this.videoFiles[i].group * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+        this.videoFiles[i].downlink * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth - 1;
 
       const name = "vidItem_" + i.toString();
@@ -137,10 +136,9 @@ export default class DrawNav {
         strokeColor: this.gColorVideoBorder,
         name,
       });
-      vidLine.fillColor =
-        this.videoFiles[i].className === "downlink-LOS" ? this.gColorVideoLOS : this.gColorVideo;
+      vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-      if (this.videoFiles[i].group === 6) {
+      if (this.videoFiles[i].downlink === 6) {
         vidLine.fillColor = new paper.Color("white");
         vidLine.opacity = 0.4;
       }
@@ -148,9 +146,9 @@ export default class DrawNav {
     }
 
     // display EV activity
-    if (!isEmpty(this.activityPerformance)) {
-      this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
-      this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
+    if (!isEmpty(this.asPerformed)) {
+      this.drawTier1EVActivity(7, this.asPerformed.EV1); // row 8 for EV1 (rows start at 0)
+      this.drawTier1EVActivity(8, this.asPerformed.EV2); // row 9 for EV2 (rows start at 0)
     }
 
     //dayNight
@@ -387,7 +385,7 @@ export default class DrawNav {
 
         let startLocY =
           this.gTier2Top +
-          this.videoFiles[i]["group"] * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
+          this.videoFiles[i].downlink * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
         let endLocY = startLocY + this.cChannelStrokeWidth + 1;
 
         let name = "vidItem_" + i.toString();
@@ -399,10 +397,9 @@ export default class DrawNav {
           strokeColor: this.gColorVideoBorder,
           name: name,
         });
-        vidLine.fillColor =
-          this.videoFiles[i].className === "downlink-LOS" ? this.gColorVideoLOS : this.gColorVideo;
+        vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-        if (this.videoFiles[i].group === 6) {
+        if (this.videoFiles[i].downlink === 6) {
           vidLine.fillColor = new paper.Color("white");
           vidLine.opacity = 0.4;
         }
@@ -446,9 +443,9 @@ export default class DrawNav {
       }
     }
 
-    if (!isEmpty(this.activityPerformance)) {
-      this.drawTier2EVActivity(0, this.activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
-      this.drawTier2EVActivity(1, this.activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
+    if (!isEmpty(this.asPerformed)) {
+      this.drawTier2EVActivity(0, this.asPerformed.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
+      this.drawTier2EVActivity(1, this.asPerformed.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
     }
 
     //dayNight

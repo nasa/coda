@@ -60,37 +60,40 @@ interface Doc {
   _version_: number;
 }
 
-/** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
-export interface VideoFile {
+/** Metadata we can expect all photos and videos from IO to have */
+export interface IOFile {
   id: string;
-  content: string;
   description: string;
+  collections_string: string;
+  collections_string_pretty: string;
+  /** Link to this file's metadata on IO */
+  dataURL: string;
+  /** Direct link to the low res version of this file. All videos are low res */
+  mediaLowResURL: string;
+  /** Direct link to the high res version of this file */
+  mediaHighResURL?: string;
+}
+
+/** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
+export interface VideoFile extends IOFile {
+  /** UTC milliseconds at the start */
   start: string;
+  /** UTC milliseconds at the end */
   end: string;
-  url: string;
-  videoURL: string;
-  className: string;
+  /** Downlink number - only relevant for ISS video */
+  downlink?: number;
+  /** Whether the video was taken during a loss of signal event */
+  LOS?: boolean;
   priority: number;
   md_creation_date: string;
-  /** Collection that this file falls under */
-  group: number;
   durationSeconds?: number;
   missionSecondsStart?: number;
   missionSecondsEnd?: number;
-  collections_string: string;
-  collections_string_pretty: string;
 }
 
 /** Parsed metadata from an IO photo file result */
-export interface PhotoFile {
-  id: string;
-  description: string;
-  lowResURL: string;
-  highResURL: string;
-  ioInfoURL: string;
+export interface PhotoFile extends IOFile {
   date_added: string;
   date_taken: string;
   dateTakenAppSeconds: number;
-  collections_string: string;
-  collections_string_pretty: string;
 }

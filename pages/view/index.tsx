@@ -1,8 +1,8 @@
 import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
-import Main from "components/main";
-import { fetchEVAs } from "client/evas";
+import Main from "components/main-iss";
+import { fetchEVAs } from "client/sequences";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/media";
 import { buildEphemerisStore } from "client/location";
 import {
@@ -19,7 +19,7 @@ import {
   setCollectionFilters,
   PhotosEntityState,
 } from "store/photos";
-import { addEVAs } from "store/evas";
+import { addSequences } from "store/sequences";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
@@ -202,7 +202,7 @@ export default function View(props: { query: QueryParams }) {
       try {
         // EVA data from the wiki
         const updatedEVAs = await fetchEVAs();
-        dispatch(addEVAs(updatedEVAs));
+        dispatch(addSequences(updatedEVAs));
       } catch (e) {
         // dispatch(evasFetchError(e.toString()));
         console.error(e);
@@ -247,6 +247,7 @@ export async function getServerSideProps({ query }) {
   const video2 = query.video2 === undefined ? null : query.video2;
   const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
   const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
+  const sstart = query.sstart === undefined ? false : query.sstart;
 
   const returnVal: QueryParams = {
     gmt,
@@ -255,6 +256,7 @@ export async function getServerSideProps({ query }) {
     video2,
     nonDLvideo1,
     nonDLvideo2,
+    sstart,
   };
 
   return {
@@ -277,4 +279,6 @@ export interface QueryParams {
   nonDLvideo1: string;
   /** ID of the non-D/L video the user wants to view in player 2 */
   nonDLvideo2: string;
+  /** Sequence start, or whether or not to jump to the start of the first sequence of the day */
+  sstart: boolean;
 }

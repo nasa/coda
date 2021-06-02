@@ -13,7 +13,7 @@ Known query parameters:
 */
 import { isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
-import type { IOResponse, WrappedResponse } from "typings";
+import { Collection, IOResponse, WrappedResponse } from "typings";
 import type { Doc, PhotoFile, VideoFile } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
@@ -82,30 +82,32 @@ function formatDateQuery(year: number, month: number, date: number): string {
 export async function getVideoData(
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection: Collection
 ): Promise<WrappedResponse<VideoFile[]>> {
   const now = new Date();
   const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
   const dateQuery = formatDateQuery(year, month, date);
 
   const retriever = async () => {
-    const queryParams = `${dateQuery}&as=2`;
+    const queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
     const res = await fetchIO(queryParams, "videoData");
-    return parseIOVideoResponse(res);
+    return parseIOVideoResponse(res, collection);
   };
 
   return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, {
-    preferNew: isToday,
+    // preferNew: isToday,
+    preferNew: true,
   });
 }
 
-function parseIOVideoResponse(res: IOResponse) {
+function parseIOVideoResponse(res: IOResponse, collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parseVideoResultMetadata(doc);
+    const metadata = parseVideoResultMetadata(doc, collection);
     videos.push(metadata);
   }
   videos.sort(videoSorter);
@@ -126,22 +128,17 @@ export const videoSorter = (a: VideoFile, b: VideoFile) => {
 };
 
 /** Parse the video result for relevant information */
-function parseVideoResultMetadata(doc: Doc): VideoFile {
-  let className = "";
-  let content = "";
-  let group = -1;
+function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
+  let downlink = -1;
+  let LOS = false;
 
-  const channel = getChannel(doc.collections_string);
-
-  if (channel) {
+  if (+Collection[collection] === +Collection.ISS) {
+    const channel = getChannel(doc.collections_string);
     if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
-      className = `downlink-${channel}`;
-      group = parseInt(channel) - 1;
+      downlink = parseInt(channel) - 1;
+    } else {
+      downlink = 6;
     }
-  } else {
-    className = "non-downlink-video";
-    content = `Non-Downlink: ${doc.md_title}`;
-    group = 6;
   }
 
   // Create array of date elements from creation date
@@ -160,7 +157,7 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
     dateArr[3] = +id_metadata[3];
     dateArr[4] = +id_metadata[4];
     dateArr[5] = 0;
-    className = "downlink-LOS";
+    LOS = true;
   }
 
   // create date object. Note, month is 0-11 in javascript.
@@ -176,12 +173,12 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
-  var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  var dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then stream a mock video file in place of all video files
   // this allows dev to continue with VPN off
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
-  const videoURL =
+  const mediaLowResURL =
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
       : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
@@ -194,16 +191,15 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
 
   const videoFile: VideoFile = {
     id: doc.nasa_id,
-    content,
     description: doc.description || "",
     start: UTCstart.toUTCString(),
     end: UTCend.toUTCString(),
-    url,
-    videoURL,
-    className,
-    priority: className === "downlink-LOS" ? 0 : 1,
+    dataURL,
+    mediaLowResURL,
+    LOS,
+    priority: LOS ? 0 : 1,
     md_creation_date: doc.md_creation_date,
-    group,
+    downlink,
     missionSecondsStart,
     missionSecondsEnd,
     durationSeconds,

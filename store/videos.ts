@@ -6,7 +6,7 @@ import type { VideoFile } from "typings/io";
 
 /** Info about videos from IO and the desired high-level state of the video players */
 export type VideosEntityState = EntityState<VideoFile> & {
-  /** Match the video player to a group, @see {VideoFile.group}. Keyed by the ID of the video player */
+  /** Match the video player to a downlink, @see {VideoFile.downlink}. Keyed by the ID of the video player */
   downlinks: { [key: number]: number };
   /** ID of nonDownlinkVideoSelected */
   nonDownlinkIDs: { [key: number]: string };
@@ -102,10 +102,10 @@ export const {
 } = videoSlice.actions;
 
 /** Identify what videos are active at every second
- * this produces a nested array: [groups][missionSeconds][list of videos]
- * groups are downlink channels, currently 0 - 6 for ISS
+ * this produces a nested array: [downlinks][missionSeconds][list of videos]
+ * downlinks are downlink channels, currently 0 - 6 for ISS
  * missionSeconds starts at 0 and ends at the end of the day (currently 24 hours of seconds)
- * list of videos is an array of video names that are labeled in IO as having occurred on this group (downlink)
+ * list of videos is an array of video names that are labeled in IO as having occurred on this downlink (downlink)
  * at this second. For downlink videos, we currently only ever use the first element in this array because the array is sorted by
  * longest video. The thought here is that the longest video in IO at any given time is probably the most reliable
  * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
@@ -115,7 +115,7 @@ export const {
  * Nested as:
  *
  * ```md
- * [ every group
+ * [ every downlink
  *   [ every second
  *       [ ID of every video that's playing ]
  *   ]
@@ -128,25 +128,25 @@ export const selectVideoActivity = createSelector(
   (videos: VideoFile[]): VideoActivity => {
     const cSecondsIn24Hours = 86400;
     const res: VideoActivity = [];
-    // iterate through the possible group numbers, which is only 0-6 right now
-    for (let group = 0; group <= 6; group++) {
-      const groupSecondsArray: string[][] = [];
+    // iterate through the possible downlink numbers, which is only 0-6 right now
+    for (let downlink = 0; downlink <= 6; downlink++) {
+      const downlinkSecondsArray: string[][] = [];
       // capture every second of the mission
       for (let second = 0; second < cSecondsIn24Hours; second++) {
-        // capture all the IDs of the video files that are playing for this group this second
-        const vidsThisGroupThisSecond: string[] = [];
+        // capture all the IDs of the video files that are playing for this downlink this second
+        const vidsThisdownlinkThisSecond: string[] = [];
         videos.forEach((video) => {
           if (
-            video.group === group &&
+            video.downlink === downlink &&
             second >= video.missionSecondsStart &&
             second <= video.missionSecondsEnd
           ) {
-            vidsThisGroupThisSecond.push(video.id);
+            vidsThisdownlinkThisSecond.push(video.id);
           }
         });
-        groupSecondsArray.push(vidsThisGroupThisSecond);
+        downlinkSecondsArray.push(vidsThisdownlinkThisSecond);
       }
-      res.push(groupSecondsArray);
+      res.push(downlinkSecondsArray);
     }
     return res;
   }

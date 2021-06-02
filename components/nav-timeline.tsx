@@ -6,12 +6,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { PlayheadState, isSameDate, changeTime } from "store/playhead";
 import { changeHoverTime, PlayheadHoverState } from "store/playheadHover";
 import {
-  EVAsEntityState,
-  evasSelector,
-  getActivityPerformanceMissionTime,
-  getEVAStartMilliseconds,
+  SequencesEntityState,
+  sequencesSelector,
+  getAsPerformedMissionTime,
+  getSequenceStartMilliseconds,
   idFromDate,
-} from "store/evas";
+} from "store/sequences";
 import { videoSelectors, VideosEntityState } from "store/videos";
 import { photosSelectors, PhotosEntityState } from "store/photos";
 import type { EphemeraEntityState } from "store/ephemera";
@@ -28,7 +28,7 @@ function NavTimeline() {
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
-  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const dispatch = useDispatch();
   const dayNight = ephemera.dayNight;
@@ -36,8 +36,9 @@ function NavTimeline() {
   const videoFiles = videoSelectors.selectAll(videos);
   const photoFiles = photosSelectors.selectAll(photos);
 
-  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
-  const evaName = get(eva, "name", "");
+  const allEVAs = sequencesSelector.selectAll(sequences);
+  const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
+  const evaName = get(sequence, "name", "");
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
   const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
@@ -45,8 +46,8 @@ function NavTimeline() {
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-  if (!isNil(eva) && !isNil(eva.startTime.match(reHHMM))) {
-    const [hh, mm] = eva.startTime.split(":");
+  if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+    const [hh, mm] = sequence.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
 
@@ -59,22 +60,22 @@ function NavTimeline() {
       paper.setup(canvas.current);
     }
 
-    const activityPerformance = { EV1: [], EV2: [] };
-    if (!isNil(eva)) {
-      const activityStartUTCMilliseconds = getEVAStartMilliseconds(eva);
-      const EV1 = get(eva.execution, "EV1", null);
+    const asPerformed = { EV1: [], EV2: [] };
+    if (!isNil(sequence)) {
+      const activityStartUTCMilliseconds = getSequenceStartMilliseconds(sequence);
+      const EV1 = get(sequence.asPerformed, "EV1", null);
       if (!isNil(EV1)) {
-        activityPerformance.EV1 = getActivityPerformanceMissionTime(
+        asPerformed.EV1 = getAsPerformedMissionTime(
           EV1,
-          eva.startDate,
+          sequence.startDate,
           activityStartUTCMilliseconds
         );
       }
-      const EV2 = get(eva.execution, "EV2", null);
+      const EV2 = get(sequence.asPerformed, "EV2", null);
       if (!isNil(EV2)) {
-        activityPerformance.EV2 = getActivityPerformanceMissionTime(
+        asPerformed.EV2 = getAsPerformedMissionTime(
           EV2,
-          eva.startDate,
+          sequence.startDate,
           activityStartUTCMilliseconds
         );
       }
@@ -87,7 +88,7 @@ function NavTimeline() {
       photoFiles,
       photos.collectionFilters,
       dayNight,
-      activityPerformance,
+      asPerformed,
       new Date(playhead.date),
       evaName,
       evaStartSec,
@@ -149,7 +150,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [eva, videoFiles, photoFiles, dayNight, photos]);
+  }, [sequence, videoFiles, photoFiles, dayNight, photos]);
 
   useEffect(() => {
     time.current = playhead.seconds;

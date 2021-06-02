@@ -1,6 +1,7 @@
 /*
 Client-side methods for fetching from Imagery Online (IO)
 */
+import { Collection } from "typings";
 import type { CollectionFilters } from "store/photos";
 import type { WrappedResponse } from "typings";
 import type { PhotoFile, VideoFile } from "typings/io";
@@ -8,18 +9,24 @@ import type { PhotoFile, VideoFile } from "typings/io";
 async function fetchVideoData(
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection: Collection
 ): Promise<WrappedResponse<VideoFile[]>> {
-  const res = await fetch(`/api/media/videos?year=${year}&month=${month}&date=${date}`);
+  const res = await fetch(
+    `/api/media/videos?year=${year}&month=${month}&date=${date}&collection=${collection}`
+  );
   return await res.json();
 }
 
 async function fetchPhotoData(
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection: Collection
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const res = await fetch(`/api/media/photos?year=${year}&month=${month}&date=${date}`);
+  const res = await fetch(
+    `/api/media/photos?year=${year}&month=${month}&date=${date}&collection=${collection}`
+  );
   return await res.json();
 }
 
@@ -29,9 +36,10 @@ async function fetchPhotoData(
 export async function buildVideoStore(
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection = Collection.ISS
 ): Promise<VideoFile[]> {
-  const videos = (await fetchVideoData(year, month, date))?.data;
+  const videos = (await fetchVideoData(year, month, date, collection))?.data;
   return videos;
 }
 
@@ -41,9 +49,10 @@ export async function buildVideoStore(
 export async function buildPhotoStore(
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection = Collection.ISS
 ): Promise<PhotoFile[]> {
-  const photos = (await fetchPhotoData(year, month, date))?.data;
+  const photos = (await fetchPhotoData(year, month, date, collection))?.data;
   return photos;
 }
 

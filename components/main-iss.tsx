@@ -14,6 +14,7 @@ import styles from "./main.module.css";
 import { useEffect } from "react";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
+
 /**
  * Renders the main CODA application layout. Also handles checking whether the playhead should be running
  */

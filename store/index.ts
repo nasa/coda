@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import { playheadSlice, initialState as playheadInitialState } from "./playhead";
 import { playheadHoverSlice, initialState as playheadHoverInitialState } from "./playheadHover";
-import { evasSlice, initialState as evasInitialState } from "./evas";
+import { sequencesSlice, initialState as sequencesInitialState } from "./sequences";
 import { videoSlice, initialState as videosInitialState } from "./videos";
 import { photoSlice, initialState as photosInitialState } from "./photos";
 import { ephemeraSlice, initialState as ephemeraInitialState } from "./ephemera";
@@ -12,7 +12,7 @@ let store;
 export const initialState = {
   playhead: playheadInitialState,
   playheadHover: playheadHoverInitialState,
-  evas: evasInitialState,
+  sequences: sequencesInitialState,
   videos: videosInitialState,
   photos: photosInitialState,
   ephemera: ephemeraInitialState,
@@ -23,7 +23,7 @@ export const initialState = {
 const reducer = combineReducers({
   playhead: playheadSlice.reducer,
   playheadHover: playheadHoverSlice.reducer,
-  evas: evasSlice.reducer,
+  sequences: sequencesSlice.reducer,
   videos: videoSlice.reducer,
   photos: photoSlice.reducer,
   ephemera: ephemeraSlice.reducer,

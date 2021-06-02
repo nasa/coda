@@ -1,4 +1,3 @@
-export {};
 declare global {
   namespace jest {
     interface Matchers<R> {
@@ -34,4 +33,86 @@ export interface WrappedResponse<T> {
   isCache?: boolean;
   error?: string;
   mocked?: boolean;
+}
+
+/** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */
+export interface Sequence {
+  /** The mission associated with this sequence */
+  location: Collection;
+  /** Broad category of this sequence */
+  type: SequenceType;
+  /** Short identifier, eg. `US EVA 55` */
+  name: string;
+  /** Descriptive title, eg. `US EVA IDA3 Install` */
+  displayTitle: string;
+  /** Where users can get more information */
+  dataURL: string;
+  /** YYYY-MM-DD UTC */
+  startDate: string;
+  /** HH:MM UTC  TODO: CHECK */
+  startTime: string;
+  /** YYYY-MM-DD UTC */
+  endDate?: string;
+  /** seconds */
+  duration: number;
+  /** People responsible for this sequence */
+  crew?: Crew;
+  /** List of activities performed by crew */
+  asPerformed: { [key: Crew]: Activity[] };
+  /** List of planned activities for the crew */
+  asPlanned?: { [key: Crew]: Activity[] };
+}
+
+export enum SequenceType {
+  EVA = 1,
+  IVA,
+  analog,
+  training,
+}
+
+/** Crew names keyed by actor, eg. `{EV1: "Bob"}` */
+export interface Crew {
+  EV1: string;
+  EV2: string;
+  SUIT_IV: string;
+}
+
+export interface AllCrews {
+  [key: string]: Crew;
+}
+
+/** Largest chunk of time within a Sequence */
+export interface Activity {
+  /** Description of the activity */
+  content: string;
+  /** Color to use when rendering this activity */
+  color: string;
+  /** seconds */
+  duration: number;
+  /** Seconds into the UTC day */
+  startTimeSeconds?: number;
+  /** Seconds into the UTC day */
+  endTimeSeconds?: number;
+}
+
+/** Enum that uses IO collections `cols`= query param in the IO API as a value. Pulled from the `cid=` in URLs like https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 */
+export enum Collection {
+  /** International Space Station. https://io.jsc.nasa.gov/app/collections.cfm?cid=4 */
+  ISS = 4,
+  /** JSC Rock Yard. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 */
+  JSCRY = 2359937,
+  /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359935 */
+  NBL = 2359935,
+  /** Artificial Reduced Gravity Offload System. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359933 */
+  ARGOS = 2359933,
+}
+
+export interface DayNightObj {
+  appSeconds: number;
+  daylight: boolean;
+}
+
+export interface DayNight {
+  dataStartUTC?: number;
+  events?: Activity[];
 }

@@ -79,6 +79,7 @@ export default async function retrieveJSON<T>(
     if (!isNull(res) && (opts.staleOk || opts.preferNew)) {
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
+      console.warn(e);
       return { data: res, cacheRead: true };
     }
 

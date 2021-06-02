@@ -191,7 +191,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     if (videoID !== "" && videoID !== undefined) {
       // there is a video for this downlink
       const currentlyPlayingVideo = videoSelectors.selectById(videos, videoID);
-      setSourceURL(currentlyPlayingVideo.videoURL);
+      setSourceURL(currentlyPlayingVideo.mediaLowResURL);
     } else {
       // there is no video for this downlink
       // clear out the video player
@@ -266,7 +266,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     }
 
     // the audio in LOS downlinked videos is never synced to the video
-    const isLOSVideo = !isNil(video) && video.className === "downlink-LOS";
+    const isLOSVideo = !isNil(video) && video.LOS;
     const shouldMute = muted || isLOSVideo;
 
     return (
@@ -452,8 +452,8 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     if (currentlyPlayingVideo) {
       videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
       videoFilename = currentlyPlayingVideo.id;
-      ioSearchLink = currentlyPlayingVideo.url;
-      ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
+      ioSearchLink = currentlyPlayingVideo.dataURL;
+      ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
       dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();

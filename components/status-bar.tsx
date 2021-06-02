@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import isNull from "lodash/isNull";
 import { add, PlayheadState, isSameDate } from "store/playhead";
-import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
+import { SequencesEntityState, sequencesSelector, idFromDate } from "store/sequences";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
 import styles from "./status-bar.module.css";
@@ -12,14 +12,14 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const evas: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
   const errorMessages =
     evas.errorMessage !== "" || videos.errorMessage !== "" || photos.errorMessage !== "";
 
-  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
+  const eva = sequencesSelector.selectById(evas, idFromDate(playhead.date));
 
   const [isToday, setIsToday] = useState(false);
   useEffect(() => {

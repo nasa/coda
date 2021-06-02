@@ -37,8 +37,3 @@ export interface EphemerisFile {
   PERIGEE: string;
   DECAYED: string;
 }
-
-export interface DayNightObj {
-  appSeconds: number;
-  daylight: boolean;
-}

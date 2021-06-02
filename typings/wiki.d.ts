@@ -1,3 +1,5 @@
+import type { Activity } from "sequences.d.ts";
+
 export interface WikiResponse {
   errorResponse: boolean;
   code: string;
@@ -24,38 +26,6 @@ export interface WikiResults {
     }[];
     results: EVASummaryResponse | EVADetails | any;
   };
-}
-
-export interface EVA {
-  /** EVA name upper-cased with spaces, eg. `US EVA 55` */
-  name: string;
-  /** Full URL to the wiki */
-  wikiURL: string;
-  displayTitle: string;
-  /** YYYY-MM-DD UTC */
-  startDate: string;
-  /** UTC */
-  startTime: string;
-  /** seconds for entire EVA */
-  duration: number;
-  /** Activity performance keyed by EV */
-  activityPerformance: { [key: string]: Activity[] };
-  dayNight: DayNight;
-  execution?: {
-    /** Keyed by actor, eg. `EV1` */
-    [key: string]: Activity[];
-  };
-  crew?: Crew;
-}
-
-export interface Activity {
-  content: string;
-  color: string;
-  /** seconds */
-  duration: number;
-  // used by the nav-timeline
-  startTimeSeconds?: number;
-  endTimeSeconds?: number;
 }
 
 /** EVA Metadata */
@@ -145,20 +115,4 @@ interface EVACrewResults {
       ];
     };
   };
-}
-
-/** Crew names keyed by actor, eg. `{EV1: "Bob"}` */
-export interface Crew {
-  EV1: string;
-  EV2: string;
-  SUIT_IV: string;
-}
-
-export interface AllCrews {
-  [key: string]: Crew;
-}
-
-export interface DayNight {
-  dataStartUTC?: number;
-  events?: Activity[];
 }

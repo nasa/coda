@@ -31,8 +31,11 @@
       "store/*": [
         "./store/*"
       ],
+      "typings": [
+        "./typings/index.d"
+      ],
       "typings/*": [
-        "./typings/*"
+        "./typings/*",
       ],
       "utils/*": [
         "./utils/*"

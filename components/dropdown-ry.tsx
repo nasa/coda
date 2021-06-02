@@ -4,17 +4,17 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff } from "store/playhead";
-import styles from "./eva-dropdown.module.css";
-import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
+import styles from "./dropdown.module.css";
+import { idFromDate, SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 
-export default function EVADropdown() {
-  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+export default function RYDropdown() {
+  const evas: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  const allEVAs = evasSelector.selectAll(evas);
-  const selectedEVA = evasSelector.selectById(evas, idFromDate(date));
+  const allEVAs = sequencesSelector.selectAll(evas);
+  const selectedEVA = allEVAs.find((eva) => eva.startDate === idFromDate(date));
   const evaName = get(selectedEVA, "name", "");
 
   const [value, setValue] = useState("");
@@ -27,8 +27,10 @@ export default function EVADropdown() {
     e.preventDefault();
     setValue(e.target.value);
     if (e.target.value !== "") {
-      const [year, month, day] = evasSelector.selectById(evas, e.target.value).startDate.split("-");
-      window.location.assign(`/view?date=${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`);
+      const eva = allEVAs.find((eva) => eva.startDate === e.target.value);
+      const [year, month, day] = eva.startDate.split("-");
+      const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}&sstart=true`);
     }
   };
 
@@ -39,10 +41,10 @@ export default function EVADropdown() {
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
         {isNil(selectedEVA) ? (
           <option key="" value="">
-            Jump to an EVA
+            Jump to an event
           </option>
         ) : (
-          <option disabled>Choose EVA</option>
+          <option disabled>Choose event</option>
         )}
         {isNil(allEVAs) ? (
           <option disabled>Loading...</option>

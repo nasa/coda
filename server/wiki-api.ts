@@ -7,20 +7,17 @@ import memoize from "lodash/memoize";
 import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
+import fetchWithCache from "./cache-client";
+import { padZeros } from "utils/formatting";
+import { Activity, AllCrews, Collection, Sequence, SequenceType, WrappedResponse } from "typings";
 import type {
   WikiResults,
   WikiResponse,
-  Activity,
-  AllCrews,
   AllExecution,
   EVAAsExecuted,
   EVACrewResults,
   EVASummaryResponse,
-  EVA,
 } from "typings/wiki";
-import fetchWithCache from "./cache-client";
-import type { WrappedResponse } from "typings";
-import { padZeros } from "utils/formatting";
 
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
@@ -300,7 +297,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function buildEVAStore(): Promise<WrappedResponse<EVA[]>> {
+export async function buildEVAStore(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllEVAs();
@@ -324,23 +321,22 @@ export async function buildEVAStore(): Promise<WrappedResponse<EVA[]>> {
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
       return {
+        /** EVA name upper-cased with spaces, eg. `US EVA 55` */
         name: evaName,
-        wikiURL: asPlanned[evaName].fullurl,
+        location: Collection.ISS,
+        type: SequenceType.EVA,
+        dataURL: asPlanned[evaName].fullurl,
         displayTitle: asPlanned[evaName].printouts["EVA title"][0],
         startDate,
         startTime: asPlanned[evaName].printouts["Start time"][0],
         duration,
-        execution: get(asExecuted, evaName, { EV1: [], EV2: [] }),
+        asPerformed: get(asExecuted, evaName, { EV1: [], EV2: [] }),
         crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
-        // we need video data to calculate activityPerformance
-        activityPerformance: { EV1: [], EV2: [] },
-        // the wiki doesn't actually give us dayNight
-        dayNight: { events: [], dataStartUTC: 0 },
       };
     });
   };
 
-  const response = await fetchWithCache<EVA[]>("wiki/all", retriever, {
+  const response = await fetchWithCache<Sequence[]>("wiki/all", retriever, {
     cacheAge: 60,
     staleOk: true,
   });
