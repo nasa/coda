@@ -341,31 +341,31 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
   };
 
   const renderButtons = () => {
-    const group = videos.downlinks[playerID];
-    const availableGroups = [0, 1, 2, 3, 4, 5];
+    const downlink = videos.downlinks[playerID];
+    const availableDownlinks = [0, 1, 2, 3, 4, 5];
 
-    return availableGroups.map((g) => {
+    return availableDownlinks.map((d) => {
       let buttonClassStyle = styles.vidButton;
-      if (g === group) {
+      if (d === downlink) {
         buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
-      } else if (videoActivity && videoActivity[g][playhead.seconds].length > 0) {
+      } else if (videoActivity && videoActivity[d][playhead.seconds].length > 0) {
         buttonClassStyle = `${styles.vidButton} ${styles.active}`;
       }
       return (
         <button
-          key={`vid${playerID}__button${g}`}
+          key={`vid${playerID}__button${d}`}
           type="button"
-          title={g < 6 ? `Select downlink ${g + 1}` : "Select other video"}
+          title={`Select downlink ${d + 1}`}
           className={buttonClassStyle}
           onClick={() => {
-            if (g !== group) {
-              dispatch(setVideoDownlink({ playerID, downlink: g }));
+            if (d !== downlink) {
+              dispatch(setVideoDownlink({ playerID, downlink: d }));
               dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
               setInfoToggle(false);
             }
           }}
         >
-          {g < 6 ? `${g + 1}` : "~7"}
+          {d + 1}
         </button>
       );
     });
