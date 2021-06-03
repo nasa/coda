@@ -14,6 +14,7 @@ import styles from "./main.module.css";
 import { useEffect } from "react";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
+import { Collection } from "typings";
 
 /**
  * Renders the main CODA application layout. Also handles checking whether the playhead should be running
@@ -56,8 +57,8 @@ export default function Main(props: { query: QueryParams }) {
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
-          <Video playerID={1} {...props} />
-          <Video playerID={2} {...props} />
+          <Video playerID={1} collection={Collection.ISS} {...props} />
+          <Video playerID={2} collection={Collection.ISS} {...props} />
           <Photos />
         </div>
         <div className={styles.bodyRow2}>

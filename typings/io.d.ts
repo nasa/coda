@@ -1,3 +1,5 @@
+import { Collection } from "lodash";
+
 /** Represents a single video search result as received from IO */
 interface Doc {
   audio_file_restricted: 0 | 1 | number;
@@ -64,6 +66,8 @@ interface Doc {
 export interface IOFile {
   id: string;
   description: string;
+  /** Where this video is stored in IO */
+  collection: Collection;
   collections_string: string;
   collections_string_pretty: string;
   /** Link to this file's metadata on IO */

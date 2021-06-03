@@ -96,12 +96,12 @@ export async function getVideoData(
   };
 
   return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, {
-    // preferNew: isToday,
     preferNew: true,
+    // preferNew: isToday,
   });
 }
 
-function parseIOVideoResponse(res: IOResponse, collection) {
+function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 
@@ -129,15 +129,13 @@ export const videoSorter = (a: VideoFile, b: VideoFile) => {
 
 /** Parse the video result for relevant information */
 function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
-  let downlink = -1;
+  let downlink = 6;
   let LOS = false;
 
   if (+Collection[collection] === +Collection.ISS) {
     const channel = getChannel(doc.collections_string);
     if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
       downlink = parseInt(channel) - 1;
-    } else {
-      downlink = 6;
     }
   }
 
@@ -203,6 +201,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     missionSecondsStart,
     missionSecondsEnd,
     durationSeconds,
+    collection,
     collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
     collections_string_pretty: cleanCollectionsString(
       doc.collections_string[doc.collections_string.length - 1]
@@ -232,12 +231,13 @@ export function getChannel(collectionStrings: string[]): string {
 export async function getPhotoData(
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection: Collection
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const dateQuery = formatDateQuery(year, month, date);
 
   const retriever = async () => {
-    let queryParams = `${dateQuery}&as=1&so=7&cols=4`;
+    let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
 
     const res = await fetchIO(queryParams, "photoData");
 
@@ -245,7 +245,7 @@ export async function getPhotoData(
     const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
     // create array of photos from first API call
-    const photos1: PhotoFile[] = parseIOPhotoResponse(res);
+    const photos1: PhotoFile[] = parseIOPhotoResponse(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
       // If using mock data, just return the first 500 in the mock response
@@ -257,7 +257,7 @@ export async function getPhotoData(
     let queryParamsArray = [];
     for (let i = 1; i < callsRequired; i++) {
       let startNum = 500 * i + 1;
-      queryParams = `${dateQuery}&as=1&so=7&cols=4&sr=${startNum}`;
+      queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}&sr=${startNum}`;
       queryParamsArray.push(queryParams);
     }
 
@@ -270,7 +270,7 @@ export async function getPhotoData(
     // Parse out results into array of photo objects
 
     const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
-      return parseIOPhotoResponse(res);
+      return parseIOPhotoResponse(res, collection);
     });
 
     // Turn array of photoFile arays into one enormous photoFile array
@@ -281,33 +281,36 @@ export async function getPhotoData(
     return photos;
   };
 
-  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, { cacheAge: 3600 });
+  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, {
+    cacheAge: 3600,
+    preferNew: true,
+  });
 }
 
-function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {
+function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFile[] {
   const { docs } = res.results.response;
   const photos: PhotoFile[] = [];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parsePhotoResultMetadata(doc);
+    const metadata = parsePhotoResultMetadata(doc, collection);
     photos.push(metadata);
   }
   return photos;
 }
 
 /** Parse the photo result for relevant information */
-function parsePhotoResultMetadata(doc: Doc): PhotoFile {
-  var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
+  var dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then use a mock photo that is not export restricted
   // this allows dev to continue with VPN off
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
-  const lowResURL =
+  const mediaLowResURL =
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1_small.jpg"
       : `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const highResURL =
+  const mediaHighResURL =
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
       : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
@@ -315,12 +318,13 @@ function parsePhotoResultMetadata(doc: Doc): PhotoFile {
   const photoFile: PhotoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
-    lowResURL,
-    highResURL,
-    ioInfoURL,
+    mediaLowResURL,
+    mediaHighResURL,
+    dataURL,
     date_added: doc.date_added,
     date_taken: doc.md_creation_date,
     dateTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
+    collection,
     collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
     collections_string_pretty: cleanCollectionsString(
       doc.collections_string[doc.collections_string.length - 1]

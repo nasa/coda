@@ -61,7 +61,7 @@ export default function Photos() {
       }
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
-      if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
+      if (thisPhotoFile.mediaLowResURL !== photos.activePhoto.mediaLowResURL) {
         dispatch(setActivePhoto(thisPhotoFile));
       }
     }
@@ -96,8 +96,8 @@ export default function Photos() {
     let infoDisplayClass = "";
     if (currentlyActivePhoto) {
       photoFilename = photos.activePhoto.id;
-      ioSearchLink = photos.activePhoto.ioInfoURL;
-      ioHighResURL = photos.activePhoto.highResURL;
+      ioSearchLink = photos.activePhoto.dataURL;
+      ioHighResURL = photos.activePhoto.mediaHighResURL;
       openURLMessage = `Open high res`;
       openOnIOMessage = `Open on IO`;
       dateAdded =
@@ -286,8 +286,8 @@ export default function Photos() {
         key={`photo_element`}
         className={`${styles.photoContainer} ${styles.photoContainer4by3}`}
       >
-        <a className={styles.photoLink} href={photos.activePhoto.highResURL} target="_blank">
-          <img className={styles.photo} src={photos.activePhoto.lowResURL} />
+        <a className={styles.photoLink} href={photos.activePhoto.mediaHighResURL} target="_blank">
+          <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
         </a>
         {infoHover || infoToggle ? renderPhotoOverlay() : renderPhotoFilter()}
       </div>

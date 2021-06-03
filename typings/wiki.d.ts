@@ -116,3 +116,29 @@ interface EVACrewResults {
     };
   };
 }
+
+interface JSCRockYardResults {
+  /** keyed in the form of `US EVA 55# a4c086604b5aa243bf1f3c99dc06d965` */
+  [key: string]: {
+    printouts: {
+      "Has full name": [
+        {
+          fulltext: string;
+        }
+      ];
+      "Has role": [
+        {
+          fulltext: string;
+        }
+      ];
+    };
+  };
+}
+
+export interface AllJSCRockYardTests {
+  /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
+  [key: string]: {
+    /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
+    [key: string]: Activity[];
+  };
+}

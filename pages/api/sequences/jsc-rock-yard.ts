@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { buildEVAStore } from "server/wiki-api";
+import { buildJSCRockYardStore } from "server/wiki-api";
 
 /**
  * `/api/sequences/rock-yard`
@@ -8,7 +8,7 @@ import { buildEVAStore } from "server/wiki-api";
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const evas = await buildEVAStore();
+    const evas = await buildJSCRockYardStore();
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);

@@ -19,6 +19,7 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
+import { Collection } from "typings";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -39,7 +40,11 @@ const isAutoplayError = (e: Error): boolean => {
 /**
  * Renders a video and the downlink buttons
  */
-export default function Video(props: { playerID: number; query: QueryParams }) {
+export default function Video(props: {
+  playerID: number;
+  collection: Collection;
+  query: QueryParams;
+}) {
   const playerID = props.playerID;
   const query: QueryParams = props.query;
 
@@ -383,7 +388,6 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     const optionList = () => {
       if (videoActivity) {
         const nonDlVideoIDs = videoActivity[6][playhead.seconds];
-        // for (let i = 0; i < nonDlVideoIDs.length; i++) {}
         return nonDlVideoIDs.map((v) => {
           return (
             <option value={v} key={v}>
@@ -417,6 +421,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
         >
           <select
             className={`${buttonClassStyle} ${styles.nonDLButton} ${styles.selectNonDL} ${selectActiveStyle}`}
+            style={props.collection !== Collection.ISS ? { width: "20em" } : {}}
             value={videos.nonDownlinkIDs[playerID]}
             onChange={(e) => {
               dispatch(setVideoDownlink({ playerID, downlink: 6 }));
@@ -425,7 +430,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
             }}
           >
             <option disabled value="">
-              Non-D/L
+              {props.collection === Collection.ISS ? "Non-D/L" : "Select video"}
             </option>
             {optionList()}
           </select>
@@ -531,7 +536,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
-        {renderButtons()}
+        {props.collection === Collection.ISS && renderButtons()}
         {renderNonDl()}
         <div
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}

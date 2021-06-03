@@ -1,5 +1,9 @@
 /*
 Server-side implementations for hitting the ISS Wiki directly. Caches responses whenever possible. Only use this code within `getStaticProps()` or `getServerSideProps()` functions
+
+See sandboxes:
+* ISS: https://wiki.jsc.nasa.gov/iss/index.php/Special:ApiSandbox#action=ask&format=json
+* Exploration: https://wiki.jsc.nasa.gov/exploration/index.php/Special:ApiSandbox#action=ask&format=json&query=
 */
 import { promises as fs } from "fs";
 import get from "lodash/get";
@@ -17,13 +21,18 @@ import type {
   EVAAsExecuted,
   EVACrewResults,
   EVASummaryResponse,
+  AllJSCRockYardTests,
+  JSCRockYardResults,
 } from "typings/wiki";
 
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
 /** Get a read-only "bot" for the wiki */
-async function _getMWBot() {
-  const apiUrl = process.env.WIKI_API_URL;
+async function _getMWBot(collection: Collection) {
+  const apiUrl =
+    collection === Collection.ISS
+      ? process.env.WIKI_ISS_API_URL
+      : process.env.WIKI_EXPLORATION_API_URL;
   const bot = new MWBot({
     apiUrl,
     verbose: true,
@@ -87,9 +96,14 @@ function isAPIError(e: any | WikiResponse): e is WikiResponse {
 /**
  * Perform a query against the wiki. Returns a cached result if this query has already been performed
  * @param query Wikimedia query string
+ * @param collection Will switch which wiki we use
  * @param action Optional action type for local mocking
  */
-async function fetchWiki(query: string, action?: string): Promise<WrappedResponse<WikiResults>> {
+async function fetchWiki(
+  query: string,
+  collection = Collection.ISS,
+  action?: string
+): Promise<WrappedResponse<WikiResults>> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   // we're in the local environment. fake the request
@@ -103,7 +117,7 @@ async function fetchWiki(query: string, action?: string): Promise<WrappedRespons
 
   let res: WikiResults;
 
-  const bot = await getMWBot();
+  const bot = await getMWBot(collection);
 
   try {
     // optmistically try to fetch from the wiki before we know for sure we're logged in
@@ -149,7 +163,7 @@ export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>>
     |limit=10000
   `;
 
-  const res = await fetchWiki(query, "getAllEVAs");
+  const res = await fetchWiki(query, Collection.ISS, "getAllEVAs");
   const results = res.data.query.results;
   return {
     mocked: res.mocked,
@@ -189,7 +203,7 @@ export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>>
     |limit=1000000
   `;
 
-  const res = await fetchWiki(query, "getAllAsExecuted");
+  const res = await fetchWiki(query, Collection.ISS, "getAllAsExecuted");
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -261,7 +275,7 @@ export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
     |limit=10000
   `;
 
-  const res = await fetchWiki(query, "getAllCrew");
+  const res = await fetchWiki(query, Collection.ISS, "getAllCrew");
   const results = parseAllCrew(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -337,6 +351,119 @@ export async function buildEVAStore(): Promise<WrappedResponse<Sequence[]>> {
   };
 
   const response = await fetchWithCache<Sequence[]>("wiki/all", retriever, {
+    cacheAge: 60,
+    staleOk: true,
+  });
+  if (mocked) {
+    response.mocked = true;
+  }
+  return response;
+}
+
+export async function getJSCRockYardTests(): Promise<WrappedResponse<AllJSCRockYardTests>> {
+  const query = `
+  [[Category:Test event]]
+  |? Test date
+  |? Test environment
+  |limit=100000
+  |sort=Test date
+  `;
+
+  const res = await fetchWiki(query, Collection.JSCRY, "getJSCRockYardTests");
+  const results = parseJSCRockYardTests(res.data.query.results);
+  return {
+    mocked: res.mocked,
+    data: results,
+  };
+}
+
+function parseJSCRockYardTests(results: JSCRockYardResults): AllJSCRockYardTests {
+  return {};
+}
+
+/** Get as-executed data for a given EV on a given EVA */
+export async function getRockYardAsExecuted(): Promise<WrappedResponse<AllExecution>> {
+  const query = `
+    [[From page::~Test_Event*/*imeline*]]
+    |mainlabel=-|?Index
+    |? Has text title
+    |? Duration hour
+    |? Duration minute
+    |? Related article
+    |? Color
+    |? Actor
+    |named args=yes
+    |sort=Actor, Index
+    |limit=1000000
+  `;
+
+  const res = await fetchWiki(query, Collection.JSCRY, "getAllAsExecuted");
+  const results: AllExecution = parseAllAsExecuted(res.data.query.results);
+  return {
+    mocked: res.mocked,
+    data: results,
+  };
+}
+
+/** Get crew assignment data for all EVAs */
+export async function getRockYardAllCrew(): Promise<WrappedResponse<AllCrews>> {
+  const query = `
+    [[Person involved with test subjects::${plus()}]]
+    [[Category:Test_event]]
+    |limit=10000
+  `;
+
+  const res = await fetchWiki(query, Collection.JSCRY, "getAllCrew");
+  console.log(res.data.query.results);
+  const results = parseAllCrew(res.data.query.results);
+  return {
+    mocked: res.mocked,
+    data: results,
+  };
+}
+
+/** Fetch as-planned and as-executed EVA data and standardize the format */
+export async function buildJSCRockYardStore(): Promise<WrappedResponse<Sequence[]>> {
+  let mocked = false;
+  const retriever = async () => {
+    const { data: asPlanned, mocked: asPlannedMocked } = await getJSCRockYardTests();
+    const { data: asExecuted, mocked: asExecutedMocked } = await getRockYardAsExecuted();
+    const { data: crews, mocked: crewsMocked } = await getRockYardAllCrew();
+
+    mocked = asPlannedMocked || asExecutedMocked || crewsMocked;
+
+    return Object.keys(asPlanned).map((evaName) => {
+      const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+      let duration = -1;
+      const [wikiDuration] = asPlanned[evaName].printouts.Duration;
+      // for whatever reason, if no duration is specified the wiki gives us ":"
+      if (wikiDuration !== ":") {
+        const [h, m] = wikiDuration.split(":");
+        duration = +h * 3600 + +m * 60;
+      }
+      const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
+        .substring(2)
+        .split("/");
+      const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
+
+      return {
+        /** EVA name upper-cased with spaces, eg. `US EVA 55` */
+        name: evaName,
+        location: Collection.ISS,
+        type: SequenceType.EVA,
+        dataURL: asPlanned[evaName].fullurl,
+        displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+        startDate,
+        startTime: asPlanned[evaName].printouts["Start time"][0],
+        duration,
+        asPerformed: get(asExecuted, evaName, { EV1: [], EV2: [] }),
+        crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
+      };
+    });
+  };
+
+  const response = await fetchWithCache<Sequence[]>("wiki/rock_yard", retriever, {
+    preferNew: true,
     cacheAge: 60,
     staleOk: true,
   });
