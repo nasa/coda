@@ -135,10 +135,30 @@ interface JSCRockYardResults {
   };
 }
 
-export interface AllJSCRockYardTests {
-  /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
+interface WikiTextPrintout {
+  fulltext: string;
+  fullurl: string;
+  namespace: number;
+  exists: "0" | "1";
+  displayTitle: string;
+}
+
+export interface AllTestEvents {
+  /** Keyed by Test event, eg `Test Event:1` */
   [key: string]: {
-    /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
-    [key: string]: Activity[];
+    printouts: {
+      "Test date": WikiTimestamp[];
+      "Test environment": WikiTextPrintout[];
+      "Flight environment": WikiTextPrintout[];
+      /** eg. `[ 11:38 ]` */
+      "Start time": string[];
+    };
+    /** eg. `Test Event:1` */
+    fulltext: string;
+    /** Full link to the page on the wiki */
+    fullurl: string;
+    namespace: number;
+    exists: "0" | "1";
+    displaytitle: string;
   };
 }

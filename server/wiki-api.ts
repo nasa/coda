@@ -21,8 +21,7 @@ import type {
   EVAAsExecuted,
   EVACrewResults,
   EVASummaryResponse,
-  AllJSCRockYardTests,
-  JSCRockYardResults,
+  AllTestEvents,
 } from "typings/wiki";
 
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
@@ -360,29 +359,26 @@ export async function buildEVAStore(): Promise<WrappedResponse<Sequence[]>> {
   return response;
 }
 
-export async function getJSCRockYardTests(): Promise<WrappedResponse<AllJSCRockYardTests>> {
+export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>> {
   const query = `
   [[Category:Test event]]
   |? Test date
+  |? Start time
   |? Test environment
+  |? Flight environment
   |limit=100000
   |sort=Test date
   `;
 
-  const res = await fetchWiki(query, Collection.JSCRY, "getJSCRockYardTests");
-  const results = parseJSCRockYardTests(res.data.query.results);
+  const res = await fetchWiki(query, Collection["JSC Rock Yard"], "getAllTestEvents");
   return {
     mocked: res.mocked,
-    data: results,
+    data: res.data.query.results,
   };
 }
 
-function parseJSCRockYardTests(results: JSCRockYardResults): AllJSCRockYardTests {
-  return {};
-}
-
 /** Get as-executed data for a given EV on a given EVA */
-export async function getRockYardAsExecuted(): Promise<WrappedResponse<AllExecution>> {
+export async function getTestEventExecution(): Promise<WrappedResponse<AllExecution>> {
   const query = `
     [[From page::~Test_Event*/*imeline*]]
     |mainlabel=-|?Index
@@ -397,7 +393,7 @@ export async function getRockYardAsExecuted(): Promise<WrappedResponse<AllExecut
     |limit=1000000
   `;
 
-  const res = await fetchWiki(query, Collection.JSCRY, "getAllAsExecuted");
+  const res = await fetchWiki(query, Collection["JSC Rock Yard"], "getAllAsExecuted");
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -406,15 +402,14 @@ export async function getRockYardAsExecuted(): Promise<WrappedResponse<AllExecut
 }
 
 /** Get crew assignment data for all EVAs */
-export async function getRockYardAllCrew(): Promise<WrappedResponse<AllCrews>> {
+export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
   const query = `
-    [[Person involved with test subjects::${plus()}]]
+    [[Test subject::${plus()}]]
     [[Category:Test_event]]
     |limit=10000
   `;
 
-  const res = await fetchWiki(query, Collection.JSCRY, "getAllCrew");
-  console.log(res.data.query.results);
+  const res = await fetchWiki(query, Collection["JSC Rock Yard"], "getAllCrew");
   const results = parseAllCrew(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -423,46 +418,49 @@ export async function getRockYardAllCrew(): Promise<WrappedResponse<AllCrews>> {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function buildJSCRockYardStore(): Promise<WrappedResponse<Sequence[]>> {
+export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
-    const { data: asPlanned, mocked: asPlannedMocked } = await getJSCRockYardTests();
-    const { data: asExecuted, mocked: asExecutedMocked } = await getRockYardAsExecuted();
-    const { data: crews, mocked: crewsMocked } = await getRockYardAllCrew();
+    const { data: asPlanned, mocked: asPlannedMocked } = await getAllTestEvents();
+    const { data: asExecuted, mocked: asExecutedMocked } = await getTestEventExecution();
+    const { data: crews, mocked: crewsMocked } = await getTestEventCrews();
 
     mocked = asPlannedMocked || asExecutedMocked || crewsMocked;
 
-    return Object.keys(asPlanned).map((evaName) => {
-      const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
+    return Object.keys(asPlanned).map((testEvent) => {
+      const testEnvironment = get(
+        asPlanned[testEvent].printouts["Test environment"],
+        "[0].fulltext",
+        "Unknown environment"
+      );
+      const flightEnvironment = get(
+        asPlanned[testEvent].printouts["Flight environment"],
+        "[0].fulltext",
+        "Unknown flight sim"
+      );
       let duration = -1;
-      const [wikiDuration] = asPlanned[evaName].printouts.Duration;
-      // for whatever reason, if no duration is specified the wiki gives us ":"
-      if (wikiDuration !== ":") {
-        const [h, m] = wikiDuration.split(":");
-        duration = +h * 3600 + +m * 60;
-      }
-      const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
+      const [yyyy, mm, dd] = asPlanned[testEvent].printouts["Test date"][0].raw
         .substring(2)
         .split("/");
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
+      const displayTitle = `${startDate} ${testEnvironment} / ${flightEnvironment}`;
 
       return {
-        /** EVA name upper-cased with spaces, eg. `US EVA 55` */
-        name: evaName,
-        location: Collection.ISS,
-        type: SequenceType.EVA,
-        dataURL: asPlanned[evaName].fullurl,
-        displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+        name: testEvent,
+        location: Collection[testEnvironment],
+        type: SequenceType.testing,
+        dataURL: asPlanned[testEvent].fullurl,
+        displayTitle,
         startDate,
-        startTime: asPlanned[evaName].printouts["Start time"][0],
+        startTime: get(asPlanned[testEvent].printouts["Start time"], "[0]", "18:00"),
         duration,
-        asPerformed: get(asExecuted, evaName, { EV1: [], EV2: [] }),
-        crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
+        asPerformed: get(asExecuted, testEvent, { EV1: [], EV2: [] }),
+        crew: get(crews, testEvent, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
       };
     });
   };
 
-  const response = await fetchWithCache<Sequence[]>("wiki/rock_yard", retriever, {
+  const response = await fetchWithCache<Sequence[]>("wiki/test-events", retriever, {
     preferNew: true,
     cacheAge: 60,
     staleOk: true,

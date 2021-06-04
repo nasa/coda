@@ -47,10 +47,10 @@ export interface Sequence {
   displayTitle: string;
   /** Where users can get more information */
   dataURL: string;
+  /** HH:MM UTC */
+  startTime?: string;
   /** YYYY-MM-DD UTC */
   startDate: string;
-  /** HH:MM UTC  TODO: CHECK */
-  startTime: string;
   /** YYYY-MM-DD UTC */
   endDate?: string;
   /** seconds */
@@ -66,6 +66,7 @@ export interface Sequence {
 export enum SequenceType {
   EVA = 1,
   IVA,
+  testing,
   analog,
   training,
 }
@@ -99,12 +100,14 @@ export interface Activity {
 export enum Collection {
   /** International Space Station. https://io.jsc.nasa.gov/app/collections.cfm?cid=4 */
   ISS = 4,
-  /** JSC Rock Yard. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 */
-  JSCRY = 2359937,
+  /** JSC Rock Yard. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 (why the quoted string with spaces? so it matches the Test Environment name in the exploration wiki */
+  "JSC Rock Yard" = 2359937,
   /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359935 */
   NBL = 2359935,
   /** Artificial Reduced Gravity Offload System. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359933 */
   ARGOS = 2359933,
+  /** NASA Extreme Environment Mission Operations. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359936 */
+  NEEMO = 2359936,
 }
 
 export interface DayNightObj {

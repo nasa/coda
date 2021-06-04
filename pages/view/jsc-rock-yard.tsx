@@ -106,7 +106,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day, Collection.JSCRY);
+        const videoStore = await buildVideoStore(year, month + 1, day, Collection["JSC Rock Yard"]);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -134,7 +134,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // photos data for today
-        const photoStore = await buildPhotoStore(year, month + 1, day, Collection.JSCRY);
+        const photoStore = await buildPhotoStore(year, month + 1, day, Collection["JSC Rock Yard"]);
         dispatch(addPhotos(photoStore));
         const photoCollectionsFilter = buildPhotoCollections(photoStore);
         dispatch(setCollectionFilters(photoCollectionsFilter));
@@ -165,7 +165,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month, day, Collection.JSCRY);
+        const videoStore = await buildVideoStore(year, month, day, Collection["JSC Rock Yard"]);
         console.log(videoStore);
         dispatch(addVideos(videoStore));
       } catch (e) {
