@@ -11,12 +11,14 @@ Known query parameters:
     ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
     cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
 */
+import get from "lodash/get";
 import { isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import { Collection, IOResponse, WrappedResponse } from "typings";
 import type { Doc, PhotoFile, VideoFile } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
+import videoStartTimes from "./video-start-times.json";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -140,14 +142,12 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
   }
 
   // Create array of date elements from creation date
-  const dateArr = doc.md_creation_date
+  const dateArr = get(videoStartTimes, doc.nasa_id, doc.md_creation_date)
     // regex match for the date
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     // remove the first item (the full matched string)
     .slice(1)
-    .map(function (n) {
-      return parseInt(n);
-    });
+    .map(parseInt);
 
   // trust the nasa_id over the md_creation_date
   const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);

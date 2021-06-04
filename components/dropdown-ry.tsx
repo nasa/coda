@@ -60,7 +60,7 @@ export default function RYDropdown() {
             .reverse()
             .map((eva) => {
               return (
-                <option key={eva.startDate} value={eva.startDate}>
+                <option key={eva.name} value={eva.startDate}>
                   {eva.name} - {eva.displayTitle}
                 </option>
               );
