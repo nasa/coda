@@ -65,9 +65,11 @@ export default function View(props: { query: QueryParams }) {
     userDate = new Date(Date.UTC(year, month, day));
   }
 
-  if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-    dispatch(changeDate(userDate.toISOString()));
-  }
+  useEffect(() => {
+    if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
+      dispatch(changeDate(userDate.toISOString()));
+    }
+  }, []);
 
   useEffect(() => {
     // TODO: also use sstart to jump ahead

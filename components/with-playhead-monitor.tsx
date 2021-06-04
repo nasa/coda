@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { run, halt, tick } from "store/playhead";
+import { run, halt, tick, changeDate, add, changeTime } from "store/playhead";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
 import useInterval from "utils/useInterval";
@@ -9,6 +9,7 @@ import { RootState } from "store/index";
 function PlayheadMonitor() {
   const playheadReady = useSelector((state: RootState) => state.playhead.ready);
   const playheadIsRunning = useSelector((state: RootState) => state.playhead.isRunning);
+  const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -30,7 +31,18 @@ function PlayheadMonitor() {
       // kill the playhead if it should be paused
       dispatch(halt());
     }
-  }, [playheadReady, playheadIsRunning, videos.ready, photos.ready, playheadSeconds]);
+  }, [playheadReady, playheadIsRunning, videos.ready, photos.ready]);
+
+  useEffect(() => {
+    // see if the page needs to change
+    if (playheadSeconds >= 60 * 60 * 24) {
+      // the playhead has rolled over into the next day
+      const today = new Date(playheadDate);
+      const tomorrow = add(today, 1000 * 60 * 60 * 24);
+      dispatch(changeDate(tomorrow.toISOString()));
+      dispatch(changeTime(0));
+    }
+  }, [playheadSeconds]);
 
   useInterval(() => {
     if (playheadIsRunning) {

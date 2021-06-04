@@ -144,7 +144,7 @@ function NavTimeline() {
 
   useEffect(() => {
     installTimeline();
-    return () => paper.project.remove();
+    return paper.project.remove;
   }, [playhead.date]);
 
   useEffect(() => {
@@ -167,7 +167,7 @@ function NavTimeline() {
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
-  }, [playhead]);
+  }, [playhead.seconds]);
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322

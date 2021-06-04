@@ -78,6 +78,7 @@ export default class DrawNav {
   ) {}
 
   initGroups() {
+    console.log(this.gTier1Group);
     if (typeof this.gTier1Group !== "undefined") {
       this.gTier1Group.removeChildren();
       this.gTier1FutureGroup.removeChildren();
@@ -94,6 +95,7 @@ export default class DrawNav {
       this.gCursorGroup = new paper.Group();
       this.gNavCursorGroup = new paper.Group();
     }
+    console.log(this.gTier1Group);
   }
 
   drawTier1() {

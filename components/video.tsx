@@ -104,7 +104,7 @@ export default function Video(props: {
 
     const group = videos.downlinks[playerID];
     const activeVideoFileID = videos.activeVideoFiles[playerID];
-    const videosNextSecond = videoActivity[group][playhead.seconds + 1];
+    const videosNextSecond = videoActivity[group][playhead.seconds + 1] || [];
 
     // check for video changes
     let videoID = activeVideoFileID;
@@ -387,7 +387,7 @@ export default function Video(props: {
   const renderNonDl = () => {
     const optionList = () => {
       if (videoActivity) {
-        const nonDlVideoIDs = videoActivity[6][playhead.seconds];
+        const nonDlVideoIDs = videoActivity[6][playhead.seconds] || [];
         return nonDlVideoIDs.map((v) => {
           return (
             <option value={v} key={v}>
@@ -405,12 +405,12 @@ export default function Video(props: {
     if (videos.downlinks[playerID] === 6) {
       buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
       arrowClass = styles.select_arrow_dark;
-    } else if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
+    } else if (videoActivity && (videoActivity[6][playhead.seconds] ?? []).length > 0) {
       buttonClassStyle = `${styles.vidButton} ${styles.active}`;
     }
 
     let selectActiveStyle = "";
-    if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
+    if (videoActivity && (videoActivity[6][playhead.seconds] ?? []).length > 0) {
       selectActiveStyle = styles.selectActive;
     }
     return (
