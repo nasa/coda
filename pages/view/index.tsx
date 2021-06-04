@@ -234,6 +234,7 @@ export default function View(props: { query: QueryParams }) {
         <title>
           {prefix} | {process.env.NEXT_PUBLIC_TITLE}
         </title>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
       </Head>
       <Main {...props} />
     </div>
