@@ -19,7 +19,7 @@ import styles from "./video.module.css";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
 import { Collection } from "typings";
-import { cleanCollectionsString } from "server/io-api";
+import { cleanCollectionsString } from "utils/formatting";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -113,8 +113,8 @@ export default function Video(props: {
       videoID = videosNextSecond[0];
     }
 
-    if (videosNextSecond.length === 0) {
-      // check if no video is playing next second
+    if (!videosNextSecond) {
+      // clear the player if no video is playing next second
       videoID = "";
     }
 
@@ -375,6 +375,9 @@ export default function Video(props: {
   };
 
   const getPrettyVideoTitle = (videoID: string) => {
+    if (!videoID) {
+      return "";
+    }
     const video = videoSelectors.selectById(videos, videoID);
     return cleanCollectionsString(video.collections) + " - " + videoID;
   };

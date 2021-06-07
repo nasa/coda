@@ -114,10 +114,8 @@ export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => 
   return false;
 };
 
-/**
- * Create a data structure that maps seconds and downlinks to videos. Each key is in the form of "second/downlink", eg. "86399/6", indicating a video playing at 23:59 on downlink 6. The value is a list of video IDs playing at that second. Missing keys represent "second/downlink" without any videos. Keys can be iterated in ascending chronological order, but downlink order is not guaranteed
- */
-export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {
+/** Map seconds and downlinks to videos */
+const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {
   const ret = new Map<string, string[]>();
   let videoQueue = videos.slice();
   const startUTC = date.valueOf() / 1000;
@@ -149,6 +147,11 @@ export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<stri
 
   return ret;
 };
+
+/**
+ * Create a data structure that maps seconds and downlinks to videos. Each key is in the form of "second/downlink", eg. "86399/6", indicating a video playing at 23:59 on downlink 6. The value is a list of video IDs playing at that second. Missing keys represent "second/downlink" without any videos. Keys can be iterated in ascending chronological order, but downlink order is not guaranteed
+ */
+export const visibleVideosBySecond = memoize(_visibleVideosBySecond);
 
 /** Filters videos for start and end dates that overlap a given day */
 const _filterVisibleVideos = (videos: VideoFile[], date: Date): VideoFile[] => {

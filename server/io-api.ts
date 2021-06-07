@@ -93,7 +93,7 @@ export async function getVideoData(
 ): Promise<WrappedResponse<VideoFile[]>> {
   const now = new Date();
   const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
-  const dateQuery = flexibleDateQuery(year, month, date);
+  const dateQuery = strictDateQuery(year, month, date);
 
   const retriever = async () => {
     const queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
@@ -148,12 +148,13 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
   }
 
   // Create array of date elements from creation date
-  const dateArr = get(videoStartTimes, doc.nasa_id, doc.md_creation_date)
-    // regex match for the date
+  let dateArr = get(videoStartTimes, doc.nasa_id, doc.md_creation_date);
+  // regex match for the date
+  dateArr = dateArr
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     // remove the first item (the full matched string)
     .slice(1)
-    .map(parseInt);
+    .map((n: string) => parseInt(n));
 
   // trust the nasa_id over the md_creation_date
   const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
@@ -219,7 +220,8 @@ export function getChannel(collectionStrings: string[]): string {
   return "";
 }
 
-function formatDateQuery(year: number, month: number, date: number): string {
+/** Format an IO query string for a single day */
+function strictDateQuery(year: number, month: number, date: number): string {
   const rangeStartYear = year;
   const rangeStartMonth = padZeros(month, 2);
   const rangeStartDate = padZeros(date, 2);
@@ -242,7 +244,7 @@ export async function getPhotoData(
   date: number,
   collection: Collection
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const dateQuery = formatDateQuery(year, month, date);
+  const dateQuery = strictDateQuery(year, month, date);
 
   const retriever = async () => {
     let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
@@ -338,18 +340,4 @@ function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
   };
 
   return photoFile;
-}
-
-export function cleanCollectionsString(colStr) {
-  const fullTree = colStr.split("|");
-
-  let cleaned = fullTree[fullTree.length - 1];
-  cleaned = cleaned.replace(fullTree[1], "");
-  if (fullTree[2]?.includes("Earth Obs")) {
-    cleaned = fullTree[2].replace(fullTree[1], "") + " " + cleaned;
-  }
-  if (cleaned === "Photo") {
-    cleaned = fullTree[2].replace(fullTree[1], "");
-  }
-  return cleaned;
 }
