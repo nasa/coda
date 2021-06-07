@@ -78,6 +78,12 @@ function formatDateQuery(year: number, month: number, date: number): string {
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
+function flexibleDateQuery(year: number, month: number, date: number): string {
+  // start a day before
+  // end a day after
+  // TODO: change the cache key format too to avoid issues w/deployment
+}
+
 /**
  * Fetch video data from IO
  */
@@ -97,7 +103,7 @@ export async function getVideoData(
     return parseIOVideoResponse(res, collection);
   };
 
-  return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, {
+  return fetchWithCache<VideoFile[]>(`io/videos/${collection}/${dateQuery}`, retriever, {
     preferNew: true,
     // preferNew: isToday,
   });
@@ -190,8 +196,8 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
   const videoFile: VideoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
-    start: UTCstart.toUTCString(),
-    end: UTCend.toUTCString(),
+    start: UTCstartMilliseconds,
+    end: UTCend.valueOf(),
     dataURL,
     mediaLowResURL,
     LOS,
@@ -281,7 +287,7 @@ export async function getPhotoData(
     return photos;
   };
 
-  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, {
+  return fetchWithCache<PhotoFile[]>(`io/photos/${collection}/${dateQuery}`, retriever, {
     cacheAge: 3600,
     preferNew: true,
   });

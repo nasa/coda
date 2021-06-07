@@ -81,9 +81,9 @@ export interface IOFile {
 /** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
 export interface VideoFile extends IOFile {
   /** UTC milliseconds at the start */
-  start: string;
+  start: number;
   /** UTC milliseconds at the end */
-  end: string;
+  end: number;
   /** Downlink number - only relevant for ISS video */
   downlink?: number;
   /** Whether the video was taken during a loss of signal event */

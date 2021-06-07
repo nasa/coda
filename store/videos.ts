@@ -158,6 +158,44 @@ export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => 
     if (isSameDate(new Date(videos[v].start), date)) {
       return true;
     }
+    if (isSameDate(new Date(videos[v].end), date)) {
+      return true;
+    }
   }
   return false;
+};
+
+/**
+ * Create a data structure of <key, value> pairs where each key is a second in the day (0-86399) and the value is a list of video IDs playing at that second. Missing keys represent seconds without any videos. Keys can be iterated in ascending chronological order
+ */
+export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<number, string[]> => {
+  const ret = new Map<number, string[]>();
+  let videoQueue = videos.slice();
+  const startUTC = date.valueOf();
+
+  // iterate through all the UTC seconds for the day
+  for (let s = startUTC; s < startUTC + 86400; s++) {
+    // bail if there are no more videos to look at
+    if (videoQueue.length === 0) {
+      break;
+    }
+
+    let indicesToRemove = [];
+    for (let v = 0; v < videoQueue.length; v++) {
+      const video = videoQueue[v];
+      if (s > video.start && s < video.end) {
+        // the video is playing at this time
+        // set or push a new ID to `{ second: [video ID] }`
+        ret.set(s - startUTC, [...(ret.get(s - startUTC) ?? []), video.id]);
+      } else if (s > video.end) {
+        // the video has already ended. no reason to ever look at it again
+        indicesToRemove.push(v);
+      }
+    }
+
+    // actually remove videos that have ended
+    videoQueue = videoQueue.filter((_v, i) => !indicesToRemove.includes(i));
+  }
+
+  return ret;
 };
