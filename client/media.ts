@@ -5,7 +5,7 @@ import { Collection } from "typings";
 import type { CollectionFilters } from "store/photos";
 import type { WrappedResponse } from "typings";
 import type { PhotoFile, VideoFile } from "typings/io";
-import { cleanCollectionsString } from "server/io-api";
+import { cleanCollectionsString } from "utils/formatting";
 
 async function fetchVideoData(
   year: number,

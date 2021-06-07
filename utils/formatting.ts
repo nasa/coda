@@ -104,3 +104,18 @@ export function getPlayheadISOString(playheadDate: string, playheadSeconds: numb
   const hhmmssmmm = hhmmssmmmFromSeconds(playheadSeconds);
   return `${iso.split("T")[0]}T${hhmmssmmm}Z`;
 }
+
+/** Nicely format an IO collections string for display */
+export function cleanCollectionsString(colStr: string) {
+  const fullTree = colStr.split("|");
+
+  let cleaned = fullTree[fullTree.length - 1];
+  cleaned = cleaned.replace(fullTree[1], "");
+  if (fullTree[2]?.includes("Earth Obs")) {
+    cleaned = fullTree[2].replace(fullTree[1], "") + " " + cleaned;
+  }
+  if (cleaned === "Photo") {
+    cleaned = fullTree[2].replace(fullTree[1], "");
+  }
+  return cleaned;
+}

@@ -16,7 +16,7 @@ import {
   hhmmssFromSeconds,
 } from "utils/formatting";
 import type { RootState } from "store/index";
-import { cleanCollectionsString } from "server/io-api";
+import { cleanCollectionsString } from "utils/formatting";
 
 export default function Photos() {
   const dispatch = useDispatch();
