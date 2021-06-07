@@ -81,15 +81,16 @@ function NavTimeline() {
       }
     }
 
-    const isToday = isSameDate(new Date(), new Date(playhead.date));
+    const playheadDate = new Date(playhead.date);
+    const isToday = isSameDate(new Date(), playheadDate);
 
     drawNav.current = new DrawNav(
-      videoFiles,
+      videoFiles.filter((video) => isSameDate(new Date(video.start), playheadDate)),
       photoFiles,
       photos.collectionFilters,
       dayNight,
       asPerformed,
-      new Date(playhead.date),
+      playheadDate,
       evaName,
       evaStartSec,
       isToday
@@ -144,7 +145,7 @@ function NavTimeline() {
 
   useEffect(() => {
     installTimeline();
-    return paper.project.remove;
+    return () => paper.project.remove();
   }, [playhead.date]);
 
   useEffect(() => {
