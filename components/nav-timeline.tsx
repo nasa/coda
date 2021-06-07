@@ -20,7 +20,7 @@ import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 
 /**
- * Renders the navigation timeline presented at the top of the CODA window
+ * Renders the navigation timeline presented at the bottom of the CODA window
  */
 function NavTimeline() {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
