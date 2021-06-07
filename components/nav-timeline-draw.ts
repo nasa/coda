@@ -118,9 +118,12 @@ export default class DrawNav {
 
     // display video segments
     const videoSegmentsTop = this.gTier1Top + 2;
+    const startOfDay = this.dateRendered.valueOf() / 1000;
     for (let i = 0; i < this.videoFiles.length; i++) {
-      let startLocX = this.videoFiles[i].missionSecondsStart * this.gTier1PixelsPerSecond;
-      let endLocX = this.videoFiles[i].missionSecondsEnd * this.gTier1PixelsPerSecond;
+      let startLocX =
+        Math.max(this.videoFiles[i].start - startOfDay, 0) * this.gTier1PixelsPerSecond;
+      let endLocX =
+        Math.min(this.videoFiles[i].end - startOfDay, 86399) * this.gTier1PixelsPerSecond;
 
       let startLocY =
         videoSegmentsTop +
@@ -186,7 +189,7 @@ export default class DrawNav {
       let showThisPhoto = false;
       for (let j = 0; j < this.collectionFilters.length; j++) {
         if (
-          this.photoFiles[i].collections_string === this.collectionFilters[j].fullList &&
+          this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
           this.collectionFilters[j].selected
         ) {
           showThisPhoto = true;
@@ -370,17 +373,18 @@ export default class DrawNav {
     // draw video segments boxes
     for (let i = 0; i < this.videoFiles.length; i++) {
       //draw if video segment start is before end of viewport, and video segment end is after start of viewport
+      const startOfDay = this.dateRendered.valueOf() / 1000;
       if (
-        this.videoFiles[i].missionSecondsStart <= this.gTier2StartSeconds + secondsOnTier2 &&
-        this.videoFiles[i].missionSecondsEnd >= this.gTier2StartSeconds
+        this.videoFiles[i].start - startOfDay <= this.gTier2StartSeconds + secondsOnTier2 &&
+        this.videoFiles[i].end - startOfDay >= this.gTier2StartSeconds
       ) {
         let startLocX =
           this.gTier2Left +
-          (this.videoFiles[i].missionSecondsStart - this.gTier2StartSeconds) *
+          (Math.max(this.videoFiles[i].start - startOfDay, 0) - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
         let endLocX =
           this.gTier2Left +
-          (this.videoFiles[i].missionSecondsEnd - this.gTier2StartSeconds) *
+          (Math.min(this.videoFiles[i].end - startOfDay, 86399) - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
 
         let startLocY =
@@ -499,7 +503,7 @@ export default class DrawNav {
         let showThisPhoto = false;
         for (let j = 0; j < this.collectionFilters.length; j++) {
           if (
-            this.photoFiles[i].collections_string === this.collectionFilters[j].fullList &&
+            this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
             this.collectionFilters[j].selected
           ) {
             showThisPhoto = true;

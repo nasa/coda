@@ -66,10 +66,10 @@ interface Doc {
 export interface IOFile {
   id: string;
   description: string;
-  /** Where this video is stored in IO */
+  /** Highest-level collection where this video is stored in IO */
   collection: Collection;
-  collections_string: string;
-  collections_string_pretty: string;
+  /** Full list of collections from IO */
+  collections: string;
   /** Link to this file's metadata on IO */
   dataURL: string;
   /** Direct link to the low res version of this file. All videos are low res */
@@ -78,26 +78,25 @@ export interface IOFile {
   mediaHighResURL?: string;
 }
 
-/** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
+/** Parsed metadata from an IO video file result */
 export interface VideoFile extends IOFile {
-  /** UTC milliseconds at the start */
+  /** UTC seconds at the video start */
   start: number;
-  /** UTC milliseconds at the end */
+  /** UTC seconds at the video end */
   end: number;
   /** Downlink number - only relevant for ISS video */
-  downlink?: number;
+  downlink: number;
   /** Whether the video was taken during a loss of signal event */
-  LOS?: boolean;
+  LOS: boolean;
+  /** Only used to sort videos */
   priority: number;
-  md_creation_date: string;
-  durationSeconds?: number;
-  missionSecondsStart?: number;
-  missionSecondsEnd?: number;
+  /** When the video was uploaded to IO */
+  creationDate: string;
 }
 
 /** Parsed metadata from an IO photo file result */
 export interface PhotoFile extends IOFile {
-  date_added: string;
-  date_taken: string;
+  dateAdded: string;
+  dateTaken: string;
   dateTakenAppSeconds: number;
 }

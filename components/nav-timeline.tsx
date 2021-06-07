@@ -12,7 +12,7 @@ import {
   getSequenceStartMilliseconds,
   idFromDate,
 } from "store/sequences";
-import { videoSelectors, VideosEntityState } from "store/videos";
+import { filterVisibleVideos, videoSelectors, VideosEntityState } from "store/videos";
 import { photosSelectors, PhotosEntityState } from "store/photos";
 import type { EphemeraEntityState } from "store/ephemera";
 
@@ -85,7 +85,7 @@ function NavTimeline() {
     const isToday = isSameDate(new Date(), playheadDate);
 
     drawNav.current = new DrawNav(
-      videoFiles.filter((video) => isSameDate(new Date(video.start), playheadDate)),
+      filterVisibleVideos(videoFiles, playheadDate),
       photoFiles,
       photos.collectionFilters,
       dayNight,

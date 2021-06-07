@@ -1,6 +1,6 @@
+import memoize from "lodash/memoize";
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import { createSelector } from "reselect";
 import { isSameDate } from "./playhead";
 import type { VideoFile } from "typings/io";
 
@@ -101,57 +101,6 @@ export const {
   fetchError,
 } = videoSlice.actions;
 
-/** Identify what videos are active at every second
- * this produces a nested array: [downlinks][missionSeconds][list of videos]
- * downlinks are downlink channels, currently 0 - 6 for ISS
- * missionSeconds starts at 0 and ends at the end of the day (currently 24 hours of seconds)
- * list of videos is an array of video names that are labeled in IO as having occurred on this downlink (downlink)
- * at this second. For downlink videos, we currently only ever use the first element in this array because the array is sorted by
- * longest video. The thought here is that the longest video in IO at any given time is probably the most reliable
- * copy of what was happening on a given downlink at a given time. This also sorts out the large amount of time
- * overlap across files in IO for a given downlink. For non-downlink videos we use this list to populate a display
- * of all non-downlink videos at a given time.
- *
- * Nested as:
- *
- * ```md
- * [ every downlink
- *   [ every second
- *       [ ID of every video that's playing ]
- *   ]
- * ]
- * ``` */
-export type VideoActivity = string[][][];
-
-export const selectVideoActivity = createSelector(
-  videoSelectors.selectAll,
-  (videos: VideoFile[]): VideoActivity => {
-    const cSecondsIn24Hours = 86400;
-    const res: VideoActivity = [];
-    // iterate through the possible downlink numbers, which is only 0-6 right now
-    for (let downlink = 0; downlink <= 6; downlink++) {
-      const downlinkSecondsArray: string[][] = [];
-      // capture every second of the mission
-      for (let second = 0; second < cSecondsIn24Hours; second++) {
-        // capture all the IDs of the video files that are playing for this downlink this second
-        const vidsThisdownlinkThisSecond: string[] = [];
-        videos.forEach((video) => {
-          if (
-            video.downlink === downlink &&
-            second >= video.missionSecondsStart &&
-            second <= video.missionSecondsEnd
-          ) {
-            vidsThisdownlinkThisSecond.push(video.id);
-          }
-        });
-        downlinkSecondsArray.push(vidsThisdownlinkThisSecond);
-      }
-      res.push(downlinkSecondsArray);
-    }
-    return res;
-  }
-);
-
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */
 export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => {
   for (let v in videos) {
@@ -166,12 +115,12 @@ export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => 
 };
 
 /**
- * Create a data structure of <key, value> pairs where each key is a second in the day (0-86399) and the value is a list of video IDs playing at that second. Missing keys represent seconds without any videos. Keys can be iterated in ascending chronological order
+ * Create a data structure that maps seconds and downlinks to videos. Each key is in the form of "second/downlink", eg. "86399/6", indicating a video playing at 23:59 on downlink 6. The value is a list of video IDs playing at that second. Missing keys represent "second/downlink" without any videos. Keys can be iterated in ascending chronological order, but downlink order is not guaranteed
  */
-export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<number, string[]> => {
-  const ret = new Map<number, string[]>();
+export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {
+  const ret = new Map<string, string[]>();
   let videoQueue = videos.slice();
-  const startUTC = date.valueOf();
+  const startUTC = date.valueOf() / 1000;
 
   // iterate through all the UTC seconds for the day
   for (let s = startUTC; s < startUTC + 86400; s++) {
@@ -184,9 +133,10 @@ export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<numb
     for (let v = 0; v < videoQueue.length; v++) {
       const video = videoQueue[v];
       if (s > video.start && s < video.end) {
+        const key = `${s - startUTC}/${video.downlink}`;
         // the video is playing at this time
         // set or push a new ID to `{ second: [video ID] }`
-        ret.set(s - startUTC, [...(ret.get(s - startUTC) ?? []), video.id]);
+        ret.set(key, [...(ret.get(key) ?? []), video.id]);
       } else if (s > video.end) {
         // the video has already ended. no reason to ever look at it again
         indicesToRemove.push(v);
@@ -199,3 +149,15 @@ export const visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<numb
 
   return ret;
 };
+
+/** Filters videos for start and end dates that overlap a given day */
+const _filterVisibleVideos = (videos: VideoFile[], date: Date): VideoFile[] => {
+  const startOfDay = date.valueOf() / 1000;
+  const endOfDay = startOfDay + 86399;
+  return videos.filter((video) => {
+    return video.start < endOfDay && video.end > startOfDay;
+  });
+};
+
+/** Return a list of all videos that cover some part of the day */
+export const filterVisibleVideos = memoize(_filterVisibleVideos);

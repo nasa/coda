@@ -22,14 +22,14 @@ const photoAdapter = createEntityAdapter<PhotoFile>();
 export const initialPhotoFileState: PhotoFile = {
   id: "",
   description: "",
-  lowResURL: "/images/vintage_static.gif",
-  highResURL: "",
-  ioInfoURL: "",
-  date_added: "",
-  date_taken: "",
+  mediaLowResURL: "/images/vintage_static.gif",
+  mediaHighResURL: "",
+  dataURL: "",
+  dateAdded: "",
+  dateTaken: "",
   dateTakenAppSeconds: 0,
-  collections_string: "",
-  collections_string_pretty: "",
+  collection: null,
+  collections: "",
 };
 
 export const initialState: PhotosEntityState = photoAdapter.getInitialState({

@@ -125,11 +125,13 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
  */
 export const videoSorter = (a: VideoFile, b: VideoFile) => {
+  const aDuration = a.end - a.start;
+  const bDuration = b.end - b.start;
   return (
     +(a.priority < b.priority) ||
     +(a.priority === b.priority) ||
-    +(a.durationSeconds < b.durationSeconds) ||
-    +(a.durationSeconds === b.durationSeconds)
+    +(aDuration < bDuration) ||
+    +(aDuration === bDuration)
   );
 };
 
@@ -171,7 +173,6 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     dateArr[4],
     dateArr[5]
   );
-  const UTCstart = new Date(UTCstartMilliseconds);
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
@@ -185,31 +186,20 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
       ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
       : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
-  // derive mission second values for this video
-  const startOfDay = new Date(`${UTCstart.toISOString().split("T")[0]}T00:00:00Z`);
-  const missionSecondsStart = (UTCstart.getTime() - startOfDay.getTime()) / 1000;
-  const missionSecondsEnd = (UTCend.getTime() - startOfDay.getTime()) / 1000;
-  const durationSeconds = missionSecondsEnd - missionSecondsStart;
-
   const videoFile: VideoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
-    start: UTCstartMilliseconds,
-    end: UTCend.valueOf(),
+    start: UTCstartMilliseconds / 1000,
+    end: UTCend.valueOf() / 1000,
     dataURL,
     mediaLowResURL,
     LOS,
     priority: LOS ? 0 : 1,
-    md_creation_date: doc.md_creation_date,
+    creationDate: doc.md_creation_date,
     downlink,
-    missionSecondsStart,
-    missionSecondsEnd,
-    durationSeconds,
     collection,
-    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
-    collections_string_pretty: cleanCollectionsString(
-      doc.collections_string[doc.collections_string.length - 1]
-    ),
+    // last and longest string in the array
+    collections: doc.collections_string[doc.collections_string.length - 1],
   };
 
   return videoFile;
@@ -339,20 +329,18 @@ function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
     mediaLowResURL,
     mediaHighResURL,
     dataURL,
-    date_added: doc.date_added,
-    date_taken: doc.md_creation_date,
+    dateAdded: doc.date_added,
+    dateTaken: doc.md_creation_date,
     dateTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
     collection,
-    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
-    collections_string_pretty: cleanCollectionsString(
-      doc.collections_string[doc.collections_string.length - 1]
-    ),
+    // last and longest string in the array
+    collections: doc.collections_string[doc.collections_string.length - 1],
   };
 
   return photoFile;
 }
 
-function cleanCollectionsString(colStr) {
+export function cleanCollectionsString(colStr) {
   const fullTree = colStr.split("|");
 
   let cleaned = fullTree[fullTree.length - 1];

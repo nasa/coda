@@ -9,10 +9,9 @@ import {
   setVideoNonDownlinkID,
   setActiveVideoFile,
   ready,
-  selectVideoActivity,
-  VideoActivity,
   videoSelectors,
   VideosEntityState,
+  visibleVideosBySecond,
 } from "store/videos";
 import type { VideoFile } from "typings/io";
 import { hhmmssFromSeconds } from "utils/formatting";
@@ -20,6 +19,7 @@ import styles from "./video.module.css";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
 import { Collection } from "typings";
+import { cleanCollectionsString } from "server/io-api";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -52,10 +52,11 @@ export default function Video(props: {
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadDate = new Date(playhead.date);
+  const startOfDay = playheadDate.valueOf() / 1000;
 
-  const videoFiles: VideoFile[] = videoSelectors
-    .selectAll(videos)
-    .filter((video) => isSameDate(new Date(video.start), new Date(playhead.date)));
+  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
@@ -65,12 +66,6 @@ export default function Video(props: {
 
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
-
-  let videoActivity = null as VideoActivity;
-
-  if (videoFiles.length > 0) {
-    videoActivity = selectVideoActivity(videos);
-  }
 
   const getInitialDownlink = () => {
     const dlParam = query[`video${playerID}`];
@@ -88,7 +83,7 @@ export default function Video(props: {
   };
 
   const clearMetadata = () => {
-    if (videoFiles.length === 0) {
+    if (visibleVideos.size === 0) {
       return;
     }
     const videoID = videos.activeVideoFiles[playerID];
@@ -100,21 +95,21 @@ export default function Video(props: {
 
   const changeVideoFile = () => {
     // we can't update videos if we don't have videos
-    if (!videoActivity) {
+    if (visibleVideos.size === 0) {
       return;
     }
 
-    const group = videos.downlinks[playerID];
+    const downlink = videos.downlinks[playerID];
     const activeVideoFileID = videos.activeVideoFiles[playerID];
-    const videosNextSecond = videoActivity[group][playhead.seconds + 1] || [];
+    const videosNextSecond = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
 
     // check for video changes
     let videoID = activeVideoFileID;
 
     // if the timeline just jumped or the video files changed, make sure we start the right video
-    // we always use element 0 of the videos available in this group for any given second (see store/videos.ts)
-    if (videosNextSecond.length > 0 && activeVideoFileID !== videosNextSecond[0]) {
-      // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
+    // we always use element 0 of the videos available in this downlink for any given second (see store/videos.ts)
+    if (videosNextSecond && activeVideoFileID !== videosNextSecond[0]) {
+      // there is a different video for this downlink the next second! pick the highest priority video for this downlink. See store/videos.ts#videoSorter for how video files are sorted
       videoID = videosNextSecond[0];
     }
 
@@ -123,9 +118,9 @@ export default function Video(props: {
       videoID = "";
     }
 
-    if (group === 6) {
+    if (downlink === 6) {
       videoID = videos.nonDownlinkIDs[playerID];
-      if (videosNextSecond.length > 0 && !videosNextSecond.includes(videoID)) {
+      if (videosNextSecond && !videosNextSecond.includes(videoID)) {
         videoID = videosNextSecond[0];
         dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: videoID }));
       }
@@ -145,7 +140,7 @@ export default function Video(props: {
 
   const syncToPlayhead = () => {
     // we can't update videos if we don't have videos
-    if (!videoActivity) {
+    if (visibleVideos.size === 0) {
       return;
     }
 
@@ -164,7 +159,7 @@ export default function Video(props: {
     );
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
-      videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+      videoStartOffset = playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
     }
 
     if (Math.abs(currentTime - videoStartOffset) > 1) {
@@ -225,7 +220,8 @@ export default function Video(props: {
         videos,
         videos.activeVideoFiles[playerID]
       );
-      const videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+      const videoStartOffset =
+        playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
       videoElement.current.currentTime = videoStartOffset;
     }
   };
@@ -355,7 +351,7 @@ export default function Video(props: {
       let buttonClassStyle = styles.vidButton;
       if (d === downlink) {
         buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
-      } else if (videoActivity && videoActivity[d][playhead.seconds].length > 0) {
+      } else if (visibleVideos && visibleVideos.get(`${playhead.seconds}/${downlink}`)) {
         buttonClassStyle = `${styles.vidButton} ${styles.active}`;
       }
       return (
@@ -378,28 +374,26 @@ export default function Video(props: {
     });
   };
 
-  const getPrettyVideoTitle = (videoID) => {
-    for (let i = 0; i < videoFiles.length; i++) {
-      if (videoFiles[i].id === videoID) {
-        return videoFiles[i].collections_string_pretty + " - " + videoID;
-      }
-    }
+  const getPrettyVideoTitle = (videoID: string) => {
+    const video = videoSelectors.selectById(videos, videoID);
+    return cleanCollectionsString(video.collections) + " - " + videoID;
   };
 
   const renderNonDl = () => {
+    const nonDlVideoIDs = visibleVideos.get(`${playhead.seconds}/6`) || [];
+
     const optionList = () => {
-      if (videoActivity) {
-        const nonDlVideoIDs = videoActivity[6][playhead.seconds] || [];
-        return nonDlVideoIDs.map((v) => {
-          return (
-            <option value={v} key={v}>
-              {getPrettyVideoTitle(v)}
-            </option>
-          );
-        });
-      } else {
+      if (nonDlVideoIDs.length === 0) {
         return;
       }
+
+      return nonDlVideoIDs.map((v) => {
+        return (
+          <option value={v} key={v}>
+            {getPrettyVideoTitle(v)}
+          </option>
+        );
+      });
     };
 
     let buttonClassStyle = styles.vidButton;
@@ -407,12 +401,12 @@ export default function Video(props: {
     if (videos.downlinks[playerID] === 6) {
       buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
       arrowClass = styles.select_arrow_dark;
-    } else if (videoActivity && (videoActivity[6][playhead.seconds] ?? []).length > 0) {
+    } else if (nonDlVideoIDs.length > 0) {
       buttonClassStyle = `${styles.vidButton} ${styles.active}`;
     }
 
     let selectActiveStyle = "";
-    if (videoActivity && (videoActivity[6][playhead.seconds] ?? []).length > 0) {
+    if (nonDlVideoIDs.length > 0) {
       selectActiveStyle = styles.selectActive;
     }
     return (
@@ -457,13 +451,13 @@ export default function Video(props: {
     let info = "";
     let infoDisplayClass = "";
     if (currentlyPlayingVideo) {
-      videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+      videoStartOffset = playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
       videoFilename = currentlyPlayingVideo.id;
       ioSearchLink = currentlyPlayingVideo.dataURL;
       ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();
+      dateAdded = new Date(currentlyPlayingVideo.creationDate).toUTCString();
       info = currentlyPlayingVideo.description;
     }
     if (infoHover || infoToggle) {

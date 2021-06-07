@@ -5,6 +5,7 @@ import { Collection } from "typings";
 import type { CollectionFilters } from "store/photos";
 import type { WrappedResponse } from "typings";
 import type { PhotoFile, VideoFile } from "typings/io";
+import { cleanCollectionsString } from "server/io-api";
 
 async function fetchVideoData(
   year: number,
@@ -61,14 +62,14 @@ export function buildPhotoCollections(photos: PhotoFile[]) {
   const uniqueList = [];
   for (let i = 0; i <= photos.length; i++) {
     if (photos[i] !== undefined) {
-      if (!uniqueList.includes(photos[i].collections_string)) {
+      if (!uniqueList.includes(photos[i].collections)) {
         const collectionsObject: CollectionFilters = {
-          fullList: photos[i].collections_string,
-          display: photos[i].collections_string_pretty,
+          fullList: photos[i].collections,
+          display: cleanCollectionsString(photos[i].collections),
           selected: true,
         };
         collections.push(collectionsObject);
-        uniqueList.push(photos[i].collections_string);
+        uniqueList.push(photos[i].collections);
       }
     }
   }
