@@ -53,7 +53,9 @@ export default function Video(props: {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
-  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const videoFiles: VideoFile[] = videoSelectors
+    .selectAll(videos)
+    .filter((video) => isSameDate(new Date(video.start), new Date(playhead.date)));
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
