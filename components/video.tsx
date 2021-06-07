@@ -214,12 +214,17 @@ export default function Video(props: {
   };
 
   const cueVideoToPlayhead = () => {
-    //cue the new video to the right start time to avoid buffering the beginning of the video needlessly
+    // cue the new video to the right start time to avoid buffering the beginning of the video needlessly
     if (sourceURL !== "") {
       const currentlyPlayingVideo = videoSelectors.selectById(
         videos,
         videos.activeVideoFiles[playerID]
       );
+
+      if (isNil(currentlyPlayingVideo)) {
+        return;
+      }
+
       const videoStartOffset =
         playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
       videoElement.current.currentTime = videoStartOffset;
