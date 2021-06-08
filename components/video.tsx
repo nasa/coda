@@ -124,7 +124,7 @@ export default function Video(props: {
         videoID = videosNextSecond[0];
         dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: videoID }));
       }
-      if (videosNextSecond.length === 0 && videoID !== "") {
+      if (videosNextSecond && videosNextSecond.length === 0 && videoID !== "") {
         dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
       }
     }
@@ -159,7 +159,7 @@ export default function Video(props: {
     );
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
-      videoStartOffset = playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
+      videoStartOffset = playhead.seconds - (currentlyPlayingVideo.start - startOfDay);
     }
 
     if (Math.abs(currentTime - videoStartOffset) > 1) {
@@ -225,8 +225,7 @@ export default function Video(props: {
         return;
       }
 
-      const videoStartOffset =
-        playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
+      const videoStartOffset = playhead.seconds - (currentlyPlayingVideo.start - startOfDay);
       videoElement.current.currentTime = videoStartOffset;
     }
   };
@@ -380,11 +379,11 @@ export default function Video(props: {
   };
 
   const getPrettyVideoTitle = (videoID: string) => {
-    if (!videoID) {
-      return "";
-    }
     const video = videoSelectors.selectById(videos, videoID);
-    return cleanCollectionsString(video.collections) + " - " + videoID;
+    if (video) {
+      return cleanCollectionsString(video.collections) + " - " + videoID;
+    }
+    return "";
   };
 
   const renderNonDl = () => {
