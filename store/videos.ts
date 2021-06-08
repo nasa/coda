@@ -117,33 +117,16 @@ export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => 
 /** Map seconds and downlinks to videos */
 const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {
   const ret = new Map<string, string[]>();
-  let videoQueue = videos.slice();
   const startUTC = date.valueOf() / 1000;
 
-  // iterate through all the UTC seconds for the day
-  for (let s = startUTC; s < startUTC + 86400; s++) {
-    // bail if there are no more videos to look at
-    if (videoQueue.length === 0) {
-      break;
+  videos.forEach((video) => {
+    for (let v = video.start; v <= Math.floor(video.end); v++) {
+      const key = `${v - startUTC}/${video.downlink}`;
+      // the video is playing at this time
+      // set or push a new ID to `{ second: [video ID] }`
+      ret.set(key, [...(ret.get(key) ?? []), video.id]);
     }
-
-    let indicesToRemove = [];
-    for (let v = 0; v < videoQueue.length; v++) {
-      const video = videoQueue[v];
-      if (s > video.start && s < video.end) {
-        const key = `${s - startUTC}/${video.downlink}`;
-        // the video is playing at this time
-        // set or push a new ID to `{ second: [video ID] }`
-        ret.set(key, [...(ret.get(key) ?? []), video.id]);
-      } else if (s > video.end) {
-        // the video has already ended. no reason to ever look at it again
-        indicesToRemove.push(v);
-      }
-    }
-
-    // actually remove videos that have ended
-    videoQueue = videoQueue.filter((_v, i) => !indicesToRemove.includes(i));
-  }
+  });
 
   return ret;
 };
