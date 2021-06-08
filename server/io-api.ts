@@ -10,7 +10,10 @@ Known query parameters:
     go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
     ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
     cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
+
+FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
+import flatten from "lodash/flatten";
 import get from "lodash/get";
 import { add, isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
@@ -19,6 +22,7 @@ import type { Doc, PhotoFile, VideoFile } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
 import videoStartTimes from "./video-start-times.json";
+import { isNil } from "lodash";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -64,20 +68,31 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
   return res.json();
 }
 
-/** Create IO query with a date range from date-1 to date+1 in order to account for videos that start on the previous date or end on the next date respectively */
-function flexibleDateQuery(year: number, month: number, date: number): string {
-  const previousDay = add(new Date(year, month, date), -86400000);
-  const pYear = previousDay.getUTCFullYear();
-  const pMonth = padZeros(previousDay.getUTCMonth() + 1, 2);
-  const pDate = padZeros(previousDay.getUTCDate(), 2);
+/** Format an IO query string for a single day */
+function formatDateQuery(startDate: Date, endDate?: Date): string {
+  const startYear = startDate.getUTCFullYear();
+  const startMonth = startDate.getUTCMonth() + 1;
+  const startDay = startDate.getUTCDate();
+  const rangeStartYear = `${startYear}`;
+  const rangeStartMonth = padZeros(startMonth, 2);
+  const rangeStartDate = padZeros(startDay, 2);
 
-  const nextDay = add(new Date(year, month, date), 86400000);
-  const nYear = nextDay.getUTCFullYear();
-  const nMonth = padZeros(nextDay.getUTCMonth() + 1, 2);
-  const nDate = padZeros(nextDay.getUTCDate(), 2);
+  let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
+  if (isNil(endDate)) {
+    rangeEndYear = rangeStartYear;
+    rangeEndMonth = rangeStartMonth;
+    rangeEndDate = rangeStartDate;
+  } else {
+    const endYear = endDate.getUTCFullYear();
+    const endMonth = endDate.getUTCMonth() + 1;
+    const endDay = endDate.getUTCDate();
+    rangeEndYear = `${endYear}`;
+    rangeEndMonth = padZeros(endMonth, 2);
+    rangeEndDate = padZeros(endDay, 2);
+  }
 
-  const rangeStartIO = `${pMonth}-${pDate}-${pYear}`;
-  const rangeEndIO = `${nMonth}-${nDate}-${nYear}`;
+  const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
+  const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
 
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
@@ -92,19 +107,60 @@ export async function getVideoData(
   collection: Collection
 ): Promise<WrappedResponse<VideoFile[]>> {
   const now = new Date();
-  const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
-  const dateQuery = strictDateQuery(year, month, date);
 
-  const retriever = async () => {
-    const queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
-    const res = await fetchIO(queryParams, "videoData");
-    return parseIOVideoResponse(res, collection);
-  };
+  const requestedDate = new Date(Date.UTC(year, month - 1, date));
+  const previousDate = add(new Date(year, month, date), -86400000);
+  const nextDate = add(new Date(year, month, date), 86400000);
 
-  return fetchWithCache<VideoFile[]>(`io/videos/${collection}/${dateQuery}`, retriever, {
-    preferNew: true,
-    // preferNew: isToday,
+  // fetch and parse videos for the requested day, the day before, and the day after in parallel
+  // this is necessary because IO's params s_dt and e_dt don't act like a range
+  const datesToQuery = [
+    [requestedDate],
+    [previousDate],
+    [nextDate],
+    // videos that started yesterday and end "today" (the date requested)
+    [previousDate, requestedDate],
+    // videos that start "today" and end tomorrow
+    [requestedDate, nextDate],
+  ];
+
+  const results = await Promise.all(
+    datesToQuery.map((dates) => {
+      const dateQuery = formatDateQuery(dates[0], dates[1]);
+      return fetchWithCache<VideoFile[]>(
+        `io/videos/${collection}/${dateQuery}`,
+        async () => {
+          const res = await fetchIO(
+            `${dateQuery}&cols=${Collection[collection]}&as=2`,
+            "videoData"
+          );
+          return parseIOVideoResponse(res, collection);
+        },
+        {
+          preferNew: true,
+          cacheAge: 3600,
+          // preferNew: dates.reduce((prev, curr) => prev || isSameDate(now, curr)),
+        }
+      );
+    })
+  );
+
+  const res: WrappedResponse<VideoFile[]> = results.reduce((prev, curr) => {
+    return {
+      mocked: prev.mocked || curr.mocked,
+      cacheRead: prev.cacheRead || curr.cacheRead,
+      cacheWrite: prev.cacheWrite || curr.cacheWrite,
+      isCache: prev.isCache || curr.isCache,
+      error: prev.error
+        ? curr.error
+          ? prev.error + " | " + curr.error
+          : prev.error
+        : curr.error ?? "",
+      data: [...prev.data, ...curr.data],
+    };
   });
+
+  return res;
 }
 
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
@@ -220,21 +276,6 @@ export function getChannel(collectionStrings: string[]): string {
   return "";
 }
 
-/** Format an IO query string for a single day */
-function strictDateQuery(year: number, month: number, date: number): string {
-  const rangeStartYear = year;
-  const rangeStartMonth = padZeros(month, 2);
-  const rangeStartDate = padZeros(date, 2);
-  const rangeEndYear = year;
-  const rangeEndMonth = padZeros(month, 2);
-  const rangeEndDate = padZeros(date, 2);
-
-  const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
-  const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
-
-  return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
-}
-
 /**
  * Fetch video data from IO
  */
@@ -244,7 +285,8 @@ export async function getPhotoData(
   date: number,
   collection: Collection
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const dateQuery = strictDateQuery(year, month, date);
+  const requestedDate = new Date(Date.UTC(year, month - 1, date));
+  const dateQuery = formatDateQuery(requestedDate);
 
   const retriever = async () => {
     let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
