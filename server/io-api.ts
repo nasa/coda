@@ -124,12 +124,9 @@ export async function getVideoData(
     [requestedDate, nextDate],
   ];
 
-  console.log(datesToQuery);
-
   const results = await Promise.all(
     datesToQuery.map((dates) => {
       const dateQuery = formatDateQuery(dates[0], dates[1]);
-      console.log(dateQuery);
       return fetchWithCache<VideoFile[]>(
         `io/videos/${collection}/${dateQuery}`,
         async () => {
