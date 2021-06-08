@@ -121,9 +121,9 @@ const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, st
 
   videos.forEach((video) => {
     for (let v = video.start; v <= Math.floor(video.end); v++) {
+      // key in the form of "seconds-into-day/downlink"
       const key = `${v - startUTC}/${video.downlink}`;
-      // the video is playing at this time
-      // set or push a new ID to `{ second: [video ID] }`
+      // value in the form of [videoID, ...]
       ret.set(key, [...(ret.get(key) ?? []), video.id]);
     }
   });
