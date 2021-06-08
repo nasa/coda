@@ -13,7 +13,6 @@ Known query parameters:
 
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
-import flatten from "lodash/flatten";
 import get from "lodash/get";
 import { add, isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
