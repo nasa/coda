@@ -98,7 +98,7 @@ function formatDateQuery(startDate: Date, endDate?: Date): string {
 }
 
 /**
- * Fetch video data from IO
+ * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
  */
 export async function getVideoData(
   year: number,
@@ -109,8 +109,8 @@ export async function getVideoData(
   const now = new Date();
 
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  const previousDate = add(new Date(year, month, date), -86400000);
-  const nextDate = add(new Date(year, month, date), 86400000);
+  const previousDate = add(requestedDate, -86400000);
+  const nextDate = add(requestedDate, 86400000);
 
   // fetch and parse videos for the requested day, the day before, and the day after in parallel
   // this is necessary because IO's params s_dt and e_dt don't act like a range
@@ -124,9 +124,12 @@ export async function getVideoData(
     [requestedDate, nextDate],
   ];
 
+  console.log(datesToQuery);
+
   const results = await Promise.all(
     datesToQuery.map((dates) => {
       const dateQuery = formatDateQuery(dates[0], dates[1]);
+      console.log(dateQuery);
       return fetchWithCache<VideoFile[]>(
         `io/videos/${collection}/${dateQuery}`,
         async () => {
@@ -137,9 +140,9 @@ export async function getVideoData(
           return parseIOVideoResponse(res, collection);
         },
         {
-          preferNew: true,
           cacheAge: 3600,
           // preferNew: dates.reduce((prev, curr) => prev || isSameDate(now, curr)),
+          preferNew: true,
         }
       );
     })
