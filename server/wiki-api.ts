@@ -7,6 +7,7 @@ See sandboxes:
 */
 import { promises as fs } from "fs";
 import get from "lodash/get";
+import deepEquals from "lodash/isEqual";
 import memoize from "lodash/memoize";
 import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
@@ -88,26 +89,44 @@ async function mockData(_query: string, action: string): Promise<WikiResults> {
 }
 
 /** Checks if the response from the wiki mean we aren't logged in */
-function isAPIError(e: any | WikiResponse): e is WikiResponse {
+function isLoginError(e: any | WikiResponse): e is WikiResponse {
   return e.errorResponse && e.code === "readapidenied";
 }
 
+/** Options for querying the wiki API */
+interface FetchWikiOptions {
+  /** Will switch which wiki we use. Defaults to the ISS wiki */
+  collection: Collection;
+  /** Semantic Mediawiki "ask" query string. Only applicable for "ask" actions` */
+  askQuery?: string;
+  /** Type of wiki query. Defaults to `ask` */
+  action?: string;
+  /** Properties to use when performing a "parse" action */
+  parseQuery?: {
+    page: string;
+    prop: string;
+  };
+  /** Optional mock type for local development */
+  mock?: string;
+}
+
+const defaultFetchWikiOptions: FetchWikiOptions = {
+  askQuery: "",
+  collection: Collection.ISS,
+  action: "ask",
+};
+
 /**
  * Perform a query against the wiki. Returns a cached result if this query has already been performed
- * @param query Wikimedia query string
- * @param collection Will switch which wiki we use
- * @param action Optional action type for local mocking
  */
-async function fetchWiki(
-  query: string,
-  collection = Collection.ISS,
-  action?: string
-): Promise<WrappedResponse<WikiResults>> {
+async function fetchWiki(options: FetchWikiOptions): Promise<WrappedResponse<WikiResults>> {
+  const o = { ...defaultFetchWikiOptions, ...options };
+
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   // we're in the local environment. fake the request
   if (isLocal) {
-    const data = await mockData(query, action);
+    const data = await mockData(o.askQuery, o.mock);
     return {
       data,
       mocked: true,
@@ -116,13 +135,21 @@ async function fetchWiki(
 
   let res: WikiResults;
 
-  const bot = await getMWBot(collection);
+  const bot = await getMWBot(o.collection);
+
+  // build the JSON payload to send to the wiki based on FetchWikiOptions.action
+  let payload: any = { format: "json", action: o.action };
+  if (o.action === "ask") {
+    payload = { ...payload, query: o.askQuery };
+  } else if (o.action === "parse") {
+    payload = { ...payload, ...o.parseQuery };
+  }
 
   try {
     // optmistically try to fetch from the wiki before we know for sure we're logged in
-    res = await bot.request({ action: "ask", format: "json", query });
+    res = await bot.request(payload);
   } catch (e) {
-    if (isAPIError(e)) {
+    if (isLoginError(e)) {
       // we weren't logged in. let's log in
       try {
         await bot.login({
@@ -138,7 +165,7 @@ async function fetchWiki(
     }
     // we are logged in now. retry the request
     try {
-      res = await bot.request({ action: "ask", format: "json", query });
+      res = await bot.request(payload);
     } catch (e) {
       console.error("Wiki request error");
       throw e;
@@ -151,7 +178,7 @@ async function fetchWiki(
 /** Get a summary of all EVAs on the wiki */
 export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
   // wiki query parameters
-  const query = `
+  const askQuery = `
     [[~US EVA*]]
     [[EVA Classification::Scheduled or Historical]]
     |? EVA title
@@ -162,7 +189,7 @@ export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>>
     |limit=10000
   `;
 
-  const res = await fetchWiki(query, Collection.ISS, "getAllEVAs");
+  const res = await fetchWiki({ askQuery, collection: Collection.ISS, mock: "getAllEVAs" });
   const results = res.data.query.results;
   return {
     mocked: res.mocked,
@@ -188,7 +215,7 @@ const colorTranslator = {
 
 /** Get as-executed data for a given EV on a given EVA */
 export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
-  const query = `
+  const askQuery = `
     [[From page::~US EVA*/*xecuted*]]
     |mainlabel=-|?Index
     |? Has text title
@@ -202,7 +229,7 @@ export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>>
     |limit=1000000
   `;
 
-  const res = await fetchWiki(query, Collection.ISS, "getAllAsExecuted");
+  const res = await fetchWiki({ askQuery, collection: Collection.ISS, mock: "getAllAsExecuted" });
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -265,7 +292,7 @@ const plus = () => {
 
 /** Get crew assignment data for all EVAs */
 export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
-  const query = `
+  const askQuery = `
     [[Crew involved with subject::${plus()}]]
     [[From page::~US EVA*]]
     |? Has full name
@@ -274,7 +301,7 @@ export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
     |limit=10000
   `;
 
-  const res = await fetchWiki(query, Collection.ISS, "getAllCrew");
+  const res = await fetchWiki({ askQuery, collection: Collection.ISS, mock: "getAllCrew" });
   const results = parseAllCrew(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -360,7 +387,7 @@ export async function buildEVAStore(): Promise<WrappedResponse<Sequence[]>> {
 }
 
 export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>> {
-  const query = `
+  const askQuery = `
   [[Category:Test event]]
   |? Test date
   |? Start time
@@ -370,7 +397,11 @@ export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>
   |sort=Test date
   `;
 
-  const res = await fetchWiki(query, Collection["JSC Rock Yard"], "getAllTestEvents");
+  const res = await fetchWiki({
+    askQuery,
+    collection: Collection["JSC Rock Yard"],
+    mock: "getAllTestEvents",
+  });
   return {
     mocked: res.mocked,
     data: res.data.query.results,
@@ -379,7 +410,7 @@ export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>
 
 /** Get as-executed data for a given EV on a given EVA */
 export async function getTestEventExecution(): Promise<WrappedResponse<AllExecution>> {
-  const query = `
+  const askQuery = `
     [[From page::~Test_Event*/*imeline*]]
     |mainlabel=-|?Index
     |? Has text title
@@ -393,7 +424,11 @@ export async function getTestEventExecution(): Promise<WrappedResponse<AllExecut
     |limit=1000000
   `;
 
-  const res = await fetchWiki(query, Collection["JSC Rock Yard"], "getAllAsExecuted");
+  const res = await fetchWiki({
+    askQuery,
+    collection: Collection["JSC Rock Yard"],
+    mock: "getAllAsExecuted",
+  });
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -403,17 +438,40 @@ export async function getTestEventExecution(): Promise<WrappedResponse<AllExecut
 
 /** Get crew assignment data for all EVAs */
 export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
-  const query = `
+  const askQuery = `
     [[Test subject::${plus()}]]
     [[Category:Test_event]]
     |limit=10000
   `;
 
-  const res = await fetchWiki(query, Collection["JSC Rock Yard"], "getAllCrew");
+  const res = await fetchWiki({
+    askQuery,
+    collection: Collection["JSC Rock Yard"],
+    mock: "getAllCrew",
+  });
   const results = parseAllCrew(res.data.query.results);
   return {
     mocked: res.mocked,
     data: results,
+  };
+}
+
+/** Get all the manually set shifts for fixing datetimes */
+export async function getDatetimeShifts() {
+  const parseQuery = {
+    page: "CODA/Datetime_Shifts",
+    prop: "wikitext",
+  };
+
+  const res = await fetchWiki({
+    parseQuery,
+    collection: Collection["JSC Rock Yard"],
+    action: "parse",
+  });
+  const data = parseWikitextTable(res.data.parse.wikitext["*"]);
+  return {
+    mocked: res.mocked,
+    data,
   };
 }
 
@@ -469,4 +527,71 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
     response.mocked = true;
   }
   return response;
+}
+
+/** Given wikitext that includes one or more tables, parse the tables into objects. Returns a list of lists of objects where:
+ * ```
+ *  [ list of tables
+ *    [ list of rows in each table
+ *      { row objects with header keys and cell values }
+ *    ]
+ *  ]
+ * ```
+ *
+ * Wikitable syntax must be in the form of:
+ *
+ * ```
+ * {| class="wikitable"
+ * |-
+ * !Header text!!Header text!!Header text
+ * |-
+ * |Example||Example||Example
+ * |}
+ * ```
+ *
+ * Inspired by: https://www.mediawiki.org/wiki/API:Parsing_wikitext#Example_1:_Parse_content_of_a_page
+ */
+function parseWikitextTable(wikitext: string): any[][] {
+  const res = [];
+  const lines = wikitext.split("|-");
+
+  let currentHeader: string[] = [];
+
+  // assume more than one table in the wikitext. use this index to increment which result to put table
+  let resIndex = 0;
+
+  lines.forEach((line) => {
+    let t: any = {};
+
+    const stripped = line.trim();
+
+    if (stripped.match(/^!.*/g)) {
+      // every time we find a new header, create a new list of rows for the response
+      res[resIndex] = [];
+      currentHeader = stripped
+        .slice(1)
+        .split("!!")
+        .map((s) => s.trim());
+    }
+
+    if (stripped.match(/^\|(?!-|}).*/g)) {
+      const row = stripped
+        .slice(1)
+        .split("||")
+        .map((s) => s.trim());
+      row.forEach(
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+      );
+    }
+
+    if (!deepEquals(t, {})) {
+      res[resIndex].push(t);
+    }
+
+    if (stripped.match(/\|\}/g)) {
+      resIndex += 1;
+    }
+  });
+
+  return res;
 }

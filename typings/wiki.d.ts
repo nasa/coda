@@ -15,7 +15,7 @@ export interface WikiResponse {
 }
 
 export interface WikiResults {
-  query: {
+  query?: {
     printrequests: {
       label: string;
       key: string;
@@ -25,6 +25,9 @@ export interface WikiResults {
       format?: string;
     }[];
     results: EVASummaryResponse | EVADetails | any;
+  };
+  parse?: {
+    wikitext?: { [key: string]: string };
   };
 }
 
@@ -161,4 +164,11 @@ export interface AllTestEvents {
     exists: "0" | "1";
     displaytitle: string;
   };
+}
+
+export interface DatetimeShift {
+  /** nasa_id of the video */
+  id: string;
+  /** UTC string */
+  start: string;
 }
