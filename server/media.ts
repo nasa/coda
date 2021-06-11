@@ -41,9 +41,9 @@ export async function getVideoData(
   const data: VideoFile[] = results.data.map((result) => {
     const res = clone(result);
     for (let fix of overrides.data.videoFixes) {
-      if (fix.id === result.id) {
+      if (fix.videoID === result.id) {
         const duration = res.end - res.start;
-        const start = new Date(fix.start).valueOf() / 1000;
+        const start = new Date(fix.time).valueOf() / 1000;
         res.start = start;
         res.end = start + duration;
         break;

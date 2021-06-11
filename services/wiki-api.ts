@@ -603,5 +603,6 @@ function parseWikitextTable(wikitext: string): DatetimeOverrides {
   return {
     // the first table is the video time fudges
     videoFixes: data[0],
+    testEventTimezones: data[1],
   };
 }

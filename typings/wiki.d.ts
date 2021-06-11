@@ -170,11 +170,19 @@ export interface AllTestEvents {
 
 export interface DatetimeOverrides {
   videoFixes: VideoFix[];
+  testEventTimezones: TestEventTimezones[];
 }
 
 export interface VideoFix {
   /** nasa_id of the video */
-  id: string;
-  /** UTC string */
-  start: string;
+  videoID: string;
+  /** UTC string for the actual start of the video */
+  time: string;
+}
+
+export interface TestEventTimezones {
+  /** Match test event to the ID in the wiki */
+  testEventID: string;
+  /** In the form of UTC-05:00 */
+  timezone: string;
 }

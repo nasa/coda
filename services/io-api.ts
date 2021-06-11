@@ -19,7 +19,6 @@ import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "t
 import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
-import videoStartTimes from "./video-start-times.json";
 import { isNil } from "lodash";
 
 /** Perform a request against IO with the given parameters */
@@ -154,9 +153,8 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
   }
 
   // Create array of date elements from creation date
-  let dateArr = get(videoStartTimes, doc.nasa_id, doc.md_creation_date);
-  // regex match for the date
-  dateArr = dateArr
+  let dateArr = doc.md_creation_date
+    // regex match for the date
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     // remove the first item (the full matched string)
     .slice(1)
