@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { changeTime, isSameDate, PlayheadState } from "store/playhead";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
-import EVADropdown from "components/dropdown-eva";
+import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
 
@@ -100,7 +100,7 @@ function Header() {
           </div>
         </div>
         <div className={styles.headerElementContainer}>
-          <EVADropdown />
+          <EventDropdown />
         </div>
         <div className={styles.headerElementContainer}>
           <div className={styles.dateTimeSection}>

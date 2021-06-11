@@ -3,18 +3,18 @@ import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { diff } from "store/playhead";
+import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown.module.css";
-import { idFromDate, SequencesEntityState, sequencesSelector } from "store/sequences";
+import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 
-export default function RYDropdown() {
-  const evas: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+export default function EVADropdown() {
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  const allEVAs = sequencesSelector.selectAll(evas);
-  const selectedEVA = allEVAs.find((eva) => eva.startDate === idFromDate(date));
+  const allEVAs = sequencesSelector.selectAll(sequences);
+  const selectedEVA = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(date)));
   const evaName = get(selectedEVA, "name", "");
 
   const [value, setValue] = useState("");
@@ -34,8 +34,6 @@ export default function RYDropdown() {
     }
   };
 
-  // TODO: maybe combine test events that are on the same day?
-
   const today = new Date();
 
   return (
@@ -43,10 +41,10 @@ export default function RYDropdown() {
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
         {isNil(selectedEVA) ? (
           <option key="" value="">
-            Jump to an event
+            Jump to an Event
           </option>
         ) : (
-          <option disabled>Choose event</option>
+          <option disabled>Choose Event</option>
         )}
         {isNil(allEVAs) ? (
           <option disabled>Loading...</option>
@@ -62,7 +60,7 @@ export default function RYDropdown() {
             .reverse()
             .map((eva) => {
               return (
-                <option key={eva.name} value={eva.startDate}>
+                <option key={eva.startDate} value={eva.startDate}>
                   {eva.name} - {eva.displayTitle}
                 </option>
               );

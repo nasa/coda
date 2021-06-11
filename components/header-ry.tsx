@@ -4,7 +4,7 @@ import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { changeTime, PlayheadState } from "store/playhead";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
-import RYDropdown from "components/dropdown-ry";
+import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
 
@@ -99,7 +99,7 @@ function Header() {
           </div>
         </div>
         <div className={styles.headerElementContainer}>
-          <RYDropdown />
+          <EventDropdown />
         </div>
         <div className={styles.headerElementContainer}>
           <div className={styles.dateTimeSection}>
