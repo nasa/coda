@@ -20,9 +20,6 @@ export default function EVADropdown() {
   const [value, setValue] = useState("");
   useEffect(() => setValue(get(selectedEVA, "startDate", "")), [evaName]);
 
-  // TODO: not showing right EVA
-  // TODO: not seeing eva info in the header either
-
   /**
    * Navigate to another EVA
    */
@@ -30,10 +27,10 @@ export default function EVADropdown() {
     e.preventDefault();
     setValue(e.target.value);
     if (e.target.value !== "") {
-      const [year, month, day] = sequencesSelector
-        .selectById(sequences, e.target.value)
-        .startDate.split("-");
-      window.location.assign(`/view?date=${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`);
+      const eva = allEVAs.find((eva) => eva.startDate === e.target.value);
+      const [year, month, day] = eva.startDate.split("-");
+      const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}&sstart=true`);
     }
   };
 
