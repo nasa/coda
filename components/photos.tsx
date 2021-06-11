@@ -35,18 +35,18 @@ export default function Photos() {
       return;
     }
 
-    /* Loop through all returned photos in order of dateTaken
+    /* Loop through all returned photos in order of datetimeTaken
      * break as soon as we hit a photo that was taken after playhead.seconds leaving the data we gathered
      * on the previous photo for use.
      */
     let thisPhotoFile = initialPhotoFileState;
     for (let i = 0; i < photoFiles.length; i++) {
-      const secondsIntoToday = appSecondsFromDateString(photoFiles[i].dateTaken);
+      const secondsIntoToday = appSecondsFromDateString(photoFiles[i].datetimeTaken);
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
 
-      //filter photos against collectionFilters
+      // filter photos against collectionFilters
       let showThisPhoto = false;
       for (let j = 0; j < photos.collectionFilters.length; j++) {
         if (
@@ -85,13 +85,13 @@ export default function Photos() {
   useEffect(changePhoto, [playhead.seconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
-    const currentlyActivePhoto = photos.activePhoto.dateTaken !== "";
+    const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
     let ioSearchLink = "";
     let ioHighResURL = "";
     let openURLMessage = "";
     let photoFilename = "";
     let dateAdded = "";
-    let dateTaken = "";
+    let datetimeTaken = "";
     let openOnIOMessage = "";
     let info = "";
     let infoDisplayClass = "";
@@ -105,9 +105,9 @@ export default function Photos() {
         photos.activePhoto.dateAdded !== ""
           ? new Date(photos.activePhoto.dateAdded).toUTCString()
           : "-";
-      dateTaken =
-        photos.activePhoto.dateTaken !== ""
-          ? new Date(photos.activePhoto.dateTaken).toUTCString()
+      datetimeTaken =
+        photos.activePhoto.datetimeTaken !== ""
+          ? new Date(photos.activePhoto.datetimeTaken).toUTCString()
           : "-";
 
       if (infoHover || infoToggle) {
@@ -120,7 +120,7 @@ export default function Photos() {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
-            <div className={`${styles.overlayTableCell}`}>{dateTaken}</div>
+            <div className={`${styles.overlayTableCell}`}>{datetimeTaken}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
@@ -214,17 +214,17 @@ export default function Photos() {
     );
   };
 
-  let dateTakenLabel = "";
-  let dateTakenValue = "";
+  let datetimeTakenLabel = "";
+  let datetimeTakenValue = "";
   let timeSinceTaken = "";
   let infoButtonStyle = "";
-  const currentlyActivePhoto = photos.activePhoto.dateTaken !== "";
+  const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
   if (currentlyActivePhoto) {
     timeSinceTaken = `(${hhmmssFromSeconds(
-      Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.dateTaken))
+      Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
     )} ago)`;
-    dateTakenLabel = "Taken:";
-    dateTakenValue = `${hhmmssFromDateString(photos.activePhoto.dateTaken)}Z`;
+    datetimeTakenLabel = "Taken:";
+    datetimeTakenValue = `${hhmmssFromDateString(photos.activePhoto.datetimeTaken)}Z`;
     infoButtonStyle = styles.infoActive;
   }
   if (infoToggle) {
@@ -270,10 +270,10 @@ export default function Photos() {
             style={{ paddingRight: "5px" }}
             className={`${styles.photoHeaderText} ${styles.dimText}`}
           >
-            {dateTakenLabel}
+            {datetimeTakenLabel}
           </span>
           <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-            {dateTakenValue}
+            {datetimeTakenValue}
           </span>
           <span
             style={{ marginRight: "5px" }}

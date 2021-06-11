@@ -26,8 +26,8 @@ export const initialPhotoFileState: PhotoFile = {
   mediaHighResURL: "",
   dataURL: "",
   dateAdded: "",
-  dateTaken: "",
-  dateTakenAppSeconds: 0,
+  datetimeTaken: "",
+  datetimeTakenAppSeconds: 0,
   collection: null,
   collections: "",
 };

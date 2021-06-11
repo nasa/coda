@@ -13,7 +13,6 @@ Known query parameters:
 
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
-import get from "lodash/get";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "typings";
 import type { Doc } from "typings/io";
@@ -94,7 +93,7 @@ function formatDateQuery(startDate: Date, endDate?: Date): string {
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
-export async function fetchVideosForDates(collection: Collection, start: Date, end?: Date) {
+export async function fetchVideoData(collection: Collection, start: Date, end?: Date) {
   const now = new Date();
 
   const dateQuery = formatDateQuery(start, end);
@@ -227,14 +226,12 @@ export function getChannel(collectionStrings: string[]): string {
 /**
  * Fetch video data from IO
  */
-export async function getPhotoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection
+export async function fetchPhotoData(
+  collection: Collection,
+  start: Date,
+  end?: Date
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  const dateQuery = formatDateQuery(requestedDate);
+  const dateQuery = formatDateQuery(start, end);
 
   const retriever = async () => {
     let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
@@ -322,8 +319,8 @@ function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
     mediaHighResURL,
     dataURL,
     dateAdded: doc.date_added,
-    dateTaken: doc.md_creation_date,
-    dateTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
+    datetimeTaken: doc.md_creation_date,
+    datetimeTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
     collection,
     // last and longest string in the array
     collections: doc.collections_string[doc.collections_string.length - 1],

@@ -3,8 +3,7 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { CollectionFilters } from "store/photos";
-import type { VideoFile, PhotoFile } from "typings/io";
-import type { Activity, DayNightObj } from "typings";
+import type { Activity, DayNightObj, VideoFile, PhotoFile } from "typings";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -179,7 +178,7 @@ export default class DrawNav {
     // track x locations to avoid rendering multiple lines on the same pixel
     const xLocations = new Set();
     for (let i = 0; i < this.photoFiles.length; i++) {
-      let itemLocX = this.photoFiles[i].dateTakenAppSeconds * this.gTier1PixelsPerSecond;
+      let itemLocX = this.photoFiles[i].datetimeTakenAppSeconds * this.gTier1PixelsPerSecond;
       const wholePixelLocation = Math.round(itemLocX);
       if (xLocations.has(wholePixelLocation)) {
         continue;
@@ -497,8 +496,8 @@ export default class DrawNav {
     // display photo ticks
     for (let i = 0; i < this.photoFiles.length; i++) {
       if (
-        this.photoFiles[i].dateTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
-        this.photoFiles[i].dateTakenAppSeconds >= this.gTier2StartSeconds
+        this.photoFiles[i].datetimeTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
+        this.photoFiles[i].datetimeTakenAppSeconds >= this.gTier2StartSeconds
       ) {
         let showThisPhoto = false;
         for (let j = 0; j < this.collectionFilters.length; j++) {
@@ -513,7 +512,7 @@ export default class DrawNav {
 
         let itemLocX =
           this.gTier2Left +
-          (this.photoFiles[i].dateTakenAppSeconds - this.gTier2StartSeconds) *
+          (this.photoFiles[i].datetimeTakenAppSeconds - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
         let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 13);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
@@ -527,7 +526,7 @@ export default class DrawNav {
 
         this.gTier2Group.addChild(aLine);
       } else if (
-        this.photoFiles[i].dateTakenAppSeconds >
+        this.photoFiles[i].datetimeTakenAppSeconds >
         this.gTier2StartSeconds + secondsOnTier2
       ) {
         break;

@@ -155,6 +155,6 @@ export interface VideoFile extends MediaFile {
 /** Parsed metadata from an IO photo file result */
 export interface PhotoFile extends MediaFile {
   dateAdded: string;
-  dateTaken: string;
-  dateTakenAppSeconds: number;
+  datetimeTaken: string;
+  datetimeTakenAppSeconds: number;
 }
