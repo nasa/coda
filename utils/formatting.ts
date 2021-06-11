@@ -1,4 +1,5 @@
 import { isNaN } from "lodash";
+import { add } from "store/playhead";
 
 /**
  * Return a zero padded string of a number
@@ -100,9 +101,9 @@ function isoStringFromAnyDateString(dateString: string): string {
 }
 
 export function getPlayheadISOString(playheadDate: string, playheadSeconds: number) {
-  const iso = isoStringFromAnyDateString(playheadDate);
-  const hhmmssmmm = hhmmssmmmFromSeconds(playheadSeconds);
-  return `${iso.split("T")[0]}T${hhmmssmmm}Z`;
+  const date = new Date(playheadDate);
+  const withSeconds = add(date, playheadSeconds * 1000);
+  return withSeconds.toISOString();
 }
 
 /** Nicely format an IO collections string for display */
