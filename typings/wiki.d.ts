@@ -166,7 +166,13 @@ export interface AllTestEvents {
   };
 }
 
-export interface DatetimeShift {
+/** Manual overrides for  */
+
+export interface DatetimeOverrides {
+  videoFixes: VideoFix[];
+}
+
+export interface VideoFix {
   /** nasa_id of the video */
   id: string;
   /** UTC string */

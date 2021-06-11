@@ -23,6 +23,7 @@ import type {
   EVACrewResults,
   EVASummaryResponse,
   AllTestEvents,
+  DatetimeOverrides,
 } from "typings/wiki";
 
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
@@ -457,25 +458,6 @@ export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
   };
 }
 
-/** Get all the manually set shifts for fixing datetimes */
-export async function getDatetimeShifts() {
-  const parseQuery = {
-    page: "CODA/Datetime_Shifts",
-    prop: "wikitext",
-  };
-
-  const res = await fetchWiki({
-    parseQuery,
-    collection: Collection["JSC Rock Yard"],
-    action: "parse",
-  });
-  const data = parseWikitextTable(res.data.parse.wikitext["*"]);
-  return {
-    mocked: res.mocked,
-    data,
-  };
-}
-
 /** Fetch as-planned and as-executed EVA data and standardize the format */
 export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
@@ -530,6 +512,30 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
   return response;
 }
 
+/** Get all the manually set shifts for fixing datetimes.
+ *
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Datetime_Shifts
+ */
+export async function getDatetimeOverrides(): Promise<WrappedResponse<DatetimeOverrides>> {
+  const parseQuery = {
+    page: "CODA/Datetime_Shifts",
+    prop: "wikitext",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      collection: Collection["JSC Rock Yard"],
+      action: "parse",
+    });
+    return parseWikitextTable(res.data.parse.wikitext["*"]);
+  };
+
+  return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
+    staleOk: true,
+  });
+}
+
 /** Given wikitext that includes one or more tables, parse the tables into objects. Returns a list of lists of objects where:
  * ```
  *  [ list of tables
@@ -552,14 +558,14 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
  *
  * Inspired by: https://www.mediawiki.org/wiki/API:Parsing_wikitext#Example_1:_Parse_content_of_a_page
  */
-function parseWikitextTable(wikitext: string): any[][] {
-  const res = [];
+function parseWikitextTable(wikitext: string): DatetimeOverrides {
+  const data = [];
   const lines = wikitext.split("|-");
 
   let currentHeader: string[] = [];
 
   // assume more than one table in the wikitext. use this index to increment which result to put table
-  let resIndex = 0;
+  let tableIndex = 0;
 
   lines.forEach((line) => {
     let t: any = {};
@@ -568,7 +574,7 @@ function parseWikitextTable(wikitext: string): any[][] {
 
     if (stripped.match(/^!.*/g)) {
       // every time we find a new header, create a new list of rows for the response
-      res[resIndex] = [];
+      data[tableIndex] = [];
       currentHeader = stripped
         .slice(1)
         .split("!!")
@@ -586,13 +592,16 @@ function parseWikitextTable(wikitext: string): any[][] {
     }
 
     if (!deepEquals(t, {})) {
-      res[resIndex].push(t);
+      data[tableIndex].push(t);
     }
 
     if (stripped.match(/\|\}/g)) {
-      resIndex += 1;
+      tableIndex += 1;
     }
   });
 
-  return res;
+  return {
+    // the first table is the video time fudges
+    videoFixes: data[0],
+  };
 }
