@@ -13,7 +13,7 @@ import {
   idFromDate,
 } from "store/sequences";
 import { filterVisibleVideos, videoSelectors, VideosEntityState } from "store/videos";
-import { photosSelectors, PhotosEntityState } from "store/photos";
+import { photosSelectors, PhotosEntityState, filterVisiblePhotos } from "store/photos";
 import type { EphemeraEntityState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
@@ -86,7 +86,7 @@ function NavTimeline() {
 
     drawNav.current = new DrawNav(
       filterVisibleVideos(videoFiles, playheadDate),
-      photoFiles,
+      filterVisiblePhotos(photoFiles, playheadDate),
       photos.collectionFilters,
       dayNight,
       asPerformed,

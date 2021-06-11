@@ -7,6 +7,7 @@ import {
   setCollectionFilters,
   photosSelectors,
   PhotosEntityState,
+  filterVisiblePhotos,
 } from "store/photos";
 import styles from "./photos.module.css";
 
@@ -35,30 +36,28 @@ export default function Photos() {
       return;
     }
 
+    const visiblePhotos = filterVisiblePhotos(photoFiles, new Date(playhead.date));
+
     /* Loop through all returned photos in order of datetimeTaken
      * break as soon as we hit a photo that was taken after playhead.seconds leaving the data we gathered
      * on the previous photo for use.
      */
     let thisPhotoFile = initialPhotoFileState;
-    for (let i = 0; i < photoFiles.length; i++) {
-      const secondsIntoToday = appSecondsFromDateString(photoFiles[i].datetimeTaken);
+    for (let i = 0; i < visiblePhotos.length; i++) {
+      const secondsIntoToday = visiblePhotos[i].datetimeTakenAppSeconds;
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
 
       // filter photos against collectionFilters
-      let showThisPhoto = false;
       for (let j = 0; j < photos.collectionFilters.length; j++) {
         if (
-          photoFiles[i].collections === photos.collectionFilters[j].fullList &&
+          visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
           photos.collectionFilters[j].selected
         ) {
-          showThisPhoto = true;
+          thisPhotoFile = visiblePhotos[i];
           break;
         }
-      }
-      if (showThisPhoto) {
-        thisPhotoFile = photoFiles[i];
       }
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
@@ -82,7 +81,7 @@ export default function Photos() {
     dispatch(setCollectionFilters(filters));
   }
 
-  useEffect(changePhoto, [playhead.seconds, photoFiles, photos]);
+  useEffect(changePhoto, [playhead.date, playhead.seconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
