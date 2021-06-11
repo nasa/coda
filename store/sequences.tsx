@@ -8,6 +8,7 @@ import { Sequence, Activity, DayNight } from "typings";
 export function idFromSequence(sequence: Sequence): string {
   const { startDate, name, type, location } = sequence;
   const [yyyy, mm, dd] = startDate.split("-").map((d) => padZeros(+d, 2));
+  // TODO: location isn't working?
   return `${yyyy}-${mm}-${dd}-${location}-${type}-${name}`;
 }
 
