@@ -2,7 +2,7 @@ import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PlayheadState, isSameDate } from "store/playhead";
+import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
@@ -260,18 +260,30 @@ export default function Video(props: {
       }
     }
 
-    // show IO error if a 400 error has been raised in the video player event handlers below
-    let IOErrorCSS = {};
-    if (status === "error" && sourceURL !== "") {
-      IOErrorCSS = { display: "block" };
-    }
-
-    // TODO: videos that are at midnight UTC get a warning message that its probably not timesynced
-
     const videoID = videos.activeVideoFiles[playerID];
     let video: VideoFile;
     if (videoID !== "") {
       video = videoSelectors.selectById(videos, videoID);
+    }
+
+    const ioError = status === "error" && sourceURL !== "";
+    const startDate = !isNil(video) ? new Date(video.start * 1000) : null;
+    // assume the video is not time synced if it starts at 00:00:00 UTC
+    const isNotTimeSynced =
+      !isNil(video) && startDate && startDate.valueOf() === midnightZulu(startDate).valueOf();
+
+    // show IO error if a 400 error has been raised in the video player event handlers below
+    let ioErrorCSS = {};
+    let ioErrorMessage = "";
+    if (ioError) {
+      ioErrorCSS = { display: "block" };
+      ioErrorMessage = "Imagery Online Video Error";
+    }
+
+    // show error if the video is (very likely) not time synced
+    if (isNotTimeSynced) {
+      ioErrorCSS = { display: "block", zIndex: 1 };
+      ioErrorMessage = "Video Is Not Time Synced";
     }
 
     // the audio in LOS downlinked videos is never synced to the video
@@ -284,66 +296,66 @@ export default function Video(props: {
         className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
       >
         <div className={`${styles.playerPoster} ${posterClass}`}>
-          <div className={styles.IOError} style={IOErrorCSS}>
-            Imagery Online Video Error
+          <video
+            ref={videoElement}
+            className={styles.player}
+            src={sourceURL}
+            muted={shouldMute}
+            onCanPlay={() => {
+              if (!videos.ready[playerID]) {
+                dispatch(ready(playerID));
+              }
+            }}
+            onEnded={() => {
+              // ready up because we don't want a missing video to hold up the playhead
+              dispatch(ready(playerID));
+            }}
+            onWaiting={() => {
+              if (videos.ready[playerID] && sourceURL !== "") {
+                dispatch(buffering(playerID));
+                setStatus("buffering");
+              }
+            }}
+            onPlaying={() => {
+              setStatus("playing");
+            }}
+            onLoadedMetadata={(e) => {
+              // Used to later determine whether a buffering event is happening on an already playing video
+              // or a new loading event
+              const vidElement = e.target as HTMLVideoElement;
+              const metaData = {
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+                duration: vidElement.duration,
+              };
+              setMetadata(metaData);
+            }}
+            onClick={() => {
+              if (currentlyPlayingVideo) {
+                toggleFullScreen();
+              }
+            }}
+            onError={(e) => {
+              const vidElement = e.target as HTMLVideoElement;
+              if (!vidElement.error.message.includes("mpty")) {
+                //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
+                setStatus("error");
+                console.error(
+                  `video ${playerID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+                );
+              } else {
+                setStatus("novid");
+              }
+              //unblocking playhead
+              if (videos.ready[playerID] !== true) {
+                dispatch(ready(playerID));
+              }
+            }}
+          />
+          <div className={styles.IOError} style={ioErrorCSS}>
+            {ioErrorMessage}
           </div>
         </div>
-        <video
-          ref={videoElement}
-          className={styles.player}
-          src={sourceURL}
-          muted={shouldMute}
-          onCanPlay={() => {
-            if (!videos.ready[playerID]) {
-              dispatch(ready(playerID));
-            }
-          }}
-          onEnded={() => {
-            // ready up because we don't want a missing video to hold up the playhead
-            dispatch(ready(playerID));
-          }}
-          onWaiting={() => {
-            if (videos.ready[playerID] && sourceURL !== "") {
-              dispatch(buffering(playerID));
-              setStatus("buffering");
-            }
-          }}
-          onPlaying={() => {
-            setStatus("playing");
-          }}
-          onLoadedMetadata={(e) => {
-            // Used to later determine whether a buffering event is happening on an already playing video
-            // or a new loading event
-            const vidElement = e.target as HTMLVideoElement;
-            const metaData = {
-              videoHeight: vidElement.videoHeight,
-              videoWidth: vidElement.videoWidth,
-              duration: vidElement.duration,
-            };
-            setMetadata(metaData);
-          }}
-          onClick={() => {
-            if (currentlyPlayingVideo) {
-              toggleFullScreen();
-            }
-          }}
-          onError={(e) => {
-            const vidElement = e.target as HTMLVideoElement;
-            if (!vidElement.error.message.includes("mpty")) {
-              //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
-              setStatus("error");
-              console.error(
-                `video ${playerID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
-              );
-            } else {
-              setStatus("novid");
-            }
-            //unblocking playhead
-            if (videos.ready[playerID] !== true) {
-              dispatch(ready(playerID));
-            }
-          }}
-        />
         {renderVideoOverlay()}
       </div>
     );
