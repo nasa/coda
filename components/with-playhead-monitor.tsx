@@ -34,9 +34,8 @@ function PlayheadMonitor() {
   }, [playheadReady, playheadIsRunning, videos.ready, photos.ready]);
 
   useEffect(() => {
-    // see if the page needs to change
+    // check if the date has rolled over into the next UTC day
     if (playheadSeconds >= 60 * 60 * 24) {
-      // the playhead has rolled over into the next day
       const today = new Date(playheadDate);
       const tomorrow = add(today, 1000 * 60 * 60 * 24);
       dispatch(changeDate(tomorrow.toISOString()));
