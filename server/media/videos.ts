@@ -1,14 +1,14 @@
 import clone from "lodash/cloneDeep";
-import { fetchVideosForDates } from "services/io-api";
-import { getDatetimeOverrides } from "services/wiki-api";
+import { fetchVideoData } from "services/io-api";
+import { fetchDatetimeOverrides } from "services/wiki-api";
 import { add } from "store/playhead";
-import { Collection, WrappedResponse } from "typings";
-import { VideoFile } from "typings";
+import type { Collection, WrappedResponse } from "typings";
+import type { VideoFile } from "typings";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
  */
-export async function getVideoData(
+export default async function getVideoData(
   year: number,
   month: number,
   date: number,
@@ -21,11 +21,11 @@ export async function getVideoData(
   // fetch video info and fudge factors in parallel
   const [results, overrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after
-    fetchVideosForDates(collection, previousDate, nextDate),
+    fetchVideoData(collection, previousDate, nextDate),
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        return await getDatetimeOverrides();
+        return await fetchDatetimeOverrides();
       } catch (e) {
         // don't block video results if we can't find overrides
         console.error(e);

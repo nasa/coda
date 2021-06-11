@@ -508,11 +508,19 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
   return response;
 }
 
+export async function fetchSequences(collection: Collection): Promise<WrappedResponse<Sequence[]>> {
+  if (collection === Collection.ISS) {
+    return buildEVAStore();
+  } else {
+    return buildTestEventStore();
+  }
+}
+
 /** Get all the manually set shifts for fixing datetimes.
  *
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Datetime_Shifts
  */
-export async function getDatetimeOverrides(): Promise<WrappedResponse<DatetimeOverrides>> {
+export async function fetchDatetimeOverrides(): Promise<WrappedResponse<DatetimeOverrides>> {
   const parseQuery = {
     page: "CODA/Datetime_Shifts",
     prop: "wikitext",
@@ -528,25 +536,19 @@ export async function getDatetimeOverrides(): Promise<WrappedResponse<DatetimeOv
   };
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
+    preferNew: true,
     staleOk: true,
   });
 }
 
-/** Given wikitext that includes one or more tables, parse the tables into objects. Returns a list of lists of objects where:
- * ```
- *  [ list of tables
- *    [ list of rows in each table
- *      { row objects with header keys and cell values }
- *    ]
- *  ]
- * ```
+/** Given wikitext that includes one or more tables, parse the tables into objects
  *
  * Wikitable syntax must be in the form of:
  *
  * ```
  * {| class="wikitable"
  * |-
- * !Header text!!Header text!!Header text
+ * !Header 1!!Header 2!!Header 3
  * |-
  * |Example||Example||Example
  * |}
@@ -599,6 +601,7 @@ function parseWikitextTable(wikitext: string): DatetimeOverrides {
   return {
     // the first table is the video time fudges
     videoFixes: data[0],
+    // the second table maps test events to camera timezones
     testEventTimezones: data[1],
   };
 }

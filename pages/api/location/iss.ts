@@ -1,4 +1,4 @@
-import { getISS } from "services/spacetrack-api";
+import getISSLocation from "server/location/iss";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 /**
@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { year, month, date } = req.query;
 
   try {
-    const data = await getISS(+year, +month, +date);
+    const data = await getISSLocation(+year, +month, +date);
     res.status(200).json(data);
   } catch (e) {
     console.error(e);
