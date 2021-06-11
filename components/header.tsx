@@ -2,14 +2,14 @@ import Link from "next/link";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changeTime, PlayheadState } from "store/playhead";
+import { changeTime, isSameDate, PlayheadState } from "store/playhead";
+import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EVADropdown from "components/dropdown-eva";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
 
 import styles from "./header.module.css";
-import { SequencesEntityState, sequencesSelector, idFromDate } from "store/sequences";
 
 /**
  * Renders the top bar of CODA
@@ -17,7 +17,7 @@ import { SequencesEntityState, sequencesSelector, idFromDate } from "store/seque
 function Header() {
   const dispatch = useDispatch();
 
-  const evas: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [renderTime, setRenderTime] = useState("00:00:00");
@@ -30,7 +30,8 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  const eva = sequencesSelector.selectById(evas, idFromDate(playhead.date));
+  const allEVAs = sequencesSelector.selectAll(sequences);
+  const eva = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(playhead.date)));
 
   let evaStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times

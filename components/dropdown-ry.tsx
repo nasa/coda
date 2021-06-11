@@ -34,6 +34,8 @@ export default function RYDropdown() {
     }
   };
 
+  // TODO: maybe combine test events that are on the same day?
+
   const today = new Date();
 
   return (
