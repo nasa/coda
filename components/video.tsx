@@ -357,7 +357,7 @@ export default function Video(props: {
       let buttonClassStyle = styles.vidButton;
       if (d === downlink) {
         buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
-      } else if (visibleVideos && visibleVideos.get(`${playhead.seconds}/${downlink}`)) {
+      } else if (visibleVideos && visibleVideos.get(`${playhead.seconds}/${d}`)) {
         buttonClassStyle = `${styles.vidButton} ${styles.active}`;
       }
       return (
