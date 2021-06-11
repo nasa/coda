@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { buildTestEventStore } from "server/wiki-api";
+import { buildTestEventStore } from "services/wiki-api";
 
 /**
  * `/api/sequences/rock-yard`

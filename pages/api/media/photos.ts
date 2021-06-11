@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getPhotoData } from "server/io-api";
+import { getPhotoData } from "services/io-api";
 import { Collection } from "typings";
 
 /**

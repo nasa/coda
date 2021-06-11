@@ -119,3 +119,42 @@ export interface DayNight {
   dataStartUTC?: number;
   events?: Activity[];
 }
+
+/** Metadata we can expect all photos and videos from IO to have */
+export interface MediaFile {
+  id: string;
+  description: string;
+  /** Highest-level collection where this video is stored in IO */
+  collection: Collection;
+  /** Full list of collections from IO */
+  collections: string;
+  /** Link to this file's metadata on IO */
+  dataURL: string;
+  /** Direct link to the low res version of this file. All videos are low res */
+  mediaLowResURL: string;
+  /** Direct link to the high res version of this file */
+  mediaHighResURL?: string;
+}
+
+/** Parsed metadata from an IO video file result */
+export interface VideoFile extends MediaFile {
+  /** UTC seconds at the video start */
+  start: number;
+  /** UTC seconds at the video end */
+  end: number;
+  /** Downlink number - only relevant for ISS video */
+  downlink: number;
+  /** Whether the video was taken during a loss of signal event */
+  LOS: boolean;
+  /** Only used to sort videos */
+  priority: number;
+  /** When the video was uploaded to IO */
+  creationDate: string;
+}
+
+/** Parsed metadata from an IO photo file result */
+export interface PhotoFile extends MediaFile {
+  dateAdded: string;
+  dateTaken: string;
+  dateTakenAppSeconds: number;
+}

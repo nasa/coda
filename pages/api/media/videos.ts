@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getVideoData } from "server/io-api";
+import { getVideoData } from "server/media";
 import { Collection } from "typings";
 
 /**

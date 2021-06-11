@@ -26,7 +26,10 @@
         "./public/*"
       ],
       "server/*": [
-        "./server/*"
+        "server/*"
+      ],
+      "services/*": [
+        "services/*"
       ],
       "store/*": [
         "./store/*"

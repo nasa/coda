@@ -266,6 +266,8 @@ export default function Video(props: {
       IOErrorCSS = { display: "block" };
     }
 
+    // TODO: videos that are at midnight UTC get a warning message that its probably not timesynced
+
     const videoID = videos.activeVideoFiles[playerID];
     let video: VideoFile;
     if (videoID !== "") {

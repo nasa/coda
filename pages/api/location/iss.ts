@@ -1,4 +1,4 @@
-import { getISS } from "server/spacetrack-api";
+import { getISS } from "services/spacetrack-api";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 /**

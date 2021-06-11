@@ -14,10 +14,9 @@ Known query parameters:
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
 import get from "lodash/get";
-import { add, isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
-import { Collection, IOResponse, WrappedResponse } from "typings";
-import type { Doc, PhotoFile, VideoFile } from "typings/io";
+import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "typings";
+import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
 import videoStartTimes from "./video-start-times.json";
@@ -96,73 +95,25 @@ function formatDateQuery(startDate: Date, endDate?: Date): string {
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
-/**
- * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
- */
-export async function getVideoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection
-): Promise<WrappedResponse<VideoFile[]>> {
+export async function fetchVideosForDates(collection: Collection, start: Date, end?: Date) {
   const now = new Date();
 
-  const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  const previousDate = add(requestedDate, -86400000);
-  const nextDate = add(requestedDate, 86400000);
-
-  // fetch and parse videos for the requested day, the day before, and the day after in parallel
-  // this is necessary because IO's params s_dt and e_dt don't act like a range
-  const datesToQuery = [
-    [requestedDate],
-    [previousDate],
-    [nextDate],
-    // videos that started yesterday and end "today" (the date requested)
-    [previousDate, requestedDate],
-    // videos that start "today" and end tomorrow
-    [requestedDate, nextDate],
-  ];
-
-  const results = await Promise.all(
-    datesToQuery.map((dates) => {
-      const dateQuery = formatDateQuery(dates[0], dates[1]);
-      return fetchWithCache<VideoFile[]>(
-        `io/videos/${collection}/${dateQuery}`,
-        async () => {
-          const res = await fetchIO(
-            `${dateQuery}&cols=${Collection[collection]}&as=2`,
-            "videoData"
-          );
-          return parseIOVideoResponse(res, collection);
-        },
-        {
-          cacheAge: 3600,
-          // preferNew: dates.reduce((prev, curr) => prev || isSameDate(now, curr)),
-          preferNew: true,
-        }
-      );
-    })
+  const dateQuery = formatDateQuery(start, end);
+  return fetchWithCache<VideoFile[]>(
+    `io/videos/${collection}/${dateQuery}`,
+    async () => {
+      const res = await fetchIO(`${dateQuery}&cols=${Collection[collection]}&as=2`, "videoData");
+      return parseIOVideoResponse(res, collection);
+    },
+    {
+      cacheAge: 3600,
+      // preferNew: isSameDate(now, start) || (end && isSameDate(now, end)),
+      preferNew: true,
+    }
   );
-
-  const res: WrappedResponse<VideoFile[]> = results.reduce((prev, curr) => {
-    return {
-      mocked: prev.mocked || curr.mocked,
-      cacheRead: prev.cacheRead || curr.cacheRead,
-      cacheWrite: prev.cacheWrite || curr.cacheWrite,
-      isCache: prev.isCache || curr.isCache,
-      error: prev.error
-        ? curr.error
-          ? prev.error + " | " + curr.error
-          : prev.error
-        : curr.error ?? "",
-      data: [...prev.data, ...curr.data],
-    };
-  });
-
-  return res;
 }
 
-function parseIOVideoResponse(res: IOResponse, collection: Collection) {
+export function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 

@@ -20,6 +20,9 @@ export default function EVADropdown() {
   const [value, setValue] = useState("");
   useEffect(() => setValue(get(selectedEVA, "startDate", "")), [evaName]);
 
+  // TODO: not showing right EVA
+  // TODO: not seeing eva info in the header either
+
   /**
    * Navigate to another EVA
    */

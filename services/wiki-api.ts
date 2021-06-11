@@ -96,6 +96,7 @@ function isLoginError(e: any | WikiResponse): e is WikiResponse {
 /** Options for querying the wiki API */
 interface FetchWikiOptions {
   /** Will switch which wiki we use. Defaults to the ISS wiki */
+  // TODO: should probably just be "iss" or "exploration"
   collection: Collection;
   /** Semantic Mediawiki "ask" query string. Only applicable for "ask" actions` */
   askQuery?: string;
