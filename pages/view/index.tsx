@@ -210,8 +210,8 @@ export default function View(props: { query: QueryParams }) {
     })();
   };
 
-  // fetch updated data when the date changes
-  useEffect(updateEVAs, [playheadDate]);
+  // fetch updated data when the page loads
+  useEffect(updateEVAs, []);
 
   // look for wiki info every 5 mins
   useInterval(updateEVAs, FIVE_MINS_MS);
