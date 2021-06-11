@@ -66,9 +66,11 @@ export default function View(props: { query: QueryParams }) {
     userDate = new Date(Date.UTC(year, month, day));
   }
 
-  if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-    dispatch(changeDate(userDate.toISOString()));
-  }
+  useEffect(() => {
+    if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
+      dispatch(changeDate(userDate.toISOString()));
+    }
+  }, []);
 
   useEffect(() => {
     // make sure the application is running on the correct time
