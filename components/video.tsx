@@ -13,7 +13,6 @@ import {
   VideosEntityState,
   visibleVideosBySecond,
 } from "store/videos";
-import type { VideoFile } from "typings/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
