@@ -29,11 +29,8 @@ import type {
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
 /** Get a read-only "bot" for the wiki */
-async function _getMWBot(collection: Collection) {
-  const apiUrl =
-    collection === Collection.ISS
-      ? process.env.WIKI_ISS_API_URL
-      : process.env.WIKI_EXPLORATION_API_URL;
+async function _getMWBot(wiki: string) {
+  const apiUrl = `${process.env.WIKI_BASE_URL}/${wiki}/api.php`;
   const bot = new MWBot({
     apiUrl,
     verbose: true,
@@ -96,9 +93,8 @@ function isLoginError(e: any | WikiResponse): e is WikiResponse {
 
 /** Options for querying the wiki API */
 interface FetchWikiOptions {
-  /** Will switch which wiki we use. Defaults to the ISS wiki */
-  // TODO: should probably just be "iss" or "exploration"
-  collection: Collection;
+  /** Selects which wiki to use, eg. the "iss" or "exploration" path in https://wiki.jsc.nasa.gov/iss */
+  wiki: string;
   /** Semantic Mediawiki "ask" query string. Only applicable for "ask" actions` */
   askQuery?: string;
   /** Type of wiki query. Defaults to `ask` */
@@ -114,7 +110,7 @@ interface FetchWikiOptions {
 
 const defaultFetchWikiOptions: FetchWikiOptions = {
   askQuery: "",
-  collection: Collection.ISS,
+  wiki: "iss",
   action: "ask",
 };
 
@@ -137,7 +133,7 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WrappedResponse<Wik
 
   let res: WikiResults;
 
-  const bot = await getMWBot(o.collection);
+  const bot = await getMWBot(o.wiki);
 
   // build the JSON payload to send to the wiki based on FetchWikiOptions.action
   let payload: any = { format: "json", action: o.action };
@@ -191,7 +187,7 @@ export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>>
     |limit=10000
   `;
 
-  const res = await fetchWiki({ askQuery, collection: Collection.ISS, mock: "getAllEVAs" });
+  const res = await fetchWiki({ askQuery, wiki: "iss", mock: "getAllEVAs" });
   const results = res.data.query.results;
   return {
     mocked: res.mocked,
@@ -231,7 +227,7 @@ export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>>
     |limit=1000000
   `;
 
-  const res = await fetchWiki({ askQuery, collection: Collection.ISS, mock: "getAllAsExecuted" });
+  const res = await fetchWiki({ askQuery, wiki: "iss", mock: "getAllAsExecuted" });
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -303,7 +299,7 @@ export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
     |limit=10000
   `;
 
-  const res = await fetchWiki({ askQuery, collection: Collection.ISS, mock: "getAllCrew" });
+  const res = await fetchWiki({ askQuery, wiki: "iss", mock: "getAllCrew" });
   const results = parseAllCrew(res.data.query.results);
   return {
     mocked: res.mocked,
@@ -401,7 +397,7 @@ export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>
 
   const res = await fetchWiki({
     askQuery,
-    collection: Collection["JSC Rock Yard"],
+    wiki: "exploration",
     mock: "getAllTestEvents",
   });
   return {
@@ -428,7 +424,7 @@ export async function getTestEventExecution(): Promise<WrappedResponse<AllExecut
 
   const res = await fetchWiki({
     askQuery,
-    collection: Collection["JSC Rock Yard"],
+    wiki: "exploration",
     mock: "getAllAsExecuted",
   });
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
@@ -448,7 +444,7 @@ export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
 
   const res = await fetchWiki({
     askQuery,
-    collection: Collection["JSC Rock Yard"],
+    wiki: "exploration",
     mock: "getAllCrew",
   });
   const results = parseAllCrew(res.data.query.results);
@@ -525,7 +521,7 @@ export async function getDatetimeOverrides(): Promise<WrappedResponse<DatetimeOv
   const retriever = async () => {
     const res = await fetchWiki({
       parseQuery,
-      collection: Collection["JSC Rock Yard"],
+      wiki: "exploration",
       action: "parse",
     });
     return parseWikitextTable(res.data.parse.wikitext["*"]);
