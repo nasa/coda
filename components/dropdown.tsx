@@ -30,9 +30,11 @@ export default function EVADropdown() {
       const eva = allEVAs.find((eva) => eva.startDate === e.target.value);
       const [year, month, day] = eva.startDate.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      window.location.assign(`${window.location.pathname}?date=${formattedDate}&sstart=true`);
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}`);
     }
   };
+
+  // TODO: add ... to avoid going behind the arrow
 
   const today = new Date();
 
@@ -60,7 +62,7 @@ export default function EVADropdown() {
             .reverse()
             .map((eva) => {
               return (
-                <option key={eva.startDate} value={eva.startDate}>
+                <option key={eva.name + eva.startDate} value={eva.startDate}>
                   {eva.name} - {eva.displayTitle}
                 </option>
               );

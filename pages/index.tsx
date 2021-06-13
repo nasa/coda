@@ -15,8 +15,8 @@ export default function Index() {
           </Link>
         </li>
         <li>
-          <Link href="/view/jsc-rock-yard">
-            <a>Latest JSC Rock Yard videos</a>
+          <Link href="/view/test-events">
+            <a>Latest test event videos</a>
           </Link>
         </li>
       </ul>

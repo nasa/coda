@@ -30,22 +30,24 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  const allEVAs = sequencesSelector.selectAll(sequences);
-  const eva = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(playhead.date)));
+  const allSequences = sequencesSelector.selectAll(sequences);
+  const seq = allSequences.find((seq) =>
+    isSameDate(new Date(seq.startDate), new Date(playhead.date))
+  );
 
-  let evaStartSec = null as number;
+  let seqStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-  if (!isNil(eva) && !isNil(eva.startTime.match(reHHMM))) {
-    const [hh, mm] = eva.startTime.split(":");
-    evaStartSec = 3600 * +hh + 60 * +mm;
+  if (!isNil(seq) && !isNil(seq.startTime.match(reHHMM))) {
+    const [hh, mm] = seq.startTime.split(":");
+    seqStartSec = 3600 * +hh + 60 * +mm;
   }
 
   const dateInput = useRef(null) as MutableRefObject<HTMLInputElement>;
   const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
 
   useEffect(() => {
-    if (!isNil(evaStartSec)) {
-      setPET(hhmmssFromSeconds(playhead.seconds - evaStartSec));
+    if (!isNil(seqStartSec)) {
+      setPET(hhmmssFromSeconds(playhead.seconds - seqStartSec));
     }
 
     setRenderTime(hhmmssFromSeconds(playhead.seconds));
@@ -192,7 +194,7 @@ function Header() {
         <div className={`${styles.headerElementContainer}`}>
           <HeaderShare />
         </div>
-        {!isNil(evaStartSec) && (
+        {!isNil(seqStartSec) && (
           <div className={styles.headerElementContainer}>
             <div>
               <div className={styles.pet} title="HH:MM">
@@ -203,7 +205,7 @@ function Header() {
                   className={styles.petButton}
                   title="Jump to EVA start time"
                   onClick={() => {
-                    const [hh = 0, mm = 0, ss = 0] = eva.startTime.split(":");
+                    const [hh = 0, mm = 0, ss = 0] = seq.startTime.split(":");
                     const newTime = +ss + 60 * +mm + 3600 * +hh;
                     dispatch(changeTime(newTime));
                   }}
@@ -222,18 +224,18 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            {!isNil(eva) && (
+            {!isNil(seq) && (
               <div>
                 <div className={styles.crewItem}>
                   EV1:{" "}
                   <span style={{ color: "white" }} id="ev1TitleSpan">
-                    {eva.crew?.EV1 || "unknown"}
+                    {seq.crew?.EV1 || "unknown"}
                   </span>
                 </div>
                 <div className={styles.crewItem}>
                   EV2:{" "}
                   <span style={{ color: "white" }} id="ev2TitleSpan">
-                    {eva.crew?.EV2 || "unknown"}
+                    {seq.crew?.EV2 || "unknown"}
                   </span>
                 </div>
               </div>

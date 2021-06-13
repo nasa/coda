@@ -1,4 +1,4 @@
-import Header from "components/header-ry";
+import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";

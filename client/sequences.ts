@@ -13,7 +13,7 @@ export async function fetchEVAs(): Promise<Sequence[]> {
 
 /** Fetch all Rock Yard data */
 export async function fetchRockYard(): Promise<Sequence[]> {
-  const res = await fetch("/api/sequences/jsc-rock-yard");
+  const res = await fetch("/api/sequences/test-events");
   let wrappedResponse: WrappedResponse<Sequence[]> = await res.json();
   return wrappedResponse.data;
 }

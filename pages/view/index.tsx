@@ -250,7 +250,6 @@ export async function getServerSideProps({ query }) {
   const video2 = query.video2 === undefined ? null : query.video2;
   const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
   const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
-  const sstart = query.sstart === undefined ? false : query.sstart;
 
   const returnVal: QueryParams = {
     gmt,
@@ -259,7 +258,6 @@ export async function getServerSideProps({ query }) {
     video2,
     nonDLvideo1,
     nonDLvideo2,
-    sstart,
   };
 
   return {
@@ -282,6 +280,4 @@ export interface QueryParams {
   nonDLvideo1: string;
   /** ID of the non-D/L video the user wants to view in player 2 */
   nonDLvideo2: string;
-  /** Sequence start, or whether or not to jump to the start of the first sequence of the day */
-  sstart: boolean;
 }

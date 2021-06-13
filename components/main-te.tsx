@@ -1,4 +1,4 @@
-import Header from "components/header-ry";
+import Header from "components/header";
 import NavTimeline from "components/nav-timeline";
 import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
@@ -10,7 +10,7 @@ import type { QueryParams } from "pages/view";
 import { Collection } from "typings";
 
 /**
- * Renders the main CODA application layout. Also handles checking whether the playhead should be running
+ * Renders the main CODA application layout for test events. Also handles checking whether the playhead should be running
  */
 function Main(props: { query: QueryParams }) {
   return (
