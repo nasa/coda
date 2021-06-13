@@ -1,5 +1,3 @@
-import { Collection } from "lodash";
-
 /** Represents a single video search result as received from IO */
 interface Doc {
   audio_file_restricted: 0 | 1 | number;
