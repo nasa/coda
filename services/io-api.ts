@@ -19,6 +19,7 @@ import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
 import { isNil } from "lodash";
+import { isSameDate } from "store/playhead";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -65,23 +66,23 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
 }
 
 /** Format an IO query string for a single day */
-function formatDateQuery(startDate: Date, endDate?: Date): string {
-  const startYear = startDate.getUTCFullYear();
-  const startMonth = startDate.getUTCMonth() + 1;
-  const startDay = startDate.getUTCDate();
+function formatDateQuery(start: Date, end?: Date): string {
+  const startYear = start.getUTCFullYear();
+  const startMonth = start.getUTCMonth() + 1;
+  const startDay = start.getUTCDate();
   const rangeStartYear = `${startYear}`;
   const rangeStartMonth = padZeros(startMonth, 2);
   const rangeStartDate = padZeros(startDay, 2);
 
   let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
-  if (isNil(endDate)) {
+  if (isNil(end)) {
     rangeEndYear = rangeStartYear;
     rangeEndMonth = rangeStartMonth;
     rangeEndDate = rangeStartDate;
   } else {
-    const endYear = endDate.getUTCFullYear();
-    const endMonth = endDate.getUTCMonth() + 1;
-    const endDay = endDate.getUTCDate();
+    const endYear = end.getUTCFullYear();
+    const endMonth = end.getUTCMonth() + 1;
+    const endDay = end.getUTCDate();
     rangeEndYear = `${endYear}`;
     rangeEndMonth = padZeros(endMonth, 2);
     rangeEndDate = padZeros(endDay, 2);

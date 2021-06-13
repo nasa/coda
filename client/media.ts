@@ -3,8 +3,7 @@ Client-side methods for fetching from Imagery Online (IO)
 */
 import { Collection } from "typings";
 import type { CollectionFilters } from "store/photos";
-import type { WrappedResponse } from "typings";
-import type { PhotoFile, VideoFile } from "typings/io";
+import type { PhotoFile, VideoFile, WrappedResponse } from "typings";
 import { cleanCollectionsString } from "utils/formatting";
 
 async function fetchVideoData(

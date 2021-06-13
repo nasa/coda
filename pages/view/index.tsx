@@ -19,7 +19,7 @@ import {
   setCollectionFilters,
   PhotosEntityState,
 } from "store/photos";
-import { addSequences } from "store/sequences";
+import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
@@ -206,7 +206,7 @@ export default function View(props: { query: QueryParams }) {
         const updatedEVAs = await fetchEVAs();
         dispatch(addSequences(updatedEVAs));
       } catch (e) {
-        // dispatch(evasFetchError(e.toString()));
+        dispatch(sequencesFetchError(e.toString()));
         console.error(e);
       }
     })();

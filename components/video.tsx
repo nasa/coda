@@ -17,7 +17,7 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
-import { Collection } from "typings";
+import { Collection, VideoFile } from "typings";
 import { cleanCollectionsString } from "utils/formatting";
 
 /**
