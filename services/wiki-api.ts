@@ -484,7 +484,7 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
 
       return {
         name: testEvent,
-        location: Collection[testEnvironment],
+        location: Collection[Collection[testEnvironment]],
         type: SequenceType.testing,
         dataURL: asPlanned[testEvent].fullurl,
         displayTitle,
