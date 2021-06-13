@@ -18,7 +18,7 @@ import {
   setCollectionFilters,
   PhotosEntityState,
 } from "store/photos";
-import { addSequences } from "store/sequences";
+import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
 import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
@@ -108,7 +108,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day, Collection["JSC Rock Yard"]);
+        const videoStore = await buildVideoStore(year, month + 1, day, Collection.analogs);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -136,7 +136,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // photos data for today
-        const photoStore = await buildPhotoStore(year, month + 1, day, Collection["JSC Rock Yard"]);
+        const photoStore = await buildPhotoStore(year, month + 1, day, Collection.analogs);
         dispatch(addPhotos(photoStore));
         const photoCollectionsFilter = buildPhotoCollections(photoStore);
         dispatch(setCollectionFilters(photoCollectionsFilter));
@@ -167,8 +167,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month, day, Collection["JSC Rock Yard"]);
-        console.log(videoStore);
+        const videoStore = await buildVideoStore(year, month, day, Collection.analogs);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -185,7 +184,7 @@ export default function View(props: { query: QueryParams }) {
         const updatedEVAs = await fetchRockYard();
         dispatch(addSequences(updatedEVAs));
       } catch (e) {
-        // dispatch(evasFetchError(e.toString()));
+        dispatch(sequencesFetchError(e.toString()));
         console.error(e);
       }
     })();
