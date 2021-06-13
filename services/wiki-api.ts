@@ -498,7 +498,6 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
   };
 
   const response = await fetchWithCache<Sequence[]>("wiki/test-events", retriever, {
-    preferNew: true,
     cacheAge: 60,
     staleOk: true,
   });
@@ -536,7 +535,6 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
   };
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
-    preferNew: true,
     staleOk: true,
   });
 }

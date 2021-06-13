@@ -105,8 +105,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     },
     {
       cacheAge: 3600,
-      // preferNew: isSameDate(now, start) || (end && isSameDate(now, end)),
-      preferNew: true,
+      preferNew: isSameDate(now, start) || (end && isSameDate(now, end)),
     }
   );
 }
@@ -280,7 +279,6 @@ export async function fetchPhotoData(
 
   return fetchWithCache<PhotoFile[]>(`io/photos/${collection}/${dateQuery}`, retriever, {
     cacheAge: 3600,
-    preferNew: true,
   });
 }
 
