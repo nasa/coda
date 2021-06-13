@@ -17,6 +17,7 @@
       "client/*": ["./client/*"],
       "public/*": ["./public/*"],
       "server/*": ["./server/*"],
+      "services/*": ["./services/*"],
       "static/*": ["./static/*"],
       "store/*": ["./store/*"],
       "typings/*": ["./typings/*"],
