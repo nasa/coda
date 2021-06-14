@@ -282,7 +282,7 @@ export default function Video(props: {
     // show error if the video is (very likely) not time synced
     if (isNotTimeSynced) {
       ioErrorCSS = { display: "block", zIndex: 1 };
-      ioErrorMessage = "Video Is Not Time Synced";
+      ioErrorMessage = "IO Video Not Time Synced";
     }
 
     // the audio in LOS downlinked videos is never synced to the video
@@ -394,6 +394,9 @@ export default function Video(props: {
   const getPrettyVideoTitle = (videoID: string) => {
     const video = videoSelectors.selectById(videos, videoID);
     if (video) {
+      if (video.title && video.title.trim() !== "") {
+        return video.title;
+      }
       return cleanCollectionsString(video.collections) + " - " + videoID;
     }
     return "";
