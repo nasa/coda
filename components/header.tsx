@@ -2,14 +2,15 @@ import Link from "next/link";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changeTime, PlayheadState } from "store/playhead";
+import { changeTime, isSameDate, PlayheadState } from "store/playhead";
+import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
-import EVADropdown from "components/eva-dropdown";
+import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
+import { SequenceType } from "typings";
 
 import styles from "./header.module.css";
-import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 
 /**
  * Renders the top bar of CODA
@@ -17,7 +18,7 @@ import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
 function Header() {
   const dispatch = useDispatch();
 
-  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [renderTime, setRenderTime] = useState("00:00:00");
@@ -30,21 +31,24 @@ function Header() {
 
   const [pet, setPET] = useState("--:--:--");
 
-  const eva = evasSelector.selectById(evas, idFromDate(playhead.date));
+  const allSequences = sequencesSelector.selectAll(sequences);
+  const seq = allSequences.find((seq) =>
+    isSameDate(new Date(seq.startDate), new Date(playhead.date))
+  );
 
-  let evaStartSec = null as number;
+  let seqStartSec = null as number;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-  if (!isNil(eva) && !isNil(eva.startTime.match(reHHMM))) {
-    const [hh, mm] = eva.startTime.split(":");
-    evaStartSec = 3600 * +hh + 60 * +mm;
+  if (!isNil(seq) && !isNil(seq.startTime.match(reHHMM))) {
+    const [hh, mm] = seq.startTime.split(":");
+    seqStartSec = 3600 * +hh + 60 * +mm;
   }
 
   const dateInput = useRef(null) as MutableRefObject<HTMLInputElement>;
   const timeInput = useRef(null) as MutableRefObject<HTMLInputElement>;
 
   useEffect(() => {
-    if (!isNil(evaStartSec)) {
-      setPET(hhmmssFromSeconds(playhead.seconds - evaStartSec));
+    if (!isNil(seqStartSec)) {
+      setPET(hhmmssFromSeconds(playhead.seconds - seqStartSec));
     }
 
     setRenderTime(hhmmssFromSeconds(playhead.seconds));
@@ -59,7 +63,7 @@ function Header() {
   const handleDateTimeChange = () => {
     if (userDateValue !== "") {
       const [Y, M, D] = userDateValue.split("-");
-      window.location.assign(`/view?date=${Y}-${M}-${D}`);
+      window.location.assign(`${window.location.pathname}?date=${Y}-${M}-${D}`);
       return;
     }
 
@@ -99,7 +103,7 @@ function Header() {
           </div>
         </div>
         <div className={styles.headerElementContainer}>
-          <EVADropdown />
+          <EventDropdown />
         </div>
         <div className={styles.headerElementContainer}>
           <div className={styles.dateTimeSection}>
@@ -191,7 +195,7 @@ function Header() {
         <div className={`${styles.headerElementContainer}`}>
           <HeaderShare />
         </div>
-        {!isNil(evaStartSec) && (
+        {!isNil(seqStartSec) && seq.type === SequenceType.EVA && (
           <div className={styles.headerElementContainer}>
             <div>
               <div className={styles.pet} title="HH:MM">
@@ -202,7 +206,7 @@ function Header() {
                   className={styles.petButton}
                   title="Jump to EVA start time"
                   onClick={() => {
-                    const [hh = 0, mm = 0, ss = 0] = eva.startTime.split(":");
+                    const [hh = 0, mm = 0, ss = 0] = seq.startTime.split(":");
                     const newTime = +ss + 60 * +mm + 3600 * +hh;
                     dispatch(changeTime(newTime));
                   }}
@@ -221,18 +225,18 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            {!isNil(eva) && (
+            {!isNil(seq) && seq.type === SequenceType.EVA && (
               <div>
                 <div className={styles.crewItem}>
                   EV1:{" "}
                   <span style={{ color: "white" }} id="ev1TitleSpan">
-                    {eva.crew?.EV1 || "unknown"}
+                    {seq.crew?.EV1 || "unknown"}
                   </span>
                 </div>
                 <div className={styles.crewItem}>
                   EV2:{" "}
                   <span style={{ color: "white" }} id="ev2TitleSpan">
-                    {eva.crew?.EV2 || "unknown"}
+                    {seq.crew?.EV2 || "unknown"}
                   </span>
                 </div>
               </div>

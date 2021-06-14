@@ -20,7 +20,6 @@ class MyDocument extends Document {
             href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
             rel="stylesheet"
           />
-          <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
           <link href="/global.css" rel="stylesheet" />
         </Head>
         <body>

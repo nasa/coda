@@ -2,38 +2,39 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
-import type { EVA, Activity, DayNight } from "typings/wiki";
+import { Sequence, Activity, DayNight } from "typings";
 
-/** Parse the ID from an EVA, currently set to a `yyyy-mm-dd` string */
-export function idFromEVA(eva: EVA): string {
-  const { startDate } = eva;
+/** Parse the ID from an Sequence, currently set to a `yyyy-mm-dd-name` string */
+export function idFromSequence(sequence: Sequence): string {
+  const { startDate, name, type, location } = sequence;
   const [yyyy, mm, dd] = startDate.split("-").map((d) => padZeros(+d, 2));
-  return `${yyyy}-${mm}-${dd}`;
+  // TODO: location isn't working?
+  return `${yyyy}-${mm}-${dd}-${location}-${type}-${name}`;
 }
 
-export type EVAsEntityState = EntityState<EVA> & {
+export type SequencesEntityState = EntityState<Sequence> & {
   errorMessage: string;
   lastChecked: string;
 };
 
-const evaAdapter = createEntityAdapter<EVA>({
-  selectId: idFromEVA,
+const sequencesAdapter = createEntityAdapter<Sequence>({
+  selectId: idFromSequence,
   // Keep the "all IDs" array sorted based on date descending
   sortComparer: (a, b) => diff(new Date(a.startDate), new Date(b.startDate)),
 });
 
-export const initialState: EVAsEntityState = evaAdapter.getInitialState({
+export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
   errorMessage: "",
   lastChecked: "",
 });
 
-export const evasSlice = createSlice({
-  name: "evas",
+export const sequencesSlice = createSlice({
+  name: "Sequences",
   initialState,
   reducers: {
-    /** Add one (or more) EVA(s) to the store */
-    addEVAs: (state, action) => {
-      evaAdapter.upsertMany(state, action);
+    /** Add one (or more) Sequence(s) to the store */
+    addSequences: (state, action) => {
+      sequencesAdapter.upsertMany(state, action);
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
     },
@@ -45,12 +46,14 @@ export const evasSlice = createSlice({
   },
 });
 
-export const { addEVAs, fetchError } = evasSlice.actions;
+export const { addSequences, fetchError } = sequencesSlice.actions;
 
-export const evasSelector = evaAdapter.getSelectors<EVAsEntityState>((state) => state);
+export const sequencesSelector = sequencesAdapter.getSelectors<SequencesEntityState>(
+  (state) => state
+);
 
 /**
- * Get a potential EVA ID from an ISO or UTC date string
+ * Get a potential Sequence ID from an ISO or UTC date string
  * @param date ISO or UTC date string
  */
 export const idFromDate = (date: string): string => {
@@ -61,24 +64,25 @@ export const idFromDate = (date: string): string => {
   return `${yyyy}-${padZeros(mm, 2)}-${padZeros(dd, 2)}`;
 };
 
-/** Start time of an EVA in UTC milliseconds */
-export const getEVAStartMilliseconds = (eva: EVA): number => {
-  const { startDate, startTime } = eva;
+/** Start time of an Sequence in UTC milliseconds */
+export const getSequenceStartMilliseconds = (Sequence: Sequence): number => {
+  const { startDate, startTime } = Sequence;
   const [Y, M, D] = startDate.split("-").map(Number);
   const [hh, mm] = startTime.split(/:/).map(Number);
   return Date.UTC(Y, M - 1, D, hh, mm);
 };
 
-/** Translate as-performed EVA activities to mission time */
-export const getActivityPerformanceMissionTime = (
+/** Translate as-performed Sequence activities to mission time */
+export const getAsPerformedMissionTime = (
   asExecuted: Activity[],
-  evaDate: string,
+  SequenceDate: string,
   activityStartUTCMilliseconds: number
 ) => {
   const res = [] as Activity[];
 
   // get activity times in the mission timeframe
-  let thisStartTimeSeconds = (activityStartUTCMilliseconds - new Date(evaDate).getTime()) / 1000;
+  let thisStartTimeSeconds =
+    (activityStartUTCMilliseconds - new Date(SequenceDate).getTime()) / 1000;
 
   for (let a = 0; a < asExecuted.length; a++) {
     const { color, content, duration } = asExecuted[a];

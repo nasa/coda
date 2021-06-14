@@ -10,13 +10,16 @@ Known query parameters:
     go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
     ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
     cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
+
+FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
-import { isSameDate } from "store/playhead";
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
-import type { IOResponse, WrappedResponse } from "typings";
-import type { Doc, PhotoFile, VideoFile } from "typings/io";
+import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "typings";
+import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "./fetch-with-timeout";
+import { isNil } from "lodash";
+import { isSameDate } from "store/playhead";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -62,13 +65,28 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
   return res.json();
 }
 
-function formatDateQuery(year: number, month: number, date: number): string {
-  const rangeStartYear = year;
-  const rangeStartMonth = padZeros(month, 2);
-  const rangeStartDate = padZeros(date, 2);
-  const rangeEndYear = year;
-  const rangeEndMonth = padZeros(month, 2);
-  const rangeEndDate = padZeros(date, 2);
+/** Format an IO query string for a single day */
+function formatDateQuery(start: Date, end?: Date): string {
+  const startYear = start.getUTCFullYear();
+  const startMonth = start.getUTCMonth() + 1;
+  const startDay = start.getUTCDate();
+  const rangeStartYear = `${startYear}`;
+  const rangeStartMonth = padZeros(startMonth, 2);
+  const rangeStartDate = padZeros(startDay, 2);
+
+  let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
+  if (isNil(end)) {
+    rangeEndYear = rangeStartYear;
+    rangeEndMonth = rangeStartMonth;
+    rangeEndDate = rangeStartDate;
+  } else {
+    const endYear = end.getUTCFullYear();
+    const endMonth = end.getUTCMonth() + 1;
+    const endDay = end.getUTCDate();
+    rangeEndYear = `${endYear}`;
+    rangeEndMonth = padZeros(endMonth, 2);
+    rangeEndDate = padZeros(endDay, 2);
+  }
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
@@ -76,36 +94,31 @@ function formatDateQuery(year: number, month: number, date: number): string {
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
-/**
- * Fetch video data from IO
- */
-export async function getVideoData(
-  year: number,
-  month: number,
-  date: number
-): Promise<WrappedResponse<VideoFile[]>> {
+export async function fetchVideoData(collection: Collection, start: Date, end?: Date) {
   const now = new Date();
-  const isToday = isSameDate(now, new Date(Date.UTC(year, month - 1, date)));
-  const dateQuery = formatDateQuery(year, month, date);
 
-  const retriever = async () => {
-    const queryParams = `${dateQuery}&as=2`;
-    const res = await fetchIO(queryParams, "videoData");
-    return parseIOVideoResponse(res);
-  };
-
-  return fetchWithCache<VideoFile[]>(`io/videos/${dateQuery}`, retriever, {
-    preferNew: isToday,
-  });
+  const dateQuery = formatDateQuery(start, end);
+  return fetchWithCache<VideoFile[]>(
+    `io/videos/${collection}/${dateQuery}`,
+    async () => {
+      const res = await fetchIO(`${dateQuery}&cols=${Collection[collection]}&as=2`, "videoData");
+      return parseIOVideoResponse(res, collection);
+    },
+    {
+      cacheAge: 3600,
+      staleOk: true,
+      preferNew: isSameDate(now, start) || (end && isSameDate(now, end)),
+    }
+  );
 }
 
-function parseIOVideoResponse(res: IOResponse) {
+export function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parseVideoResultMetadata(doc);
+    const metadata = parseVideoResultMetadata(doc, collection);
     videos.push(metadata);
   }
   videos.sort(videoSorter);
@@ -117,42 +130,35 @@ function parseIOVideoResponse(res: IOResponse) {
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
  */
 export const videoSorter = (a: VideoFile, b: VideoFile) => {
+  const aDuration = a.end - a.start;
+  const bDuration = b.end - b.start;
   return (
     +(a.priority < b.priority) ||
     +(a.priority === b.priority) ||
-    +(a.durationSeconds < b.durationSeconds) ||
-    +(a.durationSeconds === b.durationSeconds)
+    +(aDuration < bDuration) ||
+    +(aDuration === bDuration)
   );
 };
 
 /** Parse the video result for relevant information */
-function parseVideoResultMetadata(doc: Doc): VideoFile {
-  let className = "";
-  let content = "";
-  let group = -1;
+function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
+  let downlink = 6;
+  let LOS = false;
 
-  const channel = getChannel(doc.collections_string);
-
-  if (channel) {
+  if (+Collection[collection] === +Collection.ISS) {
+    const channel = getChannel(doc.collections_string);
     if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
-      className = `downlink-${channel}`;
-      group = parseInt(channel) - 1;
+      downlink = parseInt(channel) - 1;
     }
-  } else {
-    className = "non-downlink-video";
-    content = `Non-Downlink: ${doc.md_title}`;
-    group = 6;
   }
 
   // Create array of date elements from creation date
-  const dateArr = doc.md_creation_date
+  let dateArr = doc.md_creation_date
     // regex match for the date
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     // remove the first item (the full matched string)
     .slice(1)
-    .map(function (n) {
-      return parseInt(n);
-    });
+    .map((n: string) => parseInt(n));
 
   // trust the nasa_id over the md_creation_date
   const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
@@ -160,7 +166,7 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
     dateArr[3] = +id_metadata[3];
     dateArr[4] = +id_metadata[4];
     dateArr[5] = 0;
-    className = "downlink-LOS";
+    LOS = true;
   }
 
   // create date object. Note, month is 0-11 in javascript.
@@ -172,45 +178,34 @@ function parseVideoResultMetadata(doc: Doc): VideoFile {
     dateArr[4],
     dateArr[5]
   );
-  const UTCstart = new Date(UTCstartMilliseconds);
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
-  var url = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  var dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then stream a mock video file in place of all video files
   // this allows dev to continue with VPN off
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
-  const videoURL =
+  const mediaLowResURL =
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_video_lq.mp4"
       : `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
-  // derive mission second values for this video
-  const startOfDay = new Date(`${UTCstart.toISOString().split("T")[0]}T00:00:00Z`);
-  const missionSecondsStart = (UTCstart.getTime() - startOfDay.getTime()) / 1000;
-  const missionSecondsEnd = (UTCend.getTime() - startOfDay.getTime()) / 1000;
-  const durationSeconds = missionSecondsEnd - missionSecondsStart;
-
   const videoFile: VideoFile = {
     id: doc.nasa_id,
-    content,
+    title: doc.md_title || "",
     description: doc.description || "",
-    start: UTCstart.toUTCString(),
-    end: UTCend.toUTCString(),
-    url,
-    videoURL,
-    className,
-    priority: className === "downlink-LOS" ? 0 : 1,
-    md_creation_date: doc.md_creation_date,
-    group,
-    missionSecondsStart,
-    missionSecondsEnd,
-    durationSeconds,
-    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
-    collections_string_pretty: cleanCollectionsString(
-      doc.collections_string[doc.collections_string.length - 1]
-    ),
+    start: UTCstartMilliseconds / 1000,
+    end: UTCend.valueOf() / 1000,
+    dataURL,
+    mediaLowResURL,
+    LOS,
+    priority: LOS ? 0 : 1,
+    creationDate: doc.md_creation_date,
+    downlink,
+    collection,
+    // last and longest string in the array
+    collections: doc.collections_string[doc.collections_string.length - 1],
   };
 
   return videoFile;
@@ -233,15 +228,15 @@ export function getChannel(collectionStrings: string[]): string {
 /**
  * Fetch video data from IO
  */
-export async function getPhotoData(
-  year: number,
-  month: number,
-  date: number
+export async function fetchPhotoData(
+  collection: Collection,
+  start: Date,
+  end?: Date
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const dateQuery = formatDateQuery(year, month, date);
+  const dateQuery = formatDateQuery(start, end);
 
   const retriever = async () => {
-    let queryParams = `${dateQuery}&as=1&so=7&cols=4`;
+    let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
 
     const res = await fetchIO(queryParams, "photoData");
 
@@ -249,7 +244,7 @@ export async function getPhotoData(
     const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
     // create array of photos from first API call
-    const photos1: PhotoFile[] = parseIOPhotoResponse(res);
+    const photos1: PhotoFile[] = parseIOPhotoResponse(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
       // If using mock data, just return the first 500 in the mock response
@@ -261,7 +256,7 @@ export async function getPhotoData(
     let queryParamsArray = [];
     for (let i = 1; i < callsRequired; i++) {
       let startNum = 500 * i + 1;
-      queryParams = `${dateQuery}&as=1&so=7&cols=4&sr=${startNum}`;
+      queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}&sr=${startNum}`;
       queryParamsArray.push(queryParams);
     }
 
@@ -274,7 +269,7 @@ export async function getPhotoData(
     // Parse out results into array of photo objects
 
     const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
-      return parseIOPhotoResponse(res);
+      return parseIOPhotoResponse(res, collection);
     });
 
     // Turn array of photoFile arays into one enormous photoFile array
@@ -285,33 +280,36 @@ export async function getPhotoData(
     return photos;
   };
 
-  return fetchWithCache<PhotoFile[]>(`io/photos/${dateQuery}`, retriever, { cacheAge: 3600 });
+  return fetchWithCache<PhotoFile[]>(`io/photos/${collection}/${dateQuery}`, retriever, {
+    cacheAge: 3600,
+    staleOk: true,
+  });
 }
 
-function parseIOPhotoResponse(res: IOResponse): PhotoFile[] {
+function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFile[] {
   const { docs } = res.results.response;
   const photos: PhotoFile[] = [];
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parsePhotoResultMetadata(doc);
+    const metadata = parsePhotoResultMetadata(doc, collection);
     photos.push(metadata);
   }
   return photos;
 }
 
 /** Parse the photo result for relevant information */
-function parsePhotoResultMetadata(doc: Doc): PhotoFile {
-  var ioInfoURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
+  var dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then use a mock photo that is not export restricted
   // this allows dev to continue with VPN off
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
-  const lowResURL =
+  const mediaLowResURL =
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1_small.jpg"
       : `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const highResURL =
+  const mediaHighResURL =
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
       : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
@@ -319,31 +317,16 @@ function parsePhotoResultMetadata(doc: Doc): PhotoFile {
   const photoFile: PhotoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
-    lowResURL,
-    highResURL,
-    ioInfoURL,
-    date_added: doc.date_added,
-    date_taken: doc.md_creation_date,
-    dateTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
-    collections_string: doc.collections_string[doc.collections_string.length - 1], //last and longest string in the array
-    collections_string_pretty: cleanCollectionsString(
-      doc.collections_string[doc.collections_string.length - 1]
-    ),
+    mediaLowResURL,
+    mediaHighResURL,
+    dataURL,
+    dateAdded: doc.date_added,
+    datetimeTaken: doc.md_creation_date,
+    datetimeTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
+    collection,
+    // last and longest string in the array
+    collections: doc.collections_string[doc.collections_string.length - 1],
   };
 
   return photoFile;
-}
-
-function cleanCollectionsString(colStr) {
-  const fullTree = colStr.split("|");
-
-  let cleaned = fullTree[fullTree.length - 1];
-  cleaned = cleaned.replace(fullTree[1], "");
-  if (fullTree[2]?.includes("Earth Obs")) {
-    cleaned = fullTree[2].replace(fullTree[1], "") + " " + cleaned;
-  }
-  if (cleaned === "Photo") {
-    cleaned = fullTree[2].replace(fullTree[1], "");
-  }
-  return cleaned;
 }

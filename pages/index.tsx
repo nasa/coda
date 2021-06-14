@@ -8,10 +8,18 @@ export default function Index() {
       <Head>
         <title>{process.env.TITLE}</title>
       </Head>
-      Welcome to CODA! Check out the{" "}
-      <Link href="/view">
-        <a>latest videos!</a>
-      </Link>
+      <ul>
+        <li>
+          <Link href="/view">
+            <a>Latest ISS videos</a>
+          </Link>
+        </li>
+        <li>
+          <Link href="/view/test-events">
+            <a>Latest test event videos</a>
+          </Link>
+        </li>
+      </ul>
     </div>
   );
 }

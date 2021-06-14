@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { buildEVAStore } from "server/wiki-api";
+import { buildEVAStore } from "services/wiki-api";
 
 /**
- * `/api/wiki/all-evas`
+ * `/api/sequences/evas`
  *
  * Get all as-planned EVA data in the wiki
  */

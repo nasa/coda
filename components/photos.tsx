@@ -7,6 +7,7 @@ import {
   setCollectionFilters,
   photosSelectors,
   PhotosEntityState,
+  filterVisiblePhotos,
 } from "store/photos";
 import styles from "./photos.module.css";
 
@@ -16,6 +17,7 @@ import {
   hhmmssFromSeconds,
 } from "utils/formatting";
 import type { RootState } from "store/index";
+import { cleanCollectionsString } from "utils/formatting";
 
 export default function Photos() {
   const dispatch = useDispatch();
@@ -34,34 +36,32 @@ export default function Photos() {
       return;
     }
 
-    /* Loop through all returned photos in order of date_taken
+    const visiblePhotos = filterVisiblePhotos(photoFiles, new Date(playhead.date));
+
+    /* Loop through all returned photos in order of datetimeTaken
      * break as soon as we hit a photo that was taken after playhead.seconds leaving the data we gathered
      * on the previous photo for use.
      */
     let thisPhotoFile = initialPhotoFileState;
-    for (let i = 0; i < photoFiles.length; i++) {
-      const secondsIntoToday = appSecondsFromDateString(photoFiles[i].date_taken);
+    for (let i = 0; i < visiblePhotos.length; i++) {
+      const secondsIntoToday = visiblePhotos[i].datetimeTakenAppSeconds;
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
 
-      //filter photos against collectionFilters
-      let showThisPhoto = false;
+      // filter photos against collectionFilters
       for (let j = 0; j < photos.collectionFilters.length; j++) {
         if (
-          photoFiles[i].collections_string === photos.collectionFilters[j].fullList &&
+          visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
           photos.collectionFilters[j].selected
         ) {
-          showThisPhoto = true;
+          thisPhotoFile = visiblePhotos[i];
           break;
         }
       }
-      if (showThisPhoto) {
-        thisPhotoFile = photoFiles[i];
-      }
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
-      if (thisPhotoFile.lowResURL !== photos.activePhoto.lowResURL) {
+      if (thisPhotoFile.mediaLowResURL !== photos.activePhoto.mediaLowResURL) {
         dispatch(setActivePhoto(thisPhotoFile));
       }
     }
@@ -81,32 +81,32 @@ export default function Photos() {
     dispatch(setCollectionFilters(filters));
   }
 
-  useEffect(changePhoto, [playhead.seconds, photoFiles, photos]);
+  useEffect(changePhoto, [playhead.date, playhead.seconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
-    const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
+    const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
     let ioSearchLink = "";
     let ioHighResURL = "";
     let openURLMessage = "";
     let photoFilename = "";
     let dateAdded = "";
-    let dateTaken = "";
+    let datetimeTaken = "";
     let openOnIOMessage = "";
     let info = "";
     let infoDisplayClass = "";
     if (currentlyActivePhoto) {
       photoFilename = photos.activePhoto.id;
-      ioSearchLink = photos.activePhoto.ioInfoURL;
-      ioHighResURL = photos.activePhoto.highResURL;
+      ioSearchLink = photos.activePhoto.dataURL;
+      ioHighResURL = photos.activePhoto.mediaHighResURL;
       openURLMessage = `Open high res`;
       openOnIOMessage = `Open on IO`;
       dateAdded =
-        photos.activePhoto.date_added !== ""
-          ? new Date(photos.activePhoto.date_added).toUTCString()
+        photos.activePhoto.dateAdded !== ""
+          ? new Date(photos.activePhoto.dateAdded).toUTCString()
           : "-";
-      dateTaken =
-        photos.activePhoto.date_taken !== ""
-          ? new Date(photos.activePhoto.date_taken).toUTCString()
+      datetimeTaken =
+        photos.activePhoto.datetimeTaken !== ""
+          ? new Date(photos.activePhoto.datetimeTaken).toUTCString()
           : "-";
 
       if (infoHover || infoToggle) {
@@ -119,7 +119,7 @@ export default function Photos() {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
-            <div className={`${styles.overlayTableCell}`}>{dateTaken}</div>
+            <div className={`${styles.overlayTableCell}`}>{datetimeTaken}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
@@ -128,7 +128,7 @@ export default function Photos() {
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</div>
             <div className={`${styles.overlayTableCell}`}>
-              {photos.activePhoto.collections_string_pretty}
+              {cleanCollectionsString(photos.activePhoto.collections)}
             </div>
           </div>
           <div className={styles.overlayTableRow}>
@@ -213,17 +213,17 @@ export default function Photos() {
     );
   };
 
-  let dateTakenLabel = "";
-  let dateTakenValue = "";
+  let datetimeTakenLabel = "";
+  let datetimeTakenValue = "";
   let timeSinceTaken = "";
   let infoButtonStyle = "";
-  const currentlyActivePhoto = photos.activePhoto.date_taken !== "";
+  const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
   if (currentlyActivePhoto) {
     timeSinceTaken = `(${hhmmssFromSeconds(
-      Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.date_taken))
+      Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
     )} ago)`;
-    dateTakenLabel = "Taken:";
-    dateTakenValue = `${hhmmssFromDateString(photos.activePhoto.date_taken)}Z`;
+    datetimeTakenLabel = "Taken:";
+    datetimeTakenValue = `${hhmmssFromDateString(photos.activePhoto.datetimeTaken)}Z`;
     infoButtonStyle = styles.infoActive;
   }
   if (infoToggle) {
@@ -269,10 +269,10 @@ export default function Photos() {
             style={{ paddingRight: "5px" }}
             className={`${styles.photoHeaderText} ${styles.dimText}`}
           >
-            {dateTakenLabel}
+            {datetimeTakenLabel}
           </span>
           <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-            {dateTakenValue}
+            {datetimeTakenValue}
           </span>
           <span
             style={{ marginRight: "5px" }}
@@ -286,8 +286,8 @@ export default function Photos() {
         key={`photo_element`}
         className={`${styles.photoContainer} ${styles.photoContainer4by3}`}
       >
-        <a className={styles.photoLink} href={photos.activePhoto.highResURL} target="_blank">
-          <img className={styles.photo} src={photos.activePhoto.lowResURL} />
+        <a className={styles.photoLink} href={photos.activePhoto.mediaHighResURL} target="_blank">
+          <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
         </a>
         {infoHover || infoToggle ? renderPhotoOverlay() : renderPhotoFilter()}
       </div>

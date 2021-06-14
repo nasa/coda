@@ -3,18 +3,18 @@ import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { diff } from "store/playhead";
-import styles from "./eva-dropdown.module.css";
-import { EVAsEntityState, evasSelector, idFromDate } from "store/evas";
+import { diff, isSameDate } from "store/playhead";
+import styles from "./dropdown.module.css";
+import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 
 export default function EVADropdown() {
-  const evas: EVAsEntityState = useSelector((state: RootState) => state.evas);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  const allEVAs = evasSelector.selectAll(evas);
-  const selectedEVA = evasSelector.selectById(evas, idFromDate(date));
+  const allEVAs = sequencesSelector.selectAll(sequences);
+  const selectedEVA = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(date)));
   const evaName = get(selectedEVA, "name", "");
 
   const [value, setValue] = useState("");
@@ -27,10 +27,14 @@ export default function EVADropdown() {
     e.preventDefault();
     setValue(e.target.value);
     if (e.target.value !== "") {
-      const [year, month, day] = evasSelector.selectById(evas, e.target.value).startDate.split("-");
-      window.location.assign(`/view?date=${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`);
+      const eva = allEVAs.find((eva) => eva.startDate === e.target.value);
+      const [year, month, day] = eva.startDate.split("-");
+      const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}`);
     }
   };
+
+  // TODO: add ... to avoid going behind the arrow
 
   const today = new Date();
 
@@ -39,10 +43,10 @@ export default function EVADropdown() {
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
         {isNil(selectedEVA) ? (
           <option key="" value="">
-            Jump to an EVA
+            Jump to an Event
           </option>
         ) : (
-          <option disabled>Choose EVA</option>
+          <option disabled>Choose Event</option>
         )}
         {isNil(allEVAs) ? (
           <option disabled>Loading...</option>
@@ -58,7 +62,7 @@ export default function EVADropdown() {
             .reverse()
             .map((eva) => {
               return (
-                <option key={eva.startDate} value={eva.startDate}>
+                <option key={eva.name + eva.startDate} value={eva.startDate}>
                   {eva.name} - {eva.displayTitle}
                 </option>
               );
