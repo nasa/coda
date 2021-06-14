@@ -8,6 +8,7 @@ import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
+import { SequenceType } from "typings";
 
 import styles from "./header.module.css";
 
@@ -62,7 +63,7 @@ function Header() {
   const handleDateTimeChange = () => {
     if (userDateValue !== "") {
       const [Y, M, D] = userDateValue.split("-");
-      window.location.assign(`/view?date=${Y}-${M}-${D}`);
+      window.location.assign(`${window.location.pathname}?date=${Y}-${M}-${D}`);
       return;
     }
 
@@ -194,7 +195,7 @@ function Header() {
         <div className={`${styles.headerElementContainer}`}>
           <HeaderShare />
         </div>
-        {!isNil(seqStartSec) && (
+        {!isNil(seqStartSec) && seq.type === SequenceType.EVA && (
           <div className={styles.headerElementContainer}>
             <div>
               <div className={styles.pet} title="HH:MM">
@@ -224,7 +225,7 @@ function Header() {
               flexDirection: "column",
             }}
           >
-            {!isNil(seq) && (
+            {!isNil(seq) && seq.type === SequenceType.EVA && (
               <div>
                 <div className={styles.crewItem}>
                   EV1:{" "}
