@@ -125,6 +125,7 @@ export interface DayNight {
 /** Metadata we can expect all photos and videos from IO to have */
 export interface MediaFile {
   id: string;
+  title?: string;
   description: string;
   /** Highest-level collection where this video is stored in IO */
   collection: Collection;

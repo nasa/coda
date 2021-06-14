@@ -193,6 +193,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
 
   const videoFile: VideoFile = {
     id: doc.nasa_id,
+    title: doc.md_title || "",
     description: doc.description || "",
     start: UTCstartMilliseconds / 1000,
     end: UTCend.valueOf() / 1000,
