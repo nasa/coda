@@ -2,13 +2,13 @@
  * Use space-track.org to find the location of ISS at any point in time
  * See https://www.space-track.org/documentation
  */
-import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { getTimes } from "utils/suncalc";
 import { getAppropriateTLE } from "store/ephemera";
 import { isSameDate } from "store/playhead";
+import { hhmmssFromSeconds, padZeros } from "utils/formatting";
+import { getTimes } from "utils/suncalc";
+import type { DayNightObj, WrappedResponse } from "typings";
+import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
 import fetchWithCache from "./cache-client";
-import type { DayNightObj, EphemerisFile, EphemerisStore } from "typings/spacetrack";
-import type { WrappedResponse } from "typings";
 
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
 
@@ -108,7 +108,7 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
 }
 
 /** Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it */
-export async function getISS(
+export async function fetchISSLocation(
   year: number,
   month: number,
   date: number

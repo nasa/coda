@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getPhotoData } from "server/io-api";
+import getPhotoData from "server/media/photos";
+import { Collection } from "typings";
 
 /**
  * `/api/media/photos`
@@ -7,9 +8,9 @@ import { getPhotoData } from "server/io-api";
  * Get IO photo data proxied through our API
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { year, month, date } = req.query;
+  const { year, month, date, collection } = req.query;
   try {
-    const photos = await getPhotoData(+year, +month, +date);
+    const photos = await getPhotoData(+year, +month, +date, Collection[collection as string]);
     res.status(200).json(photos);
   } catch (e) {
     console.error(e);

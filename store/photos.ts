@@ -1,6 +1,8 @@
+import memoize from "lodash/memoize";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { PhotoFile } from "typings/io";
+import type { PhotoFile } from "typings";
+import { isSameDate } from "./playhead";
 
 export type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;
@@ -22,14 +24,14 @@ const photoAdapter = createEntityAdapter<PhotoFile>();
 export const initialPhotoFileState: PhotoFile = {
   id: "",
   description: "",
-  lowResURL: "/images/vintage_static.gif",
-  highResURL: "",
-  ioInfoURL: "",
-  date_added: "",
-  date_taken: "",
-  dateTakenAppSeconds: 0,
-  collections_string: "",
-  collections_string_pretty: "",
+  mediaLowResURL: "/images/vintage_static.gif",
+  mediaHighResURL: "",
+  dataURL: "",
+  dateAdded: "",
+  datetimeTaken: "",
+  datetimeTakenAppSeconds: 0,
+  collection: null,
+  collections: "",
 };
 
 export const initialState: PhotosEntityState = photoAdapter.getInitialState({
@@ -67,3 +69,16 @@ export const photoSlice = createSlice({
 });
 
 export const { addPhotos, setActivePhoto, setCollectionFilters, fetchError } = photoSlice.actions;
+
+/** Filters photos for a given day */
+const _filterVisiblePhotos = (photos: PhotoFile[], date: Date): PhotoFile[] => {
+  return photos.filter((photo) => {
+    return isSameDate(new Date(photo.datetimeTaken), date);
+  });
+};
+
+/** Return a list of all photos for a given day */
+export const filterVisiblePhotos = memoize(
+  _filterVisiblePhotos,
+  (photos: PhotoFile[], date: Date) => `${photos.length}/${date.toISOString()}`
+);

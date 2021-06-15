@@ -18,6 +18,7 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  text-overflow: ellipsis;
 }
 .select select::-ms-expand {
   display: none;

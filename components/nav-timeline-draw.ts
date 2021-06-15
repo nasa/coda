@@ -3,9 +3,7 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { CollectionFilters } from "store/photos";
-import type { VideoFile, PhotoFile } from "typings/io";
-import type { DayNightObj } from "typings/spacetrack";
-import { Activity } from "typings/wiki";
+import type { Activity, DayNightObj, VideoFile, PhotoFile } from "typings";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -67,7 +65,7 @@ export default class DrawNav {
     readonly photoFiles: PhotoFile[],
     readonly collectionFilters: CollectionFilters[],
     readonly dayNight: DayNightObj[],
-    readonly activityPerformance: {
+    readonly asPerformed: {
       [x: string]: Activity[];
     },
     /** Keep track of dates for bookkeeping purposes */
@@ -119,13 +117,16 @@ export default class DrawNav {
 
     // display video segments
     const videoSegmentsTop = this.gTier1Top + 2;
+    const startOfDay = this.dateRendered.valueOf() / 1000;
     for (let i = 0; i < this.videoFiles.length; i++) {
-      let startLocX = this.videoFiles[i].missionSecondsStart * this.gTier1PixelsPerSecond;
-      let endLocX = this.videoFiles[i].missionSecondsEnd * this.gTier1PixelsPerSecond;
+      let startLocX =
+        Math.max(this.videoFiles[i].start - startOfDay, 0) * this.gTier1PixelsPerSecond;
+      let endLocX =
+        Math.min(this.videoFiles[i].end - startOfDay, 86399) * this.gTier1PixelsPerSecond;
 
       let startLocY =
         videoSegmentsTop +
-        this.videoFiles[i].group * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+        this.videoFiles[i].downlink * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth - 1;
 
       const name = "vidItem_" + i.toString();
@@ -137,10 +138,9 @@ export default class DrawNav {
         strokeColor: this.gColorVideoBorder,
         name,
       });
-      vidLine.fillColor =
-        this.videoFiles[i].className === "downlink-LOS" ? this.gColorVideoLOS : this.gColorVideo;
+      vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-      if (this.videoFiles[i].group === 6) {
+      if (this.videoFiles[i].downlink === 6) {
         vidLine.fillColor = new paper.Color("white");
         vidLine.opacity = 0.4;
       }
@@ -148,9 +148,9 @@ export default class DrawNav {
     }
 
     // display EV activity
-    if (!isEmpty(this.activityPerformance)) {
-      this.drawTier1EVActivity(7, this.activityPerformance.EV1); // row 8 for EV1 (rows start at 0)
-      this.drawTier1EVActivity(8, this.activityPerformance.EV2); // row 9 for EV2 (rows start at 0)
+    if (!isEmpty(this.asPerformed)) {
+      this.drawTier1EVActivity(7, this.asPerformed.EV1); // row 8 for EV1 (rows start at 0)
+      this.drawTier1EVActivity(8, this.asPerformed.EV2); // row 9 for EV2 (rows start at 0)
     }
 
     //dayNight
@@ -178,7 +178,7 @@ export default class DrawNav {
     // track x locations to avoid rendering multiple lines on the same pixel
     const xLocations = new Set();
     for (let i = 0; i < this.photoFiles.length; i++) {
-      let itemLocX = this.photoFiles[i].dateTakenAppSeconds * this.gTier1PixelsPerSecond;
+      let itemLocX = this.photoFiles[i].datetimeTakenAppSeconds * this.gTier1PixelsPerSecond;
       const wholePixelLocation = Math.round(itemLocX);
       if (xLocations.has(wholePixelLocation)) {
         continue;
@@ -188,7 +188,7 @@ export default class DrawNav {
       let showThisPhoto = false;
       for (let j = 0; j < this.collectionFilters.length; j++) {
         if (
-          this.photoFiles[i].collections_string === this.collectionFilters[j].fullList &&
+          this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
           this.collectionFilters[j].selected
         ) {
           showThisPhoto = true;
@@ -372,22 +372,23 @@ export default class DrawNav {
     // draw video segments boxes
     for (let i = 0; i < this.videoFiles.length; i++) {
       //draw if video segment start is before end of viewport, and video segment end is after start of viewport
+      const startOfDay = this.dateRendered.valueOf() / 1000;
       if (
-        this.videoFiles[i].missionSecondsStart <= this.gTier2StartSeconds + secondsOnTier2 &&
-        this.videoFiles[i].missionSecondsEnd >= this.gTier2StartSeconds
+        this.videoFiles[i].start - startOfDay <= this.gTier2StartSeconds + secondsOnTier2 &&
+        this.videoFiles[i].end - startOfDay >= this.gTier2StartSeconds
       ) {
         let startLocX =
           this.gTier2Left +
-          (this.videoFiles[i].missionSecondsStart - this.gTier2StartSeconds) *
+          (Math.max(this.videoFiles[i].start - startOfDay, 0) - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
         let endLocX =
           this.gTier2Left +
-          (this.videoFiles[i].missionSecondsEnd - this.gTier2StartSeconds) *
+          (Math.min(this.videoFiles[i].end - startOfDay, 86399) - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
 
         let startLocY =
           this.gTier2Top +
-          this.videoFiles[i]["group"] * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
+          this.videoFiles[i].downlink * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
         let endLocY = startLocY + this.cChannelStrokeWidth + 1;
 
         let name = "vidItem_" + i.toString();
@@ -399,10 +400,9 @@ export default class DrawNav {
           strokeColor: this.gColorVideoBorder,
           name: name,
         });
-        vidLine.fillColor =
-          this.videoFiles[i].className === "downlink-LOS" ? this.gColorVideoLOS : this.gColorVideo;
+        vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-        if (this.videoFiles[i].group === 6) {
+        if (this.videoFiles[i].downlink === 6) {
           vidLine.fillColor = new paper.Color("white");
           vidLine.opacity = 0.4;
         }
@@ -446,9 +446,9 @@ export default class DrawNav {
       }
     }
 
-    if (!isEmpty(this.activityPerformance)) {
-      this.drawTier2EVActivity(0, this.activityPerformance.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
-      this.drawTier2EVActivity(1, this.activityPerformance.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
+    if (!isEmpty(this.asPerformed)) {
+      this.drawTier2EVActivity(0, this.asPerformed.EV1, secondsOnTier2); // row 8 for EV1 (rows start at 0)
+      this.drawTier2EVActivity(1, this.asPerformed.EV2, secondsOnTier2); // row 9 for EV2 (rows start at 0)
     }
 
     //dayNight
@@ -496,13 +496,13 @@ export default class DrawNav {
     // display photo ticks
     for (let i = 0; i < this.photoFiles.length; i++) {
       if (
-        this.photoFiles[i].dateTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
-        this.photoFiles[i].dateTakenAppSeconds >= this.gTier2StartSeconds
+        this.photoFiles[i].datetimeTakenAppSeconds <= this.gTier2StartSeconds + secondsOnTier2 &&
+        this.photoFiles[i].datetimeTakenAppSeconds >= this.gTier2StartSeconds
       ) {
         let showThisPhoto = false;
         for (let j = 0; j < this.collectionFilters.length; j++) {
           if (
-            this.photoFiles[i].collections_string === this.collectionFilters[j].fullList &&
+            this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
             this.collectionFilters[j].selected
           ) {
             showThisPhoto = true;
@@ -512,7 +512,7 @@ export default class DrawNav {
 
         let itemLocX =
           this.gTier2Left +
-          (this.photoFiles[i].dateTakenAppSeconds - this.gTier2StartSeconds) *
+          (this.photoFiles[i].datetimeTakenAppSeconds - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
         let topPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 13);
         let bottomPoint = new paper.Point(itemLocX, this.gTier2Top + this.gTier2Height - 5);
@@ -526,7 +526,7 @@ export default class DrawNav {
 
         this.gTier2Group.addChild(aLine);
       } else if (
-        this.photoFiles[i].dateTakenAppSeconds >
+        this.photoFiles[i].datetimeTakenAppSeconds >
         this.gTier2StartSeconds + secondsOnTier2
       ) {
         break;

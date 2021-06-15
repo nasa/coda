@@ -2,23 +2,23 @@ import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PlayheadState, isSameDate } from "store/playhead";
+import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
   setVideoNonDownlinkID,
   setActiveVideoFile,
   ready,
-  selectVideoActivity,
-  VideoActivity,
   videoSelectors,
   VideosEntityState,
+  visibleVideosBySecond,
 } from "store/videos";
-import type { VideoFile } from "typings/io";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
 import type { QueryParams } from "pages/view";
+import { Collection, VideoFile } from "typings";
+import { cleanCollectionsString } from "utils/formatting";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -39,7 +39,11 @@ const isAutoplayError = (e: Error): boolean => {
 /**
  * Renders a video and the downlink buttons
  */
-export default function Video(props: { playerID: number; query: QueryParams }) {
+export default function Video(props: {
+  playerID: number;
+  collection: Collection;
+  query: QueryParams;
+}) {
   const playerID = props.playerID;
   const query: QueryParams = props.query;
 
@@ -47,8 +51,11 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadDate = new Date(playhead.date);
+  const startOfDay = playheadDate.valueOf() / 1000;
 
   const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
   const [muted, setMuted] = useState(playerID !== 1);
@@ -58,12 +65,6 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
 
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
-
-  let videoActivity = null as VideoActivity;
-
-  if (videoFiles.length > 0) {
-    videoActivity = selectVideoActivity(videos);
-  }
 
   const getInitialDownlink = () => {
     const dlParam = query[`video${playerID}`];
@@ -81,7 +82,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
   };
 
   const clearMetadata = () => {
-    if (videoFiles.length === 0) {
+    if (visibleVideos.size === 0) {
       return;
     }
     const videoID = videos.activeVideoFiles[playerID];
@@ -93,36 +94,36 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
 
   const changeVideoFile = () => {
     // we can't update videos if we don't have videos
-    if (!videoActivity) {
+    if (visibleVideos.size === 0) {
       return;
     }
 
-    const group = videos.downlinks[playerID];
+    const downlink = videos.downlinks[playerID];
     const activeVideoFileID = videos.activeVideoFiles[playerID];
-    const videosNextSecond = videoActivity[group][playhead.seconds + 1];
+    const videosNextSecond = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
 
     // check for video changes
     let videoID = activeVideoFileID;
 
     // if the timeline just jumped or the video files changed, make sure we start the right video
-    // we always use element 0 of the videos available in this group for any given second (see store/videos.ts)
-    if (videosNextSecond.length > 0 && activeVideoFileID !== videosNextSecond[0]) {
-      // there is a different video for this group the next second! pick the highest priority video for this group. See store/videos.ts#videoSorter for how video files are sorted
+    // we always use element 0 of the videos available in this downlink for any given second (see store/videos.ts)
+    if (videosNextSecond && activeVideoFileID !== videosNextSecond[0]) {
+      // there is a different video for this downlink the next second! pick the highest priority video for this downlink. See store/videos.ts#videoSorter for how video files are sorted
       videoID = videosNextSecond[0];
     }
 
-    if (videosNextSecond.length === 0) {
-      // check if no video is playing next second
+    if (!videosNextSecond) {
+      // clear the player if no video is playing next second
       videoID = "";
     }
 
-    if (group === 6) {
+    if (downlink === 6) {
       videoID = videos.nonDownlinkIDs[playerID];
-      if (videosNextSecond.length > 0 && !videosNextSecond.includes(videoID)) {
+      if (videosNextSecond && !videosNextSecond.includes(videoID)) {
         videoID = videosNextSecond[0];
         dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: videoID }));
       }
-      if (videosNextSecond.length === 0 && videoID !== "") {
+      if (videosNextSecond && videosNextSecond.length === 0 && videoID !== "") {
         dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
       }
     }
@@ -138,7 +139,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
 
   const syncToPlayhead = () => {
     // we can't update videos if we don't have videos
-    if (!videoActivity) {
+    if (visibleVideos.size === 0) {
       return;
     }
 
@@ -157,7 +158,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     );
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
-      videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+      videoStartOffset = playhead.seconds - (currentlyPlayingVideo.start - startOfDay);
     }
 
     if (Math.abs(currentTime - videoStartOffset) > 1) {
@@ -191,7 +192,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     if (videoID !== "" && videoID !== undefined) {
       // there is a video for this downlink
       const currentlyPlayingVideo = videoSelectors.selectById(videos, videoID);
-      setSourceURL(currentlyPlayingVideo.videoURL);
+      setSourceURL(currentlyPlayingVideo.mediaLowResURL);
     } else {
       // there is no video for this downlink
       // clear out the video player
@@ -212,13 +213,18 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
   };
 
   const cueVideoToPlayhead = () => {
-    //cue the new video to the right start time to avoid buffering the beginning of the video needlessly
+    // cue the new video to the right start time to avoid buffering the beginning of the video needlessly
     if (sourceURL !== "") {
       const currentlyPlayingVideo = videoSelectors.selectById(
         videos,
         videos.activeVideoFiles[playerID]
       );
-      const videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+
+      if (isNil(currentlyPlayingVideo)) {
+        return;
+      }
+
+      const videoStartOffset = playhead.seconds - (currentlyPlayingVideo.start - startOfDay);
       videoElement.current.currentTime = videoStartOffset;
     }
   };
@@ -253,20 +259,34 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
       }
     }
 
-    // show IO error if a 400 error has been raised in the video player event handlers below
-    let IOErrorCSS = {};
-    if (status === "error" && sourceURL !== "") {
-      IOErrorCSS = { display: "block" };
-    }
-
     const videoID = videos.activeVideoFiles[playerID];
     let video: VideoFile;
     if (videoID !== "") {
       video = videoSelectors.selectById(videos, videoID);
     }
 
+    const ioError = status === "error" && sourceURL !== "";
+    const startDate = !isNil(video) ? new Date(video.start * 1000) : null;
+    // assume the video is not time synced if it starts at 00:00:00 UTC
+    const isNotTimeSynced =
+      !isNil(video) && startDate && startDate.valueOf() === midnightZulu(startDate).valueOf();
+
+    // show IO error if a 400 error has been raised in the video player event handlers below
+    let ioErrorCSS = {};
+    let ioErrorMessage = "";
+    if (ioError) {
+      ioErrorCSS = { display: "block" };
+      ioErrorMessage = "Imagery Online Video Error";
+    }
+
+    // show error if the video is (very likely) not time synced
+    if (isNotTimeSynced) {
+      ioErrorCSS = { display: "block", zIndex: 1 };
+      ioErrorMessage = "IO Video Not Time Synced";
+    }
+
     // the audio in LOS downlinked videos is never synced to the video
-    const isLOSVideo = !isNil(video) && video.className === "downlink-LOS";
+    const isLOSVideo = !isNil(video) && video.LOS;
     const shouldMute = muted || isLOSVideo;
 
     return (
@@ -275,125 +295,128 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
         className={`${styles.vidContainer} ${styles.vidContainer4by3}`}
       >
         <div className={`${styles.playerPoster} ${posterClass}`}>
-          <div className={styles.IOError} style={IOErrorCSS}>
-            Imagery Online Video Error
+          <video
+            ref={videoElement}
+            className={styles.player}
+            src={sourceURL}
+            muted={shouldMute}
+            onCanPlay={() => {
+              if (!videos.ready[playerID]) {
+                dispatch(ready(playerID));
+              }
+            }}
+            onEnded={() => {
+              // ready up because we don't want a missing video to hold up the playhead
+              dispatch(ready(playerID));
+            }}
+            onWaiting={() => {
+              if (videos.ready[playerID] && sourceURL !== "") {
+                dispatch(buffering(playerID));
+                setStatus("buffering");
+              }
+            }}
+            onPlaying={() => {
+              setStatus("playing");
+            }}
+            onLoadedMetadata={(e) => {
+              // Used to later determine whether a buffering event is happening on an already playing video
+              // or a new loading event
+              const vidElement = e.target as HTMLVideoElement;
+              const metaData = {
+                videoHeight: vidElement.videoHeight,
+                videoWidth: vidElement.videoWidth,
+                duration: vidElement.duration,
+              };
+              setMetadata(metaData);
+            }}
+            onClick={() => {
+              if (currentlyPlayingVideo) {
+                toggleFullScreen();
+              }
+            }}
+            onError={(e) => {
+              const vidElement = e.target as HTMLVideoElement;
+              if (!vidElement.error.message.includes("mpty")) {
+                //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
+                setStatus("error");
+                console.error(
+                  `video ${playerID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+                );
+              } else {
+                setStatus("novid");
+              }
+              //unblocking playhead
+              if (videos.ready[playerID] !== true) {
+                dispatch(ready(playerID));
+              }
+            }}
+          />
+          <div className={styles.IOError} style={ioErrorCSS}>
+            {ioErrorMessage}
           </div>
         </div>
-        <video
-          ref={videoElement}
-          className={styles.player}
-          src={sourceURL}
-          muted={shouldMute}
-          onCanPlay={() => {
-            if (!videos.ready[playerID]) {
-              dispatch(ready(playerID));
-            }
-          }}
-          onEnded={() => {
-            // ready up because we don't want a missing video to hold up the playhead
-            dispatch(ready(playerID));
-          }}
-          onWaiting={() => {
-            if (videos.ready[playerID] && sourceURL !== "") {
-              dispatch(buffering(playerID));
-              setStatus("buffering");
-            }
-          }}
-          onPlaying={() => {
-            setStatus("playing");
-          }}
-          onLoadedMetadata={(e) => {
-            // Used to later determine whether a buffering event is happening on an already playing video
-            // or a new loading event
-            const vidElement = e.target as HTMLVideoElement;
-            const metaData = {
-              videoHeight: vidElement.videoHeight,
-              videoWidth: vidElement.videoWidth,
-              duration: vidElement.duration,
-            };
-            setMetadata(metaData);
-          }}
-          onClick={() => {
-            if (currentlyPlayingVideo) {
-              toggleFullScreen();
-            }
-          }}
-          onError={(e) => {
-            const vidElement = e.target as HTMLVideoElement;
-            if (!vidElement.error.message.includes("mpty")) {
-              //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
-              setStatus("error");
-              console.error(
-                `video ${playerID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
-              );
-            } else {
-              setStatus("novid");
-            }
-            //unblocking playhead
-            if (videos.ready[playerID] !== true) {
-              dispatch(ready(playerID));
-            }
-          }}
-        />
         {renderVideoOverlay()}
       </div>
     );
   };
 
   const renderButtons = () => {
-    const group = videos.downlinks[playerID];
-    const availableGroups = [0, 1, 2, 3, 4, 5];
+    const downlink = videos.downlinks[playerID];
+    const availableDownlinks = [0, 1, 2, 3, 4, 5];
 
-    return availableGroups.map((g) => {
+    return availableDownlinks.map((d) => {
       let buttonClassStyle = styles.vidButton;
-      if (g === group) {
+      if (d === downlink) {
         buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
-      } else if (videoActivity && videoActivity[g][playhead.seconds].length > 0) {
+      } else if (visibleVideos && visibleVideos.get(`${playhead.seconds}/${d}`)) {
         buttonClassStyle = `${styles.vidButton} ${styles.active}`;
       }
       return (
         <button
-          key={`vid${playerID}__button${g}`}
+          key={`vid${playerID}__button${d}`}
           type="button"
-          title={g < 6 ? `Select downlink ${g + 1}` : "Select other video"}
+          title={`Select downlink ${d + 1}`}
           className={buttonClassStyle}
           onClick={() => {
-            if (g !== group) {
-              dispatch(setVideoDownlink({ playerID, downlink: g }));
+            if (d !== downlink) {
+              dispatch(setVideoDownlink({ playerID, downlink: d }));
               dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: "" }));
               setInfoToggle(false);
             }
           }}
         >
-          {g < 6 ? `${g + 1}` : "~7"}
+          {d + 1}
         </button>
       );
     });
   };
 
-  const getPrettyVideoTitle = (videoID) => {
-    for (let i = 0; i < videoFiles.length; i++) {
-      if (videoFiles[i].id === videoID) {
-        return videoFiles[i].collections_string_pretty + " - " + videoID;
+  const getPrettyVideoTitle = (videoID: string) => {
+    const video = videoSelectors.selectById(videos, videoID);
+    if (video) {
+      if (video.title && video.title.trim() !== "") {
+        return video.title;
       }
+      return cleanCollectionsString(video.collections) + " - " + videoID;
     }
+    return "";
   };
 
   const renderNonDl = () => {
+    const nonDlVideoIDs = visibleVideos.get(`${playhead.seconds}/6`) || [];
+
     const optionList = () => {
-      if (videoActivity) {
-        const nonDlVideoIDs = videoActivity[6][playhead.seconds];
-        // for (let i = 0; i < nonDlVideoIDs.length; i++) {}
-        return nonDlVideoIDs.map((v) => {
-          return (
-            <option value={v} key={v}>
-              {getPrettyVideoTitle(v)}
-            </option>
-          );
-        });
-      } else {
+      if (nonDlVideoIDs.length === 0) {
         return;
       }
+
+      return nonDlVideoIDs.map((v) => {
+        return (
+          <option value={v} key={v}>
+            {getPrettyVideoTitle(v)}
+          </option>
+        );
+      });
     };
 
     let buttonClassStyle = styles.vidButton;
@@ -401,12 +424,12 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     if (videos.downlinks[playerID] === 6) {
       buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
       arrowClass = styles.select_arrow_dark;
-    } else if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
+    } else if (nonDlVideoIDs.length > 0) {
       buttonClassStyle = `${styles.vidButton} ${styles.active}`;
     }
 
     let selectActiveStyle = "";
-    if (videoActivity && videoActivity[6][playhead.seconds].length > 0) {
+    if (nonDlVideoIDs.length > 0) {
       selectActiveStyle = styles.selectActive;
     }
     return (
@@ -417,6 +440,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
         >
           <select
             className={`${buttonClassStyle} ${styles.nonDLButton} ${styles.selectNonDL} ${selectActiveStyle}`}
+            style={props.collection !== Collection.ISS ? { width: "20em" } : {}}
             value={videos.nonDownlinkIDs[playerID]}
             onChange={(e) => {
               dispatch(setVideoDownlink({ playerID, downlink: 6 }));
@@ -425,7 +449,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
             }}
           >
             <option disabled value="">
-              Non-D/L
+              {props.collection === Collection.ISS ? "Non-D/L" : "Select video"}
             </option>
             {optionList()}
           </select>
@@ -450,13 +474,13 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
     let info = "";
     let infoDisplayClass = "";
     if (currentlyPlayingVideo) {
-      videoStartOffset = playhead.seconds - currentlyPlayingVideo.missionSecondsStart;
+      videoStartOffset = playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
       videoFilename = currentlyPlayingVideo.id;
-      ioSearchLink = currentlyPlayingVideo.url;
-      ioVideoURL = `${currentlyPlayingVideo.videoURL}#t=${videoStartOffset}`;
+      ioSearchLink = currentlyPlayingVideo.dataURL;
+      ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = new Date(currentlyPlayingVideo.md_creation_date).toUTCString();
+      dateAdded = new Date(currentlyPlayingVideo.creationDate).toUTCString();
       info = currentlyPlayingVideo.description;
     }
     if (infoHover || infoToggle) {
@@ -531,7 +555,7 @@ export default function Video(props: { playerID: number; query: QueryParams }) {
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
-        {renderButtons()}
+        {props.collection === Collection.ISS && renderButtons()}
         {renderNonDl()}
         <div
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}

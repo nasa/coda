@@ -1,8 +1,8 @@
 import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
-import Main from "components/main";
-import { fetchEVAs } from "client/evas";
+import Main from "components/main-iss";
+import { fetchEVAs } from "client/sequences";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/media";
 import { buildEphemerisStore } from "client/location";
 import {
@@ -19,7 +19,7 @@ import {
   setCollectionFilters,
   PhotosEntityState,
 } from "store/photos";
-import { addEVAs } from "store/evas";
+import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
@@ -66,9 +66,11 @@ export default function View(props: { query: QueryParams }) {
     userDate = new Date(Date.UTC(year, month, day));
   }
 
-  if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-    dispatch(changeDate(userDate.toISOString()));
-  }
+  useEffect(() => {
+    if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
+      dispatch(changeDate(userDate.toISOString()));
+    }
+  }, []);
 
   useEffect(() => {
     // make sure the application is running on the correct time
@@ -202,16 +204,16 @@ export default function View(props: { query: QueryParams }) {
       try {
         // EVA data from the wiki
         const updatedEVAs = await fetchEVAs();
-        dispatch(addEVAs(updatedEVAs));
+        dispatch(addSequences(updatedEVAs));
       } catch (e) {
-        // dispatch(evasFetchError(e.toString()));
+        dispatch(sequencesFetchError(e.toString()));
         console.error(e);
       }
     })();
   };
 
-  // fetch updated data when the date changes
-  useEffect(updateEVAs, [playheadDate]);
+  // fetch updated data when the page loads
+  useEffect(updateEVAs, []);
 
   // look for wiki info every 5 mins
   useInterval(updateEVAs, FIVE_MINS_MS);
@@ -234,6 +236,7 @@ export default function View(props: { query: QueryParams }) {
         <title>
           {prefix} | {process.env.NEXT_PUBLIC_TITLE}
         </title>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
       </Head>
       <Main {...props} />
     </div>

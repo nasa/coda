@@ -1,25 +1,16 @@
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Header from "components/header";
-import NavTimeline from "components/nav-timeline";
-import PlaybackControls from "components/playback-controls";
-import StatusBar from "components/status-bar";
-import Video from "components/video";
-import Photos from "components/photos";
-import ISSLocation from "components/iss-location";
-import { run, halt, tick } from "store/playhead";
+import { run, halt, tick, changeDate, add, changeTime } from "store/playhead";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
 import useInterval from "utils/useInterval";
-import styles from "./main.module.css";
-import { useEffect } from "react";
 import { RootState } from "store/index";
-import type { QueryParams } from "pages/view";
-/**
- * Renders the main CODA application layout. Also handles checking whether the playhead should be running
- */
-export default function Main(props: { query: QueryParams }) {
+
+function PlayheadMonitor() {
   const playheadReady = useSelector((state: RootState) => state.playhead.ready);
   const playheadIsRunning = useSelector((state: RootState) => state.playhead.isRunning);
+  const playheadDate = useSelector((state: RootState) => state.playhead.date);
+  const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
@@ -42,35 +33,33 @@ export default function Main(props: { query: QueryParams }) {
     }
   }, [playheadReady, playheadIsRunning, videos.ready, photos.ready]);
 
+  useEffect(() => {
+    // check if the date has rolled over into the next UTC day
+    if (playheadSeconds >= 60 * 60 * 24) {
+      const today = new Date(playheadDate);
+      const tomorrow = add(today, 1000 * 60 * 60 * 24);
+      dispatch(changeDate(tomorrow.toISOString()));
+      dispatch(changeTime(0));
+    }
+  }, [playheadSeconds]);
+
   useInterval(() => {
     if (playheadIsRunning) {
       dispatch(tick());
     }
   }, 1000);
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <Header />
-      </div>
-      <div className={styles.body}>
-        <div className={styles.bodyRow1}>
-          <Video playerID={1} {...props} />
-          <Video playerID={2} {...props} />
-          <Photos />
-        </div>
-        <div className={styles.bodyRow2}>
-          <div style={{ flex: "1 1 auto" }}>
-            <ISSLocation />
-          </div>
-          <div style={{ flex: "0 1 170px" }}></div>
-        </div>
-      </div>
-      <div className={styles.footer}>
-        <PlaybackControls />
-        <NavTimeline />
-        <StatusBar />
-      </div>
-    </div>
-  );
+  return <></>;
+}
+
+/** Higher order component that runs the timeline without causing rerender side-effects */
+export default function WithPlayheadMonitor<P>(Component: React.ComponentType<P>) {
+  return ({ ...props }) => {
+    return (
+      <>
+        <PlayheadMonitor />
+        <Component {...(props as P)} />
+      </>
+    );
+  };
 }

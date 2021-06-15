@@ -1,0 +1,103 @@
+import clone from "lodash/clone";
+import isNil from "lodash/isNil";
+import { fetchPhotoData } from "services/io-api";
+import { fetchDatetimeOverrides, fetchSequences } from "services/wiki-api";
+import { add, isSameDate } from "store/playhead";
+import { Collection } from "typings";
+import type { WrappedResponse, PhotoFile } from "typings";
+import { TestEventTimezones } from "typings/wiki";
+import { appSecondsFromDateString } from "utils/formatting";
+
+/**
+ * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
+ */
+export default async function getPhotoData(
+  year: number,
+  month: number,
+  date: number,
+  collection: Collection
+): Promise<WrappedResponse<PhotoFile[]>> {
+  const requestedDate = new Date(Date.UTC(year, month - 1, date));
+  const previousDate = add(requestedDate, -86400000);
+  const nextDate = add(requestedDate, 86400000);
+
+  const [results, sequences, allOverrides] = await Promise.all([
+    fetchPhotoData(collection, previousDate, nextDate),
+    // fetch sequence data, but don't throw if the request fails
+    await (async () => {
+      try {
+        return await fetchSequences(collection);
+      } catch (e) {
+        console.error(e);
+      }
+    })(),
+    // fetch start time overrides, but don't throw if the request fails
+    await (async () => {
+      try {
+        return await fetchDatetimeOverrides();
+      } catch (e) {
+        // don't block video results if we can't find overrides
+        console.error(e);
+      }
+    })(),
+  ]);
+
+  if (isNil(allOverrides) || isNil(sequences)) {
+    // we don't have the info required to apply fudge factors. just return the photos
+    return results;
+  }
+
+  const seqs = sequences.data.filter(
+    (seq) =>
+      (Collection[seq.location] === Collection[Collection[collection]] &&
+        isSameDate(new Date(seq.startDate), requestedDate)) ||
+      isSameDate(new Date(seq.startDate), previousDate) ||
+      isSameDate(new Date(seq.startDate), nextDate)
+  );
+
+  // no sequence corresponds with this date so there won't be any overrides
+  if (seqs.length === 0) {
+    return results;
+  }
+
+  let overrides: TestEventTimezones;
+
+  for (let override of allOverrides.data.testEventTimezones) {
+    for (let seq of seqs) {
+      if (`Test Event:${override.testEventID}` === seq.name) {
+        overrides = override;
+        break;
+      }
+    }
+    if (overrides) break;
+  }
+
+  // no overrides for this date
+  if (isNil(overrides)) {
+    return results;
+  }
+
+  try {
+    const [_, sign, hh, mm] = overrides.timezone.match(/([\+]|[\-])(\d{2}):(\d{2})/);
+
+    const milliseconds = (+`${sign}${hh}` * 60 + +mm) * 60 * 1000;
+
+    // we got overrides from the wiki, so apply them
+    const data: PhotoFile[] = results.data.map((result) => {
+      const res = clone(result);
+      // shift the date
+      res.datetimeTaken = add(new Date(res.datetimeTaken), -milliseconds).toISOString();
+      res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
+      return res;
+    });
+
+    return {
+      ...results,
+      data,
+    };
+  } catch (e) {
+    console.error("Error parsing and apply photo overrides from the wiki");
+    console.error(e);
+    return results;
+  }
+}

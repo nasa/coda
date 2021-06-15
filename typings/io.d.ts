@@ -1,5 +1,5 @@
 /** Represents a single video search result as received from IO */
-interface Doc {
+export interface Doc {
   audio_file_restricted: 0 | 1 | number;
   hh: 0 | 1 | number;
   duration_seconds: number;
@@ -58,39 +58,4 @@ interface Doc {
   lh: number;
   md_interior_exterior: number;
   _version_: number;
-}
-
-/** Parsed metadata from an IO video file result. Each video file belongs to a group. Users select groups, we figure out which file should be playing for the group. Note that there may be overlap between files for each group, eg. 1+ file(s) may have the exact same video from the exact same source but with different start and end times */
-export interface VideoFile {
-  id: string;
-  content: string;
-  description: string;
-  start: string;
-  end: string;
-  url: string;
-  videoURL: string;
-  className: string;
-  priority: number;
-  md_creation_date: string;
-  /** Collection that this file falls under */
-  group: number;
-  durationSeconds?: number;
-  missionSecondsStart?: number;
-  missionSecondsEnd?: number;
-  collections_string: string;
-  collections_string_pretty: string;
-}
-
-/** Parsed metadata from an IO photo file result */
-export interface PhotoFile {
-  id: string;
-  description: string;
-  lowResURL: string;
-  highResURL: string;
-  ioInfoURL: string;
-  date_added: string;
-  date_taken: string;
-  dateTakenAppSeconds: number;
-  collections_string: string;
-  collections_string_pretty: string;
 }

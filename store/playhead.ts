@@ -80,7 +80,7 @@ export const playheadSlice = createSlice({
 
 export const { tick, changeDate, changeTime, start, stop, run, halt } = playheadSlice.actions;
 
-const midnightZulu = (d: Date): Date => {
+export const midnightZulu = (d: Date): Date => {
   d.setUTCHours(0);
   d.setUTCMinutes(0);
   d.setUTCSeconds(0);
@@ -89,6 +89,7 @@ const midnightZulu = (d: Date): Date => {
 };
 
 const getMS = (d: Date): number => {
+  // TODO: isn't this just Date.prototype.getTime()?
   const Y = d.getUTCFullYear();
   const M = d.getUTCMonth();
   const D = d.getUTCDate();

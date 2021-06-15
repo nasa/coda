@@ -29,9 +29,9 @@ const defaultOptions: Options = {
 
 /**
  * Get data from the cache when it exists and is less than `process.env.CACHE_AGE` old. Otherwise, hit the network and add to the cache
- * @param service Name of the service requesting data
- * @param identifier Identifies this specific request
+ * @param identifier The cache key
  * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
+ * @param options Cache behavior options
  */
 export default async function retrieveJSON<T>(
   identifier: string,
@@ -79,6 +79,7 @@ export default async function retrieveJSON<T>(
     if (!isNull(res) && (opts.staleOk || opts.preferNew)) {
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
+      console.warn(e);
       return { data: res, cacheRead: true };
     }
 
