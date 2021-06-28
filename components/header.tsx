@@ -4,7 +4,7 @@ import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { changeTime, isSameDate, PlayheadState } from "store/playhead";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
-import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
+import { getJulianDate, hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
@@ -28,6 +28,8 @@ function Header() {
   const [renderDate, setRenderDate] = useState("2020-06-20");
   const [userDateValue, setUserDateValue] = useState("");
   const [editingDate, setEditingDate] = useState(false);
+
+  const [julianDate, setJulianDate] = useState("2020/185:00:00");
 
   const [pet, setPET] = useState("--:--:--");
 
@@ -57,6 +59,7 @@ function Header() {
   useEffect(() => {
     const dt = new Date(playhead.date);
     setRenderDate(shortdateFromDateString(dt.toISOString()));
+    setJulianDate(getJulianDate(dt));
   }, [playhead.date]);
 
   /** Navigates to a new date or time */
@@ -190,6 +193,14 @@ function Header() {
                 Jump
               </button>
             </div>
+          </div>
+        </div>
+        <div className={styles.headerElementContainer}>
+          <div>
+            <div className={styles.pet}>Julian Date</div>
+          </div>
+          <div>
+            <div className={styles.pet}>{julianDate}</div>
           </div>
         </div>
         <div className={`${styles.headerElementContainer}`}>
