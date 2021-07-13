@@ -121,32 +121,15 @@ export function cleanCollectionsString(colStr: string) {
   return cleaned;
 }
 
-/** Return the number of days until a certain zero-indexed month. Accounts for leap years */
-function daysToMonth(currentMonth: number, currentYear: number): number {
-  if (currentMonth === 0) {
-    return 0;
-  }
-
-  if (currentMonth === 1) {
-    return 31;
-  }
-
-  if (currentMonth === 2) {
-    // leap years
-    return daysToMonth(currentMonth - 1, currentYear) + (currentYear % 4 === 0 ? 28 : 29);
-  }
-
-  return (
-    daysToMonth(currentMonth - 1, currentYear) +
-    [31, 30, 31, 30, 31, 30, 30, 31, 30][currentMonth - 3]
-  );
-}
-
 /** Get a formatted pseudo-julian date */
 export function getJulianDate(date: Date): string {
   const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
-  const day = date.getUTCDate();
 
-  return `${year}/${daysToMonth(month, year) + day}`;
+  // borrowed from https://stackoverflow.com/a/8619946
+  const start = new Date(Date.UTC(year, 0, 0));
+  const msDiff = date.valueOf() - start.valueOf();
+  const msOneDay = 1000 * 60 * 60 * 24;
+  const jd = Math.floor(msDiff / msOneDay);
+
+  return `${year}/${jd}`;
 }
