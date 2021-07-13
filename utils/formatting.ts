@@ -120,3 +120,16 @@ export function cleanCollectionsString(colStr: string) {
   }
   return cleaned;
 }
+
+/** Get a formatted pseudo-julian date */
+export function getJulianDate(date: Date): string {
+  const year = date.getUTCFullYear();
+
+  // borrowed from https://stackoverflow.com/a/8619946
+  const start = new Date(Date.UTC(year, 0, 0));
+  const msDiff = date.valueOf() - start.valueOf();
+  const msOneDay = 1000 * 60 * 60 * 24;
+  const jd = Math.floor(msDiff / msOneDay);
+
+  return `${year}/${jd}`;
+}
