@@ -29,7 +29,7 @@ function Header() {
   const [userDateValue, setUserDateValue] = useState("");
   const [editingDate, setEditingDate] = useState(false);
 
-  const [julianDate, setJulianDate] = useState("2020/185:00:00");
+  const [julianDate, setJulianDate] = useState("----/---");
 
   const [pet, setPET] = useState("--:--:--");
 
@@ -195,16 +195,18 @@ function Header() {
             </div>
           </div>
         </div>
+        <div className={`${styles.headerElementContainer}`}>
+          <HeaderShare />
+        </div>
         <div className={styles.headerElementContainer}>
           <div>
             <div className={styles.pet}>Julian Date</div>
           </div>
           <div>
-            <div className={styles.pet}>{julianDate}</div>
+            <div className={styles.pet} style={{ color: "white" }}>
+              {julianDate}
+            </div>
           </div>
-        </div>
-        <div className={`${styles.headerElementContainer}`}>
-          <HeaderShare />
         </div>
         {!isNil(seqStartSec) && seq.type === SequenceType.EVA && (
           <div className={styles.headerElementContainer}>
