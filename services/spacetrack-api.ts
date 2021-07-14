@@ -127,7 +127,7 @@ export async function fetchISSLocation(
 
     if (ephemera.length === 0) {
       // can happen when no TLE is available for today yet. make sure this data isn't cached
-      throw new Error("TLE Error");
+      throw new Error("Missing TLE Error");
     }
 
     const dayNight = calcDayNight(ephemera, year, month, date);
@@ -142,7 +142,7 @@ export async function fetchISSLocation(
       cacheAge: Infinity,
     });
   } catch (e) {
-    if (!(e.toString() === "Error: TLE Error")) {
+    if (e.toString() !== "Error: Missing TLE Error") {
       // something went wrong that isn't us avoiding the situation where we cache bad data
       throw e;
     }
@@ -170,8 +170,8 @@ export async function fetchISSLocation(
     });
   }
 
-  // maybe we retrieved bad cache data. fetch again
-  // only necessary because pre-issue-85, we would cache empty TLE responses
+  // maybe we retrieved bad data from the cache. force another fetch against the spacetrack API
+  // only necessary because pre-issue-85, we would erroneously cache empty TLE responses
   if (!isToday && res.cacheRead && res.data.ephemera.length === 0) {
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
       preferNew: true,
