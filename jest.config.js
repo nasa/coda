@@ -16,6 +16,7 @@ module.exports = {
     "^typings/(.*)$": "<rootDir>/typings/$1",
     "^utils/(.*)$": "<rootDir>/utils/$1",
   },
+  globalSetup: "<rootDir>/jest.globalSetup.js",
   setupFiles: ["<rootDir>/jest.setup.js"],
   setupFilesAfterEnv: ["<rootDir>/utils/jest-extends.ts"],
   testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/", "<rootDir>/out"],
