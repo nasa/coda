@@ -50,6 +50,7 @@ export default async function retrieveJSON<T>(
 
   let cacheIsHot = false;
   let cacheRead = false;
+  let cacheWrite = false;
 
   const cacheInfo = await cacache.get.info(process.env.CACHE_ROOT, cacheKey);
 
@@ -70,7 +71,7 @@ export default async function retrieveJSON<T>(
 
   if (cacheIsHot && !opts.preferNew) {
     // nothing else to do! give the caller the data
-    return { cacheRead, cacheWrite: false, data: res };
+    return { cacheRead, cacheWrite, data: res };
   }
 
   try {
@@ -80,19 +81,15 @@ export default async function retrieveJSON<T>(
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
       console.warn(e);
-      return { data: res, cacheRead: true, cacheWrite: false };
-    }
-
-    if (opts.errorOk) {
+      return { cacheRead, cacheWrite, data: res };
+    } else if (opts.errorOk) {
       // the caller is fine with an error response
-      return { error: e.toString() };
+      return { cacheRead, cacheWrite, error: e.toString() };
     } else {
       // let the caller decide what to do with this unhandled error
       throw e;
     }
   }
-
-  let cacheWrite = false;
 
   // cache the results for later
   try {
