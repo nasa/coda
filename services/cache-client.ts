@@ -4,7 +4,7 @@ import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
 import { WrappedResponse } from "typings";
 
-// IO uses a NOCA cert. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
+// NASA APIs use NOCA certs. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
 require("mac-ca");
 require("win-ca");
 
@@ -40,7 +40,7 @@ export default async function retrieveJSON<T>(
 ): Promise<WrappedResponse<T>> {
   const opts = { ...defaultOptions, ...options };
 
-  // to be clear, we're not hashing sensitive data, just filenames
+  // to be clear, we're not hashing sensitive data, just cache keys
   const hash = crypto.createHash("md5");
   hash.update(identifier);
   const cacheKey = hash.copy().digest("hex");
