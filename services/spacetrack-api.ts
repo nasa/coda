@@ -107,7 +107,12 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   return sunlight;
 }
 
-/** Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it */
+/**
+ * Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it
+ * @param year yyyy
+ * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
+ * @param date day of the month
+ */
 export async function fetchISSLocation(
   year: number,
   month: number,
