@@ -107,7 +107,12 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
   return sunlight;
 }
 
-/** Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it */
+/**
+ * Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it
+ * @param year yyyy
+ * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
+ * @param date day of the month
+ */
 export async function fetchISSLocation(
   year: number,
   month: number,
@@ -116,37 +121,45 @@ export async function fetchISSLocation(
   const now = new Date();
   const today = new Date(Date.UTC(year, month - 1, date));
   const isToday = isSameDate(now, today);
-  let noTLEs = false;
 
-  let res: WrappedResponse<EphemerisStore> = null;
+  let res: WrappedResponse<EphemerisStore> = {
+    data: { ephemera: [], dayNight: {} },
+  };
 
   // try with the date asked for first
   const retrieverToday = async (): Promise<EphemerisStore> => {
     const ephemera = await fetchSpacetrack(year, month, date);
 
     if (ephemera.length === 0) {
-      // can happen when no TLE is available for today yet
-      noTLEs = true;
-      return { dayNight: {}, ephemera };
+      // can happen when no TLE is available for today yet. make sure this data isn't cached
+      throw new Error("Missing TLE Error");
     }
 
     const dayNight = calcDayNight(ephemera, year, month, date);
     return { dayNight, ephemera };
   };
 
-  const identifier = isToday ? "today" : `${year}-${month}-${date}`;
-  res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
-    preferNew: isToday,
-    cacheAge: Infinity,
-  });
+  const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
-  if (isToday && noTLEs) {
+  try {
+    res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
+      preferNew: isToday,
+      cacheAge: Infinity,
+    });
+  } catch (e) {
+    if (e.toString() !== "Error: Missing TLE Error") {
+      // something went wrong that isn't us avoiding the situation where we cache bad data
+      throw e;
+    }
+  }
+
+  if (isToday && res.data.ephemera.length === 0) {
     // couldn't get a response for today. try yesterday
     const yesterday = new Date(today.valueOf() - ONE_DAY_MS);
     const yesterdayYear = yesterday.getUTCFullYear();
     const yesterdayMonth = yesterday.getUTCMonth() + 1;
     const yesterdayDate = yesterday.getUTCDate();
-    const dateParam = `${padZeros(yesterdayYear, 2)}-${padZeros(yesterdayMonth, 2)}-${padZeros(
+    const dateParam = `${yesterdayYear}-${padZeros(yesterdayMonth, 2)}-${padZeros(
       yesterdayDate,
       2
     )}`;
@@ -159,6 +172,15 @@ export async function fetchISSLocation(
 
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retrieverYesterday, {
       cacheAge: Infinity,
+    });
+  }
+
+  // maybe we retrieved bad data from the cache. force another fetch against the spacetrack API
+  // only necessary because pre-issue-85, we would erroneously cache empty TLE responses
+  if (!isToday && res.cacheRead && res.data.ephemera.length === 0) {
+    res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
+      preferNew: true,
+      staleOk: true,
     });
   }
 
