@@ -5,3 +5,15 @@ div#__next,
 div#__next > div {
   height: 100%;
 }
+
+@font-face {
+  font-family: "Aldrich";
+  src: url("/fonts/Aldrich-Regular.ttf");
+  font-weight: 400;
+  font-style: normal;
+}
+
+:root {
+  --grey: #383a45;
+  --radius: 3px;
+}

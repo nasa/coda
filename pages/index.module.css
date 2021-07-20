@@ -1,7 +1,79 @@
-.container > a {
-  text-decoration: underline;
+.container {
+  background: black;
+  background-image: url(/images/earth.png);
+  background-position: bottom;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
-.dropdown {
-  width: 10em;
+.intro {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: space-around;
+}
+
+.intro > * {
+  width: 350px;
+}
+
+.tourText > p {
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.description {
+  margin-right: 1em;
+  text-align: right;
+}
+
+.logo {
+  height: 55px;
+  display: flex;
+  justify-content: right;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.meatball {
+  height: 55px;
+}
+
+.wordMark {
+  font-family: "Aldrich";
+  font-weight: 400;
+  font-size: 40px;
+}
+
+.sources {
+  margin-left: 1em;
+}
+
+.sourcesPanel {
+  background-color: var(--grey);
+  border-radius: var(--radius);
+  width: 220px;
+  padding: 8px 16px 5px 16px;
+}
+
+.greyedOut {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ul {
+  margin: 0;
+  padding: 5px 0 0 0;
+}
+
+.li {
+  text-decoration: none;
+  line-height: 40px;
+  margin-left: 0;
+  list-style: none;
 }
