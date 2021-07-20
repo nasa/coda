@@ -16,4 +16,5 @@ div#__next > div {
 :root {
   --grey: #383a45;
   --radius: 3px;
+  --light-grey: #4c4e5b;
 }
