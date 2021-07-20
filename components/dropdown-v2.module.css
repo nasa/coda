@@ -1,0 +1,39 @@
+.main {
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--radius);
+}
+
+.white {
+  color: var(--dark-grey);
+  background-color: white;
+}
+
+.grey {
+  background-color: var(--grey);
+}
+
+.label {
+  display: flex;
+}
+
+.modal {
+  position: fixed;
+  top: 50px;
+}
+
+.right {
+  transform: rotate(270deg);
+}
+
+.left {
+  transform: rotate(90deg);
+}
+
+.up {
+  transform: rotate(180deg);
+}
+
+.down {
+  transform: rotate(0deg);
+}

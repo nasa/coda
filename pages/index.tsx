@@ -27,7 +27,7 @@ export default function Index() {
               </p>
             </div>
             <div style={{ marginTop: "10px" }}>
-              <Button>TOUR CODA</Button>
+              <Button>Tour CODA</Button>
             </div>
           </div>
         </div>

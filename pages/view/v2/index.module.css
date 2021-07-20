@@ -1,0 +1,11 @@
+.main {
+  height: 100vh;
+  background-color: black;
+  padding: 0 3px;
+}
+
+.body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--grey);
+}

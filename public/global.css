@@ -14,7 +14,10 @@ div#__next > div {
 }
 
 :root {
-  --grey: #383a45;
-  --radius: 3px;
   --light-grey: #4c4e5b;
+  --slightly-lighter-grey: #393641;
+  --grey: #383a45;
+  --dark-grey: #313131;
+
+  --radius: 3px;
 }

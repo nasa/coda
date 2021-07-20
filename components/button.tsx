@@ -2,12 +2,12 @@ import React from "react";
 import styles from "./button.module.css";
 
 export interface Options {
-  style?: string;
-  callback: () => void;
+  color?: string;
+  callback?: () => void;
 }
 
 const defaults: Options = {
-  style: "grey",
+  color: "grey",
   callback: () => {},
 };
 
@@ -16,7 +16,7 @@ export default function Button(options: React.PropsWithChildren<Options>) {
   const opts = { ...defaults, ...options };
 
   return (
-    <button onClick={opts.callback} className={`${styles.button} ${styles[opts.style]}`}>
+    <button onClick={opts.callback} className={`${styles.button} ${styles[opts.color]}`}>
       {opts.children}
     </button>
   );
