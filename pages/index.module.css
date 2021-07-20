@@ -1,4 +1,4 @@
-.container {
+.main {
   background: black;
   background-image: url(/images/earth.png);
   background-position: bottom;
@@ -8,14 +8,15 @@
   justify-content: space-around;
 }
 
-.intro {
+.container {
   margin-left: auto;
   margin-right: auto;
   display: flex;
   justify-content: space-around;
+  min-height: 250px;
 }
 
-.intro > * {
+.container > * {
   width: 350px;
 }
 
@@ -59,21 +60,35 @@
   background-color: var(--grey);
   border-radius: var(--radius);
   width: 220px;
-  padding: 8px 16px 5px 16px;
+  padding: 16px 5px 5px 5px;
+  /* padding: 16px 16px 5px 16px; */
 }
 
-.greyedOut {
+.sourcesHeader {
   color: rgba(255, 255, 255, 0.4);
+  padding-left: 11px;
+  padding-bottom: 11px;
 }
 
 .ul {
   margin: 0;
-  padding: 5px 0 0 0;
+  margin-top: 5px;
+  padding: 0;
 }
 
 .li {
   text-decoration: none;
+  list-style: none;
   line-height: 40px;
   margin-left: 0;
-  list-style: none;
+  padding-left: 11px;
+}
+
+.li:hover {
+  background-color: var(--light-grey);
+}
+
+.li > * {
+  display: inline-block;
+  width: 100%;
 }
