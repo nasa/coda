@@ -1,0 +1,15 @@
+.main {
+  background-color: var(--slightly-lighter-grey);
+  width: 250px; /* TODO: designs have it at 263 */
+  height: 400px;
+  padding: 15px 18px;
+  border-radius: var(--radius);
+  overflow-y: scroll;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+}
