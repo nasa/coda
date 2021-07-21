@@ -1,49 +1,42 @@
+import React from "react";
+import { useDispatch } from "react-redux";
+import { changeLayout, allLayouts } from "store/viewer";
 import styles from "./layout-picker.module.css";
 
 export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {
+  const dispatch = useDispatch();
+
+  /**
+   * Change the layout
+   * @param index The index of the layout in allLayouts
+   */
+  const handleSelectLayout = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+
+    dispatch(changeLayout(index));
+    closeClick();
+  };
+
   return (
     <div className={styles.main}>
       <div className={styles.top}>
         <div>Select a Layout</div>
-        {closeClick && <div onClick={closeClick}>✕</div>}
+        {closeClick && (
+          <div className={styles.close} onClick={closeClick}>
+            ✕
+          </div>
+        )}
       </div>
       <div className={styles.layouts}>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
-        <div className={styles.layout}>
-          <img src="/icons/layout1.svg" alt="Layout 1" />
-        </div>
+        {allLayouts.map((svg, index) => (
+          <div
+            className={styles.layout}
+            onClick={(e) => handleSelectLayout(e, index)}
+            key={`LAYOUT_${index}`}
+          >
+            <img src={svg} alt={`Select layout ${index}`} />
+          </div>
+        ))}
       </div>
     </div>
   );

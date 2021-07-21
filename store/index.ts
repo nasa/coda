@@ -4,6 +4,7 @@ import { playheadSlice, initialState as playheadInitialState } from "./playhead"
 import { playheadHoverSlice, initialState as playheadHoverInitialState } from "./playheadHover";
 import { sequencesSlice, initialState as sequencesInitialState } from "./sequences";
 import { videoSlice, initialState as videosInitialState } from "./videos";
+import { viewerSlice, initialState as viewerInitialState } from "./viewer";
 import { photoSlice, initialState as photosInitialState } from "./photos";
 import { ephemeraSlice, initialState as ephemeraInitialState } from "./ephemera";
 import { gpsSlice, initialState as gpsInitialState } from "./gps";
@@ -18,6 +19,7 @@ export const initialState = {
   photos: photosInitialState,
   ephemera: ephemeraInitialState,
   gps: gpsInitialState,
+  viewer: viewerInitialState,
 };
 
 // server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
@@ -30,6 +32,7 @@ const reducer = combineReducers({
   photos: photoSlice.reducer,
   ephemera: ephemeraSlice.reducer,
   gps: gpsSlice.reducer,
+  viewer: viewerSlice.reducer,
 });
 
 export type RootState = ReturnType<typeof reducer>;

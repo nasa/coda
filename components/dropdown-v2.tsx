@@ -46,6 +46,12 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
   const opts = { ...pseudoDefaults, ...options };
   const [display, setDisplay] = useState(false);
 
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    setDisplay(!display);
+  };
+
   let caretStyle = styles[opts.caret];
   if (display) {
     caretStyle = styles[oppositeCarets[opts.caret]];
@@ -53,7 +59,7 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
 
   return (
     <div className={styles.main}>
-      <div className={`${styles.label} ${styles[opts.color]}`} onClick={() => setDisplay(!display)}>
+      <div className={`${styles.label} ${styles[opts.color]}`} onClick={toggleDropdown}>
         <div className={styles.verticalCenter}>{opts.children}</div>
         <div className={styles.verticalCenter}>
           <div className={`${caretStyle} ${styles.caret}`}>
@@ -62,8 +68,14 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
           </div>
         </div>
       </div>
-      <div className={styles.modal} style={{ display: display ? "block" : "none" }}>
-        <opts.modal closeClick={() => setDisplay(!display)} />
+      <div
+        className={styles.background}
+        style={{ display: display ? "block" : "none" }}
+        onClick={toggleDropdown}
+      >
+        <div className={styles.modal}>
+          <opts.modal closeClick={() => setDisplay(!display)} />
+        </div>
       </div>
     </div>
   );
