@@ -1,14 +1,13 @@
 .main {
-  /* display: flex;
-  flex-wrap: wrap; */
   display: grid;
   grid-template-columns: repeat(24, 6fr);
   grid-auto-rows: minmax(calc((100vh / 6) - (50px / 6)), auto);
 }
 
 .frame {
-  margin: 10px;
+  margin: 3px;
   border: 2px solid red;
+  background-color: blue;
 }
 
 .f1 {
