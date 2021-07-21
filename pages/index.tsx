@@ -40,16 +40,22 @@ export default function Index() {
                   <Link href="/view">ISS</Link>
                 </li>
                 <li className={styles.li}>
-                  <Link href="/view/artemis">Artemis</Link>
-                </li>
-                <li className={styles.li}>
-                  <Link href="/view/nbl">NBL</Link>
-                </li>
-                <li className={styles.li}>
-                  <Link href="/view/neemo">NEEMO</Link>
-                </li>
-                <li className={styles.li}>
                   <Link href="/view/test-events">Rock Yard</Link>
+                </li>
+                <li className={styles.li}>
+                  <span className={styles.disabled} title="Coming soon!">
+                    Artemis
+                  </span>
+                </li>
+                <li className={styles.li}>
+                  <span className={styles.disabled} title="Coming soon!">
+                    NBL
+                  </span>
+                </li>
+                <li className={styles.li}>
+                  <span className={styles.disabled} title="Coming soon!">
+                    NEEMO
+                  </span>
                 </li>
               </ul>
             </div>

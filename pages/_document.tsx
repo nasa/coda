@@ -20,6 +20,7 @@ class MyDocument extends Document {
             href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
             rel="stylesheet"
           />
+          <link rel="stylesheet" href="@fortawesome/fontawesome-free/css/regular.css" />
           <link href="/global.css" rel="stylesheet" />
         </Head>
         <body>

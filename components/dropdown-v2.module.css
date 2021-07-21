@@ -1,20 +1,35 @@
 .main {
+  border-radius: var(--radius);
   cursor: pointer;
   user-select: none;
-  border-radius: var(--radius);
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .white {
-  color: var(--dark-grey);
   background-color: white;
+  color: var(--dark-grey);
 }
 
 .grey {
-  background-color: var(--grey);
+  background-color: var(--lightest-grey);
+  color: white;
 }
 
 .label {
   display: flex;
+  height: 40px;
+  border-radius: var(--radius);
+  justify-content: space-around;
+}
+
+.caret {
+  padding-left: 3px;
+  padding-right: 10px;
 }
 
 .modal {

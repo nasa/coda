@@ -22,6 +22,10 @@
   "author": "benjamin.f.feist@nasa.gov",
   "license": "ISC",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.3",
+    "@fortawesome/fontawesome-svg-core": "^1.2.35",
+    "@fortawesome/free-solid-svg-icons": "^5.15.3",
+    "@fortawesome/react-fontawesome": "^0.1.14",
     "@reduxjs/toolkit": "^1.5.1",
     "@types/geojson": "^7946.0.7",
     "@types/mapbox-gl": "^2.1.2",
