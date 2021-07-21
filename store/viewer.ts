@@ -17,11 +17,11 @@ export const allLayouts: Layouts = {
   },
   1: {
     svg: "/icons/layout1.svg",
-    frames: 2,
+    frames: 1,
   },
   2: {
     svg: "/icons/layout1.svg",
-    frames: 6,
+    frames: 2,
   },
 };
 
