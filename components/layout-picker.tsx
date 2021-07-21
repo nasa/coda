@@ -1,3 +1,4 @@
+import _ from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
 import { changeLayout, allLayouts } from "store/viewer";
@@ -28,13 +29,13 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
         )}
       </div>
       <div className={styles.layouts}>
-        {allLayouts.map((svg, index) => (
+        {_.map(allLayouts, (layout, index) => (
           <div
             className={styles.layout}
-            onClick={(e) => handleSelectLayout(e, index)}
+            onClick={(e) => handleSelectLayout(e, +index)}
             key={`LAYOUT_${index}`}
           >
-            <img src={svg} alt={`Select layout ${index}`} />
+            <img src={layout.svg} alt={`Select layout ${index}`} />
           </div>
         ))}
       </div>
