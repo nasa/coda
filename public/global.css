@@ -4,6 +4,10 @@ body > div:first-child,
 div#__next,
 div#__next > div {
   height: 100%;
+  font-family: "Inter";
+}
+* {
+  box-sizing: border-box;
 }
 
 @font-face {
@@ -13,7 +17,16 @@ div#__next > div {
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/Inter-Regular.ttf");
+  font-weight: 500;
+  font-style: normal;
+}
+
 :root {
+  --extremely-grey: #898989;
+  --lightest-grey: #4a4c57;
   --light-grey: #4c4e5b;
   --slightly-lighter-grey: #393641;
   --grey: #383a45;

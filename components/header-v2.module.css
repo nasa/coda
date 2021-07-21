@@ -1,8 +1,18 @@
 .main {
   display: flex;
   height: 50px;
+  padding-top: 6px;
 }
 
-.layouts {
+.item > * {
+  height: 40px;
+}
+
+.item:not(:first-of-type) {
   margin-left: 3px;
+}
+
+.layoutIcon {
+  margin: 10px 0 10px 10px;
+  height: 15px;
 }

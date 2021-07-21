@@ -92,3 +92,7 @@
   display: inline-block;
   width: 100%;
 }
+
+.disabled {
+  color: var(--extremely-grey);
+}
