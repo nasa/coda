@@ -32,9 +32,19 @@
   padding-right: 10px;
 }
 
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  cursor: default;
+}
+
 .modal {
   position: fixed;
-  top: 50px;
+  top: 53px;
+  left: 45px;
 }
 
 @keyframes rotate-up {
