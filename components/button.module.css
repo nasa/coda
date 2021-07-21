@@ -12,3 +12,9 @@
   border: solid var(--grey);
   color: white;
 }
+
+.lightest-grey {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: white;
+}

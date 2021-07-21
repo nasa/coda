@@ -34,17 +34,29 @@ const pseudoDefaults: PseudoOptions = {
   caret: "down",
 };
 
+const oppositeCarets = {
+  down: "up",
+  up: "down",
+  left: "right",
+  right: "left",
+};
+
 /** A menu with a down caret that opens a modal below */
 export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) {
   const opts = { ...pseudoDefaults, ...options };
   const [display, setDisplay] = useState(false);
+
+  let caretStyle = styles[opts.caret];
+  if (display) {
+    caretStyle = styles[oppositeCarets[opts.caret]];
+  }
 
   return (
     <div className={styles.main}>
       <div className={`${styles.label} ${styles[opts.color]}`} onClick={() => setDisplay(!display)}>
         <div className={styles.verticalCenter}>{opts.children}</div>
         <div className={styles.verticalCenter}>
-          <div className={`${styles[opts.caret]} ${styles.caret}`}>
+          <div className={`${caretStyle} ${styles.caret}`}>
             &nbsp;
             <FontAwesomeIcon icon="chevron-down" />
           </div>

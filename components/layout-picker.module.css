@@ -1,6 +1,6 @@
 .main {
   background-color: var(--slightly-lighter-grey);
-  width: 250px; /* TODO: designs have it at 263 */
+  width: 263px;
   height: 400px;
   padding: 15px 18px;
   border-radius: var(--radius);
@@ -12,4 +12,28 @@
 .top {
   display: flex;
   justify-content: space-between;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.layouts {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.layout {
+  margin-bottom: 15px;
+}
+
+.layout:last-of-type {
+  margin-bottom: 0;
+}
+
+.layout > * {
+  color: var(--light-grey);
+  width: 100px;
 }
