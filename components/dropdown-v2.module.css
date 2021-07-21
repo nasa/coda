@@ -37,6 +37,24 @@
   top: 50px;
 }
 
+@keyframes rotate-up {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotateX(180deg);
+  }
+}
+
+@keyframes rotate-down {
+  0% {
+    transform: rotateX(180deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
 .right {
   transform: rotate(270deg);
 }
@@ -46,9 +64,13 @@
 }
 
 .up {
-  transform: rotate(180deg);
+  animation-name: rotate-up;
+  animation-duration: 0.2s;
+  transform: rotateX(180deg);
 }
 
 .down {
-  transform: rotate(0deg);
+  animation-name: rotate-down;
+  animation-duration: 0.2s;
+  transform: rotate(0);
 }
