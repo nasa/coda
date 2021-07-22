@@ -42,7 +42,6 @@
   display: flex;
   border-radius: var(--radius);
   justify-content: space-between;
-  padding-left: 13px;
   text-transform: uppercase;
 }
 
