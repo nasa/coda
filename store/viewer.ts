@@ -69,14 +69,18 @@ export const allFrames: Frames = {
 export interface ViewerState {
   /** Number representing the layout ID */
   layout: number;
+  /** Current mapping of visible frames to Frame types */
   frames: {
-    [key: number]: Frame;
+    [key: number]: number;
   };
+  /** Currently supports `iss` or `test-events` */
+  selectedSource: string;
 }
 
 export const initialState: ViewerState = {
   layout: 0,
   frames: {},
+  selectedSource: "iss",
 };
 
 export const viewerSlice = createSlice({
