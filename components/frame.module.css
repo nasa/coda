@@ -6,7 +6,7 @@
 
 .header {
   display: flex;
-  justify-content: start;
+  justify-content: flex-start;
   height: 35px;
   background-color: var(--nearly-black);
   padding: 4px 6px;
