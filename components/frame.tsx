@@ -48,13 +48,13 @@ const frameTypeIDsToRenders = {
 };
 
 const frameTypeIDsToControls = {
-  0: () => <>0: ISS Video Downlink</>,
-  1: () => <>1: ISS Video Non-Downlink</>,
-  2: () => <>2: ISS Photography</>,
-  3: () => <>3: ISS Groundtrack</>,
+  0: () => <>Controls: ISS Video Downlink</>,
+  1: () => <>Controls: ISS Video Non-Downlink</>,
+  2: () => <>Controls: ISS Photography</>,
+  3: () => <>Controls: ISS Groundtrack</>,
   4: EVAInfoControls,
-  5: () => <>5: Doug</>,
-  6: () => <>6: ISS Telemetry</>,
+  5: () => <>Controls: Doug</>,
+  6: () => <>Controls: ISS Telemetry</>,
 };
 
 /** Identify the frame */

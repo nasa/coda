@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import _ from "lodash";
+import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -51,14 +52,31 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
   const opts = { ...pseudoDefaults, ...options };
   const [display, setDisplay] = useState(false);
 
+  const modalRef = useRef(null) as MutableRefObject<HTMLInputElement>;
+  const labelRef = useRef(null) as MutableRefObject<HTMLInputElement>;
+
   // TODO: it would be nice to grab the width when it first renders and use that to fix the width
   //       when the modal is expanded. right now you have to fix the width in the containing element
 
-  const toggleDropdown = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const toggleDisplay = (e) => {
+    let t = e.target;
+    if (!_.isNil(t) && (!modalRef.current.contains(t) || labelRef.current.contains(t))) {
+      setDisplay(!display);
+    }
+  };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     setDisplay(!display);
   };
+
+  useEffect(() => {
+    if (display) {
+      window.addEventListener("click", toggleDisplay, { once: true });
+    } else {
+      window.removeEventListener("click", toggleDisplay);
+    }
+  }, [display]);
 
   let caretStyle = styles[opts.caret];
   if (display) {
@@ -68,15 +86,10 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
   const colorClass = styles[opts.color];
   const sizeClass = styles[opts.size];
 
-  // TODO: maybe raise the z-index of .main when the modal is displayed so that it is on top of
-  //       .background and keeps cursor: pointer
-
-  // TODO: instead of using .background, just set a listener on the window
-
   return (
     <div>
-      <button className={styles.main}>
-        <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={toggleDropdown}>
+      <button className={styles.main} ref={labelRef}>
+        <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={handleClick}>
           <div className={styles.verticalCenter}>{opts.children}</div>
           <div className={styles.verticalCenter}>
             <div className={`${caretStyle} ${styles.caret}`}>
@@ -86,13 +99,8 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
             </div>
           </div>
         </div>
-        <div
-          className={styles.background}
-          style={{ display: display ? "block" : "none" }}
-          onClick={toggleDropdown}
-        />
       </button>
-      <div className={styles.modal} style={{ display: display ? "block" : "none" }}>
+      <div className={styles.modal} style={{ display: display ? "block" : "none" }} ref={modalRef}>
         <opts.modal closeClick={() => setDisplay(!display)} options={opts.modalOptions} />
       </div>
     </div>
