@@ -23,8 +23,15 @@
 
 .icon {
   border-radius: var(--radius);
+  width: 22px;
   margin: 3px 10px 3px 3px;
-  padding: 1px 3px;
+  padding-top: 3px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.icon > * {
+  display: block;
 }
 
 .verticalCenter {

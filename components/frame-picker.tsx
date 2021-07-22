@@ -4,6 +4,7 @@ import {
   faGlobeAmericas,
   faChartLine,
   faShareSquare,
+  faInfo,
   faLayerGroup,
   faSquare,
   faVideo,
@@ -14,7 +15,16 @@ import { useSelector } from "react-redux";
 import { allFrames } from "store/viewer";
 import styles from "./frame-picker.module.css";
 
-library.add(faCamera, faChartLine, faGlobeAmericas, faLayerGroup, faShareSquare, faSquare, faVideo);
+library.add(
+  faCamera,
+  faChartLine,
+  faGlobeAmericas,
+  faInfo,
+  faLayerGroup,
+  faShareSquare,
+  faSquare,
+  faVideo
+);
 
 const frameDecoration = {
   0: {
@@ -34,7 +44,7 @@ const frameDecoration = {
     color: "purple",
   },
   4: {
-    icon: "chart-line",
+    icon: "info",
     color: "mustardGreen",
   },
   5: {
