@@ -27,7 +27,7 @@ export function LayoutDropdown() {
 export function SourcesDropdown() {
   return (
     <PseudoDropdown modal={LayoutPicker} color="grey" caret="down">
-      <span className={styles.sourcesSelector}>ISS</span>
+      <span>ISS</span>
     </PseudoDropdown>
   );
 }
@@ -38,10 +38,10 @@ export default function Header() {
       <div className={styles.item}>
         <HamburgerMenu />
       </div>
-      <div className={styles.item}>
+      <div className={styles.item} style={{ width: "72px" }}>
         <LayoutDropdown />
       </div>
-      <div className={styles.item}>
+      <div className={styles.item} style={{ width: "87px" }}>
         <SourcesDropdown />
       </div>
     </div>

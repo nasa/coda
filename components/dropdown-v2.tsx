@@ -25,12 +25,15 @@ export default function Dropdown(options: React.PropsWithChildren<Options>) {
 
 export interface PseudoOptions {
   color?: string;
+  /** `default` or `skinny` */
+  size?: string;
   modal?: ({ closeClick }: { closeClick: () => void }) => JSX.Element;
   caret?: string;
 }
 
 const pseudoDefaults: PseudoOptions = {
   color: "white",
+  size: "default",
   caret: "down",
 };
 
@@ -46,6 +49,9 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
   const opts = { ...pseudoDefaults, ...options };
   const [display, setDisplay] = useState(false);
 
+  // TODO: it would be nice to grab the width when it first renders and use that to fix the width
+  //       when the modal is expanded. right now you have to fix the width in the containing element
+
   const toggleDropdown = (e: React.MouseEvent) => {
     e.preventDefault();
 
@@ -57,25 +63,29 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
     caretStyle = styles[oppositeCarets[opts.caret]];
   }
 
+  const colorClass = styles[opts.color];
+  const sizeClass = styles[opts.size];
+
   return (
-    <div className={styles.main}>
-      <div className={`${styles.label} ${styles[opts.color]}`} onClick={toggleDropdown}>
-        <div className={styles.verticalCenter}>{opts.children}</div>
-        <div className={styles.verticalCenter}>
-          <div className={`${caretStyle} ${styles.caret}`}>
-            &nbsp;
-            <FontAwesomeIcon icon="chevron-down" />
+    <div>
+      <div className={styles.main}>
+        <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={toggleDropdown}>
+          <div className={styles.verticalCenter}>{opts.children}</div>
+          <div className={styles.verticalCenter}>
+            <div className={`${caretStyle} ${styles.caret}`}>
+              &nbsp;
+              <FontAwesomeIcon icon="chevron-down" />
+            </div>
           </div>
         </div>
+        <div
+          className={styles.background}
+          style={{ display: display ? "block" : "none" }}
+          onClick={toggleDropdown}
+        />
       </div>
-      <div
-        className={styles.background}
-        style={{ display: display ? "block" : "none" }}
-        onClick={toggleDropdown}
-      >
-        <div className={styles.modal}>
-          <opts.modal closeClick={() => setDisplay(!display)} />
-        </div>
+      <div className={styles.modal} style={{ display: display ? "block" : "none" }}>
+        <opts.modal closeClick={() => setDisplay(!display)} />
       </div>
     </div>
   );
