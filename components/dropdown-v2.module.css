@@ -20,16 +20,25 @@
   color: white;
 }
 
+.default {
+  height: 40px;
+}
+
+.skinny {
+  height: 27px;
+  font-size: 14px;
+}
+
 .label {
   display: flex;
-  height: 40px;
   border-radius: var(--radius);
-  justify-content: space-around;
+  justify-content: space-between;
+  padding-left: 13px;
+  text-transform: uppercase;
 }
 
 .caret {
-  padding-left: 3px;
-  padding-right: 10px;
+  padding-right: 6px;
 }
 
 .background {
@@ -42,9 +51,9 @@
 }
 
 .modal {
-  position: fixed;
-  top: 53px;
-  left: 45px;
+  position: relative;
+  top: 10px;
+  z-index: 1; /* prevents dropdown carets from showing up on top of the modal */
 }
 
 @keyframes rotate-up {

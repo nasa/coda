@@ -6,32 +6,48 @@ import { createSlice } from "@reduxjs/toolkit";
 export interface Layouts {
   [key: number]: {
     svg: string;
-    frames: number;
+    frameCount: number;
   };
 }
 
 export const allLayouts: Layouts = {
   0: {
     svg: "/icons/layout1.svg",
-    frames: 6,
+    frameCount: 6,
   },
   1: {
     svg: "/icons/layout1.svg",
-    frames: 1,
+    frameCount: 1,
   },
   2: {
     svg: "/icons/layout1.svg",
-    frames: 2,
+    frameCount: 2,
   },
 };
+
+export interface Frame {
+  type?: string;
+  source?: string;
+}
 
 export interface ViewerState {
   /** Number representing the layout ID */
   layout: number;
+  frames: {
+    [key: number]: Frame;
+  };
 }
 
 export const initialState: ViewerState = {
   layout: 0,
+  frames: {
+    1: {},
+    2: {},
+    3: {},
+    4: {},
+    5: {},
+    6: {},
+  },
 };
 
 export const viewerSlice = createSlice({
