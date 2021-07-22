@@ -1,7 +1,15 @@
 .main {
   border-radius: var(--radius);
+  border: none;
   cursor: pointer;
   user-select: none;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.main:active {
+  border: none;
 }
 
 .verticalCenter {
@@ -22,6 +30,7 @@
 
 .default {
   height: 40px;
+  font-size: 18px;
 }
 
 .skinny {
