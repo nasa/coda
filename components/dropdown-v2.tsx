@@ -68,7 +68,7 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
 
   return (
     <div>
-      <div className={styles.main}>
+      <button className={styles.main}>
         <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={toggleDropdown}>
           <div className={styles.verticalCenter}>{opts.children}</div>
           <div className={styles.verticalCenter}>
@@ -83,7 +83,7 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
           style={{ display: display ? "block" : "none" }}
           onClick={toggleDropdown}
         />
-      </div>
+      </button>
       <div className={styles.modal} style={{ display: display ? "block" : "none" }}>
         <opts.modal closeClick={() => setDisplay(!display)} />
       </div>
