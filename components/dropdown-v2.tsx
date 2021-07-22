@@ -71,6 +71,8 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
   // TODO: maybe raise the z-index of .main when the modal is displayed so that it is on top of
   //       .background and keeps cursor: pointer
 
+  // TODO: instead of using .background, just set a listener on the window
+
   return (
     <div>
       <button className={styles.main}>

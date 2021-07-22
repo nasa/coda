@@ -38,6 +38,11 @@
   font-size: 14px;
 }
 
+.medium {
+  height: 29px;
+  font-size: 19px;
+}
+
 .label {
   display: flex;
   border-radius: var(--radius);
