@@ -49,6 +49,10 @@
   padding-right: 6px;
 }
 
+.none {
+  display: none;
+}
+
 .background {
   position: absolute;
   top: 0;
@@ -82,12 +86,34 @@
   }
 }
 
+@keyframes rotate-left {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+@keyframes rotate-right {
+  0% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
 .right {
-  transform: rotate(270deg);
+  animation-name: rotate-right;
+  animation-duration: 0.2s;
+  transform: rotateY(0deg);
 }
 
 .left {
-  transform: rotate(90deg);
+  animation-name: rotate-left;
+  animation-duration: 0.2s;
+  transform: rotateY(180deg);
 }
 
 .up {

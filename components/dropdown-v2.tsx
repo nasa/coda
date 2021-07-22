@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-v2.module.css";
 
-library.add(faChevronDown);
+library.add(faChevronDown, faChevronRight);
 
 export interface Options {
   color?: string;
@@ -76,7 +76,8 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
           <div className={styles.verticalCenter}>
             <div className={`${caretStyle} ${styles.caret}`}>
               &nbsp;
-              <FontAwesomeIcon icon="chevron-down" />
+              {opts.caret === "down" && <FontAwesomeIcon icon="chevron-down" />}
+              {opts.caret === "right" && <FontAwesomeIcon icon="chevron-right" />}
             </div>
           </div>
         </div>

@@ -16,3 +16,18 @@
   padding-left: 13px;
   height: 15px;
 }
+
+.mono {
+  font-family: "Roboto Mono", Courier, monospace;
+}
+
+.iconWithText {
+  padding-left: 10px;
+  font-size: 19px;
+}
+
+.time {
+  display: inline-block;
+  border-radius: var(--radius);
+  border: 1px solid var(--extremely-grey);
+}
