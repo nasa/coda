@@ -43,6 +43,15 @@
   font-size: 19px;
 }
 
+.dot {
+  position: fixed;
+  margin-top: -5px;
+}
+
+.orange {
+  color: var(--orange);
+}
+
 .grey {
   background-color: var(--lighter-grey);
 }
