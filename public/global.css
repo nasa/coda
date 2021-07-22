@@ -41,13 +41,11 @@ div#__next > div {
   --dark-grey: #313131;
   --nearly-black: #2e2b34;
 
-  --teal: #097597;
-
   --ruby: #950b5e;
-
-  --purple: #1a1e83;
-
+  --orange: #ffa800;
   --mustard-green: #6e831a;
+  --teal: #097597;
+  --purple: #1a1e83;
 
   --radius: 3px;
 }

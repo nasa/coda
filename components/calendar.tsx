@@ -1,10 +1,9 @@
 import { useSelector } from "react-redux";
 import { PseudoDropdown } from "components/dropdown-v2";
 import { RootState } from "store/index";
-import styles from "./calendar.module.css";
-import { isNull } from "lodash";
-import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { isSameDate } from "store/playhead";
+import { SequencesEntityState, sequencesSelector } from "store/sequences";
+import styles from "./calendar.module.css";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -35,8 +34,11 @@ export function CalendarDate({ description }: { description: DateDescription }) 
   }
 
   return (
-    <div className={classes.join(" ")}>
-      <div className={styles.verticalCenter}>{description.date}</div>
+    <div>
+      {description.hasEVA && <div className={`${styles.dot} ${styles.orange}`}>•</div>}
+      <div className={classes.join(" ")}>
+        <div className={styles.verticalCenter}>{description.date}</div>
+      </div>
     </div>
   );
 }
@@ -74,7 +76,8 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       inMonth,
       isToday,
       isLater,
-      hasEVA: seqIndex >= 0,
+      // hasEVA: seqIndex >= 0,
+      hasEVA: true,
     });
     iterDate.setUTCDate(d + 1);
   }
@@ -105,6 +108,9 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
         {datesToRender.map((d) => {
           return <CalendarDate description={d} />;
         })}
+      </div>
+      <div className={styles.events}>
+        <div className={`${styles.orange}`}>•</div> EVA
       </div>
     </div>
   );
