@@ -27,14 +27,16 @@ export interface PseudoOptions {
   color?: string;
   /** `default` or `skinny` */
   size?: string;
-  modal?: ({ closeClick }: { closeClick: () => void }) => JSX.Element;
   caret?: string;
+  modal?: ({ closeClick, options }: { closeClick?: () => void; options: any }) => JSX.Element;
+  modalOptions?: any;
 }
 
 const pseudoDefaults: PseudoOptions = {
   color: "white",
   size: "default",
   caret: "down",
+  modalOptions: {},
 };
 
 const oppositeCarets = {
@@ -85,7 +87,7 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
         />
       </button>
       <div className={styles.modal} style={{ display: display ? "block" : "none" }}>
-        <opts.modal closeClick={() => setDisplay(!display)} />
+        <opts.modal closeClick={() => setDisplay(!display)} options={opts.modalOptions} />
       </div>
     </div>
   );

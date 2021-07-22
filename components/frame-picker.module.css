@@ -7,22 +7,27 @@
 
 .item {
   display: flex;
-  height: 28px;
-  cursor: pointer;
-  padding-left: 15px;
-  font-size: 15px;
+  padding: 0;
 }
 
-.item:not(:last-of-type) {
+.option {
+  height: 28px;
+  cursor: pointer;
+  font-size: 15px;
+  padding-left: 15px;
+}
+
+.option:not(:last-of-type) {
   border-bottom: 1px solid var(--nearly-black);
 }
 
-.item:hover {
+.option:hover {
   background-color: var(--extremely-grey);
 }
 
 .icon {
   border-radius: var(--radius);
+  height: 21px;
   width: 22px;
   margin: 3px 10px 3px 3px;
   padding-top: 3px;

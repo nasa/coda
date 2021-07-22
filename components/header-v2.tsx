@@ -27,7 +27,7 @@ export function LayoutDropdown() {
 export function SourcesDropdown() {
   return (
     <PseudoDropdown modal={LayoutPicker} color="grey" caret="down">
-      <span>ISS</span>
+      <span>&nbsp;ISS</span>
     </PseudoDropdown>
   );
 }

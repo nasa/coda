@@ -93,7 +93,14 @@ export const viewerSlice = createSlice({
     changeLayout: (state, action: { payload: number }) => {
       state.layout = action.payload;
     },
+
+    /**
+     * Select the type of frame to render in a frame
+     */
+    selectFrameType: (state, action: { payload: { frameID: number; frameTypeID: number } }) => {
+      state.frames[action.payload.frameID] = action.payload.frameTypeID;
+    },
   },
 });
 
-export const { changeLayout } = viewerSlice.actions;
+export const { changeLayout, selectFrameType } = viewerSlice.actions;
