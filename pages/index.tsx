@@ -40,7 +40,7 @@ export default function Index() {
                   <Link href="/view">ISS</Link>
                 </li>
                 <li className={styles.li}>
-                  <Link href="/view/test-events">Rock Yard</Link>
+                  <Link href="/view/test-events">JSC Rock Yard</Link>
                 </li>
                 <li className={styles.li}>
                   <span className={styles.disabled} title="Coming soon!">

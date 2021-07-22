@@ -1,0 +1,50 @@
+.main {
+  width: 275px;
+  border-radius: var(--radius);
+  background-color: var(--lightest-grey);
+  text-transform: uppercase;
+}
+
+.item {
+  display: flex;
+  height: 28px;
+  cursor: pointer;
+  padding-left: 15px;
+  font-size: 15px;
+}
+
+.item:not(:last-of-type) {
+  border-bottom: 1px solid var(--nearly-black);
+}
+
+.item:hover {
+  background-color: var(--extremely-grey);
+}
+
+.icon {
+  border-radius: var(--radius);
+  margin: 3px 10px 3px 3px;
+  padding: 1px 3px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.teal {
+  background-color: var(--teal);
+}
+
+.ruby {
+  background-color: var(--ruby);
+}
+
+.purple {
+  background-color: var(--purple);
+}
+
+.mustardGreen {
+  background-color: var(--mustard-green);
+}
