@@ -26,9 +26,45 @@ export const allLayouts: Layouts = {
 };
 
 export interface Frame {
-  type?: string;
-  source?: string;
+  title: string;
+  source: string;
+  state?: any;
 }
+
+export interface Frames {
+  [key: number]: Frame;
+}
+
+export const allFrames: Frames = {
+  0: {
+    title: "ISS Video Downlink",
+    source: "iss",
+  },
+  1: {
+    title: "ISS Video Non-Downlink",
+    source: "iss",
+  },
+  2: {
+    title: "ISS Photography",
+    source: "iss",
+  },
+  3: {
+    title: "ISS Groundtrack",
+    source: "iss",
+  },
+  4: {
+    title: "EVA Info",
+    source: "iss",
+  },
+  5: {
+    title: "DOUG",
+    source: "iss",
+  },
+  6: {
+    title: "ISS Telemetry",
+    source: "iss",
+  },
+};
 
 export interface ViewerState {
   /** Number representing the layout ID */
@@ -40,14 +76,7 @@ export interface ViewerState {
 
 export const initialState: ViewerState = {
   layout: 0,
-  frames: {
-    1: {},
-    2: {},
-    3: {},
-    4: {},
-    5: {},
-    6: {},
-  },
+  frames: {},
 };
 
 export const viewerSlice = createSlice({

@@ -1,17 +1,61 @@
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCamera, faGlobeAmericas, faVideo } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCamera,
+  faGlobeAmericas,
+  faChartLine,
+  faShareSquare,
+  faLayerGroup,
+  faSquare,
+  faVideo,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import _ from "lodash";
+import { allFrames } from "store/viewer";
 import styles from "./frame-picker.module.css";
 
-library.add(faCamera, faGlobeAmericas, faVideo);
+library.add(faCamera, faChartLine, faGlobeAmericas, faLayerGroup, faShareSquare, faSquare, faVideo);
 
-export function FrameSelection() {
+const frameDecoration = {
+  0: {
+    icon: "video",
+    color: "teal",
+  },
+  1: {
+    icon: "video",
+    color: "teal",
+  },
+  2: {
+    icon: "camera",
+    color: "ruby",
+  },
+  3: {
+    icon: "globe-americas",
+    color: "purple",
+  },
+  4: {
+    icon: "chart-line",
+    color: "mustard-green",
+  },
+  5: {
+    icon: "layer-group",
+    color: "mustgard-green",
+  },
+  6: {
+    icon: "chart-line",
+    color: "mustard-green",
+  },
+};
+
+export function FrameSelection({ id }: { id: number }) {
+  const { title } = allFrames[id];
+  const { icon, color } = frameDecoration[id];
+
   return (
     <div className={styles.item}>
-      <div className={`${styles.icon} ${styles.teal}`}>
-        <FontAwesomeIcon icon="video" />
+      <div className={`${styles.icon} ${styles[color]}`}>
+        <FontAwesomeIcon icon={icon} />
       </div>
-      <div className={styles.verticalCenter}>ISS Video Downlink</div>
+      <div className={styles.verticalCenter}>{title}</div>
     </div>
   );
 }
@@ -19,48 +63,9 @@ export function FrameSelection() {
 export default function FramePicker() {
   return (
     <div className={styles.main}>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.teal}`}>
-          <FontAwesomeIcon icon="video" />
-        </div>
-        <div className={styles.verticalCenter}>ISS Video Downlink</div>
-      </div>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.teal}`}>
-          <FontAwesomeIcon icon="video" />
-        </div>
-        <div className={styles.verticalCenter}>ISS Video Non-Downlink</div>
-      </div>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.ruby}`}>
-          <FontAwesomeIcon icon="camera" />
-        </div>
-        <div className={styles.verticalCenter}>ISS Photography</div>
-      </div>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.purple}`}>
-          <FontAwesomeIcon icon="globe-americas" />
-        </div>
-        <div className={styles.verticalCenter}>ISS Groundtrack</div>
-      </div>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.mustardGreen}`}>
-          <FontAwesomeIcon icon="video" />
-        </div>
-        <div className={styles.verticalCenter}>EVA Info</div>
-      </div>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.mustardGreen}`}>
-          <FontAwesomeIcon icon="video" />
-        </div>
-        <div className={styles.verticalCenter}>DOUG</div>
-      </div>
-      <div className={styles.item}>
-        <div className={`${styles.icon} ${styles.mustardGreen}`}>
-          <FontAwesomeIcon icon="video" />
-        </div>
-        <div className={styles.verticalCenter}>ISS Telemetry</div>
-      </div>
+      {Object.keys(allFrames).map((id) => (
+        <FrameSelection id={+id} />
+      ))}
     </div>
   );
 }
