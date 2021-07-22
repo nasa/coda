@@ -76,20 +76,36 @@ export function ClockDropdown() {
 export default function Header() {
   return (
     <div className={styles.main}>
-      <div className={styles.item}>
-        <HamburgerMenu />
+      <div className={styles.left}>
+        <div className={styles.item}>
+          <HamburgerMenu />
+        </div>
+        <div className={styles.item} style={{ width: "72px" }}>
+          <LayoutDropdown />
+        </div>
+        <div className={styles.item} style={{ width: "87px" }}>
+          <SourcesDropdown />
+        </div>
+        <div className={styles.item} style={{ width: "197px" }}>
+          <DatetimeDropdown />
+        </div>
+        <div className={styles.item} style={{ width: "150px" }}>
+          <ClockDropdown />
+        </div>
       </div>
-      <div className={styles.item} style={{ width: "72px" }}>
-        <LayoutDropdown />
-      </div>
-      <div className={styles.item} style={{ width: "87px" }}>
-        <SourcesDropdown />
-      </div>
-      <div className={styles.item} style={{ width: "197px" }}>
-        <DatetimeDropdown />
-      </div>
-      <div className={styles.item} style={{ width: "150px" }}>
-        <ClockDropdown />
+      <div className={styles.right}>
+        <div className={styles.verticalCenter}>
+          <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+        </div>
+        <div className={styles.verticalCenter}>
+          <span className={styles.wordMark}>CODA</span>
+        </div>
+        <div className={styles.verticalCenter} style={{ color: "var(--lightest-grey)" }}>
+          <span className={styles.wordMark}>|</span>
+        </div>
+        <div className={styles.verticalCenter}>
+          <span className={styles.wordMark}>EMSS</span>
+        </div>
       </div>
     </div>
   );

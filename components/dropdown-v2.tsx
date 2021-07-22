@@ -68,6 +68,9 @@ export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) 
   const colorClass = styles[opts.color];
   const sizeClass = styles[opts.size];
 
+  // TODO: maybe raise the z-index of .main when the modal is displayed so that it is on top of
+  //       .background and keeps cursor: pointer
+
   return (
     <div>
       <button className={styles.main}>
