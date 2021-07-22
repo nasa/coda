@@ -76,8 +76,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       inMonth,
       isToday,
       isLater,
-      // hasEVA: seqIndex >= 0,
-      hasEVA: true,
+      hasEVA: seqIndex >= 0,
     });
     iterDate.setUTCDate(d + 1);
   }
@@ -105,8 +104,12 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
         </div>
       </div>
       <div className={styles.days}>
-        {datesToRender.map((d) => {
-          return <CalendarDate description={d} />;
+        {datesToRender.map((d, index) => {
+          return (
+            <div key={`CALENDAR_DATE__${yyyy}${mm}${index}`}>
+              <CalendarDate description={d} />
+            </div>
+          );
         })}
       </div>
       <div className={styles.events}>
