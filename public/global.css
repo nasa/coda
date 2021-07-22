@@ -24,10 +24,18 @@ div#__next > div {
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Roboto Mono";
+  src: url("/fonts/RobotoMono/RobotoMono-SemiBold.ttf");
+  font-weight: 500;
+  font-style: normal;
+}
+
 :root {
   --extremely-grey: #898989;
   --lightest-grey: #4a4c57;
   --light-grey: #4c4e5b;
+  --lighter-grey: #474955;
   --slightly-lighter-grey: #393641;
   --grey: #383a45;
   --dark-grey: #313131;
