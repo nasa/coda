@@ -101,6 +101,7 @@ export default function Header() {
           <span className={styles.wordMark}>CODA</span>
         </div>
         <div className={styles.verticalCenter} style={{ color: "var(--lightest-grey)" }}>
+          {/* TODO: this should be a skinny line, not a pipe character */}
           <span className={styles.wordMark}>|</span>
         </div>
         <div className={styles.verticalCenter}>
