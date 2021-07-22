@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
+import { useSelector } from "react-redux";
 import { allFrames } from "store/viewer";
 import styles from "./frame-picker.module.css";
 
@@ -34,15 +35,15 @@ const frameDecoration = {
   },
   4: {
     icon: "chart-line",
-    color: "mustard-green",
+    color: "mustardGreen",
   },
   5: {
     icon: "layer-group",
-    color: "mustgard-green",
+    color: "mustardGreen",
   },
   6: {
     icon: "chart-line",
-    color: "mustard-green",
+    color: "mustardGreen",
   },
 };
 
@@ -61,11 +62,19 @@ export function FrameSelection({ id }: { id: number }) {
 }
 
 export default function FramePicker() {
+  const selectedSource = useSelector((state) => state.viewer.selectedSource);
+
+  const availableFrames = Object.keys(allFrames).filter(
+    (id) => allFrames[id].source === selectedSource
+  );
+
   return (
     <div className={styles.main}>
-      {Object.keys(allFrames).map((id) => (
-        <FrameSelection id={+id} />
-      ))}
+      {availableFrames.length > 0 ? (
+        availableFrames.map((id) => <FrameSelection id={+id} />)
+      ) : (
+        <span>No available sources</span>
+      )}
     </div>
   );
 }
