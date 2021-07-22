@@ -1,7 +1,39 @@
 .main {
   display: flex;
+  justify-content: space-between;
   height: 50px;
   padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.left {
+  display: flex;
+}
+
+.right {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 10px;
+}
+
+.right > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.meatball {
+  height: 35px;
+}
+
+.wordMark {
+  font-family: "Aldrich";
+  font-weight: 400;
+  font-size: 26px;
 }
 
 .item > * {
