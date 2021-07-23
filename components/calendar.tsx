@@ -43,9 +43,6 @@ export function MonthsModal({
 }) {
   const [yyyy, mm] = visibleYearMonth.split("-");
   const zeroIndexedMonth = +mm - 1;
-  const visibleMonth = allMonths[zeroIndexedMonth];
-  // const firstOfMonth = new Date(`${visibleYearMonth}-01T00:00Z`);
-  // const yyyy = firstOfMonth.getUTCFullYear();
 
   return (
     <div className={styles.monthModal}>
@@ -63,6 +60,53 @@ export function MonthsModal({
               <span style={{ display: index === zeroIndexedMonth ? "inline" : "none" }}>✓</span>
             </span>
             <span>{month}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function YearsModal({
+  closeClick,
+  options: { visibleYearMonth, setVisibleYearMonth },
+}: {
+  closeClick?: () => void;
+  options: {
+    visibleYearMonth: string;
+    setVisibleYearMonth: (ym: string) => void;
+  };
+}) {
+  const [yyyy, mm] = visibleYearMonth.split("-");
+
+  const now = new Date();
+  const nowYear = now.getUTCFullYear();
+  const issLaunch = new Date("2000-01-01T00:00Z");
+  const issLaunchYear = issLaunch.getUTCFullYear();
+
+  const years = [];
+  for (let i = issLaunchYear; i <= nowYear; i++) {
+    years.push(i);
+  }
+
+  return (
+    <div className={styles.monthModal}>
+      {years.map((_, i) => {
+        const year = nowYear - i;
+
+        return (
+          <div
+            className={styles.option}
+            onClick={(e) => {
+              e.preventDefault();
+              setVisibleYearMonth(`${year}-${mm}`);
+              closeClick();
+            }}
+          >
+            <span className={styles.checkbox}>
+              <span style={{ display: year === +yyyy ? "inline" : "none" }}>✓</span>
+            </span>
+            <span>{year}</span>
           </div>
         );
       })}
@@ -206,7 +250,12 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
           </ModalDropdown>
         </div>
         <div style={{ width: "104px", height: "29px" }}>
-          <ModalDropdown size="medium" color="grey" modal={() => <>foo</>}>
+          <ModalDropdown
+            size="medium"
+            color="grey"
+            modal={YearsModal}
+            modalOptions={{ visibleYearMonth, setVisibleYearMonth }}
+          >
             <>&nbsp;{yyyy}</>
           </ModalDropdown>
         </div>
