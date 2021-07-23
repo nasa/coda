@@ -13,6 +13,7 @@ import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 library.add(faCalendarAlt, faClock, faHamburger);
 
 export function HamburgerMenu() {
+  // TODO: should be "bars" icon
   return (
     <Button color="lightest-grey">
       <FontAwesomeIcon icon="hamburger" />
