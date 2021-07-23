@@ -32,6 +32,7 @@ div#__next > div {
 }
 
 :root {
+  --even-greyer: #abaaae;
   --extremely-grey: #898989;
   --lightest-grey: #4a4c57;
   --light-grey: #4c4e5b;
