@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCalendarAlt, faClock, faHamburger } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCalendarAlt, faClock } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/button";
 import Calendar from "components/calendar";
@@ -10,13 +10,12 @@ import { RootState } from "store/index";
 import styles from "./header-v2.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 
-library.add(faCalendarAlt, faClock, faHamburger);
+library.add(faBars, faCalendarAlt, faClock);
 
 export function HamburgerMenu() {
-  // TODO: should be "bars" icon
   return (
     <Button color="lightest-grey">
-      <FontAwesomeIcon icon="hamburger" />
+      <FontAwesomeIcon icon="bars" />
     </Button>
   );
 }
