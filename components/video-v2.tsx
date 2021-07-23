@@ -5,22 +5,25 @@ export function VideoControls() {
   const downlinks = [1, 2, 3, 4, 5, 6];
   return (
     <div className={styles.controls}>
-      {downlinks.map((d) => {
-        let rounded = "none";
-        if (d === 1) {
-          rounded = "left";
-        } else if (d === 6) {
-          rounded = "right";
-        }
+      <div className={styles.selections}>
+        {downlinks.map((d) => {
+          let rounded = "none";
+          if (d === 1) {
+            rounded = "left";
+          } else if (d === 6) {
+            rounded = "right";
+          }
 
-        return (
-          <div className={styles.dlButton}>
-            <Button color="lightest-grey" size="small" rounded={rounded}>
-              <div className={styles.dlLabel}>{d}</div>
-            </Button>
-          </div>
-        );
-      })}
+          return (
+            <div className={styles.dlButton}>
+              <Button color="lightest-grey" size="small" rounded={rounded}>
+                <div className={styles.dlLabel}>{d}</div>
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+      <div>io and such</div>
     </div>
   );
 }
