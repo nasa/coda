@@ -1,11 +1,12 @@
 import _ from "lodash";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PseudoDropdown } from "components/dropdown-v2";
+import Dropdown, { ModalDropdown } from "components/dropdown-v2";
 import { RootState } from "store/index";
 import { changeDate, diff, isSameDate } from "store/playhead";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import type { Sequence } from "typings/index";
+import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
@@ -13,13 +14,71 @@ const monthOnly: Intl.DateTimeFormatOptions = {
   timeZone: "UTC",
 };
 
-export function MonthsModal() {}
+const intlMonthOnly = new Intl.DateTimeFormat("en-CODA", monthOnly);
+
+const allMonths = [
+  "JANUARY",
+  "FEBRUARY",
+  "MARCH",
+  "APRIL",
+  "MAY",
+  "JUNE",
+  "JULY",
+  "AUGUST",
+  "SEPTEMBER",
+  "OCTOBER",
+  "NOVEMBER",
+  "DECEMBER",
+];
+
+export function MonthsModal({
+  closeClick,
+  options: { visibleYearMonth, setVisibleYearMonth },
+}: {
+  closeClick?: () => void;
+  options: {
+    visibleYearMonth: string;
+    setVisibleYearMonth: (ym: string) => void;
+  };
+}) {
+  const [yyyy, mm] = visibleYearMonth.split("-");
+  const zeroIndexedMonth = +mm - 1;
+  const visibleMonth = allMonths[zeroIndexedMonth];
+  // const firstOfMonth = new Date(`${visibleYearMonth}-01T00:00Z`);
+  // const yyyy = firstOfMonth.getUTCFullYear();
+
+  return (
+    <div className={styles.monthModal}>
+      {allMonths.map((month, index) => {
+        return (
+          <div
+            className={styles.option}
+            onClick={(e) => {
+              e.preventDefault();
+              setVisibleYearMonth(`${yyyy}-${padZeros(index + 1, 2)}`);
+              closeClick();
+            }}
+          >
+            <span className={styles.checkbox}>
+              <span style={{ display: index === zeroIndexedMonth ? "inline" : "none" }}>✓</span>
+            </span>
+            <span>{month}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 interface DateDescription {
   date: Date;
+  /** Is today's calendar date. TODO: should it be "Is the playhead date"? */
   isToday: boolean;
+  /** In the same month that's visible */
   inMonth: boolean;
+  /** Is a date in the future */
   isLater: boolean;
+  /** The EVA happening on a date (when applicable; `undefined` otherwise) */
   EVA: Sequence;
 }
 
@@ -76,28 +135,39 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
 
-  const today = new Date();
-  const date = new Date(playheadDate);
-
   const allSequences = sequencesSelector.selectAll(sequences);
 
-  const monthString = new Intl.DateTimeFormat("en-CODA", monthOnly).format(date);
-  const yyyy = date.getUTCFullYear();
-  const mm = date.getUTCMonth();
-  const dd = date.getUTCDate();
+  const today = new Date();
+  const todayYYYY = today.getUTCFullYear();
+  const todayMM = padZeros(today.getUTCMonth() + 1, 2);
 
-  const firstOfMonth = new Date(date);
-  firstOfMonth.setUTCDate(1);
+  /** Form of 'yyyy-mm' */
+  const [visibleYearMonth, setVisibleYearMonth] = useState(`${todayYYYY}-${todayMM}`);
+
+  // if the playhead date changes, change the calendar too
+  useEffect(() => {
+    const date = new Date(playheadDate);
+    const mm = padZeros(date.getUTCMonth() + 1, 2);
+    const yyyy = date.getUTCFullYear();
+    setVisibleYearMonth(`${yyyy}-${mm}`);
+  }, [playheadDate]);
+
+  // figure out which month to render
+  const firstOfMonth = new Date(`${visibleYearMonth}-01T00:00Z`);
+  const mm = firstOfMonth.getUTCMonth();
+  const yyyy = firstOfMonth.getUTCFullYear();
   const dayOfWeek = firstOfMonth.getUTCDay();
 
+  // figure out which dates to render in the calendar
   const datesToRender: DateDescription[] = [];
   const iterDate = new Date(firstOfMonth);
   iterDate.setUTCDate(1 - dayOfWeek);
 
+  // 7 days in a week * 6 rows = 42 dates to render
   for (let i = 0; i < 42; i++) {
     const d = iterDate.getUTCDate();
     const inMonth = iterDate.getUTCMonth() === mm;
-    const isToday = inMonth && d === dd;
+    const isToday = isSameDate(iterDate, today);
     const isLater = diff(today, iterDate) < 0;
 
     const EVA = allSequences.find((seq) => isSameDate(new Date(seq.startDate), iterDate));
@@ -112,6 +182,8 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
     iterDate.setUTCDate(d + 1);
   }
 
+  const monthString = intlMonthOnly.format(firstOfMonth);
+
   return (
     <div className={styles.main}>
       <div className={styles.top}>
@@ -124,14 +196,19 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       </div>
       <div className={styles.monthAndYear}>
         <div style={{ width: "206px", height: "29px" }}>
-          <PseudoDropdown size="medium" color="grey" modal={() => <>foo</>}>
+          <ModalDropdown
+            size="medium"
+            color="grey"
+            modal={MonthsModal}
+            modalOptions={{ visibleYearMonth, setVisibleYearMonth }}
+          >
             <>&nbsp;{monthString}</>
-          </PseudoDropdown>
+          </ModalDropdown>
         </div>
         <div style={{ width: "104px", height: "29px" }}>
-          <PseudoDropdown size="medium" color="grey" modal={() => <>foo</>}>
+          <ModalDropdown size="medium" color="grey" modal={() => <>foo</>}>
             <>&nbsp;{yyyy}</>
-          </PseudoDropdown>
+          </ModalDropdown>
         </div>
       </div>
       <div className={styles.days}>
@@ -149,9 +226,9 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
           <span className={`${styles.aqua}`}>•</span> IVA or Other Event
         </div>
         <div style={{ width: "320px", height: "40px" }}>
-          <PseudoDropdown color="grey" modal={() => <>foo</>}>
+          <ModalDropdown color="grey" modal={() => <>foo</>}>
             <>&nbsp;EVA Events</>
-          </PseudoDropdown>
+          </ModalDropdown>
         </div>
       </div>
     </div>

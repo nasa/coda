@@ -9,7 +9,13 @@ library.add(faChevronDown, faChevronRight);
 
 export interface Options {
   color?: string;
+  /** `default` or `skinny` */
+  size?: string;
+  /** `up`, `down`, `left`, or `right` */
+  caret?: string;
   callback?: () => void;
+  modal?: ({ closeClick, options }: { closeClick?: () => void; options: any }) => JSX.Element;
+  modalOptions?: any;
 }
 
 const defaults: Options = {
@@ -21,19 +27,42 @@ const defaults: Options = {
 export default function Dropdown(options: React.PropsWithChildren<Options>) {
   const opts = { ...defaults, ...options };
 
-  return <>{opts.children}</>;
+  const [display, setDisplay] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDisplay(!display);
+  };
+
+  const colorClass = styles[opts.color];
+  const sizeClass = styles[opts.size];
+
+  return (
+    <div onClick={handleClick}>
+      <select
+        className={`${styles.select} ${styles.main} ${styles.label} ${colorClass} ${sizeClass}`}
+      >
+        <option className={styles.option} value="foo">
+          foo1234
+        </option>
+        <option className={styles.option} value="bar">
+          bar
+        </option>
+        <option className={styles.option} value="baz">
+          baz
+        </option>
+        <option className={styles.option} value="bang">
+          bang
+        </option>
+        <option className={styles.option} value="zip">
+          zip
+        </option>
+      </select>
+    </div>
+  );
 }
 
-export interface PseudoOptions {
-  color?: string;
-  /** `default` or `skinny` */
-  size?: string;
-  caret?: string;
-  modal?: ({ closeClick, options }: { closeClick?: () => void; options: any }) => JSX.Element;
-  modalOptions?: any;
-}
-
-const pseudoDefaults: PseudoOptions = {
+const modalDefaults: Options = {
   color: "white",
   size: "default",
   caret: "down",
@@ -48,8 +77,9 @@ const oppositeCarets = {
 };
 
 /** A menu with a down caret that opens a modal below */
-export function PseudoDropdown(options: React.PropsWithChildren<PseudoOptions>) {
-  const opts = { ...pseudoDefaults, ...options };
+export function ModalDropdown(options: React.PropsWithChildren<Options>) {
+  // TODO: Really should be a ModalDropdown
+  const opts = { ...modalDefaults, ...options };
   const [display, setDisplay] = useState(false);
 
   const modalRef = useRef(null) as MutableRefObject<HTMLInputElement>;

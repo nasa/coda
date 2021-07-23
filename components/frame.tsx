@@ -1,11 +1,11 @@
 import _ from "lodash";
 import { useSelector } from "react-redux";
-import { PseudoDropdown } from "components/dropdown-v2";
+import { ModalDropdown } from "components/dropdown-v2";
 import EVAInfo, { EVAInfoControls } from "components/eva-info";
 import FramePickerModal, { FrameLabel } from "components/frame-picker";
 import styles from "./frame.module.css";
 
-interface Options {
+export interface Options {
   frameID: number;
   frameTypeID: number;
 }
@@ -22,14 +22,14 @@ export function FrameHeader(options: React.PropsWithChildren<Options>) {
     <div className={styles.header}>
       <div>
         <div className={styles.dropdown}>
-          <PseudoDropdown
+          <ModalDropdown
             color="grey"
             size="skinny"
             modal={FramePickerModal}
             modalOptions={{ frameID: options.frameID }}
           >
             {label}
-          </PseudoDropdown>
+          </ModalDropdown>
         </div>
       </div>
       {options.children}
