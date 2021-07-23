@@ -6,7 +6,7 @@ export interface Options {
   color?: string;
   /** `default`, `small` */
   size?: string;
-  /** `all`, `left`, `right` */
+  /** `all`, `left`, `right`, `none` */
   rounded?: string;
   callback?: () => void;
 }

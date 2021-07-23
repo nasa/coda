@@ -6,10 +6,17 @@ export function VideoControls() {
   return (
     <div className={styles.controls}>
       {downlinks.map((d) => {
+        let rounded = "none";
+        if (d === 1) {
+          rounded = "left";
+        } else if (d === 6) {
+          rounded = "right";
+        }
+
         return (
           <div className={styles.dlButton}>
-            <Button color="lightest-grey" size="small">
-              {d}
+            <Button color="lightest-grey" size="small" rounded={rounded}>
+              <div className={styles.dlLabel}>{d}</div>
             </Button>
           </div>
         );

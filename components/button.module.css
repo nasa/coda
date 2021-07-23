@@ -12,10 +12,25 @@
 .small {
   height: 27px;
   font-size: 14px;
+  padding: 0;
 }
 
 .all {
   border-radius: var(--radius);
+}
+
+.left {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+.right {
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+
+.none {
+  border-radius: 0;
 }
 
 .grey {
