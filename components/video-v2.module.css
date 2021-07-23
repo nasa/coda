@@ -6,15 +6,15 @@
 
 .controls {
   display: flex;
-  justify-content: flex-start;
+  /* justify-content: flex-start; */
   width: 115px;
 }
 
 .dlButton {
+}
+
+.dlLabel {
   width: 22px;
-  height: 27px;
-  background-color: var(--grey);
-  color: white;
 }
 
 .dlButton:not(:last-of-type) {
