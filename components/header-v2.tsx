@@ -4,7 +4,7 @@ import { faBars, faCalendarAlt, faClock } from "@fortawesome/free-solid-svg-icon
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/button";
 import Calendar from "components/calendar";
-import { PseudoDropdown } from "components/dropdown-v2";
+import { ModalDropdown } from "components/dropdown-v2";
 import LayoutPicker from "components/layout-picker";
 import { RootState } from "store/index";
 import styles from "./header-v2.module.css";
@@ -22,17 +22,17 @@ export function HamburgerMenu() {
 
 export function LayoutDropdown() {
   return (
-    <PseudoDropdown modal={LayoutPicker} color="grey" caret="down">
+    <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
       <img src="/icons/layout1.svg" alt="Layout 1" className={styles.layoutIcon} />
-    </PseudoDropdown>
+    </ModalDropdown>
   );
 }
 
 export function SourcesDropdown() {
   return (
-    <PseudoDropdown modal={LayoutPicker} color="grey" caret="down">
+    <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
       <span>&nbsp;ISS</span>
-    </PseudoDropdown>
+    </ModalDropdown>
   );
 }
 
@@ -45,7 +45,7 @@ export function DatetimeDropdown() {
   const day = padZeros(date.getUTCDate(), 2);
 
   return (
-    <PseudoDropdown modal={Calendar} color="grey" caret="down">
+    <ModalDropdown modal={Calendar} color="grey" caret="down">
       <div className={styles.iconWithText}>
         <FontAwesomeIcon icon="calendar-alt" />
         &nbsp;&nbsp;
@@ -53,7 +53,7 @@ export function DatetimeDropdown() {
           {year}-{month}-{day}
         </span>
       </div>
-    </PseudoDropdown>
+    </ModalDropdown>
   );
 }
 
@@ -63,13 +63,13 @@ export function ClockDropdown() {
   const time = hhmmssFromSeconds(playheadSeconds);
 
   return (
-    <PseudoDropdown modal={Calendar} color="grey" caret="none">
+    <ModalDropdown modal={Calendar} color="grey" caret="none">
       <div className={styles.iconWithText}>
         <FontAwesomeIcon icon="clock" />
         &nbsp;
         <span className={`${styles.mono} ${styles.time}`}>{time}</span>
       </div>
-    </PseudoDropdown>
+    </ModalDropdown>
   );
 }
 

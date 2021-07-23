@@ -83,3 +83,30 @@
   flex-direction: column;
   justify-content: space-around;
 }
+
+.monthModal {
+  width: 206px;
+  height: calc(29px * 8);
+  padding: 3px;
+  overflow-y: scroll;
+  background-color: var(--dark-grey);
+  border: 1px solid var(--dark-grey);
+  border-radius: var(--radius);
+}
+
+.option {
+  padding: 5px;
+  color: white;
+  background-color: var(--dark-grey);
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.option:hover {
+  background-color: var(--lightest-grey);
+}
+
+.checkbox {
+  display: inline-block;
+  width: 1em;
+}

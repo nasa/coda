@@ -12,6 +12,14 @@
   border: none;
 }
 
+.select {
+  appearance: none;
+  font-family: inherit;
+  font-size: inherit;
+  border-width: 0;
+  /* background-color: var(--grey); */
+}
+
 .verticalCenter {
   display: flex;
   flex-direction: column;
