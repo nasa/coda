@@ -49,10 +49,12 @@ const frameDecoration = {
     color: "mustardGreen",
   },
   5: {
+    // maybe table-cells?
     icon: "layer-group",
     color: "mustardGreen",
   },
   6: {
+    // arrow-trend-up
     icon: "chart-line",
     color: "mustardGreen",
   },

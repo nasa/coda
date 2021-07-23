@@ -1,25 +1,35 @@
-import { useSelector } from "react-redux";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { PseudoDropdown } from "components/dropdown-v2";
 import { RootState } from "store/index";
-import { isSameDate } from "store/playhead";
+import { changeDate, diff, isSameDate } from "store/playhead";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import styles from "./calendar.module.css";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
+  timeZone: "UTC",
 };
 
 export function MonthsModal() {}
 
 interface DateDescription {
-  date: number;
+  date: Date;
   isToday: boolean;
   inMonth: boolean;
   isLater: boolean;
   hasEVA: boolean;
 }
 
-export function CalendarDate({ description }: { description: DateDescription }) {
+export function CalendarDate({
+  description,
+  closeClick,
+}: {
+  description: DateDescription;
+  closeClick: () => void;
+}) {
+  const dispatch = useDispatch();
+
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
     classes.push(styles.grey);
@@ -29,29 +39,43 @@ export function CalendarDate({ description }: { description: DateDescription }) 
     classes.push(styles.bordered);
   }
 
-  if (!description.inMonth) {
+  if (!description.inMonth || description.isLater) {
     classes.push(styles.greyText);
   }
 
+  if (!description.isLater) {
+    classes.push(styles.clickable);
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!description.isLater) {
+      dispatch(changeDate(description.date.toISOString()));
+      closeClick();
+    }
+  };
+
   return (
-    <div>
+    <div onClick={handleClick}>
       {description.hasEVA && <div className={`${styles.dot} ${styles.orange}`}>•</div>}
       <div className={classes.join(" ")}>
-        <div className={styles.verticalCenter}>{description.date}</div>
+        <div className={styles.verticalCenter}>{description.date.getUTCDate()}</div>
       </div>
     </div>
   );
 }
 
+/** Renders a calendar */
 export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
 
+  const today = new Date();
   const date = new Date(playheadDate);
 
   const allSequences = sequencesSelector.selectAll(sequences);
 
-  const monthString = new Intl.DateTimeFormat("en-US", monthOnly).format(date);
+  const monthString = new Intl.DateTimeFormat("en-CODA", monthOnly).format(date);
   const yyyy = date.getUTCFullYear();
   const mm = date.getUTCMonth();
   const dd = date.getUTCDate();
@@ -63,16 +87,17 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   const datesToRender: DateDescription[] = [];
   const iterDate = new Date(firstOfMonth);
   iterDate.setUTCDate(1 - dayOfWeek);
+
   for (let i = 0; i < 42; i++) {
     const d = iterDate.getUTCDate();
     const inMonth = iterDate.getUTCMonth() === mm;
     const isToday = inMonth && d === dd;
-    const isLater = inMonth && d > dd;
+    const isLater = diff(today, iterDate) < 0;
 
     const seqIndex = allSequences.findIndex((seq) => isSameDate(new Date(seq.startDate), iterDate));
 
     datesToRender.push({
-      date: d,
+      date: new Date(iterDate),
       inMonth,
       isToday,
       isLater,
@@ -106,8 +131,8 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       <div className={styles.days}>
         {datesToRender.map((d, index) => {
           return (
-            <div key={`CALENDAR_DATE__${yyyy}${mm}${index}`}>
-              <CalendarDate description={d} />
+            <div key={`CALENDAR_DATE__${yyyy}__${mm}__${index}`}>
+              <CalendarDate description={d} closeClick={closeClick} />
             </div>
           );
         })}
