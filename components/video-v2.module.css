@@ -10,6 +10,12 @@
   justify-content: space-between;
 }
 
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
 .selections {
   display: flex;
   /* justify-content: flex-start; */
@@ -25,4 +31,49 @@
 
 .dlButton:not(:last-of-type) {
   margin-right: 1px;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+.ioButton {
+  display: block;
+  width: 27px;
+  height: 14px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.ioButton:active {
+  border: none;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+}
+
+.ioLabel {
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  left: -4px;
+}
+
+.clearTextButton {
+  display: block;
+  padding: 0;
+  border: none;
+  color: var(--even-greyer);
+  background-color: rgba(0, 0, 0, 0);
+  font-size: 14px;
+}
+
+.clearTextButton:active {
+  border: none;
 }
