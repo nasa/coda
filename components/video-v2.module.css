@@ -6,8 +6,14 @@
 
 .controls {
   display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.selections {
+  display: flex;
   /* justify-content: flex-start; */
-  width: 115px;
+  /* width: 115px; */
 }
 
 .dlButton {
