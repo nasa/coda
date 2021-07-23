@@ -52,6 +52,7 @@
 .dot {
   position: fixed;
   margin-top: -5px;
+  cursor: pointer;
 }
 
 .labels {
@@ -85,7 +86,7 @@
 }
 
 .monthModal {
-  width: 206px;
+  width: 220px;
   height: calc(29px * 8);
   padding: 3px;
   overflow-y: scroll;
