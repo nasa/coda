@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { ModalDropdown } from "components/dropdown-v2";
 import EVAInfo, { EVAInfoControls } from "components/eva-info";
 import FramePickerModal, { FrameLabel } from "components/frame-picker";
+import VideoFrame, { VideoControls } from "components/video-v2";
 import styles from "./frame.module.css";
 
 export interface Options {
@@ -32,13 +33,13 @@ export function FrameHeader(options: React.PropsWithChildren<Options>) {
           </ModalDropdown>
         </div>
       </div>
-      {options.children}
+      <div className={styles.controls}>{options.children}</div>
     </div>
   );
 }
 
 const frameTypeIDsToRenders = {
-  0: () => <>0: ISS Video Downlink</>,
+  0: VideoFrame,
   1: () => <>1: ISS Video Non-Downlink</>,
   2: () => <>2: ISS Photography</>,
   3: () => <>3: ISS Groundtrack</>,
@@ -48,7 +49,7 @@ const frameTypeIDsToRenders = {
 };
 
 const frameTypeIDsToControls = {
-  0: () => <>Controls: ISS Video Downlink</>,
+  0: VideoControls,
   1: () => <>Controls: ISS Video Non-Downlink</>,
   2: () => <>Controls: ISS Photography</>,
   3: () => <>Controls: ISS Groundtrack</>,
