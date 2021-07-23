@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Dropdown, { ModalDropdown } from "components/dropdown-v2";
+import { ModalDropdown } from "components/dropdown-v2";
 import { RootState } from "store/index";
 import { changeDate, diff, isSameDate } from "store/playhead";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";

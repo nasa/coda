@@ -1,0 +1,22 @@
+.main {
+  width: 100%;
+  height: 100%;
+  background-color: black;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-start;
+  width: 115px;
+}
+
+.dlButton {
+  width: 22px;
+  height: 27px;
+  background-color: var(--grey);
+  color: white;
+}
+
+.dlButton:not(:last-of-type) {
+  margin-right: 1px;
+}

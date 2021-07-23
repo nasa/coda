@@ -1,10 +1,21 @@
 .button {
-  padding: 6px 10px;
   align-items: center;
-  border-radius: var(--radius);
-  font-size: 16px;
   text-transform: uppercase;
   cursor: pointer;
+}
+
+.default {
+  font-size: 16px;
+  padding: 6px 10px;
+}
+
+.small {
+  height: 27px;
+  font-size: 14px;
+}
+
+.all {
+  border-radius: var(--radius);
 }
 
 .grey {
