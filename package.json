@@ -27,6 +27,7 @@
     "@types/mapbox-gl": "^2.1.2",
     "abort-controller": "^3.0.0",
     "cacache": "^15.0.6",
+    "crossenv": "0.0.2-security",
     "cssnano-preset-simple": "^2.0.0",
     "cssnano-simple": "^2.0.0",
     "isomorphic-unfetch": "^3.1.0",
