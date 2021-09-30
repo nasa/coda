@@ -151,7 +151,7 @@ export interface VideoFile extends MediaFile {
   LOS: boolean;
   /** Only used to sort videos */
   priority: number;
-  /** When the video start time */
+  /** video start time */
   startDateTime: string;
 }
 
