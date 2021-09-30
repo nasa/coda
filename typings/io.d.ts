@@ -55,6 +55,8 @@ export interface Doc {
   collections_list: (string | number)[];
   /** UTC eg. `2019-08-21T17:11:12Z` */
   md_creation_date: string;
+  /** Only created if start time has been modified in IO - UTC eg. `2019-08-21T17:11:12Z` */
+  vmd_start_gmt?: string;
   lh: number;
   md_interior_exterior: number;
   _version_: number;

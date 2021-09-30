@@ -101,7 +101,7 @@ export enum Collection {
   /** International Space Station. https://io.jsc.nasa.gov/app/collections.cfm?cid=4 */
   ISS = 4,
   /** All test events */
-  analogs = 2359932,
+  TEST_EVENTS = 2359932,
   /** JSC Rock Yard. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 (why the quoted string with spaces? so it matches the Test Environment name in the exploration wiki */
   "JSC Rock Yard" = 2359937,
   /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359935 */
@@ -151,8 +151,8 @@ export interface VideoFile extends MediaFile {
   LOS: boolean;
   /** Only used to sort videos */
   priority: number;
-  /** When the video was uploaded to IO */
-  creationDate: string;
+  /** When the video start time */
+  startDateTime: string;
 }
 
 /** Parsed metadata from an IO photo file result */

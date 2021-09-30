@@ -153,7 +153,8 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
   }
 
   // Create array of date elements from creation date
-  let dateArr = doc.md_creation_date
+  const dateToUse = doc.vmd_start_gmt || doc.md_creation_date;
+  let dateArr = dateToUse
     // regex match for the date
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     // remove the first item (the full matched string)
@@ -201,12 +202,18 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     mediaLowResURL,
     LOS,
     priority: LOS ? 0 : 1,
-    creationDate: doc.md_creation_date,
+    startDateTime: "",
     downlink,
     collection,
     // last and longest string in the array
     collections: doc.collections_string[doc.collections_string.length - 1],
   };
+
+  /**
+   * Make the start time the vmd_start_gmt if it exists, otherwise use md_creation_date.
+   * md_creation_date is actually the video start time for all ISS video, not the IO creation date
+   **/
+  videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
 
   return videoFile;
 }

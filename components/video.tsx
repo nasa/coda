@@ -469,7 +469,7 @@ export default function Video(props: {
     let ioVideoURL = "";
     let openVideoURLMessage = "";
     let videoFilename = "";
-    let dateAdded = "";
+    let startDateTime = "";
     let openOnIOMessage = "";
     let info = "";
     let infoDisplayClass = "";
@@ -480,7 +480,7 @@ export default function Video(props: {
       ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = new Date(currentlyPlayingVideo.creationDate).toUTCString();
+      startDateTime = new Date(currentlyPlayingVideo.startDateTime).toUTCString();
       info = currentlyPlayingVideo.description;
     }
     if (infoHover || infoToggle) {
@@ -492,7 +492,7 @@ export default function Video(props: {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
+            <div className={`${styles.overlayTableCell}`}>{startDateTime}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
