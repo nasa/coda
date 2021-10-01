@@ -31,7 +31,6 @@
     "@types/mapbox-gl": "^2.1.2",
     "abort-controller": "^3.0.0",
     "cacache": "^15.0.6",
-    "crossenv": "0.0.2-security",
     "cssnano-preset-simple": "^2.0.0",
     "cssnano-simple": "^2.0.0",
     "isomorphic-unfetch": "^3.1.0",
@@ -49,7 +48,8 @@
     "tle.js": "^4.2.11",
     "tough-cookie-file-store": "^2.0.2",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "win-ca": "^3.4.5"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.13.0",
@@ -75,8 +75,7 @@
     "mac-ca": "^1.0.6",
     "msw": "^0.21.3",
     "prettier": "^2.2.1",
-    "ts-jest": "^26.5.6",
-    "win-ca": "^3.4.5"
+    "ts-jest": "^26.5.6"
   },
   "browser": {
     "services/iss-wiki-server": false
