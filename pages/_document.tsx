@@ -12,15 +12,9 @@ class MyDocument extends Document {
           <link rel="manifest" href="/favicon/site.webmanifest" />
           <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5" />
           <link href="/mapbox_custom.css" rel="stylesheet" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap"
-            rel="stylesheet"
-          />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
-            rel="stylesheet"
-          />
+
           <link href="/global.css" rel="stylesheet" />
+          <link href="/fonts.css" rel="stylesheet" />
         </Head>
         <body>
           <Main />
