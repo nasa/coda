@@ -109,6 +109,18 @@ export default function View(props: { query: QueryParams }) {
       try {
         // video data for this EVA
         const videoStore = await buildVideoStore(year, month + 1, day, Collection.TEST_EVENTS);
+
+        //modify downlink numbers for test events
+        for (let i = 0; i < videoStore.length; i++) {
+          if (videoStore[i].title.includes("EV1")) {
+            videoStore[i].downlink = 0;
+          } else if (videoStore[i].title.includes("EV2")) {
+            videoStore[i].downlink = 1;
+          } else if (videoStore[i].title.includes("QUAD")) {
+            videoStore[i].downlink = 2;
+          }
+        }
+
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
