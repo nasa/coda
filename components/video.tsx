@@ -440,7 +440,6 @@ export default function Video(props: {
         >
           <select
             className={`${buttonClassStyle} ${styles.nonDLButton} ${styles.selectNonDL} ${selectActiveStyle}`}
-            // style={props.collection !== Collection.ISS ? { width: "20em" } : {}}
             value={videos.nonDownlinkIDs[playerID]}
             onChange={(e) => {
               dispatch(setVideoDownlink({ playerID, downlink: 6 }));
@@ -555,7 +554,6 @@ export default function Video(props: {
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
-        {/* {props.collection === Collection.ISS && renderButtons()} */}
         {renderButtons()}
         {renderNonDl()}
         <div
