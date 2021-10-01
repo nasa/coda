@@ -7,7 +7,7 @@ import { SequenceType } from "typings";
 import styles from "./eva-info.module.css";
 
 export function EVAInfoControls() {
-  return <></>;
+  return <>Here are some future buttons</>;
 }
 
 export default function EVAInfo() {
