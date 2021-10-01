@@ -5,6 +5,7 @@ import EVAInfo, { EVAInfoControls } from "components/eva-info";
 import FramePickerModal, { FrameLabel } from "components/frame-picker";
 import VideoFrame, { VideoControls } from "components/video-v2";
 import styles from "./frame.module.css";
+import { RootState } from "../store/";
 
 export interface Options {
   frameID: number;
@@ -12,7 +13,7 @@ export interface Options {
 }
 
 /** Renders the header for a frame */
-export function FrameHeader(options: React.PropsWithChildren<Options>) {
+export function FrameHeader(options) {
   let label = <>&nbsp;Pick a source</>;
 
   if (!_.isNil(options.frameTypeID)) {
@@ -64,8 +65,8 @@ export interface Options {
 }
 
 /** Renders a frame in the viewer */
-export default function Frame(options: React.PropsWithChildren<Options>) {
-  const frameTypeID = useSelector((state) => state.viewer.frames[options.id]);
+export default function Frame(options) {
+  const frameTypeID = useSelector((state: RootState) => state.viewer.frames[options.id]);
 
   let FrameRender = () => <>{options.id}</>;
   let FrameControls = () => <>Controls for {options.id}</>;
