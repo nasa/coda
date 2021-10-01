@@ -128,7 +128,7 @@ export interface MediaFile {
   title?: string;
   description: string;
   /** Highest-level collection where this video is stored in IO */
-  collection: string;
+  collection: Collection;
   /** Full list of collections from IO */
   collections: string;
   /** Link to this file's metadata on IO */
