@@ -123,19 +123,9 @@ export default class DrawNav {
         Math.max(this.videoFiles[i].start - startOfDay, 0) * this.gTier1PixelsPerSecond;
       let endLocX =
         Math.min(this.videoFiles[i].end - startOfDay, 86399) * this.gTier1PixelsPerSecond;
-
-      let downlinkNum = this.videoFiles[i].downlink;
-      if (this.videoFiles[i].collection === "TEST_EVENTS") {
-        if (this.videoFiles[i].title.includes("EV1")) {
-          downlinkNum = 1;
-        } else if (this.videoFiles[i].title.includes("EV2")) {
-          downlinkNum = 2;
-        } else if (this.videoFiles[i].title.includes("QUAD")) {
-          downlinkNum = 3;
-        }
-      }
       let startLocY =
-        videoSegmentsTop + downlinkNum * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+        videoSegmentsTop +
+        this.videoFiles[i].downlink * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth - 1;
 
       const name = "vidItem_" + i.toString();
@@ -149,7 +139,7 @@ export default class DrawNav {
       });
       vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-      if (downlinkNum === 6) {
+      if (this.videoFiles[i].downlink === 6) {
         vidLine.fillColor = new paper.Color("white");
         vidLine.opacity = 0.4;
       }
@@ -395,18 +385,9 @@ export default class DrawNav {
           (Math.min(this.videoFiles[i].end - startOfDay, 86399) - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
 
-        let downlinkNum = this.videoFiles[i].downlink;
-        if (this.videoFiles[i].collection === "TEST_EVENTS") {
-          if (this.videoFiles[i].title.includes("EV1")) {
-            downlinkNum = 1;
-          } else if (this.videoFiles[i].title.includes("EV2")) {
-            downlinkNum = 2;
-          } else if (this.videoFiles[i].title.includes("QUAD")) {
-            downlinkNum = 3;
-          }
-        }
         let startLocY =
-          this.gTier2Top + downlinkNum * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
+          this.gTier2Top +
+          this.videoFiles[i].downlink * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
         let endLocY = startLocY + this.cChannelStrokeWidth + 1;
 
         let name = "vidItem_" + i.toString();
@@ -420,7 +401,7 @@ export default class DrawNav {
         });
         vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-        if (downlinkNum === 6) {
+        if (this.videoFiles[i].downlink === 6) {
           vidLine.fillColor = new paper.Color("white");
           vidLine.opacity = 0.4;
         }
