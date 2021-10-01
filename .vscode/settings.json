@@ -2,7 +2,6 @@
   "git.ignoreLimitWarning": true,
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "workbench.editor.wrapTabs": true,
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

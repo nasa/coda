@@ -209,10 +209,10 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     collections: doc.collections_string[doc.collections_string.length - 1],
   };
 
-  /**
-   * Make the start time the vmd_start_gmt if it exists, otherwise use md_creation_date.
-   * md_creation_date is actually the video start time for all ISS video, not the IO creation date
-   **/
+  /*
+   Make the start time the vmd_start_gmt if it exists, otherwise use md_creation_date.
+   md_creation_date is actually the video start time for all ISS video, not the IO creation date
+   */
   videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
 
   return videoFile;
