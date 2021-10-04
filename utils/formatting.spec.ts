@@ -9,9 +9,7 @@ import { getJulianDate } from "utils/formatting";
  */
 function makeDate(year: number, month: number, day: number): Date {
   const dt = new Date();
-  dt.setUTCDate(day);
-  dt.setUTCMonth(month);
-  dt.setUTCFullYear(year);
+  dt.setUTCFullYear(year, month, day);
   return dt;
 }
 
