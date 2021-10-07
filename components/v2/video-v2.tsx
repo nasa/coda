@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faExpandAlt, faInfo, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Button from "components/button";
+import Button from "components/v2/button";
 import { QueryParams } from "pages/view/v2";
 import type { RootState } from "store/index";
 import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
