@@ -123,7 +123,6 @@ export default class DrawNav {
         Math.max(this.videoFiles[i].start - startOfDay, 0) * this.gTier1PixelsPerSecond;
       let endLocX =
         Math.min(this.videoFiles[i].end - startOfDay, 86399) * this.gTier1PixelsPerSecond;
-
       let startLocY =
         videoSegmentsTop +
         this.videoFiles[i].downlink * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);

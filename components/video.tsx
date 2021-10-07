@@ -440,7 +440,6 @@ export default function Video(props: {
         >
           <select
             className={`${buttonClassStyle} ${styles.nonDLButton} ${styles.selectNonDL} ${selectActiveStyle}`}
-            style={props.collection !== Collection.ISS ? { width: "20em" } : {}}
             value={videos.nonDownlinkIDs[playerID]}
             onChange={(e) => {
               dispatch(setVideoDownlink({ playerID, downlink: 6 }));
@@ -449,7 +448,7 @@ export default function Video(props: {
             }}
           >
             <option disabled value="">
-              {props.collection === Collection.ISS ? "Non-D/L" : "Select video"}
+              {props.collection === Collection.ISS ? "Non-D/L" : "Other video"}
             </option>
             {optionList()}
           </select>
@@ -469,7 +468,7 @@ export default function Video(props: {
     let ioVideoURL = "";
     let openVideoURLMessage = "";
     let videoFilename = "";
-    let dateAdded = "";
+    let startDateTime = "";
     let openOnIOMessage = "";
     let info = "";
     let infoDisplayClass = "";
@@ -480,7 +479,7 @@ export default function Video(props: {
       ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = new Date(currentlyPlayingVideo.creationDate).toUTCString();
+      startDateTime = new Date(currentlyPlayingVideo.startDateTime).toUTCString();
       info = currentlyPlayingVideo.description;
     }
     if (infoHover || infoToggle) {
@@ -492,7 +491,7 @@ export default function Video(props: {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
+            <div className={`${styles.overlayTableCell}`}>{startDateTime}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
@@ -555,7 +554,7 @@ export default function Video(props: {
         >
           <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
         </div>
-        {props.collection === Collection.ISS && renderButtons()}
+        {renderButtons()}
         {renderNonDl()}
         <div
           className={`${styles.soundBtnOutline} ${mutedOutlineClass}`}
