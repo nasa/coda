@@ -1,9 +1,9 @@
 import _ from "lodash";
 import { useSelector } from "react-redux";
-import Frame from "components/frame";
+import Frame from "components/v2/frame";
 import { allLayouts } from "store/viewer";
 import styles from "./viewer.module.css";
-import { RootState } from "../store/";
+import { RootState } from "../../store";
 
 export default function Viewer() {
   const selectedLayout = useSelector((state: RootState) => state.viewer.layout);

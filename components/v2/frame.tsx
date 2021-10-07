@@ -1,11 +1,11 @@
 import _ from "lodash";
 import { useSelector } from "react-redux";
-import { ModalDropdown } from "components/dropdown-v2";
-import EVAInfo, { EVAInfoControls } from "components/eva-info";
-import FramePickerModal, { FrameLabel } from "components/frame-picker";
-import VideoFrame, { VideoControls } from "components/video-v2";
+import { ModalDropdown } from "components/v2/dropdown-v2";
+import EVAInfo, { EVAInfoControls } from "components/v2/eva-info";
+import FramePickerModal, { FrameLabel } from "components/v2/frame-picker";
+import VideoFrame, { VideoControls } from "components/v2/video-v2";
 import styles from "./frame.module.css";
-import { RootState } from "../store/";
+import { RootState } from "../../store/";
 
 export interface Options {
   frameID: number;

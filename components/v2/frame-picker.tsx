@@ -15,6 +15,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allFrames, selectFrameType } from "store/viewer";
 import styles from "./frame-picker.module.css";
+import { RootState } from "../../store/";
 
 library.add(
   faCamera,
@@ -91,7 +92,7 @@ export default function FramePickerModal({
   options: { frameID: number };
 }) {
   const dispatch = useDispatch();
-  const selectedSource = useSelector((state) => state.viewer.selectedSource);
+  const selectedSource = useSelector((state: RootState) => state.viewer.selectedSource);
 
   const handleSelectFrameType = (frameTypeID: number) => (e: React.MouseEvent) => {
     e.preventDefault();
