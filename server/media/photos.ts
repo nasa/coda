@@ -36,7 +36,7 @@ export default async function getPhotoData(
       try {
         return await fetchDatetimeOverrides();
       } catch (e) {
-        // don't block video results if we can't find overrides
+        // don't block photo results if we can't find overrides
         console.error(e);
       }
     })(),
@@ -49,8 +49,7 @@ export default async function getPhotoData(
 
   const seqs = sequences.data.filter(
     (seq) =>
-      (Collection[seq.location] === Collection[Collection[collection]] &&
-        isSameDate(new Date(seq.startDate), requestedDate)) ||
+      isSameDate(new Date(seq.startDate), requestedDate) ||
       isSameDate(new Date(seq.startDate), previousDate) ||
       isSameDate(new Date(seq.startDate), nextDate)
   );
@@ -78,9 +77,9 @@ export default async function getPhotoData(
   }
 
   try {
-    const [_, sign, hh, mm] = overrides.timezone.match(/([\+]|[\-])(\d{2}):(\d{2})/);
+    const [_, sign, hh, mm, ss] = overrides.timezone.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
 
-    const milliseconds = (+`${sign}${hh}` * 60 + +mm) * 60 * 1000;
+    const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
 
     // we got overrides from the wiki, so apply them
     const data: PhotoFile[] = results.data.map((result) => {
