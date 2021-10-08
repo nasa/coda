@@ -536,6 +536,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
     staleOk: true,
+    preferNew: true,
   });
 }
 
