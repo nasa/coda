@@ -6,30 +6,6 @@ import type { CollectionFilters } from "store/photos";
 import type { PhotoFile, VideoFile, WrappedResponse } from "typings";
 import { cleanCollectionsString } from "utils/formatting";
 
-async function fetchVideoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection
-): Promise<WrappedResponse<VideoFile[]>> {
-  const res = await fetch(
-    `/api/media/videos?year=${year}&month=${month}&date=${date}&collection=${collection}`
-  );
-  return await res.json();
-}
-
-async function fetchPhotoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection
-): Promise<WrappedResponse<PhotoFile[]>> {
-  const res = await fetch(
-    `/api/media/photos?year=${year}&month=${month}&date=${date}&collection=${collection}`
-  );
-  return await res.json();
-}
-
 /**
  * Fetch and format all videos for passing to the redux store
  */
@@ -37,10 +13,13 @@ export async function buildVideoStore(
   year: number,
   month: number,
   date: number,
-  collection = Collection.ISS
+  collection: Collection
 ): Promise<VideoFile[]> {
-  const videos = (await fetchVideoData(year, month, date, collection))?.data;
-  return videos;
+  const res = await fetch(
+    `/api/media/videos?year=${year}&month=${month}&date=${date}&collection=${collection}`
+  );
+  const wrappedResponse: WrappedResponse<VideoFile[]> = await res.json();
+  return wrappedResponse.data;
 }
 
 /**
@@ -50,10 +29,13 @@ export async function buildPhotoStore(
   year: number,
   month: number,
   date: number,
-  collection = Collection.ISS
+  collection: Collection
 ): Promise<PhotoFile[]> {
-  const photos = (await fetchPhotoData(year, month, date, collection))?.data;
-  return photos;
+  const res = await fetch(
+    `/api/media/photos?year=${year}&month=${month}&date=${date}&collection=${collection}`
+  );
+  const wrappedResponse: WrappedResponse<PhotoFile[]> = await res.json();
+  return wrappedResponse.data;
 }
 
 export function buildPhotoCollections(photos: PhotoFile[]) {

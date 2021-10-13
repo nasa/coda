@@ -1,7 +1,7 @@
 import clone from "lodash/clone";
 import isNil from "lodash/isNil";
-import { fetchPhotoData } from "services/io-api";
-import { fetchDatetimeOverrides, fetchSequences } from "services/wiki-api";
+import { fetchPhotoDataService } from "server/services/io-api";
+import { fetchDatetimeOverrides, fetchSequences } from "server/services/wiki-api";
 import { add, isSameDate } from "store/playhead";
 import { Collection } from "typings";
 import type { WrappedResponse, PhotoFile } from "typings";
@@ -22,7 +22,7 @@ export default async function getPhotoData(
   const nextDate = add(requestedDate, 86400000);
 
   const [results, sequences, allOverrides] = await Promise.all([
-    fetchPhotoData(collection, previousDate, nextDate),
+    fetchPhotoDataService(collection, previousDate, nextDate),
     // fetch sequence data, but don't throw if the request fails
     await (async () => {
       try {

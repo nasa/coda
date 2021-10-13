@@ -1,5 +1,5 @@
-import { fetchISSLocation } from "services/spacetrack-api";
-import fetchWithCache from "services/cache-client";
+import { fetchISSLocation } from "server/services/spacetrack-api";
+import fetchWithCache from "server/services/cache-client";
 
 jest.mock("services/cache-client");
 const fetchMock = fetchWithCache as jest.MockedFunction<typeof fetchWithCache>;

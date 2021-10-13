@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { buildTestEventStore } from "services/wiki-api";
+import { getAllTestEventsDataService } from "server/services/wiki-api";
 
 /**
  * `/api/sequences/rock-yard`
@@ -8,7 +8,7 @@ import { buildTestEventStore } from "services/wiki-api";
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const evas = await buildTestEventStore();
+    const evas = await getAllTestEventsDataService();
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { buildEVAStore } from "services/wiki-api";
+import { getAllEVADataService } from "server/services/wiki-api";
 
 /**
  * `/api/sequences/evas`
@@ -8,7 +8,7 @@ import { buildEVAStore } from "services/wiki-api";
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const evas = await buildEVAStore();
+    const evas = await getAllEVADataService();
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);
