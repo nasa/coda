@@ -24,7 +24,7 @@ async function fetchSpacetrack(
 
   if (isLocal) {
     console.log("Mocking request for fetchSpacetrack()");
-    let mockSpacetrackData: EphemerisFile[] = require("../mocks/fakedata/ephemera.json");
+    let mockSpacetrackData: EphemerisFile[] = require("/mocks/fakedata/ephemera.json");
 
     // mock the request with local data
     const mockResult = await Promise.resolve(mockSpacetrackData);
@@ -113,7 +113,7 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
  */
-export async function fetchISSLocation(
+export async function fetchISSLocationService(
   year: number,
   month: number,
   date: number

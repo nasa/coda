@@ -17,7 +17,7 @@
     "moduleResolution": "node",
     "paths": {
       "client/*": [
-        "client/*"
+        "api-client/*"
       ],
       "components/*": [
         "./components/*"
@@ -29,7 +29,7 @@
         "server/*"
       ],
       "services/*": [
-        "services/*"
+        "server/services/*"
       ],
       "store/*": [
         "./store/*"
