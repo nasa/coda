@@ -2,9 +2,9 @@ import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main-iss";
-import { fetchEVAs } from "api-client/sequences";
-import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "api-client/media";
-import { buildEphemerisStore } from "api-client/location";
+import { fetchEVAs } from "http-client/sequences";
+import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
+import { buildEphemerisStore } from "http-client/location";
 import {
   addVideos,
   haveVideosFromDate,
