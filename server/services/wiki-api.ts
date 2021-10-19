@@ -335,7 +335,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function getAllEVADataService(): Promise<WrappedResponse<Sequence[]>> {
+export async function getAllEVAData(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllEVAs();
@@ -455,7 +455,7 @@ export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function getAllTestEventsDataService(): Promise<WrappedResponse<Sequence[]>> {
+export async function getAllTestEventsData(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllTestEvents();
@@ -509,9 +509,9 @@ export async function getAllTestEventsDataService(): Promise<WrappedResponse<Seq
 
 export async function fetchSequences(collection: Collection): Promise<WrappedResponse<Sequence[]>> {
   if (collection === Collection.ISS) {
-    return getAllEVADataService();
+    return getAllEVAData();
   } else {
-    return getAllTestEventsDataService();
+    return getAllTestEventsData();
   }
 }
 

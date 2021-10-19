@@ -113,7 +113,7 @@ function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
  */
-export async function fetchISSLocationService(
+export async function fetchISSLocation(
   year: number,
   month: number,
   date: number
