@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import * as WikiService from "server/services/wiki-api";
+import getEVAData from "server/sequences/evas";
 
 /**
  * `/api/sequences/evas`
@@ -8,7 +8,7 @@ import * as WikiService from "server/services/wiki-api";
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const evas = await WikiService.getAllEVAData();
+    const evas = await getEVAData();
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);
