@@ -17,7 +17,7 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "typings";
 import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
-import fetchWithTimeout from "./fetch-with-timeout";
+import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import { isNil } from "lodash";
 import { isSameDate } from "store/playhead";
 
@@ -94,7 +94,7 @@ function formatDateQuery(start: Date, end?: Date): string {
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
-export async function fetchVideoDataService(collection: Collection, start: Date, end?: Date) {
+export async function fetchVideoData(collection: Collection, start: Date, end?: Date) {
   const now = new Date();
 
   const dateQuery = formatDateQuery(start, end);
@@ -225,6 +225,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
    md_creation_date is actually the video start time for all ISS video, not the IO creation date
    */
   videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
+  ``;
 
   return videoFile;
 }
@@ -246,7 +247,7 @@ export function getChannel(collectionStrings: string[]): string {
 /**
  * Fetch video data from IO
  */
-export async function fetchPhotoDataService(
+export async function fetchPhotoData(
   collection: Collection,
   start: Date,
   end?: Date
