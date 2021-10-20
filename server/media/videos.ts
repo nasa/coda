@@ -1,6 +1,6 @@
 import clone from "lodash/cloneDeep";
-import { fetchVideoData } from "services/io-api";
-import { fetchDatetimeOverrides } from "services/wiki-api";
+import * as IoService from "server/services/io-api";
+import * as WikiService from "server/services/wiki-api";
 import { add } from "store/playhead";
 import type { Collection, WrappedResponse } from "typings";
 import type { VideoFile } from "typings";
@@ -21,11 +21,11 @@ export default async function getVideoData(
   // fetch video info and fudge factors in parallel
   const [results, overrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after
-    fetchVideoData(collection, previousDate, nextDate),
+    IoService.fetchVideoData(collection, previousDate, nextDate),
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        return await fetchDatetimeOverrides();
+        return await WikiService.fetchDatetimeOverrides();
       } catch (e) {
         // don't block video results if we can't find overrides
         console.error(e);

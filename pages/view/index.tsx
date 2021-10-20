@@ -2,9 +2,9 @@ import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main-iss";
-import { fetchEVAs } from "client/sequences";
-import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/media";
-import { buildEphemerisStore } from "client/location";
+import { fetchEVAs } from "http-client/sequences";
+import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
+import { buildEphemerisStore } from "http-client/location";
 import {
   addVideos,
   haveVideosFromDate,
@@ -25,6 +25,7 @@ import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
+import { Collection } from "typings";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -106,7 +107,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day);
+        const videoStore = await buildVideoStore(year, month + 1, day, Collection.ISS);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -134,7 +135,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // photos data for today
-        const photoStore = await buildPhotoStore(year, month + 1, day);
+        const photoStore = await buildPhotoStore(year, month + 1, day, Collection.ISS);
         dispatch(addPhotos(photoStore));
         const photoCollectionsFilter = buildPhotoCollections(photoStore);
         dispatch(setCollectionFilters(photoCollectionsFilter));
@@ -189,7 +190,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month, day);
+        const videoStore = await buildVideoStore(year, month, day, Collection.ISS);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));

@@ -1,5 +1,5 @@
 import cacache from "cacache";
-import retrieveJSON from "services/cache-client";
+import retrieveJSON from "server/services/cache-client";
 
 describe("services/cache-client", () => {
   it("should execute a retriever async function when nothing is in the cache", async () => {

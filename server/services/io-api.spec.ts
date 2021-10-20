@@ -1,4 +1,4 @@
-import { getChannel } from "services/io-api";
+import { getChannel } from "server/services/io-api";
 
 describe("services/io-api", () => {
   describe("getChannel()", () => {
