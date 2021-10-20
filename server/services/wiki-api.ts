@@ -72,13 +72,13 @@ async function mockData(_query: string, action: string): Promise<WikiResults> {
 
   switch (action) {
     case "getAllEVAs":
-      const getAllEVAsMockData = require("../mocks/fakedata/getAllEVAs.json");
+      const getAllEVAsMockData = require("/mocks/fakedata/getAllEVAs.json");
       return await Promise.resolve(getAllEVAsMockData);
     case "getAllAsExecuted":
-      const getAllAsExecutedMockData = require("../mocks/fakedata/getAllAsExecuted.json");
+      const getAllAsExecutedMockData = require("/mocks/fakedata/getAllAsExecuted.json");
       return await Promise.resolve(getAllAsExecutedMockData);
     case "getAllCrew":
-      const getAllCrewMockData = require("../mocks/fakedata/getAllCrew.json");
+      const getAllCrewMockData = require("/mocks/fakedata/getAllCrew.json");
       return await Promise.resolve(getAllCrewMockData);
     default:
       console.error(`Unknown Wiki request action: '${action}'`);
@@ -174,7 +174,7 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WrappedResponse<Wik
 }
 
 /** Get a summary of all EVAs on the wiki */
-export async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
+async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
   // wiki query parameters
   const askQuery = `
     [[~US EVA*]]
@@ -212,7 +212,7 @@ const colorTranslator = {
 };
 
 /** Get as-executed data for a given EV on a given EVA */
-export async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
+async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
   const askQuery = `
     [[From page::~US EVA*/*xecuted*]]
     |mainlabel=-|?Index
@@ -289,7 +289,7 @@ const plus = () => {
 };
 
 /** Get crew assignment data for all EVAs */
-export async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
+async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
   const askQuery = `
     [[Crew involved with subject::${plus()}]]
     [[From page::~US EVA*]]
@@ -335,7 +335,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function buildEVAStore(): Promise<WrappedResponse<Sequence[]>> {
+export async function getAllEVAData(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllEVAs();
@@ -455,7 +455,7 @@ export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>> {
+export async function getAllTestEventsData(): Promise<WrappedResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllTestEvents();
@@ -509,9 +509,9 @@ export async function buildTestEventStore(): Promise<WrappedResponse<Sequence[]>
 
 export async function fetchSequences(collection: Collection): Promise<WrappedResponse<Sequence[]>> {
   if (collection === Collection.ISS) {
-    return buildEVAStore();
+    return getAllEVAData();
   } else {
-    return buildTestEventStore();
+    return getAllTestEventsData();
   }
 }
 
@@ -536,6 +536,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
     staleOk: true,
+    preferNew: true,
   });
 }
 

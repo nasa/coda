@@ -1,7 +1,7 @@
 import clone from "lodash/clone";
 import isNil from "lodash/isNil";
-import { fetchPhotoData } from "services/io-api";
-import { fetchDatetimeOverrides, fetchSequences } from "services/wiki-api";
+import * as IoService from "server/services/io-api";
+import * as WikiService from "server/services/wiki-api";
 import { add, isSameDate } from "store/playhead";
 import { Collection } from "typings";
 import type { WrappedResponse, PhotoFile } from "typings";
@@ -22,11 +22,11 @@ export default async function getPhotoData(
   const nextDate = add(requestedDate, 86400000);
 
   const [results, sequences, allOverrides] = await Promise.all([
-    fetchPhotoData(collection, previousDate, nextDate),
+    IoService.fetchPhotoData(collection, previousDate, nextDate),
     // fetch sequence data, but don't throw if the request fails
     await (async () => {
       try {
-        return await fetchSequences(collection);
+        return await WikiService.fetchSequences(collection);
       } catch (e) {
         console.error(e);
       }
@@ -34,9 +34,9 @@ export default async function getPhotoData(
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        return await fetchDatetimeOverrides();
+        return await WikiService.fetchDatetimeOverrides();
       } catch (e) {
-        // don't block video results if we can't find overrides
+        // don't block photo results if we can't find overrides
         console.error(e);
       }
     })(),
@@ -49,8 +49,7 @@ export default async function getPhotoData(
 
   const seqs = sequences.data.filter(
     (seq) =>
-      (Collection[seq.location] === Collection[Collection[collection]] &&
-        isSameDate(new Date(seq.startDate), requestedDate)) ||
+      isSameDate(new Date(seq.startDate), requestedDate) ||
       isSameDate(new Date(seq.startDate), previousDate) ||
       isSameDate(new Date(seq.startDate), nextDate)
   );
@@ -78,9 +77,9 @@ export default async function getPhotoData(
   }
 
   try {
-    const [_, sign, hh, mm] = overrides.timezone.match(/([\+]|[\-])(\d{2}):(\d{2})/);
+    const [_, sign, hh, mm, ss] = overrides.timezone.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
 
-    const milliseconds = (+`${sign}${hh}` * 60 + +mm) * 60 * 1000;
+    const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
 
     // we got overrides from the wiki, so apply them
     const data: PhotoFile[] = results.data.map((result) => {

@@ -24,7 +24,7 @@ async function fetchSpacetrack(
 
   if (isLocal) {
     console.log("Mocking request for fetchSpacetrack()");
-    let mockSpacetrackData: EphemerisFile[] = require("../mocks/fakedata/ephemera.json");
+    let mockSpacetrackData: EphemerisFile[] = require("/mocks/fakedata/ephemera.json");
 
     // mock the request with local data
     const mockResult = await Promise.resolve(mockSpacetrackData);

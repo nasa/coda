@@ -17,7 +17,7 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "typings";
 import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
-import fetchWithTimeout from "./fetch-with-timeout";
+import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import { isNil } from "lodash";
 import { isSameDate } from "store/playhead";
 
@@ -29,7 +29,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
     if (action === "videoData") {
       // we're in the local environment. mock the request
       console.log("Mocking request for getVideoData()");
-      let mockIOData: IOResponse = require("../mocks/fakedata/io_videos.json");
+      let mockIOData: IOResponse = require("/mocks/fakedata/io_videos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
@@ -37,7 +37,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
 
     if (action === "photoData") {
       console.log("Mocking request for getPhotoData()");
-      const mockIOData: IOResponse = require("../mocks/fakedata/io_photos.json");
+      const mockIOData: IOResponse = require("/mocks/fakedata/io_photos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
@@ -112,7 +112,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
   );
 }
 
-export function parseIOVideoResponse(res: IOResponse, collection: Collection) {
+function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 
@@ -129,7 +129,7 @@ export function parseIOVideoResponse(res: IOResponse, collection: Collection) {
 /**
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
  */
-export const videoSorter = (a: VideoFile, b: VideoFile) => {
+const videoSorter = (a: VideoFile, b: VideoFile) => {
   const aDuration = a.end - a.start;
   const bDuration = b.end - b.start;
   return (
@@ -225,6 +225,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
    md_creation_date is actually the video start time for all ISS video, not the IO creation date
    */
   videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
+  ``;
 
   return videoFile;
 }

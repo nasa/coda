@@ -1,4 +1,4 @@
-import { clear } from "services/cache-client";
+import { clear } from "server/services/cache-client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 /**
