@@ -1,4 +1,4 @@
-import { fetchISSLocation } from "services/spacetrack-api";
+import * as SpacetrackService from "server/services/spacetrack-api";
 import type { WrappedResponse } from "typings";
 import type { EphemerisStore } from "typings/spacetrack";
 
@@ -7,5 +7,5 @@ export default async function getISSLocation(
   month: number,
   date: number
 ): Promise<WrappedResponse<EphemerisStore>> {
-  return fetchISSLocation(year, month, date);
+  return SpacetrackService.fetchISSLocation(year, month, date);
 }

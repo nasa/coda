@@ -2,8 +2,8 @@ import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main-te";
-import { fetchRockYard } from "client/sequences";
-import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "client/media";
+import { fetchRockYard } from "http-client/sequences";
+import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
 import {
   addVideos,
   haveVideosFromDate,

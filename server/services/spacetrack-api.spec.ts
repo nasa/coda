@@ -1,10 +1,10 @@
-import { fetchISSLocation } from "services/spacetrack-api";
-import fetchWithCache from "services/cache-client";
+import * as SpacetrackService from "server/services/spacetrack-api";
+import fetchWithCache from "server/services/cache-client";
 
-jest.mock("services/cache-client");
+jest.mock("server/services/cache-client");
 const fetchMock = fetchWithCache as jest.MockedFunction<typeof fetchWithCache>;
 
-describe("services/spacetrack-api", () => {
+describe("server/services/spacetrack-api", () => {
   beforeEach(() => {
     fetchMock.mockClear();
   });
@@ -32,7 +32,7 @@ describe("services/spacetrack-api", () => {
   it("should fetch locations from spacetrack", async () => {
     fetchMock.mockReturnValue(emptyResponse);
 
-    await fetchISSLocation(2000, 1, 1);
+    await SpacetrackService.fetchISSLocation(2000, 1, 1);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -41,7 +41,7 @@ describe("services/spacetrack-api", () => {
     fetchMock.mockReturnValueOnce(badCache);
     fetchMock.mockReturnValueOnce(emptyResponse);
 
-    await fetchISSLocation(2000, 1, 1);
+    await SpacetrackService.fetchISSLocation(2000, 1, 1);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -63,7 +63,7 @@ describe("services/spacetrack-api", () => {
     fetchMock.mockReturnValueOnce(goodData);
 
     const today = new Date();
-    const res = await fetchISSLocation(
+    const res = await SpacetrackService.fetchISSLocation(
       today.getUTCFullYear(),
       today.getUTCMonth() + 1,
       today.getUTCDate()
@@ -78,7 +78,7 @@ describe("services/spacetrack-api", () => {
 
     let erred = false;
     try {
-      await fetchISSLocation(2000, 1, 1);
+      await SpacetrackService.fetchISSLocation(2000, 1, 1);
     } catch (e) {
       erred = true;
     }
@@ -90,7 +90,7 @@ describe("services/spacetrack-api", () => {
   it("should return empty data if nothing is returned from spacetrack", async () => {
     fetchMock.mockRejectedValue(new Error("Missing TLE Error"));
 
-    const res = await fetchISSLocation(2000, 1, 1);
+    const res = await SpacetrackService.fetchISSLocation(2000, 1, 1);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(res.data.ephemera).toHaveLength(0);
