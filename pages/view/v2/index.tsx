@@ -2,7 +2,7 @@ import { isNull } from "lodash";
 import Head from "next/head";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEVAs } from "client/sequences";
+import { fetchEVAs } from "http-client/sequences";
 import Header from "components/v2/header-v2";
 import Viewer from "components/v2/viewer";
 import { RootState } from "store/index";
