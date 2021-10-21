@@ -50,7 +50,7 @@ export function FrameLabel({
 }
 
 /** Renders a modal with a list of frame types to choose from */
-export default function PanePickerModal({
+export default function FramePickerModal({
   closeClick,
   options: { frameID },
 }: {
