@@ -6,10 +6,11 @@ import { fetchEVAs } from "client/sequences";
 import Header from "components/header-v2";
 import Viewer from "components/viewer";
 import { RootState } from "store/index";
-import { changeDate, diff, isSameDate } from "store/playhead";
+import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
 import useInterval from "utils/useInterval";
 import styles from "./index.module.css";
+import _ from "lodash";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -52,6 +53,20 @@ export default function V2(props: { query: QueryParams }) {
     }
   }, []);
 
+  useEffect(() => {
+    // make sure the application is running on the correct time
+    // default the time to 00:00:00Z
+    let userTime = 0;
+
+    // change the time if the user set the `gmt` query param
+    if (!isNull(props.query.gmt)) {
+      const [hh, mm, ss = 0] = props.query.gmt.split(":").map(Number);
+      userTime = hh * 3600 + mm * 60 + ss;
+    }
+
+    dispatch(changeTime(userTime));
+  }, []);
+
   /** Update the EVA store */
   const updateEVAs = () => {
     (async () => {
@@ -92,6 +107,25 @@ export async function getServerSideProps({ query }) {
   const video2 = query.video2 === undefined ? null : query.video2;
   const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
   const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
+
+  const queryParams = [
+    "frameType1",
+    "frameState1",
+    "frameType2",
+    "frameState2",
+    "frameType3",
+    "frameState3",
+    "frameType4",
+    "frameState4",
+    "frameType5",
+    "frameState5",
+    "frameType6",
+    "frameState6",
+  ];
+
+  // TODO: work on a system for new query params and translating old ones
+  // maybe old one triggers a layout that is the same as the original?
+  const queryValues = queryParams.map((qp) => _.get(query, qp, null));
 
   const returnVal: QueryParams = {
     gmt,

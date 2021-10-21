@@ -55,7 +55,7 @@ const frameTypeIDsToControls = {
   2: () => <>Controls: ISS Photography</>,
   3: () => <>Controls: ISS Groundtrack</>,
   4: EVAInfoControls,
-  5: () => <>Controls: Doug</>,
+  5: () => <>COMING SOON!</>,
   6: () => <>Controls: ISS Telemetry</>,
 };
 
@@ -68,8 +68,8 @@ export interface Options {
 export default function Frame(options) {
   const frameTypeID = useSelector((state: RootState) => state.viewer.frames[options.id]);
 
-  let FrameRender = () => <>{options.id}</>;
-  let FrameControls = () => <>Controls for {options.id}</>;
+  let FrameRender = null;
+  let FrameControls = null;
   if (!_.isNil(frameTypeID)) {
     FrameRender = frameTypeIDsToRenders[frameTypeID];
     FrameControls = frameTypeIDsToControls[frameTypeID];
@@ -78,9 +78,13 @@ export default function Frame(options) {
   return (
     <div className={styles.main}>
       <FrameHeader frameID={options.id} frameTypeID={frameTypeID}>
-        <FrameControls />
+        {!_.isNil(FrameControls) ? (
+          <FrameControls frameID={options.id} />
+        ) : (
+          <>Controls {options.id}</>
+        )}
       </FrameHeader>
-      <FrameRender />
+      {!_.isNil(FrameRender) ? <FrameRender frameID={options.id} /> : <>Frame {options.id}</>}
     </div>
   );
 }

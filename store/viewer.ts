@@ -67,14 +67,14 @@ export const allFrames: Frames = {
 };
 
 export interface ViewerState {
+  /** Currently supports `iss` or `test-events` */
+  selectedSource: string;
   /** Number representing the layout ID */
   layout: number;
   /** Current mapping of visible frames to Frame types */
   frames: {
     [key: number]: number;
   };
-  /** Currently supports `iss` or `test-events` */
-  selectedSource: string;
 }
 
 export const initialState: ViewerState = {

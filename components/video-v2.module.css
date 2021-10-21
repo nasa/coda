@@ -18,8 +18,6 @@
 
 .selections {
   display: flex;
-  /* justify-content: flex-start; */
-  /* width: 115px; */
 }
 
 .dlButton {
