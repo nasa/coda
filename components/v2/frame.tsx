@@ -5,7 +5,7 @@ import EVAInfo, { EVAInfoControls } from "components/v2/eva-info";
 import FramePickerModal, { FrameLabel } from "components/v2/frame-picker";
 import VideoFrame, { VideoControls } from "components/v2/video-v2";
 import styles from "./frame.module.css";
-import { RootState } from "../../store/";
+import { RootState } from "store";
 
 export interface Options {
   frameID: number;
@@ -45,7 +45,7 @@ const frameTypeIDsToRenders = {
   2: () => <>2: ISS Photography</>,
   3: () => <>3: ISS Groundtrack</>,
   4: EVAInfo,
-  5: () => <>5: Doug</>,
+  5: () => <>5: ISS Doug</>,
   6: () => <>6: ISS Telemetry</>,
 };
 
@@ -55,7 +55,7 @@ const frameTypeIDsToControls = {
   2: () => <>Controls: ISS Photography</>,
   3: () => <>Controls: ISS Groundtrack</>,
   4: EVAInfoControls,
-  5: () => <>COMING SOON!</>,
+  5: () => <>Controls: ISS Doug!</>,
   6: () => <>Controls: ISS Telemetry</>,
 };
 

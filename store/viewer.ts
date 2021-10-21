@@ -1,5 +1,6 @@
 /** The state of the application viewer */
 
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { createSlice } from "@reduxjs/toolkit";
 
 /** Definition of all possible layouts */
@@ -26,8 +27,10 @@ export const allLayouts: Layouts = {
 };
 
 export interface Frame {
-  title: string;
   source: string;
+  title: string;
+  icon: IconProp;
+  color: string;
   state?: any;
 }
 
@@ -37,32 +40,48 @@ export interface Frames {
 
 export const allFrames: Frames = {
   0: {
-    title: "ISS Video Downlink",
     source: "iss",
+    title: "ISS Video Downlink",
+    icon: "video",
+    color: "teal",
   },
   1: {
-    title: "ISS Video Non-Downlink",
     source: "iss",
+    title: "ISS Video Non-Downlink",
+    icon: "video",
+    color: "teal",
   },
   2: {
-    title: "ISS Photography",
     source: "iss",
+    title: "ISS Photography",
+    icon: "camera",
+    color: "ruby",
   },
   3: {
-    title: "ISS Groundtrack",
     source: "iss",
+    title: "ISS Groundtrack",
+    icon: "globe-americas",
+    color: "purple",
   },
   4: {
-    title: "EVA Info",
     source: "iss",
+    title: "EVA Info",
+    icon: "info",
+    color: "mustardGreen",
   },
   5: {
-    title: "DOUG",
     source: "iss",
+    title: "DOUG",
+    // maybe table-cells?
+    icon: "layer-group",
+    color: "mustardGreen",
   },
   6: {
-    title: "ISS Telemetry",
     source: "iss",
+    title: "ISS Telemetry",
+    // arrow-trend-up
+    icon: "chart-line",
+    color: "mustardGreen",
   },
 };
 
