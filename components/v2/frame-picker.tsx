@@ -28,39 +28,6 @@ library.add(
   faVideo
 );
 
-const frameDecoration = {
-  0: {
-    icon: "video",
-    color: "teal",
-  },
-  1: {
-    icon: "video",
-    color: "teal",
-  },
-  2: {
-    icon: "camera",
-    color: "ruby",
-  },
-  3: {
-    icon: "globe-americas",
-    color: "purple",
-  },
-  4: {
-    icon: "info",
-    color: "mustardGreen",
-  },
-  5: {
-    // maybe table-cells?
-    icon: "layer-group",
-    color: "mustardGreen",
-  },
-  6: {
-    // arrow-trend-up
-    icon: "chart-line",
-    color: "mustardGreen",
-  },
-};
-
 /**
  * Renders the label for a type of frame
  */
@@ -70,8 +37,7 @@ export function FrameLabel({
   /** ID of the type of frame */
   frameTypeID: number;
 }) {
-  const { title } = allFrames[frameTypeID];
-  const { icon, color } = frameDecoration[frameTypeID];
+  const { title, icon, color } = allFrames[frameTypeID];
 
   return (
     <div className={styles.item}>
@@ -84,7 +50,7 @@ export function FrameLabel({
 }
 
 /** Renders a modal with a list of frame types to choose from */
-export default function FramePickerModal({
+export default function PanePickerModal({
   closeClick,
   options: { frameID },
 }: {
