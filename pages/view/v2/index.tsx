@@ -125,7 +125,8 @@ export async function getServerSideProps({ query }) {
 
   // TODO: work on a system for new query params and translating old ones
   // maybe old one triggers a layout that is the same as the original?
-  const queryValues = queryParams.map((qp) => _.get(query, qp, null));
+
+  const queryValues = queryParams.map((qp) => _.get(query, qp, null)); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const returnVal: QueryParams = {
     gmt,
