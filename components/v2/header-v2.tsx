@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBars, faCalendarAlt, faClock } from "@fortawesome/free-solid-svg-icons";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faCalendarAlt, faClock } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/v2/button";
 import Calendar from "components/v2/calendar";
@@ -47,7 +48,7 @@ export function DatetimeDropdown() {
   return (
     <ModalDropdown modal={Calendar} color="grey" caret="down">
       <div className={styles.iconWithText}>
-        <FontAwesomeIcon icon="calendar-alt" />
+        <FontAwesomeIcon icon={["far", "calendar-alt"]} />
         &nbsp;&nbsp;
         <span className={styles.mono}>
           {year}-{month}-{day}
@@ -65,7 +66,7 @@ export function ClockDropdown() {
   return (
     <ModalDropdown modal={Calendar} color="grey" caret="none">
       <div className={styles.iconWithText}>
-        <FontAwesomeIcon icon="clock" />
+        <FontAwesomeIcon icon={["far", "clock"]} />
         &nbsp;
         <span className={`${styles.mono} ${styles.time}`}>{time}</span>
       </div>
