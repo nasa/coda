@@ -2,6 +2,7 @@
 
 import AbortController from "abort-controller";
 import fetch from "node-fetch";
+import type { Response } from "node-fetch";
 import https from "https";
 
 /**
@@ -16,7 +17,7 @@ export default async function fetchWithTimeout(
         /** Milliseconds to timeout */
         timeout?: number;
       })
-) {
+): Promise<Response> {
   const { timeout = 8000 } = options;
 
   const controller = new AbortController();
@@ -34,11 +35,6 @@ export default async function fetchWithTimeout(
     agent: httpsAgent,
   });
 
-  // const response = await fetch(input, {
-  //   ...options,
-  //   signal: controller.signal,
-  // });
   clearTimeout(id);
-
   return response;
 }

@@ -18,6 +18,7 @@ import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "t
 import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
+import type { Response } from "node-fetch";
 import { isNil } from "lodash";
 import { isSameDate } from "store/playhead";
 
