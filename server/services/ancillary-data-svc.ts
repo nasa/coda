@@ -2,6 +2,8 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 import gpxParser from "gpxparser";
 import type { GPSTrackCollection } from "typings/ancillary";
 import type { Response } from "node-fetch";
+import type GpxParser from "gpxparser";
+import fetchWithCache from "./cache-client";
 
 export async function fetchGPSTracks(
   dateWanted: string,
@@ -33,11 +35,26 @@ export async function fetchGPSTracks(
       },
     };
 
-    const res = await fetchWithTimeout(url, options);
-    const gpxText = await res.text();
+    // const res = await fetchWithTimeout(url, options);
+    // const gpxText = await res.text();
 
-    var gpx = new gpxParser();
-    gpx.parse(gpxText);
+    const gpxResponse = await fetchWithCache<GpxParser>(
+      url,
+      async () => {
+        const res = await fetchWithTimeout(url, options);
+        const gpxText = await res.text();
+        var gpx = new gpxParser();
+        gpx.parse(gpxText);
+        return gpx;
+      },
+      {
+        cacheAge: 3600,
+        staleOk: true,
+        preferNew: false,
+      }
+    );
+
+    const gpx = gpxResponse.data;
 
     const track = {
       name: gpx.tracks[0].name,
