@@ -27,7 +27,7 @@ function Main(props: { query: QueryParams }) {
         </div>
         <div className={styles.bodyRow2}>
           <div style={{ flex: "1 1 auto" }}>
-            <TELocation eventType="test_event" />
+            <TELocation />
           </div>
           <div style={{ flex: "0 1 170px" }}></div>
         </div>

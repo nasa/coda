@@ -19,7 +19,9 @@ export async function fetchGPSTracks(
   const eventFolder = eventType === "ISS" ? "ISS" : "test_events";
 
   for (let i = 0; i < payloadObj.gps_tracks.length; i++) {
-    const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/${payloadObj.gps_tracks[i].filename}`;
+    const underscoreDate = dateWanted.replace(/-/g, "_");
+    const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/GPS/${payloadObj.gps_tracks[i].identifier}_GPS_${underscoreDate}/${payloadObj.gps_tracks[i].identifier}_GPS_${underscoreDate}.gpx`;
+
     const options = {
       timeout: 10000,
       headers: {
