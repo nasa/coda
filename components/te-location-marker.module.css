@@ -1,0 +1,20 @@
+.ev1Marker {
+  background: url("/images/marker_ev1.png") no-repeat center;
+  background-size: 30px 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.ev2Marker {
+  background: url("/images/marker_ev2.png") no-repeat center;
+  background-size: 30px 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.cartMarker {
+  background: url("/images/marker_cart.png") no-repeat center;
+  background-size: 20px 20px;
+  width: 20px;
+  height: 20px;
+}

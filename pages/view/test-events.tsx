@@ -212,7 +212,7 @@ export default function View(props: { query: QueryParams }) {
     <div>
       <Head>
         <title>
-          {prefix} Rock Yard | {process.env.NEXT_PUBLIC_TITLE}
+          {prefix} Test Event | {process.env.NEXT_PUBLIC_TITLE}
         </title>
       </Head>
       <Main {...props} />

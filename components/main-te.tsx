@@ -4,6 +4,7 @@ import PlaybackControls from "components/playback-controls";
 import StatusBar from "components/status-bar";
 import Video from "components/video";
 import Photos from "components/photos";
+import TELocation from "./te-location";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
 import styles from "./main.module.css";
 import type { QueryParams } from "pages/view";
@@ -25,7 +26,9 @@ function Main(props: { query: QueryParams }) {
           <Photos />
         </div>
         <div className={styles.bodyRow2}>
-          <div style={{ flex: "1 1 auto" }}>{/* <ISSLocation /> */}</div>
+          <div style={{ flex: "1 1 auto" }}>
+            <TELocation eventType="test_event" />
+          </div>
           <div style={{ flex: "0 1 170px" }}></div>
         </div>
       </div>
