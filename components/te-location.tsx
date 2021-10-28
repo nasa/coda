@@ -126,7 +126,14 @@ export default function TELocation(props) {
   useEffect(() => {
     if (!map || !playhead.date || gpsTracks.gps_tracks.length === 0) return;
 
-    let trackIndexes = {
+    if (map.getZoom() === 1) {
+      map.setZoom(15);
+    }
+    ev1Marker.markerNode.style.visibility = "visible";
+    ev2Marker.markerNode.style.visibility = "visible";
+    cartMarker.markerNode.style.visibility = "visible";
+
+    const trackIndexes = {
       EV1: {
         currentSecondIndex: null,
         hoverSecondIndex: null,
@@ -142,51 +149,57 @@ export default function TELocation(props) {
     };
 
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
+    //loop through the gps track objects (EV1, EV2, and Cart)
     for (let track = 0; track < gpsTracks.gps_tracks.length; track++) {
+      //Look for the point in each GPS track closest to the playheadTime
       let markerGPSPoint: Point = null;
-
+      let foundIndex = 0;
       for (let i = 0; i < gpsTracks.gps_tracks[track].track.points.length; i++) {
         if (gpsTracks.gps_tracks[track].track.points[i].time.toString() > playHeadISODate) {
           if (i > 0) {
-            markerGPSPoint = gpsTracks.gps_tracks[track].track.points[i - 1];
-            trackIndexes[gpsTracks.gps_tracks[track].identifier].currentSecondIndex = i - 1;
-
-            if (gpsTracks.gps_tracks[track].identifier === "EV1") {
-              ev1Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-              if (ev1Marker.markerNode.style.visibility !== "visible") {
-                ev1Marker.markerNode.style.visibility = "visible";
-                map.setZoom(15);
-              }
-            } else if (gpsTracks.gps_tracks[track].identifier === "EV2") {
-              ev2Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-              ev2Marker.markerNode.style.visibility = "visible";
-            } else if (gpsTracks.gps_tracks[track].identifier === "Cart") {
-              cartMarker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-              cartMarker.markerNode.style.visibility = "visible";
-            }
+            foundIndex = i - 1;
           }
           break;
         }
       }
+
+      //save the track index of the found point
+      trackIndexes[gpsTracks.gps_tracks[track].identifier].currentSecondIndex = foundIndex;
+
+      //move the markers to the found point
+      markerGPSPoint = gpsTracks.gps_tracks[track].track.points[foundIndex];
+      if (gpsTracks.gps_tracks[track].identifier === "EV1") {
+        ev1Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
+      } else if (gpsTracks.gps_tracks[track].identifier === "EV2") {
+        ev2Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
+      } else if (gpsTracks.gps_tracks[track].identifier === "Cart") {
+        cartMarker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
+      }
+
+      //if mousing over the timeline and hovering, set the trail range to be the playhead time to the hover time
+      let newCoordinates: LngLatLike[] = [];
       if (playheadHover.seconds !== 0) {
+        //Look for the point in each GPS track closest to the hover time
         const playHeadhoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
+        let foundIndex = 0;
         for (let i = 0; i < gpsTracks.gps_tracks[track].track.points.length; i++) {
           if (gpsTracks.gps_tracks[track].track.points[i].time.toString() > playHeadhoverISODate) {
-            let foundIndex = 0;
             if (i > 0) {
               foundIndex = i - 1;
             }
-            trackIndexes[gpsTracks.gps_tracks[track].identifier].hoverSecondIndex = foundIndex;
             break;
           }
         }
+        //save the track index of the found point
+        trackIndexes[gpsTracks.gps_tracks[track].identifier].hoverSecondIndex = foundIndex;
 
-        // const bounds = new mapboxgl.LngLatBounds();
+        //retrieve lower and upper indexes from the saved points to use the trail range
         const [lowerIndex, upperIndex] = getLowerAndUpperIndexes(
           gpsTracks.gps_tracks[track].identifier,
           trackIndexes
         );
-        let newCoordinates: LngLatLike[] = [];
+
+        //populate newCoordinates with subrange of gps track (can't use splice here because gpx points and mapbox points are incompatible)
         if (lowerIndex < upperIndex && lowerIndex !== null && upperIndex !== null) {
           for (let x = lowerIndex; x < upperIndex; x++) {
             const thisCoordinate: LngLatLike = [
@@ -195,39 +208,16 @@ export default function TELocation(props) {
             ];
             newCoordinates.push(thisCoordinate);
           }
-
-          // bounds.extend(newCoordinates[0]);
-          // bounds.extend(newCoordinates[newCoordinates.length - 1]);
-        }
-
-        if (gpsTracks.gps_tracks[track].identifier === "EV1") {
-          trackEV1.features[0].geometry.coordinates = newCoordinates;
-          // @ts-ignore: bad mapbox typing
-          map.getSource("trackEV1Source").setData(trackEV1);
-          // map.setLayoutProperty("trackEV1Layer", "visibility", "visible");
-        } else if (gpsTracks.gps_tracks[track].identifier === "EV2") {
-          trackEV2.features[0].geometry.coordinates = newCoordinates;
-          // @ts-ignore: bad mapbox typing
-          map.getSource("trackEV2Source").setData(trackEV2);
-          // map.setLayoutProperty("trackEV2Layer", "visibility", "visible");
-        } else if (gpsTracks.gps_tracks[track].identifier === "Cart") {
-          trackCart.features[0].geometry.coordinates = newCoordinates;
-          // @ts-ignore: bad mapbox typing
-          map.getSource("trackCartSource").setData(trackCart);
-          // map.setLayoutProperty("trackCartLayer", "visibility", "visible");
         }
       } else {
-        // map.setLayoutProperty("trackEV1Layer", "visibility", "none");
-        // map.setLayoutProperty("trackEV2Layer", "visibility", "none");
-        // map.setLayoutProperty("trackCartLayer", "visibility", "none");
-
+        //if not hovering the timeline, set the trail range to be 20 track points behind the current time
         const upperIndex = trackIndexes[gpsTracks.gps_tracks[track].identifier].currentSecondIndex;
         const lowerIndex =
           trackIndexes[gpsTracks.gps_tracks[track].identifier].currentSecondIndex - 20 < 0
             ? 0
             : trackIndexes[gpsTracks.gps_tracks[track].identifier].currentSecondIndex - 20;
 
-        let newCoordinates: LngLatLike[] = [];
+        //populate newCoordinates with subrange of gps track
         for (let x = lowerIndex; x < upperIndex; x++) {
           const thisCoordinate: LngLatLike = [
             gpsTracks.gps_tracks[track].track.points[x].lon,
@@ -235,20 +225,21 @@ export default function TELocation(props) {
           ];
           newCoordinates.push(thisCoordinate);
         }
+      }
 
-        if (gpsTracks.gps_tracks[track].identifier === "EV1") {
-          trackEV1.features[0].geometry.coordinates = newCoordinates;
-          // @ts-ignore: bad mapbox typing
-          map.getSource("trackEV1Source").setData(trackEV1);
-        } else if (gpsTracks.gps_tracks[track].identifier === "EV2") {
-          trackEV2.features[0].geometry.coordinates = newCoordinates;
-          // @ts-ignore: bad mapbox typing
-          map.getSource("trackEV2Source").setData(trackEV2);
-        } else if (gpsTracks.gps_tracks[track].identifier === "Cart") {
-          trackCart.features[0].geometry.coordinates = newCoordinates;
-          // @ts-ignore: bad mapbox typing
-          map.getSource("trackCartSource").setData(trackCart);
-        }
+      //draw the trails using the coordinate ranges calculted above
+      if (gpsTracks.gps_tracks[track].identifier === "EV1") {
+        trackEV1.features[0].geometry.coordinates = newCoordinates;
+        // @ts-ignore: bad mapbox typing
+        map.getSource("trackEV1Source").setData(trackEV1);
+      } else if (gpsTracks.gps_tracks[track].identifier === "EV2") {
+        trackEV2.features[0].geometry.coordinates = newCoordinates;
+        // @ts-ignore: bad mapbox typing
+        map.getSource("trackEV2Source").setData(trackEV2);
+      } else if (gpsTracks.gps_tracks[track].identifier === "Cart") {
+        trackCart.features[0].geometry.coordinates = newCoordinates;
+        // @ts-ignore: bad mapbox typing
+        map.getSource("trackCartSource").setData(trackCart);
       }
     }
     if (lockToggle) {
@@ -258,6 +249,12 @@ export default function TELocation(props) {
     //use hover to show path
   }, [playhead.date, playhead.seconds, playheadHover.seconds, gpsTracks]);
 
+  /**
+   * Returns lowerIndex and upperIndex between currentSecondsIndex and hoverSecondsIndex
+   * @param identifier EV1, EV2 or Cart
+   * @param trackIndexes Track index object where indexes have been stored
+   * @returns Array containing lowerIndex, upperIndex
+   */
   function getLowerAndUpperIndexes(identifier: string, trackIndexes) {
     const lowerIndex =
       trackIndexes[identifier].currentSecondIndex < trackIndexes[identifier].hoverSecondIndex
