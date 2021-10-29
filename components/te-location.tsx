@@ -201,7 +201,7 @@ export default function TELocation(props) {
 
         //populate newCoordinates with subrange of gps track (can't use splice here because gpx points and mapbox points are incompatible)
         if (lowerIndex < upperIndex && lowerIndex !== null && upperIndex !== null) {
-          for (let x = lowerIndex; x < upperIndex; x++) {
+          for (let x = lowerIndex; x <= upperIndex; x++) {
             const thisCoordinate: LngLatLike = [
               gpsTracks.gps_tracks[track].track.points[x].lon,
               gpsTracks.gps_tracks[track].track.points[x].lat,
@@ -218,7 +218,7 @@ export default function TELocation(props) {
             : trackIndexes[gpsTracks.gps_tracks[track].identifier].currentSecondIndex - 20;
 
         //populate newCoordinates with subrange of gps track
-        for (let x = lowerIndex; x < upperIndex; x++) {
+        for (let x = lowerIndex; x <= upperIndex; x++) {
           const thisCoordinate: LngLatLike = [
             gpsTracks.gps_tracks[track].track.points[x].lon,
             gpsTracks.gps_tracks[track].track.points[x].lat,
@@ -306,7 +306,7 @@ export default function TELocation(props) {
         type: "line",
         source: "trackEV2Source",
         paint: {
-          "line-color": "black",
+          "line-color": "blue",
           "line-opacity": 0.5,
           "line-width": 5,
         },
@@ -321,7 +321,7 @@ export default function TELocation(props) {
         type: "line",
         source: "trackCartSource",
         paint: {
-          "line-color": "blue",
+          "line-color": "black",
           "line-opacity": 0.5,
           "line-width": 5,
         },
