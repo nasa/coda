@@ -5,20 +5,8 @@ import Main from "components/main-iss";
 import { fetchEVAs } from "http-client/sequences";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
 import { buildEphemerisStore } from "http-client/location";
-import {
-  addVideos,
-  haveVideosFromDate,
-  fetchError as videosFetchError,
-  videoSelectors,
-  VideosEntityState,
-} from "store/videos";
-import {
-  addPhotos,
-  photosSelectors,
-  fetchError as photosFetchError,
-  setCollectionFilters,
-  PhotosEntityState,
-} from "store/photos";
+import { addVideos, fetchError as videosFetchError } from "store/videos";
+import { addPhotos, fetchError as photosFetchError, setCollectionFilters } from "store/photos";
 import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
 import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
 import { useEffect } from "react";
@@ -31,13 +19,8 @@ const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function View(props: { query: QueryParams }) {
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
   const dispatch = useDispatch();
-
-  const photoFiles = photosSelectors.selectAll(photos);
-  const videoFiles = videoSelectors.selectAll(videos);
 
   // make sure the application is running on the correct date
   let userDate = null;
@@ -96,11 +79,6 @@ export default function View(props: { query: QueryParams }) {
 
       const d = new Date(playheadDate);
 
-      // make sure we don't already have videos for this date
-      if (haveVideosFromDate(videoFiles, d)) {
-        return;
-      }
-
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
@@ -120,10 +98,6 @@ export default function View(props: { query: QueryParams }) {
   useEffect(() => {
     (async () => {
       if (isNull(playheadDate)) {
-        return;
-      }
-
-      if (photoFiles.length > 0) {
         return;
       }
 

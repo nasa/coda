@@ -1,14 +1,14 @@
-import type { GPSTrackCollection } from "typings/ancillary";
+import type { AncillaryPayload } from "typings/ancillary";
 
-export async function buildGPSTracksStore(
+export async function buildAncillaryPayloadsStore(
   year: number,
   month: number,
   date: number,
   eventType: string
-): Promise<GPSTrackCollection> {
+): Promise<AncillaryPayload> {
   const res = await fetch(
-    `/api/ancillary/getGPSTracks?year=${year}&month=${month}&date=${date}&eventType=${eventType}`
+    `/api/ancillary/getAncillaryData?year=${year}&month=${month}&date=${date}&eventType=${eventType}`
   );
-  const gpsTracks: GPSTrackCollection = await res.json();
-  return gpsTracks;
+  const ancillaryPayload: AncillaryPayload = await res.json();
+  return ancillaryPayload;
 }
