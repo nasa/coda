@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { PhotoFile } from "typings/index";
-import type { AncillaryPayload, GPSTrack } from "typings/ancillary";
+import type { GPSTrack } from "typings/ancillary";
 
 export interface AncillaryState {
   ancillaryData: {

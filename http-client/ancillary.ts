@@ -1,7 +1,7 @@
 import { AncillaryState } from "store/ancillary";
 import { Collection, PhotoFile } from "typings/index.d";
 import type { AncillaryPayload } from "typings/ancillary";
-import { appSecondsFromDateString, cleanCollectionsString } from "utils/formatting";
+import { appSecondsFromDateString } from "utils/formatting";
 
 export async function buildAncillaryPayloadsStore(
   year: number,

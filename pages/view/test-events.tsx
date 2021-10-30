@@ -12,7 +12,6 @@ import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 import { Collection } from "typings";
-import { AncillaryPayload } from "typings/ancillary";
 import { buildAncillaryPayloadsStore } from "http-client/ancillary";
 import { ancillaryFetchError, AncillaryState, setAncillaryData } from "store/ancillary";
 
