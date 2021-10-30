@@ -10,6 +10,20 @@ interface GPSTrack {
   };
 }
 
-export interface GPSTrackCollection {
+export interface AncillaryPhoto {
+  filenameRoot: string;
+  directory: string;
+  dateTimeOriginal: string;
+  gps?: {
+    lat: number;
+    lng: number;
+    altitude: number;
+    timestamp: string;
+  };
+}
+
+export interface AncillaryPayload {
+  getPhotos: boolean;
   gps_tracks: GPSTrack[];
+  photos?: AncillaryPhoto[];
 }

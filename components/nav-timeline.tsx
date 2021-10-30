@@ -18,6 +18,7 @@ import type { EphemeraEntityState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
+import { AncillaryState } from "store/ancillary";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
@@ -29,12 +30,12 @@ function NavTimeline() {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const ancillaryState: AncillaryState = useSelector((state: RootState) => state.ancillary);
 
   const dispatch = useDispatch();
   const dayNight = ephemera.dayNight;
 
   const videoFiles = videoSelectors.selectAll(videos);
-  const photoFiles = photosSelectors.selectAll(photos);
 
   const allEVAs = sequencesSelector.selectAll(sequences);
   const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
@@ -58,6 +59,16 @@ function NavTimeline() {
     // only setup the canvas once
     if (isNil(paper.project)) {
       paper.setup(canvas.current);
+    }
+
+    //use ancillary photos instead of IO photos if there are any
+    let photoFiles = [];
+    let usingAncillary = false;
+    if (ancillaryState.ancillaryData.photos.length > 0) {
+      photoFiles = ancillaryState.ancillaryData.photos;
+      usingAncillary = true;
+    } else {
+      photoFiles = photosSelectors.selectAll(photos);
     }
 
     const asPerformed = { EV1: [], EV2: [] };
@@ -87,6 +98,7 @@ function NavTimeline() {
     drawNav.current = new DrawNav(
       filterVisibleVideos(videoFiles, playheadDate),
       filterVisiblePhotos(photoFiles, playheadDate),
+      usingAncillary,
       photos.collectionFilters,
       dayNight,
       asPerformed,
@@ -151,7 +163,7 @@ function NavTimeline() {
   useEffect(() => {
     paper.project.remove();
     installTimeline();
-  }, [sequence, videoFiles, photoFiles, dayNight, photos]);
+  }, [sequence, videoFiles, dayNight, photos, ancillaryState.ancillaryData.photos]);
 
   useEffect(() => {
     time.current = playhead.seconds;
