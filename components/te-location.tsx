@@ -80,7 +80,7 @@ export default function TELocation() {
   const [photoMarkers, setPhotoMarkers] = useState([]);
   const [lockToggle, setLockToggle] = useState(true);
 
-  const ancillaryData: AncillaryState = useSelector((state: RootState) => state.ancillary);
+  const ancillaryState: AncillaryState = useSelector((state: RootState) => state.ancillary);
 
   const mapContainer = useRef(null);
 
@@ -100,9 +100,9 @@ export default function TELocation() {
 
   //update map GPS track
   useEffect(() => {
-    if (!map || !playhead.date || ancillaryData.ancillaryData.gps_tracks.length === 0) return;
+    if (!map || !playhead.date || ancillaryState.ancillaryData.gps_tracks.length === 0) return;
 
-    const gpsTracks = ancillaryData.ancillaryData.gps_tracks;
+    const gpsTracks = ancillaryState.ancillaryData.gps_tracks;
 
     if (map.getZoom() === 1) {
       map.setZoom(15);
@@ -227,12 +227,12 @@ export default function TELocation() {
     playhead.date,
     playhead.seconds,
     playheadHover.seconds,
-    ancillaryData.ancillaryData.gps_tracks,
+    ancillaryState.ancillaryData.gps_tracks,
   ]);
 
   //update photo markers
   useEffect(() => {
-    if (!map || !playhead.date || ancillaryData.ancillaryData.photos.length === 0) return;
+    if (!map || !playhead.date || ancillaryState.ancillaryData.photos.length === 0) return;
 
     // Display photos up until current playhead time
     let targetISODate = getPlayheadISOString(playhead.date, playhead.seconds);
@@ -248,8 +248,8 @@ export default function TELocation() {
 
     //draw new set of photo markers
     const newPhotoMarkers = [];
-    for (let i = 0; i < ancillaryData.ancillaryData.photos.length; i++) {
-      const thisPhoto = ancillaryData.ancillaryData.photos[i];
+    for (let i = 0; i < ancillaryState.ancillaryData.photos.length; i++) {
+      const thisPhoto = ancillaryState.ancillaryData.photos[i];
 
       if (thisPhoto.hasOwnProperty("gps") && thisPhoto.datetimeTaken <= targetISODate) {
         const markerNode = document.createElement("div");
@@ -266,7 +266,7 @@ export default function TELocation() {
       }
     }
     setPhotoMarkers(newPhotoMarkers);
-  }, [playhead.date, playhead.seconds, playheadHover.seconds, ancillaryData.ancillaryData.photos]);
+  }, [playhead.date, playhead.seconds, playheadHover.seconds, ancillaryState.ancillaryData.photos]);
 
   /**
    * Returns lowerIndex and upperIndex between currentSecondsIndex and hoverSecondsIndex

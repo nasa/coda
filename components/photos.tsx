@@ -18,22 +18,32 @@ import {
 } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
+import { AncillaryState } from "store/ancillary";
 
 export default function Photos() {
   const dispatch = useDispatch();
 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const ancillaryState: AncillaryState = useSelector((state: RootState) => state.ancillary);
 
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
   const [filterToggle, setFilterToggle] = useState(false);
 
-  const photoFiles = photosSelectors.selectAll(photos);
-
   const changePhoto = () => {
     if (!photos.ready) {
       return;
+    }
+
+    //use ancillary photos instead of IO photos if there are any
+    let photoFiles = [];
+    let usingAncillary = false;
+    if (ancillaryState.ancillaryData.photos.length > 0) {
+      photoFiles = ancillaryState.ancillaryData.photos;
+      usingAncillary = true;
+    } else {
+      photoFiles = photosSelectors.selectAll(photos);
     }
 
     const visiblePhotos = filterVisiblePhotos(photoFiles, new Date(playhead.date));
@@ -42,24 +52,29 @@ export default function Photos() {
      * break as soon as we hit a photo that was taken after playhead.seconds leaving the data we gathered
      * on the previous photo for use.
      */
+
     let thisPhotoFile = initialPhotoFileState;
     for (let i = 0; i < visiblePhotos.length; i++) {
       const secondsIntoToday = visiblePhotos[i].datetimeTakenAppSeconds;
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
-
-      // filter photos against collectionFilters
-      for (let j = 0; j < photos.collectionFilters.length; j++) {
-        if (
-          visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
-          photos.collectionFilters[j].selected
-        ) {
-          thisPhotoFile = visiblePhotos[i];
-          break;
+      if (!usingAncillary) {
+        // filter photos against collectionFilters
+        for (let j = 0; j < photos.collectionFilters.length; j++) {
+          if (
+            visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
+            photos.collectionFilters[j].selected
+          ) {
+            thisPhotoFile = visiblePhotos[i];
+            break;
+          }
         }
+      } else {
+        thisPhotoFile = visiblePhotos[i];
       }
     }
+
     if (Object.keys(thisPhotoFile).length !== 0) {
       if (thisPhotoFile.mediaLowResURL !== photos.activePhoto.mediaLowResURL) {
         dispatch(setActivePhoto(thisPhotoFile));
@@ -81,7 +96,12 @@ export default function Photos() {
     dispatch(setCollectionFilters(filters));
   }
 
-  useEffect(changePhoto, [playhead.date, playhead.seconds, photoFiles, photos]);
+  useEffect(changePhoto, [
+    playhead.date,
+    playhead.seconds,
+    photos,
+    ancillaryState.ancillaryData.photos,
+  ]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
