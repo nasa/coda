@@ -63,10 +63,8 @@ function NavTimeline() {
 
     //use ancillary photos instead of IO photos if there are any
     let photoFiles = [];
-    let usingAncillary = false;
     if (ancillaryState.ancillaryData.photos.length > 0) {
       photoFiles = ancillaryState.ancillaryData.photos;
-      usingAncillary = true;
     } else {
       photoFiles = photosSelectors.selectAll(photos);
     }
@@ -98,7 +96,6 @@ function NavTimeline() {
     drawNav.current = new DrawNav(
       filterVisibleVideos(videoFiles, playheadDate),
       filterVisiblePhotos(photoFiles, playheadDate),
-      usingAncillary,
       photos.collectionFilters,
       dayNight,
       asPerformed,

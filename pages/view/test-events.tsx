@@ -115,7 +115,9 @@ export default function View(props: { query: QueryParams }) {
         const photoStore = await buildPhotoStore(year, month + 1, day, Collection.TEST_EVENTS);
         dispatch(addPhotos(photoStore));
         const photoCollectionsFilter = buildPhotoCollections(photoStore);
-        dispatch(setCollectionFilters(photoCollectionsFilter));
+        if (photoCollectionsFilter.length > 0) {
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        }
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
         console.error(e);
@@ -144,6 +146,12 @@ export default function View(props: { query: QueryParams }) {
           "test_event"
         );
         dispatch(setAncillaryData(ancillaryDataStore));
+        const photoCollectionsFilter = buildPhotoCollections(
+          ancillaryDataStore.ancillaryData.photos
+        );
+        if (photoCollectionsFilter.length > 0) {
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        }
       } catch (e) {
         dispatch(ancillaryFetchError(e.toString()));
         console.error(e);

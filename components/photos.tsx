@@ -59,19 +59,15 @@ export default function Photos() {
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
-      if (!usingAncillary) {
-        // filter photos against collectionFilters
-        for (let j = 0; j < photos.collectionFilters.length; j++) {
-          if (
-            visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
-            photos.collectionFilters[j].selected
-          ) {
-            thisPhotoFile = visiblePhotos[i];
-            break;
-          }
+
+      for (let j = 0; j < photos.collectionFilters.length; j++) {
+        if (
+          visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
+          photos.collectionFilters[j].selected
+        ) {
+          thisPhotoFile = visiblePhotos[i];
+          break;
         }
-      } else {
-        thisPhotoFile = visiblePhotos[i];
       }
     }
 
