@@ -14,7 +14,7 @@ import { RootState } from "store/index";
 import { Collection } from "typings";
 import { AncillaryPayload } from "typings/ancillary";
 import { buildAncillaryPayloadsStore } from "http-client/ancillary";
-import { ancillaryFetchError, setAncillaryData } from "store/ancillary";
+import { ancillaryFetchError, AncillaryState, setAncillaryData } from "store/ancillary";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -138,7 +138,7 @@ export default function View(props: { query: QueryParams }) {
       const day = d.getUTCDate();
 
       try {
-        const ancillaryDataStore: AncillaryPayload = await buildAncillaryPayloadsStore(
+        const ancillaryDataStore: AncillaryState = await buildAncillaryPayloadsStore(
           year,
           month,
           day,

@@ -101,7 +101,13 @@ export async function fetchAncillaryData(
       }
     );
 
-    payloadObj.photos = ancillaryPhotos.data;
+    const photosArray = ancillaryPhotos.data;
+    // sort all photos by timestamp taken
+    photosArray.sort((a, b) =>
+      a.dateTimeOriginal < b.dateTimeOriginal ? -1 : a.dateTimeOriginal > b.dateTimeOriginal ? 1 : 0
+    );
+
+    payloadObj.photos = photosArray;
   }
 
   return payloadObj;

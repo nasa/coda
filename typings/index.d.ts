@@ -160,4 +160,10 @@ export interface PhotoFile extends MediaFile {
   dateAdded: string;
   datetimeTaken: string;
   datetimeTakenAppSeconds: number;
+  gps?: {
+    lat: number;
+    lng: number;
+    altitude: number;
+    timestamp: string;
+  };
 }

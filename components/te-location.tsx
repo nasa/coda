@@ -77,6 +77,7 @@ export default function TELocation() {
   const [ev1Marker, setEV1Marker] = useState(initialMarker);
   const [ev2Marker, setEV2Marker] = useState(initialMarker);
   const [cartMarker, setCartMarker] = useState(initialMarker);
+  const [photoMarkers, setPhotoMarkers] = useState([]);
   const [lockToggle, setLockToggle] = useState(true);
 
   const ancillaryData: AncillaryState = useSelector((state: RootState) => state.ancillary);
@@ -99,9 +100,9 @@ export default function TELocation() {
 
   //update map GPS track
   useEffect(() => {
-    if (!map || !playhead.date || ancillaryData.ancillaryPayload.gps_tracks.length === 0) return;
+    if (!map || !playhead.date || ancillaryData.ancillaryData.gps_tracks.length === 0) return;
 
-    const gpsTracks = ancillaryData.ancillaryPayload.gps_tracks;
+    const gpsTracks = ancillaryData.ancillaryData.gps_tracks;
 
     if (map.getZoom() === 1) {
       map.setZoom(15);
@@ -226,8 +227,46 @@ export default function TELocation() {
     playhead.date,
     playhead.seconds,
     playheadHover.seconds,
-    ancillaryData.ancillaryPayload.gps_tracks,
+    ancillaryData.ancillaryData.gps_tracks,
   ]);
+
+  //update photo markers
+  useEffect(() => {
+    if (!map || !playhead.date || ancillaryData.ancillaryData.photos.length === 0) return;
+
+    // Display photos up until current playhead time
+    let targetISODate = getPlayheadISOString(playhead.date, playhead.seconds);
+    if (playheadHover.seconds !== 0) {
+      // Display photos up until hover time
+      targetISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
+    }
+
+    //remove all photo markers
+    for (let i = 0; i < photoMarkers.length; i++) {
+      photoMarkers[i].marker.remove();
+    }
+
+    //draw new set of photo markers
+    const newPhotoMarkers = [];
+    for (let i = 0; i < ancillaryData.ancillaryData.photos.length; i++) {
+      const thisPhoto = ancillaryData.ancillaryData.photos[i];
+
+      if (thisPhoto.hasOwnProperty("gps") && thisPhoto.datetimeTaken <= targetISODate) {
+        const markerNode = document.createElement("div");
+        markerNode.style.visibility = "visible";
+        const element = <Marker id={`Photo_${i}`} type={`Photo`} />;
+        ReactDOM.render(element, markerNode);
+        const marker = new mapboxgl.Marker(markerNode).setLngLat([
+          thisPhoto.gps.lng,
+          thisPhoto.gps.lat,
+        ]);
+        marker.addTo(map);
+
+        newPhotoMarkers.push({ marker: marker, markerNode: markerNode });
+      }
+    }
+    setPhotoMarkers(newPhotoMarkers);
+  }, [playhead.date, playhead.seconds, playheadHover.seconds, ancillaryData.ancillaryData.photos]);
 
   /**
    * Returns lowerIndex and upperIndex between currentSecondsIndex and hoverSecondsIndex
