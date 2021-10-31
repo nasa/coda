@@ -41,7 +41,6 @@ export default function Photos() {
     let usingAncillary = false;
     if (ancillaryState.ancillaryData.photos.length > 0) {
       photoFiles = ancillaryState.ancillaryData.photos;
-      usingAncillary = true;
     } else {
       photoFiles = photosSelectors.selectAll(photos);
     }

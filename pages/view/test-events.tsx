@@ -12,7 +12,7 @@ import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 import { Collection } from "typings";
-import { buildAncillaryPayloadsStore } from "http-client/ancillary";
+import { buildAncillaryDataStore } from "http-client/ancillary";
 import { ancillaryFetchError, AncillaryState, setAncillaryData } from "store/ancillary";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
@@ -139,7 +139,7 @@ export default function View(props: { query: QueryParams }) {
       const day = d.getUTCDate();
 
       try {
-        const ancillaryDataStore: AncillaryState = await buildAncillaryPayloadsStore(
+        const ancillaryDataStore: AncillaryState = await buildAncillaryDataStore(
           year,
           month,
           day,

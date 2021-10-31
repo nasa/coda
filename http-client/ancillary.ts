@@ -1,9 +1,9 @@
-import { AncillaryState } from "store/ancillary";
+import { ancillarySlice, AncillaryState } from "store/ancillary";
 import { Collection, PhotoFile } from "typings/index.d";
-import type { AncillaryPayload } from "typings/ancillary";
+import type { AncillaryDataRaw } from "typings/ancillary";
 import { appSecondsFromDateString } from "utils/formatting";
 
-export async function buildAncillaryPayloadsStore(
+export async function buildAncillaryDataStore(
   year: number,
   month: number,
   date: number,
@@ -12,11 +12,38 @@ export async function buildAncillaryPayloadsStore(
   const res = await fetch(
     `/api/ancillary/getAncillaryData?year=${year}&month=${month}&date=${date}&eventType=${eventType}`
   );
-  const ancillaryPayload: AncillaryPayload = await res.json();
+  const ancillaryState: AncillaryState = {
+    ancillaryData: {
+      gpsTracks: [],
+      photos: [],
+      videos: [],
+    },
+    errorMessage: "",
+  };
 
+  const ancillaryDataRaw: AncillaryDataRaw = await res.json();
+
+  ancillaryState.ancillaryData.gpsTracks = ancillaryDataRaw.gpsTracks;
+
+  ancillaryState.ancillaryData.photos = photoFilesByancillaryPhotos(
+    ancillaryDataRaw,
+    year,
+    month,
+    date
+  );
+
+  return ancillaryState;
+}
+
+function photoFilesByancillaryPhotos(
+  ancillaryDataRaw: AncillaryDataRaw,
+  year: number,
+  month: number,
+  date: number
+): PhotoFile[] {
   const photoFiles = [];
-  for (let i = 0; i < ancillaryPayload.photos.length; i++) {
-    const currAncillaryPhoto = ancillaryPayload.photos[i];
+  for (let i = 0; i < ancillaryDataRaw.photos.length; i++) {
+    const currAncillaryPhoto = ancillaryDataRaw.photos[i];
     const dateTimeTaken = currAncillaryPhoto.hasOwnProperty("gps")
       ? currAncillaryPhoto.gps.timestamp
       : currAncillaryPhoto.dateTimeOriginal;
@@ -41,12 +68,5 @@ export async function buildAncillaryPayloadsStore(
 
     photoFiles.push(photoFile);
   }
-
-  return {
-    ancillaryData: {
-      gps_tracks: ancillaryPayload.gps_tracks,
-      photos: photoFiles,
-    },
-    errorMessage: "",
-  };
+  return photoFiles;
 }

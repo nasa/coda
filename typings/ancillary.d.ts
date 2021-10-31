@@ -1,13 +1,14 @@
 import type { Point } from "gpxparser";
 
-interface GPSTrack {
+export interface GPSTrack {
+  name: string;
+  points: Point[];
+  slopes: number[];
+}
+
+export interface GPSTrackIdentifier {
   identifier: string;
   filename: string;
-  track: {
-    name: string;
-    points: Point[];
-    slopes: number[];
-  };
 }
 
 export interface AncillaryPhoto {
@@ -22,8 +23,21 @@ export interface AncillaryPhoto {
   };
 }
 
-export interface AncillaryPayload {
+export interface AncillaryVideo {
+  filename: string;
+  downlink: number;
+  duration_seconds: number;
+  dateTime: string;
+}
+
+export interface AncillaryMetadata {
   getPhotos: boolean;
-  gps_tracks: GPSTrack[];
-  photos?: AncillaryPhoto[];
+  getVideos: boolean;
+  gpsIdentifiers: GPSTrackIdentifier[];
+}
+
+export interface AncillaryDataRaw {
+  gpsTracks: GPSTrack[];
+  photos: AncillaryPhoto[];
+  videos: AncillaryVideo[];
 }

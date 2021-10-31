@@ -1,19 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { PhotoFile } from "typings/index";
+import { PhotoFile, VideoFile } from "typings/index";
 import type { GPSTrack } from "typings/ancillary";
 
 export interface AncillaryState {
   ancillaryData: {
-    gps_tracks: GPSTrack[];
+    gpsTracks: GPSTrack[];
     photos: PhotoFile[];
+    videos: VideoFile[];
   };
   errorMessage: string;
 }
 
 export const initialState: AncillaryState = {
   ancillaryData: {
-    gps_tracks: [],
+    gpsTracks: [],
     photos: [],
+    videos: [],
   },
   errorMessage: "",
 };

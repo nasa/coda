@@ -100,9 +100,9 @@ export default function TELocation() {
 
   //update map GPS track
   useEffect(() => {
-    if (!map || !playhead.date || ancillaryState.ancillaryData.gps_tracks.length === 0) return;
+    if (!map || !playhead.date || ancillaryState.ancillaryData.gpsTracks.length === 0) return;
 
-    const gpsTracks = ancillaryState.ancillaryData.gps_tracks;
+    const gpsTracks = ancillaryState.ancillaryData.gpsTracks;
 
     if (map.getZoom() === 1) {
       map.setZoom(15);
@@ -132,8 +132,8 @@ export default function TELocation() {
       //Look for the point in each GPS track closest to the playheadTime
       let markerGPSPoint: Point = null;
       let foundIndex = 0;
-      for (let i = 0; i < gpsTracks[track].track.points.length; i++) {
-        if (gpsTracks[track].track.points[i].time.toString() > playHeadISODate) {
+      for (let i = 0; i < gpsTracks[track].points.length; i++) {
+        if (gpsTracks[track].points[i].time.toString() > playHeadISODate) {
           if (i > 0) {
             foundIndex = i - 1;
           }
@@ -142,15 +142,15 @@ export default function TELocation() {
       }
 
       //save the track index of the found point
-      trackIndexes[gpsTracks[track].identifier].currentSecondIndex = foundIndex;
+      trackIndexes[gpsTracks[track].name].currentSecondIndex = foundIndex;
 
       //move the markers to the found point
-      markerGPSPoint = gpsTracks[track].track.points[foundIndex];
-      if (gpsTracks[track].identifier === "EV1") {
+      markerGPSPoint = gpsTracks[track].points[foundIndex];
+      if (gpsTracks[track].name === "EV1") {
         ev1Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-      } else if (gpsTracks[track].identifier === "EV2") {
+      } else if (gpsTracks[track].name === "EV2") {
         ev2Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-      } else if (gpsTracks[track].identifier === "Cart") {
+      } else if (gpsTracks[track].name === "Cart") {
         cartMarker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
       }
 
@@ -160,8 +160,8 @@ export default function TELocation() {
         //Look for the point in each GPS track closest to the hover time
         const playHeadhoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
         let foundIndex = 0;
-        for (let i = 0; i < gpsTracks[track].track.points.length; i++) {
-          if (gpsTracks[track].track.points[i].time.toString() > playHeadhoverISODate) {
+        for (let i = 0; i < gpsTracks[track].points.length; i++) {
+          if (gpsTracks[track].points[i].time.toString() > playHeadhoverISODate) {
             if (i > 0) {
               foundIndex = i - 1;
             }
@@ -169,11 +169,11 @@ export default function TELocation() {
           }
         }
         //save the track index of the found point
-        trackIndexes[gpsTracks[track].identifier].hoverSecondIndex = foundIndex;
+        trackIndexes[gpsTracks[track].name].hoverSecondIndex = foundIndex;
 
         //retrieve lower and upper indexes from the saved points to use the trail range
         const [lowerIndex, upperIndex] = getLowerAndUpperIndexes(
-          gpsTracks[track].identifier,
+          gpsTracks[track].name,
           trackIndexes
         );
 
@@ -181,40 +181,40 @@ export default function TELocation() {
         if (lowerIndex < upperIndex && lowerIndex !== null && upperIndex !== null) {
           for (let x = lowerIndex; x <= upperIndex; x++) {
             const thisCoordinate: LngLatLike = [
-              gpsTracks[track].track.points[x].lon,
-              gpsTracks[track].track.points[x].lat,
+              gpsTracks[track].points[x].lon,
+              gpsTracks[track].points[x].lat,
             ];
             newCoordinates.push(thisCoordinate);
           }
         }
       } else {
         //if not hovering the timeline, set the trail range to be 20 track points behind the current time
-        const upperIndex = trackIndexes[gpsTracks[track].identifier].currentSecondIndex;
+        const upperIndex = trackIndexes[gpsTracks[track].name].currentSecondIndex;
         const lowerIndex =
-          trackIndexes[gpsTracks[track].identifier].currentSecondIndex - 20 < 0
+          trackIndexes[gpsTracks[track].name].currentSecondIndex - 20 < 0
             ? 0
-            : trackIndexes[gpsTracks[track].identifier].currentSecondIndex - 20;
+            : trackIndexes[gpsTracks[track].name].currentSecondIndex - 20;
 
         //populate newCoordinates with subrange of gps track
         for (let x = lowerIndex; x <= upperIndex; x++) {
           const thisCoordinate: LngLatLike = [
-            gpsTracks[track].track.points[x].lon,
-            gpsTracks[track].track.points[x].lat,
+            gpsTracks[track].points[x].lon,
+            gpsTracks[track].points[x].lat,
           ];
           newCoordinates.push(thisCoordinate);
         }
       }
 
       //draw the trails using the coordinate ranges calculted above
-      if (gpsTracks[track].identifier === "EV1") {
+      if (gpsTracks[track].name === "EV1") {
         trackEV1.features[0].geometry.coordinates = newCoordinates;
         // @ts-ignore: bad mapbox typing
         map.getSource("trackEV1Source").setData(trackEV1);
-      } else if (gpsTracks[track].identifier === "EV2") {
+      } else if (gpsTracks[track].name === "EV2") {
         trackEV2.features[0].geometry.coordinates = newCoordinates;
         // @ts-ignore: bad mapbox typing
         map.getSource("trackEV2Source").setData(trackEV2);
-      } else if (gpsTracks[track].identifier === "Cart") {
+      } else if (gpsTracks[track].name === "Cart") {
         trackCart.features[0].geometry.coordinates = newCoordinates;
         // @ts-ignore: bad mapbox typing
         map.getSource("trackCartSource").setData(trackCart);
@@ -227,7 +227,7 @@ export default function TELocation() {
     playhead.date,
     playhead.seconds,
     playheadHover.seconds,
-    ancillaryState.ancillaryData.gps_tracks,
+    ancillaryState.ancillaryData.gpsTracks,
   ]);
 
   //update photo markers
