@@ -16,6 +16,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
+import { PhotosEntityState, photosSelectors } from "store/photos";
 
 type MapMarker = {
   marker: any; //the MapBox marker reference
@@ -72,6 +73,8 @@ export default function TELocation() {
 
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photoFiles = photosSelectors.selectAll(photos);
 
   const [map, setMap] = useState<Map>(null);
   const [ev1Marker, setEV1Marker] = useState(initialMarker);
@@ -101,9 +104,9 @@ export default function TELocation() {
 
   //update map GPS track
   useEffect(() => {
-    if (!map || !playhead.date || ancillaryState.ancillaryData.gpsTracks.length === 0) return;
+    if (!map || !playhead.date || ancillaryState.dataItems.gpsTracks.length === 0) return;
 
-    const gpsTracks = ancillaryState.ancillaryData.gpsTracks;
+    const gpsTracks = ancillaryState.dataItems.gpsTracks;
 
     if (map.getZoom() === 1) {
       map.setZoom(15);
@@ -223,16 +226,11 @@ export default function TELocation() {
     if (lockToggle) {
       map.panTo(ev1Marker.marker._lngLat);
     }
-  }, [
-    playhead.date,
-    playhead.seconds,
-    playheadHover.seconds,
-    ancillaryState.ancillaryData.gpsTracks,
-  ]);
+  }, [playhead.date, playhead.seconds, playheadHover.seconds, ancillaryState.dataItems.gpsTracks]);
 
   //update photo markers
   useEffect(() => {
-    if (!map || !playhead.date || ancillaryState.ancillaryData.photos.length === 0) return;
+    if (!map || !playhead.date || photoFiles.length === 0) return;
 
     // Display photos up until current playhead time
     let targetISODate = getPlayheadISOString(playhead.date, playhead.seconds);
@@ -244,8 +242,8 @@ export default function TELocation() {
     // create a list of photo markers to show
     const photoMarkerList = [];
     let lastPhotoDate = null;
-    for (let i = 0; i < ancillaryState.ancillaryData.photos.length; i++) {
-      const thisPhoto = ancillaryState.ancillaryData.photos[i];
+    for (let i = 0; i < photoFiles.length; i++) {
+      const thisPhoto = photoFiles[i];
       if (thisPhoto.hasOwnProperty("gps") && thisPhoto.datetimeTaken <= targetISODate) {
         if (thisPhoto.datetimeTaken !== lastPhotoDate) {
           photoMarkerList.push(thisPhoto);
@@ -280,7 +278,7 @@ export default function TELocation() {
     }
 
     //draw new set of photo markers
-  }, [playhead.date, playhead.seconds, playheadHover.seconds, ancillaryState.ancillaryData.photos]);
+  }, [playhead.date, playhead.seconds, playheadHover.seconds, photoFiles]);
 
   /**
    * Returns lowerIndex and upperIndex between currentSecondsIndex and hoverSecondsIndex

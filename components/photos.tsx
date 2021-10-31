@@ -18,14 +18,12 @@ import {
 } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
-import { AncillaryState } from "store/ancillary";
 
 export default function Photos() {
   const dispatch = useDispatch();
 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
-  const ancillaryState: AncillaryState = useSelector((state: RootState) => state.ancillary);
 
   const [infoToggle, setInfoToggle] = useState(false);
   const [infoHover, setInfoHover] = useState(false);
@@ -36,14 +34,7 @@ export default function Photos() {
       return;
     }
 
-    //use ancillary photos instead of IO photos if there are any
-    let photoFiles = [];
-    let usingAncillary = false;
-    if (ancillaryState.ancillaryData.photos.length > 0) {
-      photoFiles = ancillaryState.ancillaryData.photos;
-    } else {
-      photoFiles = photosSelectors.selectAll(photos);
-    }
+    const photoFiles = photosSelectors.selectAll(photos);
 
     const visiblePhotos = filterVisiblePhotos(photoFiles, new Date(playhead.date));
 
@@ -91,12 +82,7 @@ export default function Photos() {
     dispatch(setCollectionFilters(filters));
   }
 
-  useEffect(changePhoto, [
-    playhead.date,
-    playhead.seconds,
-    photos,
-    ancillaryState.ancillaryData.photos,
-  ]);
+  useEffect(changePhoto, [playhead.date, playhead.seconds, photos]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";

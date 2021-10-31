@@ -1,4 +1,5 @@
 import type { Point } from "gpxparser";
+import { PhotoFile, VideoFile } from ".";
 
 export interface GPSTrack {
   name: string;
@@ -26,7 +27,7 @@ export interface AncillaryPhoto {
 export interface AncillaryVideo {
   filename: string;
   downlink: number;
-  duration_seconds: number;
+  durationSeconds: number;
   dateTime: string;
 }
 
@@ -40,4 +41,10 @@ export interface AncillaryDataRaw {
   gpsTracks: GPSTrack[];
   photos: AncillaryPhoto[];
   videos: AncillaryVideo[];
+}
+
+export interface AncillaryPayload {
+  gpsTracks: GPSTrack[];
+  photos: PhotoFile[];
+  videos: VideoFile[];
 }
