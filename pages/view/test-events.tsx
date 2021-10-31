@@ -12,13 +12,19 @@ import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 import { Collection } from "typings";
-import { buildAncillaryPayloadsStore } from "http-client/ancillary";
-import { ancillaryFetchError, AncillaryState, setAncillaryData } from "store/ancillary";
+import { getAncillaryDataPayload } from "http-client/ancillary";
+import {
+  ancillaryFetchError,
+  AncillaryState,
+  AncillaryDataItems,
+  setAncillaryData,
+} from "store/ancillary";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function View(props: { query: QueryParams }) {
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
+  const ancillaryState: AncillaryState = useSelector((state: RootState) => state.ancillary);
 
   const dispatch = useDispatch();
 
@@ -75,6 +81,10 @@ export default function View(props: { query: QueryParams }) {
 
   // grab videos
   useEffect(() => {
+    //abort this refresh if using ancillary videos
+    if (ancillaryState.dataItems.videosRetrieved) {
+      return;
+    }
     (async () => {
       if (isNull(playheadDate)) {
         return;
@@ -115,7 +125,9 @@ export default function View(props: { query: QueryParams }) {
         const photoStore = await buildPhotoStore(year, month + 1, day, Collection.TEST_EVENTS);
         dispatch(addPhotos(photoStore));
         const photoCollectionsFilter = buildPhotoCollections(photoStore);
-        dispatch(setCollectionFilters(photoCollectionsFilter));
+        if (photoCollectionsFilter.length > 0) {
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        }
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
         console.error(e);
@@ -137,13 +149,27 @@ export default function View(props: { query: QueryParams }) {
       const day = d.getUTCDate();
 
       try {
-        const ancillaryDataStore: AncillaryState = await buildAncillaryPayloadsStore(
-          year,
-          month,
-          day,
-          "test_event"
-        );
-        dispatch(setAncillaryData(ancillaryDataStore));
+        const ancillaryPayload = await getAncillaryDataPayload(year, month, day, "test_event");
+
+        //construct object for ancillary data store from payload
+        const dataItems: AncillaryDataItems = {
+          videosRetrieved: ancillaryPayload.videos.length === 0 ? false : true,
+          photosRetrieved: ancillaryPayload.photos.length === 0 ? false : true,
+          gpsTracks: ancillaryPayload.gpsTracks,
+        };
+        dispatch(setAncillaryData(dataItems));
+
+        //replace photo store with ancillary photos
+        const photosDataStore = ancillaryPayload.photos;
+        dispatch(addPhotos(photosDataStore));
+        const photoCollectionsFilter = buildPhotoCollections(ancillaryPayload.photos);
+        if (photoCollectionsFilter.length > 0) {
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        }
+
+        //replace video store with ancillary videos
+        const videoDataStore = ancillaryPayload.videos;
+        dispatch(addVideos(videoDataStore));
       } catch (e) {
         dispatch(ancillaryFetchError(e.toString()));
         console.error(e);
@@ -153,6 +179,10 @@ export default function View(props: { query: QueryParams }) {
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
+    //abort this refresh if using ancillary videos
+    if (ancillaryState.dataItems.videosRetrieved) {
+      return;
+    }
     (async () => {
       // the playhead hasn't been set, no point in looking for videos
       if (isNull(playheadDate)) {

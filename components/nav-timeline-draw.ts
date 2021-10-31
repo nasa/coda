@@ -63,7 +63,6 @@ export default class DrawNav {
   constructor(
     readonly videoFiles: VideoFile[],
     readonly photoFiles: PhotoFile[],
-    readonly usingAncillary: boolean,
     readonly collectionFilters: CollectionFilters[],
     readonly dayNight: DayNightObj[],
     readonly asPerformed: {
@@ -186,18 +185,14 @@ export default class DrawNav {
       xLocations.add(wholePixelLocation);
 
       let showThisPhoto = false;
-      if (!this.usingAncillary) {
-        for (let j = 0; j < this.collectionFilters.length; j++) {
-          if (
-            this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
-            this.collectionFilters[j].selected
-          ) {
-            showThisPhoto = true;
-            break;
-          }
+      for (let j = 0; j < this.collectionFilters.length; j++) {
+        if (
+          this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
+          this.collectionFilters[j].selected
+        ) {
+          showThisPhoto = true;
+          break;
         }
-      } else {
-        showThisPhoto = true;
       }
 
       const startLocY =
@@ -504,18 +499,14 @@ export default class DrawNav {
         this.photoFiles[i].datetimeTakenAppSeconds >= this.gTier2StartSeconds
       ) {
         let showThisPhoto = false;
-        if (!this.usingAncillary) {
-          for (let j = 0; j < this.collectionFilters.length; j++) {
-            if (
-              this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
-              this.collectionFilters[j].selected
-            ) {
-              showThisPhoto = true;
-              break;
-            }
+        for (let j = 0; j < this.collectionFilters.length; j++) {
+          if (
+            this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
+            this.collectionFilters[j].selected
+          ) {
+            showThisPhoto = true;
+            break;
           }
-        } else {
-          showThisPhoto = true;
         }
 
         let itemLocX =

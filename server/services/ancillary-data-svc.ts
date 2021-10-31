@@ -1,6 +1,12 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import gpxParser from "gpxparser";
-import type { AncillaryPayload, AncillaryPhoto } from "typings/ancillary";
+import type {
+  AncillaryDataRaw,
+  AncillaryMetadata,
+  AncillaryPhoto,
+  AncillaryVideo,
+  GPSTrack,
+} from "typings/ancillary";
 import type { Response } from "node-fetch";
 import type GpxParser from "gpxparser";
 import fetchWithCache from "./cache-client";
@@ -8,109 +14,160 @@ import fetchWithCache from "./cache-client";
 export async function fetchAncillaryData(
   dateWanted: string,
   eventType: string
-): Promise<AncillaryPayload> {
+): Promise<AncillaryDataRaw> {
   const payloadDescription = await fetchAncillaryPayloadDescription(dateWanted, eventType);
 
-  let payloadObj: AncillaryPayload = {
+  let payloadObj: AncillaryMetadata = {
     getPhotos: false,
-    gps_tracks: [],
+    getVideos: false,
+    gpsIdentifiers: [],
   };
 
   if (!payloadDescription.includes("Access Denied")) {
-    const receivedPayload: AncillaryPayload = JSON.parse(payloadDescription);
+    const receivedPayload: AncillaryMetadata = JSON.parse(payloadDescription);
     payloadObj = { ...payloadObj, ...receivedPayload };
   }
 
   const eventFolder = eventType === "ISS" ? "ISS" : "test_events";
 
+  const ancillaryData: AncillaryDataRaw = { gpsTracks: [], photos: [], videos: [] };
+
   // get and add GPS tracks to payload
-  for (let i = 0; i < payloadObj.gps_tracks.length; i++) {
-    const underscoreDate = dateWanted.replace(/-/g, "_");
-    const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/GPS/${payloadObj.gps_tracks[i].identifier}_GPS_${underscoreDate}/${payloadObj.gps_tracks[i].identifier}_GPS_${underscoreDate}.gpx`;
-
-    const options = {
-      timeout: 10000,
-      headers: {
-        Accept: "application/json, text/javascript, */*; q=0.01",
-        "Accept-Encoding": "gzip,deflate,br",
-        "Accept-Language": "en-US,en;q=0.9",
-        Connection: "keep-alive",
-        Origin: process.env.HOST,
-      },
-    };
-
-    // const res = await fetchWithTimeout(url, options);
-    // const gpxText = await res.text();
-
-    const gpxResponse = await fetchWithCache<GpxParser>(
-      url,
-      async () => {
-        const res = await fetchWithTimeout(url, options);
-        const gpxText = await res.text();
-        var gpx = new gpxParser();
-        gpx.parse(gpxText);
-        return gpx;
-      },
-      {
-        cacheAge: 3600,
-        staleOk: true,
-        preferNew: false,
-      }
+  for (let i = 0; i < payloadObj.gpsIdentifiers.length; i++) {
+    const thisGPSTrack = await getGPXTrack(
+      dateWanted,
+      eventFolder,
+      payloadObj.gpsIdentifiers[i].identifier
     );
-
-    const gpx = gpxResponse.data;
-
-    const track = {
-      name: gpx.tracks[0].name,
-      points: gpx.tracks[0].points,
-      slopes: gpx.tracks[0].slopes,
-    };
-
-    payloadObj.gps_tracks[i].track = track;
+    ancillaryData.gpsTracks.push(thisGPSTrack);
   }
 
-  // get and add ancillary photos metadata to payload
+  // if the payload.json says to get photo data, get and add ancillary photos metadata to payload
   if (payloadObj.getPhotos) {
-    const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/Photo/photoMetadata.json`;
-
-    const options = {
-      timeout: 10000,
-      headers: {
-        Accept: "application/json, text/javascript, */*; q=0.01",
-        "Accept-Encoding": "gzip,deflate,br",
-        "Accept-Language": "en-US,en;q=0.9",
-        Connection: "keep-alive",
-        Origin: process.env.HOST,
-      },
-    };
-
-    // const res = await fetchWithTimeout(url, options);
-    // const gpxText = await res.text();
-
-    const ancillaryPhotos = await fetchWithCache<AncillaryPhoto[]>(
-      url,
-      async () => {
-        const res = await fetchWithTimeout(url, options);
-        const photoJson = await res.json();
-        return photoJson;
-      },
-      {
-        cacheAge: 3600,
-        staleOk: true,
-        preferNew: false,
-      }
-    );
-
-    const photosArray = ancillaryPhotos.data;
-    // sort all photos by timestamp taken
-    photosArray.sort((a, b) =>
-      a.dateTimeOriginal < b.dateTimeOriginal ? -1 : a.dateTimeOriginal > b.dateTimeOriginal ? 1 : 0
-    );
-
-    payloadObj.photos = photosArray;
+    ancillaryData.photos = await getAncillaryPhotos(eventFolder, dateWanted);
   }
 
-  return payloadObj;
+  // if the payload.json says to get video data,  get and add ancillary videos metadata to payload
+  if (payloadObj.getVideos) {
+    ancillaryData.videos = await getAncillaryVideos(eventFolder, dateWanted);
+  }
+
+  return ancillaryData;
+}
+
+async function getGPXTrack(dateWanted, eventFolder, identifier): Promise<GPSTrack> {
+  const underscoreDate = dateWanted.replace(/-/g, "_");
+  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/GPS/${identifier}_GPS_${underscoreDate}/${identifier}_GPS_${underscoreDate}.gpx`;
+
+  const options = {
+    timeout: 10000,
+    headers: {
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      "Accept-Encoding": "gzip,deflate,br",
+      "Accept-Language": "en-US,en;q=0.9",
+      Connection: "keep-alive",
+      Origin: process.env.HOST,
+    },
+  };
+
+  // const res = await fetchWithTimeout(url, options);
+  // const gpxText = await res.text();
+
+  const gpxResponse = await fetchWithCache<GpxParser>(
+    url,
+    async () => {
+      const res = await fetchWithTimeout(url, options);
+      const gpxText = await res.text();
+      var gpx = new gpxParser();
+      gpx.parse(gpxText);
+      return gpx;
+    },
+    {
+      cacheAge: 3600,
+      staleOk: true,
+      preferNew: false,
+    }
+  );
+
+  const gpx = gpxResponse.data;
+
+  const track: GPSTrack = {
+    name: identifier,
+    points: gpx.tracks[0].points,
+    slopes: gpx.tracks[0].slopes,
+  };
+
+  return track;
+}
+
+async function getAncillaryPhotos(eventFolder, dateWanted): Promise<AncillaryPhoto[]> {
+  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/Photo/photoMetadata.json`;
+
+  const options = {
+    timeout: 10000,
+    headers: {
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      "Accept-Encoding": "gzip,deflate,br",
+      "Accept-Language": "en-US,en;q=0.9",
+      Connection: "keep-alive",
+      Origin: process.env.HOST,
+    },
+  };
+
+  const ancillaryPhotos = await fetchWithCache<AncillaryPhoto[]>(
+    url,
+    async () => {
+      const res = await fetchWithTimeout(url, options);
+      const photoJson = await res.json();
+      return photoJson;
+    },
+    {
+      cacheAge: 3600,
+      staleOk: true,
+      preferNew: false,
+    }
+  );
+
+  const photosArray = ancillaryPhotos.data;
+  // sort all photos by timestamp taken
+  photosArray.sort((a, b) =>
+    a.dateTimeOriginal < b.dateTimeOriginal ? -1 : a.dateTimeOriginal > b.dateTimeOriginal ? 1 : 0
+  );
+  return photosArray;
+}
+
+async function getAncillaryVideos(eventFolder, dateWanted): Promise<AncillaryVideo[]> {
+  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/Video/videoMetadata.json`;
+
+  const options = {
+    timeout: 10000,
+    headers: {
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      "Accept-Encoding": "gzip,deflate,br",
+      "Accept-Language": "en-US,en;q=0.9",
+      Connection: "keep-alive",
+      Origin: process.env.HOST,
+    },
+  };
+  const ancillaryVideos = await fetchWithCache<AncillaryVideo[]>(
+    url,
+    async () => {
+      const res = await fetchWithTimeout(url, options);
+      const photoJson = await res.json();
+      return photoJson;
+    },
+    {
+      cacheAge: 3600,
+      staleOk: true,
+      preferNew: false,
+    }
+  );
+
+  const videosArray = ancillaryVideos.data;
+  // sort all photos by timestamp taken
+  videosArray.sort((a, b) => (a.dateTime < b.dateTime ? -1 : a.dateTime > b.dateTime ? 1 : 0));
+
+  return videosArray;
 }
 
 async function fetchAncillaryPayloadDescription(
@@ -118,7 +175,7 @@ async function fetchAncillaryPayloadDescription(
   eventType: string
 ): Promise<string> {
   const eventFolder = eventType === "ISS" ? "ISS" : "test_events";
-  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/payload.json`;
+  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/ancillaryMetadata.json`;
   const options = {
     timeout: 10000,
     headers: {

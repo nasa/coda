@@ -1,19 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { PhotoFile } from "typings/index";
 import type { GPSTrack } from "typings/ancillary";
 
+export interface AncillaryDataItems {
+  photosRetrieved: boolean;
+  videosRetrieved: boolean;
+  gpsTracks: GPSTrack[];
+}
 export interface AncillaryState {
-  ancillaryData: {
-    gps_tracks: GPSTrack[];
-    photos: PhotoFile[];
-  };
+  dataItems: AncillaryDataItems;
   errorMessage: string;
 }
 
 export const initialState: AncillaryState = {
-  ancillaryData: {
-    gps_tracks: [],
-    photos: [],
+  dataItems: {
+    photosRetrieved: false,
+    videosRetrieved: false,
+    gpsTracks: [],
   },
   errorMessage: "",
 };
@@ -23,8 +25,8 @@ export const ancillarySlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    setAncillaryData: (state, action: { payload: AncillaryState }) => {
-      state.ancillaryData = action.payload.ancillaryData;
+    setAncillaryData: (state, action: { payload: AncillaryDataItems }) => {
+      state.dataItems = action.payload;
     },
     ancillaryFetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;
