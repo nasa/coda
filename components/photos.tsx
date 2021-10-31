@@ -35,7 +35,6 @@ export default function Photos() {
     }
 
     const photoFiles = photosSelectors.selectAll(photos);
-
     const visiblePhotos = filterVisiblePhotos(photoFiles, new Date(playhead.date));
 
     /* Loop through all returned photos in order of datetimeTaken
@@ -50,6 +49,7 @@ export default function Photos() {
         break;
       }
 
+      // filter photos against collectionFilters
       for (let j = 0; j < photos.collectionFilters.length; j++) {
         if (
           visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&

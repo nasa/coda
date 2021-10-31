@@ -124,7 +124,7 @@ async function getAncillaryPhotos(eventFolder, dateWanted): Promise<AncillaryPho
     {
       cacheAge: 3600,
       staleOk: true,
-      preferNew: true,
+      preferNew: false,
     }
   );
 
@@ -159,7 +159,7 @@ async function getAncillaryVideos(eventFolder, dateWanted): Promise<AncillaryVid
     {
       cacheAge: 3600,
       staleOk: true,
-      preferNew: true,
+      preferNew: false,
     }
   );
 

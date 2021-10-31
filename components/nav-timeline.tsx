@@ -33,6 +33,7 @@ function NavTimeline() {
   const dispatch = useDispatch();
   const dayNight = ephemera.dayNight;
 
+  const photoFiles = photosSelectors.selectAll(photos);
   const videoFiles = videoSelectors.selectAll(videos);
 
   const allEVAs = sequencesSelector.selectAll(sequences);
@@ -58,9 +59,6 @@ function NavTimeline() {
     if (isNil(paper.project)) {
       paper.setup(canvas.current);
     }
-
-    //use ancillary photos instead of IO photos if there are any
-    const photoFiles = photosSelectors.selectAll(photos);
 
     const asPerformed = { EV1: [], EV2: [] };
     if (!isNil(sequence)) {
