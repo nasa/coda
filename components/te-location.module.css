@@ -60,3 +60,58 @@
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="black"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
     no-repeat center;
 }
+
+.info {
+  position: absolute;
+  bottom: 220px;
+  right: 50px;
+
+  display: flex;
+
+  font-family: "Roboto";
+  margin-top: 5px;
+  margin-left: 5px;
+  padding: 5px;
+
+  font-size: 1em;
+  color: #222;
+  background-color: #fff;
+  border: 1px solid black;
+  border-radius: 10px;
+  z-index: 20;
+}
+
+.infoSection {
+  flex-direction: column;
+}
+
+.infoSectionTitle {
+  display: flex;
+  align-items: center;
+}
+
+.infoSectionTitleIcon {
+  margin-top: 5px;
+}
+
+.valueTable {
+  width: 100%;
+  font-size: 0.8em;
+  border-collapse: collapse;
+}
+
+.valueTable td {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.valueTable tr td:first-child {
+  text-align: right;
+  font-weight: 600;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.valueTable tr td:last-child {
+  border-left: 1px solid #000;
+}

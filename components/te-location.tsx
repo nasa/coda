@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { PlayheadState } from "store/playhead";
 import { AncillaryState } from "store/ancillary";
-import { getPlayheadISOString } from "utils/formatting";
+import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
 import type { PlayheadHoverState } from "store/playheadHover";
 
 import styles from "./te-location.module.css";
@@ -21,6 +21,22 @@ import { PhotosEntityState, photosSelectors } from "store/photos";
 type MapMarker = {
   marker: any; //the MapBox marker reference
   markerNode: any; //the real DOM id of the marker
+};
+
+type infoItems = {
+  lat: string;
+  lng: string;
+  ele: string;
+  hdg: string;
+  slope: string;
+  date: string;
+  time: string;
+};
+
+type InfoDisplay = {
+  ev1: infoItems;
+  ev2: infoItems;
+  cart: infoItems;
 };
 
 export default function TELocation() {
@@ -83,6 +99,21 @@ export default function TELocation() {
   const [photoMarkers, setPhotoMarkers] = useState([]);
   const [photoMarkerCount, setPhotoMarkerCount] = useState(0);
   const [lockToggle, setLockToggle] = useState(true);
+
+  const infoItemsDefaultValue = {
+    lat: "",
+    lng: "",
+    ele: "",
+    hdg: "",
+    slope: "",
+    date: "",
+    time: "",
+  };
+  const [infoDisplay, setInfoDisplay] = useState<InfoDisplay>({
+    ev1: infoItemsDefaultValue,
+    ev2: infoItemsDefaultValue,
+    cart: infoItemsDefaultValue,
+  });
 
   const ancillaryState: AncillaryState = useSelector((state: RootState) => state.ancillary);
 
@@ -213,7 +244,28 @@ export default function TELocation() {
       }
 
       let markerGPSPoint: Point = null;
-      //move the markers to the found point
+
+      const timestampArr = (
+        isoStringFromAnyDateString(gpsTracks[track].points[foundIndex].time.toString()).split(
+          "."
+        )[0] + "Z"
+      ).split("T");
+
+      //update infoDisplay
+      const items: infoItems = {
+        lat: gpsTracks[track].points[foundIndex].lat.toFixed(7),
+        lng: gpsTracks[track].points[foundIndex].lon.toFixed(7),
+        ele: gpsTracks[track].points[foundIndex].ele.toFixed(4).toString(),
+        slope: gpsTracks[track].slopes[foundIndex].toFixed(4).toString(),
+        date: timestampArr[0],
+        time: timestampArr[1],
+        hdg: "",
+      };
+      const tempInfo = infoDisplay;
+      tempInfo[gpsTracks[track].name.toLowerCase()] = items;
+      setInfoDisplay(tempInfo);
+
+      //move the markers to the found point and infoDisplay
       markerGPSPoint = gpsTracks[track].points[foundIndex];
       if (gpsTracks[track].name === "EV1") {
         ev1Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
@@ -383,6 +435,7 @@ export default function TELocation() {
   if (lockToggle) {
     lockButtonStyle = styles.toggleSelected;
   }
+
   return (
     <>
       <div className={styles.container}>
@@ -404,7 +457,90 @@ export default function TELocation() {
             Lock to EV1
           </div>
         </div>
+        {ancillaryState.dataItems.gpsTracks.length > 0 ? showInfo() : <></>}
       </div>
     </>
   );
+
+  function showInfo() {
+    return (
+      <>
+        <div className={styles.info}>
+          <div className={styles.infoSection}>
+            <table className={styles.valueTable}>
+              <tr>
+                <td></td>
+                <td>
+                  <div className={styles.infoSectionTitle}>
+                    <div>
+                      <strong>EV1</strong>
+                    </div>
+                    <div>
+                      <img
+                        className="infoSectionTitleIcon"
+                        src="/images/marker_ev1.png"
+                        width="30px"
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div className={styles.infoSectionTitle}>
+                    <div>
+                      <strong>EV2</strong>
+                    </div>
+                    <div>
+                      <img
+                        className="infoSectionTitleIcon"
+                        src="/images/marker_ev2.png"
+                        width="30px"
+                      />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Latitude:</td>
+                <td>{infoDisplay.ev1.lat}</td>
+                <td>{infoDisplay.ev2.lat}</td>
+              </tr>
+              <tr>
+                <td>Longitude:</td>
+                <td>{infoDisplay.ev1.lng}</td>
+                <td>{infoDisplay.ev2.lng}</td>
+              </tr>
+              <tr>
+                <td>Elevation (m):</td>
+                <td>{infoDisplay.ev1.ele}</td>
+                <td>{infoDisplay.ev2.ele}</td>
+              </tr>
+              {/* <tr>
+                  <td>Bearing (deg):</td>
+                  <td>{infoDisplay.ev1.hdg}</td>
+                  <td>{infoDisplay.ev2.hdg}</td>
+                </tr> */}
+              <tr>
+                <td>Slope:</td>
+                <td>{infoDisplay.ev1.slope}</td>
+                <td>{infoDisplay.ev2.slope}</td>
+              </tr>
+              <tr>
+                <td>Timestamp:</td>
+                <td>
+                  {infoDisplay.ev1.date}
+                  <br />
+                  {infoDisplay.ev1.time}
+                </td>
+                <td>
+                  {infoDisplay.ev2.date}
+                  <br />
+                  {infoDisplay.ev2.time}
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </>
+    );
+  }
 }
