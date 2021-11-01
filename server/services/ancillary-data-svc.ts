@@ -37,6 +37,7 @@ export async function fetchAncillaryData(
     const thisGPSTrack = await getGPXTrack(
       dateWanted,
       eventFolder,
+      payloadObj.gpsIdentifiers[i].filename,
       payloadObj.gpsIdentifiers[i].identifier
     );
     ancillaryData.gpsTracks.push(thisGPSTrack);
@@ -55,9 +56,8 @@ export async function fetchAncillaryData(
   return ancillaryData;
 }
 
-async function getGPXTrack(dateWanted, eventFolder, identifier): Promise<GPSTrack> {
-  const underscoreDate = dateWanted.replace(/-/g, "_");
-  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/GPS/${identifier}_GPS_${underscoreDate}/${identifier}_GPS_${underscoreDate}.gpx`;
+async function getGPXTrack(dateWanted, eventFolder, filename, identifier): Promise<GPSTrack> {
+  const url = `${process.env.ANCILLARY_DATA_URL}/${eventFolder}/${dateWanted}/GPS/${filename}/${filename}.gpx`;
 
   const options = {
     timeout: 10000,
