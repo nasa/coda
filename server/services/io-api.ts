@@ -162,6 +162,16 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     } else if (doc.md_title.includes("QUAD")) {
       downlink = 2;
     }
+  } else if (+Collection[collection] === +Collection.NBL) {
+    //modify downlink numbers for nbl collection results based on strings in collections list
+    const fullCollectionsString = doc.collections_string[doc.collections_string.length - 1];
+    if (fullCollectionsString.includes("EV1")) {
+      downlink = 0;
+    } else if (fullCollectionsString.includes("EV2")) {
+      downlink = 1;
+    } else if (fullCollectionsString.includes("QUAD")) {
+      downlink = 2;
+    }
   }
 
   // Create array of date elements from creation date
