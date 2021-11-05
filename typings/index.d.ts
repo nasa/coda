@@ -105,7 +105,7 @@ export enum Collection {
   /** JSC Rock Yard. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 (why the quoted string with spaces? so it matches the Test Environment name in the exploration wiki */
   "JSC Rock Yard" = 2359937,
   /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359935 */
-  NBL = 2359935,
+  NBL = 78178,
   /** Artificial Reduced Gravity Offload System. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359933 */
   ARGOS = 2359933,
   /** NASA Extreme Environment Mission Operations. https://io.jsc.nasa.gov/app/collections.cfm?cid=2359936 */
