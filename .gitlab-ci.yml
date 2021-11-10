@@ -149,22 +149,16 @@ build:
       sudo systemctl daemon-reload &&
       sudo systemctl restart coda"
 
-# TODO: we need to update this when we switch over coda-dev to a fitbox template
-deploy_dev:
-  extends: .setup_ssh
-  stage: deploy_to_server
+deploy_to_dev1:
+  extends: .deploy_template
   variables:
-    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY
+    ENVIRONMENT_HOSTNAME: jsfitdcoda01
+    SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV1
   environment:
-    name: development
-    url: https://coda-dev.fit.nasa.gov/coda
-  script:
-    # sync the source code on the server at /home/bfeist/coda
-    - rsync -acrvz --delete --exclude=node_modules --exclude=.env* --exclude=.git "$PWD" bfeist@jsfitdcoda.ndc.nasa.gov:/home/bfeist
-    # rebuild the app then restart node on the VM
-    - ssh bfeist@jsfitdcoda.ndc.nasa.gov "cd /home/bfeist/coda && npm i && systemctl --user restart coda-dev"
+    name: development1
+    url: https://coda-dev.fit.nasa.gov
   only:
-    - /^.*--dev$/
+    - /^.*--dev1$/
 
 deploy_to_dev2:
   extends: .deploy_template
