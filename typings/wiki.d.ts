@@ -170,7 +170,7 @@ export interface AllTestEvents {
 
 export interface DatetimeOverrides {
   videoFixes: VideoFix[];
-  testEventTimezones: TestEventTimezones[];
+  testEventTimezones: TestEventOffsets[];
 }
 
 export interface VideoFix {
@@ -180,9 +180,9 @@ export interface VideoFix {
   time: string;
 }
 
-export interface TestEventTimezones {
+export interface TestEventOffsets {
   /** Match test event to the ID in the wiki */
   testEventID: string;
   /** In the form of UTC-05:00 */
-  timezone: string;
+  timeoffset: string;
 }

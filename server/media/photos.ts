@@ -5,7 +5,7 @@ import * as WikiService from "server/services/wiki-api";
 import { add, isSameDate } from "store/playhead";
 import { Collection } from "typings";
 import type { WrappedResponse, PhotoFile } from "typings";
-import { TestEventTimezones } from "typings/wiki";
+import { TestEventOffsets } from "typings/wiki";
 import { appSecondsFromDateString } from "utils/formatting";
 
 /**
@@ -59,7 +59,7 @@ export default async function getPhotoData(
     return results;
   }
 
-  let overrides: TestEventTimezones;
+  let overrides: TestEventOffsets;
 
   for (let override of allOverrides.data.testEventTimezones) {
     for (let seq of seqs) {
@@ -77,7 +77,7 @@ export default async function getPhotoData(
   }
 
   try {
-    const [_, sign, hh, mm, ss] = overrides.timezone.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
+    const [_, sign, hh, mm, ss] = overrides.timeoffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
 
     const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
 
