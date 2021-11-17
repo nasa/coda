@@ -31,33 +31,38 @@ stages:
 project-check:
   stage: static
   needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 eslint-sast:
   stage: static
   needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 nodejs-scan-sast:
   stage: static
-  needs: ["test"]
+  needs: ["install_dependencies"] # nodejs-scan-sast takes a while, don't wait for "test" job
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 semgrep-sast:
   stage: static
   needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 sast:
   stage: static
   needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
   stage: static
-  needs: ["install_dependencies", "test"]
+  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
   tags: ["docker", "linux"]
   timeout: 10 minutes
   image:
@@ -104,7 +109,7 @@ install_dependencies:
 test:
   stage: priority
   needs: ["install_dependencies"]
-  tags: ["Docker", "Linux"]
+  tags: ["docker", "linux"]
   script:
     - npm run lint
     - npm t
