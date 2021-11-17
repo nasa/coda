@@ -200,7 +200,7 @@ function Header() {
         </div>
         <div className={styles.headerElementContainer}>
           <div>
-            <div className={styles.pet}>Julian Date</div>
+            <div className={styles.pet}>Day of Year</div>
           </div>
           <div>
             <div className={styles.pet} style={{ color: "white" }}>
