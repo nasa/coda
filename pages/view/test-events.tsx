@@ -2,7 +2,7 @@ import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useDispatch, useSelector } from "react-redux";
 import Main from "components/main-te";
-import { fetchRockYard } from "http-client/sequences";
+import { fetchTestEvents } from "http-client/sequences";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
 import {
   addVideos,
@@ -181,7 +181,7 @@ export default function View(props: { query: QueryParams }) {
     (async () => {
       try {
         // EVA data from the wiki
-        const updatedEVAs = await fetchRockYard();
+        const updatedEVAs = await fetchTestEvents();
         dispatch(addSequences(updatedEVAs));
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
@@ -212,7 +212,7 @@ export default function View(props: { query: QueryParams }) {
     <div>
       <Head>
         <title>
-          {prefix} Rock Yard | {process.env.NEXT_PUBLIC_TITLE}
+          {prefix} Test Events | {process.env.NEXT_PUBLIC_TITLE}
         </title>
       </Head>
       <Main {...props} />

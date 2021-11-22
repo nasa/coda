@@ -20,8 +20,8 @@ function Main(props: { query: QueryParams }) {
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
-          <Video playerID={1} collection={Collection["JSC Rock Yard"]} {...props} />
-          <Video playerID={2} collection={Collection["JSC Rock Yard"]} {...props} />
+          <Video playerID={1} collection={Collection.TEST_EVENTS} {...props} />
+          <Video playerID={2} collection={Collection.TEST_EVENTS} {...props} />
           <Photos />
         </div>
         <div className={styles.bodyRow2}>
