@@ -22,7 +22,7 @@ import { RootState } from "store/index";
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
-function NavTimeline() {
+function NavTimeline(props) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
@@ -36,11 +36,15 @@ function NavTimeline() {
   const videoFiles = videoSelectors.selectAll(videos);
   const photoFiles = photosSelectors.selectAll(photos);
 
-  const allEVAs = sequencesSelector.selectAll(sequences);
+  let allEVAs = sequencesSelector.selectAll(sequences);
+  if (props.sequenceFilter !== undefined) {
+    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes(props.sequenceFilter));
+  }
   const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
   const evaName = get(sequence, "name", "");
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
+  const canvas: MutableRefObject<HTMLCanvasElement> = useRef(null);
   const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
   const navReady: MutableRefObject<boolean> = useRef(false);
 
@@ -50,8 +54,6 @@ function NavTimeline() {
     const [hh, mm] = sequence.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
-
-  const canvas = useRef();
 
   /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
@@ -80,6 +82,7 @@ function NavTimeline() {
         );
       }
     }
+    console.log("Regenerated asPerformed: " + JSON.stringify(asPerformed));
 
     const playheadDate = new Date(playhead.date);
     const isToday = isSameDate(new Date(), playheadDate);

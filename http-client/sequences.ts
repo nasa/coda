@@ -11,8 +11,8 @@ export async function fetchEVAs(): Promise<Sequence[]> {
   return wrappedResponse.data;
 }
 
-/** Fetch all Rock Yard data */
-export async function fetchRockYard(): Promise<Sequence[]> {
+/** Fetch all Test Event data */
+export async function fetchTestEvents(): Promise<Sequence[]> {
   const res = await fetch("/api/sequences/test-events");
   const wrappedResponse: WrappedResponse<Sequence[]> = await res.json();
   return wrappedResponse.data;

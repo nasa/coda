@@ -4,7 +4,7 @@ import getTestEventsData from "server/sequences/test-events";
 /**
  * `/api/sequences/rock-yard`
  *
- * Get all as-planned rock yard data in the wiki
+ * Get all as-planned test event data in the wiki
  */
 export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {

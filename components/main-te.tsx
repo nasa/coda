@@ -6,22 +6,22 @@ import Video from "components/video";
 import Photos from "components/photos";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
 import styles from "./main.module.css";
-import type { QueryParams } from "pages/view";
+import type { QueryParams } from "pages/view/iss";
 import { Collection } from "typings";
 
 /**
  * Renders the main CODA application layout for test events. Also handles checking whether the playhead should be running
  */
-function Main(props: { query: QueryParams }) {
+function Main(props: { query: QueryParams; sequenceFilter: string }) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Header />
+        <Header sequenceFilter={props.sequenceFilter} />
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
-          <Video playerID={1} collection={Collection["JSC Rock Yard"]} {...props} />
-          <Video playerID={2} collection={Collection["JSC Rock Yard"]} {...props} />
+          <Video playerID={1} collection={Collection.TEST_EVENTS} {...props} />
+          <Video playerID={2} collection={Collection.TEST_EVENTS} {...props} />
           <Photos />
         </div>
         <div className={styles.bodyRow2}>
@@ -31,7 +31,7 @@ function Main(props: { query: QueryParams }) {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        <NavTimeline />
+        <NavTimeline sequenceFilter={props.sequenceFilter} />
         <StatusBar />
       </div>
     </div>
