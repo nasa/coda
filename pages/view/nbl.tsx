@@ -108,7 +108,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day, Collection.TEST_EVENTS);
+        const videoStore = await buildVideoStore(year, month + 1, day, Collection.NBL);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -136,7 +136,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // photos data for today
-        const photoStore = await buildPhotoStore(year, month + 1, day, Collection.TEST_EVENTS);
+        const photoStore = await buildPhotoStore(year, month + 1, day, Collection.NBL);
         dispatch(addPhotos(photoStore));
         const photoCollectionsFilter = buildPhotoCollections(photoStore);
         dispatch(setCollectionFilters(photoCollectionsFilter));
@@ -167,7 +167,7 @@ export default function View(props: { query: QueryParams }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month, day, Collection.TEST_EVENTS);
+        const videoStore = await buildVideoStore(year, month, day, Collection.NBL);
         dispatch(addVideos(videoStore));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -212,10 +212,10 @@ export default function View(props: { query: QueryParams }) {
     <div>
       <Head>
         <title>
-          {prefix} Test Events | {process.env.NEXT_PUBLIC_TITLE}
+          {prefix} NBL | {process.env.NEXT_PUBLIC_TITLE}
         </title>
       </Head>
-      <Main {...props} />
+      <Main sequenceFilter={"NBL"} {...props} />
     </div>
   );
 }

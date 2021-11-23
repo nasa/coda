@@ -16,7 +16,7 @@ import {
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
-import type { QueryParams } from "pages/view";
+import type { QueryParams } from "pages/view/iss";
 import { Collection, VideoFile } from "typings";
 import { cleanCollectionsString } from "utils/formatting";
 
@@ -247,7 +247,7 @@ export default function Video(props: {
     // or a new loading event
     let posterClass = styles.playerPosterNovid;
     // hide noVid poster if video metadata has been loaded
-    if (metadata) {
+    if (metadata || status === "playing") {
       posterClass = "";
     }
     if (status === "buffering") {

@@ -235,7 +235,7 @@ export default function View(props: { query: QueryParams }) {
     <div>
       <Head>
         <title>
-          {prefix} | {process.env.NEXT_PUBLIC_TITLE}
+          {prefix} ISS | {process.env.NEXT_PUBLIC_TITLE}
         </title>
         <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet" />
       </Head>

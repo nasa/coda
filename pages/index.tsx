@@ -10,13 +10,18 @@ export default function Index() {
       </Head>
       <ul>
         <li>
-          <Link href="/view">
-            <a>Latest ISS videos</a>
+          <Link href="/view/iss">
+            <a>View ISS Data</a>
+          </Link>
+        </li>
+        <li>
+          <Link href="/view/nbl">
+            <a>View NBL Data</a>
           </Link>
         </li>
         <li>
           <Link href="/view/test-events">
-            <a>Latest test event videos</a>
+            <a>View Test Event Data</a>
           </Link>
         </li>
       </ul>

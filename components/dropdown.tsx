@@ -8,12 +8,16 @@ import styles from "./dropdown.module.css";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 
-export default function EVADropdown() {
+export default function EVADropdown(props: { sequenceFilter: string }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  const allEVAs = sequencesSelector.selectAll(sequences);
+  let allEVAs = sequencesSelector.selectAll(sequences);
+  if (props.sequenceFilter !== undefined) {
+    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes(props.sequenceFilter));
+  }
+
   const selectedEVA = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(date)));
   const evaName = get(selectedEVA, "name", "");
 
@@ -37,6 +41,7 @@ export default function EVADropdown() {
   // TODO: add ... to avoid going behind the arrow
 
   const today = new Date();
+  const earliestCutoff = new Date("2013-03-30");
 
   return (
     <div className={styles.select}>
@@ -53,10 +58,10 @@ export default function EVADropdown() {
         ) : (
           allEVAs
             .filter((eva) => {
-              // don't show future EVAs
+              // don't show future EVAs or EVAs before 2013-03-30 (because of IO data being unavailable before that)
               const [year, month, day] = eva.startDate.split("-").map(Number);
               const dateOfEVA = new Date(Date.UTC(year, month - 1, day));
-              return diff(today, dateOfEVA) > 0;
+              return diff(today, dateOfEVA) > 0 && diff(earliestCutoff, dateOfEVA) < 0;
             })
             // sort most recent to oldest
             .reverse()
