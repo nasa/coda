@@ -15,7 +15,7 @@ import styles from "./header.module.css";
 /**
  * Renders the top bar of CODA
  */
-function Header() {
+function Header(props: { sequenceFilter: string }) {
   const dispatch = useDispatch();
 
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
@@ -106,7 +106,7 @@ function Header() {
           </div>
         </div>
         <div className={styles.headerElementContainer}>
-          <EventDropdown />
+          <EventDropdown sequenceFilter={props.sequenceFilter} />
         </div>
         <div className={styles.headerElementContainer}>
           <div className={styles.dateTimeSection}>

@@ -12,11 +12,11 @@ import { Collection } from "typings";
 /**
  * Renders the main CODA application layout for test events. Also handles checking whether the playhead should be running
  */
-function Main(props: { query: QueryParams }) {
+function Main(props: { query: QueryParams; sequenceFilter: string }) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Header />
+        <Header sequenceFilter={props.sequenceFilter} />
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
@@ -31,7 +31,7 @@ function Main(props: { query: QueryParams }) {
       </div>
       <div className={styles.footer}>
         <PlaybackControls />
-        <NavTimeline />
+        <NavTimeline sequenceFilter={props.sequenceFilter} />
         <StatusBar />
       </div>
     </div>

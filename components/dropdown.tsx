@@ -8,12 +8,16 @@ import styles from "./dropdown.module.css";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 
-export default function EVADropdown() {
+export default function EVADropdown(props: { sequenceFilter: string }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  const allEVAs = sequencesSelector.selectAll(sequences);
+  let allEVAs = sequencesSelector.selectAll(sequences);
+  if (props.sequenceFilter !== undefined) {
+    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes(props.sequenceFilter));
+  }
+
   const selectedEVA = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(date)));
   const evaName = get(selectedEVA, "name", "");
 

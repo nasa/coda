@@ -215,7 +215,7 @@ export default function View(props: { query: QueryParams }) {
           {prefix} NBL | {process.env.NEXT_PUBLIC_TITLE}
         </title>
       </Head>
-      <Main {...props} />
+      <Main sequenceFilter={"NBL"} {...props} />
     </div>
   );
 }
