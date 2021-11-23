@@ -22,7 +22,7 @@ import { RootState } from "store/index";
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
-function NavTimeline(props: { sequenceFilter: string }) {
+function NavTimeline(props) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);

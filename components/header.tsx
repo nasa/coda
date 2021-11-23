@@ -15,7 +15,7 @@ import styles from "./header.module.css";
 /**
  * Renders the top bar of CODA
  */
-function Header(props: { sequenceFilter: string }) {
+function Header(props) {
   const dispatch = useDispatch();
 
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
