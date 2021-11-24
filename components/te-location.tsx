@@ -195,7 +195,6 @@ export default function TELocation() {
         trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
         // @ts-ignore: bad mapbox typing
         map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
-        console.log("Drew track " + trackName + " length: " + newCoordinates.length);
       }
       clearTimeout(timer);
     }, 100);
