@@ -10,35 +10,20 @@ import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatti
 import type { PlayheadHoverState } from "store/playheadHover";
 
 import styles from "./te-location.module.css";
-import Marker from "./te-location-marker";
+import TEMarker from "./te-location-marker";
 
 import mapboxgl, { LngLatLike, Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
-import { PhotosEntityState, photosSelectors } from "store/photos";
-
-type MapMarker = {
-  marker: any; //the MapBox marker reference
-  markerNode: any; //the real DOM id of the marker
-};
-
-type infoItems = {
-  lat: string;
-  lng: string;
-  ele: string;
-  hdg: string;
-  slope: string;
-  date: string;
-  time: string;
-};
-
-type InfoDisplay = {
-  ev1: infoItems;
-  ev2: infoItems;
-  cart: infoItems;
-};
+import type {
+  mapInfoDisplay,
+  mapInfoDisplayItems,
+  MapMarker,
+  MapMarkers,
+  TrackFeatures,
+} from "typings/location";
 
 export default function TELocation() {
   const initialMarker: MapMarker = {
@@ -46,7 +31,13 @@ export default function TELocation() {
     markerNode: null,
   };
 
-  const trackEV1 = {
+  const initialMarkers: MapMarkers = {
+    EV1: { ...initialMarker },
+    EV2: { ...initialMarker },
+    Cart: { ...initialMarker },
+  };
+
+  const initialTrackFeature: FeatureCollection = {
     type: "FeatureCollection",
     features: [
       {
@@ -60,45 +51,19 @@ export default function TELocation() {
     ],
   };
 
-  const trackEV2 = {
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: [],
-        },
-        properties: {},
-      },
-    ],
-  };
-
-  const trackCart = {
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: [],
-        },
-        properties: {},
-      },
-    ],
+  let trackFeatures: TrackFeatures = {
+    EV1: { ...initialTrackFeature },
+    EV2: { ...initialTrackFeature },
+    Cart: { ...initialTrackFeature },
   };
 
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
-  const photoFiles = photosSelectors.selectAll(photos);
+  const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
+  const mapContainer = useRef(null);
 
   const [map, setMap] = useState<Map>(null);
-  const [ev1Marker, setEV1Marker] = useState(initialMarker);
-  const [ev2Marker, setEV2Marker] = useState(initialMarker);
-  const [cartMarker, setCartMarker] = useState(initialMarker);
-  const [photoMarkers, setPhotoMarkers] = useState([]);
-  const [photoMarkerCount, setPhotoMarkerCount] = useState(0);
+  const [mapMarkers, setMapMarkers] = useState(initialMarkers);
   const [lockToggle, setLockToggle] = useState(true);
 
   const infoItemsDefaultValue = {
@@ -110,15 +75,11 @@ export default function TELocation() {
     date: "",
     time: "",
   };
-  const [infoDisplay, setInfoDisplay] = useState<InfoDisplay>({
+  const [infoDisplay, setInfoDisplay] = useState<mapInfoDisplay>({
     ev1: infoItemsDefaultValue,
     ev2: infoItemsDefaultValue,
     cart: infoItemsDefaultValue,
   });
-
-  const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
-
-  const mapContainer = useRef(null);
 
   //just need any location for getSatelliteInfo
   const houstonLatLng = {
@@ -133,130 +94,70 @@ export default function TELocation() {
     if (!map) initializeMap(setMap, mapContainer);
   }, [map]);
 
-  //update map GPS track
+  //update map GPS markers
   useEffect(() => {
     if (!map || !playhead.date || gpsState.gpsTracks.length === 0) return;
 
-    const gpsTracks = gpsState.gpsTracks;
-
     if (map.getZoom() === 1) {
       map.setZoom(15);
+      // map.setPitch(45);
     }
-    ev1Marker.markerNode.style.visibility = "visible";
-    ev2Marker.markerNode.style.visibility = "visible";
-    cartMarker.markerNode.style.visibility = "visible";
 
-    const trackIndexes = {
-      EV1: {
-        currentSecondIndex: null,
-        hoverSecondIndex: null,
-      },
-      EV2: {
-        currentSecondIndex: null,
-        hoverSecondIndex: null,
-      },
-      Cart: {
-        currentSecondIndex: null,
-        hoverSecondIndex: null,
-      },
-    };
+    for (var key in mapMarkers) {
+      if (mapMarkers.hasOwnProperty(key)) {
+        const marker = mapMarkers[key];
+        marker.markerNode.style.visibility = "visible";
+      }
+    }
+
+    const gpsTracks = gpsState.gpsTracks;
 
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
     //loop through the gps track objects (EV1, EV2, and Cart)
     for (let track = 0; track < gpsTracks.length; track++) {
-      //Look for the point in each GPS track closest to the playheadTime
-      let foundIndex = 0;
-      for (let i = 0; i < gpsTracks[track].points.length; i++) {
-        if (gpsTracks[track].points[i].time.toString() > playHeadISODate) {
-          if (i > 0) {
-            foundIndex = i - 1;
+      let markerGPSPoint: Point = null;
+
+      let markerIndex = 0;
+      // If not hovering move the markers to the playheadTime
+      if (playheadHover.seconds === 0) {
+        //Look for the point in each GPS track closest to the playheadTime
+        for (let i = 0; i < gpsTracks[track].points.length; i++) {
+          if (gpsTracks[track].points[i].time.toString() > playHeadISODate) {
+            if (i > 0) {
+              markerIndex = i - 1;
+            }
+            break;
           }
-          break;
         }
-      }
-
-      //save the track index of the found point
-      trackIndexes[gpsTracks[track].name].currentSecondIndex = foundIndex;
-
-      //if mousing over the timeline and hovering, set the trail range to be the playhead time to the hover time
-      let newCoordinates: LngLatLike[] = [];
-      if (playheadHover.seconds !== 0) {
+      } else {
+        //if mousing over the timeline and hovering move markers to hover time point
         //Look for the point in each GPS track closest to the hover time
         const playHeadhoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
         for (let i = 0; i < gpsTracks[track].points.length; i++) {
           if (gpsTracks[track].points[i].time.toString() > playHeadhoverISODate) {
             if (i > 0) {
-              foundIndex = i - 1;
+              markerIndex = i - 1;
             }
             break;
           }
         }
-        //save the track index of the found point
-        trackIndexes[gpsTracks[track].name].hoverSecondIndex = foundIndex;
-
-        //retrieve lower and upper indexes from the saved points to use the trail range
-        const [lowerIndex, upperIndex] = getLowerAndUpperIndexes(
-          gpsTracks[track].name,
-          trackIndexes
-        );
-
-        //populate newCoordinates with subrange of gps track (can't use splice here because gpx points and mapbox points are incompatible)
-        if (lowerIndex < upperIndex && lowerIndex !== null && upperIndex !== null) {
-          for (let x = lowerIndex; x <= upperIndex; x++) {
-            const thisCoordinate: LngLatLike = [
-              gpsTracks[track].points[x].lon,
-              gpsTracks[track].points[x].lat,
-            ];
-            newCoordinates.push(thisCoordinate);
-          }
-        }
-      } else {
-        //if not hovering the timeline, set the trail range to be 30 track points behind the current time
-        const upperIndex = trackIndexes[gpsTracks[track].name].currentSecondIndex;
-        const lowerIndex =
-          trackIndexes[gpsTracks[track].name].currentSecondIndex - 30 < 0
-            ? 0
-            : trackIndexes[gpsTracks[track].name].currentSecondIndex - 30;
-
-        //populate newCoordinates with subrange of gps track
-        for (let x = lowerIndex; x <= upperIndex; x++) {
-          const thisCoordinate: LngLatLike = [
-            gpsTracks[track].points[x].lon,
-            gpsTracks[track].points[x].lat,
-          ];
-          newCoordinates.push(thisCoordinate);
-        }
       }
+      //save the found track point
+      markerGPSPoint = gpsTracks[track].points[markerIndex];
 
-      //draw the trails using the coordinate ranges calculated above
-      if (gpsTracks[track].name === "EV1") {
-        trackEV1.features[0].geometry.coordinates = newCoordinates;
-        // @ts-ignore: bad mapbox typing
-        map.getSource("trackEV1Source").setData(trackEV1);
-      } else if (gpsTracks[track].name === "EV2") {
-        trackEV2.features[0].geometry.coordinates = newCoordinates;
-        // @ts-ignore: bad mapbox typing
-        map.getSource("trackEV2Source").setData(trackEV2);
-      } else if (gpsTracks[track].name === "Cart") {
-        trackCart.features[0].geometry.coordinates = newCoordinates;
-        // @ts-ignore: bad mapbox typing
-        map.getSource("trackCartSource").setData(trackCart);
-      }
-
-      let markerGPSPoint: Point = null;
-
-      const timestampArr = (
-        isoStringFromAnyDateString(gpsTracks[track].points[foundIndex].time.toString()).split(
-          "."
-        )[0] + "Z"
-      ).split("T");
+      //move the marker to the found point
+      mapMarkers[gpsTracks[track].name].marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
 
       //update infoDisplay
-      const items: infoItems = {
-        lat: gpsTracks[track].points[foundIndex].lat.toFixed(6),
-        lng: gpsTracks[track].points[foundIndex].lon.toFixed(6),
-        ele: gpsTracks[track].points[foundIndex].ele.toFixed(2).toString(),
-        slope: gpsTracks[track].slopes[foundIndex].toFixed(3).toString(),
+      const timestampArr = (
+        isoStringFromAnyDateString(markerGPSPoint.time.toString()).split(".")[0] + "Z"
+      ).split("T");
+
+      const items: mapInfoDisplayItems = {
+        lat: markerGPSPoint.lat.toFixed(6),
+        lng: markerGPSPoint.lon.toFixed(6),
+        ele: markerGPSPoint.ele.toFixed(2).toString(),
+        slope: gpsTracks[track].slopes[markerIndex].toFixed(3).toString(),
         date: timestampArr[0],
         time: timestampArr[1],
         hdg: "",
@@ -264,93 +165,37 @@ export default function TELocation() {
       const tempInfo = infoDisplay;
       tempInfo[gpsTracks[track].name.toLowerCase()] = items;
       setInfoDisplay(tempInfo);
-
-      //move the markers to the found point
-      markerGPSPoint = gpsTracks[track].points[foundIndex];
-      if (gpsTracks[track].name === "EV1") {
-        ev1Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-      } else if (gpsTracks[track].name === "EV2") {
-        ev2Marker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-      } else if (gpsTracks[track].name === "Cart") {
-        cartMarker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
-      }
     }
     if (lockToggle) {
-      map.panTo(ev1Marker.marker._lngLat);
+      map.panTo(mapMarkers.EV1.marker.getLngLat());
     }
-  }, [playhead.date, playhead.seconds, playheadHover.seconds, gpsState.gpsTracks]);
+  }, [map, playhead.date, playhead.seconds, playheadHover.seconds, gpsState.gpsTracks]);
 
-  //update photo markers
+  //Display GPS tracks on map
   useEffect(() => {
-    if (!map || !playhead.date || photoFiles.length === 0) return;
+    if (!map || gpsState.gpsTracks.length === 0) return;
 
-    // Display photos up until current playhead time
-    let targetISODate = getPlayheadISOString(playhead.date, playhead.seconds);
-    if (playheadHover.seconds !== 0) {
-      // Display photos up until hover time
-      targetISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
-    }
-
-    // create a list of photo markers to show
-    const photoMarkerList = [];
-    let lastPhotoDate = null;
-    for (let i = 0; i < photoFiles.length; i++) {
-      const thisPhoto = photoFiles[i];
-      if (thisPhoto.hasOwnProperty("gps") && thisPhoto.datetimeTaken <= targetISODate) {
-        if (thisPhoto.datetimeTaken !== lastPhotoDate) {
-          photoMarkerList.push(thisPhoto);
-          lastPhotoDate = thisPhoto.datetimeTaken;
+    //add a timeout to fix buggy mapboxgl not displaying tracks randomly
+    const timer = setTimeout(() => {
+      const gpsTracks = gpsState.gpsTracks;
+      //loop through the gps track objects (EV1, EV2, and Cart)
+      for (let track = 0; track < gpsTracks.length; track++) {
+        const gpsTrack = gpsTracks[track];
+        const newCoordinates: LngLatLike[] = [];
+        for (let x = 0; x < gpsTrack.points.length; x++) {
+          const thisCoordinate: LngLatLike = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
+          newCoordinates.push(thisCoordinate);
         }
+
+        const trackName = gpsTrack.name;
+        trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
+        // @ts-ignore: bad mapbox typing
+        map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
+        console.log("Drew track " + trackName + " length: " + newCoordinates.length);
       }
-    }
-
-    //redraw photo markers if the number to show has differed
-    if (photoMarkerList.length !== photoMarkerCount) {
-      //remove all photo markers
-      for (let i = 0; i < photoMarkers.length; i++) {
-        photoMarkers[i].marker.remove();
-      }
-      const newPhotoMarkers = [];
-      for (let i = 0; i < photoMarkerList.length; i++) {
-        const thisPhoto = photoMarkerList[i];
-
-        const markerNode = document.createElement("div");
-        markerNode.style.visibility = "visible";
-        const element = <Marker id={`Photo_${i}`} type={`Photo`} />;
-        ReactDOM.render(element, markerNode);
-        const marker = new mapboxgl.Marker(markerNode).setLngLat([
-          thisPhoto.gps.lng,
-          thisPhoto.gps.lat,
-        ]);
-        marker.addTo(map);
-        newPhotoMarkers.push({ marker: marker, markerNode: markerNode });
-      }
-      setPhotoMarkers(newPhotoMarkers);
-      setPhotoMarkerCount(photoMarkerList.length);
-    }
-
-    //draw new set of photo markers
-  }, [playhead.date, playhead.seconds, playheadHover.seconds, photoFiles]);
-
-  /**
-   * Returns lowerIndex and upperIndex between currentSecondsIndex and hoverSecondsIndex
-   * @param identifier EV1, EV2 or Cart
-   * @param trackIndexes Track index object where indexes have been stored
-   * @returns Array containing lowerIndex, upperIndex
-   */
-  function getLowerAndUpperIndexes(identifier: string, trackIndexes) {
-    const lowerIndex =
-      trackIndexes[identifier].currentSecondIndex < trackIndexes[identifier].hoverSecondIndex
-        ? trackIndexes[identifier].currentSecondIndex
-        : trackIndexes[identifier].hoverSecondIndex;
-
-    const upperIndex =
-      trackIndexes[identifier].currentSecondIndex > trackIndexes[identifier].hoverSecondIndex
-        ? trackIndexes[identifier].currentSecondIndex
-        : trackIndexes[identifier].hoverSecondIndex;
-
-    return [lowerIndex, upperIndex];
-  }
+      clearTimeout(timer);
+    }, 100);
+  }, [map, gpsState.gpsTracks]);
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
@@ -367,37 +212,46 @@ export default function TELocation() {
     });
 
     thisMap.on("load", () => {
-      addMapMarker(thisMap, "EV1", setEV1Marker);
-      addMapMarker(thisMap, "EV2", setEV2Marker);
-      addMapMarker(thisMap, "Cart", setCartMarker);
+      const newMarkers = {
+        EV1: addMapMarker(thisMap, "EV1"),
+        EV2: addMapMarker(thisMap, "EV2"),
+        Cart: addMapMarker(thisMap, "Cart"),
+      };
+      setMapMarkers(newMarkers);
 
-      thisMap.addSource("trackEV1Source", { type: "geojson", data: trackEV1 as FeatureCollection });
+      thisMap.addSource("trackEV1Source", {
+        type: "geojson",
+        data: trackFeatures.EV1,
+      });
       thisMap.addLayer({
         id: "trackEV1Layer",
         type: "line",
         source: "trackEV1Source",
         paint: {
           "line-color": "red",
-          "line-opacity": 0.5,
-          "line-width": 5,
+          "line-opacity": 0.3,
+          "line-width": 4,
         },
       });
 
-      thisMap.addSource("trackEV2Source", { type: "geojson", data: trackEV2 as FeatureCollection });
+      thisMap.addSource("trackEV2Source", {
+        type: "geojson",
+        data: trackFeatures.EV2,
+      });
       thisMap.addLayer({
         id: "trackEV2Layer",
         type: "line",
         source: "trackEV2Source",
         paint: {
           "line-color": "blue",
-          "line-opacity": 0.5,
-          "line-width": 5,
+          "line-opacity": 0.3,
+          "line-width": 4,
         },
       });
 
       thisMap.addSource("trackCartSource", {
         type: "geojson",
-        data: trackCart as FeatureCollection,
+        data: trackFeatures.Cart,
       });
       thisMap.addLayer({
         id: "trackCartLayer",
@@ -405,8 +259,8 @@ export default function TELocation() {
         source: "trackCartSource",
         paint: {
           "line-color": "black",
-          "line-opacity": 0.5,
-          "line-width": 5,
+          "line-opacity": 0.3,
+          "line-width": 2,
         },
       });
 
@@ -417,18 +271,14 @@ export default function TELocation() {
     });
   }
 
-  function addMapMarker(
-    thisMap: any,
-    typeName: string,
-    setMarker: Dispatch<SetStateAction<MapMarker>>
-  ) {
+  function addMapMarker(thisMap: any, typeName: string): MapMarker {
     const markerNode = document.createElement("div");
     markerNode.style.visibility = "hidden";
-    const element = <Marker id={`${typeName}`} type={`${typeName}`} />;
+    const element = <TEMarker id={`${typeName}`} type={`${typeName}`} />;
     ReactDOM.render(element, markerNode);
     const marker = new mapboxgl.Marker(markerNode).setLngLat(houstonLatLng);
     marker.addTo(thisMap);
-    setMarker({ marker: marker, markerNode: markerNode });
+    return { marker: marker, markerNode: markerNode };
   }
 
   // toggle button display settings

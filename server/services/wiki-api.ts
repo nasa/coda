@@ -540,8 +540,9 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
   };
 
   return await fetchWithCache<string[]>("wiki/gps-list", retriever, {
+    cacheAge: 60, // 60 seconds
     staleOk: true,
-    preferNew: true,
+    preferNew: false,
   });
 }
 
@@ -599,6 +600,7 @@ async function fetchWikiGPSTrack(
   };
 
   return await fetchWithCache<GPSTrack>(`wiki/gps/${pageName}`, retriever, {
+    cacheAge: 604800, // 604800 seconds = 1 week
     staleOk: true,
     preferNew: false,
   });
