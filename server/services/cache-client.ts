@@ -40,6 +40,8 @@ export default async function retrieveJSON<T>(
 ): Promise<WrappedResponse<T>> {
   const opts = { ...defaultOptions, ...options };
 
+  opts.preferNew = process.env.DISABLE_CACHE === "true" ? true : opts.preferNew;
+
   // to be clear, we're not hashing sensitive data, just cache keys
   const hash = crypto.createHash("md5");
   hash.update(identifier);
