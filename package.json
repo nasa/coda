@@ -29,6 +29,7 @@
     "cacache": "^15.0.6",
     "cssnano-preset-simple": "^2.0.0",
     "cssnano-simple": "^2.0.0",
+    "gpxparser": "^3.0.8",
     "isomorphic-unfetch": "^3.1.0",
     "lodash": "^4.17.21",
     "mapbox-gl": "^2.2.0",
