@@ -153,22 +153,22 @@ export default function TELocation() {
         isoStringFromAnyDateString(markerGPSPoint.time.toString()).split(".")[0] + "Z"
       ).split("T");
 
-      const slopeVal =
-        gpsTracks[track].slopes[markerIndex] === null
-          ? "0.000"
-          : gpsTracks[track].slopes[markerIndex].toFixed(3).toString();
-      const items: mapInfoDisplayItems = {
-        lat: markerGPSPoint.lat.toFixed(6),
-        lng: markerGPSPoint.lon.toFixed(6),
-        ele: markerGPSPoint.ele.toFixed(2).toString(),
-        slope: slopeVal,
-        date: timestampArr[0],
-        time: timestampArr[1],
-        hdg: "",
-      };
-      const tempInfo = infoDisplay;
-      tempInfo[gpsTracks[track].name.toLowerCase()] = items;
-      setInfoDisplay(tempInfo);
+      try {
+        const items: mapInfoDisplayItems = {
+          lat: markerGPSPoint.lat.toFixed(6),
+          lng: markerGPSPoint.lon.toFixed(6),
+          ele: markerGPSPoint.ele.toFixed(2).toString(),
+          slope: gpsTracks[track].slopes[markerIndex].toFixed(3).toString(),
+          date: timestampArr[0],
+          time: timestampArr[1],
+          hdg: "",
+        };
+        const tempInfo = infoDisplay;
+        tempInfo[gpsTracks[track].name.toLowerCase()] = items;
+        setInfoDisplay(tempInfo);
+      } catch (error) {
+        console.log("Info display error: ", error);
+      }
     }
     if (lockToggle) {
       map.panTo(mapMarkers.EV1.marker.getLngLat());
