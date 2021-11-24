@@ -25,6 +25,8 @@ import type {
   AllTestEvents,
   DatetimeOverrides,
 } from "typings/wiki";
+import { GPSTrack } from "typings/gps";
+import gpxParser from "gpxparser";
 
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
@@ -513,6 +515,93 @@ export async function fetchSequences(collection: Collection): Promise<WrappedRes
   } else {
     return getAllTestEventsData();
   }
+}
+
+/** Get list of GPS tracks available in the wiki */
+
+async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
+  const parseQuery = {
+    page: "CODA/D-RATS_2021_Data", //TODO: Rename these wiki pages to something general instead of "D-RATS"
+    prop: "links",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+    const links = [];
+    for (let i = 0; i < res.data.parse.links.length; i++) {
+      const link = res.data.parse.links[i]["*"];
+      links.push(link);
+    }
+    return links;
+  };
+
+  return await fetchWithCache<string[]>("wiki/gps-list", retriever, {
+    staleOk: true,
+    preferNew: true,
+  });
+}
+
+export async function fetchWikiGPSTracks(dateWanted: string): Promise<GPSTrack[]> {
+  const gpsList = await fetchWikiGPSList();
+
+  // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
+  const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
+  const gpsTracks: GPSTrack[] = [];
+  for (let i = 0; i < gpsList.data.length; i++) {
+    const match = gpsList.data[i].match(regexStr);
+    if (match) {
+      const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
+      gpsTracks.push(gpsTrackRes.data);
+    }
+  }
+  return gpsTracks;
+}
+
+async function fetchWikiGPSTrack(
+  pageName: string,
+  name: string
+): Promise<WrappedResponse<GPSTrack>> {
+  const parseQuery = {
+    page: pageName,
+    prop: "wikitext",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+
+    // parse the gpx XML retreived from the wiki
+    var gpx = new gpxParser();
+    gpx.parse(res.data.parse.wikitext["*"]);
+
+    //replace any slope null values with 0
+    for (let i = 0; i < gpx.tracks[0].slopes.length; i++) {
+      if (gpx.tracks[0].slopes[i] === null) {
+        gpx.tracks[0].slopes[i] = 0;
+      }
+    }
+
+    //store only the GPS data portions we want
+    const track: GPSTrack = {
+      name: name,
+      points: gpx.tracks[0].points,
+      slopes: gpx.tracks[0].slopes,
+    };
+
+    return track;
+  };
+
+  return await fetchWithCache<GPSTrack>(`wiki/gps/${pageName}`, retriever, {
+    staleOk: true,
+    preferNew: false,
+  });
 }
 
 /** Get all the manually set shifts for fixing datetimes.

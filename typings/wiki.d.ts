@@ -28,6 +28,7 @@ export interface WikiResults {
   };
   parse?: {
     wikitext?: { [key: string]: string };
+    links?: [{ [key: string]: string }];
   };
 }
 
