@@ -92,7 +92,7 @@ export function shortdateFromDateString(dateString: string): string {
 /**
  * Takes a date string and returns an isoString, throwing an error if conversion is impossible
  */
-function isoStringFromAnyDateString(dateString: string): string {
+export function isoStringFromAnyDateString(dateString: string): string {
   const tempDate = new Date(dateString); // works with ISO and UTC date strings
   if (isNaN(tempDate.valueOf())) {
     throw new Error("The date string couldn't be converted into a Date");

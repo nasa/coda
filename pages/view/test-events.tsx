@@ -24,11 +24,14 @@ import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 import { Collection } from "typings";
+import { gpsFetchError, setGPSTracks } from "store/gps";
+import { getGPSTracks } from "http-client/gps";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function View(props: { query: QueryParams }) {
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
+
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
@@ -142,6 +145,29 @@ export default function View(props: { query: QueryParams }) {
         dispatch(setCollectionFilters(photoCollectionsFilter));
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
+        console.error(e);
+      }
+    })();
+  }, [playheadDate]);
+
+  // Grab gps tracks
+  useEffect(() => {
+    (async () => {
+      if (isNull(playheadDate)) {
+        return;
+      }
+
+      const d = new Date(playheadDate);
+
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth() + 1;
+      const day = d.getUTCDate();
+
+      try {
+        const gpsTracks = await getGPSTracks(year, month, day);
+        dispatch(setGPSTracks(gpsTracks));
+      } catch (e) {
+        dispatch(gpsFetchError(e.toString()));
         console.error(e);
       }
     })();

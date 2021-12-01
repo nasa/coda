@@ -82,7 +82,6 @@ function NavTimeline(props) {
         );
       }
     }
-    console.log("Regenerated asPerformed: " + JSON.stringify(asPerformed));
 
     const playheadDate = new Date(playhead.date);
     const isToday = isSameDate(new Date(), playheadDate);
