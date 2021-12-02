@@ -20,7 +20,7 @@ import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
 import { isNil } from "lodash";
-import { isSameDate } from "store/playhead";
+import { isBetweenDates } from "store/playhead";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {
@@ -108,7 +108,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     {
       cacheAge: 3600,
       staleOk: true,
-      preferNew: isSameDate(now, start) || (end && isSameDate(now, end)),
+      preferNew: isBetweenDates(now, start, end),
     }
   );
 }

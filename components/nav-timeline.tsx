@@ -18,11 +18,12 @@ import type { EphemeraEntityState } from "store/ephemera";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
+import { Collection } from "typings";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
-function NavTimeline(props) {
+function NavTimeline(props: { collection: Collection }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
@@ -37,9 +38,14 @@ function NavTimeline(props) {
   const photoFiles = photosSelectors.selectAll(photos);
 
   let allEVAs = sequencesSelector.selectAll(sequences);
-  if (props.sequenceFilter !== undefined) {
-    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes(props.sequenceFilter));
+  if (props.collection === Collection.NBL) {
+    // Show only NBL sequences
+    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
+  } else if (props.collection === Collection.TEST_EVENTS) {
+    // Filter out all NBL sequences
+    allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
+
   const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
   const evaName = get(sequence, "name", "");
   const time: MutableRefObject<number> = useRef(0);

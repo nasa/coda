@@ -7,15 +7,20 @@ import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown.module.css";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
+import { Collection } from "typings";
 
-export default function EVADropdown(props: { sequenceFilter: string }) {
+export default function EVADropdown(props: { collection: Collection }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
   let allEVAs = sequencesSelector.selectAll(sequences);
-  if (props.sequenceFilter !== undefined) {
-    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes(props.sequenceFilter));
+  if (props.collection === Collection.NBL) {
+    // Show only NBL sequences
+    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
+  } else if (props.collection === Collection.TEST_EVENTS) {
+    // Filter out all NBL sequences
+    allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
 
   const selectedEVA = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(date)));
