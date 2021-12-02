@@ -265,8 +265,8 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       </div>
       <div className={styles.body}>
         <div className={styles.bodyRow1}>
-          <Video playerID={1} {...props} />
-          <Video playerID={2} {...props} />
+          <Video frameID={1} {...props} />
+          <Video frameID={2} {...props} />
           <Photos />
         </div>
         <div className={styles.bodyRow2}>

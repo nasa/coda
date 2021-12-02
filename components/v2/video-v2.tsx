@@ -5,7 +5,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faExpandAlt, faInfo, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/v2/button";
-import { QueryParams } from "pages/view/v2";
+import { QueryParams } from "pages/v2/view";
 import type { RootState } from "store/index";
 import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
 import {
@@ -106,8 +106,13 @@ const isAutoplayError = (e: Error): boolean => {
   return isChromeError || isFirefoxError || isSafariError;
 };
 
-export default function VideoFrame({ frameID }: { frameID: number }) {
+export default function VideoFrame(props: {
+  collection: Collection;
+  frameID: number;
+  query: QueryParams;
+}) {
   const query: QueryParams = props.query;
+  const frameID: number = props.frameID;
 
   const dispatch = useDispatch();
 
@@ -120,7 +125,7 @@ export default function VideoFrame({ frameID }: { frameID: number }) {
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
-  const [muted, setMuted] = useState(frameID !== 1);
+  const [muted, setMuted] = useState(props.frameID !== 1);
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
@@ -531,7 +536,7 @@ export default function VideoFrame({ frameID }: { frameID: number }) {
     let ioVideoURL = "";
     let openVideoURLMessage = "";
     let videoFilename = "";
-    let dateAdded = "";
+    let startDateTime = "";
     let openOnIOMessage = "";
     let info = "";
     let infoDisplayClass = "";
@@ -542,7 +547,7 @@ export default function VideoFrame({ frameID }: { frameID: number }) {
       ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
-      dateAdded = new Date(currentlyPlayingVideo.creationDate).toUTCString();
+      startDateTime = new Date(currentlyPlayingVideo.startDateTime).toUTCString();
       info = currentlyPlayingVideo.description;
     }
     if (infoHover || infoToggle) {
@@ -554,7 +559,7 @@ export default function VideoFrame({ frameID }: { frameID: number }) {
         <div className={styles.overlayTable}>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
+            <div className={`${styles.overlayTableCell}`}>{startDateTime}</div>
           </div>
           <div className={styles.overlayTableRow}>
             <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>

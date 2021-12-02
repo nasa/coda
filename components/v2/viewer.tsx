@@ -11,6 +11,7 @@ export default function Viewer() {
 
   const frames = [];
   for (let i = 1; i <= layoutDefinition.frameCount; i++) {
+    // CSS Grid definitions
     const gridAreaName = styles[`f${i}`];
     frames.push(
       <div className={`${styles.frameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
@@ -19,5 +20,9 @@ export default function Viewer() {
     );
   }
 
-  return <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>;
+  return (
+    <div>
+      <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>;
+    </div>
+  );
 }
