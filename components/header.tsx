@@ -8,14 +8,14 @@ import { getJulianDate, hhmmssFromSeconds, shortdateFromDateString } from "utils
 import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
-import { SequenceType } from "typings";
+import { Collection, SequenceType } from "typings";
 
 import styles from "./header.module.css";
 
 /**
  * Renders the top bar of CODA
  */
-function Header(props) {
+function Header(props: { collection: Collection }) {
   const dispatch = useDispatch();
 
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
@@ -106,7 +106,7 @@ function Header(props) {
           </div>
         </div>
         <div className={styles.headerElementContainer}>
-          <EventDropdown sequenceFilter={props.sequenceFilter} />
+          <EventDropdown collection={props.collection} />
         </div>
         <div className={styles.headerElementContainer}>
           <div className={styles.dateTimeSection}>
