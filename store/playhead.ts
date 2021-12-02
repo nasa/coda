@@ -131,3 +131,34 @@ export const isSameDate = (a: Date, b: Date): boolean => {
 
   return Y1 === Y2 && M1 === M2 && D1 === D2;
 };
+
+/**
+ * Whether a date is between two other dates in UTC
+ * @param target Date in question
+ * @param start Beginning bounds date
+ * @param end Ending bounds date
+ * @returns boolean
+ */
+export const isBetweenDates = (target: Date, start: Date, end: Date): boolean => {
+  const targetUTC = getUTCDate(target);
+  const startUTC = getUTCDate(start);
+  const endUTC = getUTCDate(end);
+
+  return targetUTC.getTime() >= startUTC.getTime() && targetUTC.getTime() <= endUTC.getTime();
+};
+
+/**
+ * Convert a Date to UTC
+ */
+function getUTCDate(target: Date): Date {
+  return new Date(
+    Date.UTC(
+      target.getUTCFullYear(),
+      target.getUTCMonth(),
+      target.getUTCDate(),
+      target.getUTCHours(),
+      target.getUTCMinutes(),
+      target.getUTCSeconds()
+    )
+  );
+}
