@@ -1,7 +1,7 @@
 import isNull from "lodash/isNull";
 import Head from "next/head";
 import { useSelector } from "react-redux";
-import Main from "components/main";
+import Body from "components/body";
 import { RootState } from "store/index";
 import { Collection } from "typings";
 
@@ -27,7 +27,7 @@ export default function View(props: { query: QueryParams }) {
           {prefix} Test Events | {process.env.NEXT_PUBLIC_TITLE}
         </title>
       </Head>
-      <Main collection={Collection.TEST_EVENTS} {...props} />
+      <Body collection={Collection.TEST_EVENTS} {...props} />
     </div>
   );
 }

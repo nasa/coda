@@ -7,7 +7,7 @@ import TELocation from "components/te-location";
 import Video from "components/video";
 import Photos from "components/photos";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
-import styles from "./main.module.css";
+import styles from "./body.module.css";
 import type { QueryParams } from "pages/view/iss";
 import { Collection } from "typings";
 import { gpsFetchError, setGPSTracks } from "store/gps";
