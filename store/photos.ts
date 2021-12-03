@@ -1,7 +1,7 @@
 import memoize from "lodash/memoize";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { PhotoFile } from "typings";
+import type { PhotoFile, ResMetadata, WrappedResponse } from "typings";
 import { isSameDate } from "./playhead";
 
 export type PhotosEntityState = EntityState<PhotoFile> & {
@@ -9,7 +9,8 @@ export type PhotosEntityState = EntityState<PhotoFile> & {
   /** Message describing something that went wrong fetching photo metadata */
   errorMessage: string;
   ready: boolean;
-  photosLastChecked: string;
+  metadata: ResMetadata;
+  lastChecked: string;
   collectionFilters: CollectionFilters[];
 };
 
@@ -38,7 +39,8 @@ export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
   errorMessage: "",
   ready: false,
-  photosLastChecked: "",
+  metadata: null,
+  lastChecked: "",
   collectionFilters: [],
 });
 
@@ -49,10 +51,11 @@ export const photoSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addPhotos: (state, action) => {
-      photoAdapter.upsertMany(state, action);
+    addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
+      photoAdapter.upsertMany(state, action.payload.data);
+      state.metadata = action.payload.metadata;
       state.errorMessage = "";
-      state.photosLastChecked = new Date().toUTCString();
+      state.lastChecked = new Date().toUTCString();
       state.ready = true;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {

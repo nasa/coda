@@ -1,19 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { WrappedResponse } from "typings";
+import { ResMetadata, WrappedResponse } from "typings";
 import type { GPSTrack } from "typings/gps";
 
 export interface GPSState {
   gpsTracks: GPSTrack[];
-  cacheStatus: {
-    cacheRead?: boolean;
-    cacheWrite?: boolean;
-  };
+  metadata: ResMetadata;
   errorMessage: string;
 }
 
 export const initialState: GPSState = {
   gpsTracks: [],
-  cacheStatus: {},
+  metadata: null,
   errorMessage: "",
 };
 
@@ -24,10 +21,7 @@ export const gpsSlice = createSlice({
     /** Add new photo files to the store */
     setGPSTracks: (state, action: { payload: WrappedResponse<GPSTrack[]> }) => {
       state.gpsTracks = action.payload.data;
-      state.cacheStatus = {
-        cacheRead: action.payload.cacheRead,
-        cacheWrite: action.payload.cacheWrite,
-      };
+      state.metadata = action.payload.metadata;
     },
     gpsFetchError: (state, action: { payload: string }) => {
       state.errorMessage = action.payload;

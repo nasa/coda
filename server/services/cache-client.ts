@@ -2,7 +2,7 @@ import cacache from "cacache";
 import crypto from "crypto";
 import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
-import { WrappedResponse } from "typings";
+import { ResMetadata, WrappedResponse } from "typings";
 
 // NASA APIs use NOCA certs. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
 require("mac-ca");
@@ -48,11 +48,16 @@ export default async function retrieveJSON<T>(
   const cacheKey = hash.copy().digest("hex");
 
   let res = null as T;
-  let cachedRes = null as string;
+  let cachedRes = null as T;
+  let cachedData = null as string;
+
+  let metadata = {
+    fromCache: false,
+    cacheTimestamp: null,
+    stale: false,
+  } as ResMetadata;
 
   let cacheIsHot = false;
-  let cacheRead = false;
-  let cacheWrite = false;
 
   const cacheInfo = await cacache.get.info(process.env.CACHE_ROOT, cacheKey);
 
@@ -60,11 +65,15 @@ export default async function retrieveJSON<T>(
     if (!isNull(cacheInfo)) {
       // get the cached data now, decide if we want to use it later
       const cacheEntry = await cacache.get(process.env.CACHE_ROOT, cacheKey);
-      cachedRes = cacheEntry.data.toString();
-      res = JSON.parse(cachedRes);
+      cachedData = cacheEntry.data.toString();
+      cachedRes = JSON.parse(cachedData);
 
       cacheIsHot = diff(new Date(), new Date(cacheInfo.time)) / 1000 < opts.cacheAge;
-      cacheRead = true;
+      metadata = {
+        fromCache: true,
+        cacheTimestamp: new Date(cacheInfo.time),
+        stale: !cacheIsHot,
+      };
     }
   } catch (e) {
     // something went wrong reading or parsing the cache, no problem
@@ -72,38 +81,46 @@ export default async function retrieveJSON<T>(
   }
 
   if (cacheIsHot && !opts.preferNew) {
-    // nothing else to do! give the caller the data
-    return { cacheRead, cacheWrite, data: res };
+    // nothing else to do! give the caller the cached data
+    return { metadata, data: cachedRes };
   }
 
   try {
     res = await retriever();
   } catch (e) {
-    if (!isNull(res) && (opts.staleOk || opts.preferNew)) {
+    if (!isNull(cachedRes) && (opts.staleOk || opts.preferNew)) {
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
       console.warn(e);
-      return { cacheRead, cacheWrite, data: res };
+      metadata.fromCache = false;
+      metadata.cacheTimestamp = null;
+      metadata.stale = true;
+      return { metadata, data: cachedRes };
     } else if (opts.errorOk) {
       // the caller is fine with an error response
-      return { cacheRead, cacheWrite, error: e.toString() };
+      metadata.error = e.toString();
+      return { metadata };
     } else {
       // let the caller decide what to do with this unhandled error
       throw e;
     }
   }
 
-  // cache the results for later
+  // the retriever has returned fresh data
+  metadata.fromCache = false;
+  metadata.cacheTimestamp = null;
+  metadata.stale = false;
+
+  // cache the fresh data for later
   try {
     // write to the cache
     await cacache.put(process.env.CACHE_ROOT, cacheKey, Buffer.from(JSON.stringify(res)));
-    cacheWrite = true;
   } catch (e) {
     console.warn(`Could not cache: '${identifier}'`);
     console.warn(e);
   }
 
-  return { cacheRead, cacheWrite, data: res };
+  return { metadata, data: res };
 }
 
 /** Nuke the cache */

@@ -122,7 +122,11 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       try {
         // video data for this EVA
         const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
-        dispatch(addVideos(videoStoreResponse));
+        if (videoStoreResponse.metadata.error === undefined) {
+          dispatch(addVideos(videoStoreResponse));
+        } else {
+          dispatch(videosFetchError(videoStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);
@@ -149,10 +153,14 @@ function Main(props: { query: QueryParams; collection: Collection }) {
 
       try {
         // photos data for today
-        const photoStore = await buildPhotoStore(year, month + 1, day, props.collection);
-        dispatch(addPhotos(photoStore));
-        const photoCollectionsFilter = buildPhotoCollections(photoStore);
-        dispatch(setCollectionFilters(photoCollectionsFilter));
+        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, props.collection);
+        if (photoStoreResponse.metadata.error === undefined) {
+          dispatch(addPhotos(photoStoreResponse));
+          const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        } else {
+          dispatch(photosFetchError(photoStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
         console.error(e);
@@ -175,7 +183,11 @@ function Main(props: { query: QueryParams; collection: Collection }) {
 
       try {
         const gpsTracksResponse = await getGPSTracks(year, month, day);
-        dispatch(setGPSTracks(gpsTracksResponse));
+        if (gpsTracksResponse.metadata.error === undefined) {
+          dispatch(setGPSTracks(gpsTracksResponse));
+        } else {
+          dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));
         console.error(e);
@@ -199,7 +211,11 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       try {
         // photos data for today
         const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
-        dispatch(addEphemera(ephemerisStoreResponse));
+        if (ephemerisStoreResponse.metadata.error === undefined) {
+          dispatch(addEphemera(ephemerisStoreResponse));
+        } else {
+          dispatch(ephemeraFetchError(ephemerisStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
         console.error(e);
@@ -228,7 +244,11 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       try {
         // video data for this EVA
         const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
-        dispatch(addVideos(videoStoreResponse));
+        if (videoStoreResponse.metadata.error === undefined) {
+          dispatch(addVideos(videoStoreResponse));
+        } else {
+          dispatch(videosFetchError(videoStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);
@@ -243,7 +263,11 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
         const updatedEVAsResponse =
           props.collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
-        dispatch(addSequences(updatedEVAsResponse));
+        if (updatedEVAsResponse.metadata.error === undefined) {
+          dispatch(addSequences(updatedEVAsResponse));
+        } else {
+          dispatch(sequencesFetchError(updatedEVAsResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
         console.error(e);

@@ -123,6 +123,7 @@ export async function fetchISSLocation(
   const isToday = isSameDate(now, today);
 
   let res: WrappedResponse<EphemerisStore> = {
+    metadata: null,
     data: { ephemera: [], dayNight: [] },
   };
 
@@ -177,10 +178,11 @@ export async function fetchISSLocation(
 
   // maybe we retrieved bad data from the cache. force another fetch against the spacetrack API
   // only necessary because pre-issue-85, we would erroneously cache empty TLE responses
-  if (!isToday && res.cacheRead && res.data.ephemera.length === 0) {
+  if (!isToday && res.metadata.fromCache && res.data.ephemera.length === 0) {
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
       preferNew: true,
       staleOk: true,
+      errorOk: true,
     });
   }
 
