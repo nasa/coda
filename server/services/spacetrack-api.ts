@@ -123,7 +123,7 @@ export async function fetchISSLocation(
   const isToday = isSameDate(now, today);
 
   let res: WrappedResponse<EphemerisStore> = {
-    data: { ephemera: [], dayNight: {} },
+    data: { ephemera: [], dayNight: [] },
   };
 
   // try with the date asked for first
