@@ -11,11 +11,10 @@ import styles from "./body.module.css";
 import type { QueryParams } from "pages/view/iss";
 import { Collection } from "typings";
 import { gpsFetchError, setGPSTracks } from "store/gps";
-import { getGPSTracks } from "http-client/gps";
 
 import isNull from "lodash/isNull";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEVAs, fetchTestEvents } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
 import { buildEphemerisStore } from "http-client/location";
 import {
@@ -122,8 +121,8 @@ function Main(props: { query: QueryParams; collection: Collection }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day, props.collection);
-        dispatch(addVideos(videoStore));
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
+        dispatch(addVideos(videoStoreResponse));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);
@@ -175,8 +174,8 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       const day = d.getUTCDate();
 
       try {
-        const gpsTracks = await getGPSTracks(year, month, day);
-        dispatch(setGPSTracks(gpsTracks));
+        const gpsTracksResponse = await getGPSTracks(year, month, day);
+        dispatch(setGPSTracks(gpsTracksResponse));
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));
         console.error(e);
@@ -199,8 +198,8 @@ function Main(props: { query: QueryParams; collection: Collection }) {
 
       try {
         // photos data for today
-        const ephemerisStore = await buildEphemerisStore(year, month, day);
-        dispatch(addEphemera(ephemerisStore));
+        const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
+        dispatch(addEphemera(ephemerisStoreResponse));
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
         console.error(e);
@@ -228,8 +227,8 @@ function Main(props: { query: QueryParams; collection: Collection }) {
 
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month, day, props.collection);
-        dispatch(addVideos(videoStore));
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
+        dispatch(addVideos(videoStoreResponse));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
         console.error(e);
@@ -242,9 +241,9 @@ function Main(props: { query: QueryParams; collection: Collection }) {
     (async () => {
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
-        const updatedEVAs =
+        const updatedEVAsResponse =
           props.collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
-        dispatch(addSequences(updatedEVAs));
+        dispatch(addSequences(updatedEVAsResponse));
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
         console.error(e);

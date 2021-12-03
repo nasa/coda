@@ -1,8 +1,8 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
-import type { DayNightObj } from "typings";
-import type { EphemerisFile } from "typings/spacetrack";
+import type { DayNightObj, WrappedResponse } from "typings";
+import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
   const { FILE } = ephemeris;
@@ -11,6 +11,10 @@ export function idFromEphemeris(ephemeris: EphemerisFile): string {
 
 export type EphemeraEntityState = EntityState<EphemerisFile> & {
   dayNight: DayNightObj[];
+  cacheStatus: {
+    cacheRead?: boolean;
+    cacheWrite?: boolean;
+  };
   errorMessage: string;
 };
 
@@ -22,6 +26,7 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
   errorMessage: "",
+  cacheStatus: {},
   dayNight: [{ appSeconds: 0, daylight: false }],
 });
 
@@ -34,9 +39,13 @@ export const ephemeraSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addEphemera: (state, action) => {
-      ephemerisAdapter.upsertMany(state, action.payload.ephemera);
-      state.dayNight = action.payload.dayNight;
+    addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
+      ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
+      state.dayNight = action.payload.data.dayNight;
+      state.cacheStatus = {
+        cacheRead: action.payload.cacheRead,
+        cacheWrite: action.payload.cacheWrite,
+      };
       state.errorMessage = "";
     },
     fetchError: (state, action: { payload: string }) => {

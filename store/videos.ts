@@ -1,7 +1,7 @@
 import memoize from "lodash/memoize";
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { VideoFile } from "typings";
+import type { VideoFile, WrappedResponse } from "typings";
 import { isSameDate } from "./playhead";
 
 /** Info about videos from IO and the desired high-level state of the video players */
@@ -14,6 +14,10 @@ export type VideosEntityState = EntityState<VideoFile> & {
   activeVideoFiles: { [key: number]: string };
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
   ready: { [key: number]: boolean };
+  cacheStatus: {
+    cacheRead?: boolean;
+    cacheWrite?: boolean;
+  };
   /** Message describing something that went wrong fetching video metadata */
   errorMessage: string;
   /** UTC string of the last time we hit IO */
@@ -39,6 +43,7 @@ export const initialState: VideosEntityState = videoAdapter.getInitialState({
     1: true,
     2: true,
   },
+  cacheStatus: {},
   errorMessage: "",
   lastChecked: "",
 });
@@ -78,8 +83,12 @@ export const videoSlice = createSlice({
     },
 
     /** Add new video files to the store */
-    addVideos: (state, action) => {
-      videoAdapter.upsertMany(state, action);
+    addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
+      videoAdapter.upsertMany(state, action.payload.data);
+      state.cacheStatus = {
+        cacheRead: action.payload.cacheRead,
+        cacheWrite: action.payload.cacheWrite,
+      };
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
     },

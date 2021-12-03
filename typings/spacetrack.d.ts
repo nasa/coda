@@ -1,6 +1,8 @@
+import { DayNightObj } from ".";
+
 export interface EphemerisStore {
   ephemera: EphemerisFile[];
-  dayNight: {};
+  dayNight: DayNightObj[];
 }
 
 export interface EphemerisFile {

@@ -30,7 +30,6 @@ export interface WrappedResponse<T> {
   data?: T;
   cacheRead?: boolean;
   cacheWrite?: boolean;
-  isCache?: boolean;
   error?: string;
   mocked?: boolean;
 }

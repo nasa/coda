@@ -546,8 +546,10 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
   });
 }
 
-export async function fetchWikiGPSTracks(dateWanted: string): Promise<GPSTrack[]> {
+export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedResponse<GPSTrack[]>> {
   const gpsList = await fetchWikiGPSList();
+  const cacheRead = gpsList.cacheRead;
+  const cacheWrite = gpsList.cacheWrite;
 
   // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
   const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
@@ -559,7 +561,7 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<GPSTrack[]
       gpsTracks.push(gpsTrackRes.data);
     }
   }
-  return gpsTracks;
+  return { cacheRead, cacheWrite, data: gpsTracks };
 }
 
 async function fetchWikiGPSTrack(
@@ -626,8 +628,9 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
   };
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
+    cacheAge: 60,
     staleOk: true,
-    preferNew: true,
+    preferNew: false,
   });
 }
 
