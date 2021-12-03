@@ -83,7 +83,7 @@ export const videoSlice = createSlice({
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
       videoAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
-      state.lastChecked = new Date().toUTCString();
+      state.lastChecked = new Date().toISOString();
       state.errorMessage = "";
     },
 

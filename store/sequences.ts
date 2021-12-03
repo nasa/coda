@@ -38,7 +38,7 @@ export const sequencesSlice = createSlice({
     addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
       sequencesAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
-      state.lastChecked = new Date().toUTCString();
+      state.lastChecked = new Date().toISOString();
       state.errorMessage = "";
     },
 
