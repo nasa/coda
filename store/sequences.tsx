@@ -2,7 +2,7 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
-import { Sequence, Activity, DayNight, WrappedResponse } from "typings";
+import { Sequence, Activity, DayNight, WrappedResponse, ResMetadata } from "typings";
 
 /** Parse the ID from an Sequence, currently set to a `yyyy-mm-dd-name` string */
 export function idFromSequence(sequence: Sequence): string {
@@ -13,10 +13,7 @@ export function idFromSequence(sequence: Sequence): string {
 }
 
 export type SequencesEntityState = EntityState<Sequence> & {
-  cacheStatus: {
-    cacheRead?: boolean;
-    cacheWrite?: boolean;
-  };
+  metadata: ResMetadata;
   errorMessage: string;
   lastChecked: string;
 };
@@ -28,7 +25,7 @@ const sequencesAdapter = createEntityAdapter<Sequence>({
 });
 
 export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
-  cacheStatus: {},
+  metadata: null,
   errorMessage: "",
   lastChecked: "",
 });
@@ -40,10 +37,7 @@ export const sequencesSlice = createSlice({
     /** Add one (or more) Sequence(s) to the store */
     addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
       sequencesAdapter.upsertMany(state, action.payload.data);
-      state.cacheStatus = {
-        cacheRead: action.payload.cacheRead,
-        cacheWrite: action.payload.cacheWrite,
-      };
+      state.metadata = action.payload.metadata;
       state.lastChecked = new Date().toUTCString();
       state.errorMessage = "";
     },

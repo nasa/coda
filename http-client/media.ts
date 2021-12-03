@@ -30,12 +30,12 @@ export async function buildPhotoStore(
   month: number,
   date: number,
   collection: Collection
-): Promise<PhotoFile[]> {
+): Promise<WrappedResponse<PhotoFile[]>> {
   const res = await fetch(
     `/api/media/photos?year=${year}&month=${month}&date=${date}&collection=${collection}`
   );
   const wrappedResponse: WrappedResponse<PhotoFile[]> = await res.json();
-  return wrappedResponse.data;
+  return wrappedResponse;
 }
 
 export function buildPhotoCollections(photos: PhotoFile[]) {

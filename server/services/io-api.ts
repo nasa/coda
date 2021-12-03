@@ -108,6 +108,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     {
       cacheAge: 3600,
       staleOk: true,
+      errorOk: true,
       preferNew: isBetweenDates(now, start, end),
     }
   );
@@ -319,6 +320,7 @@ export async function fetchPhotoData(
   return fetchWithCache<PhotoFile[]>(`io/photos/${collection}/${dateQuery}`, retriever, {
     cacheAge: 3600,
     staleOk: true,
+    errorOk: true,
   });
 }
 

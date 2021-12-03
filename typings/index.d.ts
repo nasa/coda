@@ -28,8 +28,22 @@ export interface IOResponse {
 /** The base type for all responses from the CODA API */
 export interface WrappedResponse<T> {
   data?: T;
-  cacheRead?: boolean;
-  cacheWrite?: boolean;
+  metadata: ResMetadata;
+}
+
+/** Wikibot responses */
+export interface WikibotResponse<T> {
+  data?: T;
+  mocked?: boolean;
+}
+
+/**
+ * Info about the response
+ */
+export interface ResMetadata {
+  fromCache: boolean;
+  cacheTimestamp: Date;
+  stale: boolean;
   error?: string;
   mocked?: boolean;
 }
