@@ -55,7 +55,7 @@ export const photoSlice = createSlice({
       photoAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
       state.errorMessage = "";
-      state.lastChecked = new Date().toUTCString();
+      state.lastChecked = new Date().toISOString();
       state.ready = true;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {
