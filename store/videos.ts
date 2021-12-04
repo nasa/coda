@@ -15,8 +15,6 @@ export type VideosEntityState = EntityState<VideoFile> & {
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
   ready: { [key: number]: boolean };
   metadata: ResMetadata;
-  /** Message describing something that went wrong fetching video metadata */
-  errorMessage: string;
   /** UTC string of the last time we hit IO */
   lastChecked: string;
 };
@@ -41,7 +39,6 @@ export const initialState: VideosEntityState = videoAdapter.getInitialState({
     2: true,
   },
   metadata: null,
-  errorMessage: "",
   lastChecked: "",
 });
 
@@ -84,12 +81,11 @@ export const videoSlice = createSlice({
       videoAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
       state.lastChecked = new Date().toISOString();
-      state.errorMessage = "";
     },
 
     /** An error occured fetching video metadata */
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata.error = action.payload;
     },
   },
 });

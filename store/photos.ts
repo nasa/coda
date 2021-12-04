@@ -6,8 +6,6 @@ import { isSameDate } from "./playhead";
 
 export type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;
-  /** Message describing something that went wrong fetching photo metadata */
-  errorMessage: string;
   ready: boolean;
   metadata: ResMetadata;
   lastChecked: string;
@@ -37,7 +35,6 @@ export const initialPhotoFileState: PhotoFile = {
 
 export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
-  errorMessage: "",
   ready: false,
   metadata: null,
   lastChecked: "",
@@ -54,7 +51,6 @@ export const photoSlice = createSlice({
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
       photoAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
-      state.errorMessage = "";
       state.lastChecked = new Date().toISOString();
       state.ready = true;
     },
@@ -63,7 +59,7 @@ export const photoSlice = createSlice({
     },
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata.error = action.payload;
     },
     setCollectionFilters: (state, action: { payload: CollectionFilters[] }) => {
       state.collectionFilters = action.payload;

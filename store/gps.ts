@@ -5,13 +5,11 @@ import type { GPSTrack } from "typings/gps";
 export interface GPSState {
   gpsTracks: GPSTrack[];
   metadata: ResMetadata;
-  errorMessage: string;
 }
 
 export const initialState: GPSState = {
   gpsTracks: [],
   metadata: null,
-  errorMessage: "",
 };
 
 export const gpsSlice = createSlice({
@@ -24,7 +22,7 @@ export const gpsSlice = createSlice({
       state.metadata = action.payload.metadata;
     },
     gpsFetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata.error = action.payload;
     },
   },
 });

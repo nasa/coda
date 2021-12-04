@@ -14,7 +14,6 @@ export function idFromSequence(sequence: Sequence): string {
 
 export type SequencesEntityState = EntityState<Sequence> & {
   metadata: ResMetadata;
-  errorMessage: string;
   lastChecked: string;
 };
 
@@ -26,7 +25,6 @@ const sequencesAdapter = createEntityAdapter<Sequence>({
 
 export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
   metadata: null,
-  errorMessage: "",
   lastChecked: "",
 });
 
@@ -39,12 +37,11 @@ export const sequencesSlice = createSlice({
       sequencesAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
       state.lastChecked = new Date().toISOString();
-      state.errorMessage = "";
     },
 
     /** An error occured fetching wiki data */
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata.error = action.payload;
     },
   },
 });
