@@ -12,7 +12,6 @@ export function idFromEphemeris(ephemeris: EphemerisFile): string {
 export type EphemeraEntityState = EntityState<EphemerisFile> & {
   dayNight: DayNightObj[];
   metadata: ResMetadata;
-  errorMessage: string;
 };
 
 const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
@@ -22,7 +21,6 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 });
 
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
-  errorMessage: "",
   metadata: null,
   dayNight: [{ appSeconds: 0, daylight: false }],
 });
@@ -40,10 +38,9 @@ export const ephemeraSlice = createSlice({
       ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
       state.dayNight = action.payload.data.dayNight;
       state.metadata = action.payload.metadata;
-      state.errorMessage = "";
     },
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata.error = action.payload;
     },
   },
 });

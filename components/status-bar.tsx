@@ -1,89 +1,48 @@
 import { useSelector } from "react-redux";
-import isNull from "lodash/isNull";
-import { add, PlayheadState, isSameDate } from "store/playhead";
-import { SequencesEntityState, sequencesSelector, idFromDate } from "store/sequences";
+import { PlayheadState } from "store/playhead";
+import { SequencesEntityState } from "store/sequences";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
 import styles from "./status-bar.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
+import { ResMetadata } from "typings";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
 export default function StatusBar() {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const evas: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
-  const errorMessages =
-    evas.errorMessage !== "" || videos.errorMessage !== "" || photos.errorMessage !== "";
+  const [videoStatus, setVideoStatus] = useState({ status: ".", message: "" });
+  const [photoStatus, setPhotoStatus] = useState({ status: ".", message: "" });
+  const [wikiStatus, setWikiStatus] = useState({ status: ".", message: "" });
 
-  const eva = sequencesSelector.selectById(evas, idFromDate(playhead.date));
-
-  const [isToday, setIsToday] = useState(false);
   useEffect(() => {
-    setIsToday(isSameDate(new Date(), new Date(playhead.date)));
-  }, [playhead.date]);
-
-  const [lastIOUpdate, setLastIOUpdate] = useState("pending");
-  const [nextIOUpdate, setNextIOUpdate] = useState("pending");
-  const ioStatusUpdate = () => {
-    const lastCheckedDate = new Date(videos.lastChecked);
-    if (!isNaN(lastCheckedDate.valueOf())) {
-      const lastUpdate =
-        lastCheckedDate.toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
-      const nextUpdate =
-        add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
-
-      setLastIOUpdate(lastUpdate);
-      setNextIOUpdate(nextUpdate);
+    if (videos.metadata === null) {
+      return;
     }
-  };
-  useEffect(ioStatusUpdate, [videos.lastChecked]);
+    setVideoStatus(createStatus(videos.metadata));
+  }, [videos.metadata]);
 
-  const [lastWikiUpdate, setLastWikiUpdate] = useState("pending");
-  const [nextWikiUpdate, setNextWikiUpdate] = useState("pending");
-  const wikiStatusUpdate = () => {
-    const lastCheckedDate = new Date(evas.lastChecked);
-    if (!isNaN(lastCheckedDate.valueOf())) {
-      const lastUpdate =
-        lastCheckedDate.toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
-      const nextUpdate =
-        add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
-
-      setLastWikiUpdate(lastUpdate);
-      setNextWikiUpdate(nextUpdate);
+  useEffect(() => {
+    if (photos.metadata === null) {
+      return;
     }
-  };
-  useEffect(wikiStatusUpdate, [evas.lastChecked]);
+    setPhotoStatus(createStatus(photos.metadata));
+  }, [photos.metadata]);
+
+  useEffect(() => {
+    if (photos.metadata === null) {
+      return;
+    }
+    setWikiStatus(createStatus(sequences.metadata));
+  }, [sequences.metadata]);
 
   return (
-    <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
+    <div className={`${styles.container}`}>
       <span className={styles.playPause}>
         &nbsp;
         {playhead.isRunning ? (
@@ -95,29 +54,34 @@ export default function StatusBar() {
       <span className={styles.statusText}>
         {!videos.ready[1] || !videos.ready[2] ? <span className={styles.spinner}></span> : " "}
         &nbsp;
-        {isToday && (
-          <span>
-            Last video update: {lastIOUpdate}
-            {videos.errorMessage ? " (failed)" : ""}. Next video update scheduled for:{" "}
-            {nextIOUpdate} |&nbsp;
-          </span>
-        )}
-        {!isNull(eva) && (
-          <span>
-            Last wiki update: {lastWikiUpdate}
-            {evas.errorMessage ? " (failed)" : ""}. Next wiki update scheduled for: {nextWikiUpdate}{" "}
-            |&nbsp;
-          </span>
-        )}
-        <span
-          title={["IO Status", videos.errorMessage || photos.errorMessage || "Good"].join(" | ")}
-        >
-          IO {videos.errorMessage === "" && photos.errorMessage === "" ? "✓" : "✗"}&nbsp;
-        </span>
-        <span title={["Wiki Status", evas.errorMessage || "Good"].join(" | ")}>
-          | ISS WIKI {evas.errorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;
-        </span>
+        <span title="Imagery Online">IO </span>[
+        <span title={"Video " + videoStatus.message}>V:{videoStatus.status}</span> |&nbsp;
+        <span title={"Photo " + photoStatus.message}>P: {photoStatus.status}</span>]&nbsp;
+        <span title="Wiki">WIKI </span>
+        <span title={"Wiki " + wikiStatus.message}>{wikiStatus.status}</span>
       </span>
     </div>
   );
+}
+
+function createStatus(metadata: ResMetadata): { status: string; message: string } {
+  let status;
+  if (metadata.error) {
+    status = "✗";
+    if (metadata.stale) {
+      status = "?";
+    }
+  } else {
+    status = "✓";
+  }
+
+  let message;
+  if (metadata.error) {
+    message = "Error: " + metadata.error;
+  } else if (metadata.fromCache) {
+    message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+  } else {
+    message = "data is fresh";
+  }
+  return { status, message };
 }
