@@ -19,27 +19,22 @@ export default function StatusBar() {
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
 
   const [videoStatus, setVideoStatus] = useState({
-    status: "",
     message: "",
     classname: styles.spinner,
   });
   const [photoStatus, setPhotoStatus] = useState({
-    status: "",
     message: "",
     classname: styles.spinner,
   });
   const [sequenceStatus, setSequenceStatus] = useState({
-    status: "",
     message: "",
     classname: styles.spinner,
   });
   const [gpsStatus, setGpsStatus] = useState({
-    status: "",
     message: "",
     classname: styles.spinner,
   });
   const [ephemeraStatus, setEphemeraStatus] = useState({
-    status: "",
     message: "",
     classname: styles.spinner,
   });
@@ -84,24 +79,24 @@ export default function StatusBar() {
         &nbsp;
         <span title="Imagery Online">IO </span>[
         <span title={"Video " + videoStatus.message}>
-          Videos: <span className={videoStatus.classname}>{videoStatus.status}</span>
+          Videos: <span className={videoStatus.classname}></span>
         </span>{" "}
         |&nbsp;
         <span title={"Photo " + photoStatus.message}>
-          Photos: <span className={photoStatus.classname}>{photoStatus.status}</span>
+          Photos: <span className={photoStatus.classname}></span>
         </span>
         ] -&nbsp;
         <span title="ISS and Exploration Wikis">WIKI </span>[
         <span title={"EVAs " + sequenceStatus.message}>
-          EVAs: <span className={sequenceStatus.classname}>{sequenceStatus.status}</span>
+          EVAs: <span className={sequenceStatus.classname}></span>
         </span>{" "}
         |&nbsp;
         <span title={"GPS track " + gpsStatus.message}>
-          GPS: <span className={gpsStatus.classname}>{gpsStatus.status}</span>
+          GPS: <span className={gpsStatus.classname}></span>
         </span>{" "}
         ] -&nbsp;
         <span title={"Orbit ephemera " + ephemeraStatus.message}>
-          Orbit: <span className={ephemeraStatus.classname}>{ephemeraStatus.status}</span>
+          Orbit: <span className={ephemeraStatus.classname}></span>
         </span>
       </span>
     </div>
@@ -111,8 +106,7 @@ export default function StatusBar() {
     loadingStatus: LoadingStatusEnum,
     metadata: ResMetadata,
     resultsReturned: boolean
-  ): { status: string; message: string; classname: string } {
-    let status;
+  ): { message: string; classname: string } {
     let message;
     let classname;
     if (loadingStatus === LoadingStatusEnum.LOADING) {
@@ -120,7 +114,6 @@ export default function StatusBar() {
       message = "data loading...";
       classname = styles.spinner;
     } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
-      status = "_";
       message = "data unneeded";
       classname = styles.unneeded;
     } else {
@@ -129,11 +122,10 @@ export default function StatusBar() {
         message = "Error: " + metadata.error;
         classname = styles.error;
       } else if (metadata.stale) {
-        status = "?";
+        status = "✓";
         message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
         classname = styles.stale;
       } else if (!resultsReturned) {
-        status = "_";
         message = "data not returned (without error)";
         classname = styles.unneeded;
       } else {
@@ -146,6 +138,6 @@ export default function StatusBar() {
         classname = styles.noError;
       }
     }
-    return { status, message, classname };
+    return { message, classname };
   }
 }
