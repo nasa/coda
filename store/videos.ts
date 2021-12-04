@@ -1,7 +1,7 @@
 import memoize from "lodash/memoize";
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { ResMetadata, VideoFile, WrappedResponse } from "typings";
+import { LoadingStatusEnum, ResMetadata, VideoFile, WrappedResponse } from "typings";
 import { isSameDate } from "./playhead";
 
 /** Info about videos from IO and the desired high-level state of the video players */
@@ -15,6 +15,7 @@ export type VideosEntityState = EntityState<VideoFile> & {
   /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
   ready: { [key: number]: boolean };
   metadata: ResMetadata;
+  loadingStatus: LoadingStatusEnum;
   /** UTC string of the last time we hit IO */
   lastChecked: string;
 };
@@ -39,6 +40,7 @@ export const initialState: VideosEntityState = videoAdapter.getInitialState({
     2: true,
   },
   metadata: null,
+  loadingStatus: LoadingStatusEnum.Loading,
   lastChecked: "",
 });
 
@@ -87,6 +89,10 @@ export const videoSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.metadata.error = action.payload;
     },
+
+    setVideoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
+    },
   },
 });
 
@@ -98,6 +104,7 @@ export const {
   buffering,
   addVideos,
   fetchError,
+  setVideoLoadingStatus,
 } = videoSlice.actions;
 
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */

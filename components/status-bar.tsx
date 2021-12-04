@@ -6,7 +6,7 @@ import { VideosEntityState } from "store/videos";
 import styles from "./status-bar.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
-import { ResMetadata } from "typings";
+import { LoadingStatusEnum, ResMetadata } from "typings";
 import { GPSState } from "store/gps";
 import { EphemeraEntityState } from "store/ephemera";
 
@@ -27,39 +27,28 @@ export default function StatusBar() {
   const [ephemeraStatus, setEphemeraStatus] = useState({ status: ".", message: "" });
 
   useEffect(() => {
-    if (videos.metadata === null) {
-      return;
-    }
-    setVideoStatus(createStatus(videos.metadata, videos.ids.length > 0));
-  }, [videos.metadata]);
+    setVideoStatus(createStatus(videos.loadingStatus, videos.metadata, videos.ids.length > 0));
+  }, [videos.loadingStatus, videos.metadata]);
 
   useEffect(() => {
-    if (photos.metadata === null) {
-      return;
-    }
-    setPhotoStatus(createStatus(photos.metadata, photos.ids.length > 0));
-  }, [photos.metadata]);
+    setPhotoStatus(createStatus(photos.loadingStatus, photos.metadata, photos.ids.length > 0));
+  }, [photos.loadingStatus, photos.metadata]);
 
   useEffect(() => {
-    if (sequences.metadata === null) {
-      return;
-    }
-    setSequenceStatus(createStatus(sequences.metadata, sequences.ids.length > 0));
-  }, [sequences.metadata]);
+    setSequenceStatus(
+      createStatus(sequences.loadingStatus, sequences.metadata, sequences.ids.length > 0)
+    );
+  }, [sequences.loadingStatus, sequences.metadata]);
 
   useEffect(() => {
-    if (gps.metadata === null) {
-      return;
-    }
-    setGpsStatus(createStatus(gps.metadata, gps.gpsTracks.length > 0));
-  }, [gps.metadata]);
+    setGpsStatus(createStatus(gps.loadingStatus, gps.metadata, gps.gpsTracks.length > 0));
+  }, [gps.loadingStatus, gps.metadata]);
 
   useEffect(() => {
-    if (ephemera.metadata === null) {
-      return;
-    }
-    setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ids.length > 0));
-  }, [ephemera.metadata]);
+    setEphemeraStatus(
+      createStatus(ephemera.loadingStatus, ephemera.metadata, ephemera.ids.length > 0)
+    );
+  }, [ephemera.loadingStatus, ephemera.metadata]);
 
   return (
     <div className={`${styles.container}`}>
@@ -89,30 +78,36 @@ export default function StatusBar() {
 }
 
 function createStatus(
+  loadingStatus: LoadingStatusEnum,
   metadata: ResMetadata,
   resultsReturned: boolean
 ): { status: string; message: string } {
   let status;
-  if (metadata.error) {
-    status = "✗";
-    if (metadata.stale) {
-      status = "?";
-    }
-  } else if (!resultsReturned) {
-    status = "_";
-  } else {
-    status = "✓";
-  }
-
   let message;
-  if (metadata.error) {
-    message = "Error: " + metadata.error;
-  } else if (metadata.fromCache) {
-    message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
-  } else if (!resultsReturned) {
-    message = "data not returned (without error)";
+  if (loadingStatus === LoadingStatusEnum.Loading) {
+    status = ".";
+    message = "data loading...";
+  } else if (loadingStatus === LoadingStatusEnum.Unneeded) {
+    status = "_";
+    message = "data unneeded";
   } else {
-    message = "data is fresh";
+    if (metadata.error) {
+      status = "✗";
+      message = "Error: " + metadata.error;
+    } else if (metadata.stale) {
+      status = "?";
+      message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+    } else if (!resultsReturned) {
+      status = "_";
+      message = "data not returned (without error)";
+    } else {
+      status = "✓";
+      if (metadata.fromCache) {
+        message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+      } else {
+        message = "data is fresh";
+      }
+    }
   }
   return { status, message };
 }

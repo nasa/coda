@@ -2,7 +2,14 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
-import { Sequence, Activity, DayNight, WrappedResponse, ResMetadata } from "typings";
+import {
+  Sequence,
+  Activity,
+  DayNight,
+  WrappedResponse,
+  ResMetadata,
+  LoadingStatusEnum,
+} from "typings";
 
 /** Parse the ID from an Sequence, currently set to a `yyyy-mm-dd-name` string */
 export function idFromSequence(sequence: Sequence): string {
@@ -14,6 +21,7 @@ export function idFromSequence(sequence: Sequence): string {
 
 export type SequencesEntityState = EntityState<Sequence> & {
   metadata: ResMetadata;
+  loadingStatus: LoadingStatusEnum;
   lastChecked: string;
 };
 
@@ -25,6 +33,7 @@ const sequencesAdapter = createEntityAdapter<Sequence>({
 
 export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
   metadata: null,
+  loadingStatus: LoadingStatusEnum.Loading,
   lastChecked: "",
 });
 
@@ -43,10 +52,14 @@ export const sequencesSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.metadata.error = action.payload;
     },
+
+    setSequenceLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
+    },
   },
 });
 
-export const { addSequences, fetchError } = sequencesSlice.actions;
+export const { addSequences, fetchError, setSequenceLoadingStatus } = sequencesSlice.actions;
 
 export const sequencesSelector = sequencesAdapter.getSelectors<SequencesEntityState>(
   (state) => state

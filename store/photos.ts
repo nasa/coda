@@ -1,13 +1,14 @@
 import memoize from "lodash/memoize";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
-import type { PhotoFile, ResMetadata, WrappedResponse } from "typings";
+import { LoadingStatusEnum, PhotoFile, ResMetadata, WrappedResponse } from "typings";
 import { isSameDate } from "./playhead";
 
 export type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;
   ready: boolean;
   metadata: ResMetadata;
+  loadingStatus: LoadingStatusEnum;
   lastChecked: string;
   collectionFilters: CollectionFilters[];
 };
@@ -37,6 +38,7 @@ export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
   ready: false,
   metadata: null,
+  loadingStatus: LoadingStatusEnum.Loading,
   lastChecked: "",
   collectionFilters: [],
 });
@@ -50,7 +52,7 @@ export const photoSlice = createSlice({
     /** Add new photo files to the store */
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
       photoAdapter.upsertMany(state, action.payload.data);
-      state.metadata = action.payload.metadata;
+      state.metadata = { ...state.metadata, ...action.payload.metadata };
       state.lastChecked = new Date().toISOString();
       state.ready = true;
     },
@@ -61,13 +63,22 @@ export const photoSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.metadata.error = action.payload;
     },
+    setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
+    },
     setCollectionFilters: (state, action: { payload: CollectionFilters[] }) => {
       state.collectionFilters = action.payload;
     },
   },
 });
 
-export const { addPhotos, setActivePhoto, setCollectionFilters, fetchError } = photoSlice.actions;
+export const {
+  addPhotos,
+  setActivePhoto,
+  fetchError,
+  setPhotoLoadingStatus,
+  setCollectionFilters,
+} = photoSlice.actions;
 
 /** Filters photos for a given day */
 const _filterVisiblePhotos = (photos: PhotoFile[], date: Date): PhotoFile[] => {
