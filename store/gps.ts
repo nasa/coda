@@ -11,7 +11,7 @@ export interface GPSState {
 export const initialState: GPSState = {
   gpsTracks: [],
   metadata: null,
-  loadingStatus: LoadingStatusEnum.Loading,
+  loadingStatus: LoadingStatusEnum.LOADING,
 };
 
 export const gpsSlice = createSlice({

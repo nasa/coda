@@ -29,7 +29,6 @@ export interface IOResponse {
 export interface WrappedResponse<T> {
   data?: T;
   metadata: ResMetadata;
-  loadingStatus: LoadingStatusEnum;
 }
 
 /** Wikibot responses */
@@ -50,9 +49,9 @@ export interface ResMetadata {
 }
 
 export enum LoadingStatusEnum {
-  Loading = "loading",
-  Loaded = "loaded",
-  Unneeded = "unneeded",
+  LOADING = "loading",
+  LOADED = "loaded",
+  UNNEEDED = "unneeded",
 }
 
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */

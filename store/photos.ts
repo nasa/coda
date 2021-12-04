@@ -38,7 +38,7 @@ export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
   ready: false,
   metadata: null,
-  loadingStatus: LoadingStatusEnum.Loading,
+  loadingStatus: LoadingStatusEnum.LOADING,
   lastChecked: "",
   collectionFilters: [],
 });

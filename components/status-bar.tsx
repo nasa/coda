@@ -82,10 +82,10 @@ function createStatus(
 ): { status: string; message: string } {
   let status;
   let message;
-  if (loadingStatus === LoadingStatusEnum.Loading) {
+  if (loadingStatus === LoadingStatusEnum.LOADING) {
     status = ".";
     message = "data loading...";
-  } else if (loadingStatus === LoadingStatusEnum.Unneeded) {
+  } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
     status = "_";
     message = "data unneeded";
   } else {
