@@ -87,7 +87,8 @@ export const videoSlice = createSlice({
 
     /** An error occured fetching video metadata */
     fetchError: (state, action: { payload: string }) => {
-      state.metadata.error = action.payload;
+      const error = action.payload.replace(/key=.*&/, "key=[key]&");
+      state.metadata = { ...state.metadata, error };
     },
 
     setVideoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {

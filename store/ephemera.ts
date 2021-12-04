@@ -42,7 +42,7 @@ export const ephemeraSlice = createSlice({
       state.metadata = { ...state.metadata, ...action.payload.metadata };
     },
     fetchError: (state, action: { payload: string }) => {
-      state.metadata.error = action.payload;
+      state.metadata = { ...state.metadata, error: action.payload };
     },
     setEphemeraLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

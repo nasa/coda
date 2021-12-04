@@ -18,11 +18,31 @@ export default function StatusBar() {
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
 
-  const [videoStatus, setVideoStatus] = useState({ status: ".", message: "" });
-  const [photoStatus, setPhotoStatus] = useState({ status: ".", message: "" });
-  const [sequenceStatus, setSequenceStatus] = useState({ status: ".", message: "" });
-  const [gpsStatus, setGpsStatus] = useState({ status: ".", message: "" });
-  const [ephemeraStatus, setEphemeraStatus] = useState({ status: ".", message: "" });
+  const [videoStatus, setVideoStatus] = useState({
+    status: "",
+    message: "",
+    classname: styles.spinner,
+  });
+  const [photoStatus, setPhotoStatus] = useState({
+    status: "",
+    message: "",
+    classname: styles.spinner,
+  });
+  const [sequenceStatus, setSequenceStatus] = useState({
+    status: "",
+    message: "",
+    classname: styles.spinner,
+  });
+  const [gpsStatus, setGpsStatus] = useState({
+    status: "",
+    message: "",
+    classname: styles.spinner,
+  });
+  const [ephemeraStatus, setEphemeraStatus] = useState({
+    status: "",
+    message: "",
+    classname: styles.spinner,
+  });
 
   useEffect(() => {
     setVideoStatus(createStatus(videos.loadingStatus, videos.metadata, videos.ids.length > 0));
@@ -59,53 +79,73 @@ export default function StatusBar() {
         )}
       </span>
       <span className={styles.statusText}>
+        <span>{!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}</span>
         {!videos.ready[1] || !videos.ready[2] ? <span className={styles.spinner}></span> : " "}
         &nbsp;
         <span title="Imagery Online">IO </span>[
-        <span title={"Video " + videoStatus.message}>Videos:{videoStatus.status}</span> |&nbsp;
-        <span title={"Photo " + photoStatus.message}>Photos: {photoStatus.status}</span>] -&nbsp;
+        <span title={"Video " + videoStatus.message}>
+          Videos: <span className={videoStatus.classname}>{videoStatus.status}</span>
+        </span>{" "}
+        |&nbsp;
+        <span title={"Photo " + photoStatus.message}>
+          Photos: <span className={photoStatus.classname}>{photoStatus.status}</span>
+        </span>
+        ] -&nbsp;
         <span title="ISS and Exploration Wikis">WIKI </span>[
-        <span title={"EVAs " + sequenceStatus.message}>EVAs: {sequenceStatus.status}</span> |&nbsp;
-        <span title={"GPS track " + gpsStatus.message}>GPS: {gpsStatus.status}</span> ] -&nbsp;
+        <span title={"EVAs " + sequenceStatus.message}>
+          EVAs: <span className={sequenceStatus.classname}>{sequenceStatus.status}</span>
+        </span>{" "}
+        |&nbsp;
+        <span title={"GPS track " + gpsStatus.message}>
+          GPS: <span className={gpsStatus.classname}>{gpsStatus.status}</span>
+        </span>{" "}
+        ] -&nbsp;
         <span title={"Orbit ephemera " + ephemeraStatus.message}>
-          Orbit: {ephemeraStatus.status}
+          Orbit: <span className={ephemeraStatus.classname}>{ephemeraStatus.status}</span>
         </span>
       </span>
     </div>
   );
-}
 
-function createStatus(
-  loadingStatus: LoadingStatusEnum,
-  metadata: ResMetadata,
-  resultsReturned: boolean
-): { status: string; message: string } {
-  let status;
-  let message;
-  if (loadingStatus === LoadingStatusEnum.LOADING) {
-    status = ".";
-    message = "data loading...";
-  } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
-    status = "_";
-    message = "data unneeded";
-  } else {
-    if (metadata.error) {
-      status = "✗";
-      message = "Error: " + metadata.error;
-    } else if (metadata.stale) {
-      status = "?";
-      message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
-    } else if (!resultsReturned) {
+  function createStatus(
+    loadingStatus: LoadingStatusEnum,
+    metadata: ResMetadata,
+    resultsReturned: boolean
+  ): { status: string; message: string; classname: string } {
+    let status;
+    let message;
+    let classname;
+    if (loadingStatus === LoadingStatusEnum.LOADING) {
+      status = "";
+      message = "data loading...";
+      classname = styles.spinner;
+    } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
       status = "_";
-      message = "data not returned (without error)";
+      message = "data unneeded";
+      classname = styles.unneeded;
     } else {
-      status = "✓";
-      if (metadata.fromCache) {
-        message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+      if (metadata.error) {
+        status = "✗";
+        message = "Error: " + metadata.error;
+        classname = styles.error;
+      } else if (metadata.stale) {
+        status = "?";
+        message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+        classname = styles.stale;
+      } else if (!resultsReturned) {
+        status = "_";
+        message = "data not returned (without error)";
+        classname = styles.unneeded;
       } else {
-        message = "data is fresh";
+        status = "✓";
+        if (metadata.fromCache) {
+          message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+        } else {
+          message = "data is fresh";
+        }
+        classname = styles.noError;
       }
     }
+    return { status, message, classname };
   }
-  return { status, message };
 }

@@ -50,7 +50,7 @@ export const sequencesSlice = createSlice({
 
     /** An error occured fetching wiki data */
     fetchError: (state, action: { payload: string }) => {
-      state.metadata.error = action.payload;
+      state.metadata = { ...state.metadata, error: action.payload };
     },
 
     setSequenceLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
