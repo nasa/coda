@@ -1,7 +1,7 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
-import type { DayNightObj, ResMetadata, WrappedResponse } from "typings";
+import { DayNightObj, LoadingStatusEnum, ResMetadata, WrappedResponse } from "typings";
 import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
@@ -12,6 +12,7 @@ export function idFromEphemeris(ephemeris: EphemerisFile): string {
 export type EphemeraEntityState = EntityState<EphemerisFile> & {
   dayNight: DayNightObj[];
   metadata: ResMetadata;
+  loadingStatus: LoadingStatusEnum;
 };
 
 const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
@@ -21,8 +22,9 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 });
 
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
-  metadata: null,
   dayNight: [{ appSeconds: 0, daylight: false }],
+  metadata: null,
+  loadingStatus: LoadingStatusEnum.Loading,
 });
 
 export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(
@@ -37,15 +39,18 @@ export const ephemeraSlice = createSlice({
     addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
       ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
       state.dayNight = action.payload.data.dayNight;
-      state.metadata = action.payload.metadata;
+      state.metadata = { ...state.metadata, ...action.payload.metadata };
     },
     fetchError: (state, action: { payload: string }) => {
       state.metadata.error = action.payload;
     },
+    setEphemeraLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
+    },
   },
 });
 
-export const { addEphemera, fetchError } = ephemeraSlice.actions;
+export const { addEphemera, fetchError, setEphemeraLoadingStatus } = ephemeraSlice.actions;
 
 /**
  * Returns a Two-Line Element (TLE) from space-track.org that is closest to dateTimeWanted
