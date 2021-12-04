@@ -58,6 +58,7 @@
   border: 2px solid;
   border-radius: 10px;
   font-size: 2em;
+  font-family: "Inter", sans-serif;
 }
 
 .vidContainer {
@@ -97,6 +98,7 @@
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
+  font-family: "Inter", sans-serif;
 }
 .vidButton.active {
   color: white;
@@ -132,6 +134,7 @@
   box-sizing: border-box;
   padding: 30px;
   outline: none;
+  font-family: "Inter", sans-serif;
 }
 
 .videoOverlayVisible {
@@ -159,7 +162,7 @@
   max-height: 100%;
   display: inline-block;
   font-size: 0.9em;
-  background: rgb(15, 15, 15, 0.6);
+  background: rgb(15, 15, 15, 0.8);
   border: 2px solid #ffc000;
   border-radius: 10px;
   border-collapse: collapse;
@@ -291,6 +294,7 @@
   font-weight: 400;
   margin-right: 5px;
   margin-left: 5px;
+  font-family: "Inter", sans-serif;
 }
 
 .selectContainer {

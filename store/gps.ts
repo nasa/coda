@@ -24,7 +24,7 @@ export const gpsSlice = createSlice({
       state.metadata = { ...state.metadata, ...action.payload.metadata };
     },
     gpsFetchError: (state, action: { payload: string }) => {
-      state.metadata.error = action.payload;
+      state.metadata = { ...state.metadata, error: action.payload };
     },
     setGpsLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

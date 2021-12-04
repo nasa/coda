@@ -61,7 +61,8 @@ export const photoSlice = createSlice({
     },
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
-      state.metadata.error = action.payload;
+      const error = action.payload.replace(/key=.*&/, "key=[key]&");
+      state.metadata = { ...state.metadata, error };
     },
     setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;
