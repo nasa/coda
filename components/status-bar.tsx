@@ -10,8 +10,6 @@ import { LoadingStatusEnum, ResMetadata } from "typings";
 import { GPSState } from "store/gps";
 import { EphemeraEntityState } from "store/ephemera";
 
-const FIVE_MINS_MS = 5 * 60 * 1000;
-
 export default function StatusBar() {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
