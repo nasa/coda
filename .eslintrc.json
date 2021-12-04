@@ -17,7 +17,8 @@
     },
     "plugins": [
         "react",
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "import"
     ],
     "rules": {
         "@typescript-eslint/no-unused-vars": [
@@ -28,7 +29,8 @@
             }
         ],
         "no-import-assign": "error",
-        "no-unreachable": "error"
+        "no-unreachable": "error",
+        "import/no-cycle":  ["error", { "maxDepth": "∞" }]
     },
     "settings": {
         "react": {

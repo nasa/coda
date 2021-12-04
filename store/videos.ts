@@ -40,7 +40,7 @@ export const initialState: VideosEntityState = videoAdapter.getInitialState({
     2: true,
   },
   metadata: null,
-  loadingStatus: LoadingStatusEnum.Loading,
+  loadingStatus: LoadingStatusEnum.LOADING,
   lastChecked: "",
 });
 

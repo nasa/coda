@@ -119,7 +119,7 @@ describe("services/cache-client", () => {
 
     const res = await retrieveJSON(identifier, retriever, { errorOk: true });
 
-    expect(res.error).toEqual("Error: Something went wrong");
+    expect(res.metadata.error).toEqual("Error: Something went wrong");
   });
 
   it("should not cache even when opts.errorOk", async () => {

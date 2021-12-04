@@ -33,7 +33,7 @@ const sequencesAdapter = createEntityAdapter<Sequence>({
 
 export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
   metadata: null,
-  loadingStatus: LoadingStatusEnum.Loading,
+  loadingStatus: LoadingStatusEnum.LOADING,
   lastChecked: "",
 });
 
