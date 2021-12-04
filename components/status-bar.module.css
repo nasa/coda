@@ -17,17 +17,29 @@
 .noError {
   background-color: darkgreen;
 }
+.noError:after {
+  content: "✓";
+}
 
 .error {
   background-color: darkred;
+}
+.error:after {
+  content: "✗";
 }
 
 .unneeded {
   color: gray;
 }
+.unneeded:after {
+  content: "_";
+}
 
 .stale {
   background-color: rgb(150, 82, 0);
+}
+.stale:after {
+  content: "✓";
 }
 
 .playPause {
