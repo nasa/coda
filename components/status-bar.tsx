@@ -20,23 +20,23 @@ export default function StatusBar() {
 
   const [videoStatus, setVideoStatus] = useState({
     message: "",
-    classname: styles.spinner,
+    classname: styles.loading,
   });
   const [photoStatus, setPhotoStatus] = useState({
     message: "",
-    classname: styles.spinner,
+    classname: styles.loading,
   });
   const [sequenceStatus, setSequenceStatus] = useState({
     message: "",
-    classname: styles.spinner,
+    classname: styles.loading,
   });
   const [gpsStatus, setGpsStatus] = useState({
     message: "",
-    classname: styles.spinner,
+    classname: styles.loading,
   });
   const [ephemeraStatus, setEphemeraStatus] = useState({
     message: "",
-    classname: styles.spinner,
+    classname: styles.loading,
   });
 
   useEffect(() => {
@@ -73,32 +73,32 @@ export default function StatusBar() {
           "❙❙"
         )}
       </span>
-      <span className={styles.statusText}>
-        <span>{!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}</span>
-        {!videos.ready[1] || !videos.ready[2] ? <span className={styles.spinner}></span> : " "}
-        &nbsp;
-        <span title="Imagery Online">IO </span>[
-        <span title={"Video " + videoStatus.message}>
-          Videos: <span className={videoStatus.classname}></span>
-        </span>{" "}
-        |&nbsp;
-        <span title={"Photo " + photoStatus.message}>
-          Photos: <span className={photoStatus.classname}></span>
+      <div className={styles.statusText}>
+        <div className={styles.service}>
+          {!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}
+        </div>
+        <span className={styles.service} title="Imagery Online">
+          IO
         </span>
-        ] -&nbsp;
-        <span title="ISS and Exploration Wikis">WIKI </span>[
-        <span title={"EVAs " + sequenceStatus.message}>
-          EVAs: <span className={sequenceStatus.classname}></span>
-        </span>{" "}
-        |&nbsp;
-        <span title={"GPS track " + gpsStatus.message}>
-          GPS: <span className={gpsStatus.classname}></span>
-        </span>{" "}
-        ] -&nbsp;
-        <span title={"Orbit ephemera " + ephemeraStatus.message}>
-          Orbit: <span className={ephemeraStatus.classname}></span>
-        </span>
-      </span>
+        <div className={styles.subservice} title={"Video " + videoStatus.message}>
+          Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
+        </div>
+        <div className={styles.subservice} title={"Photo " + photoStatus.message}>
+          Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
+        </div>
+        <div className={styles.service} title="ISS and Exploration Wikis">
+          WIKI
+        </div>
+        <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
+          EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
+        </div>
+        <div className={styles.subservice} title={"GPS track " + gpsStatus.message}>
+          GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
+        </div>
+        <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
+          Orbit:<div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
+        </div>
+      </div>
     </div>
   );
 
@@ -110,26 +110,22 @@ export default function StatusBar() {
     let message;
     let classname;
     if (loadingStatus === LoadingStatusEnum.LOADING) {
-      status = "";
       message = "data loading...";
-      classname = styles.spinner;
+      classname = styles.loading;
     } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
       message = "data unneeded";
       classname = styles.unneeded;
     } else {
       if (metadata.error) {
-        status = "✗";
         message = "Error: " + metadata.error;
         classname = styles.error;
       } else if (metadata.stale) {
-        status = "✓";
         message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
         classname = styles.stale;
       } else if (!resultsReturned) {
         message = "data not returned (without error)";
         classname = styles.unneeded;
       } else {
-        status = "✓";
         if (metadata.fromCache) {
           message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
         } else {

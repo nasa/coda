@@ -140,7 +140,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
-        console.error(e);
       }
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
     })();
@@ -176,7 +175,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         }
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
-        console.error(e);
       }
       dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADED));
     })();
@@ -185,7 +183,12 @@ function Main(props: { query: QueryParams; collection: Collection }) {
   // Grab GPS tracks
   useEffect(() => {
     (async () => {
-      if (isNull(playheadDate || props.collection !== Collection.TEST_EVENTS)) {
+      if (isNull(playheadDate)) {
+        dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
+
+      if (props.collection !== Collection.TEST_EVENTS) {
         dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
@@ -206,7 +209,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         }
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));
-        console.error(e);
       }
       dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
     })();
@@ -236,7 +238,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         }
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
-        console.error(e);
       }
       dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADED));
     })();
@@ -271,7 +272,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
-        console.error(e);
       }
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
     })();
@@ -292,7 +292,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
         }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
-        console.error(e);
       }
       dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADED));
     })();
