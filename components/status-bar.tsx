@@ -77,26 +77,28 @@ export default function StatusBar() {
         <div className={styles.service}>
           {!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}
         </div>
-        <span className={styles.service} title="Imagery Online">
-          IO
-        </span>
-        <div className={styles.subservice} title={"Video " + videoStatus.message}>
-          Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
-        </div>
-        <div className={styles.subservice} title={"Photo " + photoStatus.message}>
-          Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
+        <div className={styles.service} title="Imagery Online">
+          <div className={styles.serviceTitle}>IO</div>
+          <div className={styles.subservice} title={"Video " + videoStatus.message}>
+            Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
+          </div>
+          <div className={styles.subservice} title={"Photo " + photoStatus.message}>
+            Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
+          </div>
         </div>
         <div className={styles.service} title="ISS and Exploration Wikis">
-          WIKI
-        </div>
-        <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
-          EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
-        </div>
-        <div className={styles.subservice} title={"GPS track " + gpsStatus.message}>
-          GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
+          <div className={styles.serviceTitle}>WIKI</div>
+
+          <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
+            EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
+          </div>
+          <div className={styles.subservice} title={"GPS track " + gpsStatus.message}>
+            GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
+          </div>
         </div>
         <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
-          Orbit:<div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
+          <div className={styles.serviceTitle}>Orbit:</div>
+          <div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
         </div>
       </div>
     </div>
