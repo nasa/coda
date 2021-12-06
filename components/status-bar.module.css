@@ -25,13 +25,18 @@
 
 .service {
   display: inline-block;
-  padding-left: 0.4em;
+}
+.serviceTitle {
+  display: inline-block;
   padding-right: 0.4em;
+  padding-left: 0.4em;
 }
 
 .subservice {
   display: inline-block;
   background-color: #555555;
+}
+.subservice:nth-child(2) {
   padding-left: 0.4em;
 }
 
