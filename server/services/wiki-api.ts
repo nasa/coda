@@ -542,7 +542,7 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
   return await fetchWithCache<string[]>("wiki/gps-list", retriever, {
     cacheAge: 60, // 60 seconds
     staleOk: true,
-    preferNew: false,
+    preferNew: true,
   });
 }
 
@@ -555,8 +555,10 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<GPSTrack[]
   for (let i = 0; i < gpsList.data.length; i++) {
     const match = gpsList.data[i].match(regexStr);
     if (match) {
-      const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
-      gpsTracks.push(gpsTrackRes.data);
+      if (match[1] === "EV1" || match[1] === "EV2" || match[1] === "Cart") {
+        const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
+        gpsTracks.push(gpsTrackRes.data);
+      }
     }
   }
   return gpsTracks;
