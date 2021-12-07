@@ -20,7 +20,6 @@
   line-height: 24px;
   font-size: 1em;
   font-weight: 400;
-  font-family: "Inter", sans-serif;
 }
 
 .service {
@@ -78,60 +77,4 @@
 .playPause {
   align-self: flex-start;
   letter-spacing: -3px;
-}
-
-.spinner:after {
-  content: "";
-  animation-name: spin;
-  animation-duration: 3s;
-  animation-iteration-count: infinite;
-}
-
-/* ┤ ┘ ┴ └ ├ ┌ ┬ ┐ */
-/* ⠂⠄⡀⢀⠠⠐⠈ */
-/* ⣾⣽⣻⢿⡿⣟⣯⣷ */
-/* 
-@keyframes spin {
-  0% {
-    content: "┤";
-  }
-  14.3% {
-    content: "┘";
-  }
-  28.5% {
-    content: "┴";
-  }
-  42.9% {
-    content: "└";
-  }
-  57.1% {
-    content: "├";
-  }
-  71.4% {
-    content: "┌";
-  }
-  85.7% {
-    content: "┬";
-  }
-  100% {
-    content: "┐";
-  }
-} */
-
-@keyframes spin {
-  0% {
-    content: "◐";
-  }
-  25% {
-    content: "◓";
-  }
-  50% {
-    content: "◑";
-  }
-  75% {
-    content: "◒";
-  }
-  100% {
-    content: "◒";
-  }
 }
