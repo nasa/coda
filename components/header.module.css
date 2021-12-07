@@ -4,7 +4,6 @@
   justify-content: space-between;
   background-color: #19181b;
   width: 100%;
-  font-family: "Inter", sans-serif;
 }
 .leftSection {
   display: flex;
@@ -80,7 +79,6 @@
   color: #ffc000;
   border-style: solid;
   text-align: center;
-  font-family: "Inter", sans-serif;
 }
 .dateTimeField:focus {
   outline: none;

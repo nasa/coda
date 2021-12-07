@@ -20,7 +20,6 @@
   box-sizing: border-box;
   padding: 30px;
   outline: none;
-  font-family: "Inter", sans-serif;
 }
 
 .overlayTable {
@@ -107,7 +106,6 @@
 .photoHeaderText {
   font-size: 1em;
   white-space: nowrap;
-  font-family: "Inter", sans-serif;
 }
 
 .dimText {
@@ -203,5 +201,4 @@
   margin-right: 5px;
   margin-left: 5px;
   user-select: none;
-  font-family: "Inter", sans-serif;
 }

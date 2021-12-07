@@ -34,7 +34,6 @@
   margin-right: -50%;
   transform: translate(-50%, -50%);
   outline: none;
-  font-family: "Inter", sans-serif;
 }
 
 .modalOverlay {
@@ -62,7 +61,6 @@
 }
 
 .modalTextarea {
-  font-family: "Inter", sans-serif;
   font-size: 0.9em;
   box-sizing: border-box;
   border-radius: 10px;
@@ -81,7 +79,6 @@
 
 .copyURLButton {
   float: right;
-  font-family: "Inter", sans-serif;
   display: table;
   width: 100px;
   height: 20px;

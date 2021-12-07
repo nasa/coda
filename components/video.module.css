@@ -58,7 +58,6 @@
   border: 2px solid;
   border-radius: 10px;
   font-size: 2em;
-  font-family: "Inter", sans-serif;
 }
 
 .vidContainer {
@@ -98,7 +97,6 @@
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
-  font-family: "Inter", sans-serif;
 }
 .vidButton.active {
   color: white;
@@ -134,7 +132,6 @@
   box-sizing: border-box;
   padding: 30px;
   outline: none;
-  font-family: "Inter", sans-serif;
 }
 
 .videoOverlayVisible {
@@ -294,7 +291,6 @@
   font-weight: 400;
   margin-right: 5px;
   margin-left: 5px;
-  font-family: "Inter", sans-serif;
 }
 
 .selectContainer {
