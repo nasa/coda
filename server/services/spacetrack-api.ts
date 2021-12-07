@@ -182,7 +182,6 @@ export async function fetchISSLocation(
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
       preferNew: true,
       staleOk: true,
-      errorOk: true,
     });
   }
 

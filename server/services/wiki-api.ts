@@ -387,7 +387,6 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
   const response = await fetchWithCache<Sequence[]>("wiki/all", retriever, {
     cacheAge: 60,
     staleOk: true,
-    errorOk: true,
   });
   if (mocked) {
     response.metadata.mocked = true;
@@ -511,7 +510,6 @@ export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]
   const response = await fetchWithCache<Sequence[]>("wiki/test-events", retriever, {
     cacheAge: 60,
     staleOk: true,
-    errorOk: true,
   });
   if (mocked) {
     response.metadata.mocked = true;
@@ -553,7 +551,6 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
     cacheAge: 60, // 60 seconds
     staleOk: true,
     preferNew: false,
-    errorOk: true,
   });
 }
 
@@ -619,7 +616,6 @@ async function fetchWikiGPSTrack(
     cacheAge: 604800, // 604800 seconds = 1 week
     staleOk: true,
     preferNew: false,
-    errorOk: true,
   });
 }
 

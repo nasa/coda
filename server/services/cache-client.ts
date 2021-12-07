@@ -16,15 +16,12 @@ interface Options {
   staleOk?: boolean;
   /** Default false. Always retrieve new data. Only return cached data if the `retriever` fails */
   preferNew?: boolean;
-  /** Default false. Instead of throwing errors, act like the `retriever` succeeded and return an `error` property in the response */
-  errorOk?: boolean;
 }
 
 const defaultOptions: Options = {
   cacheAge: +process.env.DEFAULT_CACHE_AGE,
   staleOk: false,
   preferNew: false,
-  errorOk: false,
 };
 
 /**
@@ -96,13 +93,10 @@ export default async function retrieveJSON<T>(
       metadata.cacheTimestamp = null;
       metadata.stale = true;
       return { metadata, data: cachedRes };
-    } else if (opts.errorOk) {
+    } else {
       // the caller is fine with an error response
       metadata.error = e.toString();
       return { metadata };
-    } else {
-      // let the caller decide what to do with this unhandled error
-      throw e;
     }
   }
 

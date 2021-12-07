@@ -184,7 +184,6 @@ function Main(props: { query: QueryParams; collection: Collection }) {
   useEffect(() => {
     (async () => {
       if (isNull(playheadDate)) {
-        dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
 
@@ -217,7 +216,11 @@ function Main(props: { query: QueryParams; collection: Collection }) {
   // Grab ISS orbit ephemeris data
   useEffect(() => {
     (async () => {
-      if (isNull(playheadDate) || props.collection !== Collection.ISS) {
+      if (isNull(playheadDate)) {
+        return;
+      }
+
+      if (props.collection !== Collection.ISS) {
         dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }

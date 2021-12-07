@@ -1,5 +1,4 @@
 import { useSelector } from "react-redux";
-import { PlayheadState } from "store/playhead";
 import { SequencesEntityState } from "store/sequences";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
@@ -11,7 +10,6 @@ import { GPSState } from "store/gps";
 import { EphemeraEntityState } from "store/ephemera";
 
 export default function StatusBar() {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -65,14 +63,7 @@ export default function StatusBar() {
 
   return (
     <div className={`${styles.container}`}>
-      <span className={styles.playPause}>
-        &nbsp;
-        {playhead.isRunning ? (
-          <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span>
-        ) : (
-          "❙❙"
-        )}
-      </span>
+      <span></span>
       <div className={styles.statusText}>
         <div className={styles.service}>
           {!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}
