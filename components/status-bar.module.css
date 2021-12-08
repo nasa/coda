@@ -73,7 +73,3 @@
 .stale {
   background-image: url(/images/icon_status_check_yellow.svg);
 }
-
-.playPause {
-  letter-spacing: -3px;
-}
