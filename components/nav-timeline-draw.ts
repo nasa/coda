@@ -52,8 +52,6 @@ export default class DrawNav {
 
   gNavigatorFontFamily = "Ubuntu Mono";
   gNavigatorFontFamilyActivity = "Inter";
-  //  gNavigatorFontFamily = "Inter";
-  //  gNavigatorFontFamily = "Space Mono";
 
   cChannelStrokeWidth = 4;
   cVidBarGapWidth = 1;
