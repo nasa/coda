@@ -14,7 +14,15 @@ import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
 import fetchWithCache from "./cache-client";
 import { padZeros } from "utils/formatting";
-import { Activity, AllCrews, Collection, Sequence, SequenceType, WrappedResponse } from "typings";
+import {
+  Activity,
+  AllCrews,
+  Collection,
+  Sequence,
+  SequenceType,
+  WikibotResponse,
+  WrappedResponse,
+} from "typings";
 import type {
   WikiResults,
   WikiResponse,
@@ -119,7 +127,7 @@ const defaultFetchWikiOptions: FetchWikiOptions = {
 /**
  * Perform a query against the wiki. Returns a cached result if this query has already been performed
  */
-async function fetchWiki(options: FetchWikiOptions): Promise<WrappedResponse<WikiResults>> {
+async function fetchWiki(options: FetchWikiOptions): Promise<WikibotResponse<WikiResults>> {
   const o = { ...defaultFetchWikiOptions, ...options };
 
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
@@ -176,7 +184,7 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WrappedResponse<Wik
 }
 
 /** Get a summary of all EVAs on the wiki */
-async function getAllEVAs(): Promise<WrappedResponse<EVASummaryResponse>> {
+async function getAllEVAs(): Promise<WikibotResponse<EVASummaryResponse>> {
   // wiki query parameters
   const askQuery = `
     [[~US EVA*]]
@@ -214,7 +222,7 @@ const colorTranslator = {
 };
 
 /** Get as-executed data for a given EV on a given EVA */
-async function getAllAsExecuted(): Promise<WrappedResponse<AllExecution>> {
+async function getAllAsExecuted(): Promise<WikibotResponse<AllExecution>> {
   const askQuery = `
     [[From page::~US EVA*/*xecuted*]]
     |mainlabel=-|?Index
@@ -291,7 +299,7 @@ const plus = () => {
 };
 
 /** Get crew assignment data for all EVAs */
-async function getAllCrew(): Promise<WrappedResponse<AllCrews>> {
+async function getAllCrew(): Promise<WikibotResponse<AllCrews>> {
   const askQuery = `
     [[Crew involved with subject::${plus()}]]
     [[From page::~US EVA*]]
@@ -337,7 +345,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function getAllEVAData(): Promise<WrappedResponse<Sequence[]>> {
+export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllEVAs();
@@ -381,12 +389,12 @@ export async function getAllEVAData(): Promise<WrappedResponse<Sequence[]>> {
     staleOk: true,
   });
   if (mocked) {
-    response.mocked = true;
+    response.metadata.mocked = true;
   }
   return response;
 }
 
-export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>> {
+export async function getAllTestEvents(): Promise<WikibotResponse<AllTestEvents>> {
   const askQuery = `
   [[Category:Test event]]
   |? Test date
@@ -409,7 +417,7 @@ export async function getAllTestEvents(): Promise<WrappedResponse<AllTestEvents>
 }
 
 /** Get as-executed data for a given EV on a given EVA */
-export async function getTestEventExecution(): Promise<WrappedResponse<AllExecution>> {
+export async function getTestEventExecution(): Promise<WikibotResponse<AllExecution>> {
   const askQuery = `
     [[From page::~Test_Event*/*imeline*]]
     |mainlabel=-|?Index
@@ -437,7 +445,7 @@ export async function getTestEventExecution(): Promise<WrappedResponse<AllExecut
 }
 
 /** Get crew assignment data for all EVAs */
-export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
+export async function getTestEventCrews(): Promise<WikibotResponse<AllCrews>> {
   const askQuery = `
     [[Test subject::${plus()}]]
     [[Category:Test_event]]
@@ -457,7 +465,7 @@ export async function getTestEventCrews(): Promise<WrappedResponse<AllCrews>> {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function getAllTestEventsData(): Promise<WrappedResponse<Sequence[]>> {
+export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: asPlanned, mocked: asPlannedMocked } = await getAllTestEvents();
@@ -504,12 +512,12 @@ export async function getAllTestEventsData(): Promise<WrappedResponse<Sequence[]
     staleOk: true,
   });
   if (mocked) {
-    response.mocked = true;
+    response.metadata.mocked = true;
   }
   return response;
 }
 
-export async function fetchSequences(collection: Collection): Promise<WrappedResponse<Sequence[]>> {
+export async function fetchSequences(collection: Collection): Promise<WikibotResponse<Sequence[]>> {
   if (collection === Collection.ISS) {
     return getAllEVAData();
   } else {
@@ -542,13 +550,13 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
   return await fetchWithCache<string[]>("wiki/gps-list", retriever, {
     cacheAge: 60, // 60 seconds
     staleOk: true,
-    preferNew: true,
+    preferNew: false,
   });
 }
 
-export async function fetchWikiGPSTracks(dateWanted: string): Promise<GPSTrack[]> {
+export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedResponse<GPSTrack[]>> {
   const gpsList = await fetchWikiGPSList();
-
+  let error = null;
   // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
   const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
   const gpsTracks: GPSTrack[] = [];
@@ -557,11 +565,14 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<GPSTrack[]
     if (match) {
       if (match[1] === "EV1" || match[1] === "EV2" || match[1] === "Cart") {
         const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
+        if (gpsTrackRes.metadata.error !== undefined) {
+          error = gpsTrackRes.metadata.error;
+        }
         gpsTracks.push(gpsTrackRes.data);
       }
     }
   }
-  return gpsTracks;
+  return { metadata: { ...gpsList.metadata, ...error }, data: gpsTracks };
 }
 
 async function fetchWikiGPSTrack(
@@ -628,8 +639,9 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
   };
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
+    cacheAge: 60,
     staleOk: true,
-    preferNew: true,
+    preferNew: false,
   });
 }
 

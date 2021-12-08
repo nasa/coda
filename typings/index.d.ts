@@ -28,11 +28,30 @@ export interface IOResponse {
 /** The base type for all responses from the CODA API */
 export interface WrappedResponse<T> {
   data?: T;
-  cacheRead?: boolean;
-  cacheWrite?: boolean;
-  isCache?: boolean;
+  metadata: ResMetadata;
+}
+
+/** Wikibot responses */
+export interface WikibotResponse<T> {
+  data?: T;
+  mocked?: boolean;
+}
+
+/**
+ * Info about the response
+ */
+export interface ResMetadata {
+  fromCache: boolean;
+  cacheTimestamp: Date;
+  stale: boolean;
   error?: string;
   mocked?: boolean;
+}
+
+export enum LoadingStatusEnum {
+  LOADING = "loading",
+  LOADED = "loaded",
+  UNNEEDED = "unneeded",
 }
 
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */

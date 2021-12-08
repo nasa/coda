@@ -1,123 +1,132 @@
 import { useSelector } from "react-redux";
-import isNull from "lodash/isNull";
-import { add, PlayheadState, isSameDate } from "store/playhead";
-import { SequencesEntityState, sequencesSelector, idFromDate } from "store/sequences";
+import { SequencesEntityState } from "store/sequences";
 import { PhotosEntityState } from "store/photos";
 import { VideosEntityState } from "store/videos";
 import styles from "./status-bar.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
-
-const FIVE_MINS_MS = 5 * 60 * 1000;
+import { LoadingStatusEnum, ResMetadata } from "typings";
+import { GPSState } from "store/gps";
+import { EphemeraEntityState } from "store/ephemera";
 
 export default function StatusBar() {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const evas: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const gps: GPSState = useSelector((state: RootState) => state.gps);
+  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
 
-  const errorMessages =
-    evas.errorMessage !== "" || videos.errorMessage !== "" || photos.errorMessage !== "";
+  const [videoStatus, setVideoStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
+  const [photoStatus, setPhotoStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
+  const [sequenceStatus, setSequenceStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
+  const [gpsStatus, setGpsStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
+  const [ephemeraStatus, setEphemeraStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
 
-  const eva = sequencesSelector.selectById(evas, idFromDate(playhead.date));
-
-  const [isToday, setIsToday] = useState(false);
   useEffect(() => {
-    setIsToday(isSameDate(new Date(), new Date(playhead.date)));
-  }, [playhead.date]);
+    setVideoStatus(createStatus(videos.loadingStatus, videos.metadata, videos.ids.length > 0));
+  }, [videos.loadingStatus, videos.metadata]);
 
-  const [lastIOUpdate, setLastIOUpdate] = useState("pending");
-  const [nextIOUpdate, setNextIOUpdate] = useState("pending");
-  const ioStatusUpdate = () => {
-    const lastCheckedDate = new Date(videos.lastChecked);
-    if (!isNaN(lastCheckedDate.valueOf())) {
-      const lastUpdate =
-        lastCheckedDate.toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
-      const nextUpdate =
-        add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
+  useEffect(() => {
+    setPhotoStatus(createStatus(photos.loadingStatus, photos.metadata, photos.ids.length > 0));
+  }, [photos.loadingStatus, photos.metadata]);
 
-      setLastIOUpdate(lastUpdate);
-      setNextIOUpdate(nextUpdate);
-    }
-  };
-  useEffect(ioStatusUpdate, [videos.lastChecked]);
+  useEffect(() => {
+    setSequenceStatus(
+      createStatus(sequences.loadingStatus, sequences.metadata, sequences.ids.length > 0)
+    );
+  }, [sequences.loadingStatus, sequences.metadata]);
 
-  const [lastWikiUpdate, setLastWikiUpdate] = useState("pending");
-  const [nextWikiUpdate, setNextWikiUpdate] = useState("pending");
-  const wikiStatusUpdate = () => {
-    const lastCheckedDate = new Date(evas.lastChecked);
-    if (!isNaN(lastCheckedDate.valueOf())) {
-      const lastUpdate =
-        lastCheckedDate.toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
-      const nextUpdate =
-        add(lastCheckedDate, FIVE_MINS_MS).toLocaleTimeString("en-us", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "UTC",
-          hour12: false,
-        }) + "Z";
+  useEffect(() => {
+    setGpsStatus(createStatus(gps.loadingStatus, gps.metadata, gps.gpsTracks.length > 0));
+  }, [gps.loadingStatus, gps.metadata]);
 
-      setLastWikiUpdate(lastUpdate);
-      setNextWikiUpdate(nextUpdate);
-    }
-  };
-  useEffect(wikiStatusUpdate, [evas.lastChecked]);
+  useEffect(() => {
+    setEphemeraStatus(
+      createStatus(ephemera.loadingStatus, ephemera.metadata, ephemera.ids.length > 0)
+    );
+  }, [ephemera.loadingStatus, ephemera.metadata]);
 
   return (
-    <div className={`${styles.container} ${errorMessages ? styles.haveErrors : styles.noErrors}`}>
-      <span className={styles.playPause}>
-        &nbsp;
-        {playhead.isRunning ? (
-          <span style={{ fontSize: "1.3em", lineHeight: "22px" }}>🞂</span>
-        ) : (
-          "❙❙"
-        )}
-      </span>
-      <span className={styles.statusText}>
-        {!videos.ready[1] || !videos.ready[2] ? <span className={styles.spinner}></span> : " "}
-        &nbsp;
-        {isToday && (
-          <span>
-            Last video update: {lastIOUpdate}
-            {videos.errorMessage ? " (failed)" : ""}. Next video update scheduled for:{" "}
-            {nextIOUpdate} |&nbsp;
-          </span>
-        )}
-        {!isNull(eva) && (
-          <span>
-            Last wiki update: {lastWikiUpdate}
-            {evas.errorMessage ? " (failed)" : ""}. Next wiki update scheduled for: {nextWikiUpdate}{" "}
-            |&nbsp;
-          </span>
-        )}
-        <span
-          title={["IO Status", videos.errorMessage || photos.errorMessage || "Good"].join(" | ")}
-        >
-          IO {videos.errorMessage === "" && photos.errorMessage === "" ? "✓" : "✗"}&nbsp;
-        </span>
-        <span title={["Wiki Status", evas.errorMessage || "Good"].join(" | ")}>
-          | ISS WIKI {evas.errorMessage === "" ? "✓" : "✗"}&nbsp; &nbsp;
-        </span>
-      </span>
+    <div className={`${styles.container}`}>
+      <span></span>
+      <div className={styles.statusText}>
+        <div className={styles.service}>
+          {!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}
+        </div>
+        <div className={styles.service} title="Imagery Online">
+          <div className={styles.serviceTitle}>IO</div>
+          <div className={styles.subservice} title={"Video " + videoStatus.message}>
+            Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
+          </div>
+          <div className={styles.subservice} title={"Photo " + photoStatus.message}>
+            Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
+          </div>
+        </div>
+        <div className={styles.service} title="ISS and Exploration Wikis">
+          <div className={styles.serviceTitle}>WIKI</div>
+
+          <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
+            EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
+          </div>
+          <div className={styles.subservice} title={"GPS track " + gpsStatus.message}>
+            GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
+          </div>
+        </div>
+        <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
+          <div className={styles.serviceTitle}>Orbit:</div>
+          <div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
+        </div>
+      </div>
     </div>
   );
+
+  function createStatus(
+    loadingStatus: LoadingStatusEnum,
+    metadata: ResMetadata,
+    resultsReturned: boolean
+  ): { message: string; classname: string } {
+    let message;
+    let classname;
+    if (loadingStatus === LoadingStatusEnum.LOADING) {
+      message = "data loading...";
+      classname = styles.loading;
+    } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
+      message = "data unneeded";
+      classname = styles.unneeded;
+    } else {
+      if (metadata.error) {
+        message = "Error: " + metadata.error;
+        classname = styles.error;
+      } else if (metadata.stale) {
+        message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+        classname = styles.stale;
+      } else if (!resultsReturned) {
+        message = "data not returned (without error)";
+        classname = styles.unneeded;
+      } else {
+        if (metadata.fromCache) {
+          message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+        } else {
+          message = "data is fresh";
+        }
+        classname = styles.noError;
+      }
+    }
+    return { message, classname };
+  }
 }

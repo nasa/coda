@@ -68,7 +68,7 @@ describe("services/cache-client", () => {
     }
 
     expect(runs).toEqual(2);
-    expect(unhandledErrors).toEqual(2);
+    expect(unhandledErrors).toEqual(0);
   });
 
   it("should run the retriever again if the cache is stale", async () => {
@@ -108,33 +108,6 @@ describe("services/cache-client", () => {
     await retrieveJSON(identifier, retriever, { preferNew: true });
 
     expect(runs).toEqual(2);
-  });
-
-  it("should return an error when opts.errorOk", async () => {
-    const identifier = expect.getState().currentTestName;
-
-    const retriever = async () => {
-      throw new Error("Something went wrong");
-    };
-
-    const res = await retrieveJSON(identifier, retriever, { errorOk: true });
-
-    expect(res.error).toEqual("Error: Something went wrong");
-  });
-
-  it("should not cache even when opts.errorOk", async () => {
-    const identifier = expect.getState().currentTestName;
-
-    let ran = 0;
-    const retriever = async () => {
-      ran += 1;
-      throw new Error("Something went wrong");
-    };
-
-    await retrieveJSON(identifier, retriever, { errorOk: true });
-    await retrieveJSON(identifier, retriever, { errorOk: true });
-
-    expect(ran).toEqual(2);
   });
 
   it("should return cached data when the cache is stale, an error occurs, and opts.staleOk", async () => {
