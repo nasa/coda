@@ -1,5 +1,3 @@
-import type { Activity } from "sequences.d.ts";
-
 interface WikiResponse {
   errorResponse: boolean;
   code: string;

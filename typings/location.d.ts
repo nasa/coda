@@ -1,6 +1,3 @@
-import { FeatureCollection } from "geojson";
-import { Marker } from "mapbox-gl";
-
 type MapMarker = {
   marker: Marker; //the MapBox marker reference
   markerNode: HTMLDivElement; //the real DOM id of the marker

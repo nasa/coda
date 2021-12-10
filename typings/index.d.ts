@@ -1,11 +1,3 @@
-/// <reference path="./gps.d.ts" />
-/// <reference path="./io.d.ts" />
-/// <reference path="./location.d.ts" />
-/// <reference path="./spacetrack.d.ts" />
-/// <reference path="./wiki.d.ts" />
-
-import { SequenceType } from "./utils/enums";
-
 declare global {
   namespace jest {
     interface Matchers<R> {

@@ -34,9 +34,6 @@
       "store/*": [
         "./store/*"
       ],
-      "typings": [
-        "./typings/index.d.ts"
-      ],
       "typings/*": [
         "./typings/*",
       ],
@@ -56,7 +53,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "next.config.js",
+    "next.config.js"
   ],
   "exclude": [
     "node_modules"
