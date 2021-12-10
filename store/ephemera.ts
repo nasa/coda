@@ -1,17 +1,10 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
   const { FILE } = ephemeris;
   return FILE;
 }
-
-export type EphemeraEntityState = EntityState<EphemerisFile> & {
-  dayNight: DayNightObj[];
-  metadata: ResMetadata;
-  loadingStatus: LoadingStatusEnum;
-};
 
 const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
   selectId: idFromEphemeris,

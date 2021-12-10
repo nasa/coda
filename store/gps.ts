@@ -6,12 +6,6 @@ export interface GPSState {
   loadingStatus: LoadingStatusEnum;
 }
 
-enum LoadingStatusEnum {
-  LOADING = "loading",
-  LOADED = "loaded",
-  UNNEEDED = "unneeded",
-}
-
 export const initialState: GPSState = {
   gpsTracks: [],
   metadata: null,

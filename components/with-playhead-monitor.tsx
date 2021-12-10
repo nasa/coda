@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { run, halt, tick, changeDate, add, changeTime } from "store/playhead";
-import { PhotosEntityState } from "store/photos";
-import { VideosEntityState } from "store/videos";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 

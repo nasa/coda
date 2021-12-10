@@ -1,14 +1,3 @@
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      /**
-       * Tests that two Dates are within 1 second of each other
-       */
-      toHappenAround(expected: Date, message?: string): R;
-    }
-  }
-}
-
 /**
  * Response from a search on Imagery Online
  */
@@ -35,23 +24,6 @@ interface WrappedResponse<T> {
 interface WikibotResponse<T> {
   data?: T;
   mocked?: boolean;
-}
-
-/**
- * Info about the response
- */
-interface ResMetadata {
-  fromCache: boolean;
-  cacheTimestamp: Date;
-  stale: boolean;
-  error?: string;
-  mocked?: boolean;
-}
-
-enum LoadingStatusEnum {
-  LOADING = "loading",
-  LOADED = "loaded",
-  UNNEEDED = "unneeded",
 }
 
 /** Enum that uses IO collections `cols`= query param in the IO API as a value. Pulled from the `cid=` in URLs like https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 */
@@ -169,4 +141,19 @@ interface PhotoFile extends MediaFile {
     altitude: number;
     timestamp: string;
   };
+}
+
+interface QueryParams {
+  /** yyyy-mm-dd the user wants to view */
+  date: string;
+  /** UTC hh:mm the user wants to view */
+  gmt: string;
+  /** Downlink number the user wants to view in player 1 */
+  video1: string;
+  /** Downlink number the user wants to view in player 2 */
+  video2: string;
+  /** ID of the non-D/L video the user wants to view in player 1 */
+  nonDLvideo1: string;
+  /** ID of the non-D/L video the user wants to view in player 2 */
+  nonDLvideo2: string;
 }

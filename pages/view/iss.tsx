@@ -54,18 +54,3 @@ export async function getServerSideProps({ query }) {
     },
   };
 }
-
-export interface QueryParams {
-  /** yyyy-mm-dd the user wants to view */
-  date: string;
-  /** UTC hh:mm the user wants to view */
-  gmt: string;
-  /** Downlink number the user wants to view in player 1 */
-  video1: string;
-  /** Downlink number the user wants to view in player 2 */
-  video2: string;
-  /** ID of the non-D/L video the user wants to view in player 1 */
-  nonDLvideo1: string;
-  /** ID of the non-D/L video the user wants to view in player 2 */
-  nonDLvideo2: string;
-}

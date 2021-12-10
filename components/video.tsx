@@ -2,7 +2,7 @@ import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
+import { isSameDate, midnightZulu } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
@@ -10,13 +10,11 @@ import {
   setActiveVideoFile,
   ready,
   videoSelectors,
-  VideosEntityState,
   visibleVideosBySecond,
 } from "store/videos";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
-import type { QueryParams } from "pages/view/iss";
 import { cleanCollectionsString } from "utils/formatting";
 
 /**

@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown.module.css";
-import { SequencesEntityState, sequencesSelector } from "store/sequences";
+import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 
 export default function EVADropdown(props: { collection: Collection }) {

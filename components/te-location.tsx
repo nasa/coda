@@ -4,10 +4,8 @@ import { useSelector } from "react-redux";
 import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
-import { PlayheadState } from "store/playhead";
 import { GPSState } from "store/gps";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
-import type { PlayheadHoverState } from "store/playheadHover";
 
 import styles from "./te-location.module.css";
 import TEMarker from "./te-location-marker";

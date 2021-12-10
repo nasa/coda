@@ -2,7 +2,6 @@ import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
-import type { CollectionFilters } from "store/photos";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -60,7 +59,7 @@ export default class DrawNav {
   constructor(
     readonly videoFiles: VideoFile[],
     readonly photoFiles: PhotoFile[],
-    readonly collectionFilters: CollectionFilters[],
+    readonly collectionFilters: PhotoCollectionFilters[],
     readonly dayNight: DayNightObj[],
     readonly asPerformed: {
       [x: string]: Activity[];

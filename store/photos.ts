@@ -1,22 +1,6 @@
 import memoize from "lodash/memoize";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
 import { isSameDate } from "./playhead";
-
-export type PhotosEntityState = EntityState<PhotoFile> & {
-  activePhoto: PhotoFile;
-  ready: boolean;
-  metadata: ResMetadata;
-  loadingStatus: LoadingStatusEnum;
-  lastChecked: string;
-  collectionFilters: CollectionFilters[];
-};
-
-export interface CollectionFilters {
-  fullList: string;
-  display: string;
-  selected: boolean;
-}
 
 const photoAdapter = createEntityAdapter<PhotoFile>();
 
@@ -66,7 +50,7 @@ export const photoSlice = createSlice({
     setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;
     },
-    setCollectionFilters: (state, action: { payload: CollectionFilters[] }) => {
+    setCollectionFilters: (state, action: { payload: PhotoCollectionFilters[] }) => {
       state.collectionFilters = action.payload;
     },
   },

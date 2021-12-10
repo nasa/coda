@@ -1,5 +1,4 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
 
@@ -10,12 +9,6 @@ export function idFromSequence(sequence: Sequence): string {
   // TODO: location isn't working?
   return `${yyyy}-${mm}-${dd}-${location}-${type}-${name}`;
 }
-
-export type SequencesEntityState = EntityState<Sequence> & {
-  metadata: ResMetadata;
-  loadingStatus: LoadingStatusEnum;
-  lastChecked: string;
-};
 
 const sequencesAdapter = createEntityAdapter<Sequence>({
   selectId: idFromSequence,
