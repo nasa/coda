@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { PlayheadState } from "store/playhead";
 import {
   initialPhotoFileState,
   setActivePhoto,
   setCollectionFilters,
   photosSelectors,
-  PhotosEntityState,
   filterVisiblePhotos,
 } from "store/photos";
 import styles from "./photos.module.css";

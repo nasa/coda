@@ -2,7 +2,6 @@ import cacache from "cacache";
 import crypto from "crypto";
 import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
-import { ResMetadata, WrappedResponse } from "typings";
 
 // NASA APIs use NOCA certs. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
 require("mac-ca");

@@ -2,15 +2,15 @@ import Link from "next/link";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changeTime, isSameDate, PlayheadState } from "store/playhead";
-import { SequencesEntityState, sequencesSelector } from "store/sequences";
+import { changeTime, isSameDate } from "store/playhead";
+import { sequencesSelector } from "store/sequences";
 import { getJulianDate, hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
-import { Collection, SequenceType } from "typings";
 
 import styles from "./header.module.css";
+import { Collection, SequenceType } from "utils/enums";
 
 /**
  * Renders the top bar of CODA

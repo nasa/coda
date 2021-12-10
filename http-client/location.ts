@@ -1,6 +1,3 @@
-import type { WrappedResponse } from "typings";
-import type { EphemerisStore } from "typings/spacetrack";
-
 export async function buildEphemerisStore(
   year: number,
   month: number,

@@ -1,19 +1,11 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
+import { LoadingStatusEnum } from "utils/enums";
 import { diff } from "./playhead";
-import { DayNightObj, ResMetadata, WrappedResponse, LoadingStatusEnum } from "typings";
-import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
   const { FILE } = ephemeris;
   return FILE;
 }
-
-export type EphemeraEntityState = EntityState<EphemerisFile> & {
-  dayNight: DayNightObj[];
-  metadata: ResMetadata;
-  loadingStatus: LoadingStatusEnum;
-};
 
 const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
   selectId: idFromEphemeris,
@@ -24,7 +16,7 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
   dayNight: [{ appSeconds: 0, daylight: false }],
   metadata: null,
-  loadingStatus: "loading" as LoadingStatusEnum,
+  loadingStatus: LoadingStatusEnum.LOADING,
 });
 
 export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(

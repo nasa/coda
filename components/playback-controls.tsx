@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { changeTime, PlayheadState, start, stop } from "store/playhead";
+import { changeTime, start, stop } from "store/playhead";
 import styles from "./playback-controls.module.css";
 import { RootState } from "store/index";
 

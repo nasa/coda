@@ -28,6 +28,7 @@ describe("store/playheadSlice", () => {
       expect(payload).toEqual(utc);
 
       const { date } = playheadSlice.reducer(initialState, { type, payload });
+      // @ts-expect-error - missing jest type "toHappenAround"
       expect(new Date(date)).toHappenAround(new Date(Date.UTC(2020, 6, 20, 0, 0, 0)));
     });
   });

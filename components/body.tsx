@@ -8,8 +8,6 @@ import Video from "components/video";
 import Photos from "components/photos";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
 import styles from "./body.module.css";
-import type { QueryParams } from "pages/view/iss";
-import { Collection, LoadingStatusEnum } from "typings";
 import { gpsFetchError, setGPSTracks, setGpsLoadingStatus } from "store/gps";
 
 import isNull from "lodash/isNull";
@@ -22,7 +20,6 @@ import {
   haveVideosFromDate,
   fetchError as videosFetchError,
   videoSelectors,
-  VideosEntityState,
   setVideoLoadingStatus,
 } from "store/videos";
 import {
@@ -30,7 +27,6 @@ import {
   photosSelectors,
   fetchError as photosFetchError,
   setCollectionFilters,
-  PhotosEntityState,
   setPhotoLoadingStatus,
 } from "store/photos";
 import {
@@ -47,6 +43,7 @@ import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
+import { Collection, LoadingStatusEnum } from "utils/enums";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 

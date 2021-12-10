@@ -1,5 +1,5 @@
 /** Represents a single video search result as received from IO */
-export interface Doc {
+interface Doc {
   audio_file_restricted: 0 | 1 | number;
   hh: 0 | 1 | number;
   duration_seconds: number;

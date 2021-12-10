@@ -3,22 +3,20 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PlayheadState, isSameDate, changeTime } from "store/playhead";
-import { changeHoverTime, PlayheadHoverState } from "store/playheadHover";
+import { isSameDate, changeTime } from "store/playhead";
+import { changeHoverTime } from "store/playheadHover";
 import {
-  SequencesEntityState,
   sequencesSelector,
   getAsPerformedMissionTime,
   getSequenceStartMilliseconds,
   idFromDate,
 } from "store/sequences";
-import { filterVisibleVideos, videoSelectors, VideosEntityState } from "store/videos";
-import { photosSelectors, PhotosEntityState, filterVisiblePhotos } from "store/photos";
-import type { EphemeraEntityState } from "store/ephemera";
+import { filterVisibleVideos, videoSelectors } from "store/videos";
+import { photosSelectors, filterVisiblePhotos } from "store/photos";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
-import { Collection } from "typings";
+import { Collection } from "utils/enums";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
