@@ -1,11 +1,11 @@
 import { DayNightObj } from ".";
 
-export interface EphemerisStore {
+interface EphemerisStore {
   ephemera: EphemerisFile[];
   dayNight: DayNightObj[];
 }
 
-export interface EphemerisFile {
+interface EphemerisFile {
   COMMENT: string;
   ORIGINATOR: string;
   NORAD_CAT_ID: string;

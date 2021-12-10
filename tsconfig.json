@@ -16,11 +16,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "paths": {
-      "client/*": [
-        "api-client/*"
+      "http-client/*": [
+        "http-client/*"
       ],
       "components/*": [
         "./components/*"
+      ],
+      "pages/*": [
+        "pages/*"
       ],
       "public/*": [
         "./public/*"
@@ -28,14 +31,11 @@
       "server/*": [
         "server/*"
       ],
-      "services/*": [
-        "server/services/*"
-      ],
       "store/*": [
         "./store/*"
       ],
       "typings": [
-        "./typings/index.d"
+        "./typings/index.d.ts"
       ],
       "typings/*": [
         "./typings/*",
@@ -44,6 +44,10 @@
         "./utils/*"
       ],
     },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./typings"
+    ],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve"

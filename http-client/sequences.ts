@@ -1,8 +1,6 @@
 /**
  * Methods for fetching data from the Wiki. Browsers will use a proxy, servers will hit the ISS Wiki directly
  */
-import type { WrappedResponse, Sequence } from "typings";
-import { GPSTrack } from "typings/gps";
 
 /** Fetch all EVA data */
 export async function fetchEVAs(): Promise<WrappedResponse<Sequence[]>> {

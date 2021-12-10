@@ -1,6 +1,4 @@
 import * as SpacetrackService from "server/services/spacetrack-api";
-import type { WrappedResponse } from "typings";
-import type { EphemerisStore } from "typings/spacetrack";
 
 export default async function getISSLocation(
   year: number,

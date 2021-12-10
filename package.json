@@ -1,6 +1,7 @@
 {
   "name": "coda",
   "version": "0.1.0",
+  "typings": "./typings/index.d.ts",
   "description": "Collaborative Operations Data Activation",
   "main": "server/index.ts",
   "scripts": {

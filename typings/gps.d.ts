@@ -1,6 +1,6 @@
 import type { Point } from "gpxparser";
 
-export interface GPSTrack {
+interface GPSTrack {
   name: string;
   points: Point[];
   slopes: number[];

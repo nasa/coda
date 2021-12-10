@@ -6,8 +6,6 @@ import { getAppropriateTLE } from "store/ephemera";
 import { isSameDate } from "store/playhead";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { getTimes } from "utils/suncalc";
-import type { DayNightObj, WrappedResponse } from "typings";
-import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
 import fetchWithCache from "./cache-client";
 
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");

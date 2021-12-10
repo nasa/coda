@@ -17,13 +17,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
-import type {
-  mapInfoDisplay,
-  mapInfoDisplayItems,
-  MapMarker,
-  MapMarkers,
-  TrackFeatures,
-} from "typings/location";
 
 export default function TELocation() {
   const initialMarker: MapMarker = {

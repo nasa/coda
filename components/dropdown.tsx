@@ -7,7 +7,7 @@ import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown.module.css";
 import { SequencesEntityState, sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
-import { Collection } from "typings";
+import { Collection } from "utils/enums";
 
 export default function EVADropdown(props: { collection: Collection }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);

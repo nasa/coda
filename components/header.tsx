@@ -8,9 +8,9 @@ import { getJulianDate, hhmmssFromSeconds, shortdateFromDateString } from "utils
 import EventDropdown from "components/dropdown";
 import HeaderShare from "components/header-share";
 import { RootState } from "store/index";
-import { Collection, SequenceType } from "typings";
 
 import styles from "./header.module.css";
+import { Collection, SequenceType } from "utils/enums";
 
 /**
  * Renders the top bar of CODA

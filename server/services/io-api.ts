@@ -14,13 +14,12 @@ Known query parameters:
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
 import { padZeros, appSecondsFromDateString } from "utils/formatting";
-import { Collection, IOResponse, VideoFile, PhotoFile, WrappedResponse } from "typings";
-import type { Doc } from "typings/io";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
 import { isNil } from "lodash";
 import { isBetweenDates } from "store/playhead";
+import { Collection } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {

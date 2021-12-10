@@ -1,11 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum, ResMetadata, WrappedResponse } from "typings";
-import type { GPSTrack } from "typings/gps";
 
 export interface GPSState {
   gpsTracks: GPSTrack[];
   metadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
+}
+
+enum LoadingStatusEnum {
+  LOADING = "loading",
+  LOADED = "loaded",
+  UNNEEDED = "unneeded",
 }
 
 export const initialState: GPSState = {

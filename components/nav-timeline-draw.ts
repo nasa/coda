@@ -3,7 +3,6 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { CollectionFilters } from "store/photos";
-import type { Activity, DayNightObj, VideoFile, PhotoFile } from "typings";
 
 export default class DrawNav {
   gTier1Group: paper.Group;

@@ -1,9 +1,8 @@
 /*
 Client-side methods for fetching from Imagery Online (IO)
 */
-import { Collection } from "typings";
 import type { CollectionFilters } from "store/photos";
-import type { PhotoFile, VideoFile, WrappedResponse } from "typings";
+import { Collection } from "utils/enums";
 import { cleanCollectionsString } from "utils/formatting";
 
 /**

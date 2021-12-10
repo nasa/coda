@@ -7,7 +7,6 @@ import { PlayheadState } from "store/playhead";
 import { EphemeraEntityState, ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
 import { getPlayheadISOString } from "utils/formatting";
 import type { PlayheadHoverState } from "store/playheadHover";
-import type { EphemerisFile } from "typings/spacetrack";
 
 import styles from "./iss-location.module.css";
 import Marker from "./iss-location-marker";

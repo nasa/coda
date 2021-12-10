@@ -1,6 +1,6 @@
 import type { Activity } from "sequences.d.ts";
 
-export interface WikiResponse {
+interface WikiResponse {
   errorResponse: boolean;
   code: string;
   info: string;
@@ -14,7 +14,7 @@ export interface WikiResponse {
   request: Request;
 }
 
-export interface WikiResults {
+interface WikiResults {
   query?: {
     printrequests: {
       label: string;
@@ -66,7 +66,7 @@ interface EVAAsExecuted {
   };
 }
 
-export interface AllExecution {
+interface AllExecution {
   /** Keyed as EVA name, upper-cased with spaces, eg. `US EVA 55` */
   [key: string]: {
     /** Keyed as actor name, eg `EV1`, or a proper name, eg. `Bob` */
@@ -82,7 +82,7 @@ interface WikiTimestamp {
 }
 
 /** Summary of an EVA in wiki query results */
-export interface EVASummaryResponse {
+interface EVASummaryResponse {
   /** Keyed by EVA title, eg `US EVA 1` */
   [key: string]: {
     printouts: {
@@ -147,7 +147,7 @@ interface WikiTextPrintout {
   displayTitle: string;
 }
 
-export interface AllTestEvents {
+interface AllTestEvents {
   /** Keyed by Test event, eg `Test Event:1` */
   [key: string]: {
     printouts: {
@@ -169,19 +169,19 @@ export interface AllTestEvents {
 
 /** Manual overrides for  */
 
-export interface DatetimeOverrides {
+interface DatetimeOverrides {
   videoFixes: VideoFix[];
   testEventTimezones: TestEventOffsets[];
 }
 
-export interface VideoFix {
+interface VideoFix {
   /** nasa_id of the video */
   videoID: string;
   /** UTC string for the actual start of the video */
   time: string;
 }
 
-export interface TestEventOffsets {
+interface TestEventOffsets {
   /** Match test event to the ID in the wiki */
   testEventID: string;
   /** In the form of UTC-05:00 */
