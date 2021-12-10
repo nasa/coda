@@ -15,7 +15,6 @@ import request from "request";
 import fetchWithCache from "./cache-client";
 import { padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
-import { Collection, SequenceType } from "utils/enums";
 
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 

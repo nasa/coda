@@ -3,6 +3,16 @@ interface EphemerisStore {
   dayNight: DayNightObj[];
 }
 
+interface DayNightObj {
+  appSeconds: number;
+  daylight: boolean;
+}
+
+interface DayNight {
+  dataStartUTC?: number;
+  events?: Activity[];
+}
+
 interface EphemerisFile {
   COMMENT: string;
   ORIGINATOR: string;

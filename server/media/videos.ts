@@ -2,7 +2,6 @@ import clone from "lodash/cloneDeep";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import { add } from "store/playhead";
-import { Collection } from "utils/enums";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well

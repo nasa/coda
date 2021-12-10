@@ -2,7 +2,6 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
-import { LoadingStatusEnum } from "utils/enums";
 
 /** Parse the ID from an Sequence, currently set to a `yyyy-mm-dd-name` string */
 export function idFromSequence(sequence: Sequence): string {

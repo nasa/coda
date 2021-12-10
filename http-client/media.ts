@@ -2,7 +2,6 @@
 Client-side methods for fetching from Imagery Online (IO)
 */
 import type { CollectionFilters } from "store/photos";
-import { Collection } from "utils/enums";
 import { cleanCollectionsString } from "utils/formatting";
 
 /**

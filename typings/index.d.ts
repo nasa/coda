@@ -48,6 +48,30 @@ interface ResMetadata {
   mocked?: boolean;
 }
 
+enum LoadingStatusEnum {
+  LOADING = "loading",
+  LOADED = "loaded",
+  UNNEEDED = "unneeded",
+}
+
+/** Enum that uses IO collections `cols`= query param in the IO API as a value. Pulled from the `cid=` in URLs like https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 */
+enum Collection {
+  /** International Space Station. https://io.jsc.nasa.gov/app/collections.cfm?cid=4 */
+  ISS = 4,
+  /** All test events https://io.jsc.nasa.gov/app/collections.cfm?cid=2359932 */
+  TEST_EVENTS = 2359932,
+  /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=78178 */
+  NBL = 78178,
+}
+
+enum SequenceType {
+  EVA = 1,
+  IVA,
+  testing,
+  analog,
+  training,
+}
+
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */
 interface Sequence {
   /** The mission associated with this sequence */
@@ -99,16 +123,6 @@ interface Activity {
   startTimeSeconds?: number;
   /** Seconds into the UTC day */
   endTimeSeconds?: number;
-}
-
-interface DayNightObj {
-  appSeconds: number;
-  daylight: boolean;
-}
-
-interface DayNight {
-  dataStartUTC?: number;
-  events?: Activity[];
 }
 
 /** Metadata we can expect all photos and videos from IO to have */

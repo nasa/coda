@@ -2,7 +2,6 @@ import memoize from "lodash/memoize";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { EntityState } from "@reduxjs/toolkit";
 import { isSameDate } from "./playhead";
-import { LoadingStatusEnum } from "utils/enums";
 
 export type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;
