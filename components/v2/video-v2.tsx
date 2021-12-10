@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/v2/button";
 import { QueryParams } from "pages/v2/view";
 import type { RootState } from "store/index";
-import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
+import { isSameDate, midnightZulu } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
@@ -15,12 +15,11 @@ import {
   setActiveVideoFile,
   ready,
   videoSelectors,
-  VideosEntityState,
   visibleVideosBySecond,
 } from "store/videos";
-import { Collection, VideoFile } from "typings";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video-v2.module.css";
+import { Collection } from "utils/enums";
 
 library.add(faExpandAlt, faInfo, faVolumeUp);
 

@@ -4,8 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalDropdown } from "components/v2/dropdown-v2";
 import { RootState } from "store/index";
 import { changeDate, diff, isSameDate } from "store/playhead";
-import { SequencesEntityState, sequencesSelector } from "store/sequences";
-import type { Sequence } from "typings/index";
+import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
 

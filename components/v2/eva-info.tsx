@@ -1,9 +1,9 @@
 import { isNil } from "lodash";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { isSameDate, PlayheadState } from "store/playhead";
-import { SequencesEntityState, sequencesSelector } from "store/sequences";
-import { SequenceType } from "typings";
+import { isSameDate } from "store/playhead";
+import { sequencesSelector } from "store/sequences";
+import { SequenceType } from "utils/enums";
 import styles from "./eva-info.module.css";
 
 export function EVAInfoControls() {
