@@ -4,8 +4,6 @@ import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import styles from "./header-share.module.css";
 import Modal from "react-modal";
 import { RootState } from "store/index";
-import { VideosEntityState } from "store/videos";
-import { PlayheadState } from "store/playhead";
 
 export default function HeaderShare() {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);

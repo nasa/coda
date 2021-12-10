@@ -1,18 +1,7 @@
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      /**
-       * Tests that two Dates are within 1 second of each other
-       */
-      toHappenAround(expected: Date, message?: string): R;
-    }
-  }
-}
-
 /**
  * Response from a search on Imagery Online
  */
-export interface IOResponse {
+interface IOResponse {
   results: {
     responseheader: any;
     facet_counts: any;
@@ -26,36 +15,19 @@ export interface IOResponse {
 }
 
 /** The base type for all responses from the CODA API */
-export interface WrappedResponse<T> {
+interface WrappedResponse<T> {
   data?: T;
   metadata: ResMetadata;
 }
 
 /** Wikibot responses */
-export interface WikibotResponse<T> {
+interface WikibotResponse<T> {
   data?: T;
   mocked?: boolean;
 }
 
-/**
- * Info about the response
- */
-export interface ResMetadata {
-  fromCache: boolean;
-  cacheTimestamp: Date;
-  stale: boolean;
-  error?: string;
-  mocked?: boolean;
-}
-
-export enum LoadingStatusEnum {
-  LOADING = "loading",
-  LOADED = "loaded",
-  UNNEEDED = "unneeded",
-}
-
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */
-export interface Sequence {
+interface Sequence {
   /** The mission associated with this sequence */
   location: Collection;
   /** Broad category of this sequence */
@@ -82,27 +54,19 @@ export interface Sequence {
   asPlanned?: { [key: Crew]: Activity[] };
 }
 
-export enum SequenceType {
-  EVA = 1,
-  IVA,
-  testing,
-  analog,
-  training,
-}
-
 /** Crew names keyed by actor, eg. `{EV1: "Bob"}` */
-export interface Crew {
+interface Crew {
   EV1: string;
   EV2: string;
   SUIT_IV: string;
 }
 
-export interface AllCrews {
+interface AllCrews {
   [key: string]: Crew;
 }
 
 /** Largest chunk of time within a Sequence */
-export interface Activity {
+interface Activity {
   /** Description of the activity */
   content: string;
   /** Color to use when rendering this activity */
@@ -115,28 +79,8 @@ export interface Activity {
   endTimeSeconds?: number;
 }
 
-/** Enum that uses IO collections `cols`= query param in the IO API as a value. Pulled from the `cid=` in URLs like https://io.jsc.nasa.gov/app/collections.cfm?cid=2359937 */
-export enum Collection {
-  /** International Space Station. https://io.jsc.nasa.gov/app/collections.cfm?cid=4 */
-  ISS = 4,
-  /** All test events https://io.jsc.nasa.gov/app/collections.cfm?cid=2359932 */
-  TEST_EVENTS = 2359932,
-  /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=78178 */
-  NBL = 78178,
-}
-
-export interface DayNightObj {
-  appSeconds: number;
-  daylight: boolean;
-}
-
-export interface DayNight {
-  dataStartUTC?: number;
-  events?: Activity[];
-}
-
 /** Metadata we can expect all photos and videos from IO to have */
-export interface MediaFile {
+interface MediaFile {
   id: string;
   title?: string;
   description: string;
@@ -153,7 +97,7 @@ export interface MediaFile {
 }
 
 /** Parsed metadata from an IO video file result */
-export interface VideoFile extends MediaFile {
+interface VideoFile extends MediaFile {
   /** UTC seconds at the video start */
   start: number;
   /** UTC seconds at the video end */
@@ -169,7 +113,7 @@ export interface VideoFile extends MediaFile {
 }
 
 /** Parsed metadata from an IO photo file result */
-export interface PhotoFile extends MediaFile {
+interface PhotoFile extends MediaFile {
   dateAdded: string;
   datetimeTaken: string;
   datetimeTakenAppSeconds: number;
@@ -179,4 +123,19 @@ export interface PhotoFile extends MediaFile {
     altitude: number;
     timestamp: string;
   };
+}
+
+interface QueryParams {
+  /** yyyy-mm-dd the user wants to view */
+  date: string;
+  /** UTC hh:mm the user wants to view */
+  gmt: string;
+  /** Downlink number the user wants to view in player 1 */
+  video1: string;
+  /** Downlink number the user wants to view in player 2 */
+  video2: string;
+  /** ID of the non-D/L video the user wants to view in player 1 */
+  nonDLvideo1: string;
+  /** ID of the non-D/L video the user wants to view in player 2 */
+  nonDLvideo2: string;
 }

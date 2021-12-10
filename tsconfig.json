@@ -16,11 +16,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "paths": {
-      "client/*": [
-        "api-client/*"
+      "http-client/*": [
+        "http-client/*"
       ],
       "components/*": [
         "./components/*"
+      ],
+      "pages/*": [
+        "pages/*"
       ],
       "public/*": [
         "./public/*"
@@ -28,14 +31,8 @@
       "server/*": [
         "server/*"
       ],
-      "services/*": [
-        "server/services/*"
-      ],
       "store/*": [
         "./store/*"
-      ],
-      "typings": [
-        "./typings/index.d"
       ],
       "typings/*": [
         "./typings/*",
@@ -44,6 +41,10 @@
         "./utils/*"
       ],
     },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./typings"
+    ],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve"
@@ -52,7 +53,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "next.config.js",
+    "next.config.js"
   ],
   "exclude": [
     "node_modules"

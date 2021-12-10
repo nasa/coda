@@ -3,11 +3,8 @@ import type { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { useSelector } from "react-redux";
 import ReactDOM from "react-dom";
 import { RootState } from "store/index";
-import { PlayheadState } from "store/playhead";
-import { EphemeraEntityState, ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
+import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
 import { getPlayheadISOString } from "utils/formatting";
-import type { PlayheadHoverState } from "store/playheadHover";
-import type { EphemerisFile } from "typings/spacetrack";
 
 import styles from "./iss-location.module.css";
 import Marker from "./iss-location-marker";

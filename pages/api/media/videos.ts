@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import getVideoData from "server/media/videos";
-import { Collection } from "typings";
+import { Collection } from "utils/enums";
 
 /**
  * `/api/media/videos`

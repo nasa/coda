@@ -1,13 +1,9 @@
 import { useSelector } from "react-redux";
-import { SequencesEntityState } from "store/sequences";
-import { PhotosEntityState } from "store/photos";
-import { VideosEntityState } from "store/videos";
 import styles from "./status-bar.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
-import { LoadingStatusEnum, ResMetadata } from "typings";
 import { GPSState } from "store/gps";
-import { EphemeraEntityState } from "store/ephemera";
+import { LoadingStatusEnum } from "utils/enums";
 
 export default function StatusBar() {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);

@@ -1,6 +1,4 @@
 import * as WikiService from "server/services/wiki-api";
-import { WrappedResponse } from "typings";
-import { GPSTrack } from "typings/gps";
 
 export default async function getGPSTracks(
   dateWanted: string

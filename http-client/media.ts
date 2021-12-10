@@ -1,9 +1,7 @@
 /*
 Client-side methods for fetching from Imagery Online (IO)
 */
-import { Collection } from "typings";
-import type { CollectionFilters } from "store/photos";
-import type { PhotoFile, VideoFile, WrappedResponse } from "typings";
+import { Collection } from "utils/enums";
 import { cleanCollectionsString } from "utils/formatting";
 
 /**
@@ -39,12 +37,12 @@ export async function buildPhotoStore(
 }
 
 export function buildPhotoCollections(photos: PhotoFile[]) {
-  const collections: CollectionFilters[] = [];
+  const collections: PhotoCollectionFilters[] = [];
   const uniqueList = [];
   for (let i = 0; i <= photos.length; i++) {
     if (photos[i] !== undefined) {
       if (!uniqueList.includes(photos[i].collections)) {
-        const collectionsObject: CollectionFilters = {
+        const collectionsObject: PhotoCollectionFilters = {
           fullList: photos[i].collections,
           display: cleanCollectionsString(photos[i].collections),
           selected: true,

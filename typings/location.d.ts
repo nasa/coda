@@ -1,18 +1,15 @@
-import { FeatureCollection } from "geojson";
-import { Marker } from "mapbox-gl";
-
-export type MapMarker = {
+type MapMarker = {
   marker: Marker; //the MapBox marker reference
   markerNode: HTMLDivElement; //the real DOM id of the marker
 };
 
-export type MapMarkers = {
+type MapMarkers = {
   EV1: MapMarker;
   EV2: MapMarker;
   Cart: MapMarker;
 };
 
-export type mapInfoDisplayItems = {
+type mapInfoDisplayItems = {
   lat: string;
   lng: string;
   ele: string;
@@ -22,13 +19,13 @@ export type mapInfoDisplayItems = {
   time: string;
 };
 
-export type mapInfoDisplay = {
+type mapInfoDisplay = {
   ev1: mapInfoDisplayItems;
   ev2: mapInfoDisplayItems;
   cart: mapInfoDisplayItems;
 };
 
-export type TrackFeatures = {
+type TrackFeatures = {
   EV1: FeatureCollection;
   EV2: FeatureCollection;
   Cart: FeatureCollection;
