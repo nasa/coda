@@ -16,6 +16,7 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
+import { Collection } from "utils/enums";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes

@@ -19,6 +19,7 @@ import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
 import { isNil } from "lodash";
 import { isBetweenDates } from "store/playhead";
+import { Collection } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: string): Promise<IOResponse> {

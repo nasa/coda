@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useSelector } from "react-redux";
 import Body from "components/body";
 import { RootState } from "store/index";
+import { Collection } from "utils/enums";
 
 export default function View(props: { query: QueryParams }) {
   const playheadDate = useSelector((state: RootState) => state.playhead.date);

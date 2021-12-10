@@ -1,4 +1,5 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import { LoadingStatusEnum } from "utils/enums";
 import { diff } from "./playhead";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
@@ -15,7 +16,7 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
   dayNight: [{ appSeconds: 0, daylight: false }],
   metadata: null,
-  loadingStatus: "loading" as LoadingStatusEnum,
+  loadingStatus: LoadingStatusEnum.LOADING,
 });
 
 export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(

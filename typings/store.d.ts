@@ -6,12 +6,6 @@ interface ResMetadata {
   mocked?: boolean;
 }
 
-enum LoadingStatusEnum {
-  LOADING = "loading",
-  LOADED = "loaded",
-  UNNEEDED = "unneeded",
-}
-
 /**
  * Playhead stores
  */

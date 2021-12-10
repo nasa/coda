@@ -1,6 +1,7 @@
 /*
 Client-side methods for fetching from Imagery Online (IO)
 */
+import { Collection } from "utils/enums";
 import { cleanCollectionsString } from "utils/formatting";
 
 /**

@@ -16,6 +16,7 @@ import { photosSelectors, filterVisiblePhotos } from "store/photos";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
+import { Collection } from "utils/enums";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window

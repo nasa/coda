@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { LoadingStatusEnum } from "utils/enums";
 
 export interface GPSState {
   gpsTracks: GPSTrack[];
