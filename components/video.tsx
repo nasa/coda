@@ -2,7 +2,7 @@ import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PlayheadState, isSameDate, midnightZulu } from "store/playhead";
+import { isSameDate, midnightZulu } from "store/playhead";
 import {
   buffering,
   setVideoDownlink,
@@ -10,15 +10,13 @@ import {
   setActiveVideoFile,
   ready,
   videoSelectors,
-  VideosEntityState,
   visibleVideosBySecond,
 } from "store/videos";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { RootState } from "store/index";
-import type { QueryParams } from "pages/view/iss";
-import { Collection, VideoFile } from "typings";
 import { cleanCollectionsString } from "utils/formatting";
+import { Collection } from "utils/enums";
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes

@@ -8,14 +8,11 @@ import Video from "components/video";
 import Photos from "components/photos";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
 import styles from "./body.module.css";
-import type { QueryParams } from "pages/view/iss";
-import { Collection } from "typings";
-import { gpsFetchError, setGPSTracks } from "store/gps";
-import { getGPSTracks } from "http-client/gps";
+import { gpsFetchError, setGPSTracks, setGpsLoadingStatus } from "store/gps";
 
 import isNull from "lodash/isNull";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEVAs, fetchTestEvents } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { buildVideoStore, buildPhotoStore, buildPhotoCollections } from "http-client/media";
 import { buildEphemerisStore } from "http-client/location";
 import {
@@ -23,21 +20,30 @@ import {
   haveVideosFromDate,
   fetchError as videosFetchError,
   videoSelectors,
-  VideosEntityState,
+  setVideoLoadingStatus,
 } from "store/videos";
 import {
   addPhotos,
   photosSelectors,
   fetchError as photosFetchError,
   setCollectionFilters,
-  PhotosEntityState,
+  setPhotoLoadingStatus,
 } from "store/photos";
-import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
-import { addEphemera, fetchError as ephemeraFetchError } from "store/ephemera";
+import {
+  addSequences,
+  fetchError as sequencesFetchError,
+  setSequenceLoadingStatus,
+} from "store/sequences";
+import {
+  addEphemera,
+  fetchError as ephemeraFetchError,
+  setEphemeraLoadingStatus,
+} from "store/ephemera";
 import { useEffect } from "react";
 import { diff, isSameDate, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
+import { Collection, LoadingStatusEnum } from "utils/enums";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -120,14 +126,19 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
 
+      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month + 1, day, props.collection);
-        dispatch(addVideos(videoStore));
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
+        if (videoStoreResponse.metadata.error === undefined) {
+          dispatch(addVideos(videoStoreResponse));
+        } else {
+          dispatch(videosFetchError(videoStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
-        console.error(e);
       }
+      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   }, [playheadDate]);
 
@@ -148,23 +159,33 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       const month = d.getUTCMonth();
       const day = d.getUTCDate();
 
+      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // photos data for today
-        const photoStore = await buildPhotoStore(year, month + 1, day, props.collection);
-        dispatch(addPhotos(photoStore));
-        const photoCollectionsFilter = buildPhotoCollections(photoStore);
-        dispatch(setCollectionFilters(photoCollectionsFilter));
+        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, props.collection);
+        if (photoStoreResponse.metadata.error === undefined) {
+          dispatch(addPhotos(photoStoreResponse));
+          const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        } else {
+          dispatch(photosFetchError(photoStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
-        console.error(e);
       }
+      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   }, [playheadDate]);
 
   // Grab GPS tracks
   useEffect(() => {
     (async () => {
-      if (isNull(playheadDate || props.collection !== Collection.TEST_EVENTS)) {
+      if (isNull(playheadDate)) {
+        return;
+      }
+
+      if (props.collection !== Collection.TEST_EVENTS) {
+        dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
 
@@ -174,20 +195,30 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
+      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const gpsTracks = await getGPSTracks(year, month, day);
-        dispatch(setGPSTracks(gpsTracks));
+        const gpsTracksResponse = await getGPSTracks(year, month, day);
+        if (gpsTracksResponse.metadata.error === undefined) {
+          dispatch(setGPSTracks(gpsTracksResponse));
+        } else {
+          dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));
-        console.error(e);
       }
+      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   }, [playheadDate]);
 
   // Grab ISS orbit ephemeris data
   useEffect(() => {
     (async () => {
-      if (isNull(playheadDate) || props.collection !== Collection.ISS) {
+      if (isNull(playheadDate)) {
+        return;
+      }
+
+      if (props.collection !== Collection.ISS) {
+        dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
 
@@ -197,14 +228,18 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
+      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        // photos data for today
-        const ephemerisStore = await buildEphemerisStore(year, month, day);
-        dispatch(addEphemera(ephemerisStore));
+        const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
+        if (ephemerisStoreResponse.metadata.error === undefined) {
+          dispatch(addEphemera(ephemerisStoreResponse));
+        } else {
+          dispatch(ephemeraFetchError(ephemerisStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
-        console.error(e);
       }
+      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   }, [playheadDate]);
 
@@ -226,29 +261,39 @@ function Main(props: { query: QueryParams; collection: Collection }) {
       const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
+      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
-        const videoStore = await buildVideoStore(year, month, day, props.collection);
-        dispatch(addVideos(videoStore));
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
+        if (videoStoreResponse.metadata.error === undefined) {
+          dispatch(addVideos(videoStoreResponse));
+        } else {
+          dispatch(videosFetchError(videoStoreResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
-        console.error(e);
       }
+      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   }, FIVE_MINS_MS);
 
   /** Update the EVA store */
   const updateEVAs = () => {
     (async () => {
+      dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
-        const updatedEVAs =
+        const updatedEVAsResponse =
           props.collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
-        dispatch(addSequences(updatedEVAs));
+        if (updatedEVAsResponse.metadata.error === undefined) {
+          dispatch(addSequences(updatedEVAsResponse));
+        } else {
+          dispatch(sequencesFetchError(updatedEVAsResponse.metadata.error));
+        }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
-        console.error(e);
       }
+      dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   };
 

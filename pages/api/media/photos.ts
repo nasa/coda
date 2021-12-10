@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import getPhotoData from "server/media/photos";
-import { Collection } from "typings";
+import { Collection } from "utils/enums";
 
 /**
  * `/api/media/photos`

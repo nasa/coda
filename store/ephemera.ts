@@ -1,18 +1,11 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
+import { LoadingStatusEnum } from "utils/enums";
 import { diff } from "./playhead";
-import type { DayNightObj } from "typings";
-import type { EphemerisFile } from "typings/spacetrack";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
   const { FILE } = ephemeris;
   return FILE;
 }
-
-export type EphemeraEntityState = EntityState<EphemerisFile> & {
-  dayNight: DayNightObj[];
-  errorMessage: string;
-};
 
 const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
   selectId: idFromEphemeris,
@@ -21,8 +14,9 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 });
 
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
-  errorMessage: "",
   dayNight: [{ appSeconds: 0, daylight: false }],
+  metadata: null,
+  loadingStatus: LoadingStatusEnum.LOADING,
 });
 
 export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(
@@ -34,18 +28,21 @@ export const ephemeraSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addEphemera: (state, action) => {
-      ephemerisAdapter.upsertMany(state, action.payload.ephemera);
-      state.dayNight = action.payload.dayNight;
-      state.errorMessage = "";
+    addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
+      ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
+      state.dayNight = action.payload.data.dayNight;
+      state.metadata = { ...state.metadata, ...action.payload.metadata };
     },
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata = { ...state.metadata, error: action.payload };
+    },
+    setEphemeraLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
     },
   },
 });
 
-export const { addEphemera, fetchError } = ephemeraSlice.actions;
+export const { addEphemera, fetchError, setEphemeraLoadingStatus } = ephemeraSlice.actions;
 
 /**
  * Returns a Two-Line Element (TLE) from space-track.org that is closest to dateTimeWanted

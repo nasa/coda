@@ -1,16 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export interface PlayheadState {
-  /** Seconds representing the time into the mission day, eg. `0` is 00:00:00Z, `86399` is 23:59:59Z */
-  seconds: number;
-  /** UTC date being viewed */
-  date: string;
-  /** Whether the playhead actually is running */
-  isRunning: boolean;
-  /** Whether the user wants the playhead to be running */
-  ready: boolean;
-}
-
 export const initialState: PlayheadState = {
   // assume a 00:00:00Z start
   seconds: 0,

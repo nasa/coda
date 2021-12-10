@@ -1,9 +1,19 @@
-export interface EphemerisStore {
+interface EphemerisStore {
   ephemera: EphemerisFile[];
-  dayNight: {};
+  dayNight: DayNightObj[];
 }
 
-export interface EphemerisFile {
+interface DayNightObj {
+  appSeconds: number;
+  daylight: boolean;
+}
+
+interface DayNight {
+  dataStartUTC?: number;
+  events?: Activity[];
+}
+
+interface EphemerisFile {
   COMMENT: string;
   ORIGINATOR: string;
   NORAD_CAT_ID: string;

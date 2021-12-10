@@ -1,23 +1,7 @@
 import memoize from "lodash/memoize";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
-import type { PhotoFile } from "typings";
 import { isSameDate } from "./playhead";
-
-export type PhotosEntityState = EntityState<PhotoFile> & {
-  activePhoto: PhotoFile;
-  /** Message describing something that went wrong fetching photo metadata */
-  errorMessage: string;
-  ready: boolean;
-  photosLastChecked: string;
-  collectionFilters: CollectionFilters[];
-};
-
-export interface CollectionFilters {
-  fullList: string;
-  display: string;
-  selected: boolean;
-}
+import { LoadingStatusEnum } from "utils/enums";
 
 const photoAdapter = createEntityAdapter<PhotoFile>();
 
@@ -36,9 +20,10 @@ export const initialPhotoFileState: PhotoFile = {
 
 export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
-  errorMessage: "",
   ready: false,
-  photosLastChecked: "",
+  metadata: null,
+  loadingStatus: LoadingStatusEnum.LOADING,
+  lastChecked: "",
   collectionFilters: [],
 });
 
@@ -49,10 +34,10 @@ export const photoSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addPhotos: (state, action) => {
-      photoAdapter.upsertMany(state, action);
-      state.errorMessage = "";
-      state.photosLastChecked = new Date().toUTCString();
+    addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
+      photoAdapter.upsertMany(state, action.payload.data);
+      state.metadata = { ...state.metadata, ...action.payload.metadata };
+      state.lastChecked = new Date().toISOString();
       state.ready = true;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {
@@ -60,15 +45,25 @@ export const photoSlice = createSlice({
     },
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      const error = action.payload.replace(/key=.*&/, "key=[key]&");
+      state.metadata = { ...state.metadata, error };
     },
-    setCollectionFilters: (state, action: { payload: CollectionFilters[] }) => {
+    setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
+    },
+    setCollectionFilters: (state, action: { payload: PhotoCollectionFilters[] }) => {
       state.collectionFilters = action.payload;
     },
   },
 });
 
-export const { addPhotos, setActivePhoto, setCollectionFilters, fetchError } = photoSlice.actions;
+export const {
+  addPhotos,
+  setActivePhoto,
+  fetchError,
+  setPhotoLoadingStatus,
+  setCollectionFilters,
+} = photoSlice.actions;
 
 /** Filters photos for a given day */
 const _filterVisiblePhotos = (photos: PhotoFile[], date: Date): PhotoFile[] => {

@@ -2,8 +2,7 @@ import clone from "lodash/cloneDeep";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import { add } from "store/playhead";
-import type { Collection, WrappedResponse } from "typings";
-import type { VideoFile } from "typings";
+import { Collection } from "utils/enums";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
@@ -37,23 +36,28 @@ export default async function getVideoData(
     return results;
   }
 
-  // if we got overrides from the wiki, apply them
-  const data: VideoFile[] = results.data.map((result) => {
-    const res = clone(result);
-    for (let fix of overrides.data.videoFixes) {
-      if (fix.videoID === result.id) {
-        const duration = res.end - res.start;
-        const start = new Date(fix.time).valueOf() / 1000;
-        res.start = start;
-        res.end = start + duration;
-        break;
+  // If we got data (as opposed to an error), we can apply the overrides
+  if (results.data) {
+    // if we got overrides from the wiki, apply them
+    const data: VideoFile[] = results.data.map((result) => {
+      const res = clone(result);
+      for (let fix of overrides.data.videoFixes) {
+        if (fix.videoID === result.id) {
+          const duration = res.end - res.start;
+          const start = new Date(fix.time).valueOf() / 1000;
+          res.start = start;
+          res.end = start + duration;
+          break;
+        }
       }
-    }
-    return res;
-  });
+      return res;
+    });
 
-  return {
-    ...results,
-    data,
-  };
+    return {
+      ...results,
+      data,
+    };
+  } else {
+    return results;
+  }
 }

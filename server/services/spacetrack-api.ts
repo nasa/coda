@@ -6,8 +6,6 @@ import { getAppropriateTLE } from "store/ephemera";
 import { isSameDate } from "store/playhead";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { getTimes } from "utils/suncalc";
-import type { DayNightObj, WrappedResponse } from "typings";
-import type { EphemerisFile, EphemerisStore } from "typings/spacetrack";
 import fetchWithCache from "./cache-client";
 
 const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
@@ -123,7 +121,8 @@ export async function fetchISSLocation(
   const isToday = isSameDate(now, today);
 
   let res: WrappedResponse<EphemerisStore> = {
-    data: { ephemera: [], dayNight: {} },
+    metadata: null,
+    data: { ephemera: [], dayNight: [] },
   };
 
   // try with the date asked for first
@@ -177,7 +176,7 @@ export async function fetchISSLocation(
 
   // maybe we retrieved bad data from the cache. force another fetch against the spacetrack API
   // only necessary because pre-issue-85, we would erroneously cache empty TLE responses
-  if (!isToday && res.cacheRead && res.data.ephemera.length === 0) {
+  if (!isToday && res.data.ephemera.length === 0) {
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
       preferNew: true,
       staleOk: true,

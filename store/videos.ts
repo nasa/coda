@@ -1,24 +1,7 @@
 import memoize from "lodash/memoize";
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
-import type { VideoFile } from "typings";
 import { isSameDate } from "./playhead";
-
-/** Info about videos from IO and the desired high-level state of the video players */
-export type VideosEntityState = EntityState<VideoFile> & {
-  /** Match the video player to a downlink, @see {VideoFile.downlink}. Keyed by the ID of the video player */
-  downlinks: { [key: number]: number };
-  /** ID of nonDownlinkVideoSelected */
-  nonDownlinkIDs: { [key: number]: string };
-  /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the ID of the video player */
-  activeVideoFiles: { [key: number]: string };
-  /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
-  ready: { [key: number]: boolean };
-  /** Message describing something that went wrong fetching video metadata */
-  errorMessage: string;
-  /** UTC string of the last time we hit IO */
-  lastChecked: string;
-};
+import { LoadingStatusEnum } from "utils/enums";
 
 const videoAdapter = createEntityAdapter<VideoFile>();
 
@@ -39,7 +22,8 @@ export const initialState: VideosEntityState = videoAdapter.getInitialState({
     1: true,
     2: true,
   },
-  errorMessage: "",
+  metadata: null,
+  loadingStatus: LoadingStatusEnum.LOADING,
   lastChecked: "",
 });
 
@@ -78,15 +62,20 @@ export const videoSlice = createSlice({
     },
 
     /** Add new video files to the store */
-    addVideos: (state, action) => {
-      videoAdapter.upsertMany(state, action);
-      state.lastChecked = new Date().toUTCString();
-      state.errorMessage = "";
+    addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
+      videoAdapter.upsertMany(state, action.payload.data);
+      state.metadata = action.payload.metadata;
+      state.lastChecked = new Date().toISOString();
     },
 
     /** An error occured fetching video metadata */
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      const error = action.payload.replace(/key=.*&/, "key=[key]&");
+      state.metadata = { ...state.metadata, error };
+    },
+
+    setVideoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
     },
   },
 });
@@ -99,6 +88,7 @@ export const {
   buffering,
   addVideos,
   fetchError,
+  setVideoLoadingStatus,
 } = videoSlice.actions;
 
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */

@@ -1,8 +1,7 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import type { EntityState } from "@reduxjs/toolkit";
 import { diff } from "./playhead";
 import { padZeros } from "utils/formatting";
-import { Sequence, Activity, DayNight } from "typings";
+import { LoadingStatusEnum } from "utils/enums";
 
 /** Parse the ID from an Sequence, currently set to a `yyyy-mm-dd-name` string */
 export function idFromSequence(sequence: Sequence): string {
@@ -12,11 +11,6 @@ export function idFromSequence(sequence: Sequence): string {
   return `${yyyy}-${mm}-${dd}-${location}-${type}-${name}`;
 }
 
-export type SequencesEntityState = EntityState<Sequence> & {
-  errorMessage: string;
-  lastChecked: string;
-};
-
 const sequencesAdapter = createEntityAdapter<Sequence>({
   selectId: idFromSequence,
   // Keep the "all IDs" array sorted based on date descending
@@ -24,7 +18,8 @@ const sequencesAdapter = createEntityAdapter<Sequence>({
 });
 
 export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
-  errorMessage: "",
+  metadata: null,
+  loadingStatus: LoadingStatusEnum.LOADING,
   lastChecked: "",
 });
 
@@ -33,20 +28,24 @@ export const sequencesSlice = createSlice({
   initialState,
   reducers: {
     /** Add one (or more) Sequence(s) to the store */
-    addSequences: (state, action) => {
-      sequencesAdapter.upsertMany(state, action);
-      state.lastChecked = new Date().toUTCString();
-      state.errorMessage = "";
+    addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
+      sequencesAdapter.upsertMany(state, action.payload.data);
+      state.metadata = action.payload.metadata;
+      state.lastChecked = new Date().toISOString();
     },
 
     /** An error occured fetching wiki data */
     fetchError: (state, action: { payload: string }) => {
-      state.errorMessage = action.payload;
+      state.metadata = { ...state.metadata, error: action.payload };
+    },
+
+    setSequenceLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+      state.loadingStatus = action.payload;
     },
   },
 });
 
-export const { addSequences, fetchError } = sequencesSlice.actions;
+export const { addSequences, fetchError, setSequenceLoadingStatus } = sequencesSlice.actions;
 
 export const sequencesSelector = sequencesAdapter.getSelectors<SequencesEntityState>(
   (state) => state
