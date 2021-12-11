@@ -51,6 +51,7 @@
 
 .mono {
   font-family: "Roboto Mono", Courier, monospace;
+  font-weight: 400;
 }
 
 .iconWithText {
@@ -62,4 +63,5 @@
   display: inline-block;
   border-radius: var(--radius);
   border: 1px solid var(--extremely-grey);
+  padding: 1px 4px;
 }

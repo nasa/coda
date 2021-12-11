@@ -9,27 +9,6 @@ div#__next > div {
   box-sizing: border-box;
 }
 
-@font-face {
-  font-family: "Aldrich";
-  src: url("/fonts/Aldrich-Regular.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Inter";
-  src: url("/fonts/Inter/Inter-Regular.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Roboto Mono";
-  src: url("/fonts/RobotoMono/RobotoMono-SemiBold.ttf");
-  font-weight: 500;
-  font-style: normal;
-}
-
 :root {
   --even-greyer: #abaaae;
   --extremely-grey: #898989;

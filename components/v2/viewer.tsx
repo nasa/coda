@@ -22,7 +22,7 @@ export default function Viewer() {
 
   return (
     <div>
-      <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>;
+      <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>
     </div>
   );
 }
