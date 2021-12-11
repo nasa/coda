@@ -121,7 +121,7 @@ function Header(props: { collection: Collection }) {
                 name="missionDate"
                 value={editingDate ? userDateValue : renderDate}
                 style={{
-                  width: "100px",
+                  width: "120px",
                   borderTopLeftRadius: "5px",
                   borderBottomLeftRadius: "5px",
                   marginRight: "1px",
@@ -159,7 +159,7 @@ function Header(props: { collection: Collection }) {
                 name="missionTime"
                 value={editingTime ? userTimeValue : renderTime}
                 style={{
-                  width: "70px",
+                  width: "95px",
                   borderTopRightRadius: "5px",
                   borderBottomRightRadius: "5px",
                   marginLeft: "1px",

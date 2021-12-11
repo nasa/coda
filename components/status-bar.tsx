@@ -59,7 +59,6 @@ export default function StatusBar() {
 
   return (
     <div className={`${styles.container}`}>
-      <span></span>
       <div className={styles.statusText}>
         <div className={styles.service}>
           {!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}
@@ -69,7 +68,10 @@ export default function StatusBar() {
           <div className={styles.subservice} title={"Video " + videoStatus.message}>
             Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
           </div>
-          <div className={styles.subservice} title={"Photo " + photoStatus.message}>
+          <div
+            className={`${styles.subservice} ${styles.subserviceLast}`}
+            title={"Photo " + photoStatus.message}
+          >
             Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
           </div>
         </div>
@@ -79,7 +81,10 @@ export default function StatusBar() {
           <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
             EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
           </div>
-          <div className={styles.subservice} title={"GPS track " + gpsStatus.message}>
+          <div
+            className={`${styles.subservice} ${styles.subserviceLast}`}
+            title={"GPS track " + gpsStatus.message}
+          >
             GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
           </div>
         </div>
