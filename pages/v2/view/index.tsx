@@ -11,6 +11,7 @@ import { addSequences, fetchError as sequencesFetchError } from "store/sequences
 import useInterval from "utils/useInterval";
 import styles from "./index.module.css";
 import _ from "lodash";
+import Timeline from "components/v2/timeline-v2";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
@@ -96,6 +97,7 @@ export default function V2(props: { query: QueryParams }) {
       <div className={styles.body}>
         <Viewer />
       </div>
+      <Timeline />
     </div>
   );
 }

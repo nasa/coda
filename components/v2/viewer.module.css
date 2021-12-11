@@ -1,7 +1,8 @@
 .main {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
-  grid-auto-rows: minmax(calc((100vh / 6) - (50px / 6)), auto);
+  /* 50px for header and 93px for timeline because these elements are fixed height */
+  grid-auto-rows: minmax(calc((100vh / 9) - ((50px + 93px) / 9)), auto);
 }
 
 .frameContainer {
@@ -31,28 +32,37 @@
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6";
 }
 
 .layout1 {
   grid-template-areas:
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1";
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6";
 }
 
 .layout2 {
   grid-template-areas:
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
-    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2";
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6";
 }

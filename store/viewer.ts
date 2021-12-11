@@ -3,14 +3,6 @@
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { createSlice } from "@reduxjs/toolkit";
 
-/** Definition of all possible layouts */
-export interface Layouts {
-  [key: number]: {
-    svg: string;
-    frameCount: number;
-  };
-}
-
 export const allLayouts: Layouts = {
   0: {
     svg: "/icons/layout1.svg",
@@ -25,18 +17,6 @@ export const allLayouts: Layouts = {
     frameCount: 2,
   },
 };
-
-export interface Frame {
-  source: string;
-  title: string;
-  icon: IconProp;
-  color: string;
-  state?: any;
-}
-
-export interface Frames {
-  [key: number]: Frame;
-}
 
 export const allFrames: Frames = {
   0: {
@@ -84,17 +64,6 @@ export const allFrames: Frames = {
     color: "mustardGreen",
   },
 };
-
-export interface ViewerState {
-  /** Currently supports `iss` or `test-events` */
-  selectedSource: string;
-  /** Number representing the layout ID */
-  layout: number;
-  /** Current mapping of visible frames to Frame types */
-  frames: {
-    [key: number]: number;
-  };
-}
 
 export const initialState: ViewerState = {
   layout: 0,
