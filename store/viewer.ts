@@ -1,6 +1,5 @@
 /** The state of the application viewer */
 
-import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { createSlice } from "@reduxjs/toolkit";
 
 export const allLayouts: Layouts = {
