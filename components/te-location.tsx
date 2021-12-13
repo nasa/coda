@@ -26,6 +26,7 @@ export default function TELocation() {
     EV1: { ...initialMarker },
     EV2: { ...initialMarker },
     Cart: { ...initialMarker },
+    LightCart: { ...initialMarker },
   };
 
   const initialTrackFeature: FeatureCollection = {
@@ -46,6 +47,7 @@ export default function TELocation() {
     EV1: { ...initialTrackFeature },
     EV2: { ...initialTrackFeature },
     Cart: { ...initialTrackFeature },
+    LightCart: { ...initialTrackFeature },
   };
 
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
@@ -70,6 +72,7 @@ export default function TELocation() {
     ev1: infoItemsDefaultValue,
     ev2: infoItemsDefaultValue,
     cart: infoItemsDefaultValue,
+    lightCart: infoItemsDefaultValue,
   });
 
   //just need any location for getSatelliteInfo
@@ -173,7 +176,7 @@ export default function TELocation() {
     //add a timeout to fix buggy mapboxgl not displaying tracks randomly
     const timer = setTimeout(() => {
       const gpsTracks = gpsState.gpsTracks;
-      //loop through the gps track objects (EV1, EV2, and Cart)
+      //loop through the gps track objects (EV1, EV2, Cart, and LightCart)
       for (let track = 0; track < gpsTracks.length; track++) {
         const gpsTrack = gpsTracks[track];
         const newCoordinates: LngLatLike[] = [];
@@ -210,6 +213,7 @@ export default function TELocation() {
         EV1: addMapMarker(thisMap, "EV1"),
         EV2: addMapMarker(thisMap, "EV2"),
         Cart: addMapMarker(thisMap, "Cart"),
+        LightCart: addMapMarker(thisMap, "LightCart"),
       };
       setMapMarkers(newMarkers);
 
@@ -253,6 +257,21 @@ export default function TELocation() {
         source: "trackCartSource",
         paint: {
           "line-color": "black",
+          "line-opacity": 0.3,
+          "line-width": 2,
+        },
+      });
+
+      thisMap.addSource("trackLightCartSource", {
+        type: "geojson",
+        data: trackFeatures.Cart,
+      });
+      thisMap.addLayer({
+        id: "trackLightCartLayer",
+        type: "line",
+        source: "trackLightCartSource",
+        paint: {
+          "line-color": "yellow",
           "line-opacity": 0.3,
           "line-width": 2,
         },
