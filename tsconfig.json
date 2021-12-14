@@ -16,30 +16,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "paths": {
-      "http-client/*": [
-        "http-client/*"
-      ],
-      "components/*": [
-        "./components/*"
-      ],
-      "pages/*": [
-        "pages/*"
-      ],
-      "public/*": [
-        "./public/*"
-      ],
-      "server/*": [
-        "server/*"
-      ],
-      "store/*": [
-        "./store/*"
-      ],
-      "typings/*": [
-        "./typings/*",
-      ],
-      "utils/*": [
-        "./utils/*"
-      ],
+      "http-client/*": ["http-client/*"],
+      "components/*": ["./components/*"],
+      "pages/*": ["pages/*"],
+      "public/*": ["./public/*"],
+      "server/*": ["server/*"],
+      "store/*": ["./store/*"],
+      "typings/*": ["./typings/*",],
+      "utils/*": ["./utils/*"],
     },
     "typeRoots": [
       "./node_modules/@types",

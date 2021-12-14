@@ -6,8 +6,14 @@ interface Layouts {
   };
 }
 
+enum FrameSource {
+  ISS = "iss",
+  TEST_EVENTS = "test_events",
+  NBL = "nbl",
+}
+
 interface Frame {
-  source: string;
+  source: FrameSource;
   title: string;
   icon: IconProp;
   color: string;
@@ -15,16 +21,16 @@ interface Frame {
 }
 
 interface Frames {
-  [key: number]: Frame;
+  [key: string]: Frame;
 }
 
 interface ViewerState {
-  /** Currently supports `iss` or `test-events` */
-  selectedSource: string;
+  /** Currently supports `iss` or `test_events` */
+  selectedSource: FrameSource;
   /** Number representing the layout ID */
   layout: number;
   /** Current mapping of visible frames to Frame types */
   frames: {
-    [key: number]: number;
+    [key: string]: FrameType;
   };
 }

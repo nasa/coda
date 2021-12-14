@@ -14,6 +14,12 @@ export enum LoadingStatusEnum {
   UNNEEDED = "unneeded",
 }
 
+export enum FrameSource {
+  ISS = "iss",
+  TEST_EVENTS = "test_events",
+  NBL = "nbl",
+}
+
 export enum SequenceType {
   EVA = 1,
   IVA,

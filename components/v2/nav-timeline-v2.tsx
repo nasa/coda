@@ -1,6 +1,12 @@
 export default function Timeline() {
   return (
-    <div style={{ width: "100%", height: "50px", backgroundColor: "red" }}>
+    <div
+      style={{
+        width: "100%",
+        height: "50px",
+        backgroundColor: "red",
+      }}
+    >
       <div
         style={{
           position: "absolute",

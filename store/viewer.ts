@@ -1,6 +1,7 @@
 /** The state of the application viewer */
 
 import { createSlice } from "@reduxjs/toolkit";
+import { FrameSource } from "utils/enums";
 
 export const allLayouts: Layouts = {
   0: {
@@ -19,44 +20,44 @@ export const allLayouts: Layouts = {
 
 export const allFrames: Frames = {
   0: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "ISS Video Downlink",
     icon: "video",
     color: "teal",
   },
   1: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "ISS Video Non-Downlink",
     icon: "video",
     color: "teal",
   },
   2: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "ISS Photography",
     icon: "camera",
     color: "ruby",
   },
   3: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "ISS Groundtrack",
     icon: "globe-americas",
     color: "purple",
   },
   4: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "EVA Info",
     icon: "info",
     color: "mustardGreen",
   },
   5: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "DOUG",
     // maybe table-cells?
     icon: "layer-group",
     color: "mustardGreen",
   },
   6: {
-    source: "iss",
+    source: FrameSource.ISS,
     title: "ISS Telemetry",
     // arrow-trend-up
     icon: "chart-line",
@@ -67,7 +68,7 @@ export const allFrames: Frames = {
 export const initialState: ViewerState = {
   layout: 0,
   frames: {},
-  selectedSource: "iss",
+  selectedSource: FrameSource.ISS,
 };
 
 export const viewerSlice = createSlice({
