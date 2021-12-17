@@ -154,12 +154,14 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
 
   if (+Collection[collection] === +Collection.TEST_EVENTS) {
     //modify downlink numbers for test events based on strings in video title on IO
-    if (doc.md_title.includes("EV1")) {
-      downlink = 0;
-    } else if (doc.md_title.includes("EV2")) {
-      downlink = 1;
-    } else if (doc.md_title.includes("QUAD")) {
-      downlink = 2;
+    if (doc.md_title) {
+      if (doc.md_title.includes("EV1")) {
+        downlink = 0;
+      } else if (doc.md_title.includes("EV2")) {
+        downlink = 1;
+      } else if (doc.md_title.includes("QUAD")) {
+        downlink = 2;
+      }
     }
   } else if (+Collection[collection] === +Collection.NBL) {
     // Modify downlink numbers for nbl collection results based on strings in collections list
