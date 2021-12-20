@@ -1,6 +1,6 @@
 import _ from "lodash";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCamera,
@@ -15,7 +15,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allFrames, selectFrameType } from "store/viewer";
 import styles from "./frame-picker.module.css";
-import { RootState } from "../../store/";
 
 library.add(
   faCamera,
@@ -32,12 +31,12 @@ library.add(
  * Renders the label for a type of frame
  */
 export function FrameLabel({
-  frameTypeID,
+  frameType,
 }: {
   /** ID of the type of frame */
-  frameTypeID: number;
+  frameType: string;
 }) {
-  const { title, icon, color } = allFrames[frameTypeID];
+  const { title, icon, color } = allFrames[frameType];
 
   return (
     <div className={styles.item}>
@@ -58,28 +57,27 @@ export default function FramePickerModal({
   options: { frameID: number };
 }) {
   const dispatch = useDispatch();
-  const selectedSource = useSelector((state: RootState) => state.viewer.selectedSource);
 
-  const handleSelectFrameType = (frameTypeID: number) => (e: React.MouseEvent) => {
+  const handleSelectFrameType = (frameType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatch(selectFrameType({ frameID, frameTypeID }));
+    dispatch(selectFrameType({ frameID, frameType }));
     closeClick();
   };
 
-  const availableFrames = Object.keys(allFrames).filter(
-    (frameTypeID) => allFrames[frameTypeID].source === selectedSource
+  const availableFrames = Object.keys(allFrames).filter((frameType) =>
+    frameType.startsWith("iss_")
   );
 
   return (
     <div className={styles.main}>
       {availableFrames.length > 0 ? (
-        availableFrames.map((frameTypeID) => (
+        availableFrames.map((frameType) => (
           <div
             className={styles.option}
-            onClick={handleSelectFrameType(+frameTypeID)}
-            key={`FRAME__PICKER__${frameID}__${frameTypeID}`}
+            onClick={handleSelectFrameType(frameType)}
+            key={`FRAME__PICKER__${frameID}__${frameType}`}
           >
-            <FrameLabel frameTypeID={+frameTypeID} />
+            <FrameLabel frameType={frameType} />
           </div>
         ))
       ) : (

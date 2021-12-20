@@ -16,8 +16,8 @@ export interface Options {
 export function FrameHeader(options) {
   let label = <>&nbsp;Pick a source</>;
 
-  if (!_.isNil(options.frameTypeID)) {
-    label = <FrameLabel frameTypeID={options.frameTypeID} />;
+  if (!_.isNil(options.frameType)) {
+    label = <FrameLabel frameType={options.frameType} />;
   }
 
   return (
@@ -40,23 +40,23 @@ export function FrameHeader(options) {
 }
 
 const frameTypeIDsToRenders = {
-  0: VideoFrame,
-  1: () => <>1: ISS Video Non-Downlink</>,
-  2: () => <>2: ISS Photography</>,
-  3: () => <>3: ISS Groundtrack</>,
-  4: EVAInfo,
-  5: () => <>5: ISS Doug</>,
-  6: () => <>6: ISS Telemetry</>,
+  iss_downlink: VideoFrame,
+  iss_non_downlink: () => <>1: ISS Video Non-Downlink</>,
+  iss_photo: () => <>2: ISS Photography</>,
+  iss_groundtrack: () => <>3: ISS Groundtrack</>,
+  iss_eva_info: EVAInfo,
+  iss_doug: () => <>5: ISS Doug</>,
+  iss_telemetry: () => <>6: ISS Telemetry</>,
 };
 
 const frameTypeIDsToControls = {
-  0: VideoControls,
-  1: () => <>Controls: ISS Video Non-Downlink</>,
-  2: () => <>Controls: ISS Photography</>,
-  3: () => <>Controls: ISS Groundtrack</>,
-  4: EVAInfoControls,
-  5: () => <>Controls: ISS Doug!</>,
-  6: () => <>Controls: ISS Telemetry</>,
+  iss_downlink: VideoControls,
+  iss_non_downlink: () => <>Controls: ISS Video Non-Downlink</>,
+  iss_photo: () => <>Controls: ISS Photography</>,
+  iss_groundtrack: () => <>Controls: ISS Groundtrack</>,
+  iss_eva_info: EVAInfoControls,
+  iss_doug: () => <>Controls: ISS Doug!</>,
+  iss_telemetry: () => <>Controls: ISS Telemetry</>,
 };
 
 /** Identify the frame */
@@ -66,18 +66,23 @@ export interface Options {
 
 /** Renders a frame in the viewer */
 export default function Frame(options) {
-  const frameTypeID = useSelector((state: RootState) => state.viewer.frames[options.id]);
+  const frameState = useSelector((state: RootState) => state.viewer.frames[options.id]);
+
+  let frameType = null;
+  if (frameState) {
+    frameType = frameState.frameType;
+  }
 
   let FrameRender = null;
   let FrameControls = null;
-  if (!_.isNil(frameTypeID)) {
-    FrameRender = frameTypeIDsToRenders[frameTypeID];
-    FrameControls = frameTypeIDsToControls[frameTypeID];
+  if (!_.isNil(frameType)) {
+    FrameRender = frameTypeIDsToRenders[frameType];
+    FrameControls = frameTypeIDsToControls[frameType];
   }
 
   return (
     <div className={styles.main}>
-      <FrameHeader frameID={options.id} frameTypeID={frameTypeID}>
+      <FrameHeader frameID={options.id} frameType={frameType}>
         {!_.isNil(FrameControls) ? (
           <FrameControls frameID={options.id} />
         ) : (

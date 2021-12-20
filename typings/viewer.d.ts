@@ -31,6 +31,11 @@ interface ViewerState {
   layout: number;
   /** Current mapping of visible frames to Frame types */
   frames: {
-    [key: string]: FrameType;
+    [key: string]: FrameState;
   };
+}
+
+interface FrameState {
+  frameType: FrameType;
+  state?: any;
 }

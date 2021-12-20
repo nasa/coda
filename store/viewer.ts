@@ -19,44 +19,44 @@ export const allLayouts: Layouts = {
 };
 
 export const allFrames: Frames = {
-  0: {
+  iss_downlink: {
     source: FrameSource.ISS,
     title: "ISS Video Downlink",
     icon: "video",
     color: "teal",
   },
-  1: {
+  iss_non_downlink: {
     source: FrameSource.ISS,
     title: "ISS Video Non-Downlink",
     icon: "video",
     color: "teal",
   },
-  2: {
+  iss_photo: {
     source: FrameSource.ISS,
     title: "ISS Photography",
     icon: "camera",
     color: "ruby",
   },
-  3: {
+  iss_groundtrack: {
     source: FrameSource.ISS,
     title: "ISS Groundtrack",
     icon: "globe-americas",
     color: "purple",
   },
-  4: {
+  iss_eva_info: {
     source: FrameSource.ISS,
     title: "EVA Info",
     icon: "info",
     color: "mustardGreen",
   },
-  5: {
+  iss_doug: {
     source: FrameSource.ISS,
     title: "DOUG",
     // maybe table-cells?
     icon: "layer-group",
     color: "mustardGreen",
   },
-  6: {
+  iss_telemetry: {
     source: FrameSource.ISS,
     title: "ISS Telemetry",
     // arrow-trend-up
@@ -85,8 +85,15 @@ export const viewerSlice = createSlice({
     /**
      * Select the type of frame to render in a frame
      */
-    selectFrameType: (state, action: { payload: { frameID: number; frameTypeID: number } }) => {
-      state.frames[action.payload.frameID] = action.payload.frameTypeID;
+    selectFrameType: (state, action: { payload: { frameID: number; frameType: string } }) => {
+      if (typeof state.frames[action.payload.frameID] !== "undefined") {
+        state.frames[action.payload.frameID].frameType = action.payload.frameType;
+      } else {
+        const newFrameState: FrameState = {
+          frameType: action.payload.frameType,
+        };
+        state.frames[action.payload.frameID] = newFrameState;
+      }
     },
   },
 });
