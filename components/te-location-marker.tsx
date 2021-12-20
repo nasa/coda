@@ -9,6 +9,8 @@ const TEMarker = (props) => {
     markerClass = styles.ev2Marker;
   } else if (props.type === "Cart") {
     markerClass = styles.cartMarker;
+  } else if (props.type === "LightCart") {
+    markerClass = styles.lightCartMarker;
   } else if (props.type === "Photo") {
     markerClass = styles.photoMarker;
   }

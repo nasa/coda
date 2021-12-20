@@ -7,6 +7,7 @@ type MapMarkers = {
   EV1: MapMarker;
   EV2: MapMarker;
   Cart: MapMarker;
+  LightCart?: MapMarker;
 };
 
 type mapInfoDisplayItems = {
@@ -23,10 +24,12 @@ type mapInfoDisplay = {
   ev1: mapInfoDisplayItems;
   ev2: mapInfoDisplayItems;
   cart: mapInfoDisplayItems;
+  lightCart?: mapInfoDisplayItems;
 };
 
 type TrackFeatures = {
   EV1: FeatureCollection;
   EV2: FeatureCollection;
   Cart: FeatureCollection;
+  LightCart?: FeatureCollection;
 };
