@@ -107,8 +107,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     {
       cacheAge: 3600,
       staleOk: true,
-      // preferNew: isBetweenDates(now, start, end),
-      preferNew: true,
+      preferNew: isBetweenDates(now, start, end),
     }
   );
 }
