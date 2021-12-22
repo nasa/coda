@@ -13,7 +13,7 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { allFrames, selectFrameType } from "store/viewer";
+import { allFrames, setFrameType } from "store/viewer";
 import styles from "./frame-picker.module.css";
 
 library.add(
@@ -60,7 +60,7 @@ export default function FramePickerModal({
 
   const handleSelectFrameType = (frameType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatch(selectFrameType({ frameID, frameType }));
+    dispatch(setFrameType({ frameID, frameType }));
     closeClick();
   };
 

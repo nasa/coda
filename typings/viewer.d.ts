@@ -37,5 +37,5 @@ interface ViewerState {
 
 interface FrameState {
   frameType: FrameType;
-  state?: any;
+  frameData?: any;
 }

@@ -85,7 +85,7 @@ export const viewerSlice = createSlice({
     /**
      * Select the type of frame to render in a frame
      */
-    selectFrameType: (state, action: { payload: { frameID: number; frameType: string } }) => {
+    setFrameType: (state, action: { payload: { frameID: number; frameType: string } }) => {
       if (typeof state.frames[action.payload.frameID] !== "undefined") {
         state.frames[action.payload.frameID].frameType = action.payload.frameType;
       } else {
@@ -95,7 +95,10 @@ export const viewerSlice = createSlice({
         state.frames[action.payload.frameID] = newFrameState;
       }
     },
+    setFrameData: (state, action: { payload: { frameID: number; frameData: any } }) => {
+      state.frames[action.payload.frameID].frameData = action.payload.frameData;
+    },
   },
 });
 
-export const { changeLayout, selectFrameType } = viewerSlice.actions;
+export const { changeLayout, setFrameType, setFrameData } = viewerSlice.actions;

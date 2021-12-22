@@ -10,6 +10,7 @@ import LayoutPicker from "components/v2/layout-picker";
 import { RootState } from "store/index";
 import styles from "./header-v2.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
+import { Collection } from "utils/enums";
 
 library.add(faBars, faCalendarAlt, faClock);
 
@@ -74,7 +75,7 @@ export function ClockDropdown() {
   );
 }
 
-export default function Header() {
+export default function Header(props: { collection: Collection }) {
   return (
     <div className={styles.main}>
       <div className={styles.left}>
@@ -106,7 +107,7 @@ export default function Header() {
           <span className={styles.wordMark}>|</span>
         </div>
         <div className={styles.verticalCenter}>
-          <span className={styles.wordMark}>EMSS</span>
+          <span className={styles.logoEmss}></span>
         </div>
       </div>
     </div>

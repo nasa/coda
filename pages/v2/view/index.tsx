@@ -1,106 +1,30 @@
-import { isNull } from "lodash";
 import Head from "next/head";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchEVAs } from "http-client/sequences";
 import Header from "components/v2/header-v2";
 import Viewer from "components/v2/viewer";
-import { RootState } from "store/index";
-import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
-import { addSequences, fetchError as sequencesFetchError } from "store/sequences";
-import useInterval from "utils/useInterval";
 import styles from "./index.module.css";
 import _ from "lodash";
 import Timeline from "components/v2/nav-timeline-v2";
+import { Collection } from "utils/enums";
+import WithPlayheadMonitor from "components/with-playhead-monitor";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-export default function V2(props: { query: QueryParams }) {
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
-
-  const dispatch = useDispatch();
-
-  // make sure the application is running on the correct date
-  let userDate = null;
-
-  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-  if (!isNull(props.query.date) && !isNull(props.query.date.match(yyyymmdd))) {
-    // change the date if the user set the `date` query param
-    userDate = new Date(props.query.date);
-  } else {
-    // default the date to today
-    userDate = new Date();
-  }
-
-  // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
-  // https://youtu.be/m_0s8IZWkBg
-  const isFutureDate = diff(userDate, new Date()) > 0;
-
-  // we will ignore the datetime if it is invalid
-  const isMalformedDate = isNaN(userDate.valueOf());
-
-  if (isFutureDate || isMalformedDate) {
-    // set the date today
-    const d = new Date();
-    const year = d.getUTCFullYear();
-    const month = d.getUTCMonth();
-    const day = d.getUTCDate();
-    userDate = new Date(Date.UTC(year, month, day));
-  }
-
-  useEffect(() => {
-    if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      dispatch(changeDate(userDate.toISOString()));
-    }
-  }, []);
-
-  useEffect(() => {
-    // make sure the application is running on the correct time
-    // default the time to 00:00:00Z
-    let userTime = 0;
-
-    // change the time if the user set the `gmt` query param
-    if (!isNull(props.query.gmt)) {
-      const [hh, mm, ss = 0] = props.query.gmt.split(":").map(Number);
-      userTime = hh * 3600 + mm * 60 + ss;
-    }
-
-    dispatch(changeTime(userTime));
-  }, []);
-
-  /** Update the EVA store */
-  const updateEVAs = () => {
-    (async () => {
-      try {
-        // EVA data from the wiki
-        const updatedEVAs = await fetchEVAs();
-        dispatch(addSequences(updatedEVAs));
-      } catch (e) {
-        dispatch(sequencesFetchError(e.toString()));
-        console.error(e);
-      }
-    })();
-  };
-
-  // fetch updated data when the page loads
-  useEffect(updateEVAs, []);
-
-  // look for wiki info every 5 mins
-  useInterval(updateEVAs, FIVE_MINS_MS);
-
+export function V2(props: { query: QueryParams }) {
   return (
     <div className={styles.main}>
       <Head>
         <title>{process.env.NEXT_PUBLIC_TITLE}</title>
       </Head>
-      <Header />
+      <Header collection={Collection.ISS} />
       <div className={styles.body}>
-        <Viewer />
+        <Viewer query={props.query} collection={Collection.ISS} />
       </div>
-      <Timeline />
+      <Timeline collection={Collection.ISS} />
     </div>
   );
 }
+
+export default WithPlayheadMonitor(V2);
 
 export async function getServerSideProps({ query }) {
   const date = query.date === undefined ? null : query.date;

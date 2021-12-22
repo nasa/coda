@@ -6,6 +6,7 @@ import FramePickerModal, { FrameLabel } from "components/v2/frame-picker";
 import VideoFrame, { VideoControls } from "components/v2/video-v2";
 import styles from "./frame.module.css";
 import { RootState } from "store";
+import { ISSLocation, ISSLocationControls } from "components/v2/iss-location";
 
 export interface Options {
   frameID: number;
@@ -43,7 +44,7 @@ const frameTypeIDsToRenders = {
   iss_downlink: VideoFrame,
   iss_non_downlink: () => <>1: ISS Video Non-Downlink</>,
   iss_photo: () => <>2: ISS Photography</>,
-  iss_groundtrack: () => <>3: ISS Groundtrack</>,
+  iss_groundtrack: ISSLocation,
   iss_eva_info: EVAInfo,
   iss_doug: () => <>5: ISS Doug</>,
   iss_telemetry: () => <>6: ISS Telemetry</>,
@@ -53,7 +54,7 @@ const frameTypeIDsToControls = {
   iss_downlink: VideoControls,
   iss_non_downlink: () => <>Controls: ISS Video Non-Downlink</>,
   iss_photo: () => <>Controls: ISS Photography</>,
-  iss_groundtrack: () => <>Controls: ISS Groundtrack</>,
+  iss_groundtrack: ISSLocationControls,
   iss_eva_info: EVAInfoControls,
   iss_doug: () => <>Controls: ISS Doug!</>,
   iss_telemetry: () => <>Controls: ISS Telemetry</>,
@@ -82,14 +83,18 @@ export default function Frame(options) {
 
   return (
     <div className={styles.main}>
-      <FrameHeader frameID={options.id} frameType={frameType}>
-        {!_.isNil(FrameControls) ? (
-          <FrameControls frameID={options.id} />
-        ) : (
-          <>Controls {options.id}</>
-        )}
-      </FrameHeader>
-      {!_.isNil(FrameRender) ? <FrameRender frameID={options.id} /> : <>Frame {options.id}</>}
+      <div className={styles.headerContainer}>
+        <FrameHeader frameID={options.id} frameType={frameType}>
+          {!_.isNil(FrameControls) ? (
+            <FrameControls frameID={options.id} />
+          ) : (
+            <>Controls {options.id}</>
+          )}
+        </FrameHeader>
+      </div>
+      <div className={styles.bodyContainer}>
+        {!_.isNil(FrameRender) ? <FrameRender frameID={options.id} /> : <>Frame {options.id}</>}
+      </div>
     </div>
   );
 }
