@@ -30,7 +30,8 @@ export function LayoutDropdown() {
   );
 }
 
-export function SourcesDropdown() {
+export function SourcesDropdown(props: { collection: Collection }) {
+  const _varThatDoesNothing = props.collection;
   return (
     <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
       <span>&nbsp;ISS</span>
@@ -86,7 +87,7 @@ export default function Header(props: { collection: Collection }) {
           <LayoutDropdown />
         </div>
         <div className={styles.item} style={{ width: "87px" }}>
-          <SourcesDropdown />
+          <SourcesDropdown collection={props.collection} />
         </div>
         <div className={styles.item} style={{ width: "197px" }}>
           <DatetimeDropdown />

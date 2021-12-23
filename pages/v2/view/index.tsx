@@ -7,8 +7,6 @@ import Timeline from "components/v2/panes/nav-timeline-v2";
 import { Collection } from "utils/enums";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
 
-const FIVE_MINS_MS = 5 * 60 * 1000;
-
 export function V2(props: { query: QueryParams }) {
   return (
     <div className={styles.main}>

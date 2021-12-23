@@ -15,9 +15,7 @@ export function EVAInfoControls() {
 export default function EVAInfo(props: { frameID: number }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const controlStateData: any = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].controlStateData
-  );
+
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
