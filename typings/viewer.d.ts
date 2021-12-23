@@ -36,6 +36,6 @@ interface ViewerState {
 }
 
 interface FrameState {
-  frameType: FrameType;
-  frameData?: any;
+  paneType: string;
+  controlStateData: any;
 }

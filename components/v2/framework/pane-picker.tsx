@@ -13,8 +13,8 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { allFrames, setFrameType } from "store/viewer";
-import styles from "./frame-picker.module.css";
+import { allPanes, setPaneType } from "store/viewer";
+import styles from "./pane-picker.module.css";
 
 library.add(
   faCamera,
@@ -30,13 +30,13 @@ library.add(
 /**
  * Renders the label for a type of frame
  */
-export function FrameLabel({
-  frameType,
+export function PaneLabel({
+  paneType,
 }: {
   /** ID of the type of frame */
-  frameType: string;
+  paneType: string;
 }) {
-  const { title, icon, color } = allFrames[frameType];
+  const { title, icon, color } = allPanes[paneType];
 
   return (
     <div className={styles.item}>
@@ -49,7 +49,7 @@ export function FrameLabel({
 }
 
 /** Renders a modal with a list of frame types to choose from */
-export default function FramePickerModal({
+export default function PanePickerModal({
   closeClick,
   options: { frameID },
 }: {
@@ -58,26 +58,24 @@ export default function FramePickerModal({
 }) {
   const dispatch = useDispatch();
 
-  const handleSelectFrameType = (frameType: string) => (e: React.MouseEvent) => {
+  const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatch(setFrameType({ frameID, frameType }));
+    dispatch(setPaneType({ frameID, paneType }));
     closeClick();
   };
 
-  const availableFrames = Object.keys(allFrames).filter((frameType) =>
-    frameType.startsWith("iss_")
-  );
+  const availablePanes = Object.keys(allPanes).filter((paneType) => paneType.startsWith("iss_"));
 
   return (
     <div className={styles.main}>
-      {availableFrames.length > 0 ? (
-        availableFrames.map((frameType) => (
+      {availablePanes.length > 0 ? (
+        availablePanes.map((paneType) => (
           <div
             className={styles.option}
-            onClick={handleSelectFrameType(frameType)}
-            key={`FRAME__PICKER__${frameID}__${frameType}`}
+            onClick={handleSelectPaneType(paneType)}
+            key={`PANE__PICKER__${frameID}__${paneType}`}
           >
-            <FrameLabel frameType={frameType} />
+            <PaneLabel paneType={paneType} />
           </div>
         ))
       ) : (

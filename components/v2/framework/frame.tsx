@@ -1,12 +1,14 @@
 import _ from "lodash";
-import { useSelector } from "react-redux";
-import { ModalDropdown } from "components/v2/dropdown-v2";
-import EVAInfo, { EVAInfoControls } from "components/v2/eva-info";
-import FramePickerModal, { FrameLabel } from "components/v2/frame-picker";
-import VideoFrame, { VideoControls } from "components/v2/video-v2";
 import styles from "./frame.module.css";
+import { useSelector } from "react-redux";
 import { RootState } from "store";
-import { ISSLocation, ISSLocationControls } from "components/v2/iss-location";
+
+import { ModalDropdown } from "components/v2/interface/dropdown-v2";
+import PanePickerModal, { PaneLabel } from "./pane-picker";
+
+import EVAInfo, { EVAInfoControls } from "components/v2/panes/eva-info";
+import VideoFrame, { VideoControls } from "components/v2/panes/video-v2";
+import { ISSLocation, ISSLocationControls } from "components/v2/panes/iss-location";
 
 export interface Options {
   frameID: number;
@@ -14,11 +16,11 @@ export interface Options {
 }
 
 /** Renders the header for a frame */
-export function FrameHeader(options) {
+export function FrameHeader(props: { frameID: number; paneType: string; children?: any }) {
   let label = <>&nbsp;Pick a source</>;
 
-  if (!_.isNil(options.frameType)) {
-    label = <FrameLabel frameType={options.frameType} />;
+  if (!_.isNil(props.paneType)) {
+    label = <PaneLabel paneType={props.paneType} />;
   }
 
   return (
@@ -28,14 +30,14 @@ export function FrameHeader(options) {
           <ModalDropdown
             color="grey"
             size="skinny"
-            modal={FramePickerModal}
-            modalOptions={{ frameID: options.frameID }}
+            modal={PanePickerModal}
+            modalOptions={{ frameID: props.frameID }}
           >
             {label}
           </ModalDropdown>
         </div>
       </div>
-      <div className={styles.controls}>{options.children}</div>
+      <div className={styles.controls}>{props.children}</div>
     </div>
   );
 }
@@ -69,22 +71,22 @@ export interface Options {
 export default function Frame(options) {
   const frameState = useSelector((state: RootState) => state.viewer.frames[options.id]);
 
-  let frameType = null;
+  let paneType = null;
   if (frameState) {
-    frameType = frameState.frameType;
+    paneType = frameState.paneType;
   }
 
   let FrameRender = null;
   let FrameControls = null;
-  if (!_.isNil(frameType)) {
-    FrameRender = frameTypeIDsToRenders[frameType];
-    FrameControls = frameTypeIDsToControls[frameType];
+  if (!_.isNil(paneType)) {
+    FrameRender = frameTypeIDsToRenders[paneType];
+    FrameControls = frameTypeIDsToControls[paneType];
   }
 
   return (
     <div className={styles.main}>
       <div className={styles.headerContainer}>
-        <FrameHeader frameID={options.id} frameType={frameType}>
+        <FrameHeader frameID={options.id} paneType={paneType}>
           {!_.isNil(FrameControls) ? (
             <FrameControls frameID={options.id} />
           ) : (

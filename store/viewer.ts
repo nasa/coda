@@ -18,7 +18,7 @@ export const allLayouts: Layouts = {
   },
 };
 
-export const allFrames: Frames = {
+export const allPanes: Frames = {
   iss_downlink: {
     source: FrameSource.ISS,
     title: "ISS Video Downlink",
@@ -85,20 +85,24 @@ export const viewerSlice = createSlice({
     /**
      * Select the type of frame to render in a frame
      */
-    setFrameType: (state, action: { payload: { frameID: number; frameType: string } }) => {
+    setPaneType: (state, action: { payload: { frameID: number; paneType: string } }) => {
       if (typeof state.frames[action.payload.frameID] !== "undefined") {
-        state.frames[action.payload.frameID].frameType = action.payload.frameType;
+        state.frames[action.payload.frameID].paneType = action.payload.paneType;
       } else {
         const newFrameState: FrameState = {
-          frameType: action.payload.frameType,
+          paneType: action.payload.paneType,
+          controlStateData: {},
         };
         state.frames[action.payload.frameID] = newFrameState;
       }
     },
-    setFrameData: (state, action: { payload: { frameID: number; frameData: any } }) => {
-      state.frames[action.payload.frameID].frameData = action.payload.frameData;
+    setControlStateData: (
+      state,
+      action: { payload: { frameID: number; controlStateData: any } }
+    ) => {
+      state.frames[action.payload.frameID].controlStateData = action.payload.controlStateData;
     },
   },
 });
 
-export const { changeLayout, setFrameType, setFrameData } = viewerSlice.actions;
+export const { changeLayout, setPaneType, setControlStateData } = viewerSlice.actions;

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
-import { setFrameData } from "store/viewer";
+import { setControlStateData } from "store/viewer";
 import { SequenceType } from "utils/enums";
 import styles from "./eva-info.module.css";
 
@@ -15,14 +15,14 @@ export function EVAInfoControls() {
 export default function EVAInfo(props: { frameID: number }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const frameData: any = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].frameData
+  const controlStateData: any = useSelector(
+    (state: RootState) => state.viewer.frames[props.frameID].controlStateData
   );
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(setFrameData({ frameID, frameData: {} }));
+    dispatch(setControlStateData({ frameID, controlStateData: {} }));
   }, []);
 
   const allSequences = sequencesSelector.selectAll(sequences);

@@ -1,9 +1,9 @@
 import Head from "next/head";
-import Header from "components/v2/header-v2";
-import Viewer from "components/v2/viewer";
+import Header from "components/v2/framework/header-v2";
+import Viewer from "components/v2/framework/viewer";
 import styles from "./index.module.css";
 import _ from "lodash";
-import Timeline from "components/v2/nav-timeline-v2";
+import Timeline from "components/v2/panes/nav-timeline-v2";
 import { Collection } from "utils/enums";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
 

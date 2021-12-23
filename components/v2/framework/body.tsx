@@ -1,10 +1,9 @@
 import _ from "lodash";
 import { useDispatch, useSelector } from "react-redux";
-import Frame from "components/v2/frame";
+import Frame from "components/v2/framework/frame";
 import { allLayouts } from "store/viewer";
 import styles from "./viewer.module.css";
 
-import Head from "next/head";
 import { useEffect } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { RootState } from "store/index";
@@ -38,10 +37,11 @@ import {
   fetchError as ephemeraFetchError,
   addEphemera,
 } from "store/ephemera";
+import Viewer from "./viewer";
 
 const FIVE_MINS_MS = 5 * 60 * 1000;
 
-export default function Viewer(props: { query: QueryParams; collection: Collection }) {
+export default function Body(props: { query: QueryParams; collection: Collection }) {
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -294,23 +294,5 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
   // look for wiki info every 5 mins
   useInterval(updateEVAs, FIVE_MINS_MS);
 
-  const selectedLayout = useSelector((state: RootState) => state.viewer.layout);
-  const layoutDefinition = allLayouts[selectedLayout];
-
-  const frames = [];
-  for (let i = 1; i <= layoutDefinition.frameCount; i++) {
-    // CSS Grid definitions
-    const gridAreaName = styles[`f${i}`];
-    frames.push(
-      <div className={`${styles.frameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
-        <Frame id={i} />
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>
-    </div>
-  );
+  return <Viewer {...props} />;
 }

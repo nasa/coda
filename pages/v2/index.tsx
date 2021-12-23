@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import Button from "components/v2/button";
+import Button from "components/v2/interface/button";
 import styles from "./index.module.css";
 
 export default function Index() {
