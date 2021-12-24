@@ -12,6 +12,7 @@
 
 .bodyContainer {
   flex: auto;
+  display: flex;
 }
 
 .header {

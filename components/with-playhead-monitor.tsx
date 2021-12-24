@@ -1,3 +1,4 @@
+import _ from "lodash";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { run, halt, tick, changeDate, add, changeTime } from "store/playhead";
@@ -9,16 +10,23 @@ function PlayheadMonitor() {
   const playheadIsRunning = useSelector((state: RootState) => state.playhead.isRunning);
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const frames = useSelector((state: RootState) => state.viewer.frames);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
     // (1) make sure the playhead is running when it should
 
+    let panesAllReady = true;
+    for (const frame in frames) {
+      if (_.isNil(frames[frame].paneStateData.ready) || !frames[frame].paneStateData.ready) {
+        panesAllReady = false;
+        break;
+      }
+    }
+
     // determine whether all the "modules" are ready, including the user
-    const everythingReady = playheadReady && videos.ready[1] && videos.ready[2] && photos.ready;
+    const everythingReady = playheadReady && panesAllReady;
 
     // (1.2) the playhead is paused when it should be running
     if (everythingReady && !playheadIsRunning) {
@@ -29,7 +37,7 @@ function PlayheadMonitor() {
       // kill the playhead if it should be paused
       dispatch(halt());
     }
-  }, [playheadReady, playheadIsRunning, videos.ready, photos.ready]);
+  }, [playheadReady, playheadIsRunning, frames]);
 
   useEffect(() => {
     // check if the date has rolled over into the next UTC day

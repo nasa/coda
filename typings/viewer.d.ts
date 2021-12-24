@@ -17,7 +17,7 @@ interface Frame {
   title: string;
   icon: IconProp;
   color: string;
-  state?: any;
+  defaultPaneStateData: any;
 }
 
 interface Frames {
@@ -37,5 +37,19 @@ interface ViewerState {
 
 interface FrameState {
   paneType: string;
-  controlStateData: any;
+  paneStateData: any;
 }
+
+type VideoDLPaneControlStateData = {
+  downlink: number;
+  activeVideoFileID: string;
+  ready: boolean;
+  muted: boolean;
+  showInfo: boolean;
+  //nonDownlinkIDs: string[];
+};
+
+type LocationPaneControlStateData = {
+  lockToggle: boolean;
+  ready: boolean;
+};

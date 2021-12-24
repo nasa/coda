@@ -6,22 +6,6 @@ import { LoadingStatusEnum } from "utils/enums";
 const videoAdapter = createEntityAdapter<VideoFile>();
 
 export const initialState: VideosEntityState = videoAdapter.getInitialState({
-  downlinks: {
-    1: 0,
-    2: 1,
-  },
-  nonDownlinkIDs: {
-    1: "",
-    2: "",
-  },
-  activeVideoFiles: {
-    1: "",
-    2: "",
-  },
-  ready: {
-    1: true,
-    2: true,
-  },
   metadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
   lastChecked: "",
@@ -33,34 +17,6 @@ export const videoSlice = createSlice({
   name: "video",
   initialState,
   reducers: {
-    // Used to store which DL is selected in the video players.
-    // Needs to be in store because it is used in the share function.
-    setVideoDownlink: (state, action: { payload: { frameID: number; downlink: number } }) => {
-      state.downlinks[action.payload.frameID] = action.payload.downlink;
-    },
-
-    setVideoNonDownlinkID: (
-      state,
-      action: { payload: { frameID: number; nonDownlinkID: string } }
-    ) => {
-      state.nonDownlinkIDs[action.payload.frameID] = action.payload.nonDownlinkID;
-    },
-
-    /** Set the video file ID to play on a named `<VideoPlayer />` */
-    setActiveVideoFile: (state, action: { payload: { frameID: number; videoID: string } }) => {
-      state.activeVideoFiles[action.payload.frameID] = action.payload.videoID;
-    },
-
-    /** Mark videos are ready to be played. The payload is the video player name */
-    ready: (state, action: { payload: number }) => {
-      state.ready[action.payload] = true;
-    },
-
-    /** Mark videos as not ready to be played. The payload is the video player name */
-    buffering: (state, action: { payload: number }) => {
-      state.ready[action.payload] = false;
-    },
-
     /** Add new video files to the store */
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
       videoAdapter.upsertMany(state, action.payload.data);
@@ -80,16 +36,7 @@ export const videoSlice = createSlice({
   },
 });
 
-export const {
-  setVideoDownlink,
-  setVideoNonDownlinkID,
-  setActiveVideoFile,
-  ready,
-  buffering,
-  addVideos,
-  fetchError,
-  setVideoLoadingStatus,
-} = videoSlice.actions;
+export const { addVideos, fetchError, setVideoLoadingStatus } = videoSlice.actions;
 
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */
 export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => {

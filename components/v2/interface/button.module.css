@@ -33,14 +33,25 @@
   border-radius: 0;
 }
 
-.grey {
+.active {
   background: var(--grey);
   border: solid var(--grey);
   color: white;
 }
-
-.lightest-grey {
+.active:hover {
   background: var(--lightest-grey);
   border: solid var(--lightest-grey);
   color: white;
+}
+
+.selected {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: white;
+}
+
+.disabled {
+  background: var(--grey);
+  border: solid var(--grey);
+  color: var(--extremely-grey);
 }

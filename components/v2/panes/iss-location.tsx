@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import { setControlStateData } from "store/viewer";
+import { setPaneStateDataValue } from "store/viewer";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";
@@ -23,24 +23,13 @@ type MapMarker = {
   markerNode: any; //the real DOM id of the marker
 };
 
-type LocationPaneControlStateData = {
-  lockToggle: boolean;
-};
-const initialFrameDataState: LocationPaneControlStateData = {
-  lockToggle: true,
-};
-
 export function ISSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
   const controlStateData: LocationPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].controlStateData
+    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
   );
-
-  useEffect(() => {
-    dispatch(setControlStateData({ frameID, controlStateData: initialFrameDataState }));
-  }, []); //run only on initial mount
 
   let lockButtonStyle = styles.toggleActive;
   if (typeof controlStateData !== "undefined" && controlStateData.lockToggle) {
@@ -52,12 +41,10 @@ export function ISSLocationControls(props: { frameID: number }) {
       title={`Click to toggle map scrolling in relation to ISS position`}
       onClick={() => {
         dispatch(
-          setControlStateData({
+          setPaneStateDataValue({
             frameID,
-            controlStateData: {
-              ...controlStateData,
-              lockToggle: !controlStateData.lockToggle,
-            },
+            paneStateProperty: "lockToggle",
+            paneStateValue: !controlStateData.lockToggle,
           })
         );
       }}
@@ -80,7 +67,7 @@ export function ISSLocation(props: { frameID: number }) {
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const controlStateData: LocationPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].controlStateData
+    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
   );
 
   const todayEphemera = ephemeraSelectors.selectAll(ephemera);
@@ -97,13 +84,6 @@ export function ISSLocation(props: { frameID: number }) {
     lng: -95.3698,
     lat: 29.7604,
   };
-
-  useEffect(() => {
-    if (typeof controlStateData === "undefined") {
-      dispatch(setControlStateData({ frameID, controlStateData: initialFrameDataState }));
-      return;
-    }
-  }, [dispatch, frameID, controlStateData]);
 
   //init map app
   useEffect(() => {
@@ -377,9 +357,10 @@ export function ISSLocation(props: { frameID: number }) {
           className={styles.mapContainer}
           onMouseDown={() => {
             dispatch(
-              setControlStateData({
+              setPaneStateDataValue({
                 frameID,
-                controlStateData: { ...controlStateData, lockToggle: true },
+                paneStateProperty: "lockToggle",
+                paneStateValue: false,
               })
             );
           }}
@@ -390,12 +371,10 @@ export function ISSLocation(props: { frameID: number }) {
             title={`Click to toggle map scrolling in relation to ISS position`}
             onClick={() => {
               dispatch(
-                setControlStateData({
+                setPaneStateDataValue({
                   frameID,
-                  controlStateData: {
-                    ...controlStateData,
-                    lockToggle: !controlStateData.lockToggle,
-                  },
+                  paneStateProperty: "lockToggle",
+                  paneStateValue: !controlStateData.lockToggle,
                 })
               );
             }}

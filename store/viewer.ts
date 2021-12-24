@@ -1,5 +1,6 @@
 /** The state of the application viewer */
 
+import _ from "lodash";
 import { createSlice } from "@reduxjs/toolkit";
 import { FrameSource } from "utils/enums";
 
@@ -24,30 +25,50 @@ export const allPanes: Frames = {
     title: "ISS Video Downlink",
     icon: "video",
     color: "teal",
+    defaultPaneStateData: {
+      ready: true,
+      downlink: 0,
+      activeVideoFileID: "",
+      muted: false,
+      showInfo: false,
+    },
   },
   iss_non_downlink: {
     source: FrameSource.ISS,
     title: "ISS Video Non-Downlink",
     icon: "video",
     color: "teal",
+    defaultPaneStateData: {
+      ready: true,
+    },
   },
   iss_photo: {
     source: FrameSource.ISS,
     title: "ISS Photography",
     icon: "camera",
     color: "ruby",
+    defaultPaneStateData: {
+      ready: true,
+    },
   },
   iss_groundtrack: {
     source: FrameSource.ISS,
     title: "ISS Groundtrack",
     icon: "globe-americas",
     color: "purple",
+    defaultPaneStateData: {
+      ready: true,
+      lockToggle: true,
+    },
   },
   iss_eva_info: {
     source: FrameSource.ISS,
     title: "EVA Info",
     icon: "info",
     color: "mustardGreen",
+    defaultPaneStateData: {
+      ready: true,
+    },
   },
   iss_doug: {
     source: FrameSource.ISS,
@@ -55,6 +76,9 @@ export const allPanes: Frames = {
     // maybe table-cells?
     icon: "layer-group",
     color: "mustardGreen",
+    defaultPaneStateData: {
+      ready: true,
+    },
   },
   iss_telemetry: {
     source: FrameSource.ISS,
@@ -62,12 +86,37 @@ export const allPanes: Frames = {
     // arrow-trend-up
     icon: "chart-line",
     color: "mustardGreen",
+    defaultPaneStateData: {
+      ready: true,
+    },
   },
 };
 
+/**
+ * The state of each frame containing the pane type and the state of the control
+ * NOTE: all panes must manage a "ready" boolean in its controlStateData. This is used to determine application-wide readiness
+ */
 export const initialState: ViewerState = {
   layout: 0,
-  frames: {},
+  frames: {
+    1: {
+      paneType: "iss_downlink",
+      paneStateData: {
+        ready: true,
+        downlink: 0,
+        activeVideoFileID: "",
+        muted: false,
+        showInfo: false,
+      },
+    },
+    5: {
+      paneType: "iss_groundtrack",
+      paneStateData: {
+        lockToggle: true,
+        ready: true,
+      },
+    },
+  },
   selectedSource: FrameSource.ISS,
 };
 
@@ -86,23 +135,20 @@ export const viewerSlice = createSlice({
      * Select the type of frame to render in a frame
      */
     setPaneType: (state, action: { payload: { frameID: number; paneType: string } }) => {
-      if (typeof state.frames[action.payload.frameID] !== "undefined") {
-        state.frames[action.payload.frameID].paneType = action.payload.paneType;
-      } else {
-        const newFrameState: FrameState = {
-          paneType: action.payload.paneType,
-          controlStateData: {},
-        };
-        state.frames[action.payload.frameID] = newFrameState;
-      }
+      state.frames[action.payload.frameID] = {
+        paneType: action.payload.paneType,
+        /* Set the pane state to the default state for this paneType */
+        paneStateData: allPanes[action.payload.paneType].defaultPaneStateData,
+      };
     },
-    setControlStateData: (
+    setPaneStateDataValue: (
       state,
-      action: { payload: { frameID: number; controlStateData: any } }
+      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: any } }
     ) => {
-      state.frames[action.payload.frameID].controlStateData = action.payload.controlStateData;
+      state.frames[action.payload.frameID].paneStateData[action.payload.paneStateProperty] =
+        action.payload.paneStateValue;
     },
   },
 });
 
-export const { changeLayout, setPaneType, setControlStateData } = viewerSlice.actions;
+export const { changeLayout, setPaneType, setPaneStateDataValue } = viewerSlice.actions;

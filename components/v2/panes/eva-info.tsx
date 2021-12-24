@@ -1,10 +1,8 @@
 import { isNil } from "lodash";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
-import { setControlStateData } from "store/viewer";
 import { SequenceType } from "utils/enums";
 import styles from "./eva-info.module.css";
 
@@ -12,16 +10,9 @@ export function EVAInfoControls() {
   return <>Here are some future buttons</>;
 }
 
-export default function EVAInfo(props: { frameID: number }) {
+export default function EVAInfo() {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-
-  const frameID = props.frameID;
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(setControlStateData({ frameID, controlStateData: {} }));
-  }, []);
 
   const allSequences = sequencesSelector.selectAll(sequences);
   const seq = allSequences.find((seq) =>
