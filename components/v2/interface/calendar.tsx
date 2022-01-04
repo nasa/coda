@@ -48,6 +48,7 @@ export function MonthsModal({
       {allMonths.map((month, index) => {
         return (
           <div
+            key={month}
             className={styles.option}
             onClick={(e) => {
               e.preventDefault();
@@ -95,6 +96,7 @@ export function YearsModal({
 
         return (
           <div
+            key={year}
             className={styles.option}
             onClick={(e) => {
               e.preventDefault();

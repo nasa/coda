@@ -83,7 +83,7 @@ export default function Header(props: { collection: Collection }) {
         <div className={styles.item}>
           <HamburgerMenu />
         </div>
-        <div className={styles.item} style={{ width: "72px" }}>
+        <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
         </div>
         <div className={styles.item} style={{ width: "87px" }}>

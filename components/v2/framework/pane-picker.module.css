@@ -29,7 +29,7 @@
   border-radius: var(--radius);
   height: 21px;
   width: 22px;
-  margin: 3px 10px 3px 3px;
+  margin: 3px 10px 3px 0px;
   padding-top: 3px;
   display: flex;
   justify-content: space-around;

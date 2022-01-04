@@ -9,6 +9,7 @@ import PanePickerModal, { PaneLabel } from "./pane-picker";
 import EVAInfo, { EVAInfoControls } from "components/v2/panes/eva-info";
 import VideoFrame, { VideoControls } from "components/v2/panes/video-v2";
 import { ISSLocation, ISSLocationControls } from "components/v2/panes/iss-location";
+import { useEffect, useRef, useState } from "react";
 
 export interface Options {
   frameID: number;
@@ -83,12 +84,19 @@ export default function Frame(options) {
     FrameControls = frameTypeIDsToControls[paneType];
   }
 
+  /** get component width and pass it to the frame controls */
+  const [frameWidth, setFrameWidth] = useState(false);
+  const frameRef = useRef(null);
+  useEffect(() => {
+    setFrameWidth(frameRef.current ? frameRef.current.offsetWidth : 0);
+  }, [frameRef]);
+
   return (
-    <div className={styles.main}>
+    <div className={styles.main} ref={frameRef}>
       <div className={styles.headerContainer}>
         <FrameHeader frameID={options.id} paneType={paneType}>
           {!_.isNil(FrameControls) ? (
-            <FrameControls frameID={options.id} />
+            <FrameControls frameID={options.id} frameWidth={frameWidth} />
           ) : (
             <>Controls {options.id}</>
           )}

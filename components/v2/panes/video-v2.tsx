@@ -11,6 +11,7 @@ import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video-v2.module.css";
 import { setPaneStateDataValue } from "store/viewer";
+import { ModalDropdown } from "../interface/dropdown-v2";
 
 library.add(faExpandAlt, faInfo, faVolumeUp);
 
@@ -43,9 +44,13 @@ export function ExpandButton() {
   );
 }
 
-export function VideoControls(props: { frameID: number }) {
+const downlinks = [0, 1, 2, 3, 4, 5];
+
+export function VideoControls(props: { frameID: number; frameWidth: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
+
+  const minWidth = 440; // minimum width of the video pane before breaking into dropdown for downlinks
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
@@ -67,8 +72,6 @@ export function VideoControls(props: { frameID: number }) {
     );
   }
 
-  const downlinks = [0, 1, 2, 3, 4, 5];
-
   const [downlinkAvailability, setDownlinkAvailability] = useState([]);
 
   useEffect(() => {
@@ -83,28 +86,29 @@ export function VideoControls(props: { frameID: number }) {
     setDownlinkAvailability(downlinkAvailability);
   }, [visibleVideos, playhead.seconds]);
 
-  return (
-    <div className={styles.controls}>
-      <div className={styles.selections}>
-        {downlinks.map((d) => {
-          let rounded = "none";
-          if (d === 1) {
-            rounded = "left";
-          } else if (d === 6) {
-            rounded = "right";
-          }
+  if (props.frameWidth > minWidth) {
+    return (
+      <div className={styles.controls}>
+        <div className={styles.selections}>
+          {downlinks.map((d) => {
+            let rounded = "none";
+            if (d === 1) {
+              rounded = "left";
+            } else if (d === 6) {
+              rounded = "right";
+            }
 
-          let color = "disabled";
-          if (downlinkAvailability[d]) {
-            color = "active";
-          }
-          if (controlStateData.downlink === d) {
-            color = "selected";
-          }
+            let color = "disabled";
+            if (downlinkAvailability[d]) {
+              color = "active";
+            }
+            if (controlStateData.downlink === d) {
+              color = "selected";
+            }
 
-          return (
-            <div className={styles.dlButton}>
+            return (
               <Button
+                key={"DLBUTTON_" + d + "_" + frameID}
                 color={color}
                 size="small"
                 rounded={rounded}
@@ -114,23 +118,82 @@ export function VideoControls(props: { frameID: number }) {
               >
                 <div className={styles.dlLabel}>{d + 1}</div>
               </Button>
-            </div>
+            );
+          })}
+        </div>
+        <div className={styles.rightButtons}>
+          <div className={styles.verticalCenter}>
+            <IOInfoButton />
+          </div>
+          <div className={styles.verticalCenter}>
+            <MuteButton />
+          </div>
+          <div className={styles.verticalCenter}>
+            <ExpandButton />
+          </div>
+        </div>
+      </div>
+    );
+  } else {
+    return (
+      <div className={styles.controls}>
+        <div className={styles.dropdown}>
+          <ModalDropdown size="skinny" color="grey" modal={DownlinksModal}>
+            <span>DL</span>
+          </ModalDropdown>
+        </div>
+        <div className={styles.rightButtons}>
+          <div className={styles.verticalCenter}>
+            <IOInfoButton />
+          </div>
+          <div className={styles.verticalCenter}>
+            <MuteButton />
+          </div>
+          <div className={styles.verticalCenter}>
+            <ExpandButton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function DownlinksModal({
+    closeClick,
+    options: { visibleYearMonth, setVisibleYearMonth },
+  }: {
+    closeClick?: () => void;
+    options: {
+      visibleYearMonth: string;
+      setVisibleYearMonth: (ym: string) => void;
+    };
+  }) {
+    return (
+      <div className={styles.monthModal}>
+        {downlinks.map((d) => {
+          let color = "disabled";
+          if (downlinkAvailability[d]) {
+            color = "active";
+          }
+          if (controlStateData.downlink === d) {
+            color = "selected";
+          }
+          return (
+            <Button
+              key={"DLBUTTON_" + d + "_" + frameID}
+              color={color}
+              size="small"
+              rounded={"none"}
+              callback={() => {
+                setControlStateValue("downlink", d);
+              }}
+            >
+              <div className={styles.dlLabel}>{d + 1}</div>
+            </Button>
           );
         })}
       </div>
-      <div className={styles.rightButtons}>
-        <div className={styles.verticalCenter}>
-          <IOInfoButton />
-        </div>
-        <div className={styles.verticalCenter}>
-          <MuteButton />
-        </div>
-        <div className={styles.verticalCenter}>
-          <ExpandButton />
-        </div>
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 /**

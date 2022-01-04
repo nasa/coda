@@ -27,6 +27,10 @@
   width: 22px;
 }
 
+.dropdown {
+  width: 50px;
+}
+
 .dlButton:not(:last-of-type) {
   margin-right: 1px;
 }
