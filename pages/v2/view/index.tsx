@@ -6,6 +6,8 @@ import _ from "lodash";
 import Timeline from "components/v2/panes/nav-timeline-v2";
 import { Collection } from "utils/enums";
 import WithPlayheadMonitor from "components/with-playhead-monitor";
+import { useDispatch } from "react-redux";
+import { setPaneStateDataValue } from "store/viewer";
 
 export function V2(props: { query: QueryParams }) {
   return (

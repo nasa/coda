@@ -49,6 +49,9 @@ export const allPanes: Frames = {
     color: "ruby",
     defaultPaneStateData: {
       ready: true,
+      infoToggle: false,
+      infoHover: false,
+      filterToggle: false,
     },
   },
   iss_groundtrack: {
@@ -107,6 +110,15 @@ export const initialState: ViewerState = {
         activeVideoFileID: "",
         muted: false,
         showInfo: false,
+      },
+    },
+    2: {
+      paneType: "iss_photo",
+      paneStateData: {
+        ready: true,
+        infoToggle: false,
+        infoHover: false,
+        filterToggle: false,
       },
     },
     5: {

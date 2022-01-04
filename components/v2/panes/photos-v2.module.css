@@ -1,0 +1,198 @@
+.mediaPanel {
+  flex: 1;
+}
+
+.photoContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #19181b;
+  object-fit: contain;
+}
+.photoOverlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 30px;
+  outline: none;
+}
+
+.overlayTable {
+  width: 100%;
+  max-height: 100%;
+  display: inline-block;
+  font-size: 0.9em;
+  background: rgb(15, 15, 15, 0.8);
+  border: 2px solid #ffc000;
+  border-radius: 10px;
+  border-collapse: collapse;
+  overflow-y: auto;
+}
+
+.overlayTable a {
+  text-decoration: underline;
+}
+
+.overlayTable .overlayTableRow {
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable .titleRow {
+  text-align: right;
+  width: 100px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable .overlayTableCell {
+  display: table-cell;
+  border-collapse: collapse;
+  vertical-align: top;
+  font-weight: 200;
+  padding: 5px;
+}
+
+.overlayTable .digiValue {
+  font-family: "Ubuntu Mono";
+  font-size: 1em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.photoInfo {
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.photoPoster {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: no-repeat url("/images/vintage_static.gif");
+  background-size: cover;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.photoLink {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.photoHeaderText {
+  font-size: 1em;
+  white-space: nowrap;
+}
+
+.dimText {
+  color: #9b9b9b;
+}
+
+.infoButton {
+  display: flex;
+  background-color: #2b2a2d;
+  border: 1px #ffc000 solid;
+  border-radius: 4px;
+  color: #656269;
+  padding: 5px;
+  margin-bottom: 5px;
+  margin-right: 2px;
+  cursor: pointer;
+}
+.infoIcon {
+  display: inline-block;
+  width: 25px;
+  height: 21px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="%23656269"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
+    #2b2a2d no-repeat center;
+  background-size: 21px 21px;
+}
+
+.infoButton.infoActive {
+  color: white;
+}
+.infoButton.infoActive .infoIcon {
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="white"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
+    #2b2a2d no-repeat center;
+}
+.infoButton.infoActive:hover {
+  border: 2px #ffc000 solid;
+  padding: 4px;
+}
+
+.infoButton.infoSelected {
+  background-color: #ffc000;
+  color: black;
+}
+.infoButton.infoSelected .infoIcon {
+  background-color: #ffc000;
+  color: black;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 95 95"><g fill="black"><path d="M47.5,0A47.5,47.5,0,1,0,95,47.5,47.54,47.54,0,0,0,47.5,0Zm5.3,71.2a5.3,5.3,0,1,1-10.6,0V44.7a5.3,5.3,0,0,1,10.6,0ZM47.5,32.6a6.9,6.9,0,1,1,6.9-6.9A6.91,6.91,0,0,1,47.5,32.6Z"/></g></svg>')
+    no-repeat center;
+}
+
+.filterButton {
+  display: flex;
+  background-color: #2b2a2d;
+  border: 1px #ffc000 solid;
+  border-radius: 4px;
+  color: white;
+  padding: 5px;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+.filterButton.filterSelected {
+  background-color: #ffc000;
+  color: black;
+}
+
+.tableButton {
+  font-size: 0.9rem;
+  font-weight: 400;
+
+  background-color: #2b2a2d;
+  border: 1px #ffc000 solid;
+  border-radius: 4px;
+  color: white;
+  padding: 5px;
+  margin-bottom: 2px;
+  margin-right: 5px;
+  margin-left: 5px;
+  user-select: none;
+  cursor: pointer;
+}
+.tableButton:hover {
+  border: 2px #ffc000 solid;
+  padding: 4px;
+}
+
+.overlayVisible {
+  display: block;
+}
+
+.infoText {
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin-right: 5px;
+  margin-left: 5px;
+  user-select: none;
+}

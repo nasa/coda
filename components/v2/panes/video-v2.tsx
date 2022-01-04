@@ -10,8 +10,8 @@ import { isSameDate, midnightZulu } from "store/playhead";
 import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video-v2.module.css";
-import { setPaneStateDataValue } from "store/viewer";
 import { ModalDropdown } from "../interface/dropdown-v2";
+import { setPaneStateDataValue } from "store/viewer";
 
 library.add(faExpandAlt, faInfo, faVolumeUp);
 
@@ -58,11 +58,10 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
   const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
-  const controlStateData: VideoDLPaneControlStateData = useSelector(
+  const paneStateData: VideoDLPaneControlStateData = useSelector(
     (state: RootState) => state.viewer.frames[props.frameID].paneStateData
   );
-
-  function setControlStateValue(propertyName, propertyValue) {
+  function setPaneStateValue(propertyName, propertyValue) {
     dispatch(
       setPaneStateDataValue({
         frameID,
@@ -102,7 +101,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
             if (downlinkAvailability[d]) {
               color = "active";
             }
-            if (controlStateData.downlink === d) {
+            if (paneStateData.downlink === d) {
               color = "selected";
             }
 
@@ -113,7 +112,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
                 size="small"
                 rounded={rounded}
                 callback={() => {
-                  setControlStateValue("downlink", d);
+                  setPaneStateValue("downlink", d);
                 }}
               >
                 <div className={styles.dlLabel}>{d + 1}</div>
@@ -174,7 +173,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
           if (downlinkAvailability[d]) {
             color = "active";
           }
-          if (controlStateData.downlink === d) {
+          if (paneStateData.downlink === d) {
             color = "selected";
           }
           return (
@@ -184,7 +183,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
               size="small"
               rounded={"none"}
               callback={() => {
-                setControlStateValue("downlink", d);
+                setPaneStateValue("downlink", d);
               }}
             >
               <div className={styles.dlLabel}>{d + 1}</div>
@@ -212,17 +211,18 @@ const isAutoplayError = (e: Error): boolean => {
   return isChromeError || isFirefoxError || isSafariError;
 };
 
-export default function VideoFrame(props: { frameID: number }) {
+export default function VideoPane(props: { frameID: number }) {
   const frameID: number = props.frameID;
 
   const dispatch = useDispatch();
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const controlStateData: VideoDLPaneControlStateData = useSelector(
+
+  const paneStateData: VideoDLPaneControlStateData = useSelector(
     (state: RootState) => state.viewer.frames[props.frameID].paneStateData
   );
-  function setControlStateValue(propertyName, propertyValue) {
+  function setPaneStateValue(propertyName, propertyValue) {
     dispatch(
       setPaneStateDataValue({
         frameID,
@@ -247,7 +247,7 @@ export default function VideoFrame(props: { frameID: number }) {
     if (visibleVideos.size === 0) {
       return;
     }
-    const videoID = controlStateData.activeVideoFileID;
+    const videoID = paneStateData.activeVideoFileID;
     const videoStart = videoFiles[videoID]?.start || 0;
     if (videoID || !isSameDate(new Date(playhead.date), new Date(videoStart))) {
       setMetadata(null);
@@ -260,8 +260,8 @@ export default function VideoFrame(props: { frameID: number }) {
       return;
     }
 
-    const downlink = controlStateData.downlink;
-    const activeVideoFileID = controlStateData.activeVideoFileID;
+    const downlink = paneStateData.downlink;
+    const activeVideoFileID = paneStateData.activeVideoFileID;
 
     const videosNextSecond = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
 
@@ -293,7 +293,7 @@ export default function VideoFrame(props: { frameID: number }) {
 
     // if the video source needs to change, change it
     if (videoID !== activeVideoFileID) {
-      setControlStateValue("activeVideoFileID", videoID);
+      setPaneStateValue("activeVideoFileID", videoID);
 
       // wipe out the metadata for this videoElement so that aspect will be recalculated when the next video loads
       setMetadata(null);
@@ -317,7 +317,7 @@ export default function VideoFrame(props: { frameID: number }) {
 
     const currentlyPlayingVideo = videoSelectors.selectById(
       videos,
-      controlStateData.activeVideoFileID
+      paneStateData.activeVideoFileID
     );
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
@@ -343,14 +343,14 @@ export default function VideoFrame(props: { frameID: number }) {
       } catch (e) {
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
-          setControlStateValue("muted", true);
+          setPaneStateValue("muted", true);
         }
       }
     })();
   };
 
   const updateSourceInfo = () => {
-    const videoID = controlStateData.activeVideoFileID;
+    const videoID = paneStateData.activeVideoFileID;
 
     if (videoID !== "" && videoID !== undefined) {
       // there is a video for this downlink
@@ -362,8 +362,8 @@ export default function VideoFrame(props: { frameID: number }) {
       setSourceURL("");
 
       // don't block the playhead
-      if (!controlStateData.ready) {
-        setControlStateValue("ready", true);
+      if (!paneStateData.ready) {
+        setPaneStateValue("ready", true);
       }
     }
   };
@@ -380,7 +380,7 @@ export default function VideoFrame(props: { frameID: number }) {
     if (sourceURL !== "") {
       const currentlyPlayingVideo = videoSelectors.selectById(
         videos,
-        controlStateData.activeVideoFileID
+        paneStateData.activeVideoFileID
       );
 
       if (isNil(currentlyPlayingVideo)) {
@@ -392,11 +392,11 @@ export default function VideoFrame(props: { frameID: number }) {
     }
   };
 
-  useEffect(changeVideoFile, [playhead.seconds, videoFiles, controlStateData]);
-  useEffect(clearMetadata, [playhead.date, controlStateData.activeVideoFileID, videoFiles]);
+  useEffect(changeVideoFile, [playhead.seconds, videoFiles, paneStateData]);
+  useEffect(clearMetadata, [playhead.date, paneStateData.activeVideoFileID, videoFiles]);
   useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
-  useEffect(syncToPlayhead, [playhead.seconds, controlStateData.activeVideoFileID]);
-  useEffect(updateSourceInfo, [controlStateData.activeVideoFileID]);
+  useEffect(syncToPlayhead, [playhead.seconds, paneStateData.activeVideoFileID]);
+  useEffect(updateSourceInfo, [paneStateData.activeVideoFileID]);
   useEffect(cueVideoToPlayhead, [sourceURL]);
 
   /**
@@ -421,7 +421,7 @@ export default function VideoFrame(props: { frameID: number }) {
       }
     }
 
-    const videoID = controlStateData.activeVideoFileID;
+    const videoID = paneStateData.activeVideoFileID;
     let video: VideoFile;
     if (videoID !== "") {
       video = videoSelectors.selectById(videos, videoID);
@@ -449,7 +449,7 @@ export default function VideoFrame(props: { frameID: number }) {
 
     // the audio in LOS downlinked videos is never synced to the video
     const isLOSVideo = !isNil(video) && video.LOS;
-    const shouldMute = controlStateData.muted || isLOSVideo;
+    const shouldMute = paneStateData.muted || isLOSVideo;
 
     return (
       <div key={`video_element__${frameID}`} className={styles.vidContainer}>
@@ -460,17 +460,17 @@ export default function VideoFrame(props: { frameID: number }) {
             src={sourceURL}
             muted={shouldMute}
             onCanPlay={() => {
-              if (!controlStateData.ready) {
-                setControlStateValue("ready", true);
+              if (!paneStateData.ready) {
+                setPaneStateValue("ready", true);
               }
             }}
             onEnded={() => {
               // ready up because we don't want a missing video to hold up the playhead
-              setControlStateValue("ready", true);
+              setPaneStateValue("ready", true);
             }}
             onWaiting={() => {
-              if (controlStateData.ready && sourceURL !== "") {
-                setControlStateValue("ready", false);
+              if (paneStateData.ready && sourceURL !== "") {
+                setPaneStateValue("ready", false);
                 setStatus("buffering");
               }
             }}
@@ -489,7 +489,7 @@ export default function VideoFrame(props: { frameID: number }) {
               setMetadata(metaData);
             }}
             onClick={() => {
-              if (controlStateData.activeVideoFileID !== "") {
+              if (paneStateData.activeVideoFileID !== "") {
                 toggleFullScreen();
               }
             }}
@@ -505,8 +505,8 @@ export default function VideoFrame(props: { frameID: number }) {
                 setStatus("novid");
               }
               //unblocking playhead
-              if (controlStateData.ready !== true) {
-                setControlStateValue("ready", true);
+              if (paneStateData.ready !== true) {
+                setPaneStateValue("ready", true);
               }
             }}
           />
@@ -522,7 +522,7 @@ export default function VideoFrame(props: { frameID: number }) {
   const renderVideoOverlay = () => {
     const currentlyPlayingVideo = videoSelectors.selectById(
       videos,
-      controlStateData.activeVideoFileID
+      paneStateData.activeVideoFileID
     );
     let videoStartOffset = 0;
     let ioSearchLink = "";
@@ -543,7 +543,7 @@ export default function VideoFrame(props: { frameID: number }) {
       startDateTime = new Date(currentlyPlayingVideo.startDateTime).toUTCString();
       info = currentlyPlayingVideo.description;
     }
-    if (controlStateData.showInfo) {
+    if (paneStateData.showInfo) {
       infoDisplayClass = styles.photoOverlayVisible;
     }
 

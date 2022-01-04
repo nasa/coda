@@ -7,7 +7,8 @@ import { ModalDropdown } from "components/v2/interface/dropdown-v2";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EVAInfo, { EVAInfoControls } from "components/v2/panes/eva-info";
-import VideoFrame, { VideoControls } from "components/v2/panes/video-v2";
+import VideoPane, { VideoControls } from "components/v2/panes/video-v2";
+import PhotoPane, { PhotoControls } from "components/v2/panes/photos-v2";
 import { ISSLocation, ISSLocationControls } from "components/v2/panes/iss-location";
 import { useEffect, useRef, useState } from "react";
 
@@ -44,9 +45,9 @@ export function FrameHeader(props: { frameID: number; paneType: string; children
 }
 
 const frameTypeIDsToRenders = {
-  iss_downlink: VideoFrame,
+  iss_downlink: VideoPane,
   iss_non_downlink: () => <>1: ISS Video Non-Downlink</>,
-  iss_photo: () => <>2: ISS Photography</>,
+  iss_photo: PhotoPane,
   iss_groundtrack: ISSLocation,
   iss_eva_info: EVAInfo,
   iss_doug: () => <>5: ISS Doug</>,
@@ -56,7 +57,7 @@ const frameTypeIDsToRenders = {
 const frameTypeIDsToControls = {
   iss_downlink: VideoControls,
   iss_non_downlink: () => <>Controls: ISS Video Non-Downlink</>,
-  iss_photo: () => <>Controls: ISS Photography</>,
+  iss_photo: PhotoControls,
   iss_groundtrack: ISSLocationControls,
   iss_eva_info: EVAInfoControls,
   iss_doug: () => <>Controls: ISS Doug!</>,

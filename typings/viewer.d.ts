@@ -49,6 +49,13 @@ type VideoDLPaneControlStateData = {
   //nonDownlinkIDs: string[];
 };
 
+type PhotoPaneControlStateData = {
+  ready: boolean;
+  infoToggle: boolean;
+  infoHover: boolean;
+  filterToggle: boolean;
+};
+
 type LocationPaneControlStateData = {
   lockToggle: boolean;
   ready: boolean;
