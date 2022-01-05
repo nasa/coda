@@ -7,9 +7,7 @@ import {
   photosSelectors,
   filterVisiblePhotos,
 } from "store/photos";
-
 import styles from "./photos-v2.module.css";
-
 import {
   appSecondsFromDateString,
   hhmmssFromDateString,
@@ -18,6 +16,22 @@ import {
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/viewer";
+import { ExpandButton, IOInfoButton } from "./video-v2";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+export function FilterButton(props: { clickHandler; selected?: boolean }) {
+  const selectedStyle = props.selected ? styles.selected : "";
+  return (
+    <button
+      className={`${styles.filterButton} ${selectedStyle}`}
+      onClick={() => {
+        props.clickHandler();
+      }}
+    >
+      <span className={styles.filterLabel}>Filter Photos</span>
+    </button>
+  );
+}
 
 export function PhotoControls(props: { frameID: number; frameWidth: number }) {
   const frameID = props.frameID;
@@ -43,9 +57,7 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
   let datetimeTakenLabel = "";
   let datetimeTakenValue = "";
   let timeSinceTaken = "";
-  let infoButtonStyle = "";
   let currentlyActivePhoto = false;
-  let filterButtonStyle = "";
 
   useEffect(() => {
     currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
@@ -55,65 +67,70 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
       )} ago)`;
       datetimeTakenLabel = "Taken:";
       datetimeTakenValue = `${hhmmssFromDateString(photos.activePhoto.datetimeTaken)}Z`;
-      infoButtonStyle = styles.infoActive;
-    }
-    if (paneStateData.infoToggle) {
-      infoButtonStyle = styles.infoSelected;
-    }
-
-    if (paneStateData.filterToggle) {
-      filterButtonStyle = styles.filterSelected;
     }
   }, [paneStateData, photos, playhead]);
 
   return (
-    <div style={{ display: "flex" }}>
-      <div
-        className={`${styles.infoButton} ${infoButtonStyle}`}
-        title={`Click to toggle IO info`}
-        onMouseEnter={() => {
-          if (currentlyActivePhoto) {
-            setPaneStateValue("infoHover", true);
-          }
-        }}
-        onMouseLeave={() => {
-          setPaneStateValue("infoHover", false);
-        }}
-        onClick={() => {
-          if (currentlyActivePhoto) {
-            setPaneStateValue("infoToggle", !paneStateData.infoToggle);
-          }
-        }}
-      >
-        <div className={styles.infoText}>IO</div> <div className={styles.infoIcon}></div>
+    <>
+      <div className={styles.controls}>
+        <div className={styles.controlsLeft}>
+          <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
+            {datetimeTakenValue}
+          </span>
+        </div>
+        <div className={styles.rightButtons}>
+          <div className={styles.verticalCenter}>
+            <IOInfoButton
+              clickHandler={() => {
+                if (currentlyActivePhoto) {
+                  setPaneStateValue("infoToggle", !paneStateData.infoToggle);
+                }
+              }}
+              selected={paneStateData.infoToggle}
+            />
+          </div>
+          <div className={styles.verticalCenter}>
+            <FilterButton
+              clickHandler={() => {
+                setPaneStateValue("filterToggle", !paneStateData.filterToggle);
+              }}
+              selected={paneStateData.filterToggle}
+            />
+          </div>
+          <div className={styles.verticalCenter}>
+            <ExpandButton />
+          </div>
+        </div>
       </div>
-      <div
-        className={`${styles.filterButton}  ${filterButtonStyle}`}
-        title={`Click to filter imagery`}
-        onClick={() => {
-          setPaneStateValue("filterToggle", !paneStateData.filterToggle);
-        }}
-      >
-        <div className={styles.infoText}>Filter Photos</div>
-      </div>
-      <div style={{ marginLeft: "auto", marginTop: "auto" }}>
-        <span
-          style={{ paddingRight: "5px" }}
-          className={`${styles.photoHeaderText} ${styles.dimText}`}
+      {/* <div style={{ display: "flex" }}>        
+        <div
+          className={`${styles.filterButton}  ${filterButtonStyle}`}
+          title={`Click to filter imagery`}
+          onClick={() => {
+            setPaneStateValue("filterToggle", !paneStateData.filterToggle);
+          }}
         >
-          {datetimeTakenLabel}
-        </span>
-        <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-          {datetimeTakenValue}
-        </span>
-        <span
-          style={{ marginRight: "5px" }}
-          className={`${styles.photoHeaderText} ${styles.dimText}`}
-        >
-          {timeSinceTaken}
-        </span>
-      </div>
-    </div>
+          <div className={styles.infoText}>Filter Photos</div>
+        </div>
+        <div style={{ marginLeft: "auto", marginTop: "auto" }}>
+          <span
+            style={{ paddingRight: "5px" }}
+            className={`${styles.photoHeaderText} ${styles.dimText}`}
+          >
+            {datetimeTakenLabel}
+          </span>
+          <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
+            {datetimeTakenValue}
+          </span>
+          <span
+            style={{ marginRight: "5px" }}
+            className={`${styles.photoHeaderText} ${styles.dimText}`}
+          >
+            {timeSinceTaken}
+          </span>
+        </div>
+      </div> */}
+    </>
   );
 }
 
@@ -124,15 +141,6 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
   const paneStateData: PhotoPaneControlStateData = useSelector(
     (state: RootState) => state.viewer.frames[props.frameID].paneStateData
   );
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -217,7 +225,7 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
           ? new Date(photos.activePhoto.datetimeTaken).toUTCString()
           : "-";
 
-      if (paneStateData.infoHover || paneStateData.infoToggle) {
+      if (paneStateData.infoToggle) {
         infoDisplayClass = styles.overlayVisible;
       }
     }
@@ -271,7 +279,7 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
 
   const renderPhotoFilter = () => {
     let displayClass = "";
-    if (paneStateData.filterToggle && (!paneStateData.infoHover || paneStateData.infoToggle)) {
+    if (paneStateData.filterToggle && !paneStateData.infoToggle) {
       displayClass = styles.overlayVisible;
     }
 
@@ -327,9 +335,7 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
         <a className={styles.photoLink} href={photos.activePhoto.mediaHighResURL} target="_blank">
           <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
         </a>
-        {paneStateData.infoHover || paneStateData.infoToggle
-          ? renderPhotoOverlay()
-          : renderPhotoFilter()}
+        {paneStateData.infoToggle ? renderPhotoOverlay() : renderPhotoFilter()}
       </div>
     </div>
   );

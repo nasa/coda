@@ -45,8 +45,8 @@
 
 .ioButton {
   display: block;
-  width: 27px;
-  height: 14px;
+  width: 30px;
+  height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
   border: none;
@@ -54,9 +54,9 @@
   font-size: 11px;
 }
 
-.ioButton:active {
+.selected {
   border: none;
-  background-color: var(--even-greyer);
+  background-color: #ffffff;
   color: var(--lighter-grey);
 }
 
@@ -64,7 +64,7 @@
   display: inline-block;
   position: relative;
   width: 20px;
-  left: -4px;
+  left: -2px;
 }
 
 .clearTextButton {

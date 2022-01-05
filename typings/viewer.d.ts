@@ -52,7 +52,6 @@ type VideoDLPaneControlStateData = {
 type PhotoPaneControlStateData = {
   ready: boolean;
   infoToggle: boolean;
-  infoHover: boolean;
   filterToggle: boolean;
 };
 

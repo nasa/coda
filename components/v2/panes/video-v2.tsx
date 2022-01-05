@@ -15,9 +15,17 @@ import { setPaneStateDataValue } from "store/viewer";
 
 library.add(faExpandAlt, faInfo, faVolumeUp);
 
-export function IOInfoButton() {
+export function IOInfoButton(props: { clickHandler; selected?: boolean }) {
+  const selectedStyle = props.selected ? styles.selected : "";
   return (
-    <button className={styles.ioButton}>
+    <button
+      className={`${styles.ioButton} ${selectedStyle}`}
+      onClick={() => {
+        if (props.clickHandler) {
+          props.clickHandler();
+        }
+      }}
+    >
       <span className={styles.ioLabel}>
         IO{" "}
         <span style={{ fontSize: "8px", position: "relative", top: "-1px" }}>
@@ -122,7 +130,12 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
         </div>
         <div className={styles.rightButtons}>
           <div className={styles.verticalCenter}>
-            <IOInfoButton />
+            <IOInfoButton
+              clickHandler={() => {
+                setPaneStateValue("showInfo", !paneStateData.showInfo);
+              }}
+              selected={paneStateData.showInfo}
+            />
           </div>
           <div className={styles.verticalCenter}>
             <MuteButton />
@@ -143,7 +156,12 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
         </div>
         <div className={styles.rightButtons}>
           <div className={styles.verticalCenter}>
-            <IOInfoButton />
+            <IOInfoButton
+              clickHandler={() => {
+                setPaneStateValue("infoToggle", !paneStateData.showInfo);
+              }}
+              selected={paneStateData.showInfo}
+            />
           </div>
           <div className={styles.verticalCenter}>
             <MuteButton />
@@ -544,7 +562,7 @@ export default function VideoPane(props: { frameID: number }) {
       info = currentlyPlayingVideo.description;
     }
     if (paneStateData.showInfo) {
-      infoDisplayClass = styles.photoOverlayVisible;
+      infoDisplayClass = styles.videoOverlayVisible;
     }
 
     return (
