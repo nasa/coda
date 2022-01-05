@@ -31,25 +31,32 @@ export function ISSLocationControls(props: { frameID: number }) {
     (state: RootState) => state.viewer.frames[props.frameID].paneStateData
   );
 
-  let lockButtonStyle = styles.toggleActive;
+  let lockButtonSelected = "";
   if (typeof controlStateData !== "undefined" && controlStateData.lockToggle) {
-    lockButtonStyle = styles.toggleSelected;
+    lockButtonSelected = styles.lockButtonSelected;
   }
   return (
-    <div
-      className={`${styles.toggleButton} ${lockButtonStyle}`}
-      title={`Click to toggle map scrolling in relation to ISS position`}
-      onClick={() => {
-        dispatch(
-          setPaneStateDataValue({
-            frameID,
-            paneStateProperty: "lockToggle",
-            paneStateValue: !controlStateData.lockToggle,
-          })
-        );
-      }}
-    >
-      Lock Map to ISS
+    <div className={styles.controls}>
+      <div className={styles.controlsLeft}></div>
+      <div className={styles.rightButtons}>
+        <div className={styles.verticalCenter}>
+          <button
+            className={`${styles.lockButton} ${lockButtonSelected}`}
+            title={`Click to toggle map scrolling in relation to ISS position`}
+            onClick={() => {
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockToggle",
+                  paneStateValue: !controlStateData.lockToggle,
+                })
+              );
+            }}
+          >
+            <span className={styles.lockButtonLabel}>Lock Map to ISS</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -365,23 +372,6 @@ export function ISSLocation(props: { frameID: number }) {
             );
           }}
         ></div>
-        <div className={styles.overlay}>
-          <div
-            className={`${styles.toggleButton} ${lockButtonStyle}`}
-            title={`Click to toggle map scrolling in relation to ISS position`}
-            onClick={() => {
-              dispatch(
-                setPaneStateDataValue({
-                  frameID,
-                  paneStateProperty: "lockToggle",
-                  paneStateValue: !controlStateData.lockToggle,
-                })
-              );
-            }}
-          >
-            Lock Map to ISS
-          </div>
-        </div>
       </div>
     </>
   );

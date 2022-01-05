@@ -38,7 +38,7 @@
 
 .selected {
   border: none;
-  background-color: #ffffff;
+  background-color: #eeeeee;
   color: var(--lighter-grey);
 }
 
