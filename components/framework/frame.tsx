@@ -67,7 +67,7 @@ export interface Options {
 
 /** Renders a frame in the viewer */
 export default function Frame(options) {
-  const frameState = useSelector((state: RootState) => state.viewer.frames[options.id]);
+  const frameState = useSelector((state: RootState) => state.framework.frames[options.id]);
 
   let paneType = null;
   if (frameState) {

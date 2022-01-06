@@ -10,7 +10,7 @@ function PlayheadMonitor() {
   const playheadIsRunning = useSelector((state: RootState) => state.playhead.isRunning);
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
-  const frames = useSelector((state: RootState) => state.viewer.frames);
+  const frames = useSelector((state: RootState) => state.framework.frames);
 
   const dispatch = useDispatch();
 

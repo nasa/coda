@@ -8,14 +8,22 @@ export const allLayouts: Layouts = {
   0: {
     svg: "/icons/layout1.svg",
     frameCount: 6,
+    cssGridRows: 9,
   },
   1: {
     svg: "/icons/layout1.svg",
-    frameCount: 1,
+    frameCount: 5,
+    cssGridRows: 9,
   },
   2: {
     svg: "/icons/layout1.svg",
-    frameCount: 2,
+    frameCount: 6,
+    cssGridRows: 10,
+  },
+  3: {
+    svg: "/icons/layout1.svg",
+    frameCount: 1,
+    cssGridRows: 9,
   },
 };
 
@@ -79,7 +87,7 @@ export const allPanes: Frames = {
  * The state of each frame containing the pane type and the state of the control
  * NOTE: all panes must manage a "ready" boolean in its controlStateData. This is used to determine application-wide readiness
  */
-export const initialState: ViewerState = {
+export const initialState: FrameworkState = {
   layout: 0,
   frames: {
     1: {
@@ -112,7 +120,7 @@ export const initialState: ViewerState = {
   selectedSource: FrameSource.ISS,
 };
 
-export const viewerSlice = createSlice({
+export const frameworkSlice = createSlice({
   name: "viewer",
   initialState,
   reducers: {
@@ -143,4 +151,4 @@ export const viewerSlice = createSlice({
   },
 });
 
-export const { changeLayout, setPaneType, setPaneStateDataValue } = viewerSlice.actions;
+export const { changeLayout, setPaneType, setPaneStateDataValue } = frameworkSlice.actions;

@@ -11,7 +11,7 @@ import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { ModalDropdown } from "../interface/dropdown-v2";
-import { setPaneStateDataValue } from "store/viewer";
+import { setPaneStateDataValue } from "store/framework";
 
 library.add(faExpandAlt, faInfo, faVolumeUp);
 
@@ -67,7 +67,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const paneStateData: VideoDLPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
     dispatch(
@@ -229,7 +229,7 @@ export default function VideoPane(props: { frameID: number }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const paneStateData: VideoDLPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
     dispatch(

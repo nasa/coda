@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import { setPaneStateDataValue } from "store/viewer";
+import { setPaneStateDataValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";
@@ -28,7 +28,7 @@ export function ISSLocationControls(props: { frameID: number }) {
   const dispatch = useDispatch();
 
   const controlStateData: LocationPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
   let lockButtonSelected = "";
@@ -74,7 +74,7 @@ export function ISSLocation(props: { frameID: number }) {
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const controlStateData: LocationPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
   const todayEphemera = ephemeraSelectors.selectAll(ephemera);

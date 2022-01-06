@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React from "react";
 import { useDispatch } from "react-redux";
-import { changeLayout, allLayouts } from "store/viewer";
+import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
 
 export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {

@@ -1,13 +1,13 @@
 import _ from "lodash";
 import { useSelector } from "react-redux";
 import Frame from "components/framework/frame";
-import { allLayouts } from "store/viewer";
+import { allLayouts } from "store/framework";
 import styles from "./frames.module.css";
 
 import { RootState } from "store/index";
 
 export default function Viewer() {
-  const selectedLayout = useSelector((state: RootState) => state.viewer.layout);
+  const selectedLayout = useSelector((state: RootState) => state.framework.layout);
   const layoutDefinition = allLayouts[selectedLayout];
 
   const frames = [];
@@ -21,9 +21,11 @@ export default function Viewer() {
     );
   }
 
+  const mainStyleName = layoutDefinition.cssGridRows === 9 ? styles.main_9Rows : styles.main_10Rows;
+
   return (
     <div>
-      <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>
+      <div className={`${mainStyleName} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>
     </div>
   );
 }

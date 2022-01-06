@@ -11,7 +11,7 @@ import styles from "./photos.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
-import { setPaneStateDataValue } from "store/viewer";
+import { setPaneStateDataValue } from "store/framework";
 import { ExpandButton, IOInfoButton } from "./video";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
@@ -34,7 +34,7 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
   const dispatch = useDispatch();
 
   const paneStateData: PhotoPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
     dispatch(
@@ -104,7 +104,7 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
   const frameID = props.frameID;
 
   const paneStateData: PhotoPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);

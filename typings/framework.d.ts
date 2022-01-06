@@ -3,6 +3,7 @@ interface Layouts {
   [key: number]: {
     svg: string;
     frameCount: number;
+    cssGridRows: number;
   };
 }
 
@@ -24,7 +25,7 @@ interface Frames {
   [key: string]: Frame;
 }
 
-interface ViewerState {
+interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
   selectedSource: FrameSource;
   /** Number representing the layout ID */

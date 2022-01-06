@@ -13,7 +13,7 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { allPanes, setPaneType } from "store/viewer";
+import { allPanes, setPaneType } from "store/framework";
 import styles from "./pane-picker.module.css";
 
 library.add(
