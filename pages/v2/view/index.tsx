@@ -1,11 +1,12 @@
 import Head from "next/head";
-import Header from "components/v2/framework/header-v2";
-import Viewer from "components/v2/framework/viewer";
+import Header from "components/v2/interface/header-v2";
+import Viewer from "components/v2/framework/frames";
 import styles from "./index.module.css";
 import _ from "lodash";
 import Timeline from "components/v2/interface/nav-timeline-v2";
 import { Collection } from "utils/enums";
 import WithPlayheadMonitor from "components/v2/framework/with-playhead-monitor";
+import PlaybackControls from "components/v2/interface/playback-controls";
 
 export function V2(props: { query: QueryParams }) {
   return (
@@ -18,6 +19,7 @@ export function V2(props: { query: QueryParams }) {
         <Viewer query={props.query} collection={Collection.ISS} />
       </div>
       <Timeline collection={Collection.ISS} />
+      <PlaybackControls />
     </div>
   );
 }

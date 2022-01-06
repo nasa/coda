@@ -73,26 +73,6 @@ export const allPanes: Frames = {
       ready: true,
     },
   },
-  iss_doug: {
-    source: FrameSource.ISS,
-    title: "DOUG",
-    // maybe table-cells?
-    icon: "layer-group",
-    color: "mustardGreen",
-    defaultPaneStateData: {
-      ready: true,
-    },
-  },
-  iss_telemetry: {
-    source: FrameSource.ISS,
-    title: "ISS Telemetry",
-    // arrow-trend-up
-    icon: "chart-line",
-    color: "mustardGreen",
-    defaultPaneStateData: {
-      ready: true,
-    },
-  },
 };
 
 /**

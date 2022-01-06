@@ -50,8 +50,6 @@ const frameTypeIDsToRenders = {
   iss_photo: PhotoPane,
   iss_groundtrack: ISSLocation,
   iss_eva_info: EVAInfo,
-  iss_doug: () => <>5: ISS Doug</>,
-  iss_telemetry: () => <>6: ISS Telemetry</>,
 };
 
 const frameTypeIDsToControls = {
@@ -60,8 +58,6 @@ const frameTypeIDsToControls = {
   iss_photo: PhotoControls,
   iss_groundtrack: ISSLocationControls,
   iss_eva_info: EVAInfoControls,
-  iss_doug: () => <>Controls: ISS Doug!</>,
-  iss_telemetry: () => <>Controls: ISS Telemetry</>,
 };
 
 /** Identify the frame */

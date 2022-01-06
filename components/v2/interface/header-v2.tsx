@@ -12,6 +12,7 @@ import styles from "./header-v2.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
 import StatusBar from "../interface/status-bar";
+import EVADropdown from "./dropdown";
 
 library.add(faBars, faCalendarAlt, faClock);
 
@@ -95,6 +96,9 @@ export default function Header(props: { collection: Collection }) {
         </div>
         <div className={styles.item} style={{ width: "150px" }}>
           <ClockDropdown />
+        </div>
+        <div className={styles.item} style={{ width: "150px" }}>
+          <EVADropdown collection={Collection.ISS} />
         </div>
       </div>
       <div className={styles.right}>

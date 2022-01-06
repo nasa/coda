@@ -2,7 +2,7 @@ import _ from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import Frame from "components/v2/framework/frame";
 import { allLayouts } from "store/viewer";
-import styles from "./viewer.module.css";
+import styles from "./frames.module.css";
 
 import { useEffect } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
