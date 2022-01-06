@@ -1,39 +1,51 @@
 .container {
   justify-content: space-between;
   width: 100%;
-  bottom: 0;
-  left: 0;
   transition: background-color 0.5s;
-  height: 24px;
+  /* height: 24px; */
   color: white;
-  background-color: #19181b;
+  background-color: black;
+  font-size: 10px;
+  display: flex;
 }
 
 .container > span {
   display: inline-block;
 }
 
-.statusText {
-  margin-top: 1px;
+.serviceTitles {
+  height: 100%;
+  width: 50px;
+  display: flex;
+  flex-direction: column;
+}
+.serviceTitle {
+  flex: 1;
+  padding-right: 0.4em;
+  margin-left: auto;
+}
+
+.services {
+  /* margin-top: 1px;
   margin-bottom: 1px;
-  line-height: 24px;
+  line-height: 14px;
   font-size: 1em;
   font-weight: 400;
-  float: right;
+  float: right; */
+  height: 100%;
+  width: 50px;
+  display: flex;
+  flex-direction: column;
 }
 
 .service {
-  display: inline-block;
-}
-.serviceTitle {
-  display: inline-block;
-  padding-right: 0.4em;
-  padding-left: 0.4em;
+  flex: 1;
 }
 
 .subservice {
   display: inline-block;
-  background-color: #555555;
+  background-color: black;
+  color: #dddddd;
   padding-left: 0.4em;
 }
 .subserviceLast {
@@ -42,35 +54,39 @@
 
 .status {
   width: 13px;
-  height: 100%;
-  min-height: 13px;
+  min-height: 10px;
   display: inline-block;
   margin-left: 0.1em;
   padding-right: 0.4em;
 
   background-size: 15px 15px;
   background-repeat: no-repeat;
+
+  background-position: center;
 }
 
 .loading {
-  background-size: 14px 14px;
+  background-size: 10px 10px;
   background-image: url(/images/icon_status_loading.svg);
 }
 
 .noError {
+  background-size: 10px 10px;
   background-image: url(/images/icon_status_check_green.svg);
 }
 
 .error {
+  background-size: 10px 10px;
   background-image: url(/images/icon_status_issue.svg);
   background-position: center;
 }
 
 .unneeded {
-  background-size: 14px 14px;
+  background-size: 10px 10px;
   background-image: url(/images/icon_status_no_assets.svg);
 }
 
 .stale {
+  background-size: 10px 10px;
   background-image: url(/images/icon_status_check_yellow.svg);
 }

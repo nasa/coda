@@ -59,9 +59,13 @@ export default function StatusBar() {
 
   return (
     <div className={`${styles.container}`}>
-      <div className={styles.statusText}>
+      <div className={styles.serviceTitles}>
+        <div className={styles.serviceTitle}>IO:</div>
+        <div className={styles.serviceTitle}>WIKI:</div>
+        <div className={styles.serviceTitle}>Orbit:</div>
+      </div>
+      <div className={styles.subServices}>
         <div className={styles.service} title="Imagery Online">
-          <div className={styles.serviceTitle}>IO</div>
           <div className={styles.subservice} title={"Video " + videoStatus.message}>
             Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
           </div>
@@ -73,8 +77,6 @@ export default function StatusBar() {
           </div>
         </div>
         <div className={styles.service} title="ISS and Exploration Wikis">
-          <div className={styles.serviceTitle}>WIKI</div>
-
           <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
             EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
           </div>
@@ -86,7 +88,6 @@ export default function StatusBar() {
           </div>
         </div>
         <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
-          <div className={styles.serviceTitle}>Orbit:</div>
           <div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
         </div>
       </div>
