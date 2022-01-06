@@ -26,8 +26,18 @@
 }
 
 .description {
-  margin-right: 1em;
+  line-height: 1.1em;
   text-align: right;
+}
+
+.description > p {
+  color: var(--even-greyer);
+}
+
+.description .strong {
+  line-height: 1.7em;
+  font-weight: 600;
+  color: white;
 }
 
 .logo {

@@ -14,7 +14,7 @@ import {
 import { filterVisibleVideos, videoSelectors } from "store/videos";
 import { photosSelectors, filterVisiblePhotos } from "store/photos";
 
-import DrawNav from "./nav-timeline-draw-v2";
+import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 import { Collection } from "utils/enums";
 

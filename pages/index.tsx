@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import Button from "components/v2/button";
+import Button from "components/interface/button";
 import styles from "./index.module.css";
 
 export default function Index() {
@@ -20,10 +20,11 @@ export default function Index() {
                 <span className={styles.wordMark}>CODA</span>
               </div>
             </div>
-            <div className={styles.tourText}>
+            <div className={styles.description}>
               <p>
-                Lorem ipsump dolor sit amet. Yo this is a story all about how my life got
-                twist-turned upside down. Now let me take a second; y'all just sit right there.
+                <div className={styles.strong}>Collaborative Operations Data Activation</div>
+                Consolidating the context of mission, training, and testing data into an exploratory
+                platform to relive and analyse each moment
               </p>
             </div>
             <div style={{ marginTop: "10px" }}>

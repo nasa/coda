@@ -4,12 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faExpandAlt, faInfo, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Button from "components/v2/interface/button";
+import Button from "components/interface/button";
 import type { RootState } from "store/index";
 import { isSameDate, midnightZulu } from "store/playhead";
 import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { hhmmssFromSeconds } from "utils/formatting";
-import styles from "./video-v2.module.css";
+import styles from "./video.module.css";
 import { ModalDropdown } from "../interface/dropdown-v2";
 import { setPaneStateDataValue } from "store/viewer";
 

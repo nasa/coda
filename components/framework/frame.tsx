@@ -3,13 +3,13 @@ import styles from "./frame.module.css";
 import { useSelector } from "react-redux";
 import { RootState } from "store";
 
-import { ModalDropdown } from "components/v2/interface/dropdown-v2";
+import { ModalDropdown } from "components/interface/dropdown-v2";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
-import EVAInfo, { EVAInfoControls } from "components/v2/panes/eva-info";
-import VideoPane, { VideoControls } from "components/v2/panes/video-v2";
-import PhotoPane, { PhotoControls } from "components/v2/panes/photos-v2";
-import { ISSLocation, ISSLocationControls } from "components/v2/panes/iss-location";
+import EVAInfo, { EVAInfoControls } from "components/panes/eva-info";
+import VideoPane, { VideoControls } from "components/panes/video";
+import PhotoPane, { PhotoControls } from "components/panes/photos";
+import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useEffect, useRef, useState } from "react";
 
 export interface Options {

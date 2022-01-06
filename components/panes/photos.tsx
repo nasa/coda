@@ -7,7 +7,7 @@ import {
   photosSelectors,
   filterVisiblePhotos,
 } from "store/photos";
-import styles from "./photos-v2.module.css";
+import styles from "./photos.module.css";
 import {
   appSecondsFromDateString,
   hhmmssFromDateString,
@@ -16,7 +16,7 @@ import {
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/viewer";
-import { ExpandButton, IOInfoButton } from "./video-v2";
+import { ExpandButton, IOInfoButton } from "./video";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {

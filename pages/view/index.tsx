@@ -1,8 +1,11 @@
+import Head from "next/head";
+import Header from "components/interface/header";
+import Viewer from "components/framework/frames";
+import styles from "./index.module.css";
 import _ from "lodash";
-import { useDispatch, useSelector } from "react-redux";
-import Frame from "components/v2/framework/frame";
-import { allLayouts } from "store/viewer";
-import styles from "./frames.module.css";
+import Timeline from "components/interface/nav-timeline";
+import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
+import PlaybackControls from "components/interface/playback-controls";
 
 import { useEffect } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
@@ -37,10 +40,12 @@ import {
   fetchError as ephemeraFetchError,
   addEphemera,
 } from "store/ephemera";
+import { useDispatch, useSelector } from "react-redux";
 
-const FIVE_MINS_MS = 5 * 60 * 1000;
+export function V2(props: { query: QueryParams }) {
+  //TODO: make collection a viewer store element
 
-export default function Viewer(props: { query: QueryParams; collection: Collection }) {
+  const FIVE_MINS_MS = 5 * 60 * 1000;
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -119,7 +124,7 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, Collection.ISS);
         if (videoStoreResponse.metadata.error === undefined) {
           dispatch(addVideos(videoStoreResponse));
         } else {
@@ -152,7 +157,7 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
       dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // photos data for today
-        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, props.collection);
+        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, Collection.ISS);
         if (photoStoreResponse.metadata.error === undefined) {
           dispatch(addPhotos(photoStoreResponse));
           const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
@@ -174,10 +179,11 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
         return;
       }
 
-      if (props.collection !== Collection.TEST_EVENTS) {
-        dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
-        return;
-      }
+      //TODO: if ISS, then don't load GPS tracks
+      // if (collection !== Collection.TEST_EVENTS) {
+      dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      return;
+      // }
 
       const d = new Date(playheadDate);
 
@@ -207,10 +213,11 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
         return;
       }
 
-      if (props.collection !== Collection.ISS) {
-        dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
-        return;
-      }
+      //TODO: if not ISS, then don't load ephemeris
+      // if (props.collection !== Collection.ISS) {
+      //   dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      //   return;
+      // }
 
       const d = new Date(playheadDate);
 
@@ -254,7 +261,7 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month + 1, day, props.collection);
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, Collection.ISS);
         if (videoStoreResponse.metadata.error === undefined) {
           dispatch(addVideos(videoStoreResponse));
         } else {
@@ -273,8 +280,11 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
       dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
+
+        //TODO: fix to check properly for ISS
+        const thisCollection = Collection.ISS;
         const updatedEVAsResponse =
-          props.collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
+          thisCollection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
         if (updatedEVAsResponse.metadata.error === undefined) {
           dispatch(addSequences(updatedEVAsResponse));
         } else {
@@ -293,23 +303,78 @@ export default function Viewer(props: { query: QueryParams; collection: Collecti
   // look for wiki info every 5 mins
   useInterval(updateEVAs, FIVE_MINS_MS);
 
-  const selectedLayout = useSelector((state: RootState) => state.viewer.layout);
-  const layoutDefinition = allLayouts[selectedLayout];
-
-  const frames = [];
-  for (let i = 1; i <= layoutDefinition.frameCount; i++) {
-    // CSS Grid definitions
-    const gridAreaName = styles[`f${i}`];
-    frames.push(
-      <div className={`${styles.frameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
-        <Frame id={i} />
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className={`${styles.main} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>
+    <div className={styles.main}>
+      <Head>
+        <title>{process.env.NEXT_PUBLIC_TITLE}</title>
+      </Head>
+      <Header collection={Collection.ISS} />
+      <div className={styles.body}>
+        <Viewer query={props.query} collection={Collection.ISS} />
+      </div>
+      <Timeline collection={Collection.ISS} />
+      <PlaybackControls />
     </div>
   );
+}
+
+export default WithPlayheadMonitor(V2);
+
+export async function getServerSideProps({ query }) {
+  const date = query.date === undefined ? null : query.date;
+  const gmt = query.gmt === undefined ? null : query.gmt;
+  const video1 = query.video1 === undefined ? null : query.video1;
+  const video2 = query.video2 === undefined ? null : query.video2;
+  const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
+  const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
+
+  const queryParams = [
+    "frameType1",
+    "frameState1",
+    "frameType2",
+    "frameState2",
+    "frameType3",
+    "frameState3",
+    "frameType4",
+    "frameState4",
+    "frameType5",
+    "frameState5",
+    "frameType6",
+    "frameState6",
+  ];
+
+  // TODO: work on a system for new query params and translating old ones
+  // maybe old one triggers a layout that is the same as the original?
+
+  const queryValues = queryParams.map((qp) => _.get(query, qp, null)); // eslint-disable-line @typescript-eslint/no-unused-vars
+
+  const returnVal: QueryParams = {
+    gmt,
+    date,
+    video1,
+    video2,
+    nonDLvideo1,
+    nonDLvideo2,
+  };
+
+  return {
+    props: {
+      query: returnVal,
+    },
+  };
+}
+
+export interface QueryParams {
+  /** yyyy-mm-dd the user wants to view */
+  date: string;
+  /** UTC hh:mm the user wants to view */
+  gmt: string;
+  /** Downlink number the user wants to view in player 1 */
+  video1: string;
+  /** Downlink number the user wants to view in player 2 */
+  video2: string;
+  /** ID of the non-D/L video the user wants to view in player 1 */
+  nonDLvideo1: string;
+  /** ID of the non-D/L video the user wants to view in player 2 */
+  nonDLvideo2: string;
 }
