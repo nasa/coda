@@ -68,7 +68,7 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
       <div className={styles.controls}>
         <div className={styles.controlsLeft}>
           <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-            X{datetimeTakenLabel} {datetimeTakenValue} {timeSinceTaken}
+            {datetimeTakenLabel} {datetimeTakenValue} {timeSinceTaken}
           </span>
         </div>
         <div className={styles.rightButtons}>
@@ -95,34 +95,6 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
           </div>
         </div>
       </div>
-      {/* <div style={{ display: "flex" }}>        
-        <div
-          className={`${styles.filterButton}  ${filterButtonStyle}`}
-          title={`Click to filter imagery`}
-          onClick={() => {
-            setPaneStateValue("filterToggle", !paneStateData.filterToggle);
-          }}
-        >
-          <div className={styles.infoText}>Filter Photos</div>
-        </div>
-        <div style={{ marginLeft: "auto", marginTop: "auto" }}>
-          <span
-            style={{ paddingRight: "5px" }}
-            className={`${styles.photoHeaderText} ${styles.dimText}`}
-          >
-            {datetimeTakenLabel}
-          </span>
-          <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-            {datetimeTakenValue}
-          </span>
-          <span
-            style={{ marginRight: "5px" }}
-            className={`${styles.photoHeaderText} ${styles.dimText}`}
-          >
-            {timeSinceTaken}
-          </span>
-        </div>
-      </div> */}
     </>
   );
 }

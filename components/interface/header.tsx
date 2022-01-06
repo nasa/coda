@@ -12,7 +12,7 @@ import styles from "./header.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
 import StatusBar from "./status-bar";
-import EVADropdown from "./dropdown";
+import EVADropdown from "./evaDropdown";
 
 library.add(faBars, faCalendarAlt, faClock);
 

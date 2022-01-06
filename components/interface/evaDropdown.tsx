@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff, isSameDate } from "store/playhead";
-import styles from "./dropdown.module.css";
+import styles from "./evaDropdown.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
@@ -53,7 +53,7 @@ export default function EVADropdown(props: { collection: Collection }) {
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
         {isNil(selectedEVA) ? (
           <option key="" value="">
-            Jump to an Event
+            Select Event
           </option>
         ) : (
           <option disabled>Choose Event</option>
