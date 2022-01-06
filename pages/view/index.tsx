@@ -8,7 +8,7 @@ import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 
 import { useEffect } from "react";
-import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents } from "http-client/sequences";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
@@ -33,7 +33,7 @@ import {
   fetchError as photosFetchError,
 } from "store/photos";
 import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
-import { setGpsLoadingStatus, setGPSTracks, gpsFetchError } from "store/gps";
+import { setGpsLoadingStatus } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
 import {
   setEphemeraLoadingStatus,
@@ -185,24 +185,24 @@ export function V2(props: { query: QueryParams }) {
       return;
       // }
 
-      const d = new Date(playheadDate);
+      // const d = new Date(playheadDate);
 
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth() + 1;
-      const day = d.getUTCDate();
+      // const year = d.getUTCFullYear();
+      // const month = d.getUTCMonth() + 1;
+      // const day = d.getUTCDate();
 
-      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        const gpsTracksResponse = await getGPSTracks(year, month, day);
-        if (gpsTracksResponse.metadata.error === undefined) {
-          dispatch(setGPSTracks(gpsTracksResponse));
-        } else {
-          dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
-        }
-      } catch (e) {
-        dispatch(gpsFetchError(e.toString()));
-      }
-      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
+      // dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
+      // try {
+      //   const gpsTracksResponse = await getGPSTracks(year, month, day);
+      //   if (gpsTracksResponse.metadata.error === undefined) {
+      //     dispatch(setGPSTracks(gpsTracksResponse));
+      //   } else {
+      //     dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
+      //   }
+      // } catch (e) {
+      //   dispatch(gpsFetchError(e.toString()));
+      // }
+      // dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   }, [playheadDate]);
 
@@ -310,7 +310,7 @@ export function V2(props: { query: QueryParams }) {
       </Head>
       <Header collection={Collection.ISS} />
       <div className={styles.body}>
-        <Viewer query={props.query} collection={Collection.ISS} />
+        <Viewer />
       </div>
       <Timeline collection={Collection.ISS} />
       <PlaybackControls />

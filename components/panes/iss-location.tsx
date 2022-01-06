@@ -352,10 +352,6 @@ export function ISSLocation(props: { frameID: number }) {
   }
 
   // toggle button display settings
-  let lockButtonStyle = styles.toggleActive;
-  if (typeof controlStateData !== "undefined" && controlStateData.lockToggle) {
-    lockButtonStyle = styles.toggleSelected;
-  }
   return (
     <>
       <div className={styles.container}>

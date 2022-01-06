@@ -6,9 +6,7 @@ import styles from "./frames.module.css";
 
 import { RootState } from "store/index";
 
-import { Collection } from "utils/enums";
-
-export default function Viewer(props: { query: QueryParams; collection: Collection }) {
+export default function Viewer() {
   const selectedLayout = useSelector((state: RootState) => state.viewer.layout);
   const layoutDefinition = allLayouts[selectedLayout];
 

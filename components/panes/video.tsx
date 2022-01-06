@@ -174,16 +174,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
     );
   }
 
-  function DownlinksModal({
-    closeClick,
-    options: { visibleYearMonth, setVisibleYearMonth },
-  }: {
-    closeClick?: () => void;
-    options: {
-      visibleYearMonth: string;
-      setVisibleYearMonth: (ym: string) => void;
-    };
-  }) {
+  function DownlinksModal() {
     return (
       <div className={styles.monthModal}>
         {downlinks.map((d) => {

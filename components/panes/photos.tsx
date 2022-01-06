@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   initialPhotoFileState,
@@ -8,16 +8,11 @@ import {
   filterVisiblePhotos,
 } from "store/photos";
 import styles from "./photos.module.css";
-import {
-  appSecondsFromDateString,
-  hhmmssFromDateString,
-  hhmmssFromSeconds,
-} from "utils/formatting";
+import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/viewer";
 import { ExpandButton, IOInfoButton } from "./video";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -65,17 +60,15 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
       timeSinceTaken = `(${hhmmssFromSeconds(
         Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
       )} ago)`;
-      datetimeTakenLabel = "Taken:";
-      datetimeTakenValue = `${hhmmssFromDateString(photos.activePhoto.datetimeTaken)}Z`;
     }
-  }, [paneStateData, photos, playhead]);
+  }, [photos, playhead]);
 
   return (
     <>
       <div className={styles.controls}>
         <div className={styles.controlsLeft}>
           <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
-            {datetimeTakenValue}
+            X{datetimeTakenLabel} {datetimeTakenValue} {timeSinceTaken}
           </span>
         </div>
         <div className={styles.rightButtons}>
@@ -139,7 +132,7 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
   const frameID = props.frameID;
 
   const paneStateData: PhotoPaneControlStateData = useSelector(
-    (state: RootState) => state.viewer.frames[props.frameID].paneStateData
+    (state: RootState) => state.viewer.frames[frameID].paneStateData
   );
 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
