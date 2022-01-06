@@ -60,9 +60,6 @@ export default function StatusBar() {
   return (
     <div className={`${styles.container}`}>
       <div className={styles.statusText}>
-        <div className={styles.service}>
-          {!videos.ready[1] || !videos.ready[2] ? "Video buffering..." : ""}
-        </div>
         <div className={styles.service} title="Imagery Online">
           <div className={styles.serviceTitle}>IO</div>
           <div className={styles.subservice} title={"Video " + videoStatus.message}>

@@ -3,11 +3,9 @@ import Header from "components/v2/framework/header-v2";
 import Viewer from "components/v2/framework/viewer";
 import styles from "./index.module.css";
 import _ from "lodash";
-import Timeline from "components/v2/panes/nav-timeline-v2";
+import Timeline from "components/v2/interface/nav-timeline-v2";
 import { Collection } from "utils/enums";
-import WithPlayheadMonitor from "components/with-playhead-monitor";
-import { useDispatch } from "react-redux";
-import { setPaneStateDataValue } from "store/viewer";
+import WithPlayheadMonitor from "components/v2/framework/with-playhead-monitor";
 
 export function V2(props: { query: QueryParams }) {
   return (

@@ -11,6 +11,7 @@ import { RootState } from "store/index";
 import styles from "./header-v2.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
+import StatusBar from "../interface/status-bar";
 
 library.add(faBars, faCalendarAlt, faClock);
 
@@ -97,6 +98,9 @@ export default function Header(props: { collection: Collection }) {
         </div>
       </div>
       <div className={styles.right}>
+        <div className={styles.verticalCenter}>
+          <StatusBar />
+        </div>
         <div className={styles.verticalCenter}>
           <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
         </div>
