@@ -8,7 +8,7 @@ import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 
 import { useEffect } from "react";
-import { fetchEVAs, fetchTestEvents } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
@@ -33,7 +33,7 @@ import {
   fetchError as photosFetchError,
 } from "store/photos";
 import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
-import { setGpsLoadingStatus } from "store/gps";
+import { gpsFetchError, setGpsLoadingStatus, setGPSTracks } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
 import {
   setEphemeraLoadingStatus,
@@ -82,7 +82,6 @@ export function V2(props: { query: QueryParams }) {
     const day = d.getUTCDate();
     userDate = new Date(Date.UTC(year, month, day));
   }
-
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
       dispatch(changeDate(userDate.toISOString()));
@@ -103,179 +102,8 @@ export function V2(props: { query: QueryParams }) {
     dispatch(changeTime(userTime));
   }, []);
 
-  // grab videos
-  useEffect(() => {
-    (async () => {
-      if (_.isNull(playheadDate)) {
-        return;
-      }
-
-      const d = new Date(playheadDate);
-
-      // make sure we don't already have videos for this date
-      if (haveVideosFromDate(videoFiles, d)) {
-        return;
-      }
-
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
-      const day = d.getUTCDate();
-
-      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month + 1, day, Collection.ISS);
-        if (videoStoreResponse.metadata.error === undefined) {
-          dispatch(addVideos(videoStoreResponse));
-        } else {
-          dispatch(videosFetchError(videoStoreResponse.metadata.error));
-        }
-      } catch (e) {
-        dispatch(videosFetchError(e.toString()));
-      }
-      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
-    })();
-  }, [playheadDate]);
-
-  // Grab photos
-  useEffect(() => {
-    (async () => {
-      if (_.isNull(playheadDate)) {
-        return;
-      }
-
-      if (photoFiles.length > 0) {
-        return;
-      }
-
-      const d = new Date(playheadDate);
-
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
-      const day = d.getUTCDate();
-
-      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        // photos data for today
-        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, Collection.ISS);
-        if (photoStoreResponse.metadata.error === undefined) {
-          dispatch(addPhotos(photoStoreResponse));
-          const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
-          dispatch(setCollectionFilters(photoCollectionsFilter));
-        } else {
-          dispatch(photosFetchError(photoStoreResponse.metadata.error));
-        }
-      } catch (e) {
-        dispatch(photosFetchError(e.toString()));
-      }
-      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADED));
-    })();
-  }, [playheadDate]);
-
-  // Grab GPS tracks
-  useEffect(() => {
-    (async () => {
-      if (_.isNull(playheadDate)) {
-        return;
-      }
-
-      //TODO: if ISS, then don't load GPS tracks
-      // if (collection !== Collection.TEST_EVENTS) {
-      dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
-      return;
-      // }
-
-      // const d = new Date(playheadDate);
-
-      // const year = d.getUTCFullYear();
-      // const month = d.getUTCMonth() + 1;
-      // const day = d.getUTCDate();
-
-      // dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
-      // try {
-      //   const gpsTracksResponse = await getGPSTracks(year, month, day);
-      //   if (gpsTracksResponse.metadata.error === undefined) {
-      //     dispatch(setGPSTracks(gpsTracksResponse));
-      //   } else {
-      //     dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
-      //   }
-      // } catch (e) {
-      //   dispatch(gpsFetchError(e.toString()));
-      // }
-      // dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
-    })();
-  }, [playheadDate]);
-
-  // Grab ISS orbit ephemeris data
-  useEffect(() => {
-    (async () => {
-      if (_.isNull(playheadDate)) {
-        return;
-      }
-
-      //TODO: if not ISS, then don't load ephemeris
-      // if (props.collection !== Collection.ISS) {
-      //   dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
-      //   return;
-      // }
-
-      const d = new Date(playheadDate);
-
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth() + 1;
-      const day = d.getUTCDate();
-
-      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
-        if (ephemerisStoreResponse.metadata.error === undefined) {
-          dispatch(addEphemera(ephemerisStoreResponse));
-        } else {
-          dispatch(ephemeraFetchError(ephemerisStoreResponse.metadata.error));
-        }
-      } catch (e) {
-        dispatch(ephemeraFetchError(e.toString()));
-      }
-      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADED));
-    })();
-  }, [playheadDate]);
-
-  // look for new videos every 5 minutes if the user is looking at today's date
-  useInterval(() => {
-    (async () => {
-      // the playhead hasn't been set, no point in looking for videos
-      if (_.isNull(playheadDate)) {
-        return;
-      }
-
-      const d = new Date(playheadDate);
-      if (!isSameDate(d, new Date())) {
-        // the user is looking at a date in the past. no need to keep looking for new videos
-        return;
-      }
-
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth() + 1;
-      const day = d.getUTCDate();
-
-      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month + 1, day, Collection.ISS);
-        if (videoStoreResponse.metadata.error === undefined) {
-          dispatch(addVideos(videoStoreResponse));
-        } else {
-          dispatch(videosFetchError(videoStoreResponse.metadata.error));
-        }
-      } catch (e) {
-        dispatch(videosFetchError(e.toString()));
-      }
-      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
-    })();
-  }, FIVE_MINS_MS);
-
   /** Update the EVA store */
-  const updateEVAs = () => {
+  const populateEVAStore = () => {
     (async () => {
       dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
       try {
@@ -297,11 +125,150 @@ export function V2(props: { query: QueryParams }) {
     })();
   };
 
+  /** Update the video store */
+  const populateVideoStore = (year, month, day, collection) => {
+    (async () => {
+      const d = new Date(playheadDate);
+
+      // make sure we don't already have videos for this date
+      if (haveVideosFromDate(videoFiles, d)) {
+        return;
+      }
+
+      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        // video data for this EVA
+        const videoStoreResponse = await buildVideoStore(year, month + 1, day, collection);
+        if (videoStoreResponse.metadata.error === undefined) {
+          dispatch(addVideos(videoStoreResponse));
+        } else {
+          dispatch(videosFetchError(videoStoreResponse.metadata.error));
+        }
+      } catch (e) {
+        dispatch(videosFetchError(e.toString()));
+      }
+      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
+  /** Update the photo store */
+  const populatePhotoStore = (year, month, day, collection) => {
+    (async () => {
+      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        // photos data for today
+        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, collection);
+        if (photoStoreResponse.metadata.error === undefined) {
+          dispatch(addPhotos(photoStoreResponse));
+          const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
+          dispatch(setCollectionFilters(photoCollectionsFilter));
+        } else {
+          dispatch(photosFetchError(photoStoreResponse.metadata.error));
+        }
+      } catch (e) {
+        dispatch(photosFetchError(e.toString()));
+      }
+      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
+  /** Update the ephemeris store */
+  const populateEphemerisStore = (year, month, day, collection) => {
+    (async () => {
+      //TODO: if not ISS, then don't load ephemeris
+      if (collection !== Collection.ISS) {
+        dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
+      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
+        if (ephemerisStoreResponse.metadata.error === undefined) {
+          dispatch(addEphemera(ephemerisStoreResponse));
+        } else {
+          dispatch(ephemeraFetchError(ephemerisStoreResponse.metadata.error));
+        }
+      } catch (e) {
+        dispatch(ephemeraFetchError(e.toString()));
+      }
+      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
+  const populateGPSStore = (year, month, day, collection) => {
+    (async () => {
+      if (_.isNull(playheadDate)) {
+        return;
+      }
+
+      //TODO: if ISS, then don't load GPS tracks
+      if (collection !== Collection.TEST_EVENTS) {
+        dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
+
+      const d = new Date(playheadDate);
+
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth() + 1;
+      const day = d.getUTCDate();
+
+      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const gpsTracksResponse = await getGPSTracks(year, month, day);
+        if (gpsTracksResponse.metadata.error === undefined) {
+          dispatch(setGPSTracks(gpsTracksResponse));
+        } else {
+          dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
+        }
+      } catch (e) {
+        dispatch(gpsFetchError(e.toString()));
+      }
+      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
+  // populate store when date changes
+  useEffect(() => {
+    (async () => {
+      if (_.isNull(playheadDate)) {
+        return;
+      }
+
+      const d = new Date(playheadDate);
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth();
+      const day = d.getUTCDate();
+
+      // populate the video store
+      populateVideoStore(year, month, day, Collection.ISS);
+
+      // populage the photo store
+      populatePhotoStore(year, month, day, Collection.ISS);
+
+      // populate the ephemeris store
+      populateEphemerisStore(year, month, day, Collection.ISS);
+
+      // populate GPS store
+      populateGPSStore(year, month, day, Collection.ISS);
+    })();
+  }, [playheadDate]);
+
   // fetch updated data when the page loads
-  useEffect(updateEVAs, [playheadDate]);
+  useEffect(populateEVAStore, [playheadDate]);
 
   // look for wiki info every 5 mins
-  useInterval(updateEVAs, FIVE_MINS_MS);
+  useInterval(populateEVAStore, FIVE_MINS_MS);
+
+  // look for new videos every 5 minutes if the user is looking at today's date
+  useInterval(() => {
+    const d = new Date(playheadDate);
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
+
+    populateVideoStore(year, month, day, Collection.ISS);
+  }, FIVE_MINS_MS);
 
   return (
     <div className={styles.main}>
