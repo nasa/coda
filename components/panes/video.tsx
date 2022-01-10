@@ -2,7 +2,7 @@ import { isNil, isNull } from "lodash";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faExpandAlt, faInfo, faVolumeUp } from "@fortawesome/free-solid-svg-icons";
+import { faExpandAlt, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
 import type { RootState } from "store/index";
@@ -13,7 +13,7 @@ import styles from "./video.module.css";
 import { ModalDropdown } from "../interface/dropdown-v2";
 import { setPaneStateDataValue } from "store/framework";
 
-library.add(faExpandAlt, faInfo, faVolumeUp);
+library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 
 export function IOInfoButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -36,10 +36,24 @@ export function IOInfoButton(props: { clickHandler; selected?: boolean }) {
   );
 }
 
-export function MuteButton() {
+export function MuteButton(props: { clickHandler; muted: boolean }) {
+  let icon;
+  if (props.muted) {
+    icon = <FontAwesomeIcon icon="volume-mute" />;
+  } else {
+    icon = <FontAwesomeIcon icon="volume-up" />;
+  }
+
   return (
-    <button className={styles.clearTextButton}>
-      <FontAwesomeIcon icon="volume-up" />
+    <button
+      className={styles.clearTextButton}
+      onClick={() => {
+        if (props.clickHandler) {
+          props.clickHandler();
+        }
+      }}
+    >
+      {icon}
     </button>
   );
 }
@@ -137,8 +151,13 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
               selected={paneStateData.showInfo}
             />
           </div>
-          <div className={styles.verticalCenter}>
-            <MuteButton />
+          <div className={styles.verticalCenter} style={{ width: "30px" }}>
+            <MuteButton
+              clickHandler={() => {
+                setPaneStateValue("muted", !paneStateData.muted);
+              }}
+              muted={paneStateData.muted}
+            />
           </div>
           <div className={styles.verticalCenter}>
             <ExpandButton />
@@ -163,8 +182,13 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
               selected={paneStateData.showInfo}
             />
           </div>
-          <div className={styles.verticalCenter}>
-            <MuteButton />
+          <div className={styles.verticalCenter} style={{ width: "30px" }}>
+            <MuteButton
+              clickHandler={() => {
+                setPaneStateValue("muted", !paneStateData.muted);
+              }}
+              muted={paneStateData.muted}
+            />
           </div>
           <div className={styles.verticalCenter}>
             <ExpandButton />
