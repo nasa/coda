@@ -154,6 +154,8 @@ build:
     - echo "$SSH_PRIVATE_KEY_VALUE" | tr -d '\r' | ssh-add -
 
 .deploy_template:
+  tags:
+    - emss-deploy
   extends: .setup_ssh
   image: node:14 # Can't use Alpine Linux here without changing the apt-get commands above
   stage: deploy_to_server
