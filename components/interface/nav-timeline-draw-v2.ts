@@ -3,6 +3,7 @@ import isNull from "lodash/isNull";
 import paper from "paper";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 
+interface TimeTicksParams {}
 export default class DrawNav {
   gTier1Group: paper.Group;
   gTier1FutureGroup: paper.Group;
@@ -33,6 +34,13 @@ export default class DrawNav {
   gTier2Left: number;
 
   cSecondsIn24Hours = 86400;
+
+  gNavigatorFontFamily = "Ubuntu Mono";
+  gNavigatorFontFamilyActivity = "Inter";
+
+  gColorCursor = new paper.Color("#d10b0b");
+  gColorNavCursor = new paper.Color("#19181b");
+  gColorNavBox = new paper.Color("#efefef");
 
   constructor(
     readonly videoFiles: VideoFile[],
@@ -73,37 +81,37 @@ export default class DrawNav {
     let mouseXSeconds;
     this.gCursorGroup.removeChildren();
     this.gNavCursorGroup.removeChildren();
-    // if (event.point.y > this.gTier1Top) {
-    //   //if in tier1
-    //   mouseXSeconds = event.point.x * this.gTier1SecondsPerPixel;
-    //   this.drawTier1NavBox(mouseXSeconds);
-    //   this.drawTier2();
-    // } else {
-    //   //if in tier 2
-    //   mouseXSeconds =
-    //     (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds;
-    // }
-    // this.drawCursor(missionTimeSeconds);
-    // this.drawNavCursor(mouseXSeconds);
+    if (event.point.y > this.gTier1Top) {
+      //if in tier1
+      mouseXSeconds = event.point.x * this.gTier1SecondsPerPixel;
+      this.drawTier1NavBox(mouseXSeconds);
+      // this.drawTier2();
+    } else {
+      //if in tier 2
+      mouseXSeconds =
+        (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds;
+    }
+    this.drawCursor(missionTimeSeconds);
+    this.drawNavCursor(mouseXSeconds);
     cb(mouseXSeconds);
   };
 
   handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {
     let seconds = 0;
-    // if (event.point.y > this.gTier1Top) {
-    //   seconds = Math.round(event.point.x * this.gTier1SecondsPerPixel);
-    // } else {
-    //   //if in tier 2
-    //   seconds = Math.round(
-    //     (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds
-    //   );
-    // }
+    if (event.point.y > this.gTier1Top) {
+      seconds = Math.round(event.point.x * this.gTier1SecondsPerPixel);
+    } else {
+      //if in tier 2
+      seconds = Math.round(
+        (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds
+      );
+    }
 
     const hh = Math.floor(seconds / 3600);
     const mm = Math.floor((seconds - hh * 3600) / 60);
     const ss = seconds - hh * 3600 - mm * 60;
 
-    // this.drawCursor(seconds);
+    this.drawCursor(seconds);
     cb(hh, mm, ss);
   };
 
@@ -123,10 +131,10 @@ export default class DrawNav {
     this.gTier2SecondsPerPixel =
       this.cSecondsIn24Hours / this.gNavZoomFactor / this.gNavigatorWidth;
 
-    this.gTier1Height = 50;
-    this.gTier2Height = 99;
+    this.gTier1Height = 60;
+    this.gTier2Height = 115;
 
-    this.gTierSpacing = 30;
+    this.gTierSpacing = 2;
 
     this.gTier2Top = 30;
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
@@ -135,26 +143,239 @@ export default class DrawNav {
     this.gTier2Left = 1;
   };
 
-  drawTimeTicks(secondsStart, secondsEnd, pixelsePerSecond, topPoint, tickHeight) {
+  drawCursor = (seconds) => {
+    this.gCursorGroup.removeChildren();
+    this.gCursorGroup.addChild(this.getCursorElement(seconds, this.gColorCursor));
+  };
+
+  drawNavCursor = (seconds) => {
+    this.gNavCursorGroup.removeChildren();
+    this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorNavCursor));
+  };
+
+  getCursorElement = (seconds, color) => {
+    let cursorElementGroup = new paper.Group();
+
+    // tier1
+    let cursorLocX = 0.5 + seconds * this.gTier1PixelsPerSecond;
+    let topPoint = new paper.Point(cursorLocX, this.gTier1Top + 2);
+    let bottomPoint = new paper.Point(cursorLocX, this.gTier1Top + this.gTier1Height);
+    let aLine = new paper.Path.Line(topPoint, bottomPoint);
+    aLine.strokeColor = color;
+    aLine.strokeWidth = 2;
+    cursorElementGroup.addChild(aLine);
+
+    // tier2
+    cursorLocX = this.gTier2Left + (seconds - this.gTier2StartSeconds) * this.gTier2PixelsPerSecond;
+    topPoint = new paper.Point(cursorLocX, this.gTier2Top - 2);
+    bottomPoint = new paper.Point(cursorLocX, this.gTier2Top - 2 + this.gTier2Height);
+    aLine = new paper.Path.Line(topPoint, bottomPoint);
+    aLine.strokeColor = color;
+    aLine.strokeWidth = 2;
+    cursorElementGroup.addChild(aLine);
+
+    //default values for days without EVA
+    let timeTextFontSize = 20;
+    let timeTextYPos = 20;
+    let timeTextFontFamily = this.gNavigatorFontFamily;
+    let timeTextRectWidth = 115;
+    let timeTextRectHeightNudge = 5;
+    let timeTextRectTopNudge = -2;
+
+    let timeTextGroup = new paper.Group();
+    // if this is an EVA day, then show PET in the cursor value
+    if (!isNull(this.evaStartSec)) {
+      let petText = new paper.PointText({
+        justification: "left",
+        fontWeight: "normal",
+        fontFamily: this.gNavigatorFontFamilyActivity,
+        fontSize: 12,
+        fillColor: "white",
+      });
+      petText.content = "PET: " + hhmmssFromSeconds(Math.round(seconds - this.evaStartSec));
+      petText.point = new paper.Point(cursorLocX - petText.bounds.width / 2, 18);
+      timeTextGroup.addChild(petText);
+
+      //override GMT time display with values to accommodate PET text
+      timeTextFontSize = 15;
+      timeTextYPos = 35;
+      timeTextFontFamily = this.gNavigatorFontFamilyActivity;
+      timeTextRectWidth = 100;
+      timeTextRectHeightNudge = 8;
+      timeTextRectTopNudge = -5;
+    }
+
+    let timeText = new paper.PointText({
+      justification: "left",
+      fontWeight: "normal",
+      fontFamily: timeTextFontFamily,
+      fontSize: timeTextFontSize,
+      fillColor: "white",
+    });
+    timeText.content = " " + hhmmssFromSeconds(seconds) + "Z";
+    timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, timeTextYPos);
+    const cornerSize = new paper.Size(4, 4);
+    timeTextGroup.addChild(timeText);
+
+    let timeTextRect = new paper.Rectangle(timeTextGroup.bounds);
+    //center rectangle behind text
+    timeTextRect.width = timeTextRectWidth;
+    timeTextRect.height += timeTextRectHeightNudge;
+    timeTextRect.top += timeTextRectTopNudge;
+    if (timeTextGroup.position.x - timeTextGroup.bounds.width / 2 < 5) {
+      timeTextGroup.position.x = 5 + timeTextGroup.bounds.width / 2;
+    } else if (timeTextGroup.position.x > this.gNavigatorWidth - timeTextGroup.bounds.width / 2) {
+      timeTextGroup.position.x = this.gNavigatorWidth - timeTextGroup.bounds.width / 2;
+    }
+    timeTextRect.left = timeTextGroup.position.x - timeTextRectWidth / 2;
+    let timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
+    timeTextRectPath.fillColor = color;
+    timeTextRectPath.opacity = 0.7;
+    cursorElementGroup.addChild(timeTextRectPath);
+    cursorElementGroup.addChild(timeTextGroup);
+
+    return cursorElementGroup;
+  };
+
+  drawTier1NavBox = (seconds) => {
+    this.gTier1NavGroup.removeChildren();
+
+    let locX = seconds * this.gTier1PixelsPerSecond;
+    let navBoxWidth = this.gNavigatorWidth / this.gNavZoomFactor;
+    this.gTier1NavBoxLocX = locX - navBoxWidth / 2;
+    if (this.gTier1NavBoxLocX < 0) {
+      this.gTier1NavBoxLocX = 0;
+    } else if (this.gTier1NavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
+      this.gTier1NavBoxLocX = this.gNavigatorWidth - navBoxWidth;
+    }
+    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gTier1NavBoxLocX;
+
+    const navBoxTop = this.gTier1Top;
+    const navBoxHeight = this.gTier1Height + 2;
+    let navBoxRect = new paper.Rectangle(
+      this.gTier1NavBoxLocX,
+      navBoxTop,
+      navBoxWidth,
+      navBoxHeight
+    );
+    const cornerSize = new paper.Size(3, 3);
+    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
+    navBoxRectPath.strokeColor = this.gColorNavBox;
+    navBoxRectPath.strokeWidth = 3;
+    this.gTier1NavGroup.addChild(navBoxRectPath);
+
+    //left navBoxEffect
+    const effectHeight = 20;
+    let startPoint = new paper.Point(
+      this.gTier1NavBoxLocX,
+      this.gTier1Top - this.gTierSpacing + effectHeight
+    );
+    const effectSideWidth = 20;
+    let navBoxEffectLeft = new paper.Path({
+      strokeColor: this.gColorNavBox,
+      closed: false,
+      fillColor: "#efefef",
+      strokeWidth: 2,
+    });
+    navBoxEffectLeft.add(startPoint);
+    navBoxEffectLeft.arcTo(
+      new paper.Point(startPoint.x - effectSideWidth / 1.2, startPoint.y - effectHeight),
+      new paper.Point(startPoint.x - effectSideWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffectLeft.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
+    this.gTier1NavGroup.addChild(navBoxEffectLeft);
+
+    //right navBoxEffect
+    startPoint = new paper.Point(
+      this.gTier1NavBoxLocX + navBoxWidth,
+      this.gTier1Top - this.gTierSpacing + effectHeight
+    );
+    let navBoxEffectRight = new paper.Path({
+      strokeColor: this.gColorNavBox,
+      closed: false,
+      fillColor: this.gColorNavBox,
+      strokeWidth: 2,
+    });
+    navBoxEffectRight.add(startPoint);
+    navBoxEffectRight.arcTo(
+      new paper.Point(startPoint.x + effectSideWidth / 1.2, startPoint.y - effectHeight),
+      new paper.Point(startPoint.x + effectSideWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffectRight.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
+    this.gTier1NavGroup.addChild(navBoxEffectRight);
+
+    //Timeline separator bar full width
+    const navBoxEffectBar = new paper.Path.Line({
+      from: [0, this.gTier1Top - this.gTierSpacing],
+      to: [this.gNavigatorWidth, this.gTier1Top - this.gTierSpacing],
+      strokeColor: this.gColorNavBox,
+      strokeWidth: 3,
+    });
+    this.gTier1NavGroup.addChild(navBoxEffectBar);
+  };
+
+  drawTimeTicks(param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsePerSecond: number;
+    tierTop: number;
+    textTop: number;
+    tierTickHeight: number;
+    textTickHeight: number;
+  }): paper.Group {
     // display time ticks
-    for (let i = 0; i < this.cSecondsIn24Hours; i++) {
+    const group = new paper.Group();
+    for (let i = param.secondsStart; i < param.secondsEnd; i++) {
       // sillily complex thing to show time ticks on the hour
       if (
         parseInt(hhmmssFromSeconds(i).substring(3, 5)) % (10 * 60) === 0 &&
         hhmmssFromSeconds(i).substring(6, 8) === "00"
       ) {
-        let itemLocX = i * this.gTier1PixelsPerSecond;
-        let topPoint = new paper.Point(itemLocX, this.gTier1Top);
-        let bottomPoint = new paper.Point(itemLocX, this.gTier1Top + 10);
-        let aLine = new paper.Path.Line(topPoint, bottomPoint);
-        aLine.strokeColor = new paper.Color("#7b7b7b");
+        let itemLocX = i * param.pixelsePerSecond;
 
-        this.gTier1Group.addChild(aLine);
+        //draw full height faint line
+        let tierTopPoint = new paper.Point(itemLocX, param.tierTop);
+        let tierBottomPoint = new paper.Point(itemLocX, param.tierTop + param.tierTickHeight);
+        let faintLine = new paper.Path.Line(tierTopPoint, tierBottomPoint);
+        faintLine.strokeColor = new paper.Color("#505050");
+        group.addChild(faintLine);
+
+        //draw brighter tick next to hour number
+        let textTopPoint = new paper.Point(itemLocX, param.textTop);
+        let textBottomPoint = new paper.Point(itemLocX, param.textTop + param.textTickHeight);
+        let textLine = new paper.Path.Line(textTopPoint, textBottomPoint);
+        textLine.strokeColor = new paper.Color("#7b7b7b");
+        group.addChild(textLine);
+
+        //draw hour number
+        const hourNumber = Math.floor(i / 3600);
+        const hourText = new paper.PointText({
+          justification: "left",
+          fontFamily: this.gNavigatorFontFamilyActivity,
+          //fontWeight: 'bold',
+          fontSize: 12,
+          fillColor: "#7b7b7b",
+          content: hourNumber + "Z",
+        });
+        hourText.point = new paper.Point(itemLocX + 4, param.textTop + 10);
+        group.addChild(hourText);
       }
     }
+    return group;
   }
 
   drawTier1() {
     this.gTier1Group.removeChildren();
+    this.gTier1Group.addChild(
+      this.drawTimeTicks({
+        secondsStart: 0,
+        secondsEnd: this.cSecondsIn24Hours,
+        pixelsePerSecond: this.gTier1PixelsPerSecond,
+        tierTop: this.gTier1Top,
+        textTop: this.gTier1Top + this.gTier1Height - 10,
+        tierTickHeight: this.gTier1Height,
+        textTickHeight: 10,
+      })
+    );
   }
 }

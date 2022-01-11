@@ -3,7 +3,7 @@ import Header from "components/interface/header";
 import Viewer from "components/framework/frames";
 import styles from "./index.module.css";
 import _ from "lodash";
-import Timeline from "components/interface/nav-timeline";
+import Timeline from "components/interface/nav-timeline-v2";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 

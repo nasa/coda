@@ -102,18 +102,18 @@ export default function NavTimeline(props: { collection: Collection }) {
     );
 
     drawNav.current.initGroups();
-    // drawNav.current.setDynamicWidthVariables();
-    // drawNav.current.drawTier1();
-    // drawNav.current.drawTier1NavBox(time.current);
+    drawNav.current.setDynamicWidthVariables();
+    drawNav.current.drawTier1();
+    drawNav.current.drawTier1NavBox(time.current);
     // drawNav.current.drawTier2();
     // drawNav.current.drawTier1Future();
-    // drawNav.current.drawCursor(time.current);
+    drawNav.current.drawCursor(time.current);
 
     paper.view.onResize = function () {
-      // drawNav.current.setDynamicWidthVariables();
-      // drawNav.current.drawTier1();
+      drawNav.current.setDynamicWidthVariables();
+      drawNav.current.drawTier1();
       // drawNav.current.drawTier1Future();
-      // drawNav.current.drawTier1NavBox(time.current);
+      drawNav.current.drawTier1NavBox(time.current);
       // drawNav.current.drawTier2();
     };
 
@@ -135,10 +135,10 @@ export default function NavTimeline(props: { collection: Collection }) {
     };
     paper.view.onMouseLeave = (event) => {
       drawNav.current?.handleMouseLeave(event, () => {
-        // mouseOnNavigator.current = false;
-        // drawNav.current.drawTier1NavBox(time.current);
+        mouseOnNavigator.current = false;
+        drawNav.current.drawTier1NavBox(time.current);
         // drawNav.current.drawTier2();
-        // drawNav.current.drawCursor(time.current);
+        drawNav.current.drawCursor(time.current);
         dispatch(changeHoverTime(0));
       });
     };
@@ -167,12 +167,12 @@ export default function NavTimeline(props: { collection: Collection }) {
     }
 
     if (!mouseOnNavigator.current) {
-      // drawNav.current.drawTier1();
+      drawNav.current.drawTier1();
       // drawNav.current.drawTier1NavBox(time.current);
       // drawNav.current.drawTier1Future();
     }
     // drawNav.current.drawTier2();
-    // drawNav.current.drawCursor(time.current);
+    drawNav.current.drawCursor(time.current);
   }, [playhead.seconds]);
 
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
@@ -182,7 +182,7 @@ export default function NavTimeline(props: { collection: Collection }) {
       style={{
         width: "100%",
         height: "210px",
-        backgroundColor: "#3e3b44",
+        backgroundColor: "#2E2B34",
       }}
     >
       <canvas
