@@ -51,7 +51,7 @@ export default class DrawNav {
   gNavigatorFontFamily = "Ubuntu Mono";
   gNavigatorFontFamilyActivity = "Inter";
 
-  cChannelStrokeWidth = 4;
+  cChannelStrokeWidth = 3;
   cVidBarGapWidth = 1;
 
   cSecondsIn24Hours = 86400;
@@ -112,7 +112,7 @@ export default class DrawNav {
     }
 
     // display video segments
-    const videoSegmentsTop = this.gTier1Top + 2;
+    const videoSegmentsTop = this.gTier1Top;
     const startOfDay = this.dateRendered.valueOf() / 1000;
     for (let i = 0; i < this.videoFiles.length; i++) {
       let startLocX =
@@ -135,7 +135,7 @@ export default class DrawNav {
       });
       vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-      if (this.videoFiles[i].downlink === 6) {
+      if (this.videoFiles[i].downlink === 8) {
         vidLine.fillColor = new paper.Color("white");
         vidLine.opacity = 0.4;
       }
@@ -144,8 +144,8 @@ export default class DrawNav {
 
     // display EV activity
     if (!isEmpty(this.asPerformed)) {
-      this.drawTier1EVActivity(7, this.asPerformed.EV1); // row 8 for EV1 (rows start at 0)
-      this.drawTier1EVActivity(8, this.asPerformed.EV2); // row 9 for EV2 (rows start at 0)
+      this.drawTier1EVActivity(9, this.asPerformed.EV1); // row 8 for EV1 (rows start at 0)
+      this.drawTier1EVActivity(10, this.asPerformed.EV2); // row 9 for EV2 (rows start at 0)
     }
 
     //dayNight
@@ -156,7 +156,7 @@ export default class DrawNav {
 
       let startLocX = startSeconds * this.gTier1PixelsPerSecond;
       let endLocX = endSeconds * this.gTier1PixelsPerSecond;
-      let startLocY = videoSegmentsTop + 9 * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
+      let startLocY = videoSegmentsTop + 12 * (this.cChannelStrokeWidth - 1 + this.cVidBarGapWidth);
       let endLocY = startLocY + this.cChannelStrokeWidth - 1;
       let activityLine = new paper.Path.Rectangle({
         from: [startLocX, startLocY],
@@ -169,7 +169,7 @@ export default class DrawNav {
     }
 
     // display photo ticks
-    const rowNum = 10; //
+    const rowNum = 11; //
     // track x locations to avoid rendering multiple lines on the same pixel
     const xLocations = new Set();
     for (let i = 0; i < this.photoFiles.length; i++) {
@@ -335,7 +335,7 @@ export default class DrawNav {
     this.gTier2Group.removeChildren();
     //draw tier2 video background staff lines
     let yPos = this.gTier2Top;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       let staffLine = new paper.Path.Rectangle({
         from: [this.gTier2Left, yPos],
         to: [this.gNavigatorWidth, yPos + this.cChannelStrokeWidth + 1],
@@ -348,7 +348,7 @@ export default class DrawNav {
     }
     //draw tier2 activity background staff lines
     const tier2EVActivityHeight = 20;
-    let startY = this.gTier2Top + 7 * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
+    let startY = this.gTier2Top + 9 * (this.cChannelStrokeWidth + this.cVidBarGapWidth);
 
     for (let i = 0; i < 3; i++) {
       let startLocY = startY + i * tier2EVActivityHeight;
@@ -397,7 +397,7 @@ export default class DrawNav {
         });
         vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-        if (this.videoFiles[i].downlink === 6) {
+        if (this.videoFiles[i].downlink === 8) {
           vidLine.fillColor = new paper.Color("white");
           vidLine.opacity = 0.4;
         }
@@ -462,7 +462,7 @@ export default class DrawNav {
         let endLocX =
           this.gTier2Left + (endSeconds - this.gTier2StartSeconds) * this.gTier2PixelsPerSecond;
 
-        let startY = this.gTier2Top + 7 * (this.cChannelStrokeWidth + this.cVidBarGapWidth); //there are 7 video channels, start EV activity tracking below them
+        let startY = this.gTier2Top + 9 * (this.cChannelStrokeWidth + this.cVidBarGapWidth); //there are 9 video channels, start EV activity tracking below them
         let startLocY = startY + 2 * dayNightHeight;
         let endLocY = startLocY + dayNightHeight;
 
@@ -624,7 +624,7 @@ export default class DrawNav {
           (evActivityArray[i].endTimeSeconds - this.gTier2StartSeconds) *
             this.gTier2PixelsPerSecond;
 
-        let startY = this.gTier2Top + 7 * (this.cChannelStrokeWidth + this.cVidBarGapWidth); //there are 7 video channels, start EV activity tracking below them
+        let startY = this.gTier2Top + 9 * (this.cChannelStrokeWidth + this.cVidBarGapWidth); //there are 9 video channels, start EV activity tracking below them
         let startLocY = startY + evRow * tier2EVActivityHeight;
         let endLocY = startLocY + tier2EVActivityHeight;
 
