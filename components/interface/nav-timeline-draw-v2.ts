@@ -1,9 +1,7 @@
-import isEmpty from "lodash/isEmpty";
 import isNull from "lodash/isNull";
 import paper from "paper";
-import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
+import { hhmmssFromSeconds } from "utils/formatting";
 
-interface TimeTicksParams {}
 export default class DrawNav {
   gTier1Group: paper.Group;
   gTier1FutureGroup: paper.Group;
@@ -131,10 +129,10 @@ export default class DrawNav {
     this.gTier2SecondsPerPixel =
       this.cSecondsIn24Hours / this.gNavZoomFactor / this.gNavigatorWidth;
 
-    this.gTier1Height = 60;
+    this.gTier1Height = 62;
     this.gTier2Height = 115;
 
-    this.gTierSpacing = 2;
+    this.gTierSpacing = 1;
 
     this.gTier2Top = 30;
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;

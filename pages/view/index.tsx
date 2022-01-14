@@ -27,7 +27,6 @@ import {
 } from "store/videos";
 import {
   addPhotos,
-  photosSelectors,
   setCollectionFilters,
   setPhotoLoadingStatus,
   fetchError as photosFetchError,
@@ -48,11 +47,11 @@ export function V2(props: { query: QueryParams }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  // const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
 
   const dispatch = useDispatch();
 
-  const photoFiles = photosSelectors.selectAll(photos);
+  // const photoFiles = photosSelectors.selectAll(photos);
   const videoFiles = videoSelectors.selectAll(videos);
 
   // make sure the application is running on the correct date
@@ -206,12 +205,6 @@ export function V2(props: { query: QueryParams }) {
         dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
-
-      const d = new Date(playheadDate);
-
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth() + 1;
-      const day = d.getUTCDate();
 
       dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
       try {

@@ -54,7 +54,7 @@ export const allPanes: Frames = {
     source: FrameSource.ISS,
     title: "ISS Photography",
     icon: "camera",
-    color: "ruby",
+    color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
       infoToggle: false,
@@ -76,7 +76,7 @@ export const allPanes: Frames = {
     source: FrameSource.ISS,
     title: "EVA Info",
     icon: "info",
-    color: "mustardGreen",
+    color: "ruby",
     defaultPaneStateData: {
       ready: true,
     },
