@@ -70,7 +70,7 @@ export default function Video(props: {
 
     //set nonDownlinkVideo selected if non-downlink video has been selected
     const nonDLParam = query[`nonDLvideo${playerID}`] as string;
-    if (downlink === 6) {
+    if (downlink === 8) {
       dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: nonDLParam }));
     }
 
@@ -115,7 +115,7 @@ export default function Video(props: {
       videoID = "";
     }
 
-    if (downlink === 6) {
+    if (downlink === 8) {
       videoID = videos.nonDownlinkIDs[playerID];
       if (videosNextSecond && !videosNextSecond.includes(videoID)) {
         videoID = videosNextSecond[0];
@@ -360,7 +360,7 @@ export default function Video(props: {
 
   const renderButtons = () => {
     const downlink = videos.downlinks[playerID];
-    const availableDownlinks = [0, 1, 2, 3, 4, 5];
+    const availableDownlinks = [0, 1, 2, 3, 4, 5, 6, 7];
 
     return availableDownlinks.map((d) => {
       let buttonClassStyle = styles.vidButton;
@@ -419,7 +419,7 @@ export default function Video(props: {
 
     let buttonClassStyle = styles.vidButton;
     let arrowClass = styles.select_arrow;
-    if (videos.downlinks[playerID] === 6) {
+    if (videos.downlinks[playerID] === 8) {
       buttonClassStyle = `${styles.vidButton} ${styles.selected}`;
       arrowClass = styles.select_arrow_dark;
     } else if (nonDlVideoIDs.length > 0) {
@@ -440,7 +440,7 @@ export default function Video(props: {
             className={`${buttonClassStyle} ${styles.nonDLButton} ${styles.selectNonDL} ${selectActiveStyle}`}
             value={videos.nonDownlinkIDs[playerID]}
             onChange={(e) => {
-              dispatch(setVideoDownlink({ playerID, downlink: 6 }));
+              dispatch(setVideoDownlink({ playerID, downlink: 8 }));
               dispatch(setVideoNonDownlinkID({ playerID, nonDownlinkID: e.target.value }));
               setInfoToggle(false);
             }}
