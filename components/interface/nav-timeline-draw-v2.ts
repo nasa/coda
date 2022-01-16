@@ -39,6 +39,11 @@ export default class DrawNav {
   gColorCursor = new paper.Color("#d10b0b");
   gColorNavCursor = new paper.Color("#19181b");
   gColorNavBox = new paper.Color("#efefef");
+  gColorBarBorder = new paper.Color("#2a282e");
+  gColorVideo = new paper.Color("#999999");
+  gColorVideoLOS = new paper.Color("#4e4e4e");
+  gColorPhotoTicks = new paper.Color("#28B463");
+  gColorPhotoTicksFiltered = new paper.Color("#0c331c");
 
   constructor(
     readonly videoFiles: VideoFile[],
@@ -82,7 +87,7 @@ export default class DrawNav {
     if (event.point.y > this.gTier1Top) {
       //if in tier1
       mouseXSeconds = event.point.x * this.gTier1SecondsPerPixel;
-      this.drawTier1NavBox(mouseXSeconds);
+      this.drawNavBox(mouseXSeconds);
       // this.drawTier2();
     } else {
       //if in tier 2
@@ -132,7 +137,7 @@ export default class DrawNav {
     this.gTier1Height = 62;
     this.gTier2Height = 115;
 
-    this.gTierSpacing = 1;
+    this.gTierSpacing = 2;
 
     this.gTier2Top = 30;
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
@@ -235,83 +240,6 @@ export default class DrawNav {
     return cursorElementGroup;
   };
 
-  drawTier1NavBox = (seconds) => {
-    this.gTier1NavGroup.removeChildren();
-
-    let locX = seconds * this.gTier1PixelsPerSecond;
-    let navBoxWidth = this.gNavigatorWidth / this.gNavZoomFactor;
-    this.gTier1NavBoxLocX = locX - navBoxWidth / 2;
-    if (this.gTier1NavBoxLocX < 0) {
-      this.gTier1NavBoxLocX = 0;
-    } else if (this.gTier1NavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
-      this.gTier1NavBoxLocX = this.gNavigatorWidth - navBoxWidth;
-    }
-    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gTier1NavBoxLocX;
-
-    const navBoxTop = this.gTier1Top;
-    const navBoxHeight = this.gTier1Height + 2;
-    let navBoxRect = new paper.Rectangle(
-      this.gTier1NavBoxLocX,
-      navBoxTop,
-      navBoxWidth,
-      navBoxHeight
-    );
-    const cornerSize = new paper.Size(3, 3);
-    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
-    navBoxRectPath.strokeColor = this.gColorNavBox;
-    navBoxRectPath.strokeWidth = 3;
-    this.gTier1NavGroup.addChild(navBoxRectPath);
-
-    //left navBoxEffect
-    const effectHeight = 20;
-    let startPoint = new paper.Point(
-      this.gTier1NavBoxLocX,
-      this.gTier1Top - this.gTierSpacing + effectHeight
-    );
-    const effectSideWidth = 20;
-    let navBoxEffectLeft = new paper.Path({
-      strokeColor: this.gColorNavBox,
-      closed: false,
-      fillColor: "#efefef",
-      strokeWidth: 2,
-    });
-    navBoxEffectLeft.add(startPoint);
-    navBoxEffectLeft.arcTo(
-      new paper.Point(startPoint.x - effectSideWidth / 1.2, startPoint.y - effectHeight),
-      new paper.Point(startPoint.x - effectSideWidth, startPoint.y - effectHeight)
-    );
-    navBoxEffectLeft.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
-    this.gTier1NavGroup.addChild(navBoxEffectLeft);
-
-    //right navBoxEffect
-    startPoint = new paper.Point(
-      this.gTier1NavBoxLocX + navBoxWidth,
-      this.gTier1Top - this.gTierSpacing + effectHeight
-    );
-    let navBoxEffectRight = new paper.Path({
-      strokeColor: this.gColorNavBox,
-      closed: false,
-      fillColor: this.gColorNavBox,
-      strokeWidth: 2,
-    });
-    navBoxEffectRight.add(startPoint);
-    navBoxEffectRight.arcTo(
-      new paper.Point(startPoint.x + effectSideWidth / 1.2, startPoint.y - effectHeight),
-      new paper.Point(startPoint.x + effectSideWidth, startPoint.y - effectHeight)
-    );
-    navBoxEffectRight.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
-    this.gTier1NavGroup.addChild(navBoxEffectRight);
-
-    //Timeline separator bar full width
-    const navBoxEffectBar = new paper.Path.Line({
-      from: [0, this.gTier1Top - this.gTierSpacing],
-      to: [this.gNavigatorWidth, this.gTier1Top - this.gTierSpacing],
-      strokeColor: this.gColorNavBox,
-      strokeWidth: 3,
-    });
-    this.gTier1NavGroup.addChild(navBoxEffectBar);
-  };
-
   drawTimeTicks(param: {
     secondsStart: number;
     secondsEnd: number;
@@ -362,8 +290,263 @@ export default class DrawNav {
     return group;
   }
 
+  drawDayNight(param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsePerSecond: number;
+    barTop: number;
+    barHeight: number;
+    drawLabels: boolean;
+  }): paper.Group {
+    const group = new paper.Group();
+    for (let i = 0; i < this.dayNight.length - 1; i++) {
+      const startSeconds = this.dayNight[i].appSeconds;
+      const endSeconds = this.dayNight[i + 1].appSeconds;
+      const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
+      const textColor = this.dayNight[i].daylight ? "black" : "#dddddd";
+      if (startSeconds >= param.secondsStart && endSeconds <= param.secondsEnd) {
+        let startLocX =
+          this.gTier2Left + (startSeconds - param.secondsStart) * param.pixelsePerSecond;
+        let endLocX = this.gTier2Left + (endSeconds - param.secondsStart) * param.pixelsePerSecond;
+
+        let startLocY = param.barTop;
+        let endLocY = startLocY + param.barHeight;
+
+        let activityLine = new paper.Path.Rectangle({
+          from: [startLocX, startLocY],
+          to: [endLocX, endLocY],
+          strokeWidth: 0.5,
+          strokeColor: this.gColorBarBorder,
+          fillColor: fillColor,
+        });
+        group.addChild(activityLine);
+
+        if (param.drawLabels) {
+          let activityText = new paper.PointText({
+            justification: "left",
+            fontFamily: this.gNavigatorFontFamilyActivity,
+            fontSize: 13,
+            fillColor: textColor,
+          });
+          let textTop = startLocY + 14;
+          activityText.point = new paper.Point(startLocX + 2, textTop);
+          activityText.content = this.dayNight[i].daylight ? "Insolation" : "Eclipse";
+          group.addChild(activityText);
+        }
+      }
+    }
+    return group;
+  }
+
+  drawVideoSegments(param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsePerSecond: number;
+    vidBarsTop: number;
+    vidBarHeight: number;
+    vidBarGapHeight: number;
+    drawLabels: boolean;
+  }): paper.Group {
+    const group = new paper.Group();
+    for (let i = 0; i < this.videoFiles.length; i++) {
+      const startOfDay = this.dateRendered.valueOf() / 1000;
+      if (
+        // if video starts before the end of the tier display and ends after the start of the tier display, then draw a bar
+        this.videoFiles[i].start - startOfDay <= param.secondsEnd &&
+        this.videoFiles[i].end - startOfDay >= param.secondsStart
+      ) {
+        let startLocX =
+          this.gTier2Left +
+          (Math.max(this.videoFiles[i].start - startOfDay, 0) - param.secondsStart) *
+            param.pixelsePerSecond;
+        let endLocX =
+          this.gTier2Left +
+          (Math.min(this.videoFiles[i].end - startOfDay, 86399) - param.secondsStart) *
+            param.pixelsePerSecond;
+
+        let startLocY =
+          param.vidBarsTop +
+          this.videoFiles[i].downlink * (param.vidBarHeight + param.vidBarGapHeight);
+        let endLocY = startLocY + param.vidBarHeight + 1;
+
+        let name = "vidItem_" + i.toString();
+
+        let vidLine = new paper.Path.Rectangle({
+          from: [startLocX, startLocY],
+          to: [endLocX, endLocY],
+          strokeWidth: 1,
+          strokeColor: this.gColorBarBorder,
+          name: name,
+        });
+        vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
+
+        if (this.videoFiles[i].downlink === 6) {
+          vidLine.fillColor = new paper.Color("white");
+          vidLine.opacity = 0.4;
+        }
+        group.addChild(vidLine);
+      }
+    }
+    return group;
+  }
+
+  drawPhotoTicks(param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsePerSecond: number;
+    ticksTop: number;
+    tickHeight: number;
+  }): paper.Group {
+    const group = new paper.Group();
+    for (let i = 0; i < this.photoFiles.length; i++) {
+      if (
+        this.photoFiles[i].datetimeTakenAppSeconds <= param.secondsEnd &&
+        this.photoFiles[i].datetimeTakenAppSeconds >= param.secondsStart
+      ) {
+        let showThisPhoto = false;
+        for (let j = 0; j < this.collectionFilters.length; j++) {
+          if (
+            this.photoFiles[i].collections === this.collectionFilters[j].fullList &&
+            this.collectionFilters[j].selected
+          ) {
+            showThisPhoto = true;
+            break;
+          }
+        }
+
+        let itemLocX =
+          this.gTier2Left +
+          (this.photoFiles[i].datetimeTakenAppSeconds - param.secondsStart) *
+            param.pixelsePerSecond;
+        let topPoint = new paper.Point(itemLocX, param.ticksTop);
+        let bottomPoint = new paper.Point(itemLocX, param.ticksTop + param.tickHeight);
+        let aLine = new paper.Path.Line(topPoint, bottomPoint);
+        if (showThisPhoto) {
+          aLine.strokeColor = this.gColorPhotoTicks;
+        } else {
+          aLine.strokeColor = this.gColorPhotoTicksFiltered;
+        }
+        aLine.strokeWidth = 2;
+
+        group.addChild(aLine);
+      } else if (this.photoFiles[i].datetimeTakenAppSeconds > param.secondsEnd) {
+        // break because photos are listed in temporal order and if we've passed the end of the display, the rest of the photos are not visible
+        break;
+      }
+    }
+    return group;
+  }
+
+  drawEVActivity = (param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsePerSecond: number;
+    barTop: number;
+    barHeight: number;
+    barGapHeight: number;
+    drawLabels: boolean;
+  }): paper.Group => {
+    const group = new paper.Group();
+    let rowCounter = 0;
+    for (const key of Object.keys(this.asPerformed)) {
+      const evActivityArray = this.asPerformed[key];
+      for (let i = 0; i < evActivityArray.length; i++) {
+        if (
+          evActivityArray[i].startTimeSeconds <= param.secondsEnd &&
+          evActivityArray[i].endTimeSeconds >= param.secondsStart
+        ) {
+          let startLocX =
+            this.gTier2Left +
+            (evActivityArray[i].startTimeSeconds - param.secondsStart) * param.pixelsePerSecond;
+          let endLocX =
+            this.gTier2Left +
+            (evActivityArray[i].endTimeSeconds - param.secondsStart) * param.pixelsePerSecond;
+
+          let startLocY = param.barTop + rowCounter * param.barHeight;
+          let endLocY = startLocY + param.barHeight;
+
+          let activityLine = new paper.Path.Rectangle({
+            from: [startLocX, startLocY],
+            to: [endLocX, endLocY],
+            strokeWidth: 0.5,
+            strokeColor: this.gColorBarBorder,
+            // fillColor: gActivityBackgroundColor,
+            fillColor: evActivityArray[i].color,
+            name: name,
+          });
+          group.addChild(activityLine);
+
+          if (param.drawLabels) {
+            let activityText = new paper.PointText({
+              justification: "left",
+              fontFamily: this.gNavigatorFontFamilyActivity,
+              //fontWeight: 'bold',
+              fontSize: 13,
+              fillColor: "white",
+            });
+            let textTop = startLocY + 14;
+            activityText.point = new paper.Point(startLocX + 2, textTop);
+            activityText.content = evActivityArray[i].content;
+            if (evActivityArray[i].content === "Insolation") {
+              activityText.fillColor = new paper.Color("#000000");
+            }
+            group.addChild(activityText);
+          }
+        }
+      }
+      rowCounter++;
+    }
+    return group;
+  };
+
   drawTier1() {
     this.gTier1Group.removeChildren();
+
+    this.gTier1Group.addChild(
+      this.drawVideoSegments({
+        secondsStart: 0,
+        secondsEnd: this.cSecondsIn24Hours,
+        pixelsePerSecond: this.gTier1PixelsPerSecond,
+        vidBarsTop: this.gTier1Top + 1.5,
+        vidBarHeight: 2,
+        vidBarGapHeight: 1,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier1Group.addChild(
+      this.drawPhotoTicks({
+        secondsStart: 0,
+        secondsEnd: this.cSecondsIn24Hours,
+        pixelsePerSecond: this.gTier1PixelsPerSecond,
+        ticksTop: this.gTier1Top + this.gTier1Height - 14.5,
+        tickHeight: 2,
+      })
+    );
+
+    this.gTier1Group.addChild(
+      this.drawEVActivity({
+        secondsStart: 0,
+        secondsEnd: this.cSecondsIn24Hours,
+        pixelsePerSecond: this.gTier1PixelsPerSecond,
+        barTop: this.gTier1Top + this.gTier1Height - 20.5,
+        barHeight: 3,
+        barGapHeight: 1,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier1Group.addChild(
+      this.drawDayNight({
+        secondsStart: 0,
+        secondsEnd: this.cSecondsIn24Hours,
+        pixelsePerSecond: this.gTier1PixelsPerSecond,
+        barTop: this.gTier1Top + this.gTier1Height - 12.5,
+        barHeight: 2,
+        drawLabels: false,
+      })
+    );
+
     this.gTier1Group.addChild(
       this.drawTimeTicks({
         secondsStart: 0,
@@ -376,4 +559,78 @@ export default class DrawNav {
       })
     );
   }
+
+  drawNavBox = (seconds) => {
+    this.gTier1NavGroup.removeChildren();
+
+    let locX = seconds * this.gTier1PixelsPerSecond;
+    let navBoxWidth = this.gNavigatorWidth / this.gNavZoomFactor;
+    this.gTier1NavBoxLocX = locX - navBoxWidth / 2;
+    if (this.gTier1NavBoxLocX < 0) {
+      this.gTier1NavBoxLocX = 0;
+    } else if (this.gTier1NavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
+      this.gTier1NavBoxLocX = this.gNavigatorWidth - navBoxWidth;
+    }
+    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gTier1NavBoxLocX;
+
+    const navBoxTop = this.gTier1Top;
+    const navBoxHeight = this.gTier1Height;
+    let navBoxRect = new paper.Rectangle(
+      this.gTier1NavBoxLocX,
+      navBoxTop,
+      navBoxWidth,
+      navBoxHeight
+    );
+    const cornerSize = new paper.Size(3, 3);
+    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
+    navBoxRectPath.strokeColor = this.gColorNavBox;
+    navBoxRectPath.strokeWidth = 2;
+    this.gTier1NavGroup.addChild(navBoxRectPath);
+
+    //left navBoxEffect
+    const effectHeight = 20;
+    let startPoint = new paper.Point(this.gTier1NavBoxLocX, this.gTier1Top + effectHeight);
+    const effectSideWidth = 20;
+    let navBoxEffectLeft = new paper.Path({
+      strokeColor: this.gColorNavBox,
+      closed: false,
+      fillColor: "#efefef",
+      strokeWidth: 2,
+    });
+    navBoxEffectLeft.add(startPoint);
+    navBoxEffectLeft.arcTo(
+      new paper.Point(startPoint.x - effectSideWidth / 1.2, startPoint.y - effectHeight),
+      new paper.Point(startPoint.x - effectSideWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffectLeft.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
+    this.gTier1NavGroup.addChild(navBoxEffectLeft);
+
+    //right navBoxEffect
+    startPoint = new paper.Point(
+      this.gTier1NavBoxLocX + navBoxWidth,
+      this.gTier1Top + effectHeight
+    );
+    let navBoxEffectRight = new paper.Path({
+      strokeColor: this.gColorNavBox,
+      closed: false,
+      fillColor: this.gColorNavBox,
+      strokeWidth: 2,
+    });
+    navBoxEffectRight.add(startPoint);
+    navBoxEffectRight.arcTo(
+      new paper.Point(startPoint.x + effectSideWidth / 1.2, startPoint.y - effectHeight),
+      new paper.Point(startPoint.x + effectSideWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffectRight.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
+    this.gTier1NavGroup.addChild(navBoxEffectRight);
+
+    //Timeline separator bar full width
+    const navBoxEffectBar = new paper.Path.Line({
+      from: [0, this.gTier1Top],
+      to: [this.gNavigatorWidth, this.gTier1Top],
+      strokeColor: this.gColorNavBox,
+      strokeWidth: this.gTierSpacing,
+    });
+    this.gTier1NavGroup.addChild(navBoxEffectBar);
+  };
 }

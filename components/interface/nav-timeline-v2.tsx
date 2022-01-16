@@ -104,7 +104,7 @@ export default function NavTimeline(props: { collection: Collection }) {
     drawNav.current.initGroups();
     drawNav.current.setDynamicWidthVariables();
     drawNav.current.drawTier1();
-    drawNav.current.drawTier1NavBox(time.current);
+    drawNav.current.drawNavBox(time.current);
     // drawNav.current.drawTier2();
     // drawNav.current.drawTier1Future();
     drawNav.current.drawCursor(time.current);
@@ -113,7 +113,7 @@ export default function NavTimeline(props: { collection: Collection }) {
       drawNav.current.setDynamicWidthVariables();
       drawNav.current.drawTier1();
       // drawNav.current.drawTier1Future();
-      drawNav.current.drawTier1NavBox(time.current);
+      drawNav.current.drawNavBox(time.current);
       // drawNav.current.drawTier2();
     };
 
@@ -136,7 +136,7 @@ export default function NavTimeline(props: { collection: Collection }) {
     paper.view.onMouseLeave = (event) => {
       drawNav.current?.handleMouseLeave(event, () => {
         mouseOnNavigator.current = false;
-        drawNav.current.drawTier1NavBox(time.current);
+        drawNav.current.drawNavBox(time.current);
         // drawNav.current.drawTier2();
         drawNav.current.drawCursor(time.current);
         dispatch(changeHoverTime(0));
@@ -168,7 +168,7 @@ export default function NavTimeline(props: { collection: Collection }) {
 
     if (!mouseOnNavigator.current) {
       drawNav.current.drawTier1();
-      // drawNav.current.drawTier1NavBox(time.current);
+      drawNav.current.drawNavBox(time.current);
       // drawNav.current.drawTier1Future();
     }
     // drawNav.current.drawTier2();
