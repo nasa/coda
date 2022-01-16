@@ -6,7 +6,7 @@ export default class DrawNav {
   gTier1Group: paper.Group;
   gTier1FutureGroup: paper.Group;
   gTier1NavGroup: paper.Group;
-  gTier1NavBoxLocX: number;
+  gNavBoxLocX: number;
 
   gTier2Group: paper.Group;
   gTier2BoarderGroup: paper.Group;
@@ -88,7 +88,7 @@ export default class DrawNav {
       //if in tier1
       mouseXSeconds = event.point.x * this.gTier1SecondsPerPixel;
       this.drawNavBox(mouseXSeconds);
-      // this.drawTier2();
+      this.drawTier2();
     } else {
       //if in tier 2
       mouseXSeconds =
@@ -134,12 +134,12 @@ export default class DrawNav {
     this.gTier2SecondsPerPixel =
       this.cSecondsIn24Hours / this.gNavZoomFactor / this.gNavigatorWidth;
 
-    this.gTier1Height = 62;
-    this.gTier2Height = 115;
+    this.gTier1Height = 52;
+    this.gTier2Height = 52;
 
     this.gTierSpacing = 2;
 
-    this.gTier2Top = 30;
+    this.gTier2Top = 104;
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
 
     this.gTier1Left = 1;
@@ -243,7 +243,7 @@ export default class DrawNav {
   drawTimeTicks(param: {
     secondsStart: number;
     secondsEnd: number;
-    pixelsePerSecond: number;
+    pixelsPerSecond: number;
     tierTop: number;
     textTop: number;
     tierTickHeight: number;
@@ -257,7 +257,8 @@ export default class DrawNav {
         parseInt(hhmmssFromSeconds(i).substring(3, 5)) % (10 * 60) === 0 &&
         hhmmssFromSeconds(i).substring(6, 8) === "00"
       ) {
-        let itemLocX = i * param.pixelsePerSecond;
+        let itemSecondsFromLeft = i - param.secondsStart;
+        let itemLocX = this.gTier2Left + itemSecondsFromLeft * param.pixelsPerSecond;
 
         //draw full height faint line
         let tierTopPoint = new paper.Point(itemLocX, param.tierTop);
@@ -293,7 +294,7 @@ export default class DrawNav {
   drawDayNight(param: {
     secondsStart: number;
     secondsEnd: number;
-    pixelsePerSecond: number;
+    pixelsPerSecond: number;
     barTop: number;
     barHeight: number;
     drawLabels: boolean;
@@ -304,10 +305,10 @@ export default class DrawNav {
       const endSeconds = this.dayNight[i + 1].appSeconds;
       const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
       const textColor = this.dayNight[i].daylight ? "black" : "#dddddd";
-      if (startSeconds >= param.secondsStart && endSeconds <= param.secondsEnd) {
+      if (startSeconds <= param.secondsEnd && endSeconds >= param.secondsStart) {
         let startLocX =
-          this.gTier2Left + (startSeconds - param.secondsStart) * param.pixelsePerSecond;
-        let endLocX = this.gTier2Left + (endSeconds - param.secondsStart) * param.pixelsePerSecond;
+          this.gTier2Left + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
+        let endLocX = this.gTier2Left + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
 
         let startLocY = param.barTop;
         let endLocY = startLocY + param.barHeight;
@@ -341,7 +342,7 @@ export default class DrawNav {
   drawVideoSegments(param: {
     secondsStart: number;
     secondsEnd: number;
-    pixelsePerSecond: number;
+    pixelsPerSecond: number;
     vidBarsTop: number;
     vidBarHeight: number;
     vidBarGapHeight: number;
@@ -358,11 +359,11 @@ export default class DrawNav {
         let startLocX =
           this.gTier2Left +
           (Math.max(this.videoFiles[i].start - startOfDay, 0) - param.secondsStart) *
-            param.pixelsePerSecond;
+            param.pixelsPerSecond;
         let endLocX =
           this.gTier2Left +
           (Math.min(this.videoFiles[i].end - startOfDay, 86399) - param.secondsStart) *
-            param.pixelsePerSecond;
+            param.pixelsPerSecond;
 
         let startLocY =
           param.vidBarsTop +
@@ -393,7 +394,7 @@ export default class DrawNav {
   drawPhotoTicks(param: {
     secondsStart: number;
     secondsEnd: number;
-    pixelsePerSecond: number;
+    pixelsPerSecond: number;
     ticksTop: number;
     tickHeight: number;
   }): paper.Group {
@@ -416,8 +417,7 @@ export default class DrawNav {
 
         let itemLocX =
           this.gTier2Left +
-          (this.photoFiles[i].datetimeTakenAppSeconds - param.secondsStart) *
-            param.pixelsePerSecond;
+          (this.photoFiles[i].datetimeTakenAppSeconds - param.secondsStart) * param.pixelsPerSecond;
         let topPoint = new paper.Point(itemLocX, param.ticksTop);
         let bottomPoint = new paper.Point(itemLocX, param.ticksTop + param.tickHeight);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
@@ -426,7 +426,7 @@ export default class DrawNav {
         } else {
           aLine.strokeColor = this.gColorPhotoTicksFiltered;
         }
-        aLine.strokeWidth = 2;
+        aLine.strokeWidth = 1;
 
         group.addChild(aLine);
       } else if (this.photoFiles[i].datetimeTakenAppSeconds > param.secondsEnd) {
@@ -440,7 +440,7 @@ export default class DrawNav {
   drawEVActivity = (param: {
     secondsStart: number;
     secondsEnd: number;
-    pixelsePerSecond: number;
+    pixelsPerSecond: number;
     barTop: number;
     barHeight: number;
     barGapHeight: number;
@@ -457,10 +457,10 @@ export default class DrawNav {
         ) {
           let startLocX =
             this.gTier2Left +
-            (evActivityArray[i].startTimeSeconds - param.secondsStart) * param.pixelsePerSecond;
+            (evActivityArray[i].startTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
           let endLocX =
             this.gTier2Left +
-            (evActivityArray[i].endTimeSeconds - param.secondsStart) * param.pixelsePerSecond;
+            (evActivityArray[i].endTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
 
           let startLocY = param.barTop + rowCounter * param.barHeight;
           let endLocY = startLocY + param.barHeight;
@@ -502,12 +502,20 @@ export default class DrawNav {
   drawTier1() {
     this.gTier1Group.removeChildren();
 
+    const drawingTop = this.gTier1Top + 0.5;
+    const drawingBottom = this.gTier1Top + this.gTier1Height - this.gTierSpacing + 0.5;
+    const drawingHeight = this.gTier1Height;
+
+    const pixelsPerSecond = this.gTier1PixelsPerSecond;
+    const secondsStart = 0;
+    const secondsEnd = this.cSecondsIn24Hours;
+
     this.gTier1Group.addChild(
       this.drawVideoSegments({
-        secondsStart: 0,
-        secondsEnd: this.cSecondsIn24Hours,
-        pixelsePerSecond: this.gTier1PixelsPerSecond,
-        vidBarsTop: this.gTier1Top + 1.5,
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        vidBarsTop: drawingTop,
         vidBarHeight: 2,
         vidBarGapHeight: 1,
         drawLabels: false,
@@ -516,20 +524,20 @@ export default class DrawNav {
 
     this.gTier1Group.addChild(
       this.drawPhotoTicks({
-        secondsStart: 0,
-        secondsEnd: this.cSecondsIn24Hours,
-        pixelsePerSecond: this.gTier1PixelsPerSecond,
-        ticksTop: this.gTier1Top + this.gTier1Height - 14.5,
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        ticksTop: drawingBottom - 14.5,
         tickHeight: 2,
       })
     );
 
     this.gTier1Group.addChild(
       this.drawEVActivity({
-        secondsStart: 0,
-        secondsEnd: this.cSecondsIn24Hours,
-        pixelsePerSecond: this.gTier1PixelsPerSecond,
-        barTop: this.gTier1Top + this.gTier1Height - 20.5,
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        barTop: drawingBottom - 20.5,
         barHeight: 3,
         barGapHeight: 1,
         drawLabels: false,
@@ -538,10 +546,10 @@ export default class DrawNav {
 
     this.gTier1Group.addChild(
       this.drawDayNight({
-        secondsStart: 0,
-        secondsEnd: this.cSecondsIn24Hours,
-        pixelsePerSecond: this.gTier1PixelsPerSecond,
-        barTop: this.gTier1Top + this.gTier1Height - 12.5,
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        barTop: drawingBottom - 12.5,
         barHeight: 2,
         drawLabels: false,
       })
@@ -549,12 +557,81 @@ export default class DrawNav {
 
     this.gTier1Group.addChild(
       this.drawTimeTicks({
-        secondsStart: 0,
-        secondsEnd: this.cSecondsIn24Hours,
-        pixelsePerSecond: this.gTier1PixelsPerSecond,
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
         tierTop: this.gTier1Top,
-        textTop: this.gTier1Top + this.gTier1Height - 10,
-        tierTickHeight: this.gTier1Height,
+        textTop: drawingBottom - 10,
+        tierTickHeight: drawingHeight,
+        textTickHeight: 10,
+      })
+    );
+  }
+
+  drawTier2() {
+    this.gTier2Group.removeChildren();
+
+    const drawingTop = this.gTier2Top + 0.5;
+    const drawingBottom = this.gTier2Top + this.gTier2Height + 0.5;
+    const drawingHeight = this.gTier2Height;
+
+    const pixelsPerSecond = this.gTier2PixelsPerSecond;
+    const secondsStart = this.gTier2StartSeconds;
+    const secondsEnd = this.gTier2StartSeconds + this.gTier2SecondsPerPixel * this.gNavigatorWidth;
+
+    this.gTier2Group.addChild(
+      this.drawVideoSegments({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        vidBarsTop: drawingTop,
+        vidBarHeight: 2,
+        vidBarGapHeight: 1,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawPhotoTicks({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        ticksTop: drawingBottom - 14.5,
+        tickHeight: 2,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawEVActivity({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        barTop: drawingBottom - 20.5,
+        barHeight: 3,
+        barGapHeight: 1,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawDayNight({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        barTop: drawingBottom - 12.5,
+        barHeight: 2,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawTimeTicks({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        tierTop: this.gTier2Top,
+        textTop: drawingBottom - 10,
+        tierTickHeight: drawingHeight,
         textTickHeight: 10,
       })
     );
@@ -565,22 +642,17 @@ export default class DrawNav {
 
     let locX = seconds * this.gTier1PixelsPerSecond;
     let navBoxWidth = this.gNavigatorWidth / this.gNavZoomFactor;
-    this.gTier1NavBoxLocX = locX - navBoxWidth / 2;
-    if (this.gTier1NavBoxLocX < 0) {
-      this.gTier1NavBoxLocX = 0;
-    } else if (this.gTier1NavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
-      this.gTier1NavBoxLocX = this.gNavigatorWidth - navBoxWidth;
+    this.gNavBoxLocX = locX - navBoxWidth / 2;
+    if (this.gNavBoxLocX < 0) {
+      this.gNavBoxLocX = 0;
+    } else if (this.gNavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
+      this.gNavBoxLocX = this.gNavigatorWidth - navBoxWidth;
     }
-    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gTier1NavBoxLocX;
+    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gNavBoxLocX;
 
     const navBoxTop = this.gTier1Top;
     const navBoxHeight = this.gTier1Height;
-    let navBoxRect = new paper.Rectangle(
-      this.gTier1NavBoxLocX,
-      navBoxTop,
-      navBoxWidth,
-      navBoxHeight
-    );
+    let navBoxRect = new paper.Rectangle(this.gNavBoxLocX, navBoxTop, navBoxWidth, navBoxHeight);
     const cornerSize = new paper.Size(3, 3);
     let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
     navBoxRectPath.strokeColor = this.gColorNavBox;
@@ -589,7 +661,7 @@ export default class DrawNav {
 
     //left navBoxEffect
     const effectHeight = 20;
-    let startPoint = new paper.Point(this.gTier1NavBoxLocX, this.gTier1Top + effectHeight);
+    let startPoint = new paper.Point(this.gNavBoxLocX, this.gTier1Top + effectHeight);
     const effectSideWidth = 20;
     let navBoxEffectLeft = new paper.Path({
       strokeColor: this.gColorNavBox,
@@ -606,10 +678,7 @@ export default class DrawNav {
     this.gTier1NavGroup.addChild(navBoxEffectLeft);
 
     //right navBoxEffect
-    startPoint = new paper.Point(
-      this.gTier1NavBoxLocX + navBoxWidth,
-      this.gTier1Top + effectHeight
-    );
+    startPoint = new paper.Point(this.gNavBoxLocX + navBoxWidth, this.gTier1Top + effectHeight);
     let navBoxEffectRight = new paper.Path({
       strokeColor: this.gColorNavBox,
       closed: false,
