@@ -142,12 +142,12 @@ const videoSorter = (a: VideoFile, b: VideoFile) => {
 
 /** Parse the video result for relevant information */
 function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
-  let downlink = 6;
+  let downlink = 8;
   let LOS = false;
 
   if (+Collection[collection] === +Collection.ISS) {
     const channel = getChannel(doc.collections_string);
-    if (["01", "02", "03", "04", "05", "06"].indexOf(channel) > -1) {
+    if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
       downlink = parseInt(channel) - 1;
     }
   }

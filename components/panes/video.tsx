@@ -66,7 +66,7 @@ export function ExpandButton() {
   );
 }
 
-const downlinks = [0, 1, 2, 3, 4, 5];
+const downlinks = [0, 1, 2, 3, 4, 5, 6, 7];
 
 export function VideoControls(props: { frameID: number; frameWidth: number }) {
   const frameID = props.frameID;
@@ -115,7 +115,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
             let rounded = "none";
             if (d === 1) {
               rounded = "left";
-            } else if (d === 6) {
+            } else if (d === 8) {
               rounded = "right";
             }
 
