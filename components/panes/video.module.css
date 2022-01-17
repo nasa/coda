@@ -126,7 +126,7 @@
   width: 100%;
   height: 100%;
   position: relative;
-  background-color: #19181b;
+  background-color: var(--nearly-black);
   object-fit: contain;
 }
 

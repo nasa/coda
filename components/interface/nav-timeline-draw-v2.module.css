@@ -24,6 +24,6 @@
   height: 106px;
   bottom: 0;
   left: 0;
-  background-color: #2e2b34;
+  background-color: var(--nearly-black);
   z-index: 0;
 }
