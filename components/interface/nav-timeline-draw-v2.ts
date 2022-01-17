@@ -677,10 +677,10 @@ export default class DrawNav {
     this.gTier1NavGroup.removeChildren();
 
     let locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
-    let navBoxWidth = this.gNavigatorWidth / this.gNavZoomFactor;
+    let navBoxWidth = (this.gNavigatorWidth - this.gTier1Left) / this.gNavZoomFactor;
     this.gNavBoxLocX = locX - navBoxWidth / 2;
-    if (this.gNavBoxLocX < 0) {
-      this.gNavBoxLocX = 0;
+    if (this.gNavBoxLocX < this.gTier1Left) {
+      this.gNavBoxLocX = this.gTier1Left;
     } else if (this.gNavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
       this.gNavBoxLocX = this.gNavigatorWidth - navBoxWidth;
     }
