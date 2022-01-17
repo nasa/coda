@@ -177,10 +177,10 @@ export default function NavTimeline(props: { collection: Collection }) {
     drawNav.current.drawCursor(time.current);
   }, [playhead.seconds]);
 
-  // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
-  // https://github.com/vercel/next.js/issues/7322
   return (
     <>
+      {/* {!mouseOnNavigator.current && <div className={styles.collapsedBackground}></div>}
+      {mouseOnNavigator.current && <div className={styles.expandedBackground}></div>} */}
       <div className={styles.collapsedBackground}></div>
       <div className={styles.canvasContainer}>
         <canvas ref={canvas} data-paper-resize />

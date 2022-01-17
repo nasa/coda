@@ -62,9 +62,9 @@ export const allPanes: Frames = {
       filterToggle: false,
     },
   },
-  iss_groundtrack: {
+  iss_position: {
     source: FrameSource.ISS,
-    title: "ISS Groundtrack",
+    title: "ISS Position",
     icon: "globe-americas",
     color: "purple",
     defaultPaneStateData: {
@@ -110,7 +110,7 @@ export const initialState: FrameworkState = {
       },
     },
     5: {
-      paneType: "iss_groundtrack",
+      paneType: "iss_position",
       paneStateData: {
         lockToggle: true,
         ready: true,

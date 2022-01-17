@@ -86,9 +86,12 @@ export default class DrawNav {
     let mouseXSeconds;
     this.gCursorGroup.removeChildren();
     this.gNavCursorGroup.removeChildren();
+    this.navigatorCollapsed = false;
+    this.setDynamicWidthVariables();
     if (event.point.y > this.gTier1Top) {
       //if in tier1
-      mouseXSeconds = event.point.x * this.gTier1SecondsPerPixel;
+      mouseXSeconds = (event.point.x - this.gTier1Left) * this.gTier1SecondsPerPixel;
+      if (mouseXSeconds < 0) mouseXSeconds = 0;
       this.drawNavBox(mouseXSeconds);
       this.drawTier2();
     } else {
@@ -104,7 +107,8 @@ export default class DrawNav {
   handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {
     let seconds = 0;
     if (event.point.y > this.gTier1Top) {
-      seconds = Math.round(event.point.x * this.gTier1SecondsPerPixel);
+      seconds = Math.round((event.point.x - this.gTier1Left) * this.gTier1SecondsPerPixel);
+      if (seconds < 0) seconds = 0;
     } else {
       //if in tier 2
       seconds = Math.round(
@@ -121,20 +125,25 @@ export default class DrawNav {
   };
 
   handleMouseLeave = (_event, cb) => {
-    cb();
+    this.navigatorCollapsed = true;
+    this.setDynamicWidthVariables();
     this.gNavCursorGroup.removeChildren();
+    cb();
   };
 
   setDynamicWidthVariables = () => {
     this.gNavigatorWidth = paper.view.size.width;
     this.gNavigatorHeight = paper.view.size.height;
 
-    this.gTier1PixelsPerSecond = this.gNavigatorWidth / this.cSecondsIn24Hours;
-    this.gTier1SecondsPerPixel = this.cSecondsIn24Hours / this.gNavigatorWidth;
+    this.gTier1Left = 200;
+    this.gTier2Left = 0;
+
+    this.gTier1PixelsPerSecond = (this.gNavigatorWidth - this.gTier1Left) / this.cSecondsIn24Hours;
+    this.gTier1SecondsPerPixel = this.cSecondsIn24Hours / (this.gNavigatorWidth - this.gTier1Left);
     this.gTier2PixelsPerSecond =
-      this.gNavigatorWidth / (this.cSecondsIn24Hours / this.gNavZoomFactor);
+      (this.gNavigatorWidth - this.gTier2Left) / (this.cSecondsIn24Hours / this.gNavZoomFactor);
     this.gTier2SecondsPerPixel =
-      this.cSecondsIn24Hours / this.gNavZoomFactor / this.gNavigatorWidth;
+      this.cSecondsIn24Hours / this.gNavZoomFactor / (this.gNavigatorWidth - this.gTier2Left);
 
     this.gCanvasHeight = 200;
 
@@ -150,9 +159,6 @@ export default class DrawNav {
     this.gTier2Top =
       this.gCanvasHeight - (this.gTier1Height + this.gTier2Height + this.gTierSpacing);
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
-
-    this.gTier1Left = 1;
-    this.gTier2Left = 1;
   };
 
   drawCursor = (seconds) => {
@@ -169,7 +175,7 @@ export default class DrawNav {
     let cursorElementGroup = new paper.Group();
 
     // tier1
-    let cursorLocX = 0.5 + seconds * this.gTier1PixelsPerSecond;
+    let cursorLocX = 0.5 + seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
     let topPoint = new paper.Point(cursorLocX, this.gTier1Top + 2);
     let bottomPoint = new paper.Point(cursorLocX, this.gTier1Top + this.gTier1Height - 2);
     let aLine = new paper.Path.Line(topPoint, bottomPoint);
@@ -253,6 +259,7 @@ export default class DrawNav {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
+    leftPx: number;
     tierTop: number;
     textTop: number;
     tierTickHeight: number;
@@ -267,7 +274,7 @@ export default class DrawNav {
         hhmmssFromSeconds(i).substring(6, 8) === "00"
       ) {
         let itemSecondsFromLeft = i - param.secondsStart;
-        let itemLocX = this.gTier2Left + itemSecondsFromLeft * param.pixelsPerSecond;
+        let itemLocX = param.leftPx + itemSecondsFromLeft * param.pixelsPerSecond;
 
         //draw full height faint line
         let tierTopPoint = new paper.Point(itemLocX, param.tierTop);
@@ -304,6 +311,7 @@ export default class DrawNav {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
+    leftPx: number;
     barTop: number;
     barHeight: number;
     drawLabels: boolean;
@@ -315,9 +323,8 @@ export default class DrawNav {
       const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
       const textColor = this.dayNight[i].daylight ? "black" : "#dddddd";
       if (startSeconds <= param.secondsEnd && endSeconds >= param.secondsStart) {
-        let startLocX =
-          this.gTier2Left + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
-        let endLocX = this.gTier2Left + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
+        let startLocX = param.leftPx + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
+        let endLocX = param.leftPx + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
 
         let startLocY = param.barTop;
         let endLocY = startLocY + param.barHeight;
@@ -352,6 +359,7 @@ export default class DrawNav {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
+    leftPx: number;
     vidBarsTop: number;
     vidBarHeight: number;
     vidBarGapHeight: number;
@@ -366,11 +374,11 @@ export default class DrawNav {
         this.videoFiles[i].end - startOfDay >= param.secondsStart
       ) {
         let startLocX =
-          this.gTier2Left +
+          param.leftPx +
           (Math.max(this.videoFiles[i].start - startOfDay, 0) - param.secondsStart) *
             param.pixelsPerSecond;
         let endLocX =
-          this.gTier2Left +
+          param.leftPx +
           (Math.min(this.videoFiles[i].end - startOfDay, 86399) - param.secondsStart) *
             param.pixelsPerSecond;
 
@@ -404,6 +412,7 @@ export default class DrawNav {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
+    leftPx: number;
     ticksTop: number;
     tickHeight: number;
   }): paper.Group {
@@ -425,7 +434,7 @@ export default class DrawNav {
         }
 
         let itemLocX =
-          this.gTier2Left +
+          param.leftPx +
           (this.photoFiles[i].datetimeTakenAppSeconds - param.secondsStart) * param.pixelsPerSecond;
         let topPoint = new paper.Point(itemLocX, param.ticksTop);
         let bottomPoint = new paper.Point(itemLocX, param.ticksTop + param.tickHeight);
@@ -435,7 +444,7 @@ export default class DrawNav {
         } else {
           aLine.strokeColor = this.gColorPhotoTicksFiltered;
         }
-        aLine.strokeWidth = 1;
+        aLine.strokeWidth = 2;
 
         group.addChild(aLine);
       } else if (this.photoFiles[i].datetimeTakenAppSeconds > param.secondsEnd) {
@@ -450,6 +459,7 @@ export default class DrawNav {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
+    leftPx: number;
     barTop: number;
     barHeight: number;
     barGapHeight: number;
@@ -465,10 +475,10 @@ export default class DrawNav {
           evActivityArray[i].endTimeSeconds >= param.secondsStart
         ) {
           let startLocX =
-            this.gTier2Left +
+            param.leftPx +
             (evActivityArray[i].startTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
           let endLocX =
-            this.gTier2Left +
+            param.leftPx +
             (evActivityArray[i].endTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
 
           let startLocY = param.barTop + rowCounter * param.barHeight;
@@ -518,12 +528,14 @@ export default class DrawNav {
     const pixelsPerSecond = this.gTier1PixelsPerSecond;
     const secondsStart = 0;
     const secondsEnd = this.cSecondsIn24Hours;
+    const leftPx = this.gTier1Left;
 
     this.gTier1Group.addChild(
       this.drawVideoSegments({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         vidBarsTop: drawingTop,
         vidBarHeight: 2,
         vidBarGapHeight: 1,
@@ -536,6 +548,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         barTop: drawingBottom - 12.5,
         barHeight: 2,
         drawLabels: false,
@@ -547,6 +560,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         ticksTop: drawingBottom - 14.5,
         tickHeight: 3,
       })
@@ -557,6 +571,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         barTop: drawingBottom - 20.5,
         barHeight: 3,
         barGapHeight: 1,
@@ -569,6 +584,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         tierTop: this.gTier1Top,
         textTop: drawingBottom - 10,
         tierTickHeight: drawingHeight,
@@ -588,11 +604,14 @@ export default class DrawNav {
     const secondsStart = this.gTier2StartSeconds;
     const secondsEnd = this.gTier2StartSeconds + this.gTier2SecondsPerPixel * this.gNavigatorWidth;
 
+    const leftPx = this.gTier2Left;
+
     this.gTier2Group.addChild(
       this.drawVideoSegments({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         vidBarsTop: drawingTop,
         vidBarHeight: 2,
         vidBarGapHeight: 1,
@@ -605,6 +624,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         barTop: drawingBottom - 12.5,
         barHeight: 2,
         drawLabels: false,
@@ -616,6 +636,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         ticksTop: drawingBottom - 14.5,
         tickHeight: 3,
       })
@@ -626,6 +647,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         barTop: drawingBottom - 20.5,
         barHeight: 3,
         barGapHeight: 1,
@@ -638,6 +660,7 @@ export default class DrawNav {
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
+        leftPx,
         tierTop: this.gTier2Top,
         textTop: drawingBottom - 10,
         tierTickHeight: drawingHeight,
@@ -649,7 +672,7 @@ export default class DrawNav {
   drawNavBox = (seconds) => {
     this.gTier1NavGroup.removeChildren();
 
-    let locX = seconds * this.gTier1PixelsPerSecond;
+    let locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
     let navBoxWidth = this.gNavigatorWidth / this.gNavZoomFactor;
     this.gNavBoxLocX = locX - navBoxWidth / 2;
     if (this.gNavBoxLocX < 0) {

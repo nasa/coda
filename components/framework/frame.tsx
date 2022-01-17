@@ -48,7 +48,7 @@ const frameTypeIDsToRenders = {
   iss_downlink: VideoPane,
   iss_non_downlink: () => <>1: ISS Video Non-Downlink</>,
   iss_photo: PhotoPane,
-  iss_groundtrack: ISSLocation,
+  iss_position: ISSLocation,
   iss_eva_info: EVAInfo,
 };
 
@@ -56,7 +56,7 @@ const frameTypeIDsToControls = {
   iss_downlink: VideoControls,
   iss_non_downlink: () => <>Controls: ISS Video Non-Downlink</>,
   iss_photo: PhotoControls,
-  iss_groundtrack: ISSLocationControls,
+  iss_position: ISSLocationControls,
   iss_eva_info: EVAInfoControls,
 };
 

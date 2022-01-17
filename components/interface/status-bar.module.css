@@ -78,7 +78,6 @@
 .error {
   background-size: 10px 10px;
   background-image: url(/images/icon_status_issue.svg);
-  background-position: center;
 }
 
 .unneeded {

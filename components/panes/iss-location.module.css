@@ -5,13 +5,6 @@
   background-color: #19181b;
 }
 
-.overlay {
-  position: relative;
-  bottom: 105px;
-  left: 0;
-  width: 0;
-}
-
 .mapContainer {
   height: 100%;
 }
