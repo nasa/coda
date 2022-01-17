@@ -113,9 +113,9 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
         <div className={styles.selections}>
           {downlinks.map((d) => {
             let rounded = "none";
-            if (d === 1) {
+            if (d === 0) {
               rounded = "left";
-            } else if (d === 8) {
+            } else if (d === 7) {
               rounded = "right";
             }
 
@@ -124,7 +124,11 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
               color = "active";
             }
             if (paneStateData.downlink === d) {
-              color = "selected";
+              if (downlinkAvailability[d]) {
+                color = "active_selected";
+              } else {
+                color = "disabled_selected";
+              }
             }
 
             return (

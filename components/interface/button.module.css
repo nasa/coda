@@ -55,3 +55,15 @@
   border: solid var(--grey);
   color: var(--extremely-grey);
 }
+
+.active_selected {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: white;
+}
+
+.disabled_selected {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: var(--extremely-grey);
+}
