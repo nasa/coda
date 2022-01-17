@@ -18,8 +18,10 @@ export default class DrawNav {
   gNavigatorWidth: number;
   gNavigatorHeight: number;
 
+  gCanvasHeight: number;
   gNavZoomFactor = 50;
   gTier1Height: number;
+  navigatorCollapsed: boolean = true;
   gTier2Height: number;
   gTier1PixelsPerSecond: number;
   gTier1SecondsPerPixel: number;
@@ -134,12 +136,19 @@ export default class DrawNav {
     this.gTier2SecondsPerPixel =
       this.cSecondsIn24Hours / this.gNavZoomFactor / this.gNavigatorWidth;
 
-    this.gTier1Height = 52;
-    this.gTier2Height = 52;
+    this.gCanvasHeight = 200;
 
+    this.gTier1Height = 52;
     this.gTierSpacing = 2;
 
-    this.gTier2Top = 104;
+    if (this.navigatorCollapsed) {
+      this.gTier2Height = 52;
+    } else {
+      this.gTier2Height = 102;
+    }
+
+    this.gTier2Top =
+      this.gCanvasHeight - (this.gTier1Height + this.gTier2Height + this.gTierSpacing);
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
 
     this.gTier1Left = 1;
@@ -162,7 +171,7 @@ export default class DrawNav {
     // tier1
     let cursorLocX = 0.5 + seconds * this.gTier1PixelsPerSecond;
     let topPoint = new paper.Point(cursorLocX, this.gTier1Top + 2);
-    let bottomPoint = new paper.Point(cursorLocX, this.gTier1Top + this.gTier1Height);
+    let bottomPoint = new paper.Point(cursorLocX, this.gTier1Top + this.gTier1Height - 2);
     let aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = color;
     aLine.strokeWidth = 2;
@@ -170,8 +179,8 @@ export default class DrawNav {
 
     // tier2
     cursorLocX = this.gTier2Left + (seconds - this.gTier2StartSeconds) * this.gTier2PixelsPerSecond;
-    topPoint = new paper.Point(cursorLocX, this.gTier2Top - 2);
-    bottomPoint = new paper.Point(cursorLocX, this.gTier2Top - 2 + this.gTier2Height);
+    topPoint = new paper.Point(cursorLocX, this.gTier2Top - 1);
+    bottomPoint = new paper.Point(cursorLocX, this.gTier2Top + this.gTier2Height);
     aLine = new paper.Path.Line(topPoint, bottomPoint);
     aLine.strokeColor = color;
     aLine.strokeWidth = 2;
@@ -179,7 +188,7 @@ export default class DrawNav {
 
     //default values for days without EVA
     let timeTextFontSize = 20;
-    let timeTextYPos = 20;
+    let timeTextYPos = this.gTier2Top - 8;
     let timeTextFontFamily = this.gNavigatorFontFamily;
     let timeTextRectWidth = 115;
     let timeTextRectHeightNudge = 5;
@@ -196,12 +205,12 @@ export default class DrawNav {
         fillColor: "white",
       });
       petText.content = "PET: " + hhmmssFromSeconds(Math.round(seconds - this.evaStartSec));
-      petText.point = new paper.Point(cursorLocX - petText.bounds.width / 2, 18);
+      petText.point = new paper.Point(cursorLocX - petText.bounds.width / 2, timeTextYPos - 15);
       timeTextGroup.addChild(petText);
 
       //override GMT time display with values to accommodate PET text
       timeTextFontSize = 15;
-      timeTextYPos = 35;
+      timeTextYPos = this.gTier2Top - 8;
       timeTextFontFamily = this.gNavigatorFontFamilyActivity;
       timeTextRectWidth = 100;
       timeTextRectHeightNudge = 8;
@@ -523,12 +532,23 @@ export default class DrawNav {
     );
 
     this.gTier1Group.addChild(
+      this.drawDayNight({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        barTop: drawingBottom - 12.5,
+        barHeight: 2,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier1Group.addChild(
       this.drawPhotoTicks({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
         ticksTop: drawingBottom - 14.5,
-        tickHeight: 2,
+        tickHeight: 3,
       })
     );
 
@@ -540,17 +560,6 @@ export default class DrawNav {
         barTop: drawingBottom - 20.5,
         barHeight: 3,
         barGapHeight: 1,
-        drawLabels: false,
-      })
-    );
-
-    this.gTier1Group.addChild(
-      this.drawDayNight({
-        secondsStart,
-        secondsEnd,
-        pixelsPerSecond,
-        barTop: drawingBottom - 12.5,
-        barHeight: 2,
         drawLabels: false,
       })
     );
@@ -592,12 +601,23 @@ export default class DrawNav {
     );
 
     this.gTier2Group.addChild(
+      this.drawDayNight({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        barTop: drawingBottom - 12.5,
+        barHeight: 2,
+        drawLabels: false,
+      })
+    );
+
+    this.gTier2Group.addChild(
       this.drawPhotoTicks({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
         ticksTop: drawingBottom - 14.5,
-        tickHeight: 2,
+        tickHeight: 3,
       })
     );
 
@@ -609,17 +629,6 @@ export default class DrawNav {
         barTop: drawingBottom - 20.5,
         barHeight: 3,
         barGapHeight: 1,
-        drawLabels: false,
-      })
-    );
-
-    this.gTier2Group.addChild(
-      this.drawDayNight({
-        secondsStart,
-        secondsEnd,
-        pixelsPerSecond,
-        barTop: drawingBottom - 12.5,
-        barHeight: 2,
         drawLabels: false,
       })
     );

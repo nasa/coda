@@ -1,9 +1,10 @@
 .container {
   position: fixed;
-  bottom: 90px;
+  bottom: 30px;
   left: 12px;
   width: 100px;
   height: 100px;
+  z-index: 3;
 }
 
 .jumpLeft {

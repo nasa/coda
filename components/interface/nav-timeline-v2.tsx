@@ -17,6 +17,8 @@ import { photosSelectors, filterVisiblePhotos } from "store/photos";
 import DrawNav from "./nav-timeline-draw-v2";
 import { RootState } from "store/index";
 import { Collection } from "utils/enums";
+import styles from "./nav-timeline-draw-v2.module.css";
+
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
@@ -178,23 +180,11 @@ export default function NavTimeline(props: { collection: Collection }) {
   // the inline style here seems to be a problem because the styles rendered on the server are different than how the client interprets it. doesn't seem to be a big deal
   // https://github.com/vercel/next.js/issues/7322
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "210px",
-        backgroundColor: "#2E2B34",
-      }}
-    >
-      <canvas
-        ref={canvas}
-        style={{
-          // position: "relative",
-          // bottom: "0",
-          height: "210px",
-          width: "100%",
-        }}
-        data-paper-resize
-      />
-    </div>
+    <>
+      <div className={styles.collapsedBackground}></div>
+      <div className={styles.canvasContainer}>
+        <canvas ref={canvas} data-paper-resize />
+      </div>
+    </>
   );
 }

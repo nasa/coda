@@ -2,14 +2,14 @@
   display: grid;
   grid-template-columns: repeat(24, 6fr);
   /* 50px for header and 93px for timeline because these elements are fixed height */
-  grid-auto-rows: minmax(calc((100vh / 9) - ((50px + 210px) / 9)), auto);
+  grid-auto-rows: minmax(calc((100vh / 9) - ((50px + 106px) / 9)), auto);
 }
 
 .main_10Rows {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
   /* 50px for header and 93px for timeline because these elements are fixed height */
-  grid-auto-rows: minmax(calc((100vh / 10) - ((50px + 210px) / 10)), auto);
+  grid-auto-rows: minmax(calc((100vh / 10) - ((50px + 106px) / 10)), auto);
 }
 
 .frameContainer {
