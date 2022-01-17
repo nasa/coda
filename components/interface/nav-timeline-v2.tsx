@@ -179,9 +179,9 @@ export default function NavTimeline(props: { collection: Collection }) {
 
   return (
     <>
-      {/* {!mouseOnNavigator.current && <div className={styles.collapsedBackground}></div>}
-      {mouseOnNavigator.current && <div className={styles.expandedBackground}></div>} */}
-      <div className={styles.collapsedBackground}></div>
+      {!mouseOnNavigator.current && <div className={styles.collapsedBackground}></div>}
+      {mouseOnNavigator.current && <div className={styles.expandedBackground}></div>}
+      {/* <div className={styles.collapsedBackground}></div> */}
       <div className={styles.canvasContainer}>
         <canvas ref={canvas} data-paper-resize />
       </div>
