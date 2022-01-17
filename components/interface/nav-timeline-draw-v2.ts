@@ -83,6 +83,10 @@ export default class DrawNav {
   }
 
   handleMouseMove = (event, missionTimeSeconds, cb) => {
+    // scram if hovering over play pause controls area
+    if (event.point.y > this.gTier1Top && event.point.x < this.gTier1Left) {
+      return;
+    }
     let mouseXSeconds;
     this.gCursorGroup.removeChildren();
     this.gNavCursorGroup.removeChildren();
@@ -135,7 +139,7 @@ export default class DrawNav {
     this.gNavigatorWidth = paper.view.size.width;
     this.gNavigatorHeight = paper.view.size.height;
 
-    this.gTier1Left = 200;
+    this.gTier1Left = 158;
     this.gTier2Left = 0;
 
     this.gTier1PixelsPerSecond = (this.gNavigatorWidth - this.gTier1Left) / this.cSecondsIn24Hours;
@@ -680,7 +684,7 @@ export default class DrawNav {
     } else if (this.gNavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
       this.gNavBoxLocX = this.gNavigatorWidth - navBoxWidth;
     }
-    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * this.gNavBoxLocX;
+    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * (this.gNavBoxLocX - this.gTier1Left);
 
     const navBoxTop = this.gTier1Top;
     const navBoxHeight = this.gTier1Height;

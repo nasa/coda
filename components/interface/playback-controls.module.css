@@ -1,30 +1,55 @@
 .container {
   position: fixed;
-  bottom: 30px;
-  left: 12px;
-  width: 100px;
-  height: 100px;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: 52px;
   z-index: 3;
+  display: flex;
 }
 
-.jumpLeft {
-  position: absolute;
-  top: 50px;
-  left: -20px;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  z-index: 5;
+.controlButton {
+  border-radius: var(--radius);
+  background: var(--grey);
+  color: white;
+  margin: 1px;
+  width: 50px;
+  height: 50px;
   cursor: pointer;
-  border: #ffc000 solid 3px;
-  background-color: #19181b;
-  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
 }
+.controlButton:hover {
+  background: var(--lightest-grey);
+  color: white;
+}
+
+.playPauseImg {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+  width: 50px;
+  height: 50px;
+  margin-left: 0;
+  margin-right: 0;
+  cursor: pointer;
+}
+
+.playSVG {
+  background: url('data:image/svg+xml;utf8,<svg version="1.1" id="Play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 20"  xml:space="preserve"> <g fill="white"> <path d="M15,10.001c0,0.299-0.305,0.514-0.305,0.514l-8.561,5.303C5.51,16.227,5,15.924,5,15.149V4.852 c0-0.777,0.51-1.078,1.135-0.67l8.561,5.305C14.695,9.487,15,9.702,15,10.001z" transform="translate(1 0)"/> </g> </svg>')
+    no-repeat center;
+  background-size: 40px 40px;
+}
+.pauseSVG {
+  background: url('data:image/svg+xml;utf8,<svg version="1.1" id="Paus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <g fill="white"> <path d="M15,3h-2c-0.553,0-1,0.048-1,0.6V16.4c0,0.552,0.447,0.6,1,0.6h2c0.553,0,1-0.048,1-0.6V3.6C16,3.048,15.553,3,15,3z M7,3H5 C4.447,3,4,3.048,4,3.6V16.4C4,16.952,4.447,17,5,17h2c0.553,0,1-0.048,1-0.6V3.6C8,3.048,7.553,3,7,3z"/> </g> </svg>')
+    no-repeat center;
+  background-size: 35px 35px;
+}
+
+/* Old styles */
 
 .jumpLeftImg {
-  position: absolute;
-  left: -3px;
-  top: -4px;
+  position: relative;
+  left: 1px;
+  top: 2px;
   width: 45px;
   height: 45px;
   cursor: pointer;
@@ -34,9 +59,9 @@
 }
 
 .jumpLeftText {
-  position: absolute;
-  top: 13px;
-  left: 16px;
+  position: relative;
+  top: -26px;
+  left: 20px;
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
@@ -44,23 +69,15 @@
 }
 
 .jumpRight {
-  position: absolute;
-  top: 50px;
-  left: 65px;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  z-index: 5;
   cursor: pointer;
-  border: #ffc000 solid 3px;
-  background-color: #19181b;
-  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
+  width: 50px;
+  height: 50px;
 }
 
 .jumpRightImg {
-  position: absolute;
-  left: -5px;
-  top: -4px;
+  position: relative;
+  left: 1px;
+  top: 2px;
   width: 45px;
   height: 45px;
   cursor: pointer;
@@ -70,48 +87,11 @@
 }
 
 .jumpRightText {
-  position: absolute;
-  top: 13px;
-  left: 15px;
+  position: relative;
+  top: -26px;
+  left: 21px;
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
   user-select: none;
-}
-
-.playPause {
-  position: absolute;
-  top: 0px;
-  left: 10px;
-  display: table;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  z-index: 6;
-
-  border: #ffc000 solid 3px;
-  background-color: #19181b;
-  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
-}
-
-.playPauseImg {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
-  width: 60px;
-  height: 60px;
-  margin-left: 0;
-  margin-right: 0;
-  cursor: pointer;
-}
-
-.playSVG {
-  background: url('data:image/svg+xml;utf8,<svg version="1.1" id="Play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 20 20"  xml:space="preserve"> <g fill="white"> <path d="M15,10.001c0,0.299-0.305,0.514-0.305,0.514l-8.561,5.303C5.51,16.227,5,15.924,5,15.149V4.852 c0-0.777,0.51-1.078,1.135-0.67l8.561,5.305C14.695,9.487,15,9.702,15,10.001z" transform="translate(1 0)"/> </g> </svg>')
-    no-repeat center;
-  background-size: 50px 50px;
-}
-.pauseSVG {
-  background: url('data:image/svg+xml;utf8,<svg version="1.1" id="Paus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <g fill="white"> <path d="M15,3h-2c-0.553,0-1,0.048-1,0.6V16.4c0,0.552,0.447,0.6,1,0.6h2c0.553,0,1-0.048,1-0.6V3.6C16,3.048,15.553,3,15,3z M7,3H5 C4.447,3,4,3.048,4,3.6V16.4C4,16.952,4.447,17,5,17h2c0.553,0,1-0.048,1-0.6V3.6C8,3.048,7.553,3,7,3z"/> </g> </svg>')
-    no-repeat center;
-  background-size: 40px 40px;
 }

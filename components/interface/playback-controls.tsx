@@ -28,14 +28,14 @@ export default function PlaybackControls() {
   }
   return (
     <div className={styles.container}>
-      <div className={styles.playPause}>
+      <div className={styles.controlButton}>
         <div
           className={`${styles.playPauseImg} ${playPauseSvgName}`}
           onClick={handlePlayPause}
         ></div>
       </div>
       <div
-        className={styles.jumpLeft}
+        className={styles.controlButton}
         onClick={() => {
           jumpTime(-5);
         }}
@@ -44,7 +44,7 @@ export default function PlaybackControls() {
         <div className={styles.jumpLeftText}>5</div>
       </div>
       <div
-        className={styles.jumpRight}
+        className={styles.controlButton}
         onClick={() => {
           jumpTime(5);
         }}
