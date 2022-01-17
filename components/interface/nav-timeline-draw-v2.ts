@@ -39,7 +39,7 @@ export default class DrawNav {
   gNavigatorFontFamilyActivity = "Inter";
 
   gColorCursor = new paper.Color("#d10b0b");
-  gColorNavCursor = new paper.Color("#19181b");
+  gColorNavCursor = new paper.Color("#000000");
   gColorNavBox = new paper.Color("#efefef");
   gColorBarBorder = new paper.Color("#2a282e");
   gColorVideo = new paper.Color("#999999");
