@@ -51,6 +51,10 @@
   font-size: 11px;
 }
 
+.ioButton:hover {
+  background-color: #eeeeee;
+}
+
 .selected {
   border: none;
   background-color: #eeeeee;
@@ -146,8 +150,9 @@
   width: 100%;
   z-index: 1;
   box-sizing: border-box;
-  padding: 30px;
+  padding: 20px;
   outline: none;
+  overflow-y: auto;
 }
 
 .videoOverlayVisible {
@@ -168,29 +173,28 @@
   width: 100%;
   margin: 0px;
   outline: none;
+  overflow-y: auto;
 }
 
 .overlayTable {
   width: 100%;
   max-height: 100%;
-  display: inline-block;
   font-size: 0.9em;
   background: rgb(15, 15, 15, 0.8);
-  border: 2px solid #ffc000;
+  border: 2px solid #eeeeee;
   border-radius: 10px;
-  border-collapse: collapse;
-  overflow-y: auto;
+  border-spacing: 0;
 }
 
 .overlayTable a {
   text-decoration: underline;
 }
 
-.overlayTable .overlayTableRow {
+.overlayTable tr {
   border-bottom: 2px solid rgba(150, 150, 150, 0.5);
 }
 
-.overlayTable .titleRow {
+.overlayTable td:first-child {
   text-align: right;
   width: 100px;
   font-weight: 400;
@@ -198,12 +202,16 @@
   border-right: 2px solid rgba(150, 150, 150, 0.5);
 }
 
-.overlayTable .overlayTableCell {
+.overlayTable td {
   display: table-cell;
   border-collapse: collapse;
   vertical-align: top;
   font-weight: 200;
   padding: 8px;
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+.overlayTable tr:last-child td {
+  border-bottom: none;
 }
 
 .overlayTable .digiValue {

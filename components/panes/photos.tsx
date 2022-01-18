@@ -75,19 +75,17 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
           <div className={styles.verticalCenter}>
             <IOInfoButton
               clickHandler={() => {
-                if (currentlyActivePhoto) {
-                  setPaneStateValue("infoToggle", !paneStateData.infoToggle);
-                }
+                setPaneStateValue("showInfo", !paneStateData.showInfo);
               }}
-              selected={paneStateData.infoToggle}
+              selected={paneStateData.showInfo}
             />
           </div>
           <div className={styles.verticalCenter}>
             <FilterButton
               clickHandler={() => {
-                setPaneStateValue("filterToggle", !paneStateData.filterToggle);
+                setPaneStateValue("showFilter", !paneStateData.showFilter);
               }}
-              selected={paneStateData.filterToggle}
+              selected={paneStateData.showFilter}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -190,40 +188,40 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
           ? new Date(photos.activePhoto.datetimeTaken).toUTCString()
           : "-";
 
-      if (paneStateData.infoToggle) {
+      if (paneStateData.showFilter || paneStateData.showInfo) {
         infoDisplayClass = styles.overlayVisible;
       }
     }
 
     return (
       <div className={`${styles.photoOverlay} ${infoDisplayClass}`}>
-        <div className={styles.overlayTable}>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</div>
-            <div className={`${styles.overlayTableCell}`}>{datetimeTaken}</div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell}`}>{dateAdded}</div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</div>
-            <div className={`${styles.overlayTableCell}`}>
+        <table className={styles.overlayTable}>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</td>
+            <td className={`${styles.overlayTableCell}`}>{datetimeTaken}</td>
+          </tr>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
+            <td className={`${styles.overlayTableCell}`}>{dateAdded}</td>
+          </tr>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</td>
+            <td className={`${styles.overlayTableCell}`}>
               {cleanCollectionsString(photos.activePhoto.collections)}
-            </div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
-            <div className={styles.overlayTableCell}>
+            </td>
+          </tr>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
+            <td className={styles.overlayTableCell}>
               <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openOnIOMessage}
               </a>
-              <div className={styles.digiValue}>{photoFilename}</div>
-            </div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>High Res</div>
-            <div className={styles.overlayTableCell}>
+              <td className={styles.digiValue}>{photoFilename}</td>
+            </td>
+          </tr>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>High Res</td>
+            <td className={styles.overlayTableCell}>
               <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openURLMessage}
               </a>
@@ -231,31 +229,31 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
               <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
                 {ioHighResURL}
               </span>
-            </div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</div>
-            <div className={styles.overlayTableCell}>{info}</div>
-          </div>
-        </div>
+            </td>
+          </tr>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
+            <td className={styles.overlayTableCell}>{info}</td>
+          </tr>
+        </table>
       </div>
     );
   };
 
   const renderPhotoFilter = () => {
     let displayClass = "";
-    if (paneStateData.filterToggle && !paneStateData.infoToggle) {
+    if (paneStateData.showFilter && !paneStateData.showInfo) {
       displayClass = styles.overlayVisible;
     }
 
     return (
       <div className={`${styles.photoOverlay} ${displayClass}`}>
-        <div className={styles.overlayTable}>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}></div>
-            <div className={`${styles.overlayTableCell}`}>
+        <table className={styles.overlayTable}>
+          <tr className={styles.overlayTableRow}>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}></td>
+            <td className={`${styles.overlayTableCell}`}>
               <button
-                className={styles.tableButton}
+                className={styles.filterButton}
                 onClick={() => {
                   changeAllFilters(true);
                 }}
@@ -263,19 +261,20 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
                 Check All
               </button>
               <button
-                className={styles.tableButton}
+                className={styles.filterButton}
+                style={{ marginLeft: "0.5em" }}
                 onClick={() => {
                   changeAllFilters(false);
                 }}
               >
                 Check None
               </button>
-            </div>
-          </div>
+            </td>
+          </tr>
           {photos.collectionFilters.map((value, index) => {
             return (
-              <div key={index} className={styles.overlayTableRow}>
-                <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>
+              <tr key={index} className={styles.overlayTableRow}>
+                <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>
                   <input
                     className={styles.tableInput}
                     type="checkbox"
@@ -284,12 +283,12 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
                       changeFilter(index, !value.selected);
                     }}
                   />
-                </div>
-                <div className={`${styles.overlayTableCell}`}>{value.display}</div>
-              </div>
+                </td>
+                <td className={`${styles.overlayTableCell}`}>{value.display}</td>
+              </tr>
             );
           })}
-        </div>
+        </table>
       </div>
     );
   };
@@ -300,7 +299,7 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
         <a className={styles.photoLink} href={photos.activePhoto.mediaHighResURL} target="_blank">
           <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
         </a>
-        {paneStateData.infoToggle ? renderPhotoOverlay() : renderPhotoFilter()}
+        {paneStateData.showInfo ? renderPhotoOverlay() : renderPhotoFilter()}
       </div>
     </div>
   );

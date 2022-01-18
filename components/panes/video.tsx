@@ -181,7 +181,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
           <div className={styles.verticalCenter}>
             <IOInfoButton
               clickHandler={() => {
-                setPaneStateValue("infoToggle", !paneStateData.showInfo);
+                setPaneStateValue("showInfo", !paneStateData.showInfo);
               }}
               selected={paneStateData.showInfo}
             />
@@ -586,23 +586,23 @@ export default function VideoPane(props: { frameID: number }) {
 
     return (
       <div className={`${styles.vidOverlay} ${infoDisplayClass}`}>
-        <div className={styles.overlayTable}>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</div>
-            <div className={`${styles.overlayTableCell}`}>{startDateTime}</div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</div>
-            <div className={styles.overlayTableCell}>
+        <table className={styles.overlayTable}>
+          <tr>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
+            <td className={`${styles.overlayTableCell}`}>{startDateTime}</td>
+          </tr>
+          <tr>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
+            <td className={styles.overlayTableCell}>
               <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openOnIOMessage}
               </a>
               <div className={styles.digiValue}>{videoFilename}</div>
-            </div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</div>
-            <div className={styles.overlayTableCell}>
+            </td>
+          </tr>
+          <tr>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</td>
+            <td className={styles.overlayTableCell}>
               <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
                 {openVideoURLMessage}
               </a>
@@ -610,13 +610,13 @@ export default function VideoPane(props: { frameID: number }) {
               <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
                 {ioVideoURL}
               </span>
-            </div>
-          </div>
-          <div className={styles.overlayTableRow}>
-            <div className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</div>
-            <div className={styles.overlayTableCell}>{info}</div>
-          </div>
-        </div>
+            </td>
+          </tr>
+          <tr>
+            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
+            <td className={styles.overlayTableCell}>{info}</td>
+          </tr>
+        </table>
       </div>
     );
   };

@@ -98,23 +98,22 @@ export const initialState: FrameworkState = {
         activeVideoFileID: "",
         muted: false,
         showInfo: false,
-      },
+      } as VideoDLPaneControlStateData,
     },
     2: {
       paneType: "iss_photo",
       paneStateData: {
         ready: true,
-        infoToggle: false,
-        infoHover: false,
-        filterToggle: false,
-      },
+        showInfo: false,
+        showFilter: false,
+      } as PhotoPaneControlStateData,
     },
     5: {
       paneType: "iss_position",
       paneStateData: {
         lockToggle: true,
         ready: true,
-      },
+      } as LocationPaneControlStateData,
     },
   },
   selectedSource: FrameSource.ISS,

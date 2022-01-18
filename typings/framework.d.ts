@@ -52,8 +52,8 @@ type VideoDLPaneControlStateData = {
 
 type PhotoPaneControlStateData = {
   ready: boolean;
-  infoToggle: boolean;
-  filterToggle: boolean;
+  showInfo: boolean;
+  showFilter: boolean;
 };
 
 type LocationPaneControlStateData = {
