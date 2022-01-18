@@ -1,10 +1,9 @@
 import isNull from "lodash/isNull";
 import paper from "paper";
-import { hhmmssFromSeconds } from "utils/formatting";
+import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
-  gTier1FutureGroup: paper.Group;
   gTier1NavGroup: paper.Group;
   gNavBoxLocX: number;
 
@@ -66,14 +65,12 @@ export default class DrawNav {
   initGroups() {
     if (typeof this.gTier1Group !== "undefined") {
       this.gTier1Group.removeChildren();
-      this.gTier1FutureGroup.removeChildren();
       this.gTier1NavGroup.removeChildren();
       this.gTier2Group.removeChildren();
       this.gCursorGroup.removeChildren();
       this.gNavCursorGroup.removeChildren();
     } else {
       this.gTier1Group = new paper.Group();
-      this.gTier1FutureGroup = new paper.Group();
       this.gTier1NavGroup = new paper.Group();
       this.gTier2Group = new paper.Group();
       this.gTier2BoarderGroup = new paper.Group();
@@ -105,6 +102,7 @@ export default class DrawNav {
     }
     this.drawCursor(missionTimeSeconds);
     this.drawNavCursor(mouseXSeconds);
+    this.drawTier2();
     cb(mouseXSeconds);
   };
 
@@ -131,6 +129,8 @@ export default class DrawNav {
   handleMouseLeave = (_event, cb) => {
     this.navigatorCollapsed = true;
     this.setDynamicWidthVariables();
+    this.drawTier1();
+    this.drawTier2();
     this.gNavCursorGroup.removeChildren();
     cb();
   };
@@ -522,6 +522,53 @@ export default class DrawNav {
     return group;
   };
 
+  drawFuture = (param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsPerSecond: number;
+    leftPx: number;
+    top: number;
+    bottom: number;
+    drawLabels: boolean;
+    crosshatchWidth: number;
+  }): paper.Group => {
+    const group = new paper.Group();
+    if (this.isToday) {
+      const secondsIntoToday =
+        appSecondsFromDateString(new Date().toISOString()) - param.secondsStart;
+
+      const lineThickness = param.bottom - param.top;
+      const futureLocX = param.leftPx + secondsIntoToday * param.pixelsPerSecond;
+      const futureLocY = param.top + lineThickness / 2;
+      if (futureLocY < this.gNavigatorWidth) {
+        const futureLeftPoint = new paper.Point(futureLocX, futureLocY);
+        const futureRightPoint = new paper.Point(this.gNavigatorWidth, futureLocY);
+        const fLine = new paper.Path.Line(futureLeftPoint, futureRightPoint);
+        fLine.strokeColor = new paper.Color(50, 50, 50, 0.1);
+        fLine.strokeWidth = lineThickness;
+        fLine.dashArray = [param.crosshatchWidth, param.crosshatchWidth];
+        group.addChild(fLine);
+      }
+
+      if ((param.drawLabels = true && !this.navigatorCollapsed)) {
+        // add some explanatory text
+        const futureText = new paper.PointText({
+          justification: "left",
+          fontFamily: this.gNavigatorFontFamilyActivity,
+          //fontWeight: 'bold',
+          fontSize: 15,
+          fillColor: "#AAAAAA",
+          content: "The Future",
+        });
+        const textTop = param.bottom - 45;
+        futureText.point = new paper.Point(futureLocX - 43, textTop);
+        futureText.rotate(-90);
+        group.addChild(futureText);
+      }
+    }
+    return group;
+  };
+
   drawTier1() {
     this.gTier1Group.removeChildren();
 
@@ -593,6 +640,19 @@ export default class DrawNav {
         textTop: drawingBottom - 10,
         tierTickHeight: drawingHeight,
         textTickHeight: 10,
+      })
+    );
+
+    this.gTier1Group.addChild(
+      this.drawFuture({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        top: this.gTier1Top,
+        bottom: this.gTier1Top + this.gTier1Height,
+        drawLabels: false,
+        crosshatchWidth: 2,
       })
     );
   }
@@ -669,6 +729,19 @@ export default class DrawNav {
         textTop: drawingBottom - 10,
         tierTickHeight: drawingHeight,
         textTickHeight: 10,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawFuture({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        top: this.gTier2Top,
+        bottom: drawingBottom,
+        drawLabels: false,
+        crosshatchWidth: 10,
       })
     );
   }

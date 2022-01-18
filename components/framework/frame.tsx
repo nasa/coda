@@ -95,12 +95,12 @@ export default function Frame(options) {
           {!_.isNil(FrameControls) ? (
             <FrameControls frameID={options.id} frameWidth={frameWidth} />
           ) : (
-            <>Controls {options.id}</>
+            <></>
           )}
         </FrameHeader>
       </div>
       <div className={styles.bodyContainer}>
-        {!_.isNil(FrameRender) ? <FrameRender frameID={options.id} /> : <>Frame {options.id}</>}
+        {!_.isNil(FrameRender) ? <FrameRender frameID={options.id} /> : <></>}
       </div>
     </div>
   );
