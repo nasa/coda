@@ -77,7 +77,7 @@ export function V2(props: { query: QueryParams }) {
     // set the date today
     const d = new Date();
     const year = d.getUTCFullYear();
-    const month = d.getUTCMonth();
+    const month = d.getUTCMonth() + 1;
     const day = d.getUTCDate();
     userDate = new Date(Date.UTC(year, month, day));
   }
@@ -137,7 +137,7 @@ export function V2(props: { query: QueryParams }) {
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month + 1, day, collection);
+        const videoStoreResponse = await buildVideoStore(year, month, day, collection);
         if (videoStoreResponse.metadata.error === undefined) {
           dispatch(addVideos(videoStoreResponse));
         } else {
@@ -156,7 +156,7 @@ export function V2(props: { query: QueryParams }) {
       dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // photos data for today
-        const photoStoreResponse = await buildPhotoStore(year, month + 1, day, collection);
+        const photoStoreResponse = await buildPhotoStore(year, month, day, collection);
         if (photoStoreResponse.metadata.error === undefined) {
           dispatch(addPhotos(photoStoreResponse));
           const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
@@ -230,7 +230,7 @@ export function V2(props: { query: QueryParams }) {
 
       const d = new Date(playheadDate);
       const year = d.getUTCFullYear();
-      const month = d.getUTCMonth();
+      const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
       // populate the video store
