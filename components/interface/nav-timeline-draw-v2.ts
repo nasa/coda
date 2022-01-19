@@ -149,7 +149,7 @@ export default class DrawNav {
     this.gTier2SecondsPerPixel =
       this.cSecondsIn24Hours / this.gNavZoomFactor / (this.gNavigatorWidth - this.gTier2Left);
 
-    this.gCanvasHeight = 172;
+    this.gCanvasHeight = 162;
 
     this.gTier1Height = 52;
     this.gTierSpacing = 2;
