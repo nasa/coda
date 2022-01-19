@@ -296,10 +296,20 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
       <div key={`photo_element`} className={styles.photoContainer}>
-        <a className={styles.photoLink} href={photos.activePhoto.mediaHighResURL} target="_blank">
-          <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
-        </a>
-        {paneStateData.showInfo ? renderPhotoOverlay() : renderPhotoFilter()}
+        {photos.activePhoto.mediaLowResURL !== "" ? (
+          <>
+            <a
+              className={styles.photoLink}
+              href={photos.activePhoto.mediaHighResURL}
+              target="_blank"
+            >
+              <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
+            </a>
+            {paneStateData.showInfo ? renderPhotoOverlay() : renderPhotoFilter()}
+          </>
+        ) : (
+          <div className={styles.photoPoster}></div>
+        )}
       </div>
     </div>
   );

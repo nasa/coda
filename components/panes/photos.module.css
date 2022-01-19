@@ -134,8 +134,10 @@
   position: absolute;
   top: 0;
   left: 0;
-  background: no-repeat url("/images/vintage_static.gif");
-  background-size: cover;
+  background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
+  background-size: 50%;
+  filter: grayscale(100%) contrast(0.75);
+  opacity: 0.3;
 }
 
 .photo {

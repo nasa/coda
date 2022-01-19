@@ -444,17 +444,17 @@ export default function VideoPane(props: { frameID: number }) {
     // or blank if video loaded or buffering during playback
     // metadata used to determine whether a buffering event is happening on an already playing video
     // or a new loading event
-    let posterClass = styles.playerPosterNovid;
+    let posterState = "novid";
     // hide noVid poster if video metadata has been loaded
-    if (metadata) {
-      posterClass = "";
+    if (metadata || status === "playing") {
+      posterState = "none";
     }
     if (status === "buffering") {
       // if there is no metadata then this is the buffering of a new video. Show loader.
       if (!metadata) {
-        posterClass = styles.playerPosterBuffering;
+        posterState = "buffering";
       } else {
-        posterClass = "";
+        posterState = "none";
       }
     }
 
@@ -490,67 +490,75 @@ export default function VideoPane(props: { frameID: number }) {
 
     return (
       <div key={`video_element__${frameID}`} className={styles.vidContainer}>
-        <div className={`${styles.playerPoster} ${posterClass}`}>
-          <video
-            ref={videoElement}
-            className={styles.player}
-            src={sourceURL}
-            muted={shouldMute}
-            onCanPlay={() => {
-              if (!paneStateData.ready) {
-                setPaneStateValue("ready", true);
-              }
-            }}
-            onEnded={() => {
-              // ready up because we don't want a missing video to hold up the playhead
+        {posterState === "novid" ? <div className={styles.playerPosterNovid}></div> : null}
+        {posterState === "buffering" ? (
+          <>
+            <div className={styles.playerPosterNovid}></div>
+            <div className={styles.playerPosterBuffering}>
+              <div className={styles.loaderAnimation}></div>
+            </div>
+          </>
+        ) : null}
+        <video
+          ref={videoElement}
+          className={styles.player}
+          src={sourceURL}
+          muted={shouldMute}
+          onCanPlay={() => {
+            if (!paneStateData.ready) {
               setPaneStateValue("ready", true);
-            }}
-            onWaiting={() => {
-              if (paneStateData.ready && sourceURL !== "") {
-                setPaneStateValue("ready", false);
-                setStatus("buffering");
-              }
-            }}
-            onPlaying={() => {
-              setStatus("playing");
-            }}
-            onLoadedMetadata={(e) => {
-              // Used to later determine whether a buffering event is happening on an already playing video
-              // or a new loading event
-              const vidElement = e.target as HTMLVideoElement;
-              const metaData = {
-                videoHeight: vidElement.videoHeight,
-                videoWidth: vidElement.videoWidth,
-                duration: vidElement.duration,
-              };
-              setMetadata(metaData);
-            }}
-            onClick={() => {
-              if (paneStateData.activeVideoFileID !== "") {
-                toggleFullScreen();
-              }
-            }}
-            onError={(e) => {
-              const vidElement = e.target as HTMLVideoElement;
-              if (!vidElement.error.message.includes("mpty")) {
-                //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
-                setStatus("error");
-                console.error(
-                  `video ${frameID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
-                );
-              } else {
-                setStatus("novid");
-              }
-              //unblocking playhead
-              if (paneStateData.ready !== true) {
-                setPaneStateValue("ready", true);
-              }
-            }}
-          />
-          <div className={styles.IOError} style={ioErrorCSS}>
-            {ioErrorMessage}
-          </div>
+            }
+          }}
+          onEnded={() => {
+            // ready up because we don't want a missing video to hold up the playhead
+            setPaneStateValue("ready", true);
+          }}
+          onWaiting={() => {
+            if (paneStateData.ready && sourceURL !== "") {
+              setPaneStateValue("ready", false);
+              setStatus("buffering");
+            }
+          }}
+          onPlaying={() => {
+            setStatus("playing");
+          }}
+          onLoadedMetadata={(e) => {
+            // Used to later determine whether a buffering event is happening on an already playing video
+            // or a new loading event
+            const vidElement = e.target as HTMLVideoElement;
+            const metaData = {
+              videoHeight: vidElement.videoHeight,
+              videoWidth: vidElement.videoWidth,
+              duration: vidElement.duration,
+            };
+            setMetadata(metaData);
+          }}
+          onClick={() => {
+            if (paneStateData.activeVideoFileID !== "") {
+              toggleFullScreen();
+            }
+          }}
+          onError={(e) => {
+            const vidElement = e.target as HTMLVideoElement;
+            if (!vidElement.error.message.includes("mpty")) {
+              //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
+              setStatus("error");
+              console.error(
+                `video ${frameID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+              );
+            } else {
+              setStatus("novid");
+            }
+            //unblocking playhead
+            if (paneStateData.ready !== true) {
+              setPaneStateValue("ready", true);
+            }
+          }}
+        />
+        <div className={styles.IOError} style={ioErrorCSS}>
+          {ioErrorMessage}
         </div>
+
         {renderVideoOverlay()}
       </div>
     );

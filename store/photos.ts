@@ -8,7 +8,7 @@ const photoAdapter = createEntityAdapter<PhotoFile>();
 export const initialPhotoFileState: PhotoFile = {
   id: "",
   description: "",
-  mediaLowResURL: "/images/vintage_static.gif",
+  mediaLowResURL: "",
   mediaHighResURL: "",
   dataURL: "",
   dateAdded: "",

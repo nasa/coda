@@ -528,7 +528,7 @@ export default class DrawNav {
     leftPx: number;
     top: number;
     bottom: number;
-    drawLabels: boolean;
+    largeLabel: boolean;
     crosshatchWidth: number;
   }): paper.Group => {
     const group = new paper.Group();
@@ -549,21 +549,25 @@ export default class DrawNav {
         group.addChild(fLine);
       }
 
-      if ((param.drawLabels = true && !this.navigatorCollapsed)) {
-        // add some explanatory text
-        const futureText = new paper.PointText({
-          justification: "left",
-          fontFamily: this.gNavigatorFontFamilyActivity,
-          //fontWeight: 'bold',
-          fontSize: 15,
-          fillColor: "#AAAAAA",
-          content: "The Future",
-        });
-        const textTop = param.bottom - 45;
+      // add some explanatory text
+      const futureText = new paper.PointText({
+        justification: "left",
+        fontFamily: this.gNavigatorFontFamilyActivity,
+        fillColor: "#AAAAAA",
+        content: "The Future",
+      });
+      if (param.largeLabel) {
+        const textTop = param.bottom - 35;
         futureText.point = new paper.Point(futureLocX - 43, textTop);
-        futureText.rotate(-90);
-        group.addChild(futureText);
+        futureText.fontSize = 12;
+      } else {
+        // add some small explanatory text
+        const textTop = param.bottom - 23;
+        futureText.point = new paper.Point(futureLocX - 25, textTop);
+        futureText.fontSize = 9;
       }
+      futureText.rotate(-90);
+      group.addChild(futureText);
     }
     return group;
   };
@@ -636,7 +640,7 @@ export default class DrawNav {
         leftPx,
         top: this.gTier1Top,
         bottom: this.gTier1Top + this.gTier1Height,
-        drawLabels: false,
+        largeLabel: false,
         crosshatchWidth: 2,
       })
     );
@@ -725,7 +729,7 @@ export default class DrawNav {
         leftPx,
         top: this.gTier2Top,
         bottom: drawingBottom,
-        drawLabels,
+        largeLabel: true,
         crosshatchWidth: 10,
       })
     );
