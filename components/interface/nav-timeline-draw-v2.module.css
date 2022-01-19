@@ -1,7 +1,7 @@
 .canvasContainer {
   position: fixed;
   width: 100%;
-  height: 200px;
+  height: 172px;
   bottom: 0;
   left: 0;
   /* background-color: blue; */
@@ -11,15 +11,15 @@
 }
 
 .canvasContainer canvas {
-  position: fixed;
+  /* position: fixed;
   left: 0;
-  bottom: 0;
-  height: 200px;
+  bottom: 0; */
+  height: 172px;
   width: 100%;
 }
 
 .collapsedBackground {
-  position: fixed;
+  /* position: fixed; */
   width: 100%;
   height: 106px;
   bottom: 0;
@@ -29,9 +29,9 @@
 }
 
 .expandedBackground {
-  position: fixed;
+  /* position: fixed; */
   width: 100%;
-  height: 156px;
+  height: 122px;
   bottom: 0;
   left: 0;
   background-color: var(--very-dark-grey);

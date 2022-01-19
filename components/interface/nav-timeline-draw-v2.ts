@@ -20,7 +20,7 @@ export default class DrawNav {
   gCanvasHeight: number;
   gNavZoomFactor = 50;
   gTier1Height: number;
-  navigatorCollapsed: boolean = true;
+  navigatorCollapsed: boolean = false;
   gTier2Height: number;
   gTier1PixelsPerSecond: number;
   gTier1SecondsPerPixel: number;
@@ -87,7 +87,7 @@ export default class DrawNav {
     let mouseXSeconds;
     this.gCursorGroup.removeChildren();
     this.gNavCursorGroup.removeChildren();
-    this.navigatorCollapsed = false;
+    // this.navigatorCollapsed = false;
     this.setDynamicWidthVariables();
     if (event.point.y > this.gTier1Top) {
       //if in tier1
@@ -127,7 +127,7 @@ export default class DrawNav {
   };
 
   handleMouseLeave = (_event, cb) => {
-    this.navigatorCollapsed = true;
+    // this.navigatorCollapsed = true;
     this.setDynamicWidthVariables();
     this.drawTier1();
     this.drawTier2();
@@ -149,7 +149,7 @@ export default class DrawNav {
     this.gTier2SecondsPerPixel =
       this.cSecondsIn24Hours / this.gNavZoomFactor / (this.gNavigatorWidth - this.gTier2Left);
 
-    this.gCanvasHeight = 200;
+    this.gCanvasHeight = 172;
 
     this.gTier1Height = 52;
     this.gTierSpacing = 2;
@@ -157,7 +157,7 @@ export default class DrawNav {
     if (this.navigatorCollapsed) {
       this.gTier2Height = 52;
     } else {
-      this.gTier2Height = 102;
+      this.gTier2Height = 74;
     }
 
     this.gTier2Top =
@@ -198,7 +198,7 @@ export default class DrawNav {
 
     //default values for days without EVA
     let timeTextFontSize = 20;
-    let timeTextYPos = this.gTier2Top - 8;
+    let timeTextYPos = this.gTier2Top - 3;
     let timeTextFontFamily = this.gNavigatorFontFamily;
     let timeTextRectWidth = 115;
     let timeTextRectHeightNudge = 5;
@@ -220,7 +220,7 @@ export default class DrawNav {
 
       //override GMT time display with values to accommodate PET text
       timeTextFontSize = 15;
-      timeTextYPos = this.gTier2Top - 8;
+      timeTextYPos = this.gTier2Top - 3;
       timeTextFontFamily = this.gNavigatorFontFamilyActivity;
       timeTextRectWidth = 100;
       timeTextRectHeightNudge = 8;
@@ -346,10 +346,10 @@ export default class DrawNav {
           let activityText = new paper.PointText({
             justification: "left",
             fontFamily: this.gNavigatorFontFamilyActivity,
-            fontSize: 13,
+            fontSize: 12,
             fillColor: textColor,
           });
-          let textTop = startLocY + 14;
+          let textTop = startLocY + 11;
           activityText.point = new paper.Point(startLocX + 2, textTop);
           activityText.content = this.dayNight[i].daylight ? "Insolation" : "Eclipse";
           group.addChild(activityText);
@@ -440,7 +440,7 @@ export default class DrawNav {
         let itemLocX =
           param.leftPx +
           (this.photoFiles[i].datetimeTakenAppSeconds - param.secondsStart) * param.pixelsPerSecond;
-        let topPoint = new paper.Point(itemLocX, param.ticksTop);
+        let topPoint = new paper.Point(itemLocX, param.ticksTop + 0.5);
         let bottomPoint = new paper.Point(itemLocX, param.ticksTop + param.tickHeight);
         let aLine = new paper.Path.Line(topPoint, bottomPoint);
         if (showThisPhoto) {
@@ -466,7 +466,6 @@ export default class DrawNav {
     leftPx: number;
     barTop: number;
     barHeight: number;
-    barGapHeight: number;
     drawLabels: boolean;
   }): paper.Group => {
     const group = new paper.Group();
@@ -504,10 +503,10 @@ export default class DrawNav {
               justification: "left",
               fontFamily: this.gNavigatorFontFamilyActivity,
               //fontWeight: 'bold',
-              fontSize: 13,
+              fontSize: 12,
               fillColor: "white",
             });
-            let textTop = startLocY + 14;
+            let textTop = startLocY + 11;
             activityText.point = new paper.Point(startLocX + 2, textTop);
             activityText.content = evActivityArray[i].content;
             if (evActivityArray[i].content === "Insolation") {
@@ -625,21 +624,7 @@ export default class DrawNav {
         leftPx,
         barTop: drawingBottom - 20.5,
         barHeight: 3,
-        barGapHeight: 1,
         drawLabels: false,
-      })
-    );
-
-    this.gTier1Group.addChild(
-      this.drawTimeTicks({
-        secondsStart,
-        secondsEnd,
-        pixelsPerSecond,
-        leftPx,
-        tierTop: this.gTier1Top,
-        textTop: drawingBottom - 10,
-        tierTickHeight: drawingHeight,
-        textTickHeight: 10,
       })
     );
 
@@ -655,14 +640,28 @@ export default class DrawNav {
         crosshatchWidth: 2,
       })
     );
+
+    this.gTier1Group.addChild(
+      this.drawTimeTicks({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        tierTop: this.gTier1Top,
+        textTop: drawingBottom - 10,
+        tierTickHeight: drawingHeight,
+        textTickHeight: 10,
+      })
+    );
   }
 
   drawTier2() {
     this.gTier2Group.removeChildren();
 
-    const drawingTop = this.gTier2Top + 0.5;
     const drawingBottom = this.gTier2Top + this.gTier2Height + 0.5;
     const drawingHeight = this.gTier2Height;
+
+    const drawLabels = !this.navigatorCollapsed;
 
     const pixelsPerSecond = this.gTier2PixelsPerSecond;
     const secondsStart = this.gTier2StartSeconds;
@@ -676,10 +675,10 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        vidBarsTop: drawingTop,
+        vidBarsTop: drawingBottom - 69,
         vidBarHeight: 2,
         vidBarGapHeight: 1,
-        drawLabels: false,
+        drawLabels,
       })
     );
 
@@ -689,9 +688,9 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        barTop: drawingBottom - 12.5,
-        barHeight: 2,
-        drawLabels: false,
+        barTop: drawingBottom - 14,
+        barHeight: this.navigatorCollapsed ? 2 : 14,
+        drawLabels,
       })
     );
 
@@ -701,8 +700,8 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        ticksTop: drawingBottom - 14.5,
-        tickHeight: 3,
+        ticksTop: drawingBottom - 14,
+        tickHeight: this.navigatorCollapsed ? 3 : 8,
       })
     );
 
@@ -712,23 +711,9 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        barTop: drawingBottom - 20.5,
-        barHeight: 3,
-        barGapHeight: 1,
-        drawLabels: false,
-      })
-    );
-
-    this.gTier2Group.addChild(
-      this.drawTimeTicks({
-        secondsStart,
-        secondsEnd,
-        pixelsPerSecond,
-        leftPx,
-        tierTop: this.gTier2Top,
-        textTop: drawingBottom - 10,
-        tierTickHeight: drawingHeight,
-        textTickHeight: 10,
+        barTop: drawingBottom - 42,
+        barHeight: this.navigatorCollapsed ? 2 : 14,
+        drawLabels,
       })
     );
 
@@ -740,8 +725,21 @@ export default class DrawNav {
         leftPx,
         top: this.gTier2Top,
         bottom: drawingBottom,
-        drawLabels: false,
+        drawLabels,
         crosshatchWidth: 10,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawTimeTicks({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        tierTop: this.gTier2Top,
+        textTop: drawingBottom - 12,
+        tierTickHeight: drawingHeight,
+        textTickHeight: 10,
       })
     );
   }
