@@ -100,7 +100,13 @@ export default function Frame(options) {
         </FrameHeader>
       </div>
       <div className={styles.bodyContainer}>
-        {!_.isNil(FrameRender) ? <FrameRender frameID={options.id} /> : <></>}
+        {!_.isNil(FrameRender) ? (
+          <FrameRender frameID={options.id} />
+        ) : (
+          <>
+            <div className={styles.photoPoster}></div>
+          </>
+        )}
       </div>
     </div>
   );

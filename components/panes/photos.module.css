@@ -136,8 +136,8 @@
   left: 0;
   background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
   background-size: 50%;
-  filter: grayscale(100%) contrast(0.75);
-  opacity: 0.3;
+  /* filter: grayscale(100%) contrast(0.75); */
+  opacity: 0.4;
 }
 
 .photo {

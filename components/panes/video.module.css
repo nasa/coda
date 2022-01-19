@@ -99,8 +99,8 @@
   left: 0;
   background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
   background-size: 50%;
-  filter: grayscale(100%) contrast(0.75);
-  opacity: 0.3;
+  /* filter: grayscale(100%) contrast(0.75); */
+  opacity: 0.4;
 }
 
 .playerPosterBuffering {
@@ -133,19 +133,19 @@
 }
 
 .IOError {
-  /* position: absolute;
-  top: 60%;
-  left: 26%; */
+  position: absolute;
+  bottom: 0;
   display: none;
-  background-color: red;
+  background-color: rgb(158, 0, 0);
   margin: 0 auto;
-  width: 13em;
+  width: 100%;
   margin-top: 25%;
   color: #dddddd;
   padding: 10px;
-  border: 2px solid;
-  border-radius: 10px;
-  font-size: 2em;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 1.1em;
+  text-align: center;
 }
 
 .mediaPanel {
