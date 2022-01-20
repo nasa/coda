@@ -401,7 +401,7 @@ export default function Video(props: {
   };
 
   const renderNonDl = () => {
-    const nonDlVideoIDs = visibleVideos.get(`${playhead.seconds}/6`) || [];
+    const nonDlVideoIDs = visibleVideos.get(`${playhead.seconds}/8`) || [];
 
     const optionList = () => {
       if (nonDlVideoIDs.length === 0) {
