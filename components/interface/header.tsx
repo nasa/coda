@@ -36,7 +36,7 @@ export function SourcesDropdown(props: { collection: Collection }) {
   const _varThatDoesNothing = props.collection;
   return (
     <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
-      <span>&nbsp;ISS</span>
+      <span className={styles.source}>ISS</span>
     </ModalDropdown>
   );
 }
@@ -52,9 +52,9 @@ export function DatetimeDropdown() {
   return (
     <ModalDropdown modal={Calendar} color="grey" caret="down">
       <div className={styles.iconWithText}>
-        <FontAwesomeIcon icon={["far", "calendar-alt"]} />
+        <FontAwesomeIcon icon={["far", "calendar-alt"]} size={"sm"} />
         &nbsp;&nbsp;
-        <span className={styles.mono}>
+        <span className={styles.date}>
           {year}-{month}-{day}
         </span>
       </div>
@@ -70,9 +70,9 @@ export function ClockDropdown() {
   return (
     <ModalDropdown modal={Calendar} color="grey" caret="none">
       <div className={styles.iconWithText}>
-        <FontAwesomeIcon icon={["far", "clock"]} />
+        <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
         &nbsp;
-        <span className={`${styles.mono} ${styles.time}`}>{time}</span>
+        <span className={`${styles.time}`}>{time}</span>
       </div>
     </ModalDropdown>
   );
@@ -88,13 +88,13 @@ export default function Header(props: { collection: Collection }) {
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
         </div>
-        <div className={styles.item} style={{ width: "87px" }}>
+        <div className={styles.item} style={{ width: "100px" }}>
           <SourcesDropdown collection={props.collection} />
         </div>
-        <div className={styles.item} style={{ width: "197px" }}>
+        <div className={styles.item} style={{ width: "180px" }}>
           <DatetimeDropdown />
         </div>
-        <div className={styles.item} style={{ width: "150px" }}>
+        <div className={styles.item} style={{ width: "130px" }}>
           <ClockDropdown />
         </div>
         <div className={styles.item} style={{ width: "150px" }}>

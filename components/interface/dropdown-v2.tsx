@@ -124,8 +124,8 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
           <div className={styles.verticalCenter}>
             <div className={`${caretStyle} ${styles.caret}`}>
               &nbsp;
-              {opts.caret === "down" && <FontAwesomeIcon icon="chevron-down" />}
-              {opts.caret === "right" && <FontAwesomeIcon icon="chevron-right" />}
+              {opts.caret === "down" && <FontAwesomeIcon icon="chevron-down" size={"sm"} />}
+              {opts.caret === "right" && <FontAwesomeIcon icon="chevron-right" size={"sm"} />}
             </div>
           </div>
         </div>

@@ -67,9 +67,19 @@
   font-size: 19px;
 }
 
+.source {
+  padding-left: 10px;
+  font-size: 16px;
+}
+
+.date {
+  font-size: 16px;
+}
+
 .time {
-  display: inline-block;
+  /* display: inline-block;
   border-radius: var(--radius);
-  border: 1px solid var(--extremely-grey);
+  border: 1px solid var(--extremely-grey); */
   padding: 1px 4px;
+  font-size: 16px;
 }
