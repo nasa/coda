@@ -23,7 +23,6 @@ export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   ready: false,
   metadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
-  lastChecked: "",
   collectionFilters: [],
 });
 
@@ -37,7 +36,6 @@ export const photoSlice = createSlice({
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
       photoAdapter.upsertMany(state, action.payload.data);
       state.metadata = { ...state.metadata, ...action.payload.metadata };
-      state.lastChecked = new Date().toISOString();
       state.ready = true;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {

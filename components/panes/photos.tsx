@@ -12,7 +12,7 @@ import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/framework";
-import { ExpandButton, IOInfoButton } from "./video";
+import { ExpandButton, IOInfoButton } from "./iss-video";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";

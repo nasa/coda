@@ -8,7 +8,6 @@ const videoAdapter = createEntityAdapter<VideoFile>();
 export const initialState: VideosEntityState = videoAdapter.getInitialState({
   metadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
-  lastChecked: "",
 });
 
 export const videoSelectors = videoAdapter.getSelectors<VideosEntityState>((state) => state);
@@ -21,7 +20,6 @@ export const videoSlice = createSlice({
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
       videoAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
-      state.lastChecked = new Date().toISOString();
     },
 
     /** An error occured fetching video metadata */

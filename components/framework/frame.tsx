@@ -7,7 +7,7 @@ import { ModalDropdown } from "components/interface/dropdown-v2";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EVAInfo, { EVAInfoControls } from "components/panes/eva-info";
-import VideoPane, { VideoControls } from "components/panes/video";
+import VideoPane, { VideoControls } from "components/panes/iss-video";
 import PhotoPane, { PhotoControls } from "components/panes/photos";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useEffect, useRef, useState } from "react";

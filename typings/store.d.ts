@@ -42,7 +42,6 @@ type EphemeraEntityState = EntityState<EphemerisFile> & {
 type SequencesEntityState = EntityState<Sequence> & {
   metadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
-  lastChecked: string;
 };
 
 /**
@@ -54,7 +53,6 @@ type PhotosEntityState = EntityState<PhotoFile> & {
   ready: boolean;
   metadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
-  lastChecked: string;
   collectionFilters: PhotoCollectionFilters[];
 };
 
@@ -80,6 +78,4 @@ type VideosEntityState = EntityState<VideoFile> & {
   // ready: { [key: number]: boolean };
   metadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
-  /** UTC string of the last time we hit IO */
-  lastChecked: string;
 };
