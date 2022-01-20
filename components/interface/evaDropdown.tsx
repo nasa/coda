@@ -8,6 +8,7 @@ import styles from "./evaDropdown.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function EVADropdown(props: { collection: Collection }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
@@ -79,7 +80,9 @@ export default function EVADropdown(props: { collection: Collection }) {
             })
         )}
       </select>
-      <div className={styles.select_arrow}></div>
+      <div className={styles.select_arrow}>
+        <FontAwesomeIcon icon="chevron-down" />
+      </div>
     </div>
   );
 }

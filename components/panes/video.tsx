@@ -8,7 +8,7 @@ import Button from "components/interface/button";
 import type { RootState } from "store/index";
 import { isSameDate, midnightZulu } from "store/playhead";
 import { videoSelectors, visibleVideosBySecond } from "store/videos";
-import { hhmmssFromSeconds } from "utils/formatting";
+import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { ModalDropdown } from "../interface/dropdown-v2";
 import { setPaneStateDataValue } from "store/framework";
@@ -68,11 +68,11 @@ export function ExpandButton() {
 
 const downlinks = [0, 1, 2, 3, 4, 5, 6, 7];
 
-export function VideoControls(props: { frameID: number; frameWidth: number }) {
+export function VideoDLPaneControls(props: { frameID: number; frameWidth: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const minWidth = 440; // minimum width of the video pane before breaking into dropdown for downlinks
+  const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
@@ -80,7 +80,7 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
   const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
-  const paneStateData: VideoDLPaneControlStateData = useSelector(
+  const paneStateData: VideoPaneControlStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
@@ -163,9 +163,6 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
               muted={paneStateData.muted}
             />
           </div>
-          <div className={styles.verticalCenter}>
-            <ExpandButton />
-          </div>
         </div>
       </div>
     );
@@ -193,9 +190,6 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
               }}
               muted={paneStateData.muted}
             />
-          </div>
-          <div className={styles.verticalCenter}>
-            <ExpandButton />
           </div>
         </div>
       </div>
@@ -232,6 +226,117 @@ export function VideoControls(props: { frameID: number; frameWidth: number }) {
   }
 }
 
+export function VideoOtherPaneControls(props: { frameID: number; frameWidth: number }) {
+  const frameID = props.frameID;
+  const dispatch = useDispatch();
+
+  const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
+
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadDate = new Date(playhead.date);
+  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
+
+  const [nonDlVideoIDs, setNonDlVideoIDs] = useState([]);
+
+  const paneStateData: VideoPaneControlStateData = useSelector(
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+  );
+  function setPaneStateValue(propertyName, propertyValue) {
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: propertyName,
+        paneStateValue: propertyValue,
+      })
+    );
+  }
+
+  const getPrettyVideoTitle = (videoID: string) => {
+    const video = videoSelectors.selectById(videos, videoID);
+    if (video) {
+      if (video.title && video.title.trim() !== "") {
+        return video.title;
+      }
+      return cleanCollectionsString(video.collections) + " - " + videoID;
+    }
+    return "";
+  };
+
+  const optionList = () => {
+    if (nonDlVideoIDs.length === 0) {
+      return;
+    }
+
+    return nonDlVideoIDs.map((v) => {
+      return (
+        <option value={v} key={v}>
+          {getPrettyVideoTitle(v)}
+        </option>
+      );
+    });
+  };
+
+  useEffect(() => {
+    setNonDlVideoIDs(visibleVideos.get(`${playhead.seconds}/-1`) || []);
+  }, [visibleVideos, playhead]);
+
+  let selectActiveStyle = "";
+  if (nonDlVideoIDs.length > 0) {
+    selectActiveStyle = styles.selectActive;
+  }
+
+  const dropDownWidthClass =
+    props.frameWidth > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
+
+  return (
+    <>
+      <div className={styles.controls}>
+        <div
+          className={`${styles.selectContainer} ${dropDownWidthClass}`}
+          title={getPrettyVideoTitle(paneStateData.activeVideoFileID)}
+        >
+          <select
+            className={selectActiveStyle}
+            value={paneStateData.activeVideoFileID}
+            onChange={(e) => {
+              setPaneStateValue("downlink", -1);
+              setPaneStateValue("activeVideoFileID", e.target.value);
+            }}
+          >
+            <option disabled value="">
+              Non-D/L
+            </option>
+            {optionList()}
+          </select>
+          <div className={styles.nonDlSelect_arrow}>
+            <FontAwesomeIcon icon="chevron-down" size="sm" />
+          </div>
+        </div>
+        <div className={styles.rightButtons}>
+          <div className={styles.verticalCenter}>
+            <IOInfoButton
+              clickHandler={() => {
+                setPaneStateValue("showInfo", !paneStateData.showInfo);
+              }}
+              selected={paneStateData.showInfo}
+            />
+          </div>
+          <div className={styles.verticalCenter} style={{ width: "30px" }}>
+            <MuteButton
+              clickHandler={() => {
+                setPaneStateValue("muted", !paneStateData.muted);
+              }}
+              muted={paneStateData.muted}
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
  */
@@ -256,7 +361,7 @@ export default function VideoPane(props: { frameID: number }) {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
-  const paneStateData: VideoDLPaneControlStateData = useSelector(
+  const paneStateData: VideoPaneControlStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
@@ -300,37 +405,32 @@ export default function VideoPane(props: { frameID: number }) {
     const downlink = paneStateData.downlink;
     const activeVideoFileID = paneStateData.activeVideoFileID;
 
-    const videosNextSecond = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
+    const videosNextSecondThisDownlink = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
 
     // check for video changes
-    let videoID = activeVideoFileID;
-
+    let currVideoID = activeVideoFileID;
     // if the timeline just jumped or the video files changed, make sure we start the right video
     // we always use element 0 of the videos available in this downlink for any given second (see store/videos.ts)
-    if (videosNextSecond && activeVideoFileID !== videosNextSecond[0]) {
+    if (videosNextSecondThisDownlink && activeVideoFileID !== videosNextSecondThisDownlink[0]) {
       // there is a different video for this downlink the next second! pick the highest priority video for this downlink. See store/videos.ts#videoSorter for how video files are sorted
-      videoID = videosNextSecond[0];
+      currVideoID = videosNextSecondThisDownlink[0];
     }
 
-    if (!videosNextSecond) {
+    if (!videosNextSecondThisDownlink) {
       // clear the player if no video is playing next second
-      videoID = "";
+      currVideoID = "";
     }
 
-    // if (downlink === 6) {
-    //   videoID = videos.nonDownlinkIDs[frameID];
-    //   if (videosNextSecond && !videosNextSecond.includes(videoID)) {
-    //     videoID = videosNextSecond[0];
-    //     dispatch(setVideoNonDownlinkID({ frameID, nonDownlinkID: videoID }));
-    //   }
-    //   if (videosNextSecond && videosNextSecond.length === 0 && videoID !== "") {
-    //     dispatch(setVideoNonDownlinkID({ frameID, nonDownlinkID: "" }));
-    //   }
-    // }
+    if (downlink === -1) {
+      // if we're on non-downlink video (designated as downlink -1), we need to reset the video if this video isn't available next second
+      if (videosNextSecondThisDownlink && !videosNextSecondThisDownlink.includes(currVideoID)) {
+        currVideoID = "";
+      }
+    }
 
     // if the video source needs to change, change it
-    if (videoID !== activeVideoFileID) {
-      setPaneStateValue("activeVideoFileID", videoID);
+    if (currVideoID !== activeVideoFileID) {
+      setPaneStateValue("activeVideoFileID", currVideoID);
 
       // wipe out the metadata for this videoElement so that aspect will be recalculated when the next video loads
       setMetadata(null);
@@ -595,35 +695,37 @@ export default function VideoPane(props: { frameID: number }) {
     return (
       <div className={`${styles.vidOverlay} ${infoDisplayClass}`}>
         <table className={styles.overlayTable}>
-          <tr>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
-            <td className={`${styles.overlayTableCell}`}>{startDateTime}</td>
-          </tr>
-          <tr>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
-            <td className={styles.overlayTableCell}>
-              <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
-                {openOnIOMessage}
-              </a>
-              <div className={styles.digiValue}>{videoFilename}</div>
-            </td>
-          </tr>
-          <tr>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</td>
-            <td className={styles.overlayTableCell}>
-              <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
-                {openVideoURLMessage}
-              </a>
-              <br />
-              <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
-                {ioVideoURL}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
-            <td className={styles.overlayTableCell}>{info}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
+              <td className={`${styles.overlayTableCell}`}>{startDateTime}</td>
+            </tr>
+            <tr>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
+              <td className={styles.overlayTableCell}>
+                <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                  {openOnIOMessage}
+                </a>
+                <div className={styles.digiValue}>{videoFilename}</div>
+              </td>
+            </tr>
+            <tr>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</td>
+              <td className={styles.overlayTableCell}>
+                <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                  {openVideoURLMessage}
+                </a>
+                <br />
+                <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
+                  {ioVideoURL}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
+              <td className={styles.overlayTableCell}>{info}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     );

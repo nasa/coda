@@ -12,7 +12,7 @@ import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/framework";
-import { ExpandButton, IOInfoButton } from "./iss-video";
+import { IOInfoButton } from "./video";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -87,9 +87,6 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
               }}
               selected={paneStateData.showFilter}
             />
-          </div>
-          <div className={styles.verticalCenter}>
-            <ExpandButton />
           </div>
         </div>
       </div>
@@ -196,45 +193,47 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
     return (
       <div className={`${styles.photoOverlay} ${infoDisplayClass}`}>
         <table className={styles.overlayTable}>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</td>
-            <td className={`${styles.overlayTableCell}`}>{datetimeTaken}</td>
-          </tr>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
-            <td className={`${styles.overlayTableCell}`}>{dateAdded}</td>
-          </tr>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</td>
-            <td className={`${styles.overlayTableCell}`}>
-              {cleanCollectionsString(photos.activePhoto.collections)}
-            </td>
-          </tr>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
-            <td className={styles.overlayTableCell}>
-              <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
-                {openOnIOMessage}
-              </a>
-              <td className={styles.digiValue}>{photoFilename}</td>
-            </td>
-          </tr>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>High Res</td>
-            <td className={styles.overlayTableCell}>
-              <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
-                {openURLMessage}
-              </a>
-              <br />
-              <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
-                {ioHighResURL}
-              </span>
-            </td>
-          </tr>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
-            <td className={styles.overlayTableCell}>{info}</td>
-          </tr>
+          <tbody>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</td>
+              <td className={`${styles.overlayTableCell}`}>{datetimeTaken}</td>
+            </tr>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
+              <td className={`${styles.overlayTableCell}`}>{dateAdded}</td>
+            </tr>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</td>
+              <td className={`${styles.overlayTableCell}`}>
+                {cleanCollectionsString(photos.activePhoto.collections)}
+              </td>
+            </tr>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
+              <td className={styles.overlayTableCell}>
+                <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                  {openOnIOMessage}
+                </a>
+                <td className={styles.digiValue}>{photoFilename}</td>
+              </td>
+            </tr>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>High Res</td>
+              <td className={styles.overlayTableCell}>
+                <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                  {openURLMessage}
+                </a>
+                <br />
+                <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
+                  {ioHighResURL}
+                </span>
+              </td>
+            </tr>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
+              <td className={styles.overlayTableCell}>{info}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     );
@@ -249,45 +248,47 @@ export default function PhotoPane(props: { frameID: number; frameWidth: number }
     return (
       <div className={`${styles.photoOverlay} ${displayClass}`}>
         <table className={styles.overlayTable}>
-          <tr className={styles.overlayTableRow}>
-            <td className={`${styles.overlayTableCell} ${styles.titleRow}`}></td>
-            <td className={`${styles.overlayTableCell}`}>
-              <button
-                className={styles.filterButton}
-                onClick={() => {
-                  changeAllFilters(true);
-                }}
-              >
-                Check All
-              </button>
-              <button
-                className={styles.filterButton}
-                style={{ marginLeft: "0.5em" }}
-                onClick={() => {
-                  changeAllFilters(false);
-                }}
-              >
-                Check None
-              </button>
-            </td>
-          </tr>
-          {photos.collectionFilters.map((value, index) => {
-            return (
-              <tr key={index} className={styles.overlayTableRow}>
-                <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>
-                  <input
-                    className={styles.tableInput}
-                    type="checkbox"
-                    checked={value.selected}
-                    onChange={() => {
-                      changeFilter(index, !value.selected);
-                    }}
-                  />
-                </td>
-                <td className={`${styles.overlayTableCell}`}>{value.display}</td>
-              </tr>
-            );
-          })}
+          <tbody>
+            <tr className={styles.overlayTableRow}>
+              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}></td>
+              <td className={`${styles.overlayTableCell}`}>
+                <button
+                  className={styles.filterButton}
+                  onClick={() => {
+                    changeAllFilters(true);
+                  }}
+                >
+                  Check All
+                </button>
+                <button
+                  className={styles.filterButton}
+                  style={{ marginLeft: "0.5em" }}
+                  onClick={() => {
+                    changeAllFilters(false);
+                  }}
+                >
+                  Check None
+                </button>
+              </td>
+            </tr>
+            {photos.collectionFilters.map((value, index) => {
+              return (
+                <tr key={index} className={styles.overlayTableRow}>
+                  <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>
+                    <input
+                      className={styles.tableInput}
+                      type="checkbox"
+                      checked={value.selected}
+                      onChange={() => {
+                        changeFilter(index, !value.selected);
+                      }}
+                    />
+                  </td>
+                  <td className={`${styles.overlayTableCell}`}>{value.display}</td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
       </div>
     );

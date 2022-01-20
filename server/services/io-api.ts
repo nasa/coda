@@ -142,7 +142,7 @@ const videoSorter = (a: VideoFile, b: VideoFile) => {
 
 /** Parse the video result for relevant information */
 function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
-  let downlink = 8;
+  let downlink = -1;
   let LOS = false;
 
   if (+Collection[collection] === +Collection.ISS) {

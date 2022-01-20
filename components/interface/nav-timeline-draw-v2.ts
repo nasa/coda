@@ -372,6 +372,7 @@ export default class DrawNav {
     const group = new paper.Group();
     for (let i = 0; i < this.videoFiles.length; i++) {
       const startOfDay = this.dateRendered.valueOf() / 1000;
+      const downlink = this.videoFiles[i].downlink === -1 ? 8 : this.videoFiles[i].downlink; // -1 means non downlink, put it on the 8th row
       if (
         // if video starts before the end of the tier display and ends after the start of the tier display, then draw a bar
         this.videoFiles[i].start - startOfDay <= param.secondsEnd &&
@@ -386,9 +387,7 @@ export default class DrawNav {
           (Math.min(this.videoFiles[i].end - startOfDay, 86399) - param.secondsStart) *
             param.pixelsPerSecond;
 
-        let startLocY =
-          param.vidBarsTop +
-          this.videoFiles[i].downlink * (param.vidBarHeight + param.vidBarGapHeight);
+        let startLocY = param.vidBarsTop + downlink * (param.vidBarHeight + param.vidBarGapHeight);
         let endLocY = startLocY + param.vidBarHeight + 1;
 
         let name = "vidItem_" + i.toString();
@@ -402,7 +401,7 @@ export default class DrawNav {
         });
         vidLine.fillColor = this.videoFiles[i].LOS ? this.gColorVideoLOS : this.gColorVideo;
 
-        if (this.videoFiles[i].downlink === 6) {
+        if (downlink === 8) {
           vidLine.fillColor = new paper.Color("white");
           vidLine.opacity = 0.4;
         }

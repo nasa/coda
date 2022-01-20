@@ -7,7 +7,7 @@ import { ModalDropdown } from "components/interface/dropdown-v2";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EVAInfo, { EVAInfoControls } from "components/panes/eva-info";
-import VideoPane, { VideoControls } from "components/panes/iss-video";
+import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video";
 import PhotoPane, { PhotoControls } from "components/panes/photos";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useEffect, useRef, useState } from "react";
@@ -46,15 +46,15 @@ export function FrameHeader(props: { frameID: number; paneType: string; children
 
 const frameTypeIDsToRenders = {
   iss_downlink: VideoPane,
-  iss_non_downlink: () => <>1: ISS Video Non-Downlink</>,
+  iss_non_downlink: VideoPane,
   iss_photo: PhotoPane,
   iss_position: ISSLocation,
   iss_eva_info: EVAInfo,
 };
 
 const frameTypeIDsToControls = {
-  iss_downlink: VideoControls,
-  iss_non_downlink: () => <>Controls: ISS Video Non-Downlink</>,
+  iss_downlink: VideoDLPaneControls,
+  iss_non_downlink: VideoOtherPaneControls,
   iss_photo: PhotoControls,
   iss_position: ISSLocationControls,
   iss_eva_info: EVAInfoControls,
@@ -87,6 +87,14 @@ export default function Frame(options) {
   useEffect(() => {
     setFrameWidth(frameRef.current ? frameRef.current.offsetWidth : 0);
   }, [frameRef]);
+
+  /** Handle resize events and rerender components */
+  useEffect(() => {
+    function handleResize() {
+      setFrameWidth(frameRef.current ? frameRef.current.offsetWidth : 0);
+    }
+    window.addEventListener("resize", handleResize);
+  });
 
   return (
     <div className={styles.main} ref={frameRef}>

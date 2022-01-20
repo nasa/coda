@@ -41,13 +41,12 @@ interface FrameState {
   paneStateData: any;
 }
 
-type VideoDLPaneControlStateData = {
+type VideoPaneControlStateData = {
   downlink: number;
   activeVideoFileID: string;
   ready: boolean;
   muted: boolean;
   showInfo: boolean;
-  //nonDownlinkIDs: string[];
 };
 
 type PhotoPaneControlStateData = {

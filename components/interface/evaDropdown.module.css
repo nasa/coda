@@ -6,11 +6,12 @@
   width: 25em;
 }
 .select select {
-  font-family: "Roboto Mono", Courier, monospace;
+  font-family: "Inter", sans-serif;
   font-weight: 400;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   padding-left: 15px;
+  padding-right: 25px;
   height: 41px;
   border: none;
   border-radius: var(--radius);
@@ -35,18 +36,9 @@
 }
 .select_arrow {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 10px;
+  right: 10px;
   pointer-events: none;
-  border-style: solid;
-  border-width: 11px 7px 0px 8px;
-  border-color: white transparent transparent transparent;
 }
 
 /* v2 */
-.verticalCenter {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  padding-left: 3px;
-}

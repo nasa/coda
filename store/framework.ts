@@ -43,11 +43,15 @@ export const allPanes: Frames = {
   },
   iss_non_downlink: {
     source: FrameSource.ISS,
-    title: "ISS Video Non-Downlink",
+    title: "ISS Video Other",
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
       ready: true,
+      downlink: 0,
+      activeVideoFileID: "",
+      muted: false,
+      showInfo: false,
     },
   },
   iss_photo: {
@@ -98,9 +102,19 @@ export const initialState: FrameworkState = {
         activeVideoFileID: "",
         muted: false,
         showInfo: false,
-      } as VideoDLPaneControlStateData,
+      } as VideoPaneControlStateData,
     },
     2: {
+      paneType: "iss_non_downlink",
+      paneStateData: {
+        ready: true,
+        downlink: -1,
+        activeVideoFileID: "",
+        muted: false,
+        showInfo: false,
+      } as VideoPaneControlStateData,
+    },
+    3: {
       paneType: "iss_photo",
       paneStateData: {
         ready: true,
