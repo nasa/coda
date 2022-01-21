@@ -28,7 +28,7 @@ export function FilterButton(props: { clickHandler; selected?: boolean }) {
   );
 }
 
-export function PhotoControls(props: { frameID: number; frameWidth: number }) {
+export function PhotoControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
 
   const dispatch = useDispatch();
@@ -94,7 +94,7 @@ export function PhotoControls(props: { frameID: number; frameWidth: number }) {
   );
 }
 
-export default function PhotoPane(props: { frameID: number; frameWidth: number }) {
+export default function PhotoPane(props: { frameID: number; frameDimensions: number[] }) {
   const dispatch = useDispatch();
   const frameID = props.frameID;
 

@@ -10,7 +10,6 @@ import { isSameDate, midnightZulu } from "store/playhead";
 import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
-import { ModalDropdown } from "../interface/dropdown-v2";
 import { setPaneStateDataValue } from "store/framework";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
@@ -103,7 +102,7 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneControlS
 
 const downlinks = [0, 1, 2, 3, 4, 5, 6, 7];
 
-export function VideoDLPaneControls(props: { frameID: number; frameWidth: number }) {
+export function VideoDLPaneControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
@@ -142,7 +141,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameWidth: number
     setDownlinkAvailability(downlinkAvailability);
   }, [visibleVideos, playhead.seconds]);
 
-  if (props.frameWidth > minWidth) {
+  if (props.frameDimensions[0] > minWidth) {
     return (
       <div className={styles.controls}>
         <div className={styles.selections}>
@@ -213,7 +212,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameWidth: number
   }
 }
 
-export function VideoOtherPaneControls(props: { frameID: number; frameWidth: number }) {
+export function VideoOtherPaneControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
@@ -275,7 +274,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameWidth: num
   }
 
   const dropDownWidthClass =
-    props.frameWidth > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
+    props.frameDimensions[0] > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
 
   return (
     <>
@@ -292,9 +291,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameWidth: num
               setPaneStateValue("activeVideoFileID", e.target.value);
             }}
           >
-            <option disabled value="">
-              Non-D/L
-            </option>
+            <option value="">Non-D/L</option>
             {optionList()}
           </select>
           <div className={styles.nonDlSelect_arrow}>
@@ -373,27 +370,28 @@ export default function VideoPane(props: { frameID: number }) {
     }
 
     const downlink = paneStateData.downlink;
-    const activeVideoFileID = paneStateData.activeVideoFileID;
-
     const videosNextSecondThisDownlink = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
+    const activeVideoFileID = paneStateData.activeVideoFileID;
 
     // check for video changes
     let currVideoID = activeVideoFileID;
     // if the timeline just jumped or the video files changed, make sure we start the right video
-    // we always use element 0 of the videos available in this downlink for any given second (see store/videos.ts)
-    if (videosNextSecondThisDownlink && activeVideoFileID !== videosNextSecondThisDownlink[0]) {
-      // there is a different video for this downlink the next second! pick the highest priority video for this downlink. See store/videos.ts#videoSorter for how video files are sorted
-      currVideoID = videosNextSecondThisDownlink[0];
-    }
-
-    if (!videosNextSecondThisDownlink) {
-      // clear the player if no video is playing next second
-      currVideoID = "";
-    }
 
     if (downlink === -1) {
       // if we're on non-downlink video (designated as downlink -1), we need to reset the video if this video isn't available next second
       if (videosNextSecondThisDownlink && !videosNextSecondThisDownlink.includes(currVideoID)) {
+        currVideoID = "";
+      }
+    } else {
+      // we always use element 0 of the videos available in this downlink for any given second (see store/videos.ts)
+      if (videosNextSecondThisDownlink && activeVideoFileID !== videosNextSecondThisDownlink[0]) {
+        /** there is a different video for this downlink the next second! pick the highest priority video for this downlink.
+        See store/videos.ts#videoSorter for how video files are sorted */
+        currVideoID = videosNextSecondThisDownlink[0];
+      }
+
+      if (!videosNextSecondThisDownlink) {
+        // clear the player if no video is playing next second
         currVideoID = "";
       }
     }

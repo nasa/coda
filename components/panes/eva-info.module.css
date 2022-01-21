@@ -1,5 +1,61 @@
 .main {
+  height: 0;
+  min-height: 100%;
+  overflow: auto;
+  background-color: var(--nearly-black);
+  overflow: auto;
+}
+
+.dataTable {
+  font-size: 0.8em;
+  background: rgb(15, 15, 15, 0.8);
+  border-radius: 10px;
+  border-spacing: 0;
+  border-collapse: collapse;
   width: 100%;
-  height: 100%;
-  background-color: black;
+  table-layout: fixed;
+}
+
+.dataTable a {
+  text-decoration: underline;
+}
+
+.dataTable tr {
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.dataTable td:first-child {
+  text-align: right;
+  width: 80px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.dataTable td {
+  display: table-cell;
+  vertical-align: top;
+  font-weight: 200;
+  padding: 8px;
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+.dataTable .tdNoBottomBorder {
+  border-bottom: none;
+}
+.dataTable .tdBorderTop {
+  border-top: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.dataTable .digiValue {
+  font-family: "Ubuntu Mono";
+  font-size: 1em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.dataTable .labelValue {
+  font-weight: 400;
 }

@@ -65,6 +65,8 @@ export interface Options {
   id: number;
 }
 
+const headerContainerHeight = 35;
+
 /** Renders a frame in the viewer */
 export default function Frame(options) {
   const frameState = useSelector((state: RootState) => state.framework.frames[options.id]);
@@ -82,16 +84,24 @@ export default function Frame(options) {
   }
 
   /** get component width and pass it to the frame controls */
-  const [frameWidth, setFrameWidth] = useState(false);
+  const [frameDimensions, setFrameDimensions] = useState([]);
   const frameRef = useRef(null);
   useEffect(() => {
-    setFrameWidth(frameRef.current ? frameRef.current.offsetWidth : 0);
+    setFrameDimensions(
+      frameRef.current
+        ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
+        : []
+    );
   }, [frameRef]);
 
   /** Handle resize events and rerender components */
   useEffect(() => {
     function handleResize() {
-      setFrameWidth(frameRef.current ? frameRef.current.offsetWidth : 0);
+      setFrameDimensions(
+        frameRef.current
+          ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
+          : []
+      );
     }
     window.addEventListener("resize", handleResize);
   });
@@ -101,7 +111,7 @@ export default function Frame(options) {
       <div className={styles.headerContainer}>
         <FrameHeader frameID={options.id} paneType={paneType}>
           {!_.isNil(FrameControls) ? (
-            <FrameControls frameID={options.id} frameWidth={frameWidth} />
+            <FrameControls frameID={options.id} frameDimensions={frameDimensions} />
           ) : (
             <></>
           )}
@@ -109,7 +119,7 @@ export default function Frame(options) {
       </div>
       <div className={styles.bodyContainer}>
         {!_.isNil(FrameRender) ? (
-          <FrameRender frameID={options.id} />
+          <FrameRender frameID={options.id} frameDimensions={frameDimensions} />
         ) : (
           <>
             <div className={styles.photoPoster}></div>

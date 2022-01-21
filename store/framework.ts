@@ -122,6 +122,12 @@ export const initialState: FrameworkState = {
         showFilter: false,
       } as PhotoPaneControlStateData,
     },
+    4: {
+      paneType: "iss_eva_info",
+      paneStateData: {
+        ready: true,
+      },
+    },
     5: {
       paneType: "iss_position",
       paneStateData: {
