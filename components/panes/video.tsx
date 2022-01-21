@@ -66,6 +66,41 @@ export function ExpandButton() {
   );
 }
 
+function RightButtons(props: { frameID: number; paneStateData: VideoPaneControlStateData }) {
+  const dispatch = useDispatch();
+  const frameID = props.frameID;
+
+  function setPaneStateValue(propertyName, propertyValue) {
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: propertyName,
+        paneStateValue: propertyValue,
+      })
+    );
+  }
+  return (
+    <div className={styles.rightButtons}>
+      <div className={styles.verticalCenter}>
+        <IOInfoButton
+          clickHandler={() => {
+            setPaneStateValue("showInfo", !props.paneStateData.showInfo);
+          }}
+          selected={props.paneStateData.showInfo}
+        />
+      </div>
+      <div className={styles.verticalCenter} style={{ width: "30px" }}>
+        <MuteButton
+          clickHandler={() => {
+            setPaneStateValue("muted", !props.paneStateData.muted);
+          }}
+          muted={props.paneStateData.muted}
+        />
+      </div>
+    </div>
+  );
+}
+
 const downlinks = [0, 1, 2, 3, 4, 5, 6, 7];
 
 export function VideoDLPaneControls(props: { frameID: number; frameWidth: number }) {
@@ -146,81 +181,33 @@ export function VideoDLPaneControls(props: { frameID: number; frameWidth: number
             );
           })}
         </div>
-        <div className={styles.rightButtons}>
-          <div className={styles.verticalCenter}>
-            <IOInfoButton
-              clickHandler={() => {
-                setPaneStateValue("showInfo", !paneStateData.showInfo);
-              }}
-              selected={paneStateData.showInfo}
-            />
-          </div>
-          <div className={styles.verticalCenter} style={{ width: "30px" }}>
-            <MuteButton
-              clickHandler={() => {
-                setPaneStateValue("muted", !paneStateData.muted);
-              }}
-              muted={paneStateData.muted}
-            />
-          </div>
-        </div>
+        <RightButtons frameID={frameID} paneStateData={paneStateData} />
       </div>
     );
   } else {
     return (
       <div className={styles.controls}>
-        <div className={styles.dropdown}>
-          <ModalDropdown size="skinny" color="grey" modal={DownlinksModal}>
-            <span>DL</span>
-          </ModalDropdown>
-        </div>
-        <div className={styles.rightButtons}>
-          <div className={styles.verticalCenter}>
-            <IOInfoButton
-              clickHandler={() => {
-                setPaneStateValue("showInfo", !paneStateData.showInfo);
-              }}
-              selected={paneStateData.showInfo}
-            />
-          </div>
-          <div className={styles.verticalCenter} style={{ width: "30px" }}>
-            <MuteButton
-              clickHandler={() => {
-                setPaneStateValue("muted", !paneStateData.muted);
-              }}
-              muted={paneStateData.muted}
-            />
+        <div className={`${styles.selectContainer} ${styles.selectContainerNarrow}`}>
+          <select
+            value={paneStateData.downlink}
+            onChange={(e) => {
+              setPaneStateValue("downlink", e.target.value);
+            }}
+          >
+            <option value="">DL</option>
+            {downlinks.map((v) => {
+              return (
+                <option value={v} key={v}>
+                  {v + 1}
+                </option>
+              );
+            })}
+          </select>
+          <div className={styles.nonDlSelect_arrow}>
+            <FontAwesomeIcon icon="chevron-down" size="sm" />
           </div>
         </div>
-      </div>
-    );
-  }
-
-  function DownlinksModal() {
-    return (
-      <div className={styles.monthModal}>
-        {downlinks.map((d) => {
-          let color = "disabled";
-          if (downlinkAvailability[d]) {
-            color = "active";
-          }
-          if (paneStateData.downlink === d) {
-            color = "selected";
-          }
-          return (
-            <Button
-              key={"DLBUTTON_" + d + "_" + frameID}
-              color={color}
-              size="small"
-              rounded={"none"}
-              callback={() => {
-                setPaneStateValue("downlink", d);
-              }}
-            >
-              <div className={styles.dlLabel}>{d + 1}</div>
-            </Button>
-          );
-        })}
+        <RightButtons frameID={frameID} paneStateData={paneStateData} />
       </div>
     );
   }
@@ -314,24 +301,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameWidth: num
             <FontAwesomeIcon icon="chevron-down" size="sm" />
           </div>
         </div>
-        <div className={styles.rightButtons}>
-          <div className={styles.verticalCenter}>
-            <IOInfoButton
-              clickHandler={() => {
-                setPaneStateValue("showInfo", !paneStateData.showInfo);
-              }}
-              selected={paneStateData.showInfo}
-            />
-          </div>
-          <div className={styles.verticalCenter} style={{ width: "30px" }}>
-            <MuteButton
-              clickHandler={() => {
-                setPaneStateValue("muted", !paneStateData.muted);
-              }}
-              muted={paneStateData.muted}
-            />
-          </div>
-        </div>
+        <RightButtons frameID={frameID} paneStateData={paneStateData} />
       </div>
     </>
   );

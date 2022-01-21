@@ -53,7 +53,6 @@ export function DatetimeDropdown() {
     <ModalDropdown modal={Calendar} color="grey" caret="down">
       <div className={styles.iconWithText}>
         <FontAwesomeIcon icon={["far", "calendar-alt"]} size={"sm"} />
-        &nbsp;&nbsp;
         <span className={styles.date}>
           {year}-{month}-{day}
         </span>
@@ -69,10 +68,11 @@ export function ClockDropdown() {
 
   return (
     <ModalDropdown modal={Calendar} color="grey" caret="none">
-      <div className={styles.iconWithText}>
-        <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
-        &nbsp;
-        <span className={`${styles.time}`}>{time}</span>
+      <div className={`${styles.iconWithText} ${styles.verticalCenter}`}>
+        <div>
+          <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
+        </div>
+        <div className={styles.time}>{time}</div>
       </div>
     </ModalDropdown>
   );

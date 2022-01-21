@@ -67,6 +67,12 @@
   font-size: 19px;
 }
 
+.verticalCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
 .source {
   padding-left: 10px;
   font-size: 16px;
@@ -74,12 +80,13 @@
 
 .date {
   font-size: 16px;
+  padding-left: 7px;
 }
 
 .time {
   /* display: inline-block;
   border-radius: var(--radius);
   border: 1px solid var(--extremely-grey); */
-  padding: 1px 4px;
+  padding-left: 4px;
   font-size: 16px;
 }
