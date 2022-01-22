@@ -158,6 +158,7 @@
   position: relative;
   background-color: var(--nearly-black);
   object-fit: contain;
+  pointer-events: none;
 }
 
 .vidTitle {

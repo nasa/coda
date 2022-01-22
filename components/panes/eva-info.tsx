@@ -1,7 +1,7 @@
 import { isNil, get } from "lodash";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { isSameDate } from "store/playhead";
+import { changeTime, isSameDate } from "store/playhead";
 import {
   sequencesSelector,
   getAsPerformedMissionTime,
@@ -23,6 +23,7 @@ export default function EVAInfo() {
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
+  const dispatch = useDispatch();
 
   function asExecutedTable(evNum: string) {
     const asPerformed = { EV1: [], EV2: [] };
@@ -40,12 +41,15 @@ export default function EVAInfo() {
       response.push(
         <div
           key={asPerformed[evNum][i].startTimeSeconds}
-          style={{ flex: "auto", display: "flex", flexDirection: "row" }}
+          className={styles.taskContainer}
+          onClick={() => {
+            dispatch(changeTime(asPerformed[evNum][i].startTimeSeconds));
+          }}
         >
-          <div style={{ paddingRight: "5px" }}>
+          <div className={styles.taskTime}>
             {hhmmssFromSeconds(asPerformed[evNum][i].startTimeSeconds)}:
           </div>
-          <div style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>
+          <div className={styles.taskName} style={{ color: asPerformed[evNum][i].color }}>
             {asPerformed[evNum][i].content}
           </div>
         </div>
@@ -62,18 +66,19 @@ export default function EVAInfo() {
             <tbody>
               <tr>
                 <td>Event:</td>
-                <td colSpan={2}>
+                <td className={styles.labelValue} colSpan={2}>
                   {seq.name} - {seq.displayTitle}
                 </td>
               </tr>
               <tr>
                 <td>Timing:</td>
                 <td>
-                  <span className={styles.labelValue}>PET Start:</span>
-                  {seq.startTime}Z
+                  <span>PET Start:</span>
+                  <span className={styles.labelValue}>{seq.startTime}Z</span>
                 </td>
                 <td>
-                  <span className={styles.labelValue}>Duration:</span> {seq.duration / 60} min
+                  <span>Duration:</span>
+                  <span className={styles.labelValue}>{seq.duration / 60} min</span>
                 </td>
               </tr>
             </tbody>
@@ -81,19 +86,23 @@ export default function EVAInfo() {
           <table className={styles.dataTable}>
             <tbody>
               <tr>
-                <td colSpan={2} style={{ textAlign: "center" }}>
+                <th colSpan={2} style={{ textAlign: "center" }}>
                   Timeline
-                </td>
+                </th>
               </tr>
               <tr>
-                <th style={{ textAlign: "center", width: "50%" }}>EV1: {seq.crew.EV1}</th>
-                <th style={{ textAlign: "center", width: "50%" }}>EV2: {seq.crew.EV2}</th>
+                <th>
+                  <span style={{ fontWeight: 300 }}>EV1: </span>
+                  <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                </th>
+                <th>
+                  <span style={{ fontWeight: 300 }}>EV2: </span>
+                  <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                </th>
               </tr>
               <tr>
                 <td style={{ textAlign: "center", width: "50%" }}>{asExecutedTable("EV1")}</td>
-                <td style={{ textAlign: "center", width: "50%" }} className={styles.labelValue}>
-                  {asExecutedTable("EV2")}
-                </td>
+                <td style={{ textAlign: "center", width: "50%" }}>{asExecutedTable("EV2")}</td>
               </tr>
             </tbody>
           </table>

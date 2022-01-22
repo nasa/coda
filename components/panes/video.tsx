@@ -291,7 +291,9 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
               setPaneStateValue("activeVideoFileID", e.target.value);
             }}
           >
-            <option value="">Non-D/L</option>
+            <option disabled={nonDlVideoIDs.length === 0 ? true : null} value="">
+              {nonDlVideoIDs.length > 0 ? "Select Video" : "No other video at this time"}
+            </option>
             {optionList()}
           </select>
           <div className={styles.nonDlSelect_arrow}>

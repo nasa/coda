@@ -27,9 +27,14 @@
 .dataTable td:first-child {
   text-align: right;
   width: 80px;
-  font-weight: 400;
   white-space: nowrap;
   border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.dataTable th {
+  text-align: "center";
+  font-weight: 300;
+  width: 50%;
 }
 
 .dataTable td {
@@ -58,4 +63,29 @@
 
 .dataTable .labelValue {
   font-weight: 400;
+}
+
+/* Div table */
+.taskContainer {
+  flex: auto;
+  display: flex;
+  flex-direction: row;
+}
+
+.taskTime {
+  padding-right: 5px;
+  cursor: pointer;
+}
+.taskTime:hover {
+  text-decoration: underline;
+}
+
+.taskName {
+  white-space: pre-wrap;
+  text-align: left;
+  font-weight: 400;
+  cursor: pointer;
+}
+.taskName:hover {
+  text-decoration: underline;
 }
