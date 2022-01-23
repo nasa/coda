@@ -108,7 +108,7 @@ export default function EventInfo() {
           </table>
         </>
       ) : (
-        <>No EVA today</>
+        <>No event details in wiki</>
       )}
     </div>
   );

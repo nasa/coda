@@ -121,7 +121,7 @@ export async function fetchISSLocation(
   const isToday = isSameDate(now, today);
 
   let res: WrappedResponse<EphemerisStore> = {
-    metadata: null,
+    cacheMetadata: null,
     data: { ephemera: [], dayNight: [] },
   };
 

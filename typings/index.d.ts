@@ -17,7 +17,7 @@ interface IOResponse {
 /** The base type for all responses from the CODA API */
 interface WrappedResponse<T> {
   data?: T;
-  metadata: ResMetadata;
+  cacheMetadata: CacheMetadata;
 }
 
 /** Wikibot responses */

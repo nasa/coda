@@ -34,28 +34,28 @@ export default function StatusBar() {
   });
 
   useEffect(() => {
-    setVideoStatus(createStatus(videos.loadingStatus, videos.metadata, videos.ids.length > 0));
-  }, [videos.loadingStatus, videos.metadata]);
+    setVideoStatus(createStatus(videos.loadingStatus, videos.cacheMetadata, videos.ids.length > 0));
+  }, [videos.loadingStatus, videos.cacheMetadata]);
 
   useEffect(() => {
-    setPhotoStatus(createStatus(photos.loadingStatus, photos.metadata, photos.ids.length > 0));
-  }, [photos.loadingStatus, photos.metadata]);
+    setPhotoStatus(createStatus(photos.loadingStatus, photos.cacheMetadata, photos.ids.length > 0));
+  }, [photos.loadingStatus, photos.cacheMetadata]);
 
   useEffect(() => {
     setSequenceStatus(
-      createStatus(sequences.loadingStatus, sequences.metadata, sequences.ids.length > 0)
+      createStatus(sequences.loadingStatus, sequences.cacheMetadata, sequences.ids.length > 0)
     );
-  }, [sequences.loadingStatus, sequences.metadata]);
+  }, [sequences.loadingStatus, sequences.cacheMetadata]);
 
   useEffect(() => {
-    setGpsStatus(createStatus(gps.loadingStatus, gps.metadata, gps.gpsTracks.length > 0));
-  }, [gps.loadingStatus, gps.metadata]);
+    setGpsStatus(createStatus(gps.loadingStatus, gps.cacheMetadata, gps.gpsTracks.length > 0));
+  }, [gps.loadingStatus, gps.cacheMetadata]);
 
   useEffect(() => {
     setEphemeraStatus(
-      createStatus(ephemera.loadingStatus, ephemera.metadata, ephemera.ids.length > 0)
+      createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ids.length > 0)
     );
-  }, [ephemera.loadingStatus, ephemera.metadata]);
+  }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
 
   return (
     <div className={`${styles.container}`}>
@@ -96,7 +96,7 @@ export default function StatusBar() {
 
   function createStatus(
     loadingStatus: LoadingStatusEnum,
-    metadata: ResMetadata,
+    cacheMetadata: CacheMetadata,
     resultsReturned: boolean
   ): { message: string; classname: string } {
     let message;
@@ -108,18 +108,18 @@ export default function StatusBar() {
       message = "data unneeded";
       classname = styles.unneeded;
     } else {
-      if (metadata.error) {
-        message = "Error: " + metadata.error;
+      if (cacheMetadata?.error) {
+        message = "Error: " + cacheMetadata.error;
         classname = styles.error;
-      } else if (metadata.stale) {
-        message = `stale data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+      } else if (cacheMetadata?.stale) {
+        message = `stale data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
         classname = styles.stale;
       } else if (!resultsReturned) {
         message = "data not returned (without error)";
         classname = styles.unneeded;
       } else {
-        if (metadata.fromCache) {
-          message = `data from cache (${new Date(metadata.cacheTimestamp).toLocaleString()})`;
+        if (cacheMetadata?.fromCache) {
+          message = `data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
         } else {
           message = "data is fresh";
         }

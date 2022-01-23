@@ -370,7 +370,7 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
     staleOk: true,
   });
   if (mocked) {
-    response.metadata.mocked = true;
+    response.cacheMetadata.mocked = true;
   }
   return response;
 }
@@ -493,7 +493,7 @@ export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]
     staleOk: true,
   });
   if (mocked) {
-    response.metadata.mocked = true;
+    response.cacheMetadata.mocked = true;
   }
   return response;
 }
@@ -551,14 +551,14 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedRes
         match[1] === "LightCart"
       ) {
         const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
-        if (gpsTrackRes.metadata.error !== undefined) {
-          error = gpsTrackRes.metadata.error;
+        if (gpsTrackRes.cacheMetadata.error !== undefined) {
+          error = gpsTrackRes.cacheMetadata.error;
         }
         gpsTracks.push(gpsTrackRes.data);
       }
     }
   }
-  return { metadata: { ...gpsList.metadata, ...error }, data: gpsTracks };
+  return { cacheMetadata: { ...gpsList.cacheMetadata, ...error }, data: gpsTracks };
 }
 
 async function fetchWikiGPSTrack(

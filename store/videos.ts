@@ -6,7 +6,7 @@ import { LoadingStatusEnum } from "utils/enums";
 const videoAdapter = createEntityAdapter<VideoFile>();
 
 export const initialState: VideosEntityState = videoAdapter.getInitialState({
-  metadata: null,
+  cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 });
 
@@ -20,13 +20,19 @@ export const videoSlice = createSlice({
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
       videoAdapter.removeAll(state);
       videoAdapter.upsertMany(state, action.payload.data);
-      state.metadata = action.payload.metadata;
+      state.cacheMetadata = action.payload.cacheMetadata;
+    },
+
+    /** Clear all videos from the store */
+    clearVideos: (state) => {
+      videoAdapter.removeAll(state);
+      state.cacheMetadata = null;
     },
 
     /** An error occured fetching video metadata */
     fetchError: (state, action: { payload: string }) => {
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
-      state.metadata = { ...state.metadata, error };
+      state.cacheMetadata = { ...state.cacheMetadata, error };
     },
 
     setVideoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
@@ -35,7 +41,7 @@ export const videoSlice = createSlice({
   },
 });
 
-export const { addVideos, fetchError, setVideoLoadingStatus } = videoSlice.actions;
+export const { addVideos, clearVideos, fetchError, setVideoLoadingStatus } = videoSlice.actions;
 
 /** Quick check to see if we have _any_ videos from a given UTC date in our store */
 export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => {

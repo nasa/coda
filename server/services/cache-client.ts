@@ -47,11 +47,11 @@ export default async function retrieveJSON<T>(
   let cachedRes = null as T;
   let cachedData = null as string;
 
-  let metadata = {
+  let cacheMetadata = {
     fromCache: false,
-    cacheTimestamp: null,
+    timestamp: null,
     stale: false,
-  } as ResMetadata;
+  } as CacheMetadata;
 
   let cacheIsHot = false;
 
@@ -65,9 +65,9 @@ export default async function retrieveJSON<T>(
       cachedRes = JSON.parse(cachedData);
 
       cacheIsHot = diff(new Date(), new Date(cacheInfo.time)) / 1000 < opts.cacheAge;
-      metadata = {
+      cacheMetadata = {
         fromCache: true,
-        cacheTimestamp: new Date(cacheInfo.time),
+        timestamp: new Date(cacheInfo.time),
         stale: !cacheIsHot,
       };
     }
@@ -78,7 +78,7 @@ export default async function retrieveJSON<T>(
 
   if (cacheIsHot && !opts.preferNew) {
     // nothing else to do! give the caller the cached data
-    return { metadata, data: cachedRes };
+    return { cacheMetadata, data: cachedRes };
   }
 
   try {
@@ -88,21 +88,21 @@ export default async function retrieveJSON<T>(
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
       console.warn(e);
-      metadata.fromCache = false;
-      metadata.cacheTimestamp = null;
-      metadata.stale = true;
-      return { metadata, data: cachedRes };
+      cacheMetadata.fromCache = false;
+      cacheMetadata.timestamp = null;
+      cacheMetadata.stale = true;
+      return { cacheMetadata, data: cachedRes };
     } else {
       // the caller is fine with an error response
-      metadata.error = e.toString();
-      return { metadata };
+      cacheMetadata.error = e.toString();
+      return { cacheMetadata };
     }
   }
 
   // the retriever has returned fresh data
-  metadata.fromCache = false;
-  metadata.cacheTimestamp = null;
-  metadata.stale = false;
+  cacheMetadata.fromCache = false;
+  cacheMetadata.timestamp = null;
+  cacheMetadata.stale = false;
 
   // cache the fresh data for later
   try {
@@ -113,7 +113,7 @@ export default async function retrieveJSON<T>(
     console.warn(e);
   }
 
-  return { metadata, data: res };
+  return { cacheMetadata, data: res };
 }
 
 /** Nuke the cache */

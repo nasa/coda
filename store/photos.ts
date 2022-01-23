@@ -21,7 +21,7 @@ export const initialPhotoFileState: PhotoFile = {
 export const initialState: PhotosEntityState = photoAdapter.getInitialState({
   activePhoto: initialPhotoFileState,
   ready: false,
-  metadata: null,
+  cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
   collectionFilters: [],
 });
@@ -36,8 +36,14 @@ export const photoSlice = createSlice({
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
       photoAdapter.removeAll(state);
       photoAdapter.upsertMany(state, action.payload.data);
-      state.metadata = { ...state.metadata, ...action.payload.metadata };
+      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
       state.ready = true;
+    },
+
+    clearPhotos: (state) => {
+      photoAdapter.removeAll(state);
+      state.cacheMetadata = null;
+      state.ready = false;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {
       state.activePhoto = action.payload;
@@ -45,7 +51,7 @@ export const photoSlice = createSlice({
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
-      state.metadata = { ...state.metadata, error };
+      state.cacheMetadata = { ...state.cacheMetadata, error };
     },
     setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;
@@ -58,6 +64,7 @@ export const photoSlice = createSlice({
 
 export const {
   addPhotos,
+  clearPhotos,
   setActivePhoto,
   fetchError,
   setPhotoLoadingStatus,

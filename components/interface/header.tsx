@@ -14,6 +14,11 @@ import { Collection, Source } from "utils/enums";
 import StatusBar from "./status-bar";
 import EventDropdown from "./eventDropdown";
 import { changeSource } from "store/framework";
+import { clearVideos } from "store/videos";
+import { clearPhotos } from "store/photos";
+import { clearEphemera } from "store/ephemera";
+import { clearSequences } from "store/sequences";
+import { clearGPSTracks } from "store/gps";
 
 library.add(faBars, faCalendarAlt, faClock);
 
@@ -42,6 +47,11 @@ export function SourcesDropdown() {
       <select
         value={selectedSource}
         onChange={(e) => {
+          dispatch(clearVideos());
+          dispatch(clearPhotos());
+          dispatch(clearEphemera());
+          dispatch(clearGPSTracks());
+          dispatch(clearSequences());
           dispatch(changeSource(e.target.value as Source));
         }}
       >
@@ -94,6 +104,7 @@ export function Clock() {
 }
 
 export default function Header() {
+  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
   return (
     <div className={styles.main}>
       <div className={styles.left}>
@@ -103,7 +114,7 @@ export default function Header() {
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
         </div>
-        <div className={styles.item} style={{ width: "100px" }}>
+        <div className={styles.item} style={{ width: "140px" }}>
           <SourcesDropdown />
         </div>
         <div className={styles.item} style={{ width: "180px" }}>
@@ -113,7 +124,7 @@ export default function Header() {
           <Clock />
         </div>
         <div className={styles.item} style={{ width: "150px" }}>
-          <EventDropdown collection={Collection.ISS} />
+          <EventDropdown collection={Collection[selectedSource]} />
         </div>
       </div>
       <div className={styles.right}>

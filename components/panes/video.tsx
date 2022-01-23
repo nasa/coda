@@ -603,11 +603,6 @@ export default function VideoPane(props: { frameID: number }) {
             };
             setMetadata(metaData);
           }}
-          onClick={() => {
-            if (paneStateData.activeVideoFileID !== "") {
-              toggleFullScreen();
-            }
-          }}
           onError={(e) => {
             const vidElement = e.target as HTMLVideoElement;
             if (!vidElement.error.message.includes("mpty")) {
@@ -702,7 +697,15 @@ export default function VideoPane(props: { frameID: number }) {
   };
 
   return (
-    <div className={styles.mediaPanel} key={`video_player__${frameID}`}>
+    <div
+      className={styles.mediaPanel}
+      key={`video_player__${frameID}`}
+      onClick={() => {
+        if (paneStateData.activeVideoFileID !== "") {
+          toggleFullScreen();
+        }
+      }}
+    >
       {renderVideoElement()}
     </div>
   );

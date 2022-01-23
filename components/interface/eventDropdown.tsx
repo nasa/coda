@@ -49,12 +49,19 @@ export default function EventDropdown(props: { collection: Collection }) {
   const today = new Date();
   const earliestCutoff = new Date("2013-03-30");
 
+  let selectText = "Select EVA";
+  if (props.collection === Collection.NBL) {
+    selectText = "Select NBL Run";
+  } else if (props.collection === Collection.TEST_EVENTS) {
+    selectText = "Select Test Event";
+  }
+
   return (
     <div className={styles.select}>
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
         {isNil(selectedEVA) ? (
           <option key="" value="">
-            Loading...
+            {selectText}
           </option>
         ) : (
           <option disabled>Select Event</option>

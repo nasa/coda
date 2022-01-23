@@ -98,10 +98,10 @@ export function V2(props: { query: QueryParams }) {
 
         const updatedEVAsResponse =
           collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
-        if (updatedEVAsResponse.metadata.error === undefined) {
+        if (updatedEVAsResponse.cacheMetadata.error === undefined) {
           dispatch(addSequences(updatedEVAsResponse));
         } else {
-          dispatch(sequencesFetchError(updatedEVAsResponse.metadata.error));
+          dispatch(sequencesFetchError(updatedEVAsResponse.cacheMetadata.error));
         }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
@@ -117,10 +117,10 @@ export function V2(props: { query: QueryParams }) {
       try {
         // video data for this EVA
         const videoStoreResponse = await buildVideoStore(year, month, day, collection);
-        if (videoStoreResponse.metadata.error === undefined) {
+        if (videoStoreResponse.cacheMetadata.error === undefined) {
           dispatch(addVideos(videoStoreResponse));
         } else {
-          dispatch(videosFetchError(videoStoreResponse.metadata.error));
+          dispatch(videosFetchError(videoStoreResponse.cacheMetadata.error));
         }
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
@@ -136,12 +136,12 @@ export function V2(props: { query: QueryParams }) {
       try {
         // photos data for today
         const photoStoreResponse = await buildPhotoStore(year, month, day, collection);
-        if (photoStoreResponse.metadata.error === undefined) {
+        if (photoStoreResponse.cacheMetadata.error === undefined) {
           dispatch(addPhotos(photoStoreResponse));
           const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
           dispatch(setCollectionFilters(photoCollectionsFilter));
         } else {
-          dispatch(photosFetchError(photoStoreResponse.metadata.error));
+          dispatch(photosFetchError(photoStoreResponse.cacheMetadata.error));
         }
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
@@ -160,10 +160,10 @@ export function V2(props: { query: QueryParams }) {
       dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
-        if (ephemerisStoreResponse.metadata.error === undefined) {
+        if (ephemerisStoreResponse.cacheMetadata.error === undefined) {
           dispatch(addEphemera(ephemerisStoreResponse));
         } else {
-          dispatch(ephemeraFetchError(ephemerisStoreResponse.metadata.error));
+          dispatch(ephemeraFetchError(ephemerisStoreResponse.cacheMetadata.error));
         }
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
@@ -182,10 +182,10 @@ export function V2(props: { query: QueryParams }) {
       dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const gpsTracksResponse = await getGPSTracks(year, month, day);
-        if (gpsTracksResponse.metadata.error === undefined) {
+        if (gpsTracksResponse.cacheMetadata.error === undefined) {
           dispatch(setGPSTracks(gpsTracksResponse));
         } else {
-          dispatch(ephemeraFetchError(gpsTracksResponse.metadata.error));
+          dispatch(ephemeraFetchError(gpsTracksResponse.cacheMetadata.error));
         }
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));

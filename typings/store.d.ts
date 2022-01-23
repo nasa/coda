@@ -1,6 +1,6 @@
-interface ResMetadata {
+interface CacheMetadata {
   fromCache: boolean;
-  cacheTimestamp: Date;
+  timestamp: Date;
   stale: boolean;
   error?: string;
   mocked?: boolean;
@@ -31,7 +31,7 @@ interface PlayheadHoverState {
 
 type EphemeraEntityState = EntityState<EphemerisFile> & {
   dayNight: DayNightObj[];
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -40,7 +40,7 @@ type EphemeraEntityState = EntityState<EphemerisFile> & {
  */
 
 type SequencesEntityState = EntityState<Sequence> & {
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -51,7 +51,7 @@ type SequencesEntityState = EntityState<Sequence> & {
 type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;
   ready: boolean;
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
   collectionFilters: PhotoCollectionFilters[];
 };
@@ -68,6 +68,6 @@ interface PhotoCollectionFilters {
 
 /** Info about videos from IO and the desired high-level state of the video players */
 type VideosEntityState = EntityState<VideoFile> & {
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
