@@ -93,7 +93,7 @@ export function Clock() {
   );
 }
 
-export default function Header(props: { collection: Collection }) {
+export default function Header() {
   return (
     <div className={styles.main}>
       <div className={styles.left}>

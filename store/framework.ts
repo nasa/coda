@@ -3,7 +3,6 @@
 import _ from "lodash";
 import { createSlice } from "@reduxjs/toolkit";
 import { Source } from "utils/enums";
-import { SourcesDropdown } from "components/interface/header";
 
 export const allLayouts: Layouts = {
   0: {

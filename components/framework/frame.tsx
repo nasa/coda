@@ -19,7 +19,6 @@ export interface Options {
 
 /** Renders the header for a frame */
 export function FrameHeader(props: { frameID: number; paneType: string; children?: any }) {
-  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
   let label = <>&nbsp;Select display type</>;
 
   if (!_.isNil(props.paneType)) {

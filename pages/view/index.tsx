@@ -18,13 +18,7 @@ import {
 } from "store/sequences";
 import useInterval from "utils/useInterval";
 import { Collection, LoadingStatusEnum } from "utils/enums";
-import {
-  addVideos,
-  haveVideosFromDate,
-  setVideoLoadingStatus,
-  videoSelectors,
-  fetchError as videosFetchError,
-} from "store/videos";
+import { addVideos, setVideoLoadingStatus, fetchError as videosFetchError } from "store/videos";
 import {
   addPhotos,
   setCollectionFilters,
@@ -40,7 +34,6 @@ import {
   addEphemera,
 } from "store/ephemera";
 import { useDispatch, useSelector } from "react-redux";
-import { Source } from "utils/enums";
 
 export function V2(props: { query: QueryParams }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
@@ -120,7 +113,6 @@ export function V2(props: { query: QueryParams }) {
   /** Update the video store */
   const populateVideoStore = (year, month, day, collection) => {
     (async () => {
-      const d = new Date(playheadDate);
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
@@ -246,7 +238,7 @@ export function V2(props: { query: QueryParams }) {
       <Head>
         <title>{process.env.NEXT_PUBLIC_TITLE}</title>
       </Head>
-      <Header collection={Collection[selectedSource]} />
+      <Header />
       <div className={styles.body}>
         <Viewer />
       </div>
