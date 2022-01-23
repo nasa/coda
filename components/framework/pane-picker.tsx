@@ -1,6 +1,6 @@
 import _ from "lodash";
-import React from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCamera,
@@ -15,6 +15,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allPanes, setPaneType } from "store/framework";
 import styles from "./pane-picker.module.css";
+import { RootState } from "store/index";
 
 library.add(
   faCamera,
@@ -56,6 +57,9 @@ export default function PanePickerModal({
   closeClick: () => void;
   options: { frameID: number };
 }) {
+  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+  const [availablePanes, setAvailablePanes] = React.useState([]);
+
   const dispatch = useDispatch();
 
   const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
@@ -64,7 +68,11 @@ export default function PanePickerModal({
     closeClick();
   };
 
-  const availablePanes = Object.keys(allPanes).filter((paneType) => paneType.startsWith("iss_"));
+  useEffect(() => {
+    const availablePanes = Object.keys(allPanes);
+
+    setAvailablePanes(availablePanes);
+  }, [selectedSource]);
 
   return (
     <div className={styles.main}>

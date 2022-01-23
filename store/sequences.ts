@@ -28,6 +28,7 @@ export const sequencesSlice = createSlice({
   reducers: {
     /** Add one (or more) Sequence(s) to the store */
     addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
+      sequencesAdapter.removeAll(state);
       sequencesAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
     },

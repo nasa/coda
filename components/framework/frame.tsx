@@ -6,7 +6,7 @@ import { RootState } from "store";
 import { ModalDropdown } from "components/interface/dropdown-v2";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
-import EVAInfo, { EVAInfoControls } from "components/panes/eva-info";
+import EventInfo, { EventInfoControls } from "components/panes/event-info";
 import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video";
 import PhotoPane, { PhotoControls } from "components/panes/photos";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
@@ -19,7 +19,8 @@ export interface Options {
 
 /** Renders the header for a frame */
 export function FrameHeader(props: { frameID: number; paneType: string; children?: any }) {
-  let label = <>&nbsp;Pick a source</>;
+  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+  let label = <>&nbsp;Select display type</>;
 
   if (!_.isNil(props.paneType)) {
     label = <PaneLabel paneType={props.paneType} />;
@@ -45,19 +46,19 @@ export function FrameHeader(props: { frameID: number; paneType: string; children
 }
 
 const frameTypeIDsToRenders = {
-  iss_downlink: VideoPane,
-  iss_non_downlink: VideoPane,
-  iss_photo: PhotoPane,
+  video_downlink: VideoPane,
+  video_non_downlink: VideoPane,
+  photo: PhotoPane,
   iss_position: ISSLocation,
-  iss_eva_info: EVAInfo,
+  event_info: EventInfo,
 };
 
 const frameTypeIDsToControls = {
-  iss_downlink: VideoDLPaneControls,
-  iss_non_downlink: VideoOtherPaneControls,
-  iss_photo: PhotoControls,
+  video_downlink: VideoDLPaneControls,
+  video_non_downlink: VideoOtherPaneControls,
+  photo: PhotoControls,
   iss_position: ISSLocationControls,
-  iss_eva_info: EVAInfoControls,
+  event_info: EventInfoControls,
 };
 
 /** Identify the frame */

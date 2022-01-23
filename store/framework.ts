@@ -2,7 +2,8 @@
 
 import _ from "lodash";
 import { createSlice } from "@reduxjs/toolkit";
-import { FrameSource } from "utils/enums";
+import { Source } from "utils/enums";
+import { SourcesDropdown } from "components/interface/header";
 
 export const allLayouts: Layouts = {
   0: {
@@ -27,10 +28,9 @@ export const allLayouts: Layouts = {
   },
 };
 
-export const allPanes: Frames = {
-  iss_downlink: {
-    source: FrameSource.ISS,
-    title: "ISS Video Downlink",
+export const allPanes: Panes = {
+  video_downlink: {
+    title: "Video Downlink",
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
@@ -41,9 +41,8 @@ export const allPanes: Frames = {
       showInfo: false,
     },
   },
-  iss_non_downlink: {
-    source: FrameSource.ISS,
-    title: "ISS Video Other",
+  video_non_downlink: {
+    title: "Video Other",
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
@@ -54,9 +53,8 @@ export const allPanes: Frames = {
       showInfo: false,
     },
   },
-  iss_photo: {
-    source: FrameSource.ISS,
-    title: "ISS Photography",
+  photo: {
+    title: "Photography",
     icon: "camera",
     color: "mustardGreen",
     defaultPaneStateData: {
@@ -67,7 +65,6 @@ export const allPanes: Frames = {
     },
   },
   iss_position: {
-    source: FrameSource.ISS,
     title: "ISS Position",
     icon: "globe-americas",
     color: "purple",
@@ -76,8 +73,7 @@ export const allPanes: Frames = {
       lockToggle: true,
     },
   },
-  iss_eva_info: {
-    source: FrameSource.ISS,
+  event_info: {
     title: "EVA Info",
     icon: "info",
     color: "ruby",
@@ -87,56 +83,58 @@ export const allPanes: Frames = {
   },
 };
 
+const defaultFrames = {
+  1: {
+    paneType: "video_downlink",
+    paneStateData: {
+      ready: true,
+      downlink: 0,
+      activeVideoFileID: "",
+      muted: false,
+      showInfo: false,
+    } as VideoPaneControlStateData,
+  },
+  2: {
+    paneType: "video_non_downlink",
+    paneStateData: {
+      ready: true,
+      downlink: -1,
+      activeVideoFileID: "",
+      muted: false,
+      showInfo: false,
+    } as VideoPaneControlStateData,
+  },
+  3: {
+    paneType: "photo",
+    paneStateData: {
+      ready: true,
+      showInfo: false,
+      showFilter: false,
+    } as PhotoPaneControlStateData,
+  },
+  4: {
+    paneType: "event_info",
+    paneStateData: {
+      ready: true,
+    },
+  },
+  5: {
+    paneType: "iss_position",
+    paneStateData: {
+      lockToggle: true,
+      ready: true,
+    } as LocationPaneControlStateData,
+  },
+};
+
 /**
  * The state of each frame containing the pane type and the state of the control
  * NOTE: all panes must manage a "ready" boolean in its controlStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
   layout: 0,
-  frames: {
-    1: {
-      paneType: "iss_downlink",
-      paneStateData: {
-        ready: true,
-        downlink: 0,
-        activeVideoFileID: "",
-        muted: false,
-        showInfo: false,
-      } as VideoPaneControlStateData,
-    },
-    2: {
-      paneType: "iss_non_downlink",
-      paneStateData: {
-        ready: true,
-        downlink: -1,
-        activeVideoFileID: "",
-        muted: false,
-        showInfo: false,
-      } as VideoPaneControlStateData,
-    },
-    3: {
-      paneType: "iss_photo",
-      paneStateData: {
-        ready: true,
-        showInfo: false,
-        showFilter: false,
-      } as PhotoPaneControlStateData,
-    },
-    4: {
-      paneType: "iss_eva_info",
-      paneStateData: {
-        ready: true,
-      },
-    },
-    5: {
-      paneType: "iss_position",
-      paneStateData: {
-        lockToggle: true,
-        ready: true,
-      } as LocationPaneControlStateData,
-    },
-  },
-  selectedSource: FrameSource.ISS,
+  frames: defaultFrames,
+  selectedSource: Source.ISS,
 };
 
 export const frameworkSlice = createSlice({
@@ -160,6 +158,9 @@ export const frameworkSlice = createSlice({
         paneStateData: allPanes[action.payload.paneType].defaultPaneStateData,
       };
     },
+    /**
+     * Set a state value for use within a pane. The list of available state values depends on the pane type
+     */
     setPaneStateDataValue: (
       state,
       action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: any } }
@@ -167,7 +168,26 @@ export const frameworkSlice = createSlice({
       state.frames[action.payload.frameID].paneStateData[action.payload.paneStateProperty] =
         action.payload.paneStateValue;
     },
+    /**
+     * Change the overall data source (ISS, Test Events, NBL)
+     */
+    changeSource: (state, action: { payload: Source }) => {
+      state.selectedSource = action.payload;
+      state.frames = defaultFrames;
+      if (action.payload === Source.ISS) {
+        allPanes.event_info.title = "EVA Info";
+      } else if (action.payload === Source.NBL) {
+        allPanes.event_info.title = "NBL Event Info";
+      } else if (action.payload === Source.TEST_EVENTS) {
+        allPanes.event_info.title = "Test Event Info";
+      }
+    },
   },
 });
 
-export const { changeLayout, setPaneType, setPaneStateDataValue } = frameworkSlice.actions;
+export const {
+  changeLayout,
+  setPaneType,
+  setPaneStateDataValue,
+  changeSource,
+} = frameworkSlice.actions;

@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff, isSameDate } from "store/playhead";
-import styles from "./evaDropdown.module.css";
+import styles from "./eventDropdown.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function EVADropdown(props: { collection: Collection }) {
+export default function EventDropdown(props: { collection: Collection }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
 
   const date = useSelector((state: RootState) => state.playhead.date);
@@ -54,10 +54,10 @@ export default function EVADropdown(props: { collection: Collection }) {
       <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
         {isNil(selectedEVA) ? (
           <option key="" value="">
-            Select Event
+            Loading...
           </option>
         ) : (
-          <option disabled>Choose Event</option>
+          <option disabled>Select Event</option>
         )}
         {isNil(allEVAs) ? (
           <option disabled>Loading...</option>

@@ -18,6 +18,7 @@ export const videoSlice = createSlice({
   reducers: {
     /** Add new video files to the store */
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
+      videoAdapter.removeAll(state);
       videoAdapter.upsertMany(state, action.payload.data);
       state.metadata = action.payload.metadata;
     },

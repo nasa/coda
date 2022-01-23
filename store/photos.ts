@@ -34,6 +34,7 @@ export const photoSlice = createSlice({
   reducers: {
     /** Add new photo files to the store */
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
+      photoAdapter.removeAll(state);
       photoAdapter.upsertMany(state, action.payload.data);
       state.metadata = { ...state.metadata, ...action.payload.metadata };
       state.ready = true;

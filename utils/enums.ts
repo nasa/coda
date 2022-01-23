@@ -14,10 +14,10 @@ export enum LoadingStatusEnum {
   UNNEEDED = "unneeded",
 }
 
-export enum FrameSource {
-  ISS = "iss",
-  TEST_EVENTS = "test_events",
-  NBL = "nbl",
+export enum Source {
+  ISS = "ISS",
+  TEST_EVENTS = "TEST_EVENTS",
+  NBL = "NBL",
 }
 
 export enum SequenceType {

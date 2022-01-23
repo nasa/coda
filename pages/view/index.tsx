@@ -40,19 +40,14 @@ import {
   addEphemera,
 } from "store/ephemera";
 import { useDispatch, useSelector } from "react-redux";
+import { Source } from "utils/enums";
 
 export function V2(props: { query: QueryParams }) {
-  //TODO: make collection a viewer store element
-
   const FIVE_MINS_MS = 5 * 60 * 1000;
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  // const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
 
   const dispatch = useDispatch();
-
-  // const photoFiles = photosSelectors.selectAll(photos);
-  const videoFiles = videoSelectors.selectAll(videos);
 
   // make sure the application is running on the correct date
   let userDate = null;
@@ -102,16 +97,14 @@ export function V2(props: { query: QueryParams }) {
   }, []);
 
   /** Update the EVA store */
-  const populateEVAStore = () => {
+  const populateSequenceStore = (collection) => {
     (async () => {
       dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
 
-        //TODO: fix to check properly for ISS
-        const thisCollection = Collection.ISS;
         const updatedEVAsResponse =
-          thisCollection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
+          collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
         if (updatedEVAsResponse.metadata.error === undefined) {
           dispatch(addSequences(updatedEVAsResponse));
         } else {
@@ -128,12 +121,6 @@ export function V2(props: { query: QueryParams }) {
   const populateVideoStore = (year, month, day, collection) => {
     (async () => {
       const d = new Date(playheadDate);
-
-      // make sure we don't already have videos for this date
-      if (haveVideosFromDate(videoFiles, d)) {
-        return;
-      }
-
       dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // video data for this EVA
@@ -174,7 +161,6 @@ export function V2(props: { query: QueryParams }) {
   /** Update the ephemeris store */
   const populateEphemerisStore = (year, month, day, collection) => {
     (async () => {
-      //TODO: if not ISS, then don't load ephemeris
       if (collection !== Collection.ISS) {
         dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
@@ -196,11 +182,6 @@ export function V2(props: { query: QueryParams }) {
 
   const populateGPSStore = (year, month, day, collection) => {
     (async () => {
-      if (_.isNull(playheadDate)) {
-        return;
-      }
-
-      //TODO: if ISS, then don't load GPS tracks
       if (collection !== Collection.TEST_EVENTS) {
         dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
@@ -221,10 +202,10 @@ export function V2(props: { query: QueryParams }) {
     })();
   };
 
-  // populate store when date changes
+  // populate store when date or source change
   useEffect(() => {
     (async () => {
-      if (_.isNull(playheadDate)) {
+      if (_.isNull(playheadDate) || _.isNull(selectedSource)) {
         return;
       }
 
@@ -233,25 +214,22 @@ export function V2(props: { query: QueryParams }) {
       const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
 
+      // populate the sequence store
+      populateSequenceStore(Collection[selectedSource]);
+
       // populate the video store
-      populateVideoStore(year, month, day, Collection.ISS);
+      populateVideoStore(year, month, day, Collection[selectedSource]);
 
       // populage the photo store
-      populatePhotoStore(year, month, day, Collection.ISS);
+      populatePhotoStore(year, month, day, Collection[selectedSource]);
 
       // populate the ephemeris store
-      populateEphemerisStore(year, month, day, Collection.ISS);
+      populateEphemerisStore(year, month, day, Collection[selectedSource]);
 
       // populate GPS store
-      populateGPSStore(year, month, day, Collection.ISS);
+      populateGPSStore(year, month, day, Collection[selectedSource]);
     })();
-  }, [playheadDate]);
-
-  // fetch updated data when the page loads
-  useEffect(populateEVAStore, [playheadDate]);
-
-  // look for wiki info every 5 mins
-  useInterval(populateEVAStore, FIVE_MINS_MS);
+  }, [playheadDate, selectedSource]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
@@ -260,7 +238,7 @@ export function V2(props: { query: QueryParams }) {
     const month = d.getUTCMonth() + 1;
     const day = d.getUTCDate();
 
-    populateVideoStore(year, month, day, Collection.ISS);
+    populateVideoStore(year, month, day, Collection[selectedSource]);
   }, FIVE_MINS_MS);
 
   return (
@@ -268,11 +246,11 @@ export function V2(props: { query: QueryParams }) {
       <Head>
         <title>{process.env.NEXT_PUBLIC_TITLE}</title>
       </Head>
-      <Header collection={Collection.ISS} />
+      <Header collection={Collection[selectedSource]} />
       <div className={styles.body}>
         <Viewer />
       </div>
-      <Timeline collection={Collection.ISS} />
+      <Timeline collection={Collection[selectedSource]} />
       <PlaybackControls />
     </div>
   );

@@ -170,13 +170,10 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
       const thisCollectionsString = doc.collections_string[i];
       if (thisCollectionsString.includes("EV1")) {
         downlink = 0;
-        break;
       } else if (thisCollectionsString.includes("EV2")) {
         downlink = 1;
-        break;
       } else if (thisCollectionsString.includes("QUAD")) {
         downlink = 2;
-        break;
       }
     }
   }

@@ -9,13 +9,13 @@ import {
 } from "store/sequences";
 import { SequenceType } from "utils/enums";
 import { hhmmssFromSeconds } from "utils/formatting";
-import styles from "./eva-info.module.css";
+import styles from "./event-info.module.css";
 
-export function EVAInfoControls() {
+export function EventInfoControls() {
   return <></>;
 }
 
-export default function EVAInfo() {
+export default function EventInfo() {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 

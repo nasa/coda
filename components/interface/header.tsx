@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { faCalendarAlt, faClock } from "@fortawesome/free-regular-svg-icons";
@@ -10,9 +10,10 @@ import LayoutPicker from "components/framework/layout-picker";
 import { RootState } from "store/index";
 import styles from "./header.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { Collection } from "utils/enums";
+import { Collection, Source } from "utils/enums";
 import StatusBar from "./status-bar";
-import EVADropdown from "./evaDropdown";
+import EventDropdown from "./eventDropdown";
+import { changeSource } from "store/framework";
 
 library.add(faBars, faCalendarAlt, faClock);
 
@@ -32,12 +33,26 @@ export function LayoutDropdown() {
   );
 }
 
-export function SourcesDropdown(props: { collection: Collection }) {
-  const _varThatDoesNothing = props.collection;
+export function SourcesDropdown() {
+  const dispatch = useDispatch();
+  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+
   return (
-    <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
-      <span className={styles.source}>ISS</span>
-    </ModalDropdown>
+    <div className={styles.select}>
+      <select
+        value={selectedSource}
+        onChange={(e) => {
+          dispatch(changeSource(e.target.value as Source));
+        }}
+      >
+        <option value={Source.ISS}>ISS</option>
+        <option value={Source.NBL}>NBL</option>
+        <option value={Source.TEST_EVENTS}>Test Events</option>
+      </select>
+      <div className={styles.select_arrow}>
+        <FontAwesomeIcon icon="chevron-down" />
+      </div>
+    </div>
   );
 }
 
@@ -61,20 +76,20 @@ export function DatetimeDropdown() {
   );
 }
 
-export function ClockDropdown() {
+export function Clock() {
   const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
 
   const time = hhmmssFromSeconds(playheadSeconds);
 
   return (
-    <ModalDropdown modal={Calendar} color="grey" caret="none">
+    <div className={styles.timeContainer}>
       <div className={`${styles.iconWithText} ${styles.verticalCenter}`}>
         <div>
           <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
         </div>
         <div className={styles.time}>{time}</div>
       </div>
-    </ModalDropdown>
+    </div>
   );
 }
 
@@ -89,16 +104,16 @@ export default function Header(props: { collection: Collection }) {
           <LayoutDropdown />
         </div>
         <div className={styles.item} style={{ width: "100px" }}>
-          <SourcesDropdown collection={props.collection} />
+          <SourcesDropdown />
         </div>
         <div className={styles.item} style={{ width: "180px" }}>
           <DatetimeDropdown />
         </div>
         <div className={styles.item} style={{ width: "130px" }}>
-          <ClockDropdown />
+          <Clock />
         </div>
         <div className={styles.item} style={{ width: "150px" }}>
-          <EVADropdown collection={Collection.ISS} />
+          <EventDropdown collection={Collection.ISS} />
         </div>
       </div>
       <div className={styles.right}>

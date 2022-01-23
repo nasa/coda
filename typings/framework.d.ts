@@ -7,36 +7,35 @@ interface Layouts {
   };
 }
 
-enum FrameSource {
-  ISS = "iss",
-  TEST_EVENTS = "test_events",
-  NBL = "nbl",
+enum Source {
+  ISS = "ISS",
+  TEST_EVENTS = "TEST_EVENTS",
+  NBL = "NBL",
 }
 
-interface Frame {
-  source: FrameSource;
+interface Pane {
   title: string;
   icon: IconProp;
   color: string;
   defaultPaneStateData: any;
 }
 
-interface Frames {
-  [key: string]: Frame;
+interface Panes {
+  [key: string]: Pane;
 }
 
 interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
-  selectedSource: FrameSource;
+  selectedSource: Source;
   /** Number representing the layout ID */
   layout: number;
   /** Current mapping of visible frames to Frame types */
   frames: {
-    [key: string]: FrameState;
+    [key: string]: PaneState;
   };
 }
 
-interface FrameState {
+interface PaneState {
   paneType: string;
   paneStateData: any;
 }
