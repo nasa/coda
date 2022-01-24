@@ -78,7 +78,7 @@
 }
 
 .modalTextarea {
-  font-size: 0.9em;
+  font-size: 0.7em;
   box-sizing: border-box;
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -92,12 +92,13 @@
   height: 80px;
   margin: 0px;
   outline: none;
+  overflow-y: scroll;
 }
 
 .copyURLButton {
   float: right;
   display: table;
-  width: 100px;
+  width: 110px;
   height: 20px;
   border-radius: 5px;
   padding: 5px;

@@ -4,10 +4,10 @@ import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import styles from "./share.module.css";
 import Modal from "react-modal";
 import { RootState } from "store/index";
+import * as jsonurl from "json-url";
 
 export default function Share() {
   const framework = useSelector((state: RootState) => state.framework);
-
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -21,32 +21,29 @@ export default function Share() {
     // navigator.clipboard.writeText(shareURLtextarea.current.value);
     document.execCommand("copy");
     e.target.focus();
-    setCopyButtonText("LINK COPIED");
+    setCopyButtonText("Link Copied");
   }
 
-  function handleRequestOpen() {
-    setCopyButtonText("COPY LINK");
+  async function handleRequestOpen() {
+    setCopyButtonText("Copy Link");
 
     const dt = new Date(playhead.date);
+
     const missionDate = shortdateFromDateString(dt.toISOString());
     const missionTime = hhmmssFromSeconds(playhead.seconds);
 
     const source = framework.selectedSource;
     const layout = framework.layout;
-    const frames = framework.frames;
+
+    const jsonurlLzma = jsonurl("lzma");
+    const compressedFrames = await jsonurlLzma.compress(framework.frames);
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;
     URL += `&gmt=${missionTime}`;
-    // URL += `&video1=${videos.downlinks[1] + 1}`;
-    // URL += `&video2=${videos.downlinks[2] + 1}`;
-    // if (videos.nonDownlinkIDs[1] !== "") {
-    //   URL += `&nonDLvideo1=${videos.nonDownlinkIDs[1]}`;
-    // }
-    // if (videos.nonDownlinkIDs[2] !== "") {
-    //   URL += `&nonDLvideo2=${videos.nonDownlinkIDs[2]}`;
-    // }
-
+    URL += `&source=${source}`;
+    URL += `&layout=${layout}`;
+    URL += `&frames=${compressedFrames}`;
     setShareURLtextValue(URL);
 
     setIsOpen(true);
@@ -60,7 +57,7 @@ export default function Share() {
     <>
       <div
         className={styles.headerModalButton}
-        title="Share this moment"
+        title="Share this view of current playback time"
         onClick={() => {
           handleRequestOpen();
         }}
@@ -75,10 +72,10 @@ export default function Share() {
         contentLabel="Share"
         ariaHideApp={false}
       >
-        <div className={styles.modalHeadline}>Share This Time</div>
+        <div className={styles.modalHeadline}>Share this View of Current Playback Time</div>
         <div className={styles.modalBody}>
           <div className={styles.modalBodyText}>
-            This link will open CODA at the currently displayed mission time events.
+            This link will open CODA at the currently displayed mission time.
             <br />
             The data source, window layout, selected displays, and selections within those displays
             will be preserved.
