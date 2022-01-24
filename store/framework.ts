@@ -33,7 +33,7 @@ export const allPanes: Panes = {
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
-      ready: true,
+      ready: false,
       downlink: 0,
       activeVideoFileID: "",
       muted: false,

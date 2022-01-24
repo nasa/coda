@@ -78,7 +78,7 @@ export default function StatusBar() {
         </div>
         <div className={styles.service} title="ISS and Exploration Wikis">
           <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
-            EVAs:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
+            Events:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
           </div>
           <div
             className={`${styles.subservice} ${styles.subserviceLast}`}

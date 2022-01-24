@@ -12,7 +12,8 @@ import styles from "./header.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection, Source } from "utils/enums";
 import StatusBar from "./status-bar";
-import EventDropdown from "./eventDropdown";
+import EventDropdown from "components/interface/eventDropdown";
+import Share from "components/interface/share";
 import { changeSource } from "store/framework";
 import { clearVideos } from "store/videos";
 import { clearPhotos } from "store/photos";
@@ -97,7 +98,7 @@ export function Clock() {
         <div>
           <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
         </div>
-        <div className={styles.time}>{time}</div>
+        <div className={styles.time}>{time}Z</div>
       </div>
     </div>
   );
@@ -123,11 +124,14 @@ export default function Header() {
         <div className={styles.item} style={{ width: "130px" }}>
           <Clock />
         </div>
-        <div className={styles.item} style={{ width: "150px" }}>
+        <div className={styles.item}>
           <EventDropdown collection={Collection[selectedSource]} />
         </div>
       </div>
       <div className={styles.right}>
+        <div className={styles.verticalCenter}>
+          <Share />
+        </div>
         <div className={styles.verticalCenter}>
           <StatusBar />
         </div>
