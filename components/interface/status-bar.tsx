@@ -4,6 +4,8 @@ import { RootState } from "store/index";
 import { useEffect, useState } from "react";
 import { GPSState } from "store/gps";
 import { LoadingStatusEnum } from "utils/enums";
+import Modal from "react-modal";
+import { nothing } from "immer";
 
 export default function StatusBar() {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
@@ -11,6 +13,8 @@ export default function StatusBar() {
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+
+  const [modalIsOpen, setIsOpen] = useState(true);
 
   const [videoStatus, setVideoStatus] = useState({
     message: "",
@@ -57,41 +61,116 @@ export default function StatusBar() {
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
 
+  useEffect(() => {
+    if (
+      videos.loadingStatus === LoadingStatusEnum.LOADING ||
+      photos.loadingStatus === LoadingStatusEnum.LOADING ||
+      sequences.loadingStatus === LoadingStatusEnum.LOADING ||
+      gps.loadingStatus === LoadingStatusEnum.LOADING ||
+      ephemera.loadingStatus === LoadingStatusEnum.LOADING
+    ) {
+      setIsOpen(true);
+    } else {
+      if (
+        videoStatus.classname === styles.error ||
+        photoStatus.classname === styles.error ||
+        sequenceStatus.classname === styles.error ||
+        gpsStatus.classname === styles.error ||
+        ephemeraStatus.classname === styles.error
+      ) {
+        const timer = setTimeout(() => {
+          setIsOpen(false);
+        }, 3000);
+        return () => clearTimeout(timer);
+      } else {
+        setIsOpen(false);
+      }
+    }
+  }, [modalIsOpen, videoStatus, photoStatus, sequenceStatus, gpsStatus, ephemeraStatus]);
+
   return (
-    <div className={`${styles.container}`}>
-      <div className={styles.serviceTitles}>
-        <div className={styles.serviceTitle}>IO:</div>
-        <div className={styles.serviceTitle}>WIKI:</div>
-        <div className={styles.serviceTitle}>Orbit:</div>
+    <>
+      <div className={`${styles.container}`}>
+        <div className={styles.serviceTitles}>
+          <div className={styles.serviceTitle}>IO:</div>
+          <div className={styles.serviceTitle}>WIKI:</div>
+          <div className={styles.serviceTitle}>Orbit:</div>
+        </div>
+        <div className={styles.subServices}>
+          <div className={styles.service} title="Imagery Online">
+            <div className={styles.subservice} title={"Video " + videoStatus.message}>
+              Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
+            </div>
+            <div
+              className={`${styles.subservice} ${styles.subserviceLast}`}
+              title={"Photo " + photoStatus.message}
+            >
+              Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
+            </div>
+          </div>
+          <div className={styles.service} title="ISS and Exploration Wikis">
+            <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
+              Events:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
+            </div>
+            <div
+              className={`${styles.subservice} ${styles.subserviceLast}`}
+              title={"GPS track " + gpsStatus.message}
+            >
+              GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
+            </div>
+          </div>
+          <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
+            <div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
+          </div>
+        </div>
       </div>
-      <div className={styles.subServices}>
-        <div className={styles.service} title="Imagery Online">
-          <div className={styles.subservice} title={"Video " + videoStatus.message}>
-            Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
-          </div>
-          <div
-            className={`${styles.subservice} ${styles.subserviceLast}`}
-            title={"Photo " + photoStatus.message}
-          >
-            Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
-          </div>
+      <Modal
+        isOpen={modalIsOpen}
+        className={styles.loadingModalWrapper}
+        overlayClassName={styles.modalOverlay}
+        contentLabel="Share"
+        ariaHideApp={false}
+      >
+        <div className={styles.modalHeadline}>Loading...</div>
+        <div className={styles.modalBody}>
+          <table className={styles.modalStatusTable}>
+            <tbody>
+              <tr>
+                <td>Imagery Online</td>
+                <td>Video</td>
+                <td title={"Video " + videoStatus.message}>
+                  <span className={`${styles.statusModal} ${videoStatus.classname}`}></span>
+                </td>
+                <td>Photos</td>
+                <td title={"Photo " + photoStatus.message}>
+                  <span className={`${styles.statusModal} ${photoStatus.classname}`}></span>
+                </td>
+              </tr>
+              <tr>
+                <td>Wiki</td>
+                <td>Events</td>
+                <td title={"EVAs " + sequenceStatus.message}>
+                  <span className={`${styles.statusModal} ${sequenceStatus.classname}`}></span>
+                </td>
+                <td>GPS</td>
+                <td title={"GPS track " + gpsStatus.message}>
+                  <span className={`${styles.statusModal} ${gpsStatus.classname}`}></span>
+                </td>
+              </tr>
+              <tr>
+                <td>Orbit</td>
+                <td>Ephemeris</td>
+                <td title={"Orbit ephemera " + ephemeraStatus.message}>
+                  <span className={`${styles.statusModal} ${ephemeraStatus.classname}`}></span>
+                </td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div className={styles.service} title="ISS and Exploration Wikis">
-          <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
-            Events:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
-          </div>
-          <div
-            className={`${styles.subservice} ${styles.subserviceLast}`}
-            title={"GPS track " + gpsStatus.message}
-          >
-            GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
-          </div>
-        </div>
-        <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
-          <div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
-        </div>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 
   function createStatus(

@@ -44,7 +44,6 @@
 
 .subservice {
   display: inline-block;
-  background-color: black;
   color: #dddddd;
   padding-left: 0.4em;
 }
@@ -59,33 +58,124 @@
   margin-left: 0.1em;
   padding-right: 0.4em;
 
-  background-size: 15px 15px;
+  background-size: 10px 10px;
+  background-repeat: no-repeat;
+
+  background-position: center;
+}
+
+.statusModal {
+  width: 14px;
+  min-height: 14px;
+  display: inline-block;
+  margin-left: 0.1em;
+  padding-right: 0.4em;
+
+  background-size: 14px 14px;
   background-repeat: no-repeat;
 
   background-position: center;
 }
 
 .loading {
-  background-size: 10px 10px;
   background-image: url(/images/icon_status_loading.svg);
 }
 
 .noError {
-  background-size: 10px 10px;
   background-image: url(/images/icon_status_check_green.svg);
 }
 
 .error {
-  background-size: 10px 10px;
   background-image: url(/images/icon_status_issue.svg);
 }
 
 .unneeded {
-  background-size: 10px 10px;
   background-image: url(/images/icon_status_no_assets.svg);
 }
 
 .stale {
-  background-size: 10px 10px;
   background-image: url(/images/icon_status_check_yellow.svg);
+}
+
+.loadingModalWrapper {
+  position: absolute;
+  background: #0f0f0f;
+  border: 2px solid #eeeeee;
+  border-radius: 15px;
+  box-sizing: border-box;
+  padding: 20px;
+  width: 380px;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  outline: none;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgb(0, 0, 0, 0.8);
+  z-index: 10;
+}
+
+.modalHeadline {
+  font-size: 1.5em;
+  color: #eeeeee;
+  text-align: left;
+  padding-bottom: 10px;
+}
+
+.modalBody {
+  font-size: 1em;
+  box-sizing: border-box;
+  float: left;
+  padding: 10px;
+  width: 100%;
+}
+
+.modalBodyText {
+  margin-bottom: 10px;
+  color: #999999;
+}
+
+.modalStatusTable {
+  font-weight: 200;
+  text-align: right;
+  border: 1px solid #696969;
+  border-collapse: collapse;
+}
+
+.modalStatusTable tr {
+  border-bottom: 1px solid #696969;
+}
+
+.modalStatusTable td {
+  padding: 5px;
+  border-bottom: 1px solid #696969;
+}
+
+.modalStatusTable td:first-child {
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.modalStatusTable td:nth-child(2) {
+  padding-left: 10px;
+}
+
+.modalStatusTable td:nth-child(2),
+.modalStatusTable td:nth-child(4) {
+  padding-right: 1px;
+}
+
+.modalStatusTable td:nth-child(3),
+.modalStatusTable td:nth-child(5) {
+  padding-left: 1px;
 }
