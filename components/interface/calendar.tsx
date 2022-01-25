@@ -275,11 +275,6 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
           <span className={`${styles.orange}`}>•</span> EVA &nbsp;&nbsp;
           <span className={`${styles.aqua}`}>•</span> IVA or Other Event
         </div>
-        <div style={{ width: "320px", height: "40px" }}>
-          <ModalDropdown color="grey" modal={() => <>foo</>}>
-            <>&nbsp;EVA Events</>
-          </ModalDropdown>
-        </div>
       </div>
     </div>
   );
