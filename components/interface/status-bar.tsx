@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { GPSState } from "store/gps";
 import { LoadingStatusEnum } from "utils/enums";
 import Modal from "react-modal";
-import { nothing } from "immer";
 
 export default function StatusBar() {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
