@@ -6,22 +6,30 @@ import { Source } from "utils/enums";
 
 export const allLayouts: Layouts = {
   0: {
-    svg: "/icons/layout1.svg",
-    frameCount: 6,
-    cssGridRows: 9,
-  },
-  1: {
-    svg: "/icons/layout1.svg",
     frameCount: 5,
     cssGridRows: 9,
   },
+  1: {
+    frameCount: 6,
+    cssGridRows: 9,
+  },
   2: {
-    svg: "/icons/layout1.svg",
+    frameCount: 5,
+    cssGridRows: 9,
+  },
+  3: {
+    frameCount: 4,
+    cssGridRows: 9,
+  },
+  4: {
+    frameCount: 9,
+    cssGridRows: 9,
+  },
+  5: {
     frameCount: 6,
     cssGridRows: 10,
   },
-  3: {
-    svg: "/icons/layout1.svg",
+  6: {
     frameCount: 1,
     cssGridRows: 9,
   },

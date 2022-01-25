@@ -1,7 +1,6 @@
 /** Definition of all possible layouts */
 interface Layouts {
   [key: number]: {
-    svg: string;
     frameCount: number;
     cssGridRows: number;
   };

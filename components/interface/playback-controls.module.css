@@ -96,3 +96,14 @@
   cursor: pointer;
   user-select: none;
 }
+
+.blink_me {
+  animation: blinker 0.3s step-start infinite;
+}
+
+@keyframes blinker {
+  60% {
+    /*opacity: 0.2;*/
+    background-color: var(--lighter-grey);
+  }
+}

@@ -150,10 +150,10 @@ export default function Header() {
         </div>
       </div>
       <div className={styles.right}>
-        <div className={styles.verticalCenter}>
+        <div className={styles.item}>
           <Share />
         </div>
-        <div className={styles.verticalCenter}>
+        <div className={styles.item}>
           <StatusBar />
         </div>
         <div className={styles.verticalCenter}>

@@ -2,11 +2,11 @@
   background-color: #2b2a2d;
   padding: 13px;
   cursor: pointer;
-
   font-family: "Inter", sans-serif;
   font-weight: 400;
   font-size: 16px;
   height: 40px;
+  margin-top: 1px;
   border: none;
   border-radius: var(--radius);
   color: white;
