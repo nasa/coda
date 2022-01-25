@@ -41,9 +41,13 @@ export function PaneLabel({
 
   return (
     <div className={styles.item}>
-      <div className={`${styles.icon} ${styles[color]}`}>
-        <FontAwesomeIcon icon={icon} />
-      </div>
+      {icon !== "none" ? (
+        <div className={`${styles.icon} ${styles[color]}`}>
+          <FontAwesomeIcon icon={icon} />
+        </div>
+      ) : (
+        <div className={styles.noneIcon}></div>
+      )}
       <div className={styles.verticalCenter}>{title}</div>
     </div>
   );

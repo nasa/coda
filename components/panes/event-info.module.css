@@ -65,6 +65,10 @@
   font-weight: 400;
 }
 
+.dataTable .leftPadded {
+  padding-left: 4px;
+}
+
 /* Div table */
 .taskContainer {
   flex: auto;

@@ -98,7 +98,7 @@
   top: 0;
   left: 0;
   background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
-  background-size: 50%;
+  background-size: 40%;
   /* filter: grayscale(100%) contrast(0.75); */
   opacity: 0.4;
 }
@@ -111,7 +111,7 @@
   height: 100%;
 }
 .loaderAnimation {
-  width: 50%;
+  width: 40%;
   border-radius: 50%;
   border: solid 4px;
   border-color: #999999 #eeeeee10;
@@ -159,6 +159,7 @@
   background-color: var(--nearly-black);
   object-fit: contain;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .vidTitle {

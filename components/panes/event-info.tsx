@@ -74,11 +74,15 @@ export default function EventInfo() {
                 <td>Timing:</td>
                 <td>
                   <span>PET Start:</span>
-                  <span className={styles.labelValue}>{seq.startTime}Z</span>
+                  <span className={`${styles.labelValue} ${styles.leftPadded}`}>
+                    {seq.startTime}Z
+                  </span>
                 </td>
                 <td>
                   <span>Duration:</span>
-                  <span className={styles.labelValue}>{seq.duration / 60} min</span>
+                  <span className={`${styles.labelValue} ${styles.leftPadded}`}>
+                    {seq.duration / 60} min
+                  </span>
                 </td>
               </tr>
             </tbody>

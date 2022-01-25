@@ -3,6 +3,7 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
+import layoutStyles from "/components/framework/frames.module.css";
 
 export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {
   const dispatch = useDispatch();
@@ -16,6 +17,34 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
 
     dispatch(changeLayout(index));
     closeClick();
+  };
+
+  const drawLayoutLargeIcon = (layout: number) => {
+    const layoutGrid = layoutStyles[`layout${layout}`];
+
+    const layoutDefinition = allLayouts[layout];
+    const mainStyleName =
+      layoutDefinition.cssGridRows === 9
+        ? layoutStyles.largeIcon_9Rows
+        : layoutStyles.largeIcon_10Rows;
+    const frames = [];
+    for (let i = 1; i <= layoutDefinition.frameCount; i++) {
+      // CSS Grid definitions
+      const gridAreaName = layoutStyles[`f${i}`];
+      frames.push(
+        <div
+          className={`${layoutStyles.largeIconFrameContainer} ${gridAreaName}`}
+          key={`FRAME__${i}`}
+        >
+          <div className={layoutStyles.largeIconFrameBackground}></div>
+        </div>
+      );
+    }
+    return (
+      <div className={layoutStyles.layoutlargeIconContainer}>
+        <div className={`${mainStyleName} ${layoutGrid}`}>{frames}</div>
+      </div>
+    );
   };
 
   return (
@@ -35,7 +64,7 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
             onClick={(e) => handleSelectLayout(e, +index)}
             key={`LAYOUT_${index}`}
           >
-            <img src={layout.svg} alt={`Select layout ${index}`} />
+            {drawLayoutLargeIcon(+index)}
           </div>
         ))}
       </div>

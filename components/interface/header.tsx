@@ -9,6 +9,7 @@ import { ModalDropdown } from "components/interface/dropdown-v2";
 import LayoutPicker from "components/framework/layout-picker";
 import { RootState } from "store/index";
 import styles from "./header.module.css";
+import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection, Source } from "utils/enums";
 import StatusBar from "./status-bar";
@@ -21,6 +22,8 @@ import { clearEphemera } from "store/ephemera";
 import { clearSequences } from "store/sequences";
 import { clearGPSTracks } from "store/gps";
 
+import { allLayouts } from "store/framework";
+
 library.add(faBars, faCalendarAlt, faClock);
 
 export function HamburgerMenu() {
@@ -32,9 +35,27 @@ export function HamburgerMenu() {
 }
 
 export function LayoutDropdown() {
+  const layout = useSelector((state: RootState) => state.framework.layout);
+
+  const layoutDefinition = allLayouts[layout];
+  const mainStyleName =
+    layoutDefinition.cssGridRows === 9 ? layoutStyles.icon_9Rows : layoutStyles.icon_10Rows;
+  const frames = [];
+  for (let i = 1; i <= layoutDefinition.frameCount; i++) {
+    // CSS Grid definitions
+    const gridAreaName = layoutStyles[`f${i}`];
+    frames.push(
+      <div className={`${layoutStyles.iconFrameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
+        <div className={layoutStyles.iconFrameBackground}></div>
+      </div>
+    );
+  }
+
   return (
     <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
-      <img src="/icons/layout1.svg" alt="Layout 1" className={styles.layoutIcon} />
+      <div className={layoutStyles.layoutIconContainer}>
+        <div className={`${mainStyleName} ${layoutStyles[`layout${layout}`]}`}>{frames}</div>
+      </div>
     </ModalDropdown>
   );
 }

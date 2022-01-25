@@ -28,6 +28,14 @@ export const allLayouts: Layouts = {
 };
 
 export const allPanes: Panes = {
+  empty: {
+    title: "Select display type",
+    icon: "none",
+    color: "none",
+    defaultPaneStateData: {
+      ready: true,
+    },
+  },
   video_downlink: {
     title: "Video Downlink",
     icon: "video",
