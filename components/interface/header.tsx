@@ -54,7 +54,7 @@ export function LayoutDropdown() {
   return (
     <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
       <div className={layoutStyles.layoutIconContainer}>
-        <div className={`${mainStyleName} ${layoutStyles[`layout${layout}`]}`}>{frames}</div>
+        <div className={`${mainStyleName} ${layoutStyles[`layout_${layout}`]}`}>{frames}</div>
       </div>
     </ModalDropdown>
   );

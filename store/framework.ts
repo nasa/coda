@@ -4,32 +4,42 @@ import _ from "lodash";
 import { createSlice } from "@reduxjs/toolkit";
 import { Source } from "utils/enums";
 
+/**
+ * Supporting information about each layout defined in components/layouts.modules.css.
+ * The letters in this object refer to the CSS grid definitions in components/layouts.modules.css.
+ * Letters should never be changed per layout in order for shared links to always refer to the correct layout.
+ * Ordering of the layouts in this object represent the order they appear in the dropdown. Dropdown order does not have to be alphabetical.
+ */
 export const allLayouts: Layouts = {
-  0: {
+  a: {
     frameCount: 5,
     cssGridRows: 9,
   },
-  1: {
+  b: {
     frameCount: 6,
     cssGridRows: 9,
   },
-  2: {
+  c: {
     frameCount: 5,
     cssGridRows: 9,
   },
-  3: {
+  d: {
     frameCount: 4,
     cssGridRows: 9,
   },
-  4: {
+  e: {
+    frameCount: 4,
+    cssGridRows: 9,
+  },
+  f: {
     frameCount: 9,
     cssGridRows: 9,
   },
-  5: {
+  g: {
     frameCount: 6,
     cssGridRows: 10,
   },
-  6: {
+  h: {
     frameCount: 1,
     cssGridRows: 9,
   },
@@ -147,7 +157,7 @@ const defaultFrames = {
  * NOTE: all panes must manage a "ready" boolean in its controlStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
-  layout: 0,
+  layout: "a",
   frames: defaultFrames,
   selectedSource: Source.ISS,
 };
@@ -159,7 +169,7 @@ export const frameworkSlice = createSlice({
     /**
      * Change the component layout
      */
-    changeLayout: (state, action: { payload: number }) => {
+    changeLayout: (state, action: { payload: string }) => {
       state.layout = action.payload;
     },
 

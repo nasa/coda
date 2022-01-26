@@ -25,7 +25,7 @@ export default function Viewer() {
 
   return (
     <div>
-      <div className={`${mainStyleName} ${styles[`layout${selectedLayout}`]}`}>{frames}</div>
+      <div className={`${mainStyleName} ${styles[`layout_${selectedLayout}`]}`}>{frames}</div>
     </div>
   );
 }

@@ -12,15 +12,15 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
    * Change the layout
    * @param index The index of the layout in allLayouts
    */
-  const handleSelectLayout = (e: React.MouseEvent, index: number) => {
+  const handleSelectLayout = (e: React.MouseEvent, index: string) => {
     e.preventDefault();
 
     dispatch(changeLayout(index));
     closeClick();
   };
 
-  const drawLayoutLargeIcon = (layout: number) => {
-    const layoutGrid = layoutStyles[`layout${layout}`];
+  const drawLayoutLargeIcon = (layout: string) => {
+    const layoutGrid = layoutStyles[`layout_${layout}`];
 
     const layoutDefinition = allLayouts[layout];
     const mainStyleName =
@@ -61,10 +61,10 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
         {_.map(allLayouts, (layout, index) => (
           <div
             className={styles.layout}
-            onClick={(e) => handleSelectLayout(e, +index)}
+            onClick={(e) => handleSelectLayout(e, index)}
             key={`LAYOUT_${index}`}
           >
-            {drawLayoutLargeIcon(+index)}
+            {drawLayoutLargeIcon(index)}
           </div>
         ))}
       </div>

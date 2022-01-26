@@ -1,6 +1,6 @@
 /** Definition of all possible layouts */
 interface Layouts {
-  [key: number]: {
+  [key: string]: {
     frameCount: number;
     cssGridRows: number;
   };
@@ -26,8 +26,8 @@ interface Panes {
 interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
   selectedSource: Source;
-  /** Number representing the layout ID */
-  layout: number;
+  /** Letter representing the layout as defined in components/framework/frames.module.css */
+  layout: string;
   /** Current mapping of visible frames to Frame types */
   frames: {
     [key: string]: PaneState;

@@ -102,7 +102,7 @@
   grid-area: f9;
 }
 
-.layout0 {
+.layout_a {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
@@ -115,7 +115,7 @@
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4";
 }
 
-.layout1 {
+.layout_b {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
@@ -128,7 +128,7 @@
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6";
 }
 
-.layout2 {
+.layout_c {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
@@ -141,7 +141,7 @@
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4";
 }
 
-.layout3 {
+.layout_d {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
@@ -154,7 +154,20 @@
     "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f3 f3 f3 f3 f3 f3";
 }
 
-.layout4 {
+.layout_e {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4";
+}
+
+.layout_f {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
@@ -167,7 +180,7 @@
     "f7 f7 f7 f7 f7 f7 f7 f7 f8 f8 f8 f8 f8 f8 f8 f8 f9 f9 f9 f9 f9 f9 f9 f9";
 }
 
-.layout5 {
+.layout_g {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
     "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
@@ -181,7 +194,7 @@
     "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6";
 }
 
-.layout6 {
+.layout_h {
   grid-template-areas:
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
     "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
