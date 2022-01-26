@@ -160,11 +160,6 @@ build:
   image: node:14 # Can't use Alpine Linux here without changing the apt-get commands above
   stage: deploy_to_server
   script:
-    # stop the server's coda instance
-    - >
-      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
-      echo -e '\nStop the CODA service' &&
-      sudo systemctl stop coda"
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
     - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
     # check dependencies and restart the server
@@ -175,9 +170,9 @@ build:
       echo -e '\nInstall dependencies' &&
       npm i &&
 
-      echo -e '\nStart the CODA service' &&
+      echo -e '\nRestart the server' &&
       sudo systemctl daemon-reload &&
-      sudo systemctl start coda"
+      sudo systemctl restart coda"
 
 deploy_to_dev1:
   extends: .deploy_template
