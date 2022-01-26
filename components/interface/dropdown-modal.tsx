@@ -3,7 +3,7 @@ import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import styles from "./dropdown-v2.module.css";
+import styles from "./dropdown-modal.module.css";
 
 library.add(faChevronDown, faChevronRight);
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff, isSameDate } from "store/playhead";
-import styles from "./eventDropdown.module.css";
+import styles from "./dropdown-event.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";

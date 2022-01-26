@@ -3,7 +3,7 @@ import styles from "./frame.module.css";
 import { useSelector } from "react-redux";
 import { RootState } from "store";
 
-import { ModalDropdown } from "components/interface/dropdown-v2";
+import { ModalDropdown } from "components/interface/dropdown-modal";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EventInfo, { EventInfoControls } from "components/panes/event-info";
