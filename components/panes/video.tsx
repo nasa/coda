@@ -551,7 +551,7 @@ export default function VideoPane(props: { frameID: number }) {
     // show error if the video is (very likely) not time synced
     if (isNotTimeSynced) {
       ioErrorCSS = { display: "block", zIndex: 1 };
-      ioErrorMessage = "IO Video Not Time Synced";
+      ioErrorMessage = "Incorrect Time Data on Imagery Online";
     }
 
     // the audio in LOS downlinked videos is never synced to the video
