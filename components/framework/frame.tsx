@@ -67,6 +67,17 @@ export interface Options {
 
 const headerContainerHeight = 35;
 
+function debounce(fn, ms) {
+  let timer;
+  return (_) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      fn.apply(this);
+    }, ms);
+  };
+}
+
 /** Renders a frame in the viewer */
 export default function Frame(options) {
   const frameState = useSelector((state: RootState) => state.framework.frames[options.id]);
@@ -86,6 +97,7 @@ export default function Frame(options) {
   /** get component width and pass it to the frame controls */
   const [frameDimensions, setFrameDimensions] = useState([]);
   const frameRef = useRef(null);
+
   useEffect(() => {
     setFrameDimensions(
       frameRef.current
@@ -96,14 +108,18 @@ export default function Frame(options) {
 
   /** Handle resize events and rerender components */
   useEffect(() => {
-    function handleResize() {
+    const debouncedHandleResize = debounce(function handleResize() {
       setFrameDimensions(
         frameRef.current
           ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
           : []
       );
-    }
-    window.addEventListener("resize", handleResize);
+    }, 500);
+    window.addEventListener("resize", debouncedHandleResize);
+
+    return () => {
+      window.removeEventListener("resize", debouncedHandleResize);
+    };
   });
 
   return (

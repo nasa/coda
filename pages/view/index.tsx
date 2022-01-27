@@ -111,9 +111,12 @@ export function V2(props: { query: QueryParams }) {
   };
 
   /** Update the video store */
-  const populateVideoStore = (year, month, day, collection) => {
+  const populateVideoStore = (year, month, day, collection, incremental: boolean) => {
     (async () => {
-      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
+      if (!incremental) {
+        // Don't cause the app to show the loader if we're just updating the videos list
+        dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
+      }
       try {
         // video data for this EVA
         const videoStoreResponse = await buildVideoStore(year, month, day, collection);
@@ -210,7 +213,7 @@ export function V2(props: { query: QueryParams }) {
       populateSequenceStore(Collection[selectedSource]);
 
       // populate the video store
-      populateVideoStore(year, month, day, Collection[selectedSource]);
+      populateVideoStore(year, month, day, Collection[selectedSource], false);
 
       // populage the photo store
       populatePhotoStore(year, month, day, Collection[selectedSource]);
@@ -230,7 +233,7 @@ export function V2(props: { query: QueryParams }) {
     const month = d.getUTCMonth() + 1;
     const day = d.getUTCDate();
 
-    populateVideoStore(year, month, day, Collection[selectedSource]);
+    populateVideoStore(year, month, day, Collection[selectedSource], true);
   }, FIVE_MINS_MS);
 
   return (
