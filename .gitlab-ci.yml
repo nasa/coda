@@ -30,26 +30,26 @@ stages:
 # Overrride some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
 project-check:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   timeout: 10 minutes
 eslint-sast:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   timeout: 10 minutes
 nodejs-scan-sast:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   timeout: 10 minutes
 semgrep-sast:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   timeout: 10 minutes
 sast:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   timeout: 10 minutes
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
   # Run job during the "test" stage of the pipeline
   stage: test
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   timeout: 10 minutes
   image:
     # Specify the Docker image to be used for the job, which is a customized image for running OWASP
@@ -85,7 +85,7 @@ dependency-check:
       - "./dependency-check-report.json"
 
 test:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   before_script:
     - npm ci
   script:
@@ -94,7 +94,7 @@ test:
   stage: test
 
 build:
-  tags: ["docker", "Linux"]
+  tags: ["docker", "linux"]
   before_script:
     - npm ci
   script:
