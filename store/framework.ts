@@ -108,7 +108,7 @@ export const allPanes: Panes = {
   },
 };
 
-const defaultFrames = {
+export const defaultFrames: FrameState = {
   1: {
     paneType: "video_downlink",
     paneStateData: {
@@ -163,7 +163,7 @@ export const initialState: FrameworkState = {
 };
 
 export const frameworkSlice = createSlice({
-  name: "viewer",
+  name: "framework",
   initialState,
   reducers: {
     /**
@@ -183,6 +183,16 @@ export const frameworkSlice = createSlice({
         paneStateData: allPanes[action.payload.paneType].defaultPaneStateData,
       };
     },
+
+    /**
+     * Set the state of all frames. Used when state is sent in on a query parameter
+     */
+    setAllFrameworkState: (state, action: { payload: FrameworkState }) => {
+      state.selectedSource = action.payload.selectedSource;
+      state.layout = action.payload.layout;
+      state.frames = action.payload.frames;
+    },
+
     /**
      * Set a state value for use within a pane. The list of available state values depends on the pane type
      */
@@ -213,6 +223,7 @@ export const frameworkSlice = createSlice({
 export const {
   changeLayout,
   setPaneType,
+  setAllFrameworkState,
   setPaneStateDataValue,
   changeSource,
 } = frameworkSlice.actions;

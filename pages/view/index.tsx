@@ -34,8 +34,14 @@ import {
   addEphemera,
 } from "store/ephemera";
 import { useDispatch, useSelector } from "react-redux";
+import * as jsonurl from "json-url";
+import {
+  allPanes,
+  initialState as initialFrameworkState,
+  setAllFrameworkState,
+} from "store/framework";
 
-export function V2(props: { query: QueryParams }) {
+export function V2(props: { query }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
@@ -87,6 +93,13 @@ export function V2(props: { query: QueryParams }) {
     }
 
     dispatch(changeTime(userTime));
+  }, []);
+
+  useEffect(() => {
+    // set the framework state if that object was set in getServerSideProps
+    if (!_.isNull(props.query.frameworkState)) {
+      dispatch(setAllFrameworkState(props.query.frameworkState));
+    }
   }, []);
 
   /** Update the EVA store */
@@ -256,58 +269,68 @@ export default WithPlayheadMonitor(V2);
 export async function getServerSideProps({ query }) {
   const date = query.date === undefined ? null : query.date;
   const gmt = query.gmt === undefined ? null : query.gmt;
+  const stateCompressed = query.state === undefined ? null : query.state; // compressed state of frames object in framework store
+  const source = query.source === undefined ? null : query.source;
+
+  // Legacy support for old URLs
   const video1 = query.video1 === undefined ? null : query.video1;
   const video2 = query.video2 === undefined ? null : query.video2;
   const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
   const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
 
-  const queryParams = [
-    "frameType1",
-    "frameState1",
-    "frameType2",
-    "frameState2",
-    "frameType3",
-    "frameState3",
-    "frameType4",
-    "frameState4",
-    "frameType5",
-    "frameState5",
-    "frameType6",
-    "frameState6",
-  ];
+  let fState: FrameworkState = { ...initialFrameworkState };
+  if (stateCompressed) {
+    var jsonurlLzma = jsonurl("lzma");
+    fState = await jsonurlLzma.decompress(stateCompressed);
+  }
 
-  // TODO: work on a system for new query params and translating old ones
-  // maybe old one triggers a layout that is the same as the original?
+  if (source) {
+    fState.selectedSource = source;
+  }
 
-  const queryValues = queryParams.map((qp) => _.get(query, qp, null)); // eslint-disable-line @typescript-eslint/no-unused-vars
-
-  const returnVal: QueryParams = {
-    gmt,
-    date,
-    video1,
-    video2,
-    nonDLvideo1,
-    nonDLvideo2,
-  };
+  if (nonDLvideo1) {
+    fState.frames = setNonDLVideoFrame(fState, "1", nonDLvideo1);
+  } else if (video1) {
+    fState.frames = setDLVideoFrame(fState, "1", video1);
+  }
+  if (nonDLvideo2) {
+    fState.frames = setNonDLVideoFrame(fState, "2", nonDLvideo2);
+  } else if (video2) {
+    fState.frames = setDLVideoFrame(fState, "2", video2);
+  }
 
   return {
     props: {
-      query: returnVal,
+      query: {
+        date,
+        gmt,
+        frameworkState: fState,
+      },
     },
   };
 }
 
-export interface QueryParams {
-  /** yyyy-mm-dd the user wants to view */
-  date: string;
-  /** UTC hh:mm the user wants to view */
-  gmt: string;
-  /** Downlink number the user wants to view in player 1 */
-  video1: string;
-  /** Downlink number the user wants to view in player 2 */
-  video2: string;
-  /** ID of the non-D/L video the user wants to view in player 1 */
-  nonDLvideo1: string;
-  /** ID of the non-D/L video the user wants to view in player 2 */
-  nonDLvideo2: string;
+function setNonDLVideoFrame(fState, frameNum, nonDLVideo) {
+  const frameStateData = {
+    ...fState.frames[frameNum],
+    paneType: "video_non_downlink",
+    paneStateData: {
+      ...allPanes["video_non_downlink"].defaultPaneStateData,
+      downlink: -1,
+      activeVideoFileID: nonDLVideo,
+    },
+  };
+  return { ...fState.frames, [frameNum]: frameStateData };
+}
+
+function setDLVideoFrame(fState, frameNum, downlink) {
+  const frameStateData = {
+    ...fState.frames[frameNum],
+    paneType: "video_downlink",
+    paneStateData: {
+      ...allPanes["video_downlink"].defaultPaneStateData,
+      downlink: parseInt(downlink) - 1,
+    },
+  };
+  return { ...fState.frames, [frameNum]: frameStateData };
 }

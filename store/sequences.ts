@@ -23,7 +23,7 @@ export const initialState: SequencesEntityState = sequencesAdapter.getInitialSta
 });
 
 export const sequencesSlice = createSlice({
-  name: "Sequences",
+  name: "sequences",
   initialState,
   reducers: {
     /** Add one (or more) Sequence(s) to the store */

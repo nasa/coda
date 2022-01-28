@@ -29,9 +29,11 @@ interface FrameworkState {
   /** Letter representing the layout as defined in components/framework/frames.module.css */
   layout: string;
   /** Current mapping of visible frames to Frame types */
-  frames: {
-    [key: string]: PaneState;
-  };
+  frames: FrameState;
+}
+
+interface FrameState {
+  [key: string]: PaneState;
 }
 
 interface PaneState {

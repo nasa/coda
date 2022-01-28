@@ -36,14 +36,12 @@ export default function Share() {
     const layout = framework.layout;
 
     const jsonurlLzma = jsonurl("lzma");
-    const compressedFrames = await jsonurlLzma.compress(framework.frames);
+    const compressedFrameworkState = await jsonurlLzma.compress(framework);
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;
     URL += `&gmt=${missionTime}`;
-    URL += `&source=${source}`;
-    URL += `&layout=${layout}`;
-    URL += `&frames=${compressedFrames}`;
+    URL += `&state=${compressedFrameworkState}`;
     setShareURLtextValue(URL);
 
     setIsOpen(true);
