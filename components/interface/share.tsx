@@ -32,9 +32,6 @@ export default function Share() {
     const missionDate = shortdateFromDateString(dt.toISOString());
     const missionTime = hhmmssFromSeconds(playhead.seconds);
 
-    const source = framework.selectedSource;
-    const layout = framework.layout;
-
     const jsonurlLzma = jsonurl("lzma");
     const compressedFrameworkState = await jsonurlLzma.compress(framework);
 
