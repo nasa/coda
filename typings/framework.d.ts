@@ -41,7 +41,7 @@ interface PaneState {
   paneStateData: any;
 }
 
-type VideoPaneControlStateData = {
+type VideoPaneStateData = {
   downlink: number;
   activeVideoFileID: string;
   ready: boolean;
@@ -49,13 +49,17 @@ type VideoPaneControlStateData = {
   showInfo: boolean;
 };
 
-type PhotoPaneControlStateData = {
+type PhotoPaneStateData = {
   ready: boolean;
   showInfo: boolean;
   showFilter: boolean;
 };
 
-type LocationPaneControlStateData = {
+type LocationPaneStateData = {
   lockToggle: boolean;
+  ready: boolean;
+};
+
+type EventPaneStateData = {
   ready: boolean;
 };

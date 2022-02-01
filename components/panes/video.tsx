@@ -65,7 +65,7 @@ export function ExpandButton() {
   );
 }
 
-function RightButtons(props: { frameID: number; paneStateData: VideoPaneControlStateData }) {
+function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateData }) {
   const dispatch = useDispatch();
   const frameID = props.frameID;
 
@@ -114,7 +114,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
   const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
-  const paneStateData: VideoPaneControlStateData = useSelector(
+  const paneStateData: VideoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
@@ -226,7 +226,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
 
   const [nonDlVideoIDs, setNonDlVideoIDs] = useState([]);
 
-  const paneStateData: VideoPaneControlStateData = useSelector(
+  const paneStateData: VideoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
@@ -330,7 +330,7 @@ export default function VideoPane(props: { frameID: number }) {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
-  const paneStateData: VideoPaneControlStateData = useSelector(
+  const paneStateData: VideoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {

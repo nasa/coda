@@ -27,7 +27,7 @@ export function ISSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const controlStateData: LocationPaneControlStateData = useSelector(
+  const controlStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
@@ -73,7 +73,7 @@ export function ISSLocation(props: { frameID: number }) {
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const controlStateData: LocationPaneControlStateData = useSelector(
+  const controlStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 

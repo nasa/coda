@@ -33,7 +33,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
 
   const dispatch = useDispatch();
 
-  const paneStateData: PhotoPaneControlStateData = useSelector(
+  const paneStateData: PhotoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   function setPaneStateValue(propertyName, propertyValue) {
@@ -98,7 +98,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
   const dispatch = useDispatch();
   const frameID = props.frameID;
 
-  const paneStateData: PhotoPaneControlStateData = useSelector(
+  const paneStateData: PhotoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 

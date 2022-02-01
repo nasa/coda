@@ -117,7 +117,7 @@ export const defaultFrames: FrameState = {
       activeVideoFileID: "",
       muted: false,
       showInfo: false,
-    } as VideoPaneControlStateData,
+    } as VideoPaneStateData,
   },
   2: {
     paneType: "video_non_downlink",
@@ -127,7 +127,7 @@ export const defaultFrames: FrameState = {
       activeVideoFileID: "",
       muted: false,
       showInfo: false,
-    } as VideoPaneControlStateData,
+    } as VideoPaneStateData,
   },
   3: {
     paneType: "photo",
@@ -135,20 +135,20 @@ export const defaultFrames: FrameState = {
       ready: true,
       showInfo: false,
       showFilter: false,
-    } as PhotoPaneControlStateData,
+    } as PhotoPaneStateData,
   },
   4: {
     paneType: "event_info",
     paneStateData: {
       ready: true,
-    },
+    } as EventPaneStateData,
   },
   5: {
     paneType: "iss_position",
     paneStateData: {
       lockToggle: true,
       ready: true,
-    } as LocationPaneControlStateData,
+    } as LocationPaneStateData,
   },
 };
 
