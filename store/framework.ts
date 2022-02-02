@@ -159,7 +159,7 @@ export const defaultFrames: FrameState = {
 export const initialState: FrameworkState = {
   layout: "a",
   frames: defaultFrames,
-  selectedSource: Source.ISS,
+  source: Source.ISS,
 };
 
 export const frameworkSlice = createSlice({
@@ -188,7 +188,7 @@ export const frameworkSlice = createSlice({
      * Set the state of all frames. Used when state is sent in on a query parameter
      */
     setAllFrameworkState: (state, action: { payload: FrameworkState }) => {
-      state.selectedSource = action.payload.selectedSource;
+      state.source = action.payload.source;
       state.layout = action.payload.layout;
       state.frames = action.payload.frames;
     },
@@ -207,14 +207,14 @@ export const frameworkSlice = createSlice({
      * Change the overall data source (ISS, Test Events, NBL)
      */
     changeSource: (state, action: { payload: Source }) => {
-      state.selectedSource = action.payload;
+      state.source = action.payload;
       state.frames = defaultFrames;
       if (action.payload === Source.ISS) {
-        allPanes.event_info.title = "EVA Info";
+        allPanes["event_info"].title = "EVA Info";
       } else if (action.payload === Source.NBL) {
-        allPanes.event_info.title = "NBL Event Info";
+        allPanes["event_info"].title = "NBL Event Info";
       } else if (action.payload === Source.TEST_EVENTS) {
-        allPanes.event_info.title = "Test Event Info";
+        allPanes["event_info"].title = "Test Event Info";
       }
     },
   },

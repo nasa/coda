@@ -44,7 +44,7 @@ import {
 export function V2(props: { query }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
-  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+  const source = useSelector((state: RootState) => state.framework.source);
 
   const dispatch = useDispatch();
 
@@ -213,7 +213,7 @@ export function V2(props: { query }) {
   // populate store when date or source change
   useEffect(() => {
     (async () => {
-      if (_.isNull(playheadDate) || _.isNull(selectedSource)) {
+      if (_.isNull(playheadDate) || _.isNull(source)) {
         return;
       }
 
@@ -223,21 +223,21 @@ export function V2(props: { query }) {
       const day = d.getUTCDate();
 
       // populate the sequence store
-      populateSequenceStore(Collection[selectedSource]);
+      populateSequenceStore(Collection[source]);
 
       // populate the video store
-      populateVideoStore(year, month, day, Collection[selectedSource], false);
+      populateVideoStore(year, month, day, Collection[source], false);
 
       // populage the photo store
-      populatePhotoStore(year, month, day, Collection[selectedSource]);
+      populatePhotoStore(year, month, day, Collection[source]);
 
       // populate the ephemeris store
-      populateEphemerisStore(year, month, day, Collection[selectedSource]);
+      populateEphemerisStore(year, month, day, Collection[source]);
 
       // populate GPS store
-      populateGPSStore(year, month, day, Collection[selectedSource]);
+      populateGPSStore(year, month, day, Collection[source]);
     })();
-  }, [playheadDate, selectedSource]);
+  }, [playheadDate, source]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
   useInterval(() => {
@@ -246,7 +246,7 @@ export function V2(props: { query }) {
     const month = d.getUTCMonth() + 1;
     const day = d.getUTCDate();
 
-    populateVideoStore(year, month, day, Collection[selectedSource], true);
+    populateVideoStore(year, month, day, Collection[source], true);
   }, FIVE_MINS_MS);
 
   return (
@@ -258,7 +258,7 @@ export function V2(props: { query }) {
       <div className={styles.body}>
         <Viewer />
       </div>
-      <Timeline collection={Collection[selectedSource]} />
+      <Timeline collection={Collection[source]} />
       <PlaybackControls />
     </div>
   );
@@ -285,7 +285,7 @@ export async function getServerSideProps({ query }) {
   }
 
   if (source) {
-    fState.selectedSource = source;
+    fState.source = source;
   }
 
   if (nonDLvideo1) {

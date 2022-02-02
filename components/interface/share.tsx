@@ -4,7 +4,7 @@ import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
 import styles from "./share.module.css";
 import Modal from "react-modal";
 import { RootState } from "store/index";
-import * as jsonurl from "json-url";
+import { PaneTypeShortVal } from "utils/enums";
 
 export default function Share() {
   const framework = useSelector((state: RootState) => state.framework);
@@ -32,13 +32,77 @@ export default function Share() {
     const missionDate = shortdateFromDateString(dt.toISOString());
     const missionTime = hhmmssFromSeconds(playhead.seconds);
 
-    const jsonurlLzma = jsonurl("lzma");
-    const compressedFrameworkState = await jsonurlLzma.compress(framework);
+    // const jsonurlLzma = jsonurl("lzma");
+    // const compressedFrameworkState = await jsonurlLzma.compress(framework);
+
+    const layout = framework.layout;
+    const source = framework.source;
+
+    let i = 1;
+    let stateUrlParams = "";
+    for (const [_key, element] of Object.entries(framework.frames)) {
+      let paneStateString = "";
+      switch (element.paneType) {
+        case "video_downlink":
+          paneStateString = getStateStringForVideo(
+            element.paneStateData,
+            PaneTypeShortVal.video_downlink
+          );
+          break;
+        case "video_non_downlink":
+          paneStateString = getStateStringForVideo(
+            element.paneStateData,
+            PaneTypeShortVal.video_non_downlink
+          );
+          break;
+        case "photo":
+          paneStateString = getStateStringForPhoto(element.paneStateData);
+          break;
+        case "event_info":
+          paneStateString = getStateStringForEventInfo();
+          break;
+        case "iss_position":
+          paneStateString = getStateStringforISSLocation(element.paneStateData);
+          break;
+      }
+      stateUrlParams += "&f" + i + "=" + paneStateString;
+      i++;
+    }
+
+    function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeShortVal) {
+      const paneTypeString = "0" + paneType;
+      const dlString = state.downlink === -1 ? "-1" : "0" + state.downlink.toString();
+      const mutedString = state.muted ? "1" : "0";
+      return `${paneTypeString}${dlString}${mutedString}${state.activeVideoFileID}`;
+    }
+
+    function getStateStringForPhoto(state: PhotoPaneStateData) {
+      const paneTypeString = "0" + PaneTypeShortVal.photo;
+      const showInfo = state.showInfo ? "1" : "0";
+      const showFilter = state.showFilter ? "1" : "0";
+      return `${paneTypeString}${showInfo}${showFilter}`;
+    }
+
+    function getStateStringForEventInfo() {
+      const paneTypeString = "0" + PaneTypeShortVal.event_info;
+      return `${paneTypeString}`;
+    }
+
+    function getStateStringforISSLocation(state: LocationPaneStateData) {
+      const paneTypeString = "0" + PaneTypeShortVal.iss_position;
+      const lockToggle = state.lockToggle ? "1" : "0";
+      return `${paneTypeString}${lockToggle}`;
+    }
+
+    // const compressedStateParams = await jsonurlLzma.compress(stateUrlParams);
 
     const urlRoot = location.origin + location.pathname;
     let URL = `${urlRoot}?date=${missionDate}`;
     URL += `&gmt=${missionTime}`;
-    URL += `&state=${compressedFrameworkState}`;
+    URL += `&l=${layout}`;
+    URL += `&s=${source}`;
+    URL += stateUrlParams;
+    // URL += `&state=${compressedFrameworkState}`;
     setShareURLtextValue(URL);
 
     setIsOpen(true);

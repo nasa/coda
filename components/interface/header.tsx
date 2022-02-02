@@ -62,7 +62,7 @@ export function LayoutDropdown() {
 
 export function SourcesDropdown() {
   const dispatch = useDispatch();
-  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+  const selectedSource = useSelector((state: RootState) => state.framework.source);
 
   return (
     <div className={styles.select}>
@@ -126,7 +126,7 @@ export function Clock() {
 }
 
 export default function Header() {
-  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+  const source = useSelector((state: RootState) => state.framework.source);
   return (
     <div className={styles.main}>
       <div className={styles.left}>
@@ -146,7 +146,7 @@ export default function Header() {
           <Clock />
         </div>
         <div className={styles.item}>
-          <EventDropdown collection={Collection[selectedSource]} />
+          <EventDropdown collection={Collection[source]} />
         </div>
       </div>
       <div className={styles.right}>

@@ -25,7 +25,7 @@ interface Panes {
 
 interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
-  selectedSource: Source;
+  source: Source;
   /** Letter representing the layout as defined in components/framework/frames.module.css */
   layout: string;
   /** Current mapping of visible frames to Frame types */

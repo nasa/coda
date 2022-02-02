@@ -61,7 +61,7 @@ export default function PanePickerModal({
   closeClick: () => void;
   options: { frameID: number };
 }) {
-  const selectedSource = useSelector((state: RootState) => state.framework.selectedSource);
+  const source = useSelector((state: RootState) => state.framework.source);
   const [availablePanes, setAvailablePanes] = React.useState([]);
 
   const dispatch = useDispatch();
@@ -76,7 +76,7 @@ export default function PanePickerModal({
     const availablePanes = Object.keys(allPanes);
 
     setAvailablePanes(availablePanes);
-  }, [selectedSource]);
+  }, [source]);
 
   return (
     <div className={styles.main}>

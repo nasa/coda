@@ -27,3 +27,16 @@ export enum SequenceType {
   analog,
   training,
 }
+
+/**
+ * Pane types converted to integers
+ */
+export enum PaneTypeShortVal {
+  empty = 0,
+  video_downlink = 1,
+  video_non_downlink = 2,
+  photo = 3,
+  event_info = 4,
+  iss_position = 5,
+  test_event_position = 6,
+}
