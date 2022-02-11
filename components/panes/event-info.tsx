@@ -38,22 +38,24 @@ export default function EventInfo() {
     }
     const response = [];
     for (let i = 0; i < asPerformed.EV1.length; i++) {
-      response.push(
-        <div
-          key={asPerformed[evNum][i].startTimeSeconds}
-          className={styles.taskContainer}
-          onClick={() => {
-            dispatch(changeTime(asPerformed[evNum][i].startTimeSeconds));
-          }}
-        >
-          <div className={styles.taskTime}>
-            {hhmmssFromSeconds(asPerformed[evNum][i].startTimeSeconds)}:
+      if (typeof asPerformed[evNum][i].startTimeSeconds !== undefined) {
+        response.push(
+          <div
+            key={asPerformed[evNum][i].startTimeSeconds}
+            className={styles.taskContainer}
+            onClick={() => {
+              dispatch(changeTime(asPerformed[evNum][i].startTimeSeconds));
+            }}
+          >
+            <div className={styles.taskTime}>
+              {hhmmssFromSeconds(asPerformed[evNum][i].startTimeSeconds)}:
+            </div>
+            <div className={styles.taskName} style={{ color: asPerformed[evNum][i].color }}>
+              {asPerformed[evNum][i].content}
+            </div>
           </div>
-          <div className={styles.taskName} style={{ color: asPerformed[evNum][i].color }}>
-            {asPerformed[evNum][i].content}
-          </div>
-        </div>
-      );
+        );
+      }
     }
     return <div style={{ display: "flex", flexDirection: "column" }}>{response}</div>;
   }

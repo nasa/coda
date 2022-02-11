@@ -1,6 +1,6 @@
 import { Source } from "utils/enums";
 
-export default function Index() {
+export default function RedirectPage() {
   return null;
 }
 

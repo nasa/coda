@@ -34,12 +34,12 @@ import {
   addEphemera,
 } from "store/ephemera";
 import { useDispatch, useSelector } from "react-redux";
-import * as jsonurl from "json-url";
 import {
   allPanes,
   initialState as initialFrameworkState,
   setAllFrameworkState,
 } from "store/framework";
+import { interpretFramestateQueryString } from "utils/share-state";
 
 export function V2(props: { query }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
@@ -267,36 +267,39 @@ export function V2(props: { query }) {
 export default WithPlayheadMonitor(V2);
 
 export async function getServerSideProps({ query }) {
+  const version = query.v === undefined ? "1.0" : query.v; //version of share URL being received
   const date = query.date === undefined ? null : query.date;
   const gmt = query.gmt === undefined ? null : query.gmt;
-  const stateCompressed = query.state === undefined ? null : query.state; // compressed state of frames object in framework store
-  const source = query.source === undefined ? null : query.source;
-
-  // Legacy support for old URLs
-  const video1 = query.video1 === undefined ? null : query.video1;
-  const video2 = query.video2 === undefined ? null : query.video2;
-  const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
-  const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
+  const source = query.s === undefined ? null : query.s;
+  const layout = query.l === undefined ? null : query.l;
 
   let fState: FrameworkState = { ...initialFrameworkState };
-  if (stateCompressed) {
-    var jsonurlLzma = jsonurl("lzma");
-    fState = await jsonurlLzma.decompress(stateCompressed);
-  }
-
   if (source) {
     fState.source = source;
   }
-
-  if (nonDLvideo1) {
-    fState.frames = setNonDLVideoFrame(fState, "1", nonDLvideo1);
-  } else if (video1) {
-    fState.frames = setDLVideoFrame(fState, "1", video1);
+  if (layout) {
+    fState.layout = layout;
   }
-  if (nonDLvideo2) {
-    fState.frames = setNonDLVideoFrame(fState, "2", nonDLvideo2);
-  } else if (video2) {
-    fState.frames = setDLVideoFrame(fState, "2", video2);
+
+  // Legacy support for old URLs
+  if (version === "1.0") {
+    const video1 = query.video1 === undefined ? null : query.video1;
+    const video2 = query.video2 === undefined ? null : query.video2;
+    const nonDLvideo1 = query.nonDLvideo1 === undefined ? null : query.nonDLvideo1;
+    const nonDLvideo2 = query.nonDLvideo2 === undefined ? null : query.nonDLvideo2;
+
+    if (nonDLvideo1) {
+      fState.frames = setNonDLVideoFrame(fState, "1", nonDLvideo1);
+    } else if (video1) {
+      fState.frames = setDLVideoFrame(fState, "1", video1);
+    }
+    if (nonDLvideo2) {
+      fState.frames = setNonDLVideoFrame(fState, "2", nonDLvideo2);
+    } else if (video2) {
+      fState.frames = setDLVideoFrame(fState, "2", video2);
+    }
+  } else if (version === "2.0") {
+    fState.frames = interpretFramestateQueryString(query);
   }
 
   return {
