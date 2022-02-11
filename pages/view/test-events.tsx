@@ -20,7 +20,7 @@ export async function getServerSideProps({ req, query }) {
       queryString = "";
     }
     const source = Source.TEST_EVENTS;
-    redirectUrl = `${protocol}://${host}/view?${queryString}&source=${source}`;
+    redirectUrl = `${protocol}://${host}/view?${queryString}&s=${source}`;
   }
   return {
     redirect: {

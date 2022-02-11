@@ -619,6 +619,11 @@ export default function VideoPane(props: { frameID: number }) {
               setPaneStateValue("ready", true);
             }
           }}
+          onClick={() => {
+            if (paneStateData.activeVideoFileID !== "") {
+              toggleFullScreen();
+            }
+          }}
         />
         <div className={styles.IOError} style={ioErrorCSS}>
           {ioErrorMessage}
@@ -654,58 +659,53 @@ export default function VideoPane(props: { frameID: number }) {
       info = currentlyPlayingVideo.description;
     }
     if (paneStateData.showInfo) {
-      infoDisplayClass = styles.videoOverlayVisible;
+      return (
+        <div className={`${styles.vidOverlay} ${styles.videoOverlayVisible}`}>
+          <table className={styles.overlayTable}>
+            <tbody>
+              <tr>
+                <td>Date Added</td>
+                <td>{startDateTime}</td>
+              </tr>
+              <tr>
+                <td>IO Asset Name</td>
+                <td>
+                  <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                    {openOnIOMessage}
+                  </a>
+                  <div className={styles.digiValue}>{videoFilename}</div>
+                </td>
+              </tr>
+              <tr>
+                <td>Video URL</td>
+                <td>
+                  <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                    {openVideoURLMessage}
+                  </a>
+                  <br />
+                  <span
+                    className={styles.digiValue}
+                    style={{ fontSize: "0.9em", color: "#BBBBBB" }}
+                  >
+                    {ioVideoURL}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>IO Description</td>
+                <td>{info}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    } else {
+      return null;
     }
-
-    return (
-      <div className={`${styles.vidOverlay} ${infoDisplayClass}`}>
-        <table className={styles.overlayTable}>
-          <tbody>
-            <tr>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
-              <td className={`${styles.overlayTableCell}`}>{startDateTime}</td>
-            </tr>
-            <tr>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
-              <td className={styles.overlayTableCell}>
-                <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
-                  {openOnIOMessage}
-                </a>
-                <div className={styles.digiValue}>{videoFilename}</div>
-              </td>
-            </tr>
-            <tr>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Video URL</td>
-              <td className={styles.overlayTableCell}>
-                <a href={ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
-                  {openVideoURLMessage}
-                </a>
-                <br />
-                <span className={styles.digiValue} style={{ fontSize: "0.9em", color: "#BBBBBB" }}>
-                  {ioVideoURL}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
-              <td className={styles.overlayTableCell}>{info}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
   };
 
   return (
-    <div
-      className={styles.mediaPanel}
-      key={`video_player__${frameID}`}
-      onClick={() => {
-        if (paneStateData.activeVideoFileID !== "") {
-          toggleFullScreen();
-        }
-      }}
-    >
+    <div className={styles.mediaPanel} key={`video_player__${frameID}`}>
       {renderVideoElement()}
     </div>
   );
