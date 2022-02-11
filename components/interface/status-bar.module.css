@@ -13,52 +13,47 @@
   display: inline-block;
 }
 
-.serviceTitles {
-  height: 100%;
-  width: 50px;
-  display: flex;
-  flex-direction: column;
-}
-.serviceTitle {
-  flex: 1;
-  padding-right: 0.4em;
-  margin-left: auto;
+.statusTable {
+  font-weight: 200;
+  text-align: right;
+  border-collapse: collapse;
 }
 
-.services {
-  /* margin-top: 1px;
-  margin-bottom: 1px;
-  line-height: 14px;
-  font-size: 1em;
+.statusTable tr {
+  border-bottom: none;
+}
+
+.statusTable td {
+  border-bottom: none;
+}
+
+.statusTable td:first-child {
   font-weight: 400;
-  float: right; */
-  height: 100%;
-  width: 50px;
-  display: flex;
-  flex-direction: column;
+  white-space: nowrap;
 }
 
-.service {
-  flex: 1;
+.statusTable td:nth-child(2) {
+  padding-left: 10px;
 }
 
-.subservice {
-  display: inline-block;
-  color: #dddddd;
-  padding-left: 0.4em;
+.statusTable td:nth-child(2),
+.statusTable td:nth-child(4) {
+  padding-right: 1px;
 }
-.subserviceLast {
-  padding-right: 0.4em;
+
+.statusTable td:nth-child(3),
+.statusTable td:nth-child(5) {
+  padding-left: 1px;
 }
 
 .status {
-  width: 13px;
-  min-height: 10px;
+  width: 11px;
+  min-height: 11px;
   display: inline-block;
   margin-left: 0.1em;
   padding-right: 0.4em;
 
-  background-size: 10px 10px;
+  background-size: 11px 11px;
   background-repeat: no-repeat;
 
   background-position: center;

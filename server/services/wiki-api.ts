@@ -238,7 +238,8 @@ function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
     }
 
     let actor = results[r].printouts["Actor"][0];
-    // SSRMS is "Actor 1", EV1 is "Actor 2", EV2 is "Actor 3". let's standardize "Actor 2" to EV1 and "Actor 3" to EV2. omit Actor 1 / SSRMS. If the actor has another name, just go with it
+    // SSRMS is "Actor 1", EV1 is "Actor 2", EV2 is "Actor 3". let's standardize "Actor 2" to EV1 and "Actor 3" to EV2.
+    // omit Actor 1 / SSRMS. If the actor has another name, just go with it
     if (actor.indexOf("Actor") > -1) {
       const [_, actorNumber] = actor.split("Actor");
       if (+actorNumber - 1 < 1) {
@@ -329,22 +330,22 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
-    const { data: asPlanned, mocked: asPlannedMocked } = await getAllEVAs();
+    const { data: allEVAs, mocked: allEVAsMocked } = await getAllEVAs();
     const { data: asExecuted, mocked: asExecutedMocked } = await getAllAsExecuted();
     const { data: crews, mocked: crewsMocked } = await getAllCrew();
 
-    mocked = asPlannedMocked || asExecutedMocked || crewsMocked;
+    mocked = allEVAsMocked || asExecutedMocked || crewsMocked;
 
-    return Object.keys(asPlanned).map((evaName) => {
+    return Object.keys(allEVAs).map((evaName) => {
       const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
       let duration = -1;
-      const [wikiDuration] = asPlanned[evaName].printouts.Duration;
+      const [wikiDuration] = allEVAs[evaName].printouts.Duration;
       // for whatever reason, if no duration is specified the wiki gives us ":"
       if (wikiDuration !== ":") {
         const [h, m] = wikiDuration.split(":");
         duration = +h * 3600 + +m * 60;
       }
-      const [yyyy, mm, dd] = asPlanned[evaName].printouts["Start date"][0].raw
+      const [yyyy, mm, dd] = allEVAs[evaName].printouts["Start date"][0].raw
         .substring(2)
         .split("/");
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
@@ -354,10 +355,10 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
         name: evaName,
         location: Collection.ISS,
         type: SequenceType.EVA,
-        dataURL: asPlanned[evaName].fullurl,
-        displayTitle: asPlanned[evaName].printouts["EVA title"][0],
+        dataURL: allEVAs[evaName].fullurl,
+        displayTitle: allEVAs[evaName].printouts["EVA title"][0],
         startDate,
-        startTime: asPlanned[evaName].printouts["Start time"][0],
+        startTime: allEVAs[evaName].printouts["Start time"][0],
         duration,
         asPerformed: get(asExecuted, evaName, { EV1: [], EV2: [] }),
         crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
@@ -380,6 +381,7 @@ export async function getAllTestEvents(): Promise<WikibotResponse<AllTestEvents>
   [[Category:Test event]]
   |? Test date
   |? Start time
+  |? UTC Start Date Time
   |? Test environment
   |? Flight environment
   |limit=100000
@@ -449,38 +451,51 @@ export async function getTestEventCrews(): Promise<WikibotResponse<AllCrews>> {
 export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
-    const { data: asPlanned, mocked: asPlannedMocked } = await getAllTestEvents();
+    const { data: allTestEvents, mocked: allTestEventsMocked } = await getAllTestEvents();
     const { data: asExecuted, mocked: asExecutedMocked } = await getTestEventExecution();
     const { data: crews, mocked: crewsMocked } = await getTestEventCrews();
 
-    mocked = asPlannedMocked || asExecutedMocked || crewsMocked;
+    mocked = allTestEventsMocked || asExecutedMocked || crewsMocked;
 
-    return Object.keys(asPlanned).map((testEvent) => {
+    return Object.keys(allTestEvents).map((testEvent) => {
       const testEnvironment = get(
-        asPlanned[testEvent].printouts["Test environment"],
+        allTestEvents[testEvent].printouts["Test environment"],
         "[0].fulltext",
         "Unknown environment"
       );
       const flightEnvironment = get(
-        asPlanned[testEvent].printouts["Flight environment"],
+        allTestEvents[testEvent].printouts["Flight environment"],
         "[0].fulltext",
         "Unknown flight sim"
       );
       let duration = -1;
-      const [yyyy, mm, dd] = asPlanned[testEvent].printouts["Test date"][0].raw
-        .substring(2)
-        .split("/");
+
+      let eventDate = "";
+      if (allTestEvents[testEvent].printouts["UTC Start Date Time"][0]) {
+        eventDate = allTestEvents[testEvent].printouts["UTC Start Date Time"][0].split(" ")[0];
+      } else {
+        eventDate = allTestEvents[testEvent].printouts["Test date"][0].raw.substring(2);
+      }
+      const [yyyy, mm, dd] = eventDate.split("/");
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
+
       const displayTitle = `${startDate} ${testEnvironment} / ${flightEnvironment}`;
+
+      const rawStartTime = get(
+        allTestEvents[testEvent].printouts["UTC Start Date Time"],
+        "[0]",
+        " 00:00"
+      );
+      const startTime = rawStartTime.split(" ")[1];
 
       return {
         name: testEvent,
         location: Collection[Collection[testEnvironment]],
         type: SequenceType.testing,
-        dataURL: asPlanned[testEvent].fullurl,
+        dataURL: allTestEvents[testEvent].fullurl,
         displayTitle,
         startDate,
-        startTime: get(asPlanned[testEvent].printouts["Start time"], "[0]", "18:00"),
+        startTime,
         duration,
         asPerformed: get(asExecuted, testEvent, { EV1: [], EV2: [] }),
         crew: get(crews, testEvent, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),

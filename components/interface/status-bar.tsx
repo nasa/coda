@@ -90,38 +90,41 @@ export default function StatusBar() {
   return (
     <>
       <div className={`${styles.container}`}>
-        <div className={styles.serviceTitles}>
-          <div className={styles.serviceTitle}>IO:</div>
-          <div className={styles.serviceTitle}>WIKI:</div>
-          <div className={styles.serviceTitle}>Orbit:</div>
-        </div>
-        <div className={styles.subServices}>
-          <div className={styles.service} title="Imagery Online">
-            <div className={styles.subservice} title={"Video " + videoStatus.message}>
-              Videos:<div className={`${styles.status} ${videoStatus.classname}`}></div>
-            </div>
-            <div
-              className={`${styles.subservice} ${styles.subserviceLast}`}
-              title={"Photo " + photoStatus.message}
-            >
-              Photos:<div className={`${styles.status} ${photoStatus.classname}`}></div>
-            </div>
-          </div>
-          <div className={styles.service} title="ISS and Exploration Wikis">
-            <div className={styles.subservice} title={"EVAs " + sequenceStatus.message}>
-              Events:<div className={`${styles.status} ${sequenceStatus.classname}`}></div>
-            </div>
-            <div
-              className={`${styles.subservice} ${styles.subserviceLast}`}
-              title={"GPS track " + gpsStatus.message}
-            >
-              GPS:<div className={`${styles.status} ${gpsStatus.classname}`}></div>
-            </div>
-          </div>
-          <div className={styles.service} title={"Orbit ephemera " + ephemeraStatus.message}>
-            <div className={`${styles.status} ${ephemeraStatus.classname}`}></div>
-          </div>
-        </div>
+        <table className={styles.statusTable}>
+          <tbody>
+            <tr>
+              <td>IO</td>
+              <td>Video</td>
+              <td title={"Video " + videoStatus.message}>
+                <span className={`${styles.status} ${videoStatus.classname}`}></span>
+              </td>
+              <td>Photos</td>
+              <td title={"Photo " + photoStatus.message}>
+                <span className={`${styles.status} ${photoStatus.classname}`}></span>
+              </td>
+            </tr>
+            <tr>
+              <td>Wiki</td>
+              <td>Events</td>
+              <td title={"EVAs " + sequenceStatus.message}>
+                <span className={`${styles.status} ${sequenceStatus.classname}`}></span>
+              </td>
+              <td>GPS</td>
+              <td title={"GPS track " + gpsStatus.message}>
+                <span className={`${styles.status} ${gpsStatus.classname}`}></span>
+              </td>
+            </tr>
+            <tr>
+              <td>Orbit</td>
+              <td>Ephemeris</td>
+              <td title={"Orbit ephemera " + ephemeraStatus.message}>
+                <span className={`${styles.status} ${ephemeraStatus.classname}`}></span>
+              </td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <Modal
         isOpen={modalIsOpen}
