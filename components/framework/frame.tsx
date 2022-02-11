@@ -11,6 +11,7 @@ import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "componen
 import PhotoPane, { PhotoControls } from "components/panes/photos";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useEffect, useRef, useState } from "react";
+import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 
 export interface Options {
   frameID: number;
@@ -49,6 +50,7 @@ const frameTypeIDsToRenders = {
   video_non_downlink: VideoPane,
   photo: PhotoPane,
   iss_position: ISSLocation,
+  gps_position: GPSLocation,
   event_info: EventInfo,
 };
 
@@ -57,6 +59,7 @@ const frameTypeIDsToControls = {
   video_non_downlink: VideoOtherPaneControls,
   photo: PhotoControls,
   iss_position: ISSLocationControls,
+  gps_position: GPSLocationControls,
   event_info: EventInfoControls,
 };
 

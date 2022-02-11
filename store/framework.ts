@@ -98,6 +98,15 @@ export const allPanes: Panes = {
       lockToggle: true,
     },
   },
+  gps_position: {
+    title: "GPS Position",
+    icon: "globe-americas",
+    color: "purple",
+    defaultPaneStateData: {
+      ready: true,
+      lockToggle: true,
+    },
+  },
   event_info: {
     title: "EVA Info",
     icon: "info",
@@ -189,6 +198,7 @@ export const frameworkSlice = createSlice({
      */
     setAllFrameworkState: (state, action: { payload: FrameworkState }) => {
       state.source = action.payload.source;
+      allPanes["event_info"].title = getEventInfoTitleBySource(action.payload.source);
       state.layout = action.payload.layout;
       state.frames = action.payload.frames;
     },
@@ -209,13 +219,7 @@ export const frameworkSlice = createSlice({
     changeSource: (state, action: { payload: Source }) => {
       state.source = action.payload;
       state.frames = defaultFrames;
-      if (action.payload === Source.ISS) {
-        allPanes["event_info"].title = "EVA Info";
-      } else if (action.payload === Source.NBL) {
-        allPanes["event_info"].title = "NBL Event Info";
-      } else if (action.payload === Source.TEST_EVENTS) {
-        allPanes["event_info"].title = "Test Event Info";
-      }
+      allPanes["event_info"].title = getEventInfoTitleBySource(action.payload);
     },
   },
 });
@@ -227,3 +231,13 @@ export const {
   setPaneStateDataValue,
   changeSource,
 } = frameworkSlice.actions;
+
+function getEventInfoTitleBySource(source: Source): string {
+  if (source === Source.ISS) {
+    return "EVA Info";
+  } else if (source === Source.NBL) {
+    return "NBL Event Info";
+  } else if (source === Source.TEST_EVENTS) {
+    return "Test Event Info";
+  }
+}

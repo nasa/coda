@@ -73,7 +73,7 @@ export function ISSLocation(props: { frameID: number }) {
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const controlStateData: LocationPaneStateData = useSelector(
+  const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
@@ -82,7 +82,6 @@ export function ISSLocation(props: { frameID: number }) {
   const [map, setMap] = useState<Map>(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
   const [hoverMarker, setHoverMarker] = useState(initialMarker);
-  // const [lockToggle, setLockToggle] = useState(true);
 
   const mapContainer = useRef(null);
 
@@ -132,7 +131,7 @@ export function ISSLocation(props: { frameID: number }) {
       updateOrbitLine(map, playHeadISODate);
       updateTerminator(map, playHeadISODate);
 
-      if (controlStateData.lockToggle) {
+      if (paneStateData.lockToggle) {
         map.panTo(playheadLatLonObj);
       }
     }

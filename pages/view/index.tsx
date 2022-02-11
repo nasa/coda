@@ -40,8 +40,9 @@ import {
   setAllFrameworkState,
 } from "store/framework";
 import { interpretFramestateQueryString } from "utils/share-state";
+import { Source } from "utils/enums";
 
-export function V2(props: { query }) {
+export function V2(props: { urlState }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
   const source = useSelector((state: RootState) => state.framework.source);
@@ -52,9 +53,9 @@ export function V2(props: { query }) {
   let userDate = null;
 
   const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-  if (!_.isNull(props.query.date) && !_.isNull(props.query.date.match(yyyymmdd))) {
+  if (!_.isNull(props.urlState.date) && !_.isNull(props.urlState.date.match(yyyymmdd))) {
     // change the date if the user set the `date` query param
-    userDate = new Date(props.query.date);
+    userDate = new Date(props.urlState.date);
   } else {
     // default the date to today
     userDate = new Date();
@@ -87,8 +88,8 @@ export function V2(props: { query }) {
     let userTime = 0;
 
     // change the time if the user set the `gmt` query param
-    if (!_.isNull(props.query.gmt)) {
-      const [hh, mm, ss = 0] = props.query.gmt.split(":").map(Number);
+    if (!_.isNull(props.urlState.gmt)) {
+      const [hh, mm, ss = 0] = props.urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
@@ -97,8 +98,8 @@ export function V2(props: { query }) {
 
   useEffect(() => {
     // set the framework state if that object was set in getServerSideProps
-    if (!_.isNull(props.query.frameworkState)) {
-      dispatch(setAllFrameworkState(props.query.frameworkState));
+    if (!_.isNull(props.urlState.frameworkState)) {
+      dispatch(setAllFrameworkState(props.urlState.frameworkState));
     }
   }, []);
 
@@ -276,6 +277,10 @@ export async function getServerSideProps({ query }) {
   let fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
     fState.source = source;
+    if (source === Source.TEST_EVENTS) {
+      // if we're looking at the test events, we need to change the ISS location frame to GPS location pane
+      fState.frames = setGPSLocationFrame(fState, "5");
+    }
   }
   if (layout) {
     fState.layout = layout;
@@ -304,7 +309,7 @@ export async function getServerSideProps({ query }) {
 
   return {
     props: {
-      query: {
+      urlState: {
         date,
         gmt,
         frameworkState: fState,
@@ -333,6 +338,17 @@ function setDLVideoFrame(fState, frameNum, downlink) {
     paneStateData: {
       ...allPanes["video_downlink"].defaultPaneStateData,
       downlink: parseInt(downlink) - 1,
+    },
+  };
+  return { ...fState.frames, [frameNum]: frameStateData };
+}
+
+function setGPSLocationFrame(fState, frameNum) {
+  const frameStateData = {
+    ...fState.frames[frameNum],
+    paneType: "gps_position",
+    paneStateData: {
+      ...allPanes["gps_position"].defaultPaneStateData,
     },
   };
   return { ...fState.frames, [frameNum]: frameStateData };

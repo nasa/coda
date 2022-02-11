@@ -47,7 +47,7 @@
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius);
   font-size: 11px;
 }
 

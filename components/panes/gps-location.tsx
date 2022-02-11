@@ -1,22 +1,64 @@
 import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
 import { GPSState } from "store/gps";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
 
-import styles from "./te-location.module.css";
-import TEMarker from "./te-location-marker";
+import styles from "./gps-location.module.css";
+import TEMarker from "./gps-location-marker";
 
 import mapboxgl, { LngLatLike, Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
+import { setPaneStateDataValue } from "store/framework";
 
-export default function TELocation() {
+export function GPSLocationControls(props: { frameID: number }) {
+  const frameID = props.frameID;
+  const dispatch = useDispatch();
+
+  const controlStateData: LocationPaneStateData = useSelector(
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+  );
+
+  let lockButtonSelected = "";
+  if (typeof controlStateData !== "undefined" && controlStateData.lockToggle) {
+    lockButtonSelected = styles.lockButtonSelected;
+  }
+  return (
+    <div className={styles.controls}>
+      <div className={styles.controlsLeft}></div>
+      <div className={styles.rightButtons}>
+        <div className={styles.verticalCenter}>
+          <button
+            className={`${styles.lockButton} ${lockButtonSelected}`}
+            title={`Click to toggle map scrolling in relation to GPS position`}
+            onClick={() => {
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockToggle",
+                  paneStateValue: !controlStateData.lockToggle,
+                })
+              );
+            }}
+          >
+            <span className={styles.lockButtonLabel}>Lock Map to GPS</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GPSLocation(props: { frameID: number }) {
+  const frameID = props.frameID;
+  const dispatch = useDispatch();
+
   const initialMarker: MapMarker = {
     marker: null,
     markerNode: null,
@@ -53,11 +95,13 @@ export default function TELocation() {
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
+  const paneStateData: LocationPaneStateData = useSelector(
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+  );
   const mapContainer = useRef(null);
 
   const [map, setMap] = useState<Map>(null);
   const [mapMarkers, setMapMarkers] = useState(initialMarkers);
-  const [lockToggle, setLockToggle] = useState(true);
 
   const infoItemsDefaultValue = {
     lat: "",
@@ -164,7 +208,7 @@ export default function TELocation() {
         console.log("Info display error: ", error);
       }
     }
-    if (lockToggle) {
+    if (paneStateData.lockToggle) {
       map.panTo(mapMarkers.EV1.marker.getLngLat());
     }
   }, [map, playhead.date, playhead.seconds, playheadHover.seconds, gpsState.gpsTracks]);
@@ -294,12 +338,6 @@ export default function TELocation() {
     return { marker: marker, markerNode: markerNode };
   }
 
-  // toggle button display settings
-  let lockButtonStyle = styles.toggleActive;
-  if (lockToggle) {
-    lockButtonStyle = styles.toggleSelected;
-  }
-
   return (
     <>
       <div className={styles.container}>
@@ -307,21 +345,17 @@ export default function TELocation() {
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            setLockToggle(false);
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "lockToggle",
+                paneStateValue: false,
+              })
+            );
           }}
-        ></div>
-        <div className={styles.overlay}>
-          <div
-            className={`${styles.toggleButton} ${lockButtonStyle}`}
-            title={`Click to toggle map scrolling in relation to EV1 position`}
-            onClick={() => {
-              setLockToggle(!lockToggle);
-            }}
-          >
-            Lock to EV1
-          </div>
+        >
+          {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         </div>
-        {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
       </div>
     </>
   );

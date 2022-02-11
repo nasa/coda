@@ -647,7 +647,6 @@ export default function VideoPane(props: { frameID: number }) {
     let startDateTime = "";
     let openOnIOMessage = "";
     let info = "";
-    let infoDisplayClass = "";
     if (currentlyPlayingVideo) {
       videoStartOffset = playhead.seconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
       videoFilename = currentlyPlayingVideo.id;

@@ -1,7 +1,7 @@
 import React from "react";
-import styles from "./te-location-marker.module.css";
+import styles from "./gps-location-marker.module.css";
 
-const TEMarker = (props) => {
+const GPSMarker = (props) => {
   let markerClass = "";
   if (props.type === "EV1") {
     markerClass = styles.ev1Marker;
@@ -18,4 +18,4 @@ const TEMarker = (props) => {
   return <div id={`marker-${props.id}`} className={markerClass} />;
 };
 
-export default TEMarker;
+export default GPSMarker;
