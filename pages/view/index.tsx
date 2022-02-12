@@ -286,6 +286,13 @@ export async function getServerSideProps({ query }) {
     fState.layout = layout;
   }
 
+  // set default panes depending on source
+  // if the source is not ISS, make the default downlink pane a non-downlink pain
+  if (source === Source.NBL || source === Source.TEST_EVENTS) {
+    fState.frames = setNonDLVideoFrame(fState, "1", "");
+  }
+
+  // if pane state data was passed in the query string, use it
   // Legacy support for old URLs
   if (version === "1.0") {
     const video1 = query.video1 === undefined ? null : query.video1;

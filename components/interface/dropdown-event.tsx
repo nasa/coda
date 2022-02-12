@@ -7,7 +7,7 @@ import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
-import { Collection } from "utils/enums";
+import { Collection, Source } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function EventDropdown(props: { collection: Collection }) {
@@ -15,16 +15,18 @@ export default function EventDropdown(props: { collection: Collection }) {
 
   const date = useSelector((state: RootState) => state.playhead.date);
 
-  let allEVAs = sequencesSelector.selectAll(sequences);
+  let allSequences = sequencesSelector.selectAll(sequences);
   if (props.collection === Collection.NBL) {
     // Show only NBL sequences
-    allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
+    allSequences = allSequences.filter((eva) => eva.displayTitle.includes("NBL"));
   } else if (props.collection === Collection.TEST_EVENTS) {
     // Filter out all NBL sequences
-    allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
+    allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
 
-  const selectedEVA = allEVAs.find((eva) => isSameDate(new Date(eva.startDate), new Date(date)));
+  const selectedEVA = allSequences.find((eva) =>
+    isSameDate(new Date(eva.startDate), new Date(date))
+  );
   const evaName = get(selectedEVA, "name", "");
 
   const [value, setValue] = useState("");
@@ -37,10 +39,15 @@ export default function EventDropdown(props: { collection: Collection }) {
     e.preventDefault();
     setValue(e.target.value);
     if (e.target.value !== "") {
-      const eva = allEVAs.find((eva) => eva.startDate === e.target.value);
-      const [year, month, day] = eva.startDate.split("-");
+      const [year, month, day] = e.target.value.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      window.location.assign(`${window.location.pathname}?date=${formattedDate}`);
+      let source = Source.ISS;
+      if (props.collection === Collection.NBL) {
+        source = Source.NBL;
+      } else if (props.collection === Collection.TEST_EVENTS) {
+        source = Source.TEST_EVENTS;
+      }
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}&s=${source}`);
     }
   };
 
@@ -66,13 +73,13 @@ export default function EventDropdown(props: { collection: Collection }) {
         ) : (
           <option disabled>Select Event</option>
         )}
-        {isNil(allEVAs) ? (
+        {isNil(allSequences) ? (
           <option disabled>Loading...</option>
         ) : (
-          allEVAs
-            .filter((eva) => {
+          allSequences
+            .filter((sequence) => {
               // don't show future EVAs or EVAs before 2013-03-30 (because of IO data being unavailable before that)
-              const [year, month, day] = eva.startDate.split("-").map(Number);
+              const [year, month, day] = sequence.startDate.split("-").map(Number);
               const dateOfEVA = new Date(Date.UTC(year, month - 1, day));
               return diff(today, dateOfEVA) > 0 && diff(earliestCutoff, dateOfEVA) < 0;
             })
