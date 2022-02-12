@@ -3,7 +3,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 25em;
 }
 .select select {
   font-family: "Inter", sans-serif;

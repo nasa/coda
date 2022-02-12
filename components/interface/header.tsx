@@ -145,7 +145,7 @@ export default function Header() {
         <div className={styles.item} style={{ width: "130px" }}>
           <Clock />
         </div>
-        <div className={styles.item}>
+        <div className={styles.item} style={{ width: "300px" }}>
           <EventDropdown collection={Collection[source]} />
         </div>
       </div>

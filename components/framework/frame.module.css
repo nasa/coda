@@ -43,10 +43,11 @@
 }
 
 .dropdown {
-  width: 220px;
+  width: 200px;
 }
 
 .controls {
   width: 100%;
   margin-left: 3px;
+  overflow-x: hidden;
 }
