@@ -353,9 +353,9 @@ function setDLVideoFrame(fState, frameNum, downlink) {
 function setGPSLocationFrame(fState, frameNum) {
   const frameStateData = {
     ...fState.frames[frameNum],
-    paneType: "gps_position",
+    paneType: "gps_location",
     paneStateData: {
-      ...allPanes["gps_position"].defaultPaneStateData,
+      ...allPanes["gps_location"].defaultPaneStateData,
     },
   };
   return { ...fState.frames, [frameNum]: frameStateData };

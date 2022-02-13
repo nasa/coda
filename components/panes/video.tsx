@@ -462,7 +462,9 @@ export default function VideoPane(props: { frameID: number }) {
     if (videoID !== "" && videoID !== undefined) {
       // there is a video for this downlink
       const currentlyPlayingVideo = videoSelectors.selectById(videos, videoID);
-      setSourceURL(currentlyPlayingVideo.mediaLowResURL);
+      if (currentlyPlayingVideo) {
+        setSourceURL(currentlyPlayingVideo.mediaLowResURL);
+      }
     } else {
       // there is no video for this downlink
       // clear out the video player
@@ -503,7 +505,7 @@ export default function VideoPane(props: { frameID: number }) {
   useEffect(clearMetadata, [playhead.date, paneStateData.activeVideoFileID, videoFiles]);
   useEffect(playOrPause, [playhead.isRunning, playhead.seconds, sourceURL]);
   useEffect(syncToPlayhead, [playhead.seconds, paneStateData.activeVideoFileID]);
-  useEffect(updateSourceInfo, [paneStateData.activeVideoFileID]);
+  useEffect(updateSourceInfo, [paneStateData.activeVideoFileID, videos]);
   useEffect(cueVideoToPlayhead, [sourceURL]);
 
   /**

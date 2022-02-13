@@ -49,8 +49,8 @@ const frameTypeIDsToRenders = {
   video_downlink: VideoPane,
   video_non_downlink: VideoPane,
   photo: PhotoPane,
-  iss_position: ISSLocation,
-  gps_position: GPSLocation,
+  iss_location: ISSLocation,
+  gps_location: GPSLocation,
   event_info: EventInfo,
 };
 
@@ -58,8 +58,8 @@ const frameTypeIDsToControls = {
   video_downlink: VideoDLPaneControls,
   video_non_downlink: VideoOtherPaneControls,
   photo: PhotoControls,
-  iss_position: ISSLocationControls,
-  gps_position: GPSLocationControls,
+  iss_location: ISSLocationControls,
+  gps_location: GPSLocationControls,
   event_info: EventInfoControls,
 };
 

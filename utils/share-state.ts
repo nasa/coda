@@ -37,9 +37,11 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
       case "event_info":
         paneStateString = getStateStringForEventInfo();
         break;
-      case "iss_position":
+      case "iss_location":
         paneStateString = getStateStringforISSLocation(element.paneStateData);
         break;
+      case "gps_location":
+        paneStateString = getStateStringforGPSLocation(element.paneStateData);
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
     i++;
@@ -99,7 +101,18 @@ function getStateStringForEventInfo() {
  * Char 2: 0 if lockToggle is false, 1 if lockToggle is true
  */
 function getStateStringforISSLocation(state: LocationPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.iss_position;
+  const paneTypeString = "0" + PaneTypeShortVal.iss_location;
+  const lockToggle = state.lockToggle ? "1" : "0";
+  return `${paneTypeString}${lockToggle}`;
+}
+
+/**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: 0 if lockToggle is false, 1 if lockToggle is true
+ */
+function getStateStringforGPSLocation(state: LocationPaneStateData) {
+  const paneTypeString = "0" + PaneTypeShortVal.gps_location;
   const lockToggle = state.lockToggle ? "1" : "0";
   return `${paneTypeString}${lockToggle}`;
 }
@@ -178,11 +191,22 @@ function interpretFrameQueryParam(frameString: string): PaneState {
           ready: true,
         },
       };
-    case PaneTypeShortVal.iss_position:
+    case PaneTypeShortVal.iss_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
       return {
-        paneType: "iss_position",
+        paneType: "iss_location",
+        paneStateData: {
+          ready: true,
+          lockToggle: frameString[2] === "1",
+        },
+      };
+
+    case PaneTypeShortVal.gps_location:
+      /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
+       */
+      return {
+        paneType: "gps_location",
         paneStateData: {
           ready: true,
           lockToggle: frameString[2] === "1",

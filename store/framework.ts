@@ -89,7 +89,7 @@ export const allPanes: Panes = {
       filterToggle: false,
     },
   },
-  iss_position: {
+  iss_location: {
     title: "ISS Position",
     icon: "globe-americas",
     color: "purple",
@@ -98,7 +98,7 @@ export const allPanes: Panes = {
       lockToggle: true,
     },
   },
-  gps_position: {
+  gps_location: {
     title: "GPS Position",
     icon: "globe-americas",
     color: "purple",
@@ -153,7 +153,7 @@ export const defaultFrames: FrameState = {
     } as EventPaneStateData,
   },
   5: {
-    paneType: "iss_position",
+    paneType: "iss_location",
     paneStateData: {
       lockToggle: true,
       ready: true,

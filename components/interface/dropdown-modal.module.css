@@ -71,7 +71,7 @@
 .modal {
   position: relative;
   top: 10px;
-  z-index: 1; /* prevents dropdown carets from showing up on top of the modal */
+  z-index: 30; /* prevents dropdown carets from showing up on top of the modal */
 }
 
 @keyframes rotate-up {

@@ -37,6 +37,6 @@ export enum PaneTypeShortVal {
   video_non_downlink = 2,
   photo = 3,
   event_info = 4,
-  iss_position = 5,
-  test_event_position = 6,
+  iss_location = 5,
+  gps_location = 6,
 }
