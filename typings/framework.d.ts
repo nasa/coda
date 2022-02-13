@@ -16,7 +16,12 @@ interface Pane {
   title: string;
   icon: IconProp;
   color: string;
-  defaultPaneStateData: any;
+  defaultPaneStateData:
+    | EmptyPaneStateData
+    | VideoPaneStateData
+    | PhotoPaneStateData
+    | LocationPaneStateData
+    | EventPaneStateData;
 }
 
 interface Panes {
@@ -41,25 +46,33 @@ interface PaneState {
   paneStateData: any;
 }
 
+type EmptyPaneStateData = {
+  ready: boolean;
+};
+
 type VideoPaneStateData = {
   downlink: number;
   activeVideoFileID: string;
   ready: boolean;
   muted: boolean;
   showInfo: boolean;
+  showHelp: boolean;
 };
 
 type PhotoPaneStateData = {
   ready: boolean;
   showInfo: boolean;
   showFilter: boolean;
+  showHelp: boolean;
 };
 
 type LocationPaneStateData = {
-  lockToggle: boolean;
   ready: boolean;
+  lockMap: boolean;
+  showHelp: boolean;
 };
 
 type EventPaneStateData = {
   ready: boolean;
+  showHelp: boolean;
 };

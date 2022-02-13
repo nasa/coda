@@ -16,17 +16,28 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
 import { setPaneStateDataValue } from "store/framework";
+import { HelpButton } from "components/interface/controlsHelpButton";
 
 export function GPSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const controlStateData: LocationPaneStateData = useSelector(
+  const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
+  function setPaneStateValue(propertyName, propertyValue) {
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: propertyName,
+        paneStateValue: propertyValue,
+      })
+    );
+  }
+
   let lockButtonSelected = "";
-  if (typeof controlStateData !== "undefined" && controlStateData.lockToggle) {
+  if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
   }
   return (
@@ -38,17 +49,19 @@ export function GPSLocationControls(props: { frameID: number }) {
             className={`${styles.lockButton} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
             onClick={() => {
-              dispatch(
-                setPaneStateDataValue({
-                  frameID,
-                  paneStateProperty: "lockToggle",
-                  paneStateValue: !controlStateData.lockToggle,
-                })
-              );
+              setPaneStateValue("lockMap", !paneStateData.lockMap);
             }}
           >
             <span className={styles.lockButtonLabel}>Lock Map to GPS</span>
           </button>
+        </div>
+        <div className={styles.verticalCenter}>
+          <HelpButton
+            clickHandler={() => {
+              setPaneStateValue("showHelp", !paneStateData.showHelp);
+            }}
+            selected={paneStateData.showHelp}
+          />
         </div>
       </div>
     </div>
@@ -208,7 +221,7 @@ export default function GPSLocation(props: { frameID: number }) {
         console.log("Info display error: ", error);
       }
     }
-    if (paneStateData.lockToggle) {
+    if (paneStateData.lockMap) {
       map.panTo(mapMarkers.EV1.marker.getLngLat());
     }
   }, [map, playhead.date, playhead.seconds, playheadHover.seconds, gpsState.gpsTracks]);
@@ -348,7 +361,7 @@ export default function GPSLocation(props: { frameID: number }) {
             dispatch(
               setPaneStateDataValue({
                 frameID,
-                paneStateProperty: "lockToggle",
+                paneStateProperty: "lockMap",
                 paneStateValue: false,
               })
             );

@@ -102,7 +102,7 @@ function getStateStringForEventInfo() {
  */
 function getStateStringforISSLocation(state: LocationPaneStateData) {
   const paneTypeString = "0" + PaneTypeShortVal.iss_location;
-  const lockToggle = state.lockToggle ? "1" : "0";
+  const lockToggle = state.lockMap ? "1" : "0";
   return `${paneTypeString}${lockToggle}`;
 }
 
@@ -113,7 +113,7 @@ function getStateStringforISSLocation(state: LocationPaneStateData) {
  */
 function getStateStringforGPSLocation(state: LocationPaneStateData) {
   const paneTypeString = "0" + PaneTypeShortVal.gps_location;
-  const lockToggle = state.lockToggle ? "1" : "0";
+  const lockToggle = state.lockMap ? "1" : "0";
   return `${paneTypeString}${lockToggle}`;
 }
 
@@ -153,65 +153,78 @@ function interpretFrameQueryParam(frameString: string): PaneState {
        * Char 4: 0 if muted, 1 if unmuted
        * Chars 5+: String of activeVideoFileID (used for non-downlink video selection)
        */
-      return {
+      const videoDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
           downlink: parseInt(frameString.substring(2, 4)),
           muted: frameString.charAt(4) === "1",
           activeVideoFileID: "",
-        } as VideoPaneStateData,
+          showInfo: false,
+          showHelp: false,
+        },
       };
+      return videoDLReturnVal;
     case PaneTypeShortVal.video_non_downlink:
-      return {
+      const videoNonDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
         paneType: "video_non_downlink",
         paneStateData: {
           ready: true,
           downlink: -1,
           muted: frameString.charAt(4) === "1",
           activeVideoFileID: frameString.substring(5),
-        },
+          showHelp: false,
+        } as VideoPaneStateData,
       };
+      return videoNonDLReturnVal;
     case PaneTypeShortVal.photo:
       /* Char 2: 0 if showInfo is false, 1 if showInfo is true
        * Char 3: 0 if showFilter is false, 1 if showFilter is true
        */
-      return {
+      const photoReturnVal: { paneType: string; paneStateData: PhotoPaneStateData } = {
         paneType: "photo",
         paneStateData: {
           ready: true,
           showInfo: frameString[2] === "1",
           showFilter: frameString[3] === "1",
+          showHelp: false,
         },
       };
+      return photoReturnVal;
     case PaneTypeShortVal.event_info:
-      return {
+      const eventInfoReturnVal: { paneType: string; paneStateData: EventPaneStateData } = {
         paneType: "event_info",
         paneStateData: {
           ready: true,
+          showHelp: false,
         },
       };
+      return eventInfoReturnVal;
     case PaneTypeShortVal.iss_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
-      return {
+      const issLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
         paneType: "iss_location",
         paneStateData: {
           ready: true,
-          lockToggle: frameString[2] === "1",
+          lockMap: frameString[2] === "1",
+          showHelp: false,
         },
       };
+      return issLocationReturnVal;
 
     case PaneTypeShortVal.gps_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
-      return {
+      const gpsLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
         paneType: "gps_location",
         paneStateData: {
           ready: true,
-          lockToggle: frameString[2] === "1",
+          lockMap: frameString[2] === "1",
+          showHelp: false,
         },
       };
+      return gpsLocationReturnVal;
     default:
       return undefined;
   }

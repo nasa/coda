@@ -11,6 +11,7 @@ import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { setPaneStateDataValue } from "store/framework";
+import { HelpButton } from "components/interface/controlsHelpButton";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 
@@ -94,6 +95,14 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
             setPaneStateValue("muted", !props.paneStateData.muted);
           }}
           muted={props.paneStateData.muted}
+        />
+      </div>
+      <div className={styles.verticalCenter}>
+        <HelpButton
+          clickHandler={() => {
+            setPaneStateValue("showHelp", !props.paneStateData.showHelp);
+          }}
+          selected={props.paneStateData.showHelp}
         />
       </div>
     </div>

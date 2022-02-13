@@ -43,6 +43,10 @@ export const allLayouts: Layouts = {
     frameCount: 1,
     cssGridRows: 9,
   },
+  i: {
+    frameCount: 3,
+    cssGridRows: 9,
+  },
 };
 
 export const allPanes: Panes = {
@@ -64,7 +68,8 @@ export const allPanes: Panes = {
       activeVideoFileID: "",
       muted: false,
       showInfo: false,
-    },
+      showHelp: false,
+    } as VideoPaneStateData,
   },
   video_non_downlink: {
     title: "Video Other",
@@ -76,7 +81,8 @@ export const allPanes: Panes = {
       activeVideoFileID: "",
       muted: false,
       showInfo: false,
-    },
+      showHelp: false,
+    } as VideoPaneStateData,
   },
   photo: {
     title: "Photography",
@@ -84,10 +90,10 @@ export const allPanes: Panes = {
     color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
-      infoToggle: false,
-      infoHover: false,
-      filterToggle: false,
-    },
+      showInfo: false,
+      showFilter: false,
+      showHelp: false,
+    } as PhotoPaneStateData,
   },
   iss_location: {
     title: "ISS Position",
@@ -95,8 +101,9 @@ export const allPanes: Panes = {
     color: "purple",
     defaultPaneStateData: {
       ready: true,
-      lockToggle: true,
-    },
+      lockMap: true,
+      showHelp: false,
+    } as LocationPaneStateData,
   },
   gps_location: {
     title: "GPS Position",
@@ -104,8 +111,9 @@ export const allPanes: Panes = {
     color: "purple",
     defaultPaneStateData: {
       ready: true,
-      lockToggle: true,
-    },
+      lockMap: true,
+      showHelp: false,
+    } as LocationPaneStateData,
   },
   event_info: {
     title: "EVA Info",
@@ -113,7 +121,8 @@ export const allPanes: Panes = {
     color: "ruby",
     defaultPaneStateData: {
       ready: true,
-    },
+      showHelp: false,
+    } as EventPaneStateData,
   },
 };
 
@@ -155,7 +164,7 @@ export const defaultFrames: FrameState = {
   5: {
     paneType: "iss_location",
     paneStateData: {
-      lockToggle: true,
+      lockMap: true,
       ready: true,
     } as LocationPaneStateData,
   },
@@ -163,7 +172,7 @@ export const defaultFrames: FrameState = {
 
 /**
  * The state of each frame containing the pane type and the state of the control
- * NOTE: all panes must manage a "ready" boolean in its controlStateData. This is used to determine application-wide readiness
+ * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
   layout: "a",

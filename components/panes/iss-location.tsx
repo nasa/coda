@@ -14,6 +14,7 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
+import { HelpButton } from "components/interface/controlsHelpButton";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
@@ -27,12 +28,22 @@ export function ISSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const controlStateData: LocationPaneStateData = useSelector(
+  const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
+  function setPaneStateValue(propertyName, propertyValue) {
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: propertyName,
+        paneStateValue: propertyValue,
+      })
+    );
+  }
+
   let lockButtonSelected = "";
-  if (typeof controlStateData !== "undefined" && controlStateData.lockToggle) {
+  if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
   }
   return (
@@ -44,17 +55,19 @@ export function ISSLocationControls(props: { frameID: number }) {
             className={`${styles.lockButton} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to ISS position`}
             onClick={() => {
-              dispatch(
-                setPaneStateDataValue({
-                  frameID,
-                  paneStateProperty: "lockToggle",
-                  paneStateValue: !controlStateData.lockToggle,
-                })
-              );
+              setPaneStateValue("lockMap", !paneStateData.lockMap);
             }}
           >
             <span className={styles.lockButtonLabel}>Lock Map to ISS</span>
           </button>
+        </div>
+        <div className={styles.verticalCenter}>
+          <HelpButton
+            clickHandler={() => {
+              setPaneStateValue("showHelp", !paneStateData.showHelp);
+            }}
+            selected={paneStateData.showHelp}
+          />
         </div>
       </div>
     </div>
@@ -131,7 +144,7 @@ export function ISSLocation(props: { frameID: number }) {
       updateOrbitLine(map, playHeadISODate);
       updateTerminator(map, playHeadISODate);
 
-      if (paneStateData.lockToggle) {
+      if (paneStateData.lockMap) {
         map.panTo(playheadLatLonObj);
       }
     }
@@ -361,7 +374,7 @@ export function ISSLocation(props: { frameID: number }) {
             dispatch(
               setPaneStateDataValue({
                 frameID,
-                paneStateProperty: "lockToggle",
+                paneStateProperty: "lockMap",
                 paneStateValue: false,
               })
             );

@@ -1,5 +1,7 @@
+import { HelpButton } from "components/interface/controlsHelpButton";
 import { isNil, get } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
+import { setPaneStateDataValue } from "store/framework";
 import { RootState } from "store/index";
 import { changeTime, isSameDate } from "store/playhead";
 import {
@@ -11,8 +13,39 @@ import { SequenceType } from "utils/enums";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
 
-export function EventInfoControls() {
-  return <></>;
+export function EventInfoControls(props: { frameID: number }) {
+  const frameID = props.frameID;
+  const dispatch = useDispatch();
+
+  const paneStateData: EventPaneStateData = useSelector(
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+  );
+
+  function setPaneStateValue(propertyName, propertyValue) {
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: propertyName,
+        paneStateValue: propertyValue,
+      })
+    );
+  }
+
+  return (
+    <div className={styles.controls}>
+      <div className={styles.controlsLeft}></div>
+      <div className={styles.rightButtons}>
+        <div className={styles.verticalCenter}>
+          <HelpButton
+            clickHandler={() => {
+              setPaneStateValue("showHelp", !paneStateData.showHelp);
+            }}
+            selected={paneStateData.showHelp}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function EventInfo() {

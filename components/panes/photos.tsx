@@ -13,6 +13,7 @@ import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/framework";
 import { IOInfoButton } from "./video";
+import { HelpButton } from "components/interface/controlsHelpButton";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -86,6 +87,14 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
                 setPaneStateValue("showFilter", !paneStateData.showFilter);
               }}
               selected={paneStateData.showFilter}
+            />
+          </div>
+          <div className={styles.verticalCenter}>
+            <HelpButton
+              clickHandler={() => {
+                setPaneStateValue("showHelp", !paneStateData.showHelp);
+              }}
+              selected={paneStateData.showHelp}
             />
           </div>
         </div>
