@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
-import styles from "./controlsHelpButton.module.css";
+import styles from "./pane-help-control-button.module.css";
 
 library.add(faQuestionCircle);
 

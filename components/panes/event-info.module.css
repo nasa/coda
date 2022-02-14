@@ -1,5 +1,7 @@
 .main {
+  position: relative;
   height: 0;
+  width: 100%;
   min-height: 100%;
   overflow: auto;
   background-color: var(--nearly-black);

@@ -1,4 +1,5 @@
-import { HelpButton } from "components/interface/controlsHelpButton";
+import { HelpButton } from "components/interface/pane-help-control-button";
+import HelpModal from "components/interface/pane-help-overlay";
 import { isNil, get } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateDataValue } from "store/framework";
@@ -48,9 +49,12 @@ export function EventInfoControls(props: { frameID: number }) {
   );
 }
 
-export default function EventInfo() {
+export default function EventInfo(props: { frameID: number }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const paneStateData: EventPaneStateData = useSelector(
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+  );
 
   const allSequences = sequencesSelector.selectAll(sequences);
   const seq = allSequences.find((seq) =>
@@ -149,6 +153,9 @@ export default function EventInfo() {
       ) : (
         <>No event details in wiki</>
       )}
+      <HelpModal isModalOpen={paneStateData.showHelp}>
+        <div>Here is some text</div>
+      </HelpModal>
     </div>
   );
 }

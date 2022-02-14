@@ -11,11 +11,12 @@ import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { setPaneStateDataValue } from "store/framework";
-import { HelpButton } from "components/interface/controlsHelpButton";
+import { HelpButton } from "components/interface/pane-help-control-button";
+import HelpModal from "components/interface/pane-help-overlay";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 
-export function IOInfoButton(props: { clickHandler; selected?: boolean }) {
+export function IOInfoButton(props: { clickHandler: Function; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
   return (
     <button
@@ -36,7 +37,7 @@ export function IOInfoButton(props: { clickHandler; selected?: boolean }) {
   );
 }
 
-export function MuteButton(props: { clickHandler; muted: boolean }) {
+export function MuteButton(props: { clickHandler: Function; muted: boolean }) {
   let icon;
   if (props.muted) {
     icon = <FontAwesomeIcon icon="volume-mute" />;
@@ -641,6 +642,9 @@ export default function VideoPane(props: { frameID: number }) {
         </div>
 
         {renderVideoOverlay()}
+        <HelpModal isModalOpen={paneStateData.showHelp}>
+          <div>Here is some text</div>
+        </HelpModal>
       </div>
     );
   };

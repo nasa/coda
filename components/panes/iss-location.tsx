@@ -14,7 +14,7 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
-import { HelpButton } from "components/interface/controlsHelpButton";
+import { HelpButton } from "components/interface/pane-help-control-button";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");

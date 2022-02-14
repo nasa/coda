@@ -16,7 +16,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
 import { setPaneStateDataValue } from "store/framework";
-import { HelpButton } from "components/interface/controlsHelpButton";
+import { HelpButton } from "components/interface/pane-help-control-button";
+import HelpModal from "components/interface/pane-help-overlay";
 
 export function GPSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -369,6 +370,9 @@ export default function GPSLocation(props: { frameID: number }) {
         >
           {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         </div>
+        <HelpModal isModalOpen={paneStateData.showHelp}>
+          <div>Here is some text</div>
+        </HelpModal>
       </div>
     </>
   );

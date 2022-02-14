@@ -13,7 +13,8 @@ import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateDataValue } from "store/framework";
 import { IOInfoButton } from "./video";
-import { HelpButton } from "components/interface/controlsHelpButton";
+import { HelpButton } from "components/interface/pane-help-control-button";
+import HelpModal from "components/interface/pane-help-overlay";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -321,6 +322,9 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
           <div className={styles.photoPoster}></div>
         )}
       </div>
+      <HelpModal isModalOpen={paneStateData.showHelp}>
+        <div>Here is some text</div>
+      </HelpModal>
     </div>
   );
 }

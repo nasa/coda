@@ -55,6 +55,7 @@
 /* v1 styles  */
 
 .mediaPanel {
+  position: relative;
   flex: 1;
 }
 

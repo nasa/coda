@@ -1,0 +1,49 @@
+.helpModalWrapper {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 30;
+  box-sizing: border-box;
+  outline: none;
+  overflow-y: auto;
+  background-color: #000;
+  opacity: 0.8;
+}
+
+.helpModalWrapperVisible {
+  display: block;
+}
+
+.helpBody {
+  position: relative;
+  box-sizing: border-box;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border: solid 2px #eeeeee;
+  border-radius: 6px;
+  width: calc(100% - 20px * 2);
+  height: calc(100% - 20px * 2);
+  margin: 20px;
+  padding: 20px;
+  background-color: rgb(0, 0, 0, 0.8);
+  z-index: 10;
+}
+
+.headline {
+  font-size: 1.5em;
+  color: #eeeeee;
+  text-align: left;
+  padding-bottom: 10px;
+}
+
+.bodyText {
+  font-size: 1em;
+  box-sizing: border-box;
+  float: left;
+  padding: 10px;
+  width: 100%;
+}
