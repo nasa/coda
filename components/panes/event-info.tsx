@@ -1,8 +1,8 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
-import HelpModal from "components/interface/pane-help-overlay";
+import HelpOverlay from "components/interface/pane-help-overlay";
 import { isNil, get } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
-import { setPaneStateDataValue } from "store/framework";
+import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { changeTime, isSameDate } from "store/playhead";
 import {
@@ -22,16 +22,6 @@ export function EventInfoControls(props: { frameID: number }) {
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
-
   return (
     <div className={styles.controls}>
       <div className={styles.controlsLeft}></div>
@@ -39,7 +29,7 @@ export function EventInfoControls(props: { frameID: number }) {
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue("showHelp", !paneStateData.showHelp);
+              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
             }}
             selected={paneStateData.showHelp}
           />
@@ -60,6 +50,7 @@ export default function EventInfo(props: { frameID: number }) {
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
+  const frameID = props.frameID;
   const dispatch = useDispatch();
 
   function asExecutedTable(evNum: string) {
@@ -153,9 +144,14 @@ export default function EventInfo(props: { frameID: number }) {
       ) : (
         <>No event details in wiki</>
       )}
-      <HelpModal isModalOpen={paneStateData.showHelp}>
+      <HelpOverlay
+        isModalOpen={paneStateData.showHelp}
+        closeHandler={() => {
+          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+        }}
+      >
         <div>Here is some text</div>
-      </HelpModal>
+      </HelpOverlay>
     </div>
   );
 }

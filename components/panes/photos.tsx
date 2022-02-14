@@ -11,10 +11,10 @@ import styles from "./photos.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
-import { setPaneStateDataValue } from "store/framework";
+import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
 import { IOInfoButton } from "./video";
 import { HelpButton } from "components/interface/pane-help-control-button";
-import HelpModal from "components/interface/pane-help-overlay";
+import HelpOverlay from "components/interface/pane-help-overlay";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -32,21 +32,11 @@ export function FilterButton(props: { clickHandler; selected?: boolean }) {
 
 export function PhotoControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
-
   const dispatch = useDispatch();
 
   const paneStateData: PhotoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
 
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
@@ -77,7 +67,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
           <div className={styles.verticalCenter}>
             <IOInfoButton
               clickHandler={() => {
-                setPaneStateValue("showInfo", !paneStateData.showInfo);
+                setPaneStateValue(dispatch, frameID, "showInfo", !paneStateData.showInfo);
               }}
               selected={paneStateData.showInfo}
             />
@@ -85,7 +75,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
           <div className={styles.verticalCenter}>
             <FilterButton
               clickHandler={() => {
-                setPaneStateValue("showFilter", !paneStateData.showFilter);
+                setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
               }}
               selected={paneStateData.showFilter}
             />
@@ -93,7 +83,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
           <div className={styles.verticalCenter}>
             <HelpButton
               clickHandler={() => {
-                setPaneStateValue("showHelp", !paneStateData.showHelp);
+                setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
               }}
               selected={paneStateData.showHelp}
             />
@@ -322,9 +312,14 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
           <div className={styles.photoPoster}></div>
         )}
       </div>
-      <HelpModal isModalOpen={paneStateData.showHelp}>
+      <HelpOverlay
+        isModalOpen={paneStateData.showHelp}
+        closeHandler={() => {
+          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+        }}
+      >
         <div>Here is some text</div>
-      </HelpModal>
+      </HelpOverlay>
     </div>
   );
 }

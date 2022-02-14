@@ -10,9 +10,9 @@ import { isSameDate, midnightZulu } from "store/playhead";
 import { videoSelectors, visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
-import { setPaneStateDataValue } from "store/framework";
+import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
-import HelpModal from "components/interface/pane-help-overlay";
+import HelpOverlay from "components/interface/pane-help-overlay";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 
@@ -70,22 +70,12 @@ export function ExpandButton() {
 function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateData }) {
   const dispatch = useDispatch();
   const frameID = props.frameID;
-
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
   return (
     <div className={styles.rightButtons}>
       <div className={styles.verticalCenter}>
         <IOInfoButton
           clickHandler={() => {
-            setPaneStateValue("showInfo", !props.paneStateData.showInfo);
+            setPaneStateValue(dispatch, frameID, "showInfo", !props.paneStateData.showInfo);
           }}
           selected={props.paneStateData.showInfo}
         />
@@ -93,7 +83,7 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
       <div className={styles.verticalCenter} style={{ width: "30px" }}>
         <MuteButton
           clickHandler={() => {
-            setPaneStateValue("muted", !props.paneStateData.muted);
+            setPaneStateValue(dispatch, frameID, "muted", !props.paneStateData.muted);
           }}
           muted={props.paneStateData.muted}
         />
@@ -101,7 +91,7 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
       <div className={styles.verticalCenter}>
         <HelpButton
           clickHandler={() => {
-            setPaneStateValue("showHelp", !props.paneStateData.showHelp);
+            setPaneStateValue(dispatch, frameID, "showHelp", !props.paneStateData.showHelp);
           }}
           selected={props.paneStateData.showHelp}
         />
@@ -127,15 +117,6 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
   const paneStateData: VideoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
 
   const [downlinkAvailability, setDownlinkAvailability] = useState([]);
 
@@ -182,7 +163,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
                 size="small"
                 rounded={rounded}
                 callback={() => {
-                  setPaneStateValue("downlink", d);
+                  setPaneStateValue(dispatch, frameID, "downlink", d);
                 }}
               >
                 <div className={styles.dlLabel}>{d + 1}</div>
@@ -200,7 +181,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
           <select
             value={paneStateData.downlink}
             onChange={(e) => {
-              setPaneStateValue("downlink", e.target.value);
+              setPaneStateValue(dispatch, frameID, "downlink", e.target.value);
             }}
           >
             <option value="">DL</option>
@@ -239,15 +220,6 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
   const paneStateData: VideoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
 
   const getPrettyVideoTitle = (videoID: string) => {
     const video = videoSelectors.selectById(videos, videoID);
@@ -297,8 +269,8 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
             className={selectActiveStyle}
             value={paneStateData.activeVideoFileID}
             onChange={(e) => {
-              setPaneStateValue("downlink", -1);
-              setPaneStateValue("activeVideoFileID", e.target.value);
+              setPaneStateValue(dispatch, frameID, "downlink", -1);
+              setPaneStateValue(dispatch, frameID, "activeVideoFileID", e.target.value);
             }}
           >
             <option disabled={nonDlVideoIDs.length === 0 ? true : null} value="">
@@ -334,7 +306,6 @@ const isAutoplayError = (e: Error): boolean => {
 
 export default function VideoPane(props: { frameID: number }) {
   const frameID: number = props.frameID;
-
   const dispatch = useDispatch();
 
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
@@ -343,15 +314,6 @@ export default function VideoPane(props: { frameID: number }) {
   const paneStateData: VideoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
 
   const playheadDate = new Date(playhead.date);
   const startOfDay = playheadDate.valueOf() / 1000;
@@ -410,7 +372,7 @@ export default function VideoPane(props: { frameID: number }) {
 
     // if the video source needs to change, change it
     if (currVideoID !== activeVideoFileID) {
-      setPaneStateValue("activeVideoFileID", currVideoID);
+      setPaneStateValue(dispatch, frameID, "activeVideoFileID", currVideoID);
 
       // wipe out the metadata for this videoElement so that aspect will be recalculated when the next video loads
       setMetadata(null);
@@ -460,7 +422,7 @@ export default function VideoPane(props: { frameID: number }) {
       } catch (e) {
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
-          setPaneStateValue("muted", true);
+          setPaneStateValue(dispatch, frameID, "muted", true);
         }
       }
     })();
@@ -482,7 +444,7 @@ export default function VideoPane(props: { frameID: number }) {
 
       // don't block the playhead
       if (!paneStateData.ready) {
-        setPaneStateValue("ready", true);
+        setPaneStateValue(dispatch, frameID, "ready", true);
       }
     }
   };
@@ -588,16 +550,16 @@ export default function VideoPane(props: { frameID: number }) {
           muted={shouldMute}
           onCanPlay={() => {
             if (!paneStateData.ready) {
-              setPaneStateValue("ready", true);
+              setPaneStateValue(dispatch, frameID, "ready", true);
             }
           }}
           onEnded={() => {
             // ready up because we don't want a missing video to hold up the playhead
-            setPaneStateValue("ready", true);
+            setPaneStateValue(dispatch, frameID, "ready", true);
           }}
           onWaiting={() => {
             if (paneStateData.ready && sourceURL !== "") {
-              setPaneStateValue("ready", false);
+              setPaneStateValue(dispatch, frameID, "ready", false);
               setStatus("buffering");
             }
           }}
@@ -628,7 +590,7 @@ export default function VideoPane(props: { frameID: number }) {
             }
             //unblocking playhead
             if (paneStateData.ready !== true) {
-              setPaneStateValue("ready", true);
+              setPaneStateValue(dispatch, frameID, "ready", true);
             }
           }}
           onClick={() => {
@@ -642,9 +604,14 @@ export default function VideoPane(props: { frameID: number }) {
         </div>
 
         {renderVideoOverlay()}
-        <HelpModal isModalOpen={paneStateData.showHelp}>
+        <HelpOverlay
+          isModalOpen={paneStateData.showHelp}
+          closeHandler={() => {
+            setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          }}
+        >
           <div>Here is some text</div>
-        </HelpModal>
+        </HelpOverlay>
       </div>
     );
   };

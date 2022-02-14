@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import { setPaneStateDataValue } from "store/framework";
+import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";
@@ -15,6 +15,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
 import { HelpButton } from "components/interface/pane-help-control-button";
+import HelpOverlay from "components/interface/pane-help-overlay";
 
 //tlejs not importable as per module docs
 const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
@@ -32,16 +33,6 @@ export function ISSLocationControls(props: { frameID: number }) {
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
-
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -55,7 +46,7 @@ export function ISSLocationControls(props: { frameID: number }) {
             className={`${styles.lockButton} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to ISS position`}
             onClick={() => {
-              setPaneStateValue("lockMap", !paneStateData.lockMap);
+              setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
             <span className={styles.lockButtonLabel}>Lock Map to ISS</span>
@@ -64,7 +55,7 @@ export function ISSLocationControls(props: { frameID: number }) {
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue("showHelp", !paneStateData.showHelp);
+              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
             }}
             selected={paneStateData.showHelp}
           />
@@ -371,15 +362,17 @@ export function ISSLocation(props: { frameID: number }) {
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            dispatch(
-              setPaneStateDataValue({
-                frameID,
-                paneStateProperty: "lockMap",
-                paneStateValue: false,
-              })
-            );
+            setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
           }}
         ></div>
+        <HelpOverlay
+          isModalOpen={paneStateData.showHelp}
+          closeHandler={() => {
+            setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          }}
+        >
+          <div>Here is some text</div>
+        </HelpOverlay>
       </div>
     </>
   );

@@ -17,6 +17,14 @@
   display: block;
 }
 
+.closeButton {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  z-index: 30;
+  background-color: black;
+}
+
 .helpBody {
   position: relative;
   box-sizing: border-box;

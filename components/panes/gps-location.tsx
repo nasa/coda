@@ -15,9 +15,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection } from "geojson";
 import type { Point } from "gpxparser";
-import { setPaneStateDataValue } from "store/framework";
+import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
-import HelpModal from "components/interface/pane-help-overlay";
+import HelpOverlay from "components/interface/pane-help-overlay";
 
 export function GPSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -26,16 +26,6 @@ export function GPSLocationControls(props: { frameID: number }) {
   const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-
-  function setPaneStateValue(propertyName, propertyValue) {
-    dispatch(
-      setPaneStateDataValue({
-        frameID,
-        paneStateProperty: propertyName,
-        paneStateValue: propertyValue,
-      })
-    );
-  }
 
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
@@ -50,7 +40,7 @@ export function GPSLocationControls(props: { frameID: number }) {
             className={`${styles.lockButton} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
             onClick={() => {
-              setPaneStateValue("lockMap", !paneStateData.lockMap);
+              setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
             <span className={styles.lockButtonLabel}>Lock Map to GPS</span>
@@ -59,7 +49,7 @@ export function GPSLocationControls(props: { frameID: number }) {
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue("showHelp", !paneStateData.showHelp);
+              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
             }}
             selected={paneStateData.showHelp}
           />
@@ -359,20 +349,19 @@ export default function GPSLocation(props: { frameID: number }) {
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            dispatch(
-              setPaneStateDataValue({
-                frameID,
-                paneStateProperty: "lockMap",
-                paneStateValue: false,
-              })
-            );
+            setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
           }}
         >
           {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         </div>
-        <HelpModal isModalOpen={paneStateData.showHelp}>
+        <HelpOverlay
+          isModalOpen={paneStateData.showHelp}
+          closeHandler={() => {
+            setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          }}
+        >
           <div>Here is some text</div>
-        </HelpModal>
+        </HelpOverlay>
       </div>
     </>
   );

@@ -250,3 +250,13 @@ function getEventInfoTitleBySource(source: Source): string {
     return "Test Event Info";
   }
 }
+
+export function setPaneStateValue(dispatch, frameID, propertyName, propertyValue) {
+  dispatch(
+    setPaneStateDataValue({
+      frameID,
+      paneStateProperty: propertyName,
+      paneStateValue: propertyValue,
+    })
+  );
+}
