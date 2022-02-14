@@ -371,7 +371,20 @@ export function ISSLocation(props: { frameID: number }) {
             setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
           }}
         >
-          <div>Here is some text</div>
+          <div>
+            <p>
+              The ISS Position Pane displays the ISS position as a red "X" at the current CODA time
+              on an interactive map. The map shows a yellow line representing the orbit of the ISS
+              immediately surrounding the current CODA time. The map is shaded to indicate the
+              terminator shadow on the Earth. Hovering over the CODA timeline will show a white "X"
+              indicating where the ISS will be at the hovered CODA time.
+            </p>
+            <p>
+              ISS Location, along with insolation/eclipse, is calculated using orbital ephemeris
+              data retrieved from an external data source.{" "}
+            </p>
+            <p></p>
+          </div>
         </HelpOverlay>
       </div>
     </>

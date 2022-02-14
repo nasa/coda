@@ -39,6 +39,8 @@
   padding: 20px;
   background-color: rgb(0, 0, 0, 0.8);
   z-index: 10;
+
+  overflow-y: auto;
 }
 
 .headline {

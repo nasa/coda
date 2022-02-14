@@ -123,23 +123,24 @@
   font-size: 1.5em;
   color: #eeeeee;
   text-align: left;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }
 
 .modalBody {
   font-size: 1em;
   box-sizing: border-box;
   float: left;
-  padding: 10px;
+  padding-bottom: 10px;
   width: 100%;
 }
 
 .modalBodyText {
-  margin-bottom: 10px;
+  padding-bottom: 10px;
   color: #999999;
 }
 
 .modalStatusTable {
+  width: 100%;
   font-weight: 200;
   text-align: right;
   border: 1px solid #696969;
@@ -153,12 +154,11 @@
 .modalStatusTable td {
   padding: 5px;
   border-bottom: 1px solid #696969;
+  white-space: nowrap;
 }
 
 .modalStatusTable td:first-child {
   font-weight: 400;
-  white-space: nowrap;
-  border-right: 2px solid rgba(150, 150, 150, 0.5);
 }
 
 .modalStatusTable td:nth-child(2) {

@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import styles from "./status-bar.module.css";
+import styles from "./status.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
 import { GPSState } from "store/gps";
@@ -93,7 +93,7 @@ export default function StatusBar() {
         <table className={styles.statusTable}>
           <tbody>
             <tr>
-              <td>IO</td>
+              <td>IO:</td>
               <td>Video</td>
               <td title={"Video " + videoStatus.message}>
                 <span className={`${styles.status} ${videoStatus.classname}`}></span>
@@ -104,7 +104,7 @@ export default function StatusBar() {
               </td>
             </tr>
             <tr>
-              <td>Wiki</td>
+              <td>Wiki:</td>
               <td>Events</td>
               <td title={"EVAs " + sequenceStatus.message}>
                 <span className={`${styles.status} ${sequenceStatus.classname}`}></span>
@@ -115,7 +115,7 @@ export default function StatusBar() {
               </td>
             </tr>
             <tr>
-              <td>Orbit</td>
+              <td>Orbit:</td>
               <td>Ephemeris</td>
               <td title={"Orbit ephemera " + ephemeraStatus.message}>
                 <span className={`${styles.status} ${ephemeraStatus.classname}`}></span>
@@ -133,12 +133,16 @@ export default function StatusBar() {
         contentLabel="Share"
         ariaHideApp={false}
       >
-        <div className={styles.modalHeadline}>Loading...</div>
+        <div className={styles.modalHeadline}>Retrieving external data...</div>
         <div className={styles.modalBody}>
+          <td className={styles.modalBodyText}>
+            All data presented by CODA is housed in external systems. CODA retrieves data from each
+            system that pertains to the selected event.
+          </td>
           <table className={styles.modalStatusTable}>
             <tbody>
               <tr>
-                <td>Imagery Online</td>
+                <td>Imagery Online:</td>
                 <td>Video</td>
                 <td title={"Video " + videoStatus.message}>
                   <span className={`${styles.statusModal} ${videoStatus.classname}`}></span>
@@ -149,7 +153,7 @@ export default function StatusBar() {
                 </td>
               </tr>
               <tr>
-                <td>Wiki</td>
+                <td>Wiki:</td>
                 <td>Events</td>
                 <td title={"EVAs " + sequenceStatus.message}>
                   <span className={`${styles.statusModal} ${sequenceStatus.classname}`}></span>
@@ -160,7 +164,7 @@ export default function StatusBar() {
                 </td>
               </tr>
               <tr>
-                <td>Orbit</td>
+                <td>Orbit:</td>
                 <td>Ephemeris</td>
                 <td title={"Orbit ephemera " + ephemeraStatus.message}>
                   <span className={`${styles.statusModal} ${ephemeraStatus.classname}`}></span>

@@ -360,7 +360,28 @@ export default function GPSLocation(props: { frameID: number }) {
             setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
           }}
         >
-          <div>Here is some text</div>
+          <div>
+            <p>
+              The GPS Position Pane displays GPS tracks stored in the{" "}
+              <a
+                href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA/D-RATS_2021_Data"}
+                target={"_blank"}
+              >
+                Exploration Wiki
+              </a>{" "}
+              for test events on an interactive map. Hovering over the CODA timeline will move the
+              GPS subjects to their corresponding positions for that time.
+            </p>
+            <p>GPS track types include EV1, EV2, Tool Cart, and Light Cart.</p>
+            <p>
+              Currently the only GPS data events available are for the 2021 D-RATS activites, such
+              as{" "}
+              <a href={"https://coda.fit.nasa.gov/view?v=2.0&date=2021-10-21&gmt=04:13:20"}>
+                this one
+              </a>
+              .
+            </p>
+          </div>
         </HelpOverlay>
       </div>
     </>

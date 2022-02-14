@@ -12,7 +12,7 @@ import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection, Source } from "utils/enums";
-import StatusBar from "./status-bar";
+import StatusBar from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import Share from "components/interface/share";
 import { changeSource } from "store/framework";

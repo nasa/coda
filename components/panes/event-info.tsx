@@ -150,7 +150,33 @@ export default function EventInfo(props: { frameID: number }) {
           setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
         }}
       >
-        <div>Here is some text</div>
+        <div>
+          <p>
+            The Event Info Pane displays details housed in the{" "}
+            <a href={"https://wiki.jsc.nasa.gov/iss/index.php/Main_Page"} target={"_blank"}>
+              ISS Wiki
+            </a>{" "}
+            (for ISS events) or the{" "}
+            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+              Exploration Wiki
+            </a>{" "}
+            (for test events).
+          </p>
+          <p>
+            In addition to general event information, As-Executed timeline details entered into the
+            Wiki for each event (
+            <a
+              href={
+                "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_41/As-executed_Summary_Timeline"
+              }
+              target={"_blank"}
+            >
+              example
+            </a>
+            ) are displayed here. Clicking an event in the timeline table will jump to that start
+            time of that item.
+          </p>
+        </div>
       </HelpOverlay>
     </div>
   );

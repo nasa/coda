@@ -610,7 +610,56 @@ export default function VideoPane(props: { frameID: number }) {
             setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
           }}
         >
-          <div>Here is some text</div>
+          <div>
+            <p>
+              The Video Pane displays videos from Imagery Online, synced to CODA's playback time.
+            </p>
+            <p>
+              Videos are all pulled from Imagery Online collections. ISS displays videos in the{" "}
+              <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
+                ISS Collection
+              </a>
+              . Exploration Test Events usually pulls from the root{" "}
+              <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"} target={"_blank"}>
+                xEVA Collection
+              </a>{" "}
+              but this can be overridden by editing the CODA entry for each event in the{" "}
+              <a
+                href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+                target={"_blank"}
+              >
+                Exploration Wiki.
+              </a>
+            </p>
+            <p>
+              There are two types of Video Panes:
+              <ol>
+                <li>
+                  Video Downlink
+                  <p>
+                    Videos from Imagery Online are categorized based on what ISS downlink channel
+                    they were received on. Select a downlink channel using the downlink channel
+                    numbers above the video.
+                  </p>
+                  <p>
+                    For on-ISS events, Downlink channels have been inferred for common video types
+                    for each event in recurring test envrironments such as the NBL.
+                  </p>
+                </li>
+                <li>
+                  Video Other
+                  <p>
+                    Contains the remaining videos from Imagery Online that have not been categorized
+                    into downlinks. Videos available at a given CODA time are selected via dropdown.
+                  </p>
+                </li>
+              </ol>
+            </p>
+            <p>
+              Note: If video entries in Imagery Online do not have valid start times, an error will
+              be displayed in CODA to indicate that the video is not correctly time synced.
+            </p>
+          </div>
         </HelpOverlay>
       </div>
     );
