@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ReactDOM from "react-dom";
 import { RootState } from "store/index";
 import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
-import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
+import { setPaneStateValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";

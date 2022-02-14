@@ -2,7 +2,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { isNil, get } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
-import { setPaneStateDataValue, setPaneStateValue } from "store/framework";
+import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { changeTime, isSameDate } from "store/playhead";
 import {
