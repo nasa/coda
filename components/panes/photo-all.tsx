@@ -122,7 +122,7 @@ export default function PhotoAllPane(props: { frameID: number }) {
             alt={photoFiles[i].title}
             width={80}
             height={80}
-            src={photoFiles[i].mediaLowResURL}
+            src={photoFiles[i].mediaThumbURL}
           />
         </div>
       );

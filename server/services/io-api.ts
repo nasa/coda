@@ -347,12 +347,17 @@ function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
       : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaThumbURL =
+    isLocal && process.env.IO_MOCK_MEDIA_URL
+      ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
+      : `${process.env.IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
     mediaLowResURL,
     mediaHighResURL,
+    mediaThumbURL,
     dataURL,
     dateAdded: doc.date_added,
     datetimeTaken: doc.md_creation_date,

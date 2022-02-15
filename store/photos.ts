@@ -10,6 +10,7 @@ export const initialPhotoFileState: PhotoFile = {
   description: "",
   mediaLowResURL: "",
   mediaHighResURL: "",
+  mediaThumbURL: "",
   dataURL: "",
   dateAdded: "",
   datetimeTaken: "",
