@@ -7,7 +7,7 @@ import {
   photosSelectors,
   filterVisiblePhotos,
 } from "store/photos";
-import styles from "./photos.module.css";
+import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
@@ -137,7 +137,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
       }
     }
     if (Object.keys(thisPhotoFile).length !== 0) {
-      if (thisPhotoFile.mediaLowResURL !== photos.activePhoto.mediaLowResURL) {
+      if (thisPhotoFile.datetimeTaken !== photos.activePhoto.datetimeTaken) {
         dispatch(setActivePhoto(thisPhotoFile));
       }
     }

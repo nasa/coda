@@ -1,5 +1,5 @@
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
-import { PaneTypeShortVal } from "utils/enums";
+import { PaneTypeShortVal, SourceShortVal } from "utils/enums";
 
 /**
  * Generates a URL string that represents the state of the application.
@@ -12,7 +12,7 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
   const missionTime = hhmmssFromSeconds(playhead.seconds);
 
   const layout = framework.layout;
-  const source = framework.source;
+  const shortSource = SourceShortVal[framework.source];
 
   let i = 1;
   let stateUrlParams = "";
@@ -34,6 +34,9 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
       case "photo":
         paneStateString = getStateStringForPhoto(element.paneStateData);
         break;
+      case "photo_all":
+        paneStateString = getStateStringForPhotoAll(element.paneStateData);
+        break;
       case "event_info":
         paneStateString = getStateStringForEventInfo();
         break;
@@ -48,11 +51,11 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
   }
 
   const urlRoot = location.origin + location.pathname;
-  let URL = `${urlRoot}?v=2.0`; // version number used for tracking the format of share URLs, in case we need to change it in the future
-  URL += `&date=${missionDate}`;
+  let URL = `${urlRoot}?date=${missionDate}`;
   URL += `&gmt=${missionTime}`;
+  URL += `&v=2.0`; // version number used for tracking the format of share URLs, in case we need to change it in the future
   URL += `&l=${layout}`;
-  URL += `&s=${source}`;
+  URL += `&s=${shortSource}`;
   URL += stateUrlParams;
 
   return URL;
@@ -84,6 +87,19 @@ function getStateStringForPhoto(state: PhotoPaneStateData) {
   const showInfo = state.showInfo ? "1" : "0";
   const showFilter = state.showFilter ? "1" : "0";
   return `${paneTypeString}${showInfo}${showFilter}`;
+}
+
+/**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: 0 if showFilter is false, 1 if showFilter is true
+ * Char 3: 0 if lockPhotosScroll is false, 1 if lockPhotosScroll is true
+ */
+function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
+  const paneTypeString = "0" + PaneTypeShortVal.photo_all;
+  const showFilter = state.showFilter ? "1" : "0";
+  const lockPhotosScroll = state.lockPhotosScroll ? "1" : "0";
+  return `${paneTypeString}${showFilter}${lockPhotosScroll}`;
 }
 
 /**
@@ -191,6 +207,20 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return photoReturnVal;
+    case PaneTypeShortVal.photo_all:
+      /* Char 2: 0 if showFilter is false, 1 if showInfo is true
+       * Char 3: 0 if lockPhotosScroll is false, 1 if lockPhotosScroll is true
+       */
+      const photoAllReturnVal: { paneType: string; paneStateData: PhotoAllPaneStateData } = {
+        paneType: "photo_all",
+        paneStateData: {
+          ready: true,
+          showFilter: frameString[2] === "1",
+          lockPhotosScroll: frameString[3] === "1",
+          showHelp: false,
+        },
+      };
+      return photoAllReturnVal;
     case PaneTypeShortVal.event_info:
       const eventInfoReturnVal: { paneType: string; paneStateData: EventPaneStateData } = {
         paneType: "event_info",

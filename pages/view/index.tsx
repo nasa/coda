@@ -17,7 +17,7 @@ import {
   setSequenceLoadingStatus,
 } from "store/sequences";
 import useInterval from "utils/useInterval";
-import { Collection, LoadingStatusEnum } from "utils/enums";
+import { Collection, LoadingStatusEnum, SourceShortVal } from "utils/enums";
 import { addVideos, setVideoLoadingStatus, fetchError as videosFetchError } from "store/videos";
 import {
   addPhotos,
@@ -271,13 +271,20 @@ export async function getServerSideProps({ query }) {
   const version = query.v === undefined ? "1.0" : query.v; //version of share URL being received
   const date = query.date === undefined ? null : query.date;
   const gmt = query.gmt === undefined ? null : query.gmt;
-  const source = query.s === undefined ? null : query.s;
+  const source = query.s === undefined ? null : parseInt(query.s);
   const layout = query.l === undefined ? null : query.l;
 
   let fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
-    fState.source = source;
-    if (source === Source.TEST_EVENTS) {
+    if (source === SourceShortVal.ISS) {
+      fState.source = Source.ISS;
+    } else if (source === SourceShortVal.TEST_EVENTS) {
+      fState.source = Source.TEST_EVENTS;
+    } else if (source === SourceShortVal.NBL) {
+      fState.source = Source.NBL;
+    }
+
+    if (fState.source === Source.TEST_EVENTS) {
       // if we're looking at the test events, we need to change the ISS location frame to GPS location pane
       fState.frames = setGPSLocationFrame(fState, "5");
     }
@@ -288,7 +295,7 @@ export async function getServerSideProps({ query }) {
 
   // set default panes depending on source
   // if the source is not ISS, make the default downlink pane a non-downlink pain
-  if (source === Source.NBL || source === Source.TEST_EVENTS) {
+  if (fState.source === Source.NBL || fState.source === Source.TEST_EVENTS) {
     fState.frames = setNonDLVideoFrame(fState, "1", "");
   }
 

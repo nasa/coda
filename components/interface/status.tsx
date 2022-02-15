@@ -135,10 +135,10 @@ export default function StatusBar() {
       >
         <div className={styles.modalHeadline}>Retrieving external data...</div>
         <div className={styles.modalBody}>
-          <td className={styles.modalBodyText}>
+          <div className={styles.modalBodyText}>
             All data presented by CODA is housed in external systems. CODA retrieves data from each
             system that pertains to the selected event.
-          </td>
+          </div>
           <table className={styles.modalStatusTable}>
             <tbody>
               <tr>

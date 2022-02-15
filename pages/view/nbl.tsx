@@ -1,4 +1,4 @@
-import { Source } from "utils/enums";
+import { SourceShortVal } from "utils/enums";
 
 export default function RedirectPage() {
   return null;
@@ -19,7 +19,7 @@ export async function getServerSideProps({ req, query }) {
     if (queryString === "undefined") {
       queryString = "";
     }
-    const source = Source.NBL;
+    const source = SourceShortVal.NBL;
     redirectUrl = `${protocol}://${host}/view?${queryString}&s=${source}`;
   }
   return {

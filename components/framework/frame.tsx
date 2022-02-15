@@ -8,7 +8,8 @@ import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EventInfo, { EventInfoControls } from "components/panes/event-info";
 import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video";
-import PhotoPane, { PhotoControls } from "components/panes/photos";
+import PhotoPane, { PhotoControls } from "components/panes/photo";
+import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
@@ -49,6 +50,7 @@ const frameTypeIDsToRenders = {
   video_downlink: VideoPane,
   video_non_downlink: VideoPane,
   photo: PhotoPane,
+  photo_all: PhotoAllPane,
   iss_location: ISSLocation,
   gps_location: GPSLocation,
   event_info: EventInfo,
@@ -58,6 +60,7 @@ const frameTypeIDsToControls = {
   video_downlink: VideoDLPaneControls,
   video_non_downlink: VideoOtherPaneControls,
   photo: PhotoControls,
+  photo_all: PhotoAllControls,
   iss_location: ISSLocationControls,
   gps_location: GPSLocationControls,
   event_info: EventInfoControls,
@@ -123,7 +126,7 @@ export default function Frame(options) {
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
     };
-  });
+  }, []);
 
   return (
     <div className={styles.main} ref={frameRef}>

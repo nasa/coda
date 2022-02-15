@@ -20,6 +20,12 @@ export enum Source {
   NBL = "NBL",
 }
 
+export enum SourceShortVal {
+  ISS = 0,
+  TEST_EVENTS = 1,
+  NBL = 2,
+}
+
 export enum SequenceType {
   EVA = 1,
   IVA,
@@ -39,4 +45,5 @@ export enum PaneTypeShortVal {
   event_info = 4,
   iss_location = 5,
   gps_location = 6,
+  photo_all = 7,
 }

@@ -20,6 +20,7 @@ interface Pane {
     | EmptyPaneStateData
     | VideoPaneStateData
     | PhotoPaneStateData
+    | PhotoAllPaneStateDate
     | LocationPaneStateData
     | EventPaneStateData;
 }
@@ -63,6 +64,13 @@ type PhotoPaneStateData = {
   ready: boolean;
   showInfo: boolean;
   showFilter: boolean;
+  showHelp: boolean;
+};
+
+type PhotoAllPaneStateData = {
+  ready: boolean;
+  showFilter: boolean;
+  lockPhotosScroll: boolean;
   showHelp: boolean;
 };
 

@@ -85,7 +85,7 @@ export const allPanes: Panes = {
     } as VideoPaneStateData,
   },
   photo: {
-    title: "Photography",
+    title: "Current Photo",
     icon: "camera",
     color: "mustardGreen",
     defaultPaneStateData: {
@@ -94,6 +94,17 @@ export const allPanes: Panes = {
       showFilter: false,
       showHelp: false,
     } as PhotoPaneStateData,
+  },
+  photo_all: {
+    title: "All Photos",
+    icon: "camera",
+    color: "mustardGreen",
+    defaultPaneStateData: {
+      ready: true,
+      showFilter: false,
+      lockPhotosScroll: true,
+      showHelp: false,
+    } as PhotoAllPaneStateData,
   },
   iss_location: {
     title: "ISS Position",
@@ -156,10 +167,12 @@ export const defaultFrames: FrameState = {
     } as PhotoPaneStateData,
   },
   4: {
-    paneType: "event_info",
+    paneType: "photo_all",
     paneStateData: {
       ready: true,
-    } as EventPaneStateData,
+      showFilter: false,
+      lockPhotosScroll: true,
+    } as PhotoAllPaneStateData,
   },
   5: {
     paneType: "iss_location",
