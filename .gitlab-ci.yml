@@ -223,7 +223,7 @@ deploy_to_integration:
   needs:
     - "install_dependencies"
     - "build"
-    - "test"
+    - { job: "test", artifacts: false }
   variables:
     ENVIRONMENT_HOSTNAME: jsfiticoda
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
@@ -238,13 +238,13 @@ deploy_to_production:
   needs:
     - "install_dependencies"
     - "build"
-    - "test"
-    - "project-check"
-    - "phpcs-security-audit-sast"
-    - "eslint-sast"
-    - "nodejs-scan-sast"
-    - "semgrep-sast"
-    - "dependency-check"
+    - { job: "test", artifacts: false }
+    - { job: "project-check", artifacts: false }
+    - { job: "phpcs-security-audit-sast", artifacts: false }
+    - { job: "eslint-sast", artifacts: false }
+    - { job: "nodejs-scan-sast", artifacts: false }
+    - { job: "semgrep-sast", artifacts: false }
+    - { job: "dependency-check", artifacts: false }
   variables:
     ENVIRONMENT_HOSTNAME: jsfitpcoda
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
