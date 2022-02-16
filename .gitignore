@@ -3,6 +3,7 @@
 
 # javascript
 node_modules/
+coverage/
 
 # nextjs
 .next/

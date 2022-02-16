@@ -1,6 +1,6 @@
 module.exports = {
   preset: "ts-jest/presets/js-with-ts",
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "node"],
   moduleNameMapper: {
     "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$":
       "<rootDir>/__mocks__/fileMock.js",
@@ -16,6 +16,17 @@ module.exports = {
     "^typings/(.*)$": "<rootDir>/typings/$1",
     "^utils/(.*)$": "<rootDir>/utils/$1",
   },
+  collectCoverageFrom: [
+    "**/*.{js,jsx,ts,tsx}",
+    "!**/node_modules/**",
+    "!**/.next/**",
+    "!**/.cache/**",
+    "!**/.vscode/**",
+    "!**/coverage/**",
+    "!**/dist/**",
+    "!**/out/**",
+  ],
+  coverageReporters: ["text", "lcov", "cobertura"],
   globalSetup: "<rootDir>/jest.globalSetup.js",
   setupFiles: ["<rootDir>/jest.setup.js"],
   setupFilesAfterEnv: ["<rootDir>/utils/jest-extends.ts"],

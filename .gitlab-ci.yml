@@ -112,7 +112,14 @@ test:
   tags: ["docker", "linux"]
   script:
     - npm run lint
-    - npm t
+    - npm t -- --coverage
+  artifacts:
+    reports:
+      cobertura: ./coverage/cobertura-coverage.xml
+    paths:
+      - ./coverage/cobertura-coverage.xml
+      - ./test/cases/*
+
 
 build:
   stage: priority
