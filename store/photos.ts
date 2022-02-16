@@ -71,16 +71,3 @@ export const {
   setPhotoLoadingStatus,
   setCollectionFilters,
 } = photoSlice.actions;
-
-/** Filters photos for a given day */
-const _filterVisiblePhotos = (photos: PhotoFile[], date: Date): PhotoFile[] => {
-  return photos.filter((photo) => {
-    return isSameDate(new Date(photo.datetimeTaken), date);
-  });
-};
-
-/** Return a list of all photos for a given day */
-export const filterVisiblePhotos = memoize(
-  _filterVisiblePhotos,
-  (photos: PhotoFile[], date: Date) => `${photos.length}/${date.toISOString()}`
-);

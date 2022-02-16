@@ -21,8 +21,8 @@ export default function Index() {
               </div>
             </div>
             <div className={styles.description}>
+              <div className={styles.strong}>Collaborative Operations Data Activation</div>
               <p>
-                <div className={styles.strong}>Collaborative Operations Data Activation</div>
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment
               </p>

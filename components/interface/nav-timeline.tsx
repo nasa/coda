@@ -12,7 +12,7 @@ import {
   idFromDate,
 } from "store/sequences";
 import { filterVisibleVideos, videoSelectors } from "store/videos";
-import { photosSelectors, filterVisiblePhotos } from "store/photos";
+import { photosSelectors } from "store/photos";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
@@ -93,7 +93,7 @@ export default function NavTimeline(props: { collection: Collection }) {
 
     drawNav.current = new DrawNav(
       filterVisibleVideos(videoFiles, playheadDate),
-      filterVisiblePhotos(photoFiles, playheadDate),
+      photoFiles,
       photos.collectionFilters,
       dayNight,
       asPerformed,

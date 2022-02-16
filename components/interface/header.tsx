@@ -23,14 +23,28 @@ import { clearSequences } from "store/sequences";
 import { clearGPSTracks } from "store/gps";
 
 import { allLayouts } from "store/framework";
+import AboutOverlay from "./about-overlay";
+import { useState } from "react";
 
 library.add(faBars, faCalendarAlt, faClock);
 
 export function HamburgerMenu() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Button color="lightest-grey">
-      <FontAwesomeIcon icon="bars" />
-    </Button>
+    <>
+      <div
+        className={styles.hamburgerButton}
+        onClick={() => {
+          setIsOpen(!isOpen);
+        }}
+      >
+        <div className={styles.verticalCenter}>
+          <FontAwesomeIcon icon="bars" />
+        </div>
+      </div>
+      <AboutOverlay modalIsOpen={isOpen} />
+    </>
   );
 }
 

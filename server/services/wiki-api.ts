@@ -13,7 +13,7 @@ import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
 import fetchWithCache from "./cache-client";
-import { padZeros } from "utils/formatting";
+import { cleansEVATitleFromWiki, padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
 import { Collection, SequenceType } from "utils/enums";
 
@@ -350,13 +350,18 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
         .split("/");
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
+      const displayTitle = cleansEVATitleFromWiki(
+        allEVAs[evaName].printouts["EVA title"][0],
+        evaName
+      );
+
       return {
         /** EVA name upper-cased with spaces, eg. `US EVA 55` */
         name: evaName,
         location: Collection.ISS,
         type: SequenceType.EVA,
         dataURL: allEVAs[evaName].fullurl,
-        displayTitle: allEVAs[evaName].printouts["EVA title"][0],
+        displayTitle,
         startDate,
         startTime: allEVAs[evaName].printouts["Start time"][0],
         duration,

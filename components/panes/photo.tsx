@@ -5,7 +5,6 @@ import {
   setActivePhoto,
   setCollectionFilters,
   photosSelectors,
-  filterVisiblePhotos,
 } from "store/photos";
 import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
@@ -112,15 +111,13 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
       return;
     }
 
-    const visiblePhotos = filterVisiblePhotos(photoFiles, new Date(playhead.date));
-
     /* Loop through all returned photos in order of datetimeTaken
      * break as soon as we hit a photo that was taken after playhead.seconds leaving the data we gathered
      * on the previous photo for use.
      */
     let thisPhotoFile = initialPhotoFileState;
-    for (let i = 0; i < visiblePhotos.length; i++) {
-      const secondsIntoToday = visiblePhotos[i].datetimeTakenAppSeconds;
+    for (let i = 0; i < photoFiles.length; i++) {
+      const secondsIntoToday = photoFiles[i].datetimeTakenAppSeconds;
       if (secondsIntoToday > playhead.seconds) {
         break;
       }
@@ -128,10 +125,10 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
       // filter photos against collectionFilters
       for (let j = 0; j < photos.collectionFilters.length; j++) {
         if (
-          visiblePhotos[i].collections === photos.collectionFilters[j].fullList &&
+          photoFiles[i].collections === photos.collectionFilters[j].fullList &&
           photos.collectionFilters[j].selected
         ) {
-          thisPhotoFile = visiblePhotos[i];
+          thisPhotoFile = photoFiles[i];
           break;
         }
       }

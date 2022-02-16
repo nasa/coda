@@ -70,6 +70,15 @@
   justify-content: space-around;
 }
 
+.hamburgerButton {
+  background-color: var(--lightest-grey);
+  width: 40px;
+  height: 40px;
+  padding-top: 12px;
+  border-radius: var(--radius);
+  margin-left: 2px;
+}
+
 .source {
   padding-left: 10px;
   font-size: 16px;

@@ -23,6 +23,10 @@ export const allLayouts: Layouts = {
     frameCount: 5,
     cssGridRows: 9,
   },
+  j: {
+    frameCount: 6,
+    cssGridRows: 9,
+  },
   d: {
     frameCount: 4,
     cssGridRows: 9,
@@ -149,10 +153,10 @@ export const defaultFrames: FrameState = {
     } as VideoPaneStateData,
   },
   2: {
-    paneType: "video_non_downlink",
+    paneType: "video_downlink",
     paneStateData: {
       ready: true,
-      downlink: -1,
+      downlink: 1,
       activeVideoFileID: "",
       muted: false,
       showInfo: false,
@@ -181,6 +185,13 @@ export const defaultFrames: FrameState = {
       ready: true,
     } as LocationPaneStateData,
   },
+  6: {
+    paneType: "event_info",
+    paneStateData: {
+      ready: true,
+      showHelp: false,
+    } as EventPaneStateData,
+  },
 };
 
 /**
@@ -188,7 +199,7 @@ export const defaultFrames: FrameState = {
  * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
-  layout: "a",
+  layout: "j",
   frames: defaultFrames,
   source: Source.ISS,
 };

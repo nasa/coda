@@ -133,3 +133,18 @@ export function getJulianDate(date: Date): string {
 
   return `${year}/${jd}`;
 }
+
+/** Cleans EVA titles from the wiki */
+export function cleansEVATitleFromWiki(title: string, evaName: string) {
+  let displayTitle = title.replace("US EVA ", "");
+  const evaNum = evaName.split(" ")[2];
+  displayTitle = title.replace(`${evaNum} `, "");
+  displayTitle = displayTitle === evaNum ? "" : displayTitle;
+  displayTitle =
+    displayTitle.substring(0, 1) === "(" ? displayTitle.replace("(", "") : displayTitle;
+  displayTitle =
+    displayTitle.substring(displayTitle.length - 1) === ")"
+      ? displayTitle.replace(")", "")
+      : displayTitle;
+  return displayTitle;
+}
