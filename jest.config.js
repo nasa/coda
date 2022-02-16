@@ -26,6 +26,7 @@ module.exports = {
     "!**/dist/**",
     "!**/out/**",
   ],
+  coverageReporters: ["text", "lcov", "cobertura"],
   globalSetup: "<rootDir>/jest.globalSetup.js",
   setupFiles: ["<rootDir>/jest.setup.js"],
   setupFilesAfterEnv: ["<rootDir>/utils/jest-extends.ts"],
