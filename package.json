@@ -38,7 +38,7 @@
     "lodash": "^4.17.21",
     "mapbox-gl": "^2.2.0",
     "mwbot": "^1.1.0",
-    "next": "^10.2.0",
+    "next": "^12.0.10",
     "node-fetch": "^2.6.7",
     "paper": "^0.12.15",
     "postcss": "^8.2.14",
@@ -52,7 +52,7 @@
     "tle.js": "^4.2.11",
     "tough-cookie-file-store": "^2.0.2",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.5.5"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.13.0",
