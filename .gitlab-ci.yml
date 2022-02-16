@@ -22,33 +22,47 @@ include:
     file: "/rollups/all-projects.gitlab-ci.yml"
 
 stages:
-  - test
-  - pre-build
-  - build
+  - priority
+  - static
   - deploy_to_server
 
 # Overrride some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
 project-check:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 eslint-sast:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 nodejs-scan-sast:
+  stage: static
+  needs: ["install_dependencies"] # nodejs-scan-sast takes a while, don't wait for "test" job
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 semgrep-sast:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 sast:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
-  # Run job during the "test" stage of the pipeline
-  stage: test
+  stage: static
+  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
   tags: ["docker", "linux"]
   timeout: 10 minutes
   image:
@@ -57,8 +71,6 @@ dependency-check:
     name: $CI_REGISTRY/developer-ecosystem/dependency-check:latest
     # Entrypoint is overridden to allow a script to be run
     entrypoint: [""]
-  before_script:
-    - npm ci
   script:
     # Run dependency-check from the location installed in the Docker container with the following arguments:
     # --scan "./"                                         Scans all files and folders within the working folder,
@@ -84,22 +96,30 @@ dependency-check:
       - "./dependency-check-report.html"
       - "./dependency-check-report.json"
 
-test:
+install_dependencies:
+  stage: priority
   tags: ["docker", "linux"]
-  before_script:
+  script:
     - npm ci
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - ./node_modules/*
+
+test:
+  stage: priority
+  needs: ["install_dependencies"]
+  tags: ["docker", "linux"]
   script:
     - npm run lint
     - npm t
-  stage: test
 
 build:
+  stage: priority
+  needs: ["install_dependencies"]
   tags: ["docker", "linux"]
-  before_script:
-    - npm ci
   script:
     - npm run build
-  stage: build
   artifacts:
     paths:
       - .next
@@ -162,7 +182,8 @@ build:
   script:
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
     - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
-    # check dependencies and restart the server
+
+    # check dependencies then wait 5 seconds to prevent issue #101 before restarting the server
     - >
       ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
       cd /opt/fitbox/apps/coda &&
@@ -170,12 +191,15 @@ build:
       echo -e '\nInstall dependencies' &&
       npm i &&
 
+      sleep 5 &&
+
       echo -e '\nRestart the server' &&
       sudo systemctl daemon-reload &&
       sudo systemctl restart coda"
 
 deploy_to_dev1:
   extends: .deploy_template
+  needs: ["install_dependencies", "build"]
   variables:
     ENVIRONMENT_HOSTNAME: jsfitdcoda01
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV1
@@ -187,6 +211,7 @@ deploy_to_dev1:
 
 deploy_to_dev2:
   extends: .deploy_template
+  needs: ["install_dependencies", "build"]
   variables:
     ENVIRONMENT_HOSTNAME: jsfitdcoda02
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV2
@@ -198,6 +223,10 @@ deploy_to_dev2:
 
 deploy_to_integration:
   extends: .deploy_template
+  needs:
+    - "install_dependencies"
+    - "build"
+    - { job: "test", artifacts: false }
   variables:
     ENVIRONMENT_HOSTNAME: jsfiticoda
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
@@ -209,6 +238,16 @@ deploy_to_integration:
 
 deploy_to_production:
   extends: .deploy_template
+  needs:
+    - "install_dependencies"
+    - "build"
+    - { job: "test", artifacts: false }
+    - { job: "project-check", artifacts: false }
+    - { job: "phpcs-security-audit-sast", artifacts: false }
+    - { job: "eslint-sast", artifacts: false }
+    - { job: "nodejs-scan-sast", artifacts: false }
+    - { job: "semgrep-sast", artifacts: false }
+    - { job: "dependency-check", artifacts: false }
   variables:
     ENVIRONMENT_HOSTNAME: jsfitpcoda
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD
