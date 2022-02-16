@@ -182,13 +182,16 @@ build:
   script:
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
     - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
-    # check dependencies and restart the server
+
+    # check dependencies then wait 5 seconds to prevent issue #101 before restarting the server
     - >
       ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
       cd /opt/fitbox/apps/coda &&
 
       echo -e '\nInstall dependencies' &&
       npm i &&
+
+      sleep 5 &&
 
       echo -e '\nRestart the server' &&
       sudo systemctl daemon-reload &&
