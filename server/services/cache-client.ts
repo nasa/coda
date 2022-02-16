@@ -3,10 +3,6 @@ import crypto from "crypto";
 import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
 
-// NASA APIs use NOCA certs. We need to tell Node to use system certs on Mac and Windows. Node on Linux uses system certs by default. see the discussion/complaints here https://github.com/nodejs/node/issues/3159#issuecomment-477295118
-require("mac-ca");
-require("win-ca");
-
 /** Caching options for managing how JSON is retrieved and stored */
 interface Options {
   /** Default 5 mins (300s). Unless `staleOk` is true, this is the max age allowed for cache entries before retrieving new data. Setting `{ cacheAge: 0, staleOk: true }` always runs the `retriever` and treats the cache like a fallback (or you could simply set `{ preferNew: true }`) */
