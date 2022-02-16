@@ -5,7 +5,7 @@
   "main": "server/index.ts",
   "scripts": {
     "build": "next build",
-    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
+    "dev": "cross-env NODE_EXTRA_CA_CERTS=./.env.local.cert.pem NODE_OPTIONS='--inspect' next dev",
     "local": "cross-env NODE_ENV=local npm run dev",
     "export": "next export",
     "start": "cross-env NODE_ENV=production next start",
@@ -77,11 +77,9 @@
     "eslint-plugin-react": "^7.23.2",
     "jest": "^26.6.3",
     "jest-canvas-mock": "^2.3.1",
-    "mac-ca": "^1.0.6",
     "msw": "^0.21.3",
     "prettier": "^2.2.1",
-    "ts-jest": "^26.5.6",
-    "win-ca": "^3.4.5"
+    "ts-jest": "^26.5.6"
   },
   "browser": {
     "services/iss-wiki-server": false

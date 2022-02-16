@@ -16,3 +16,6 @@ dist/
 
 # don't commit secrets!
 .env.local
+
+# NOCA cert required to hit wiki and IO. See README.md
+.env.local.cert.pem
