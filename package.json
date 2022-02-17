@@ -49,7 +49,7 @@
     "react-lazy-load-image-component": "^1.5.1",
     "react-modal": "^3.14.4",
     "react-redux": "^7.2.6",
-    "tle.js": "^4.2.11",
+    "tle.js": "^4.7.0",
     "tough-cookie-file-store": "^2.0.3",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
