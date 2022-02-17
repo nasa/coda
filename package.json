@@ -45,11 +45,9 @@
     "react-redux": "^7.2.6",
     "tle.js": "^4.7.0",
     "tough-cookie-file-store": "^2.0.3",
-    "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.16.7",
     "@types/cacache": "^15.0.1",
     "@types/geojson": "^7946.0.8",
     "@types/jest": "^27.4.0",
