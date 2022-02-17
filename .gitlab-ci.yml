@@ -206,7 +206,7 @@ build:
 
       echo -e '\nStart the server' &&
       sudo systemctl daemon-reload &&
-      sudo systemctl restart coda"
+      sudo systemctl start coda"
 
 deploy_to_dev1:
   extends: .deploy_template
