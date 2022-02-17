@@ -18,7 +18,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
 //tlejs not importable as per module docs
-const { getLatLngObj } = require("tle.js/dist/tlejs.cjs");
+import { getLatLngObj } from "tle.js";
 
 type MapMarker = {
   marker: any; //the MapBox marker reference

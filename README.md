@@ -143,7 +143,7 @@ This allows the application to run without being dependant on the NASA network o
 npm t
 ```
 
-We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
+We use [Jest](https://jestjs.io/en/) to run tests.
 
 - [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
 
