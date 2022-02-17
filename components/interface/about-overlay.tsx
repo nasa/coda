@@ -3,12 +3,10 @@ import Modal from "react-modal";
 import StatusArea from "./status";
 import AboutAccordion from "./about-accordion";
 import { useEffect, useState } from "react";
-import Button from "./button";
 import { useCookies } from "react-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { relative } from "path";
 
 library.add(faTimesCircle);
 

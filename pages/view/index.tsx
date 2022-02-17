@@ -10,7 +10,7 @@ import PlaybackControls from "components/interface/playback-controls";
 import { useEffect } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { RootState } from "store/index";
-import { changeDate, changeTime, diff, isSameDate, run, start } from "store/playhead";
+import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
   addSequences,
   fetchError as sequencesFetchError,
