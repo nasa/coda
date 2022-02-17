@@ -13,7 +13,7 @@ import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
 import fetchWithCache from "./cache-client";
-import { cleansEVATitleFromWiki, padZeros } from "utils/formatting";
+import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
 import { Collection, SequenceType } from "utils/enums";
 
@@ -350,10 +350,10 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
         .split("/");
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
-      const displayTitle = cleansEVATitleFromWiki(
-        allEVAs[evaName].printouts["EVA title"][0],
-        evaName
-      );
+      const displayTitle = formatEVADisplayTitle({
+        descriptiveTitle: allEVAs[evaName].printouts["EVA title"][0],
+        pageName: evaName,
+      });
 
       return {
         /** EVA name upper-cased with spaces, eg. `US EVA 55` */

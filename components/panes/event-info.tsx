@@ -97,7 +97,7 @@ export default function EventInfo(props: { frameID: number }) {
               <tr>
                 <td>Event:</td>
                 <td className={styles.labelValue} colSpan={2}>
-                  {seq.name} - {seq.displayTitle}
+                  {seq.displayTitle}
                 </td>
               </tr>
               <tr>
