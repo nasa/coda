@@ -23,15 +23,17 @@ import { clearGPSTracks } from "store/gps";
 import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
-import { changeTime } from "store/playhead";
+import { changeTime, start } from "store/playhead";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock);
 
-export function HamburgerMenu() {
+export function LoaderHelpMenu() {
+  const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(true);
 
   const closeModalCB = () => {
     setIsOpen(false);
+    dispatch(start()); // start playback when help menu closes
   };
 
   return (
@@ -221,7 +223,7 @@ export default function Header() {
     <div className={styles.main}>
       <div className={styles.left}>
         <div className={styles.item}>
-          <HamburgerMenu />
+          <LoaderHelpMenu />
         </div>
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />

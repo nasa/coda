@@ -4,9 +4,8 @@ export const initialState: PlayheadState = {
   // assume a 00:00:00Z start
   seconds: 0,
   date: null,
-  isRunning: true,
-  // assume a user wants the timeline to play as soon as they load the application
-  ready: true,
+  isRunning: false,
+  ready: false,
 };
 
 export const playheadSlice = createSlice({

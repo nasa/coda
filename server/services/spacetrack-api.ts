@@ -8,7 +8,7 @@ import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { getTimes } from "utils/suncalc";
 import fetchWithCache from "./cache-client";
 
-const { getSatelliteInfo } = require("tle.js/dist/tlejs.cjs");
+import { getSatelliteInfo } from "tle.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";

@@ -6,11 +6,11 @@ import {
   AccordionItemPanel,
 } from "react-accessible-accordion";
 
-/** CSS is at /public/team-accordion-styles.css */
+/** CSS is at /public/accordion-styles.css */
 
-export default function AboutTeam() {
+export default function AboutAccordion() {
   return (
-    <Accordion>
+    <Accordion allowZeroExpanded={true}>
       <AccordionItem>
         <AccordionItemHeading>
           <AccordionItemButton>The Team</AccordionItemButton>

@@ -130,54 +130,41 @@ export default function StatusArea(props: { largeDisplay: boolean; loadedCB?: Fu
   } else {
     return (
       <>
-        <div className={`${styles.largeContainer}`}>
-          <div className={styles.leftSection}>
-            <div className={styles.largeHeadline}>Loading external data...</div>
-            <div className={styles.largeBody}>
-              <div className={styles.largeBodyText}>
-                All data presented by CODA is housed in external systems. CODA retrieves data from
-                each system that pertains to the selected event.
-              </div>
-            </div>
-          </div>
-          <div className={styles.rightSection}>
-            <table className={styles.largeStatusTable}>
-              <tbody>
-                <tr>
-                  <td>Imagery Online:</td>
-                  <td>Video</td>
-                  <td title={"Video " + videoStatus.message}>
-                    <span className={`${styles.statusLarge} ${videoStatus.classname}`}></span>
-                  </td>
-                  <td>Photos</td>
-                  <td title={"Photo " + photoStatus.message}>
-                    <span className={`${styles.statusLarge} ${photoStatus.classname}`}></span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Wiki:</td>
-                  <td>Events</td>
-                  <td title={"EVAs " + sequenceStatus.message}>
-                    <span className={`${styles.statusLarge} ${sequenceStatus.classname}`}></span>
-                  </td>
-                  <td>GPS</td>
-                  <td title={"GPS track " + gpsStatus.message}>
-                    <span className={`${styles.statusLarge} ${gpsStatus.classname}`}></span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Orbit:</td>
-                  <td>Ephemeris</td>
-                  <td title={"Orbit ephemera " + ephemeraStatus.message}>
-                    <span className={`${styles.statusLarge} ${ephemeraStatus.classname}`}></span>
-                  </td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <table className={styles.largeStatusTable}>
+          <tbody>
+            <tr>
+              <td>Imagery Online:</td>
+              <td>Video</td>
+              <td title={"Video " + videoStatus.message}>
+                <span className={`${styles.statusLarge} ${videoStatus.classname}`}></span>
+              </td>
+              <td>Photos</td>
+              <td title={"Photo " + photoStatus.message}>
+                <span className={`${styles.statusLarge} ${photoStatus.classname}`}></span>
+              </td>
+            </tr>
+            <tr>
+              <td>Wiki:</td>
+              <td>Events</td>
+              <td title={"EVAs " + sequenceStatus.message}>
+                <span className={`${styles.statusLarge} ${sequenceStatus.classname}`}></span>
+              </td>
+              <td>GPS</td>
+              <td title={"GPS track " + gpsStatus.message}>
+                <span className={`${styles.statusLarge} ${gpsStatus.classname}`}></span>
+              </td>
+            </tr>
+            <tr>
+              <td>Orbit:</td>
+              <td>Ephemeris</td>
+              <td title={"Orbit ephemera " + ephemeraStatus.message}>
+                <span className={`${styles.statusLarge} ${ephemeraStatus.classname}`}></span>
+              </td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
       </>
     );
   }
