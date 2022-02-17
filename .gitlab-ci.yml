@@ -120,7 +120,6 @@ test:
       - ./coverage/cobertura-coverage.xml
       - ./test/cases/*
 
-
 build:
   stage: priority
   needs: ["install_dependencies"]
@@ -187,10 +186,15 @@ build:
   image: node:14 # Can't use Alpine Linux here without changing the apt-get commands above
   stage: deploy_to_server
   script:
+    ## Stop the CODA server
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      echo -e '\nStop the server' &&
+      sudo systemctl stop coda"
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
     - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
 
-    # check dependencies then wait 5 seconds to prevent issue #101 before restarting the server
+    # check dependencies then wait 5 seconds to prevent issue #101 before starting the server
     - >
       ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
       cd /opt/fitbox/apps/coda &&
@@ -200,7 +204,7 @@ build:
 
       sleep 5 &&
 
-      echo -e '\nRestart the server' &&
+      echo -e '\nStart the server' &&
       sudo systemctl daemon-reload &&
       sudo systemctl restart coda"
 
