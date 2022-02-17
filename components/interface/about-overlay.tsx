@@ -123,7 +123,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB
                         onChange={checkCloseAutomatically}
                       />
                     </label>
-                    Close automatically when all data is loaded
+                    Close automatically when finished loading
                   </div>
                 </div>
               </div>
