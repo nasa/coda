@@ -22,7 +22,8 @@ import { clearGPSTracks } from "store/gps";
 
 import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { changeTime } from "store/playhead";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock);
 
@@ -126,16 +127,89 @@ export function DatetimeDropdown() {
 
 export function Clock() {
   const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
+  const dispatch = useDispatch();
 
-  const time = hhmmssFromSeconds(playheadSeconds);
+  const [renderTime, setRenderTime] = useState("00:00:00");
+  const [userTimeValue, setUserTimeValue] = useState("");
+  const [editingTime, setEditingTime] = useState(false);
+
+  const timeInput = useRef(null);
+
+  useEffect(() => {
+    setRenderTime(hhmmssFromSeconds(playheadSeconds));
+  }, [playheadSeconds]);
+
+  /** Navigates to a new time */
+  const handleTimeChange = () => {
+    if (userTimeValue !== "") {
+      const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
+      const newTime = +ss + 60 * +mm + 3600 * +hh;
+      dispatch(changeTime(newTime));
+      setRenderTime(userTimeValue);
+    }
+
+    setUserTimeValue("");
+    setEditingTime(false);
+  };
+
+  const handleCancel = () => {
+    setUserTimeValue("");
+    setEditingTime(false);
+  };
+
+  const timeButtonsDisplay = editingTime ? "flex" : "none";
 
   return (
     <div className={styles.timeContainer}>
-      <div className={`${styles.iconWithText} ${styles.verticalCenter}`}>
-        <div>
+      <div className={styles.timeInputContainer}>
+        <div className={`${styles.iconWithText} ${styles.clockIconContainer}`}>
           <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
         </div>
-        <div className={styles.time}>{time}Z</div>
+        <input
+          ref={timeInput}
+          type="text"
+          size={8}
+          placeholder="hh:mm:ss"
+          title="GMT"
+          className={styles.timeField}
+          id="missionTime"
+          name="missionTime"
+          value={editingTime ? userTimeValue : renderTime}
+          // allow HH:MM or HH:MM:SS
+          pattern="^(?:(?:([01]?\d|2[0-3]):[0-5]\d))(?::[0-5]\d)?$"
+          onFocus={() => {
+            setEditingTime(true);
+            setUserTimeValue(renderTime);
+          }}
+          onChange={(e) => setUserTimeValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleTimeChange();
+            }
+          }}
+        />
+        <div className={`${styles.timeZulu} ${styles.clockIconContainer}`}>Z</div>
+      </div>
+      <div className={styles.timeButtonsContainer} style={{ display: timeButtonsDisplay }}>
+        <button
+          className={styles.timeButton}
+          style={{ width: "50px" }}
+          onClick={() => {
+            handleCancel();
+          }}
+        >
+          <span className={styles.timeButtonLabel}>Cancel</span>
+        </button>
+        <button
+          className={styles.timeButton}
+          style={{ width: "50px" }}
+          onClick={() => {
+            handleTimeChange();
+          }}
+        >
+          <span className={styles.timeButtonLabel}>Go</span>
+        </button>
       </div>
     </div>
   );
