@@ -65,8 +65,8 @@ export default function EventInfo(props: { frameID: number }) {
       asPerformed.EV2 = getAsPerformedMissionTime(EV2, seq.startDate, activityStartUTCMilliseconds);
     }
     const response = [];
-    for (let i = 0; i < asPerformed.EV1.length; i++) {
-      if (typeof asPerformed[evNum][i].startTimeSeconds !== undefined) {
+    for (let i = 0; i < asPerformed[evNum].length; i++) {
+      if (typeof asPerformed[evNum][i] !== undefined) {
         response.push(
           <div
             key={asPerformed[evNum][i].startTimeSeconds}

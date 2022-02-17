@@ -1,14 +1,9 @@
 import styles from "./about-overlay.module.css";
 import Modal from "react-modal";
-import { useSelector } from "react-redux";
-import { RootState } from "store/index";
-import { useState } from "react";
 import Button from "./button";
 import Link from "next/link";
 
 export default function AboutOverlay(props: { modalIsOpen: boolean }) {
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
-
   return (
     <Modal
       isOpen={props.modalIsOpen}

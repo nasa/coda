@@ -3,7 +3,6 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { faCalendarAlt, faClock } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Button from "components/interface/button";
 import Calendar from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
@@ -29,7 +28,7 @@ import { useState } from "react";
 library.add(faBars, faCalendarAlt, faClock);
 
 export function HamburgerMenu() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <>
