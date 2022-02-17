@@ -10,6 +10,7 @@
     "export": "next export",
     "start": "cross-env NODE_ENV=production next start",
     "test": "jest",
+    "test:all": "npm run lint && npm run tsc && npm run build && npm run test",
     "tsc": "tsc --pretty",
     "lint": "eslint . --color --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --color --fix --ext .js,.jsx,.ts,.tsx",
