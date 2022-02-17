@@ -1,7 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { faCalendarAlt, faClock } from "@fortawesome/free-regular-svg-icons";
+import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Calendar from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
@@ -11,7 +10,7 @@ import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection, Source } from "utils/enums";
-import StatusBar from "./status";
+import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import Share from "components/interface/share";
 import { changeSource } from "store/framework";
@@ -25,10 +24,14 @@ import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useState } from "react";
 
-library.add(faBars, faCalendarAlt, faClock);
+library.add(faQuestionCircle, faCalendarAlt, faClock);
 
 export function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(true);
+
+  const closeModalCB = () => {
+    setIsOpen(false);
+  };
 
   return (
     <>
@@ -39,10 +42,10 @@ export function HamburgerMenu() {
         }}
       >
         <div className={styles.verticalCenter}>
-          <FontAwesomeIcon icon="bars" />
+          <FontAwesomeIcon icon="question-circle" />
         </div>
       </div>
-      <AboutOverlay modalIsOpen={isOpen} />
+      <AboutOverlay modalIsOpen={isOpen} closeModalCB={closeModalCB} />
     </>
   );
 }
@@ -167,7 +170,7 @@ export default function Header() {
           <Share />
         </div>
         <div className={styles.item}>
-          <StatusBar />
+          <StatusArea largeDisplay={false} />
         </div>
         <div className={styles.verticalCenter}>
           <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />

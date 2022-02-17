@@ -9,6 +9,8 @@ import "../styles.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 
+import "/public/team-accordion-styles.css";
+
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }: AppProps) {
   config.autoAddCss = false; // Tell Font Awesome to skip adding the CSS automatically since we did it manually above.

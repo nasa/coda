@@ -42,6 +42,8 @@
     "paper": "^0.12.15",
     "postcss": "^8.2.14",
     "react": "^17.0.2",
+    "react-accessible-accordion": "^4.0.0",
+    "react-cookie": "^4.1.1",
     "react-dom": "^17.0.2",
     "react-lazy-load-image-component": "^1.5.1",
     "react-modal": "^3.13.1",

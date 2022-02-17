@@ -4,16 +4,13 @@ import { RootState } from "store/index";
 import { useEffect, useState } from "react";
 import { GPSState } from "store/gps";
 import { LoadingStatusEnum } from "utils/enums";
-import Modal from "react-modal";
 
-export default function StatusBar() {
+export default function StatusArea(props: { largeDisplay: boolean; loadedCB?: Function }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
-
-  const [modalIsOpen, setIsOpen] = useState(true);
 
   const [videoStatus, setVideoStatus] = useState({
     message: "",
@@ -68,7 +65,6 @@ export default function StatusBar() {
       gps.loadingStatus === LoadingStatusEnum.LOADING ||
       ephemera.loadingStatus === LoadingStatusEnum.LOADING
     ) {
-      setIsOpen(true);
     } else {
       if (
         videoStatus.classname === styles.error ||
@@ -78,17 +74,21 @@ export default function StatusBar() {
         ephemeraStatus.classname === styles.error
       ) {
         const timer = setTimeout(() => {
-          setIsOpen(false);
+          if (props.loadedCB) {
+            props.loadedCB(true);
+          }
         }, 3000);
         return () => clearTimeout(timer);
       } else {
-        setIsOpen(false);
+        if (props.loadedCB) {
+          props.loadedCB(true);
+        }
       }
     }
-  }, [modalIsOpen, videoStatus, photoStatus, sequenceStatus, gpsStatus, ephemeraStatus]);
+  }, [videoStatus, photoStatus, sequenceStatus, gpsStatus, ephemeraStatus]);
 
-  return (
-    <>
+  if (!props.largeDisplay) {
+    return (
       <div className={`${styles.container}`}>
         <table className={styles.statusTable}>
           <tbody>
@@ -126,58 +126,61 @@ export default function StatusBar() {
           </tbody>
         </table>
       </div>
-      <Modal
-        isOpen={modalIsOpen}
-        className={styles.loadingModalWrapper}
-        overlayClassName={styles.modalOverlay}
-        contentLabel="Share"
-        ariaHideApp={false}
-      >
-        <div className={styles.modalHeadline}>Retrieving external data...</div>
-        <div className={styles.modalBody}>
-          <div className={styles.modalBodyText}>
-            All data presented by CODA is housed in external systems. CODA retrieves data from each
-            system that pertains to the selected event.
+    );
+  } else {
+    return (
+      <>
+        <div className={`${styles.largeContainer}`}>
+          <div className={styles.leftSection}>
+            <div className={styles.largeHeadline}>Loading external data...</div>
+            <div className={styles.largeBody}>
+              <div className={styles.largeBodyText}>
+                All data presented by CODA is housed in external systems. CODA retrieves data from
+                each system that pertains to the selected event.
+              </div>
+            </div>
           </div>
-          <table className={styles.modalStatusTable}>
-            <tbody>
-              <tr>
-                <td>Imagery Online:</td>
-                <td>Video</td>
-                <td title={"Video " + videoStatus.message}>
-                  <span className={`${styles.statusModal} ${videoStatus.classname}`}></span>
-                </td>
-                <td>Photos</td>
-                <td title={"Photo " + photoStatus.message}>
-                  <span className={`${styles.statusModal} ${photoStatus.classname}`}></span>
-                </td>
-              </tr>
-              <tr>
-                <td>Wiki:</td>
-                <td>Events</td>
-                <td title={"EVAs " + sequenceStatus.message}>
-                  <span className={`${styles.statusModal} ${sequenceStatus.classname}`}></span>
-                </td>
-                <td>GPS</td>
-                <td title={"GPS track " + gpsStatus.message}>
-                  <span className={`${styles.statusModal} ${gpsStatus.classname}`}></span>
-                </td>
-              </tr>
-              <tr>
-                <td>Orbit:</td>
-                <td>Ephemeris</td>
-                <td title={"Orbit ephemera " + ephemeraStatus.message}>
-                  <span className={`${styles.statusModal} ${ephemeraStatus.classname}`}></span>
-                </td>
-                <td></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
+          <div className={styles.rightSection}>
+            <table className={styles.largeStatusTable}>
+              <tbody>
+                <tr>
+                  <td>Imagery Online:</td>
+                  <td>Video</td>
+                  <td title={"Video " + videoStatus.message}>
+                    <span className={`${styles.statusLarge} ${videoStatus.classname}`}></span>
+                  </td>
+                  <td>Photos</td>
+                  <td title={"Photo " + photoStatus.message}>
+                    <span className={`${styles.statusLarge} ${photoStatus.classname}`}></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Wiki:</td>
+                  <td>Events</td>
+                  <td title={"EVAs " + sequenceStatus.message}>
+                    <span className={`${styles.statusLarge} ${sequenceStatus.classname}`}></span>
+                  </td>
+                  <td>GPS</td>
+                  <td title={"GPS track " + gpsStatus.message}>
+                    <span className={`${styles.statusLarge} ${gpsStatus.classname}`}></span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Orbit:</td>
+                  <td>Ephemeris</td>
+                  <td title={"Orbit ephemera " + ephemeraStatus.message}>
+                    <span className={`${styles.statusLarge} ${ephemeraStatus.classname}`}></span>
+                  </td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </Modal>
-    </>
-  );
+      </>
+    );
+  }
 
   function createStatus(
     loadingStatus: LoadingStatusEnum,

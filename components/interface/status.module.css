@@ -59,7 +59,7 @@
   background-position: center;
 }
 
-.statusModal {
+.statusLarge {
   width: 14px;
   min-height: 14px;
   display: inline-block;
@@ -92,7 +92,7 @@
   background-image: url(/images/icon_status_check_yellow.svg);
 }
 
-.loadingModalWrapper {
+.loadingLargeWrapper {
   position: absolute;
   background: #0f0f0f;
   border: 2px solid #eeeeee;
@@ -109,7 +109,7 @@
   outline: none;
 }
 
-.modalOverlay {
+.largeOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -119,27 +119,43 @@
   z-index: 10;
 }
 
-.modalHeadline {
+.largeContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  border: 1px solid #eeeeee;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.leftSection {
+  min-width: 400px;
+  flex: 1;
+}
+
+.rightSection {
+  flex: 1;
+}
+
+.largeHeadline {
   font-size: 1.5em;
   color: #eeeeee;
   text-align: left;
   padding-bottom: 5px;
 }
 
-.modalBody {
+.largeBody {
   font-size: 1em;
   box-sizing: border-box;
   float: left;
-  padding-bottom: 10px;
   width: 100%;
 }
 
-.modalBodyText {
-  padding-bottom: 10px;
+.largeBodyText {
   color: #999999;
 }
 
-.modalStatusTable {
+.largeStatusTable {
   width: 100%;
   font-weight: 200;
   text-align: right;
@@ -147,30 +163,30 @@
   border-collapse: collapse;
 }
 
-.modalStatusTable tr {
+.largeStatusTable tr {
   border-bottom: 1px solid #696969;
 }
 
-.modalStatusTable td {
+.largeStatusTable td {
   padding: 5px;
   border-bottom: 1px solid #696969;
   white-space: nowrap;
 }
 
-.modalStatusTable td:first-child {
+.largeStatusTable td:first-child {
   font-weight: 400;
 }
 
-.modalStatusTable td:nth-child(2) {
+.largeStatusTable td:nth-child(2) {
   padding-left: 10px;
 }
 
-.modalStatusTable td:nth-child(2),
-.modalStatusTable td:nth-child(4) {
+.largeStatusTable td:nth-child(2),
+.largeStatusTable td:nth-child(4) {
   padding-right: 1px;
 }
 
-.modalStatusTable td:nth-child(3),
-.modalStatusTable td:nth-child(5) {
+.largeStatusTable td:nth-child(3),
+.largeStatusTable td:nth-child(5) {
   padding-left: 1px;
 }
