@@ -13,18 +13,14 @@
 }
 
 .accordion__button {
-  background-color: rgb(121, 121, 121);
-  color: rgb(31, 31, 31);
+  background-color: #4a4c57;
+  color: #fff;
   cursor: pointer;
   padding: 10px;
   width: 100%;
   text-align: left;
   border: none;
   border-radius: 6px;
-}
-
-.accordion__button:hover {
-  background-color: rgb(197, 197, 197);
 }
 
 .accordion__button:before {

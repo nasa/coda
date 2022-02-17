@@ -9,7 +9,7 @@ import "../styles.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 
-import "/public/team-accordion-styles.css";
+import "/public/accordion-styles.css";
 
 // This default export is required in a new `pages/_app.js` file.
 export default function App({ Component, pageProps }: AppProps) {

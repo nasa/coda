@@ -119,42 +119,6 @@
   z-index: 10;
 }
 
-.largeContainer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  border: 1px solid #eeeeee;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-.leftSection {
-  min-width: 400px;
-  flex: 1;
-}
-
-.rightSection {
-  flex: 1;
-}
-
-.largeHeadline {
-  font-size: 1.5em;
-  color: #eeeeee;
-  text-align: left;
-  padding-bottom: 5px;
-}
-
-.largeBody {
-  font-size: 1em;
-  box-sizing: border-box;
-  float: left;
-  width: 100%;
-}
-
-.largeBodyText {
-  color: #999999;
-}
-
 .largeStatusTable {
   width: 100%;
   font-weight: 200;

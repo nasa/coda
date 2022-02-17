@@ -4,8 +4,9 @@
   border: 2px solid #eeeeee;
   border-radius: 15px;
   box-sizing: border-box;
-  width: 95%;
-  height: 90%;
+  width: 80%;
+  height: 80%;
+  min-width: 885px;
   top: 50%;
   left: 50%;
   right: auto;
@@ -46,6 +47,8 @@
 }
 
 .leftSection {
+  display: flex;
+  flex-direction: column;
   flex: 0 0 450px;
   background-color: rgba(65, 65, 65, 0.5);
   padding: 30px;
@@ -57,6 +60,11 @@
   width: 390px;
 }
 
+.accordionWrapper {
+  margin-top: auto;
+  overflow-y: auto;
+}
+
 .rightSection {
   display: flex;
   flex-direction: column;
@@ -66,29 +74,76 @@
 
 .loadingArea {
   flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
 .loading {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: space-around;
-  height: 100%;
   max-width: 800px;
-  margin: auto;
+  flex-wrap: wrap;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.loadingLeftSection {
+  min-width: 400px;
+  flex: 1;
+}
+
+.loadingRightSection {
+  flex: 1;
+}
+
+.largeHeadline {
+  font-size: 1.5em;
+  color: #eeeeee;
+  text-align: left;
+  padding-bottom: 5px;
+}
+
+.largeBody {
+  font-size: 1em;
+  box-sizing: border-box;
+  float: left;
+  width: 100%;
+}
+
+.largeBodyText {
+  color: #999999;
 }
 
 .closeArea {
-  display: flex;
-  flex-direction: row;
+  width: 100%;
 }
 .closeItem {
-  flex: 1;
-  line-height: 2.3em;
+  margin-top: 10px;
+}
+
+.closeButtonX {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 30;
+  background-color: black;
 }
 
 .helpArea {
   padding-top: 20px;
   flex: 1;
+  border-top: 1px solid #eeeeee;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .helpCallout {
@@ -137,6 +192,7 @@
   background-size: 150px 38px;
   margin-bottom: 4px;
   margin-right: 13px;
+  cursor: pointer;
 }
 
 .verticalCenter {
