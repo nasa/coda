@@ -96,6 +96,22 @@ dependency-check:
       - "./dependency-check-report.html"
       - "./dependency-check-report.json"
 
+npm-audit:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
+  tags: ["docker", "linux"]
+  timeout: 5 minutes
+  allow_failure: true
+  script:
+    - npm audit --json > npm-audit-report.json && echo "No vulnerabilities found" || npm audit
+  artifacts:
+    # Saving artifacts always forces them to be saved on failure as well as success
+    when: always
+    # Save the JSON formatted results as an artifact
+    paths:
+      - "./npm-audit-report.json"
+
 install_dependencies:
   stage: priority
   tags: ["docker", "linux"]

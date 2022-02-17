@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+   <!--
+   No current suppressions
    <suppress>
       <notes><![CDATA[
       file name: browserslist:4.16.1
@@ -7,4 +9,5 @@
       <packageUrl regex="true">^pkg:npm/browserslist@.*$</packageUrl>
       <cpe>cpe:/a:browserslist_project:browserslist</cpe>
    </suppress>
+   -->
 </suppressions>
