@@ -29,11 +29,21 @@ interface Panes {
   [key: string]: Pane;
 }
 
+type PaneTypeComponentSet = {
+  controls: Function;
+  pane: Function;
+};
+
+type PaneTypeComponentSets = {
+  [key: string]: PaneTypeComponentSet;
+};
+
 interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
   source: Source;
   /** Letter representing the layout as defined in components/framework/frames.module.css */
   layout: string;
+  layoutLastChanged: number; // milliseconds since epoch
   /** Current mapping of visible frames to Frame types */
   frames: FrameState;
 }

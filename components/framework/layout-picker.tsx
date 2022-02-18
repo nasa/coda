@@ -1,11 +1,13 @@
 import _ from "lodash";
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "store/index";
 import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 
 export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {
+  const frameworkState = useSelector((state: RootState) => state.framework);
   const dispatch = useDispatch();
 
   /**
@@ -60,7 +62,9 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
       <div className={styles.layouts}>
         {_.map(allLayouts, (layout, index) => (
           <div
-            className={styles.layout}
+            className={`${styles.layout} ${
+              index === frameworkState.layout ? styles.layoutselected : ""
+            }`}
             onClick={(e) => handleSelectLayout(e, index)}
             key={`LAYOUT_${index}`}
           >

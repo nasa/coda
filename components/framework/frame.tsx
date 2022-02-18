@@ -46,24 +46,35 @@ export function FrameHeader(props: { frameID: number; paneType: string; children
   );
 }
 
-const frameTypeIDsToRenders = {
-  video_downlink: VideoPane,
-  video_non_downlink: VideoPane,
-  photo: PhotoPane,
-  photo_all: PhotoAllPane,
-  iss_location: ISSLocation,
-  gps_location: GPSLocation,
-  event_info: EventInfo,
-};
-
-const frameTypeIDsToControls = {
-  video_downlink: VideoDLPaneControls,
-  video_non_downlink: VideoOtherPaneControls,
-  photo: PhotoControls,
-  photo_all: PhotoAllControls,
-  iss_location: ISSLocationControls,
-  gps_location: GPSLocationControls,
-  event_info: EventInfoControls,
+const frameTypeIDsToPanes: PaneTypeComponentSets = {
+  video_downlink: {
+    controls: VideoDLPaneControls,
+    pane: VideoPane,
+  },
+  video_non_downlink: {
+    controls: VideoOtherPaneControls,
+    pane: VideoPane,
+  },
+  photo: {
+    controls: PhotoControls,
+    pane: PhotoPane,
+  },
+  photo_all: {
+    controls: PhotoAllControls,
+    pane: PhotoAllPane,
+  },
+  iss_location: {
+    controls: ISSLocationControls,
+    pane: ISSLocation,
+  },
+  gps_location: {
+    controls: GPSLocationControls,
+    pane: GPSLocation,
+  },
+  event_info: {
+    controls: EventInfoControls,
+    pane: EventInfo,
+  },
 };
 
 /** Identify the frame */
@@ -96,8 +107,8 @@ export default function Frame(options) {
   let FrameRender = null;
   let FrameControls = null;
   if (!_.isNil(paneType)) {
-    FrameRender = frameTypeIDsToRenders[paneType];
-    FrameControls = frameTypeIDsToControls[paneType];
+    FrameRender = frameTypeIDsToPanes[paneType].pane;
+    FrameControls = frameTypeIDsToPanes[paneType].controls;
   }
 
   /** get component width and pass it to the frame controls */
@@ -121,10 +132,12 @@ export default function Frame(options) {
           : []
       );
     }, 500);
-    window.addEventListener("resize", debouncedHandleResize);
+    frameRef.current.addEventListener("resize", debouncedHandleResize);
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      if (frameRef.current) {
+        frameRef.current.removeEventListener("resize", debouncedHandleResize);
+      }
     };
   }, []);
 

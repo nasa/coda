@@ -200,6 +200,7 @@ export const defaultFrames: FrameState = {
  */
 export const initialState: FrameworkState = {
   layout: "j",
+  layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: Source.ISS,
 };
@@ -213,6 +214,7 @@ export const frameworkSlice = createSlice({
      */
     changeLayout: (state, action: { payload: string }) => {
       state.layout = action.payload;
+      state.layoutLastChanged = Date.now();
     },
 
     /**

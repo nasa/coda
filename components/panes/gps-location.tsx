@@ -58,7 +58,7 @@ export function GPSLocationControls(props: { frameID: number }) {
   );
 }
 
-export default function GPSLocation(props: { frameID: number }) {
+export default function GPSLocation(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
@@ -98,6 +98,7 @@ export default function GPSLocation(props: { frameID: number }) {
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
+  const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
   const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
@@ -134,6 +135,13 @@ export default function GPSLocation(props: { frameID: number }) {
 
     if (!map) initializeMap(setMap, mapContainer);
   }, [map]);
+
+  //redraw the map when the frame dimension change due to window resize or a layout change
+  useEffect(() => {
+    if (map) {
+      map.resize();
+    }
+  }, [props.frameDimensions, layoutLastChanged]);
 
   //update map GPS markers
   useEffect(() => {
