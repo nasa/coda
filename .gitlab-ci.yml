@@ -218,11 +218,21 @@ build:
       echo -e '\nInstall dependencies' &&
       npm i &&
 
-      sleep 5 &&
-
+      sleep 5"
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      cd /opt/fitbox/apps/coda &&
       echo -e '\nStart the server' &&
       sudo systemctl daemon-reload &&
-      sudo systemctl start coda"
+      sudo systemctl start coda &&
+      sleep 5"
+
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      cd /opt/fitbox/apps/coda &&
+      echo -e '\nRetart the server  because there's probably a 500 error' &&
+      sudo systemctl daemon-reload &&
+      sudo systemctl restart coda"
 
 deploy_to_dev1:
   extends: .deploy_template

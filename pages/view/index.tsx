@@ -13,25 +13,33 @@ import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
   addSequences,
+  clearSequences,
   fetchError as sequencesFetchError,
   setSequenceLoadingStatus,
 } from "store/sequences";
 import useInterval from "utils/useInterval";
 import { Collection, LoadingStatusEnum, SourceShortVal } from "utils/enums";
-import { addVideos, setVideoLoadingStatus, fetchError as videosFetchError } from "store/videos";
+import {
+  addVideos,
+  setVideoLoadingStatus,
+  fetchError as videosFetchError,
+  clearVideos,
+} from "store/videos";
 import {
   addPhotos,
   setCollectionFilters,
   setPhotoLoadingStatus,
   fetchError as photosFetchError,
+  clearPhotos,
 } from "store/photos";
 import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
-import { gpsFetchError, setGpsLoadingStatus, setGPSTracks } from "store/gps";
+import { clearGPSTracks, gpsFetchError, setGpsLoadingStatus, setGPSTracks } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
 import {
   setEphemeraLoadingStatus,
   fetchError as ephemeraFetchError,
   addEphemera,
+  clearEphemera,
 } from "store/ephemera";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -222,6 +230,13 @@ export function V2(props: { urlState }) {
       const year = d.getUTCFullYear();
       const month = d.getUTCMonth() + 1;
       const day = d.getUTCDate();
+
+      // clear all stores
+      dispatch(clearEphemera());
+      dispatch(clearGPSTracks());
+      dispatch(clearPhotos());
+      dispatch(clearSequences());
+      dispatch(clearVideos());
 
       // populate the sequence store
       populateSequenceStore(Collection[source]);
