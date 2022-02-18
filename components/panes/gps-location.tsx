@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import ReactDOM from "react-dom";
 import deepEqual from "lodash/isEqual";
 import { RootState } from "store/index";
-import { GPSState } from "store/gps";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
 
 import styles from "./gps-location.module.css";
