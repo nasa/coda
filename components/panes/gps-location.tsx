@@ -236,37 +236,24 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     }
 
     const gpsTracks = gpsState.gpsTracks;
-    //loop through the gps track objects (EV1, EV2, Cart, and LightCart)
-    for (let track = 0; track < gpsTracks.length; track++) {
-      const gpsTrack = gpsTracks[track];
-      const newCoordinates: LngLatLike[] = [];
-      for (let x = 0; x < gpsTrack.points.length; x++) {
-        const thisCoordinate: LngLatLike = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
-        newCoordinates.push(thisCoordinate);
+    // Set a delay to get around buggy mapbox not dealing with sources properly
+    setTimeout(() => {
+      //loop through the gps track objects (EV1, EV2, Cart, and LightCart)
+      for (let track = 0; track < gpsTracks.length; track++) {
+        const gpsTrack = gpsTracks[track];
+        const newCoordinates: LngLatLike[] = [];
+        for (let x = 0; x < gpsTrack.points.length; x++) {
+          const thisCoordinate: LngLatLike = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
+          newCoordinates.push(thisCoordinate);
+        }
+
+        const trackName = gpsTrack.name;
+        trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
+
+        // @ts-ignore: bad mapbox typing
+        map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
       }
-
-      const trackName = gpsTrack.name;
-      let trackColor = "green"; //if this color appears, then something went wrong
-      let lineWidth = 2;
-      if (trackName === "EV1") {
-        trackColor = "red";
-        lineWidth = 4;
-      } else if (trackName === "EV2") {
-        trackColor = "blue";
-        lineWidth = 4;
-      } else if (trackName === "Cart") {
-        trackColor = "black";
-        lineWidth = 2;
-      } else if (trackName === "LightCart") {
-        trackColor = "yellow";
-        lineWidth = 2;
-      }
-
-      trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
-
-      // @ts-ignore: bad mapbox typing
-      map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
-    }
+    }, 500);
   }, [map, gpsState.gpsTracks]);
 
   function addMapSources(thisMap: mapboxgl.Map) {
