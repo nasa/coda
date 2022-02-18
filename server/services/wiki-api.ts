@@ -263,7 +263,7 @@ function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
       console.error("color not found: " + colorString);
     }
     const activity: Activity = {
-      content: results[r].printouts["Has text title"][0],
+      content: results[r].printouts["Has text title"][0].replace("[[", "").replace("]]", ""),
       duration: durationTotalSeconds,
       color: colorString,
     };

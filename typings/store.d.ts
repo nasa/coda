@@ -71,3 +71,10 @@ type VideosEntityState = EntityState<VideoFile> & {
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
+
+/** GPS Store */
+type GPSState = {
+  gpsTracks: GPSTrack[];
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
+};

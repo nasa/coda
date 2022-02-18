@@ -2,10 +2,9 @@ import { useSelector } from "react-redux";
 import styles from "./status.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
-import { GPSState } from "store/gps";
 import { LoadingStatusEnum } from "utils/enums";
 
-export default function StatusArea(props: { largeDisplay: boolean; loadedCB?: Function }) {
+export default function StatusArea(props: { largeDisplay: boolean }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
@@ -56,36 +55,6 @@ export default function StatusArea(props: { largeDisplay: boolean; loadedCB?: Fu
       createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ids.length > 0)
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
-
-  useEffect(() => {
-    if (
-      videos.loadingStatus === LoadingStatusEnum.LOADING ||
-      photos.loadingStatus === LoadingStatusEnum.LOADING ||
-      sequences.loadingStatus === LoadingStatusEnum.LOADING ||
-      gps.loadingStatus === LoadingStatusEnum.LOADING ||
-      ephemera.loadingStatus === LoadingStatusEnum.LOADING
-    ) {
-    } else {
-      if (
-        videoStatus.classname === styles.error ||
-        photoStatus.classname === styles.error ||
-        sequenceStatus.classname === styles.error ||
-        gpsStatus.classname === styles.error ||
-        ephemeraStatus.classname === styles.error
-      ) {
-        const timer = setTimeout(() => {
-          if (props.loadedCB) {
-            props.loadedCB(true);
-          }
-        }, 3000);
-        return () => clearTimeout(timer);
-      } else {
-        if (props.loadedCB) {
-          props.loadedCB(true);
-        }
-      }
-    }
-  }, [videoStatus, photoStatus, sequenceStatus, gpsStatus, ephemeraStatus]);
 
   if (!props.largeDisplay) {
     return (

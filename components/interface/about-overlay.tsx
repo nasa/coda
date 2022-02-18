@@ -3,18 +3,53 @@ import Modal from "react-modal";
 import StatusArea from "./status";
 import AboutAccordion from "./about-accordion";
 import { useEffect, useState } from "react";
+import React from "react";
 import { useCookies } from "react-cookie";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { useSelector } from "react-redux";
+import { RootState } from "store/index";
+import { LoadingStatusEnum } from "utils/enums";
+
+/** hack to remove spurious error
+ * https://stackoverflow.com/a/62791682/3533496
+ */
+React.useLayoutEffect = React.useEffect;
 
 library.add(faTimesCircle);
 
-export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB: Function }) {
+export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOpen: Function }) {
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const gps: GPSState = useSelector((state: RootState) => state.gps);
+  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+
   const [isLoaded, setIsLoaded] = useState(false);
   const [closeAutomatically, setCloseAutomatically] = useState(false);
 
   const [cookies, setCookie] = useCookies(["CODA_CloseAutomatically"]);
+
+  useEffect(() => {
+    if (
+      videos.loadingStatus === LoadingStatusEnum.LOADING ||
+      photos.loadingStatus === LoadingStatusEnum.LOADING ||
+      sequences.loadingStatus === LoadingStatusEnum.LOADING ||
+      gps.loadingStatus === LoadingStatusEnum.LOADING ||
+      ephemera.loadingStatus === LoadingStatusEnum.LOADING
+    ) {
+      setIsLoaded(false);
+    } else {
+      setIsLoaded(true);
+    }
+  }, [
+    videos.loadingStatus,
+    photos.loadingStatus,
+    sequences.loadingStatus,
+    gps.loadingStatus,
+    ephemera.loadingStatus,
+  ]);
 
   useEffect(() => {
     if (cookies["CODA_CloseAutomatically"] === "true") {
@@ -25,14 +60,10 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB
   }, []);
 
   useEffect(() => {
-    if (closeAutomatically) {
-      props.closeModalCB();
+    if (isLoaded && closeAutomatically) {
+      props.setModalIsOpen(false);
     }
   }, [isLoaded, closeAutomatically]);
-
-  const loadedCB = () => {
-    setIsLoaded(true);
-  };
 
   const checkCloseAutomatically = () => {
     const newVal = !closeAutomatically;
@@ -40,7 +71,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB
     setCookie("CODA_CloseAutomatically", newVal.toString(), { path: "/" });
   };
 
-  const closeButtonXDisplay = isLoaded ? "block" : "none";
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
 
   return (
@@ -54,30 +84,16 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB
       <div className={styles.main}>
         <div
           className={styles.closeButtonX}
-          style={{ display: closeButtonXDisplay }}
+          style={{ display: `${isLoaded === true ? "block" : "none"}` }}
           onClick={() => {
-            props.closeModalCB();
+            props.setModalIsOpen(false);
           }}
         >
-          <FontAwesomeIcon icon="times-circle" size="lg" />
+          <FontAwesomeIcon icon="times-circle" size="2x" />
         </div>
         <div className={styles.container}>
           <div className={styles.leftSection}>
             <div className={styles.logo}>
-              <div
-                className={styles.verticalCenter}
-                onClick={() => {
-                  window.open(
-                    "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
-                    "_blank"
-                  );
-                }}
-              >
-                <span className={styles.logoEmss}></span>
-              </div>
-              <div className={styles.verticalCenter}>
-                <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
-              </div>
               <div
                 className={styles.verticalCenter}
                 style={{ cursor: "pointer" }}
@@ -86,6 +102,20 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB
                 }}
               >
                 <span className={styles.wordMark}>CODA</span>
+              </div>
+              <div className={styles.logoRight}>
+                <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+                <div
+                  className={styles.logoEmssWrapper}
+                  onClick={() => {
+                    window.open(
+                      "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
+                      "_blank"
+                    );
+                  }}
+                >
+                  <span className={styles.logoEmss}></span>
+                </div>
               </div>
             </div>
             <div className={styles.description}>
@@ -125,7 +155,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; closeModalCB
                   </div>
                   <div className={styles.loadingRightSection}>
                     <div className={styles.rightSection}>
-                      <StatusArea largeDisplay={true} loadedCB={loadedCB} />
+                      <StatusArea largeDisplay={true} />
                     </div>
                   </div>
                   <div className={styles.closeArea}>

@@ -23,7 +23,7 @@ import { clearGPSTracks } from "store/gps";
 import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
-import { changeTime, start } from "store/playhead";
+import { changeTime, halt, start } from "store/playhead";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock);
 
@@ -31,9 +31,13 @@ export function LoaderHelpMenu() {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(true);
 
-  const closeModalCB = () => {
-    setIsOpen(false);
-    dispatch(start()); // start playback when help menu closes
+  const setModalIsOpen = (val: boolean) => {
+    setIsOpen(val);
+    if (val === false) {
+      dispatch(start()); // start playback when help menu closes
+    } else {
+      dispatch(halt()); // stop playback when help menu opens
+    }
   };
 
   return (
@@ -48,7 +52,7 @@ export function LoaderHelpMenu() {
           <FontAwesomeIcon icon="question-circle" />
         </div>
       </div>
-      <AboutOverlay modalIsOpen={isOpen} closeModalCB={closeModalCB} />
+      <AboutOverlay modalIsOpen={isOpen} setModalIsOpen={setModalIsOpen} />
     </>
   );
 }
@@ -249,17 +253,32 @@ export default function Header() {
           <StatusArea largeDisplay={false} />
         </div>
         <div className={styles.verticalCenter}>
-          <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+          <span
+            className={styles.wordMark}
+            onClick={() => {
+              window.open("https://wiki.jsc.nasa.gov/exploration/index.php/CODA", "_blank");
+            }}
+            title="More info about Collaborative Operations Data Activation (CODA)"
+          >
+            CODA
+          </span>
         </div>
-        <div className={styles.verticalCenter}>
-          <span className={styles.wordMark}>CODA</span>
-        </div>
-        <div className={styles.verticalCenter} style={{ color: "var(--lightest-grey)" }}>
-          {/* TODO: this should be a skinny line, not a pipe character */}
-          <span className={styles.wordMark}>|</span>
-        </div>
-        <div className={styles.verticalCenter}>
-          <span className={styles.logoEmss}></span>
+        <div className={styles.logoRight}>
+          <div>
+            <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+          </div>
+          <div
+            className={styles.logoEmssWrapper}
+            onClick={() => {
+              window.open(
+                "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
+                "_blank"
+              );
+            }}
+            title="More info about EVA Mission System Software (EMSS)"
+          >
+            <span className={styles.logoEmss}></span>
+          </div>
         </div>
       </div>
     </div>
