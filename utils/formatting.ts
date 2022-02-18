@@ -134,17 +134,42 @@ export function getJulianDate(date: Date): string {
   return `${year}/${jd}`;
 }
 
+const stripParens = (str: string): string => {
+  if (str[0] === "(" && str[str.length - 1] === ")") {
+    return str.slice(1, -1);
+  }
+  return str;
+};
+
 /** Cleans EVA titles from the wiki */
-export function cleansEVATitleFromWiki(title: string, evaName: string) {
-  let displayTitle = title.replace("US EVA ", "");
-  const evaNum = evaName.split(" ")[2];
-  displayTitle = title.replace(`${evaNum} `, "");
-  displayTitle = displayTitle === evaNum ? "" : displayTitle;
-  displayTitle =
-    displayTitle.substring(0, 1) === "(" ? displayTitle.replace("(", "") : displayTitle;
-  displayTitle =
-    displayTitle.substring(displayTitle.length - 1) === ")"
-      ? displayTitle.replace(")", "")
-      : displayTitle;
-  return displayTitle;
-}
+export const formatEVADisplayTitle = ({
+  pageName,
+  descriptiveTitle,
+}: {
+  pageName: string;
+  descriptiveTitle: string;
+}): string => {
+  const regexWithNum = /^(U|R)S EVA \d+[A-Z]*/; // US EVA 55 or US EVA 55A (optional letter)
+  const regexWithoutNum = /^(U|R)S EVA/;
+
+  // Both name and display title start like US EVA 55
+  if (regexWithNum.test(pageName) && regexWithNum.test(descriptiveTitle)) {
+    const title = stripParens(descriptiveTitle.replace(regexWithNum, "").trim());
+    return `${pageName}${title ? " - " + title : ""}`; // could look inside parenthetical here and only display that
+
+    // only name starts like US EVA 55
+  } else if (regexWithNum.test(pageName)) {
+    const title = regexWithoutNum.test(descriptiveTitle)
+      ? descriptiveTitle.replace(regexWithoutNum, "").trim()
+      : descriptiveTitle;
+    return `${pageName} - ${stripParens(title)}`;
+
+    // This is a weird case where display title has numbers but page name does not.
+  } else if (regexWithNum.test(descriptiveTitle)) {
+    return descriptiveTitle;
+
+    // No EVA numbers, just use page name
+  } else {
+    return pageName; // if neither have number, I think just the page name makes sense
+  }
+};

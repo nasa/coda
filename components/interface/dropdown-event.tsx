@@ -88,7 +88,7 @@ export default function EventDropdown(props: { collection: Collection }) {
             .map((eva) => {
               return (
                 <option key={eva.name + eva.startDate} value={eva.startDate}>
-                  {eva.name} - {eva.displayTitle}
+                  {eva.displayTitle}
                 </option>
               );
             })
