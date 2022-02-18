@@ -31,7 +31,16 @@
 }
 
 .layout {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  padding: 4px;
+}
+
+.layout:hover {
+  outline: 1px solid #fff;
+}
+
+.layoutselected {
+  outline: 1px solid #fff;
 }
 
 .layout:last-of-type {
