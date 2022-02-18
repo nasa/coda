@@ -226,28 +226,120 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
 
   //Display GPS tracks on map
   useEffect(() => {
-    if (!map || gpsState.gpsTracks.length === 0) return;
+    if (!map) return;
 
-    //add a timeout to fix buggy mapboxgl not displaying tracks randomly
-    const timer = setTimeout(() => {
-      const gpsTracks = gpsState.gpsTracks;
-      //loop through the gps track objects (EV1, EV2, Cart, and LightCart)
-      for (let track = 0; track < gpsTracks.length; track++) {
-        const gpsTrack = gpsTracks[track];
-        const newCoordinates: LngLatLike[] = [];
-        for (let x = 0; x < gpsTrack.points.length; x++) {
-          const thisCoordinate: LngLatLike = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
-          newCoordinates.push(thisCoordinate);
-        }
+    if (gpsState.gpsTracks.length === 0) {
+      removeMapLayers(map);
+      return;
+    } else {
+      addMapLayers(map);
+    }
 
-        const trackName = gpsTrack.name;
-        trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
-        // @ts-ignore: bad mapbox typing
-        map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
+    const gpsTracks = gpsState.gpsTracks;
+    //loop through the gps track objects (EV1, EV2, Cart, and LightCart)
+    for (let track = 0; track < gpsTracks.length; track++) {
+      const gpsTrack = gpsTracks[track];
+      const newCoordinates: LngLatLike[] = [];
+      for (let x = 0; x < gpsTrack.points.length; x++) {
+        const thisCoordinate: LngLatLike = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
+        newCoordinates.push(thisCoordinate);
       }
-      clearTimeout(timer);
-    }, 100);
+
+      const trackName = gpsTrack.name;
+      let trackColor = "green"; //if this color appears, then something went wrong
+      let lineWidth = 2;
+      if (trackName === "EV1") {
+        trackColor = "red";
+        lineWidth = 4;
+      } else if (trackName === "EV2") {
+        trackColor = "blue";
+        lineWidth = 4;
+      } else if (trackName === "Cart") {
+        trackColor = "black";
+        lineWidth = 2;
+      } else if (trackName === "LightCart") {
+        trackColor = "yellow";
+        lineWidth = 2;
+      }
+
+      trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
+
+      // @ts-ignore: bad mapbox typing
+      map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
+    }
   }, [map, gpsState.gpsTracks]);
+
+  function addMapSources(thisMap: mapboxgl.Map) {
+    thisMap.addSource("trackEV1Source", {
+      type: "geojson",
+      data: trackFeatures.EV1,
+    });
+    thisMap.addSource("trackEV2Source", {
+      type: "geojson",
+      data: trackFeatures.EV2,
+    });
+    thisMap.addSource("trackCartSource", {
+      type: "geojson",
+      data: trackFeatures.Cart,
+    });
+    thisMap.addSource("trackLightCartSource", {
+      type: "geojson",
+      data: trackFeatures.Cart,
+    });
+  }
+
+  function addMapLayers(thisMap: mapboxgl.Map) {
+    thisMap.addLayer({
+      id: "trackEV1Layer",
+      type: "line",
+      source: "trackEV1Source",
+      paint: {
+        "line-color": "red",
+        "line-opacity": 0.3,
+        "line-width": 4,
+      },
+    });
+
+    thisMap.addLayer({
+      id: "trackEV2Layer",
+      type: "line",
+      source: "trackEV2Source",
+      paint: {
+        "line-color": "blue",
+        "line-opacity": 0.3,
+        "line-width": 4,
+      },
+    });
+
+    thisMap.addLayer({
+      id: "trackCartLayer",
+      type: "line",
+      source: "trackCartSource",
+      paint: {
+        "line-color": "black",
+        "line-opacity": 0.3,
+        "line-width": 2,
+      },
+    });
+
+    thisMap.addLayer({
+      id: "trackLightCartLayer",
+      type: "line",
+      source: "trackLightCartSource",
+      paint: {
+        "line-color": "yellow",
+        "line-opacity": 0.3,
+        "line-width": 2,
+      },
+    });
+  }
+
+  function removeMapLayers(thisMap: mapboxgl.Map) {
+    thisMap.removeLayer("trackEV1Layer");
+    thisMap.removeLayer("trackEV2Layer");
+    thisMap.removeLayer("trackCartLayer");
+    thisMap.removeLayer("trackLightCartLayer");
+  }
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
@@ -272,65 +364,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       };
       setMapMarkers(newMarkers);
 
-      thisMap.addSource("trackEV1Source", {
-        type: "geojson",
-        data: trackFeatures.EV1,
-      });
-      thisMap.addLayer({
-        id: "trackEV1Layer",
-        type: "line",
-        source: "trackEV1Source",
-        paint: {
-          "line-color": "red",
-          "line-opacity": 0.3,
-          "line-width": 4,
-        },
-      });
-
-      thisMap.addSource("trackEV2Source", {
-        type: "geojson",
-        data: trackFeatures.EV2,
-      });
-      thisMap.addLayer({
-        id: "trackEV2Layer",
-        type: "line",
-        source: "trackEV2Source",
-        paint: {
-          "line-color": "blue",
-          "line-opacity": 0.3,
-          "line-width": 4,
-        },
-      });
-
-      thisMap.addSource("trackCartSource", {
-        type: "geojson",
-        data: trackFeatures.Cart,
-      });
-      thisMap.addLayer({
-        id: "trackCartLayer",
-        type: "line",
-        source: "trackCartSource",
-        paint: {
-          "line-color": "black",
-          "line-opacity": 0.3,
-          "line-width": 2,
-        },
-      });
-
-      thisMap.addSource("trackLightCartSource", {
-        type: "geojson",
-        data: trackFeatures.Cart,
-      });
-      thisMap.addLayer({
-        id: "trackLightCartLayer",
-        type: "line",
-        source: "trackLightCartSource",
-        paint: {
-          "line-color": "yellow",
-          "line-opacity": 0.3,
-          "line-width": 2,
-        },
-      });
+      addMapSources(thisMap);
+      addMapLayers(thisMap);
 
       thisMap.addControl(new mapboxgl.NavigationControl(), "top-right");
       thisMap.addControl(new mapboxgl.ScaleControl(), "top-left");
