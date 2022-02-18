@@ -10,8 +10,38 @@ import {
 
 export default function AboutAccordion() {
   return (
-    <Accordion allowZeroExpanded={true}>
-      <AccordionItem>
+    <Accordion allowZeroExpanded={true} preExpanded={["links"]}>
+      <AccordionItem uuid="links">
+        <AccordionItemHeading>
+          <AccordionItemButton>Useful Links</AccordionItemButton>
+        </AccordionItemHeading>
+        <AccordionItemPanel>
+          <ul>
+            <li>
+              <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA"} target={"_blank"}>
+                About CODA
+              </a>
+            </li>
+            <li>
+              <a
+                href={"https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software"}
+                target={"_blank"}
+              >
+                About the EMSS effort
+              </a>
+            </li>
+            <li>
+              <a
+                href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA/Awesome_Videos"}
+                target={"_blank"}
+              >
+                CODA Links to awesome moments
+              </a>
+            </li>
+          </ul>
+        </AccordionItemPanel>
+      </AccordionItem>
+      <AccordionItem uuid="team">
         <AccordionItemHeading>
           <AccordionItemButton>The Team</AccordionItemButton>
         </AccordionItemHeading>
@@ -42,28 +72,6 @@ export default function AboutAccordion() {
             <li>
               <div className={"creditHeading"}>Matthew Miller</div>
               <div>Project Management</div>
-            </li>
-          </ul>
-        </AccordionItemPanel>
-      </AccordionItem>
-      <AccordionItem>
-        <AccordionItemHeading>
-          <AccordionItemButton>Useful Links</AccordionItemButton>
-        </AccordionItemHeading>
-        <AccordionItemPanel>
-          <ul>
-            <li>
-              <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA"} target={"_blank"}>
-                CODA Exploration Wiki Page
-              </a>
-            </li>
-            <li>
-              <a
-                href={"https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software"}
-                target={"_blank"}
-              >
-                EMSS Exploration Wiki Page
-              </a>
             </li>
           </ul>
         </AccordionItemPanel>

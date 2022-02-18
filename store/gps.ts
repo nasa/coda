@@ -1,12 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { LoadingStatusEnum } from "utils/enums";
 
-export interface GPSState {
-  gpsTracks: GPSTrack[];
-  cacheMetadata: CacheMetadata;
-  loadingStatus: LoadingStatusEnum;
-}
-
 export const initialState: GPSState = {
   gpsTracks: [],
   cacheMetadata: null,
@@ -36,9 +30,5 @@ export const gpsSlice = createSlice({
   },
 });
 
-export const {
-  setGPSTracks,
-  clearGPSTracks,
-  gpsFetchError,
-  setGpsLoadingStatus,
-} = gpsSlice.actions;
+export const { setGPSTracks, clearGPSTracks, gpsFetchError, setGpsLoadingStatus } =
+  gpsSlice.actions;
