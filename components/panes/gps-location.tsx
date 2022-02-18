@@ -356,7 +356,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
+            setPaneStateValue(dispatch, frameID, "lockMap", false);
           }}
         >
           {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}

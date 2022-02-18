@@ -369,7 +369,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
+            setPaneStateValue(dispatch, frameID, "lockMap", false);
           }}
         ></div>
         <HelpOverlay
