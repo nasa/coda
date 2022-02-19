@@ -230,7 +230,7 @@ build:
     - >
       ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
       cd /opt/fitbox/apps/coda &&
-      echo -e '\nRestart the server  ecause there\'s probably a 500 error' &&
+      echo -e '\nRestart the server  ecause there is probably a 500 error' &&
       sudo systemctl daemon-reload &&
       sudo systemctl restart coda"
 
