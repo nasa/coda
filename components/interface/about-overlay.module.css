@@ -104,21 +104,39 @@
   flex: 1;
 }
 
-.largeHeadline {
-  font-size: 1.5em;
-  color: #eeeeee;
-  text-align: left;
+.headerHeadlineContainer {
+  display: flex;
   padding-bottom: 5px;
 }
 
-.largeBody {
+.headerHeadline {
+  font-size: 1.5em;
+  color: #eeeeee;
+  text-align: left;
+}
+
+.headerGoButton {
+  background-color: var(--lightest-grey);
+  color: #fff;
+  display: block;
+  width: 120px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  margin-left: 10px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.headerBody {
   font-size: 1em;
   box-sizing: border-box;
   float: left;
   width: 100%;
 }
 
-.largeBodyText {
+.headerBodyText {
   color: #999999;
 }
 
@@ -127,6 +145,7 @@
 }
 .closeItem {
   margin-top: 10px;
+  color: #eeeeee;
 }
 
 .closeButtonX {

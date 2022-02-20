@@ -72,6 +72,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
   };
 
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
+  const titleShowGoButtonStyle = isLoaded ? "inline-block" : "none";
 
   return (
     <Modal
@@ -145,9 +146,20 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
               <div className={styles.loadingContainer}>
                 <div className={styles.loading}>
                   <div className={styles.loadingLeftSection}>
-                    <div className={styles.largeHeadline}>{titleText}</div>
-                    <div className={styles.largeBody}>
-                      <div className={styles.largeBodyText}>
+                    <div className={styles.headerHeadlineContainer}>
+                      <div className={styles.headerHeadline}>{titleText}</div>
+                      <button
+                        className={styles.headerGoButton}
+                        style={{ display: titleShowGoButtonStyle }}
+                        onClick={() => {
+                          props.setModalIsOpen(false);
+                        }}
+                      >
+                        Start CODA
+                      </button>
+                    </div>
+                    <div className={styles.headerBody}>
+                      <div className={styles.headerBodyText}>
                         All data presented by CODA is housed in external systems. CODA retrieves
                         data from each system that pertains to the selected event.
                       </div>
@@ -174,7 +186,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                           onChange={checkCloseAutomatically}
                         />
                       </label>
-                      Close this window when loading complete
+                      Start CODA automatically when loaded
                     </div>
                   </div>
                 </div>
