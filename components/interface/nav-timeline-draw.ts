@@ -520,6 +520,50 @@ export default class DrawNav {
     return group;
   };
 
+  drawPETMark = (param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsPerSecond: number;
+    leftPx: number;
+    tierTop: number;
+    tierBottom: number;
+    largeLabel: boolean;
+    petTime: number;
+  }): paper.Group => {
+    const group = new paper.Group();
+    // if there is an EVA today, show PET marker
+    if (!isNull(this.evaStartSec)) {
+      const itemLocX = param.leftPx + (param.petTime - param.secondsStart) * param.pixelsPerSecond;
+      let tierTopPoint = new paper.Point(itemLocX, param.tierTop);
+      let tierBottomPoint = new paper.Point(itemLocX, param.tierBottom);
+      let petLine = new paper.Path.Line(tierTopPoint, tierBottomPoint);
+      petLine.strokeColor = new paper.Color("#ffffff");
+      group.addChild(petLine);
+
+      // add some explanatory text
+      const futureText = new paper.PointText({
+        justification: "left",
+        fontFamily: this.gNavigatorFontFamilyActivity,
+        fillColor: "#ffffff",
+        content: "PET Start",
+      });
+      if (param.largeLabel) {
+        const textTop = param.tierBottom - 35;
+        futureText.point = new paper.Point(itemLocX - 33, textTop);
+        futureText.fontSize = 11;
+      } else {
+        // add some small explanatory text
+        const textTop = param.tierBottom - 23;
+        futureText.point = new paper.Point(itemLocX - 25, textTop);
+        futureText.fontSize = 9;
+      }
+      futureText.rotate(-90);
+      group.addChild(futureText);
+    }
+
+    return group;
+  };
+
   drawFuture = (param: {
     secondsStart: number;
     secondsEnd: number;
@@ -656,6 +700,19 @@ export default class DrawNav {
         textTickHeight: 10,
       })
     );
+
+    this.gTier1Group.addChild(
+      this.drawPETMark({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        tierTop: this.gTier1Top,
+        tierBottom: this.gTier1Top + this.gTier1Height,
+        largeLabel: false,
+        petTime: this.evaStartSec,
+      })
+    );
   }
 
   drawTier2() {
@@ -743,6 +800,19 @@ export default class DrawNav {
         textTop: drawingBottom - 12,
         tierTickHeight: drawingHeight,
         textTickHeight: 10,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawPETMark({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        tierTop: this.gTier2Top,
+        tierBottom: this.gTier2Top + this.gTier2Height,
+        largeLabel: true,
+        petTime: this.evaStartSec,
       })
     );
   }

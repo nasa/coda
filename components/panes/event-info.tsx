@@ -11,7 +11,11 @@ import {
   getSequenceStartMilliseconds,
 } from "store/sequences";
 import { SequenceType } from "utils/enums";
-import { hhmmssFromSeconds } from "utils/formatting";
+import {
+  appSecondsFromDateString,
+  hhmmssFromDateString,
+  hhmmssFromSeconds,
+} from "utils/formatting";
 import styles from "./event-info.module.css";
 
 export function EventInfoControls(props: { frameID: number }) {
@@ -104,7 +108,14 @@ export default function EventInfo(props: { frameID: number }) {
                 <td>Timing:</td>
                 <td>
                   <span>PET Start:</span>
-                  <span className={`${styles.labelValue} ${styles.leftPadded}`}>
+                  <span
+                    className={`${styles.labelValue} ${styles.leftPadded} ${styles.petValue}`}
+                    onClick={() => {
+                      dispatch(
+                        changeTime(appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`))
+                      );
+                    }}
+                  >
                     {seq.startTime}Z
                   </span>
                 </td>

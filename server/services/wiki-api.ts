@@ -484,14 +484,14 @@ export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]
       const [yyyy, mm, dd] = eventDate.split("/");
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
-      const displayTitle = `${startDate} ${testEnvironment} / ${flightEnvironment}`;
-
       const rawStartTime = get(
         allTestEvents[testEvent].printouts["UTC Start Date Time"],
         "[0]",
         " 00:00"
       );
       const startTime = rawStartTime.split(" ")[1];
+
+      const displayTitle = `${startDate} ${testEnvironment} / ${flightEnvironment}`;
 
       return {
         name: testEvent,

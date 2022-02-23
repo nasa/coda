@@ -293,9 +293,12 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
  */
 const isAutoplayError = (e: Error): boolean => {
   // every browser displays a different error message
-  const chrome_autoplay_error = /play\(\) failed because the user didn't interact with the document first/i;
-  const firefox_autoplay_error = /The play method is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
-  const safari_autoplay_error = /The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
+  const chrome_autoplay_error =
+    /play\(\) failed because the user didn't interact with the document first/i;
+  const firefox_autoplay_error =
+    /The play method is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
+  const safari_autoplay_error =
+    /The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
 
   const isChromeError = !isNull(e.toString().match(chrome_autoplay_error));
   const isFirefoxError = !isNull(e.toString().match(firefox_autoplay_error));
@@ -641,8 +644,8 @@ export default function VideoPane(props: { frameID: number }) {
                   above the video.
                 </p>
                 <p>
-                  For on-ISS events, Downlink channels have been inferred for common video types for
-                  each event in recurring test envrironments such as the NBL.
+                  For Test and NBL events, downlink channels have been inferred for common video
+                  source types.
                 </p>
               </li>
               <li>

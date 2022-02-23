@@ -123,12 +123,7 @@
   width: 100%;
   font-weight: 200;
   text-align: right;
-  border: 1px solid #696969;
   border-collapse: collapse;
-}
-
-.largeStatusTable tr {
-  border-bottom: 1px solid #696969;
 }
 
 .largeStatusTable td {

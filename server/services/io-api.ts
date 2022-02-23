@@ -152,31 +152,31 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     }
   }
 
-  // if (+Collection[collection] === +Collection.TEST_EVENTS) {
-  //   //modify downlink numbers for test events based on strings in video title on IO
-  //   if (doc.md_title) {
-  //     if (doc.md_title.includes("EV1")) {
-  //       downlink = 0;
-  //     } else if (doc.md_title.includes("EV2")) {
-  //       downlink = 1;
-  //     } else if (doc.md_title.includes("QUAD")) {
-  //       downlink = 2;
-  //     }
-  //   }
-  // } else if (+Collection[collection] === +Collection.NBL) {
-  //   // Modify downlink numbers for nbl collection results based on strings in collections list
-  //   // Look through every collection string in the collection_string array. This covers when NBL runs have been added to multiple collections
-  //   for (let i = 0; i < doc.collections_string.length; i++) {
-  //     const thisCollectionsString = doc.collections_string[i];
-  //     if (thisCollectionsString.includes("EV1")) {
-  //       downlink = 0;
-  //     } else if (thisCollectionsString.includes("EV2")) {
-  //       downlink = 1;
-  //     } else if (thisCollectionsString.includes("QUAD")) {
-  //       downlink = 2;
-  //     }
-  //   }
-  // }
+  if (+Collection[collection] === +Collection.TEST_EVENTS) {
+    //modify downlink numbers for test events based on strings in video title on IO
+    if (doc.md_title) {
+      if (doc.md_title.includes("EV1")) {
+        downlink = 0;
+      } else if (doc.md_title.includes("EV2")) {
+        downlink = 1;
+      } else if (doc.md_title.includes("QUAD")) {
+        downlink = 2;
+      }
+    }
+  } else if (+Collection[collection] === +Collection.NBL) {
+    // Modify downlink numbers for nbl collection results based on strings in collections list
+    // Look through every collection string in the collection_string array. This covers when NBL runs have been added to multiple collections
+    for (let i = 0; i < doc.collections_string.length; i++) {
+      const thisCollectionsString = doc.collections_string[i];
+      if (thisCollectionsString.includes("EV1")) {
+        downlink = 0;
+      } else if (thisCollectionsString.includes("EV2")) {
+        downlink = 1;
+      } else if (thisCollectionsString.includes("QUAD")) {
+        downlink = 2;
+      }
+    }
+  }
 
   // Create array of date elements from creation date
   const dateToUse = doc.vmd_start_gmt || doc.md_creation_date;
