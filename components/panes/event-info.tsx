@@ -11,11 +11,7 @@ import {
   getSequenceStartMilliseconds,
 } from "store/sequences";
 import { SequenceType } from "utils/enums";
-import {
-  appSecondsFromDateString,
-  hhmmssFromDateString,
-  hhmmssFromSeconds,
-} from "utils/formatting";
+import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
 
 export function EventInfoControls(props: { frameID: number }) {
