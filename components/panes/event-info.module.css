@@ -65,6 +65,9 @@
 
 .dataTable .labelValue {
   font-weight: 400;
+}
+
+.dataTable .petValue {
   cursor: pointer;
 }
 

@@ -118,7 +118,7 @@ export default function EventInfo(props: { frameID: number }) {
                 <td>
                   <span>Duration:</span>
                   <span className={`${styles.labelValue} ${styles.leftPadded}`}>
-                    {seq.duration / 60} min
+                    {hhmmssFromSeconds(seq.duration)}
                   </span>
                 </td>
               </tr>
