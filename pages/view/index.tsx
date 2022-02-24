@@ -100,24 +100,25 @@ export function V2(props: { urlState }) {
     // default the time to 08:00:00Z
     let userTime = 8 * 60 * 60;
 
-    // change the time if the user set the `gmt` query param
-    if (!_.isNull(props.urlState.gmt)) {
+    const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+    // change the time if the user set the `gmt` query param and it's in a valid format
+    if (!_.isNull(props.urlState.gmt) && !isNil(props.urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = props.urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
+    } else {
+      // change the time if the sequence has a PET start time
+      const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
+      let evaStartSec = null as number;
+      const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+      if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+        const [hh, mm] = sequence.startTime.split(":");
+        evaStartSec = 3600 * +hh + 60 * +mm;
+        userTime = evaStartSec;
+      }
     }
-
-    // change the time if the sequence has a PET start time
-    const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
-    let evaStartSec = null as number;
-    const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-    if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
-      const [hh, mm] = sequence.startTime.split(":");
-      evaStartSec = 3600 * +hh + 60 * +mm;
-    }
-    userTime = evaStartSec || userTime;
 
     dispatch(changeTime(userTime));
-  }, [playhead]);
+  }, [sequences]);
 
   useEffect(() => {
     // set the framework state if that object was set in getServerSideProps
