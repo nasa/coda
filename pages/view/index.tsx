@@ -100,7 +100,7 @@ export function V2(props: { urlState }) {
     // default the time to 08:00:00Z
     let userTime = 8 * 60 * 60;
 
-    const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+    const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d:[0-9]\d))$/; // matches valid hh:mm:ss times
     // change the time if the user set the `gmt` query param and it's in a valid format
     if (!_.isNull(props.urlState.gmt) && !isNil(props.urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = props.urlState.gmt.split(":").map(Number);
