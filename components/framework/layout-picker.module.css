@@ -1,7 +1,7 @@
 .main {
   background-color: var(--slightly-lighter-grey);
   width: 263px;
-  height: 400px;
+  height: 440px;
   padding: 15px 18px;
   border-radius: var(--radius);
   overflow-y: scroll;
