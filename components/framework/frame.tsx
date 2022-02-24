@@ -47,6 +47,10 @@ export function FrameHeader(props: { frameID: number; paneType: string; children
 }
 
 const frameTypeIDsToPanes: PaneTypeComponentSets = {
+  empty: {
+    controls: () => null,
+    pane: () => null,
+  },
   video_downlink: {
     controls: VideoDLPaneControls,
     pane: VideoPane,
@@ -131,12 +135,12 @@ export default function Frame(options) {
           ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
           : []
       );
-    }, 500);
-    frameRef.current.addEventListener("resize", debouncedHandleResize);
+    }, 50);
+    window.addEventListener("resize", debouncedHandleResize);
 
     return () => {
       if (frameRef.current) {
-        frameRef.current.removeEventListener("resize", debouncedHandleResize);
+        window.removeEventListener("resize", debouncedHandleResize);
       }
     };
   }, []);

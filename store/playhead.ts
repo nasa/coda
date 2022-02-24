@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: PlayheadState = {
-  // assume a 00:00:00Z start
-  seconds: 0,
+  // assume a 08:00:00Z start
+  seconds: 8 * 60 * 60,
   date: null,
   isRunning: false,
   ready: false,

@@ -7,6 +7,7 @@ import { changeDate, diff, isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
+import { Source } from "utils/enums";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -177,6 +178,7 @@ export function CalendarDate({
 
 /** Renders a calendar */
 export default function Calendar({ closeClick }: { closeClick?: () => void }) {
+  const framework = useSelector((state: RootState) => state.framework);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
 
@@ -272,8 +274,9 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       </div>
       <div className={styles.events}>
         <div className={styles.labels}>
-          <span className={`${styles.orange}`}>•</span> EVA &nbsp;&nbsp;
-          <span className={`${styles.aqua}`}>•</span> IVA or Other Event
+          <span className={`${styles.orange}`}>•</span>
+          <span style={{ margin: "5px" }}>{framework.source === Source.ISS ? "EVA" : "Event"}</span>
+          {/* <span className={`${styles.aqua}`}>•</span> IVA or Other Event */}
         </div>
       </div>
     </div>

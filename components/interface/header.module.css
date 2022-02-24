@@ -10,6 +10,16 @@
   display: flex;
 }
 
+.eventDropdownWrapper {
+  width: 300px;
+}
+
+@media (max-width: 1287px) {
+  .eventDropdownWrapper {
+    width: 100px;
+  }
+}
+
 .right {
   display: flex;
   justify-content: flex-end;

@@ -229,9 +229,6 @@ export default function Header() {
         <div className={styles.item}>
           <LoaderHelpMenu />
         </div>
-        <div className={styles.item} style={{ width: "80px" }}>
-          <LayoutDropdown />
-        </div>
         <div className={styles.item} style={{ width: "140px" }}>
           <SourcesDropdown />
         </div>
@@ -241,8 +238,11 @@ export default function Header() {
         <div className={styles.item} style={{ width: "130px" }}>
           <Clock />
         </div>
-        <div className={styles.item} style={{ width: "300px" }}>
+        <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
           <EventDropdown collection={Collection[source]} />
+        </div>
+        <div className={styles.item} style={{ width: "80px" }}>
+          <LayoutDropdown />
         </div>
       </div>
       <div className={styles.right}>

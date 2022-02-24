@@ -2,7 +2,7 @@ import Head from "next/head";
 import Header from "components/interface/header";
 import Viewer from "components/framework/frames";
 import styles from "./index.module.css";
-import _ from "lodash";
+import _, { isNil } from "lodash";
 import Timeline from "components/interface/nav-timeline";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
@@ -15,6 +15,8 @@ import {
   addSequences,
   clearSequences,
   fetchError as sequencesFetchError,
+  idFromDate,
+  sequencesSelector,
   setSequenceLoadingStatus,
 } from "store/sequences";
 import useInterval from "utils/useInterval";
@@ -52,8 +54,11 @@ import { Source } from "utils/enums";
 
 export function V2(props: { urlState }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
+  const playhead = useSelector((state: RootState) => state.playhead);
+  const playheadDate = playhead.date;
   const source = useSelector((state: RootState) => state.framework.source);
+  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  let allEVAs = sequencesSelector.selectAll(sequences);
 
   const dispatch = useDispatch();
 
@@ -92,8 +97,8 @@ export function V2(props: { urlState }) {
 
   useEffect(() => {
     // make sure the application is running on the correct time
-    // default the time to 00:00:00Z
-    let userTime = 0;
+    // default the time to 08:00:00Z
+    let userTime = 8 * 60 * 60;
 
     // change the time if the user set the `gmt` query param
     if (!_.isNull(props.urlState.gmt)) {
@@ -101,8 +106,18 @@ export function V2(props: { urlState }) {
       userTime = hh * 3600 + mm * 60 + ss;
     }
 
+    // change the time if the sequence has a PET start time
+    const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
+    let evaStartSec = null as number;
+    const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+    if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+      const [hh, mm] = sequence.startTime.split(":");
+      evaStartSec = 3600 * +hh + 60 * +mm;
+    }
+    userTime = evaStartSec || userTime;
+
     dispatch(changeTime(userTime));
-  }, []);
+  }, [playhead]);
 
   useEffect(() => {
     // set the framework state if that object was set in getServerSideProps
@@ -221,38 +236,36 @@ export function V2(props: { urlState }) {
 
   // populate store when date or source change
   useEffect(() => {
-    (async () => {
-      if (_.isNull(playheadDate) || _.isNull(source)) {
-        return;
-      }
+    if (_.isNull(playheadDate) || _.isNull(source)) {
+      return;
+    }
 
-      const d = new Date(playheadDate);
-      const year = d.getUTCFullYear();
-      const month = d.getUTCMonth() + 1;
-      const day = d.getUTCDate();
+    const d = new Date(playheadDate);
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
 
-      // clear all stores
-      dispatch(clearEphemera());
-      dispatch(clearGPSTracks());
-      dispatch(clearPhotos());
-      dispatch(clearSequences());
-      dispatch(clearVideos());
+    // clear all stores
+    dispatch(clearEphemera());
+    dispatch(clearGPSTracks());
+    dispatch(clearPhotos());
+    dispatch(clearSequences());
+    dispatch(clearVideos());
 
-      // populate the sequence store
-      populateSequenceStore(Collection[source]);
+    // populate the sequence store
+    populateSequenceStore(Collection[source]);
 
-      // populate the video store
-      populateVideoStore(year, month, day, Collection[source], false);
+    // populate the video store
+    populateVideoStore(year, month, day, Collection[source], false);
 
-      // populage the photo store
-      populatePhotoStore(year, month, day, Collection[source]);
+    // populage the photo store
+    populatePhotoStore(year, month, day, Collection[source]);
 
-      // populate the ephemeris store
-      populateEphemerisStore(year, month, day, Collection[source]);
+    // populate the ephemeris store
+    populateEphemerisStore(year, month, day, Collection[source]);
 
-      // populate GPS store
-      populateGPSStore(year, month, day, Collection[source]);
-    })();
+    // populate GPS store
+    populateGPSStore(year, month, day, Collection[source]);
   }, [playheadDate, source]);
 
   // look for new videos every 5 minutes if the user is looking at today's date
