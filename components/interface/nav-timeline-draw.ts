@@ -541,7 +541,7 @@ export default class DrawNav {
       group.addChild(petLine);
 
       // add some explanatory text
-      const futureText = new paper.PointText({
+      const petText = new paper.PointText({
         justification: "left",
         fontFamily: this.gNavigatorFontFamilyActivity,
         fillColor: "#ffffff",
@@ -549,16 +549,30 @@ export default class DrawNav {
       });
       if (param.largeLabel) {
         const textTop = param.tierBottom - 35;
-        futureText.point = new paper.Point(itemLocX - 33, textTop);
-        futureText.fontSize = 11;
+        petText.point = new paper.Point(itemLocX - 33, textTop);
+        petText.fontSize = 11;
       } else {
         // add some small explanatory text
         const textTop = param.tierBottom - 23;
-        futureText.point = new paper.Point(itemLocX - 25, textTop);
-        futureText.fontSize = 9;
+        petText.point = new paper.Point(itemLocX - 25, textTop);
+        petText.fontSize = 9;
       }
-      futureText.rotate(-90);
-      group.addChild(futureText);
+      petText.rotate(-90);
+
+      let textRect = new paper.Rectangle(petText.bounds);
+      textRect.height = param.tierBottom - param.tierTop;
+      textRect.top = param.tierTop;
+      if (param.largeLabel) {
+        textRect.width += 4;
+        textRect.left += -3;
+      } else {
+        textRect.left += -1;
+      }
+      let textRectPath = new paper.Path.Rectangle(textRect);
+      textRectPath.fillColor = new paper.Color("black");
+      textRectPath.opacity = 0.4;
+      group.addChild(textRectPath);
+      group.addChild(petText);
     }
 
     return group;
