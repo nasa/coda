@@ -131,10 +131,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
             </div>
             <div className={styles.videoContainer}>
               <video className={styles.video} muted controls>
-                <source
-                  src="https://gitlab.fit.nasa.gov/coda/coda/-/wikis/uploads/f9f2a00730f8f9d7628cd946c334f4b2/spacex.mp4"
-                  type="video/mp4"
-                />
+                <source src="https://emss-labs.fit.nasa.gov/public/coda-quick-tour.mp4" />
               </video>
             </div>
             <div className={styles.accordionWrapper}>
