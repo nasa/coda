@@ -128,10 +128,10 @@
   margin-top: auto;
   margin-bottom: auto;
   cursor: pointer;
-  animation: blinker_orange 1s linear infinite;
+  animation: blinker 1s linear infinite;
 }
 
-@keyframes blinker_orange {
+@keyframes blinker {
   50% {
     /*opacity: 0.2;*/
     border: 1px solid var(--even-greyer);
