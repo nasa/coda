@@ -88,17 +88,6 @@ export interface Options {
 
 const headerContainerHeight = 35;
 
-function debounce(fn, ms) {
-  let timer;
-  return (_) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      timer = null;
-      fn.apply(this);
-    }, ms);
-  };
-}
-
 /** Renders a frame in the viewer */
 export default function Frame(options) {
   const frameState = useSelector((state: RootState) => state.framework.frames[options.id]);
