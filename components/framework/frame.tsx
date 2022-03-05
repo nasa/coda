@@ -120,30 +120,23 @@ export default function Frame(options) {
   const frameRef = useRef(null);
 
   useEffect(() => {
-    setFrameDimensions(
-      frameRef.current
-        ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
-        : []
-    );
-  }, [frameRef]);
-
-  /** Handle resize events and rerender components */
-  useEffect(() => {
-    const debouncedHandleResize = debounce(function handleResize() {
+    function handleResize() {
       setFrameDimensions(
         frameRef.current
           ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
           : []
       );
-    }, 50);
-    window.addEventListener("resize", debouncedHandleResize);
+    }
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
       if (frameRef.current) {
-        window.removeEventListener("resize", debouncedHandleResize);
+        window.removeEventListener("resize", handleResize);
       }
     };
-  }, []);
+  }, [frameRef]);
 
   return (
     <div className={styles.main} ref={frameRef}>

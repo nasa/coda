@@ -1,5 +1,5 @@
 import _ from "lodash";
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -62,7 +62,7 @@ export default function PanePickerModal({
   options: { frameID: number };
 }) {
   const source = useSelector((state: RootState) => state.framework.source);
-  const [availablePanes, setAvailablePanes] = React.useState([]);
+  const [availablePanes, setAvailablePanes] = useState([]);
 
   const dispatch = useDispatch();
 

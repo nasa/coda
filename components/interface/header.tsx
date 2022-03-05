@@ -1,10 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Calendar from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
+import PresetPicker from "components/framework/preset-picker";
 import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
@@ -25,7 +27,7 @@ import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
 
-library.add(faQuestionCircle, faCalendarAlt, faClock);
+library.add(faQuestionCircle, faCalendarAlt, faClock, faBolt);
 
 export function LoaderHelpMenu() {
   const dispatch = useDispatch();
@@ -78,6 +80,16 @@ export function LayoutDropdown() {
     <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
       <div className={layoutStyles.layoutIconContainer}>
         <div className={`${mainStyleName} ${layoutStyles[`layout_${layout}`]}`}>{frames}</div>
+      </div>
+    </ModalDropdown>
+  );
+}
+
+export function PresetDropdown() {
+  return (
+    <ModalDropdown modal={PresetPicker} color="grey" caret="down">
+      <div className={`${styles.verticalCenter} ${styles.preset}`}>
+        <FontAwesomeIcon icon="bolt" />
       </div>
     </ModalDropdown>
   );
@@ -243,6 +255,9 @@ export default function Header() {
         </div>
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
+        </div>
+        <div className={styles.item} style={{ width: "60px" }}>
+          <PresetDropdown />
         </div>
       </div>
       <div className={styles.right}>

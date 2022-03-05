@@ -6,6 +6,12 @@ interface Layouts {
   };
 }
 
+interface Preset {
+  name: string;
+  layout: string;
+  frames: FrameState;
+}
+
 enum Source {
   ISS = "ISS",
   TEST_EVENTS = "TEST_EVENTS",

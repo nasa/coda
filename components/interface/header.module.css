@@ -14,7 +14,7 @@
   width: 300px;
 }
 
-@media (max-width: 1287px) {
+@media (max-width: 1351px) {
   .eventDropdownWrapper {
     width: 100px;
   }
@@ -239,4 +239,8 @@
   top: 10px;
   right: 10px;
   pointer-events: none;
+}
+
+.preset {
+  padding-left: 10px;
 }
