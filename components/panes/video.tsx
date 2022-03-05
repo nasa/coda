@@ -68,6 +68,29 @@ export function ExpandButton() {
 }
 
 function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateData }) {
+  const frames = useSelector((state: RootState) => state.framework.frames);
+
+  /**
+   * When unmuting, we need to make this pane the only video pane that is unmuted and mute the others.
+   */
+  function handleMuteButtonClick() {
+    // If we're already muted, unmute this video pane and mute the other video panes.
+    if (props.paneStateData.muted) {
+      for (const [key, value] of Object.entries(frames)) {
+        if (value.paneType.includes("video")) {
+          if (parseInt(key) !== frameID) {
+            setPaneStateValue(dispatch, key, "muted", true);
+          } else {
+            setPaneStateValue(dispatch, frameID, "muted", false);
+          }
+        }
+      }
+    } else {
+      // If we're not muted, mute this video pane
+      setPaneStateValue(dispatch, frameID, "muted", true);
+    }
+  }
+
   const dispatch = useDispatch();
   const frameID = props.frameID;
   return (
@@ -83,7 +106,7 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
       <div className={styles.verticalCenter} style={{ width: "30px" }}>
         <MuteButton
           clickHandler={() => {
-            setPaneStateValue(dispatch, frameID, "muted", !props.paneStateData.muted);
+            handleMuteButtonClick();
           }}
           muted={props.paneStateData.muted}
         />
