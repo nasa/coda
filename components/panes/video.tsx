@@ -676,6 +676,7 @@ export default function VideoPane(props: { frameID: number }) {
     let ioVideoURL = "";
     let openVideoURLMessage = "";
     let videoFilename = "";
+    let title = "";
     let startDateTime = "";
     let openOnIOMessage = "";
     let info = "";
@@ -686,6 +687,7 @@ export default function VideoPane(props: { frameID: number }) {
       ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
       openVideoURLMessage = `Open video file directly at ${hhmmssFromSeconds(videoStartOffset)}`;
       openOnIOMessage = `Open on IO`;
+      title = currentlyPlayingVideo.title;
       startDateTime = new Date(currentlyPlayingVideo.startDateTime).toUTCString();
       info = currentlyPlayingVideo.description;
     }
@@ -694,6 +696,10 @@ export default function VideoPane(props: { frameID: number }) {
         <div className={`${styles.vidOverlay} ${styles.videoOverlayVisible}`}>
           <table className={styles.overlayTable}>
             <tbody>
+              <tr>
+                <td>Title</td>
+                <td>{title}</td>
+              </tr>
               <tr>
                 <td>Date Added</td>
                 <td>{startDateTime}</td>
