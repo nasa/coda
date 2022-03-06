@@ -44,7 +44,7 @@
 }
 
 .accordion__panel {
-  padding: 20px;
+  padding: 10px;
   animation: fadein 0.35s ease-in;
   color: #abaaae;
 }
@@ -58,6 +58,7 @@
 
 .accordion__panel ul {
   list-style-position: outside;
+  list-style: none;
   margin: 0;
   padding-left: 5px;
 }
@@ -73,6 +74,10 @@
 
 .accordion__panel .smallText {
   font-size: 0.8em;
+}
+
+.accordion__panel .teamName {
+  color: white;
 }
 
 .accordion__panel a:hover {

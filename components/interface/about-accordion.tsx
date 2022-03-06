@@ -32,7 +32,7 @@ export default function AboutAccordion() {
             </li>
             <li>
               <a
-                href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA/Awesome_Videos"}
+                href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA/Awesome_Moments"}
                 target={"_blank"}
               >
                 CODA Links to awesome moments
@@ -48,7 +48,11 @@ export default function AboutAccordion() {
         <AccordionItemPanel>
           <ul>
             <li>
-              <div className={"creditHeading"}>Benjamin Feist</div>
+              <div className={"creditHeading"}>
+                <a className={"teamName"} href={"mailto:benjamin.f.feist@nasa.gov"}>
+                  Benjamin Feist
+                </a>
+              </div>
               <div>
                 Concept, Software Engineering
                 <br />{" "}
@@ -58,19 +62,35 @@ export default function AboutAccordion() {
               </div>
             </li>
             <li>
-              <div className={"creditHeading"}>David Charney</div>
+              <div className={"creditHeading"}>
+                <a className={"teamName"} href={"mailto:david.w.charney@nasa.gov"}>
+                  David Charney
+                </a>
+              </div>
               <div>Interaction and Visual Design</div>
             </li>
             <li>
-              <div className={"creditHeading"}>Cameron Pittman</div>
-              <div>Software Engineering</div>
+              <div className={"creditHeading"}>
+                <a className={"teamName"} href={"mailto:cameron.w.pittman@nasa.gov"}>
+                  Cameron Pittman
+                </a>
+              </div>
+              <div>Software Architecture</div>
             </li>
             <li>
-              <div className={"creditHeading"}>James Montalvo</div>
+              <div className={"creditHeading"}>
+                <a className={"teamName"} href={"mailto:edwin.j.montalvo@nasa.gov"}>
+                  James Montalvo
+                </a>
+              </div>
               <div>EMSS Lead, Software Engineering</div>
             </li>
             <li>
-              <div className={"creditHeading"}>Matthew Miller</div>
+              <div className={"creditHeading"}>
+                <a className={"teamName"} href={"mailto:matthew.j.miller-1@nasa.gov"}>
+                  Matthew Miller
+                </a>
+              </div>
               <div>Project Management</div>
             </li>
           </ul>
