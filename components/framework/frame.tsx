@@ -11,7 +11,7 @@ import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "componen
 import PhotoPane, { PhotoControls } from "components/panes/photo";
 import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 
 export interface Options {
@@ -108,7 +108,8 @@ export default function Frame(options) {
   const [frameDimensions, setFrameDimensions] = useState([]);
   const frameRef = useRef(null);
 
-  useEffect(() => {
+  // using useLayoutEffect because it guarantees to fire immediately after the frame has been rendered to the DOM
+  useLayoutEffect(() => {
     function handleResize() {
       setFrameDimensions(
         frameRef.current
