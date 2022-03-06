@@ -1,7 +1,7 @@
 .main {
   background-color: var(--slightly-lighter-grey);
-  width: 263px;
-  height: 240px;
+  width: 100%;
+  height: 450px;
   border-radius: var(--radius);
   overflow-y: auto;
   font-size: 16px;
@@ -16,11 +16,19 @@
   font-size: 18px;
   font-weight: 400;
   line-height: 18px;
-  padding: 15px 15px;
+  padding: 10px 10px;
 }
 
 .close {
   cursor: pointer;
+}
+
+.presetItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .option {
@@ -29,9 +37,26 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  padding: 15px 15px;
+  width: 100%;
 }
 
 .option:hover {
+  background-color: var(--extremely-grey);
+}
+
+.saveUserPreset {
+  margin-top: 10px;
+}
+
+.delete {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.delete:hover {
   background-color: var(--extremely-grey);
 }

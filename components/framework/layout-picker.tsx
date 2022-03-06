@@ -1,13 +1,16 @@
 import _ from "lodash";
-import React from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
+import { HelpButton } from "components/interface/pane-help-control-button";
+import HelpOverlay from "components/interface/pane-help-overlay";
 
 export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {
   const frameworkState = useSelector((state: RootState) => state.framework);
+  const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useDispatch();
 
   /**
@@ -53,6 +56,15 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
     <div className={styles.main}>
       <div className={styles.top}>
         <div>Select a Layout</div>
+        <div>
+          <div className={styles.verticalCenter}>
+            <HelpButton
+              clickHandler={() => {
+                setHelpOpen(!helpOpen);
+              }}
+            />
+          </div>
+        </div>
         {closeClick && (
           <div className={styles.close} onClick={closeClick}>
             ✕
@@ -72,6 +84,23 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
           </div>
         ))}
       </div>
+      <HelpOverlay
+        isModalOpen={helpOpen}
+        closeHandler={() => {
+          setHelpOpen(false);
+        }}
+      >
+        <div>
+          <p>
+            CODA Layouts determines the number of visible application frames and how they are
+            displayed.
+          </p>
+          <p>
+            Changing the layout will not affect the applications currently selected for each frame,
+            it merely rearranges how they are displayed.
+          </p>
+        </div>
+      </HelpOverlay>
     </div>
   );
 }

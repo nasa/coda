@@ -58,10 +58,11 @@ export default function Share() {
         <div className={styles.modalHeadline}>Share this View of Current Playback Time</div>
         <div className={styles.modalBody}>
           <div className={styles.modalBodyText}>
-            This link will open CODA at the currently displayed mission time.
-            <br />
-            The data source, window layout, selected displays, and selections within those displays
-            will be preserved.
+            <p>
+              This link will open CODA at the currently displayed mission time, restoring the data
+              source, frame layout, selected applications, and application settings to their current
+              state.
+            </p>
           </div>
 
           <textarea

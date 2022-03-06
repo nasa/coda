@@ -1,6 +1,6 @@
 export const allPresets: Preset[] = [
   {
-    name: "Default",
+    name: "Default CODA View",
     layout: "j",
     frames: {
       1: {
@@ -56,7 +56,7 @@ export const allPresets: Preset[] = [
     },
   },
   {
-    name: "9-Pack",
+    name: "9-Pack Downlinks",
     layout: "f",
     frames: {
       1: {

@@ -108,23 +108,21 @@ export default function Frame(options) {
   const [frameDimensions, setFrameDimensions] = useState([]);
   const frameRef = useRef(null);
 
+  function handleResize() {
+    setFrameDimensions(
+      frameRef.current
+        ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
+        : []
+    );
+  }
   // using useLayoutEffect because it guarantees to fire immediately after the frame has been rendered to the DOM
   useLayoutEffect(() => {
-    function handleResize() {
-      setFrameDimensions(
-        frameRef.current
-          ? [frameRef.current.offsetWidth, frameRef.current.offsetHeight - headerContainerHeight]
-          : []
-      );
+    if (frameRef.current) {
+      handleResize();
+      window.addEventListener("resize", handleResize);
     }
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-
     return () => {
-      if (frameRef.current) {
-        window.removeEventListener("resize", handleResize);
-      }
+      window.removeEventListener("resize", handleResize);
     };
   }, [frameRef]);
 

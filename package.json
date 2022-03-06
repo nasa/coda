@@ -32,6 +32,7 @@
     "cacache": "^15.3.0",
     "gpxparser": "^3.0.8",
     "lodash": "^4.17.21",
+    "lzutf8": "^0.6.1",
     "mapbox-gl": "^2.7.0",
     "mwbot": "^2.0.0",
     "next": "^12.1.0",
@@ -46,7 +47,8 @@
     "react-redux": "^7.2.6",
     "tle.js": "^4.7.0",
     "tough-cookie-file-store": "^2.0.3",
-    "typescript": "^4.5.5"
+    "typescript": "^4.5.5",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/cacache": "^15.0.1",
@@ -68,7 +70,6 @@
     "eslint": "^8.9.0",
     "eslint-plugin-react": "^7.28.0",
     "jest": "^27.5.1",
-    "jest-canvas-mock": "^2.3.1",
     "prettier": "^2.5.1",
     "ts-jest": "^27.1.3"
   },

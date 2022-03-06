@@ -12,54 +12,11 @@ export interface Options {
   /** `default` or `skinny` */
   size?: string;
   /** `up`, `down`, `left`, or `right` */
+  modalWidth?: number;
   caret?: string;
   callback?: () => void;
   modal?: ({ closeClick, options }: { closeClick?: () => void; options: any }) => JSX.Element;
   modalOptions?: any;
-}
-
-const defaults: Options = {
-  color: "white",
-  callback: () => {},
-};
-
-/** A menu that shows options to choose from */
-export default function Dropdown(options: React.PropsWithChildren<Options>) {
-  const opts = { ...defaults, ...options };
-
-  const [display, setDisplay] = useState(false);
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setDisplay(!display);
-  };
-
-  const colorClass = styles[opts.color];
-  const sizeClass = styles[opts.size];
-
-  return (
-    <div onClick={handleClick}>
-      <select
-        className={`${styles.select} ${styles.main} ${styles.label} ${colorClass} ${sizeClass}`}
-      >
-        <option className={styles.option} value="foo">
-          foo1234
-        </option>
-        <option className={styles.option} value="bar">
-          bar
-        </option>
-        <option className={styles.option} value="baz">
-          baz
-        </option>
-        <option className={styles.option} value="bang">
-          bang
-        </option>
-        <option className={styles.option} value="zip">
-          zip
-        </option>
-      </select>
-    </div>
-  );
 }
 
 const modalDefaults: Options = {
@@ -102,10 +59,11 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
 
   useEffect(() => {
     if (display) {
-      window.addEventListener("click", toggleDisplay, { once: true });
-    } else {
-      window.removeEventListener("click", toggleDisplay);
+      window.addEventListener("click", toggleDisplay);
     }
+    return () => {
+      window.removeEventListener("click", toggleDisplay);
+    };
   }, [display]);
 
   let caretStyle = styles[opts.caret];
@@ -115,6 +73,10 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
 
   const colorClass = styles[opts.color];
   const sizeClass = styles[opts.size];
+  const modalStyle = {
+    display: display ? "block" : "none",
+    width: opts.modalWidth ? opts.modalWidth + "px" : null,
+  };
 
   return (
     <div>
@@ -130,7 +92,7 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
           </div>
         </div>
       </button>
-      <div className={styles.modal} style={{ display: display ? "block" : "none" }} ref={modalRef}>
+      <div className={styles.modal} style={modalStyle} ref={modalRef}>
         <opts.modal closeClick={() => setDisplay(!display)} options={opts.modalOptions} />
       </div>
     </div>

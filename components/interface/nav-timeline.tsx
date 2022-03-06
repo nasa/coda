@@ -63,7 +63,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
     // only setup the canvas once
-    if (isNil(paper.project)) {
+    if (isNil(paper.project) && typeof window !== "undefined") {
       paper.setup(canvas.current);
     }
 

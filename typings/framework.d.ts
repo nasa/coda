@@ -7,6 +7,7 @@ interface Layouts {
 }
 
 interface Preset {
+  uuid?: string;
   name: string;
   layout: string;
   frames: FrameState;

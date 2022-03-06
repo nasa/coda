@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBolt } from "@fortawesome/free-solid-svg-icons";
+import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Calendar from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
@@ -27,7 +27,7 @@ import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
 
-library.add(faQuestionCircle, faCalendarAlt, faClock, faBolt);
+library.add(faQuestionCircle, faCalendarAlt, faClock, faFloppyDisk);
 
 export function LoaderHelpMenu() {
   const dispatch = useDispatch();
@@ -77,7 +77,7 @@ export function LayoutDropdown() {
   }
 
   return (
-    <ModalDropdown modal={LayoutPicker} color="grey" caret="down">
+    <ModalDropdown modal={LayoutPicker} modalWidth={263} color="grey" caret="down">
       <div className={layoutStyles.layoutIconContainer}>
         <div className={`${mainStyleName} ${layoutStyles[`layout_${layout}`]}`}>{frames}</div>
       </div>
@@ -87,9 +87,9 @@ export function LayoutDropdown() {
 
 export function PresetDropdown() {
   return (
-    <ModalDropdown modal={PresetPicker} color="grey" caret="down">
+    <ModalDropdown modal={PresetPicker} modalWidth={263} color="grey" caret="down">
       <div className={`${styles.verticalCenter} ${styles.preset}`}>
-        <FontAwesomeIcon icon="bolt" />
+        <FontAwesomeIcon icon="floppy-disk" />
       </div>
     </ModalDropdown>
   );
@@ -259,11 +259,11 @@ export default function Header() {
         <div className={styles.item} style={{ width: "60px" }}>
           <PresetDropdown />
         </div>
-      </div>
-      <div className={styles.right}>
         <div className={styles.item}>
           <Share />
         </div>
+      </div>
+      <div className={styles.right}>
         <div className={styles.item}>
           <StatusArea largeDisplay={false} />
         </div>
