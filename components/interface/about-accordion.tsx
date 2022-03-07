@@ -50,7 +50,7 @@ export default function AboutAccordion() {
             <li>
               <div className={"creditHeading"}>
                 <a className={"teamName"} href={"mailto:benjamin.f.feist@nasa.gov"}>
-                  Benjamin Feist
+                  Ben Feist
                 </a>
               </div>
               <div>

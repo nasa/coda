@@ -4,6 +4,7 @@
   height: 18px;
   color: var(--even-greyer);
   border: none;
+  cursor: pointer;
 }
 
 .helpButton:hover {

@@ -1,34 +1,116 @@
 .main {
-  background-color: var(--slightly-lighter-grey);
+  background-color: var(--grey);
   width: 100%;
   height: 450px;
   border-radius: var(--radius);
   overflow-y: auto;
-  font-size: 16px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 15px;
   cursor: default;
 }
 
 .top {
   display: flex;
   justify-content: space-between;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 18px;
+  color: var(--even-greyer);
+  font-size: 15px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 15px;
   padding: 10px 10px;
+  border-bottom: 1px solid var(--lightest-grey);
+}
+
+.topLeft {
+  display: flex;
+}
+
+.topRight {
+  display: flex;
+}
+
+.topRight > *:not(:last-of-type) {
+  margin-right: 10px;
 }
 
 .close {
   cursor: pointer;
 }
 
+.title {
+  display: flex;
+  justify-content: space-between;
+  color: var(--even-greyer);
+  font-weight: 400;
+  padding: 10px 10px;
+  padding-bottom: 3px;
+}
+
+.noPresets {
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 200;
+  line-height: 15px;
+  padding: 10px 20px;
+}
+
+.inputBoxContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--lightest-grey);
+}
+
+.inputBox {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 15px;
+  background-color: var(--nearly-black);
+  border: 1px solid var(--extremely-grey);
+  border-radius: 3px;
+  padding: 4px 10px;
+  color: white;
+  width: 100%;
+}
+
+.button {
+  display: block;
+  width: 30px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #eeeeee;
+}
+
+.buttonLabel {
+  display: inline-block;
+  position: relative;
+}
+
 .presetItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 5px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--lightest-grey);
+  padding-left: 15px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  margin: 6px;
+  border-radius: 3px;
 }
 
 .option {
@@ -38,14 +120,6 @@
   flex-direction: column;
   justify-content: space-around;
   width: 100%;
-}
-
-.option:hover {
-  background-color: var(--extremely-grey);
-}
-
-.saveUserPreset {
-  margin-top: 10px;
 }
 
 .delete {
@@ -59,4 +133,10 @@
 
 .delete:hover {
   background-color: var(--extremely-grey);
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }

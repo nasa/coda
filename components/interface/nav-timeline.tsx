@@ -60,9 +60,14 @@ export default function NavTimeline(props: { collection: Collection }) {
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
 
+  useEffect(() => {
+    const canvasElement = canvas.current;
+    const ctx = canvasElement.getContext("2d");
+    console.log("canvas context", ctx);
+  }, [canvas]);
+
   /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
-    // only setup the canvas once
     if (isNil(paper.project) && typeof window !== "undefined") {
       paper.setup(canvas.current);
     }
@@ -151,12 +156,17 @@ export default function NavTimeline(props: { collection: Collection }) {
   };
 
   useEffect(() => {
-    installTimeline();
+    // only setup the canvas once
+    if (isNil(paper.project) && typeof window !== "undefined") {
+      installTimeline();
+    }
     return () => paper.project.remove();
   }, [playhead.date]);
 
   useEffect(() => {
-    paper.project.remove();
+    if (paper.project) {
+      paper.project.remove();
+    }
     installTimeline();
   }, [sequence, videoFiles, photoFiles, dayNight, photos]);
 

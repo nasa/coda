@@ -99,13 +99,14 @@
   justify-content: space-around;
 }
 
-.hamburgerButton {
+.helpMenuButton {
   background-color: var(--lightest-grey);
   width: 40px;
   height: 40px;
   padding-top: 12px;
   border-radius: var(--radius);
   margin-left: 2px;
+  cursor: pointer;
 }
 
 .source {
@@ -156,6 +157,7 @@
   border-style: solid;
   text-align: center;
   width: 75px;
+  cursor: pointer;
 }
 .timeField:focus {
   outline: none;
@@ -186,6 +188,7 @@
   border: none;
   border-radius: var(--radius);
   font-size: 11px;
+  font-weight: 600;
   margin-top: 5px;
 }
 

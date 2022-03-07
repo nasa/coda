@@ -45,7 +45,7 @@ export function LoaderHelpMenu() {
   return (
     <>
       <div
-        className={styles.hamburgerButton}
+        className={styles.helpMenuButton}
         onClick={() => {
           setIsOpen(!isOpen);
         }}
@@ -87,7 +87,7 @@ export function LayoutDropdown() {
 
 export function PresetDropdown() {
   return (
-    <ModalDropdown modal={PresetPicker} modalWidth={263} color="grey" caret="down">
+    <ModalDropdown modal={PresetPicker} modalWidth={350} color="grey" caret="down">
       <div className={`${styles.verticalCenter} ${styles.preset}`}>
         <FontAwesomeIcon icon="floppy-disk" />
       </div>

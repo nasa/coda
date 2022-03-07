@@ -2,6 +2,7 @@ import cacache from "cacache";
 import crypto from "crypto";
 import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
+import _ from "lodash";
 
 /** Caching options for managing how JSON is retrieved and stored */
 interface Options {
@@ -25,7 +26,7 @@ const defaultOptions: Options = {
  * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
  * @param options Cache behavior options
  */
-export default async function retrieveJSON<T>(
+export default async function fetchWithCache<T>(
   identifier: string,
   retriever: () => Promise<T>,
   options?: Options
@@ -102,7 +103,6 @@ export default async function retrieveJSON<T>(
 
   // cache the fresh data for later
   try {
-    // write to the cache
     await cacache.put(process.env.CACHE_ROOT, cacheKey, Buffer.from(JSON.stringify(res)));
   } catch (e) {
     console.warn(`Could not cache: '${identifier}'`);

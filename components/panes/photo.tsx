@@ -316,10 +316,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
         }}
       >
         <div>
-          <p>
-            The Photography Pane displays the photo taken most recently at the time being viewed in
-            CODA.
-          </p>
+          <p>Displays the photo taken most recently relative to the time being viewed in CODA.</p>
           <p>
             Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
             <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
@@ -331,7 +328,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
             </a>{" "}
             but can be overridden by editing the CODA entry for each event in the{" "}
             <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
-              Exploration Wiki
+              Exploration Wiki.
             </a>
           </p>
         </div>

@@ -34,6 +34,7 @@
   border: none;
   border-radius: var(--radius);
   font-size: 11px;
+  cursor: pointer;
 }
 
 .filterButton:hover {

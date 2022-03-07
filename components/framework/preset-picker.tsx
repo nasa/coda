@@ -52,6 +52,7 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
       outputEncoding: "Base64",
     });
     setUserPresetsCookie("CODA_UserPresets", compressedUserPresets, { path: "/" });
+    setPresetNameField("");
   };
 
   const deleteUserPreset = (preset: Preset) => (e: React.MouseEvent) => {
@@ -88,24 +89,26 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
   return (
     <div className={styles.main}>
       <div className={styles.top}>
-        <div>Preset Displays</div>
-        <div className={styles.verticalCenter}>
-          <HelpButton
-            clickHandler={() => {
-              setHelpOpen(!helpOpen);
-            }}
-          />
+        <div className={styles.topLeft}>
+          <div>Save or Select a Preset</div>
         </div>
-        {closeClick && (
-          <div className={styles.close} onClick={closeClick}>
-            ✕
+        <div className={styles.topRight}>
+          <div className={styles.verticalCenter}>
+            <HelpButton
+              clickHandler={() => {
+                setHelpOpen(!helpOpen);
+              }}
+            />
           </div>
-        )}
+          {closeClick && (
+            <div className={styles.close} onClick={closeClick}>
+              ✕
+            </div>
+          )}
+        </div>
       </div>
-
-      <hr />
       <div className={styles.presets}>
-        <div>User Presets</div>
+        <div className={styles.title}>Your Presets</div>
 
         {userPresets.length > 0 ? (
           userPresets.map((preset) => (
@@ -119,25 +122,33 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
             </div>
           ))
         ) : (
-          <span>No available presets</span>
+          <span className={styles.noPresets}>No presets created</span>
         )}
         <div className={styles.saveUserPreset}>
-          <label>
-            Save Current View as Preset
+          <div className={styles.title}>Save Current View as Preset</div>
+          <div className={styles.inputBoxContainer}>
             <input
               type="text"
               name="presetname"
               placeholder="Preset Name"
               value={presetNameField}
+              className={styles.inputBox}
               onChange={(e) => setPresetNameField(e.target.value)}
             />
-          </label>
-          <button onClick={saveUserPreset()}>Save</button>
+            <div className={styles.verticalCenter}>
+              <button
+                className={styles.button}
+                style={{ width: "50px" }}
+                onClick={saveUserPreset()}
+              >
+                <span className={styles.buttonLabel}>Save</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <hr />
       <div className={styles.presets}>
-        <div>System Presets</div>
+        <div className={styles.title}>CODA System Presets</div>
         {allPresets.length > 0 ? (
           allPresets.map((preset) => (
             <div className={styles.presetItem} key={preset.name}>
@@ -147,7 +158,7 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
             </div>
           ))
         ) : (
-          <span>No available presets</span>
+          <span style={{ fontStyle: "italic" }}>No presets created</span>
         )}
       </div>
       <HelpOverlay

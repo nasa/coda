@@ -4,6 +4,11 @@ import Modal from "react-modal";
 import { generateShareURL } from "utils/share-state";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faShareFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+library.add(faShareFromSquare);
 
 export default function Share() {
   const framework = useSelector((state: RootState) => state.framework);
@@ -45,8 +50,11 @@ export default function Share() {
           handleRequestOpen();
         }}
       >
-        <div className={styles.svgShare}></div>
+        <div className={styles.verticalCenter}>
+          <FontAwesomeIcon icon={["fas", "share-from-square"]} />
+        </div>
       </div>
+
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={handleRequestClose}

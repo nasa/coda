@@ -1,32 +1,18 @@
 .headerModalButton {
-  background-color: #2b2a2d;
-  padding: 13px;
-  cursor: pointer;
-  font-family: "Inter", sans-serif;
-  font-weight: 400;
-  font-size: 16px;
-  height: 40px;
-  border: none;
-  border-radius: var(--radius);
-  color: white;
   background-color: var(--lightest-grey);
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  text-overflow: ellipsis;
-  outline: 0;
+  width: 40px;
+  height: 40px;
+  padding-top: 12px;
+  border-radius: var(--radius);
 }
 .headerModalButton:hover {
   cursor: pointer;
 }
 
-.headerModalButton .svgShare {
-  width: 15px;
-  height: 15px;
-  background: url(/images/share.svg) no-repeat center;
-  background-size: 15px 15px;
-  margin-left: 0;
-  margin-right: 0;
+.verticalCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
 }
 
 .shareModalWrapper {

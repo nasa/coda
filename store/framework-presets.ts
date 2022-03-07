@@ -1,6 +1,6 @@
 export const allPresets: Preset[] = [
   {
-    name: "Default CODA View",
+    name: "Default CODA Display",
     layout: "j",
     frames: {
       1: {

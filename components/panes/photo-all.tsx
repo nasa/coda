@@ -148,6 +148,21 @@ export default function PhotoAllPane(props: { frameID: number }) {
         }}
       >
         <div>
+          <p>Displays all of the photos on Imagery Online taken on the selected event date.</p>
+          <p>
+            Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
+            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
+              ISS Collection
+            </a>
+            . Exploration Test Events usually pulls from the root{" "}
+            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"} target={"_blank"}>
+              xEVA Collection
+            </a>{" "}
+            but can be overridden by editing the CODA entry for each event in the{" "}
+            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+              Exploration Wiki.
+            </a>
+          </p>
           <p>Click on a photo thumbnail to jump to the moment the photo was taken.</p>
         </div>
       </HelpOverlay>
