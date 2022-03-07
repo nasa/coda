@@ -30,7 +30,6 @@
     "@reduxjs/toolkit": "^1.7.2",
     "abort-controller": "^3.0.0",
     "cacache": "^15.3.0",
-    "canvas": "^2.9.0",
     "gpxparser": "^3.0.8",
     "lodash": "^4.17.21",
     "lzutf8": "^0.6.1",
