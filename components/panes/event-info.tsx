@@ -159,7 +159,7 @@ export default function EventInfo(props: { frameID: number }) {
       >
         <div>
           <p>
-            The Event Info Pane displays details housed in the{" "}
+            Displays details housed in the{" "}
             <a href={"https://wiki.jsc.nasa.gov/iss/index.php/Main_Page"} target={"_blank"}>
               ISS Wiki
             </a>{" "}

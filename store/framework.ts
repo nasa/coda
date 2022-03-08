@@ -8,7 +8,8 @@ import { Source } from "utils/enums";
  * Supporting information about each layout defined in components/layouts.modules.css.
  * The letters in this object refer to the CSS grid definitions in components/layouts.modules.css.
  * Letters should never be changed per layout in order for shared links to always refer to the correct layout.
- * Ordering of the layouts in this object represent the order they appear in the dropdown. Dropdown order does not have to be alphabetical.
+ * Ordering of the layouts in this object represent the order they appear in the dropdown.
+ * Dropdown order *********does not have to be alphabetical*********.
  */
 export const allLayouts: Layouts = {
   a: {
@@ -27,11 +28,15 @@ export const allLayouts: Layouts = {
     frameCount: 6,
     cssGridRows: 9,
   },
-  d: {
-    frameCount: 4,
+  k: {
+    frameCount: 5,
     cssGridRows: 9,
   },
   e: {
+    frameCount: 4,
+    cssGridRows: 9,
+  },
+  d: {
     frameCount: 4,
     cssGridRows: 9,
   },

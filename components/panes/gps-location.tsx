@@ -391,7 +391,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
         >
           <div>
             <p>
-              The GPS Position Pane displays GPS tracks stored in the{" "}
+              Displays GPS tracks stored in the{" "}
               <a
                 href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA/D-RATS_2021_Data"}
                 target={"_blank"}

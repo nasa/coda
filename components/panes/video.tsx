@@ -637,9 +637,7 @@ export default function VideoPane(props: { frameID: number }) {
           }}
         >
           <div>
-            <p>
-              The Video Pane displays videos from Imagery Online, synced to CODA's playback time.
-            </p>
+            <p>Displays videos from Imagery Online, synced to CODA's playback time.</p>
             <p>
               Videos are all pulled from Imagery Online collections. ISS displays videos in the{" "}
               <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
@@ -657,7 +655,7 @@ export default function VideoPane(props: { frameID: number }) {
                 Exploration Wiki.
               </a>
             </p>
-            <p>There are two types of Video Panes:</p>
+            <p>There are two types of Video displays:</p>
             <ol>
               <li>
                 Video Downlink

@@ -232,3 +232,16 @@
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f4 f4 f4 f4 f4 f4"
     "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f4 f4 f4 f4 f4 f4";
 }
+
+.layout_k {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4";
+}
