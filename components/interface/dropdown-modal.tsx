@@ -15,7 +15,14 @@ export interface Options {
   modalWidth?: number;
   caret?: string;
   callback?: () => void;
-  modal?: ({ closeClick, options }: { closeClick?: () => void; options: any }) => JSX.Element;
+  modal?: ({
+    closeClick,
+    options,
+  }: {
+    closeClick?: () => void;
+    options: any;
+    display: boolean;
+  }) => JSX.Element;
   modalOptions?: any;
 }
 
@@ -93,7 +100,11 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
         </div>
       </button>
       <div className={styles.modal} style={modalStyle} ref={modalRef}>
-        <opts.modal closeClick={() => setDisplay(!display)} options={opts.modalOptions} />
+        <opts.modal
+          closeClick={() => setDisplay(!display)}
+          options={opts.modalOptions}
+          display={display}
+        />
       </div>
     </div>
   );

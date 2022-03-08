@@ -1,131 +1,104 @@
-.headerModalButton {
-  background-color: var(--lightest-grey);
-  width: 40px;
-  height: 40px;
-  padding-top: 12px;
-  border-radius: var(--radius);
-}
-.headerModalButton:hover {
-  cursor: pointer;
-}
-
 .verticalCenter {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
 }
 
-.shareModalWrapper {
-  position: absolute;
-  background: #0f0f0f;
-  border: 2px solid #eeeeee;
-  border-radius: 15px;
-  box-sizing: border-box;
-  padding: 20px;
-  width: 40%;
-  top: 50%;
-  left: 50%;
-  right: auto;
-  bottom: auto;
-  margin-right: -50%;
-  transform: translate(-50%, -50%);
-  outline: none;
+.top {
+  display: flex;
+  justify-content: space-between;
+  color: var(--even-greyer);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 15px;
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--lightest-grey);
 }
 
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgb(0, 0, 0, 0.8);
-  z-index: 10;
+.topLeft {
+  display: flex;
 }
 
-.modalHeadline {
-  font-size: 1.5em;
-  color: #eeeeee;
-  text-align: left;
-  padding-bottom: 10px;
+.topRight {
+  display: flex;
 }
 
-.modalBody {
-  font-size: 1em;
-  box-sizing: border-box;
-  float: left;
-  padding: 10px;
+.topRight > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+.main {
+  background-color: var(--grey);
   width: 100%;
+  height: 270px;
+  border-radius: var(--radius);
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 17px;
+  cursor: default;
 }
 
-.modalBodyText {
-  margin-bottom: 10px;
-  color: #999999;
+.close {
+  cursor: pointer;
 }
 
-.modalTextarea {
-  font-size: 0.7em;
+.title {
+  display: flex;
+  justify-content: space-between;
+  color: var(--even-greyer);
+  font-weight: 400;
+  padding: 10px 10px;
+  padding-bottom: 3px;
+}
+
+.body {
+  padding: 10px;
+  padding-bottom: 1px;
+  font-size: 14px;
+  color: var(--even-greyer);
+}
+
+.body p {
+  margin-bottom: 5px;
+}
+
+.textarea {
+  font-size: 11px;
   box-sizing: border-box;
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
   position: relative;
   padding: 5px;
+  margin: 5px 0 10px 0;
   color: #999999;
   background-color: #000;
   resize: none;
   width: 100%;
   height: 80px;
-  margin: 0px;
   outline: none;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
-.copyURLButton {
-  float: right;
-  display: table;
-  width: 110px;
-  height: 20px;
-  border-radius: 5px;
-  padding: 5px;
-  margin-top: 20px;
+.button {
+  display: block;
+  width: 30px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
   border: none;
   border-radius: var(--radius);
-  color: white;
-  background-color: var(--lightest-grey);
-  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 5px;
   cursor: pointer;
 }
 
-.modalButtonText {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
+.button:hover {
+  background-color: #eeeeee;
 }
 
-.closeButtonWrapper {
-  position: absolute;
-  top: -15px;
-  width: 100%;
-}
-
-.closeButton {
+.buttonLabel {
+  display: inline-block;
   position: relative;
-  float: right;
-  width: 35px;
-  height: 35px;
-  border-radius: 20px;
-  padding: 5px;
-  background-color: var(--lightest-grey);
-  box-shadow: 0px 0px 40px rgba(0, 0, 0, 1);
-  cursor: pointer;
-}
-.closeSVG {
-  position: absolute;
-  top: 10px;
-  left: 8px;
-  width: 20px;
-  height: 20px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 100 125" style="enable-background:new 0 0 100 100;" xml:space="preserve"> <g fill="white"> <path d="M81.8,73.3L58.5,50l23.3-23.3c2.3-2.3,2.3-6.2,0-8.5c-2.3-2.3-6.2-2.3-8.5,0L50,41.5L26.7,18.2c-2.3-2.3-6.2-2.3-8.5,0  s-2.3,6.2,0,8.5L41.5,50L18.2,73.3c-2.3,2.3-2.3,6.2,0,8.5c2.3,2.3,6.2,2.3,8.5,0L50,58.5l23.3,23.3c2.3,2.3,6.2,2.3,8.5,0  C84.2,79.5,84.2,75.7,81.8,73.3z"/> </g> </svg>')
-    no-repeat center;
-  background-size: 25px 25px;
 }

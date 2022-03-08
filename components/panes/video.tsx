@@ -29,7 +29,7 @@ export function IOInfoButton(props: { clickHandler: Function; selected?: boolean
     >
       <span className={styles.ioLabel}>
         IO{" "}
-        <span style={{ fontSize: "8px", position: "relative", top: "-1px" }}>
+        <span style={{ fontSize: "9px", position: "relative", top: "-1px" }}>
           <FontAwesomeIcon icon="info" />
         </span>
       </span>

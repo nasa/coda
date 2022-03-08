@@ -247,3 +247,16 @@
 .preset {
   padding-left: 10px;
 }
+
+.shareButton {
+  padding-left: 10px;
+}
+
+.shareButton .svgShare {
+  width: 15px;
+  height: 15px;
+  background: url(/images/share.svg) no-repeat center;
+  background-size: 15px 15px;
+  margin-left: 0;
+  margin-right: 0;
+}

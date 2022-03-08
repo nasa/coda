@@ -14,7 +14,7 @@ import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { Collection, Source } from "utils/enums";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
-import Share from "components/interface/share";
+import SharePanel from "components/interface/share";
 import { changeSource } from "store/framework";
 import { clearVideos } from "store/videos";
 import { clearPhotos } from "store/photos";
@@ -78,7 +78,7 @@ export function LayoutDropdown() {
 
   return (
     <ModalDropdown modal={LayoutPicker} modalWidth={263} color="grey" caret="down">
-      <div className={layoutStyles.layoutIconContainer}>
+      <div className={layoutStyles.layoutIconContainer} title="Choose display layout configuration">
         <div className={`${mainStyleName} ${layoutStyles[`layout_${layout}`]}`}>{frames}</div>
       </div>
     </ModalDropdown>
@@ -88,8 +88,24 @@ export function LayoutDropdown() {
 export function PresetDropdown() {
   return (
     <ModalDropdown modal={PresetPicker} modalWidth={350} color="grey" caret="down">
-      <div className={`${styles.verticalCenter} ${styles.preset}`}>
+      <div
+        className={`${styles.verticalCenter} ${styles.preset}`}
+        title="Save and load display presets"
+      >
         <FontAwesomeIcon icon="floppy-disk" />
+      </div>
+    </ModalDropdown>
+  );
+}
+
+export function ShareDropdown() {
+  return (
+    <ModalDropdown modal={SharePanel} modalWidth={350} color="grey" caret="down">
+      <div
+        className={`${styles.verticalCenter} ${styles.shareButton}`}
+        title="Share this View of Current Playback Time"
+      >
+        <div className={styles.svgShare}></div>
       </div>
     </ModalDropdown>
   );
@@ -259,8 +275,8 @@ export default function Header() {
         <div className={styles.item} style={{ width: "60px" }}>
           <PresetDropdown />
         </div>
-        <div className={styles.item}>
-          <Share />
+        <div className={styles.item} style={{ width: "60px" }}>
+          <ShareDropdown />
         </div>
       </div>
       <div className={styles.right}>
