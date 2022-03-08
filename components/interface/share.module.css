@@ -52,9 +52,9 @@
 }
 
 .body {
-  padding: 10px;
+  padding: 15px;
   padding-bottom: 1px;
-  font-size: 14px;
+  font-size: 14.5px;
   color: var(--even-greyer);
 }
 
