@@ -75,7 +75,11 @@ export default function AboutAccordion() {
                   Cameron Pittman
                 </a>
               </div>
-              <div>Software Architecture</div>
+              <div>
+                Software Architecture Lead,
+                <br />
+                Software Engineering
+              </div>
             </li>
             <li>
               <div className={"creditHeading"}>

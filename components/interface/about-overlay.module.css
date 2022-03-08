@@ -121,19 +121,24 @@
   display: block;
   width: 120px;
   height: 28px;
-  border: none;
+  border: 1px solid var(--grey);
   border-radius: var(--radius);
   font-size: 16px;
   margin-left: 10px;
   margin-top: auto;
   margin-bottom: auto;
   cursor: pointer;
-  animation: blinker 1s linear infinite;
+  animation: blinker 1s ease infinite;
 }
 
 @keyframes blinker {
+  0% {
+    border: 1px solid var(--grey);
+  }
+  45% {
+    border: 1px solid var(--grey);
+  }
   50% {
-    /*opacity: 0.2;*/
     border: 1px solid var(--even-greyer);
   }
 }
