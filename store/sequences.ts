@@ -18,25 +18,30 @@ const sequencesAdapter = createEntityAdapter<Sequence>({
 });
 
 export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
-  metadata: null,
+  cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
-  lastChecked: "",
 });
 
 export const sequencesSlice = createSlice({
-  name: "Sequences",
+  name: "sequences",
   initialState,
   reducers: {
     /** Add one (or more) Sequence(s) to the store */
     addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
+      sequencesAdapter.removeAll(state);
       sequencesAdapter.upsertMany(state, action.payload.data);
-      state.metadata = action.payload.metadata;
-      state.lastChecked = new Date().toISOString();
+      state.cacheMetadata = action.payload.cacheMetadata;
+    },
+
+    /** Clear all Sequences from the store */
+    clearSequences: (state) => {
+      sequencesAdapter.removeAll(state);
+      state.cacheMetadata = null;
     },
 
     /** An error occured fetching wiki data */
     fetchError: (state, action: { payload: string }) => {
-      state.metadata = { ...state.metadata, error: action.payload };
+      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
     },
 
     setSequenceLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
@@ -45,7 +50,12 @@ export const sequencesSlice = createSlice({
   },
 });
 
-export const { addSequences, fetchError, setSequenceLoadingStatus } = sequencesSlice.actions;
+export const {
+  addSequences,
+  clearSequences,
+  fetchError,
+  setSequenceLoadingStatus,
+} = sequencesSlice.actions;
 
 export const sequencesSelector = sequencesAdapter.getSelectors<SequencesEntityState>(
   (state) => state

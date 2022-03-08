@@ -1,0 +1,68 @@
+.main {
+  width: 275px;
+  border-radius: var(--radius);
+  background-color: var(--lightest-grey);
+  text-transform: uppercase;
+}
+
+.item {
+  display: flex;
+  padding: 0;
+}
+
+.option {
+  height: 28px;
+  cursor: pointer;
+  font-size: 15px;
+  padding-left: 15px;
+}
+
+.option:not(:last-of-type) {
+  border-bottom: 1px solid var(--nearly-black);
+}
+
+.option:hover {
+  background-color: var(--extremely-grey);
+}
+
+.icon {
+  border-radius: var(--radius);
+  height: 21px;
+  width: 22px;
+  margin: 3px 10px 3px 0px;
+  padding-top: 3px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.noneIcon {
+  height: 21px;
+  padding-top: 3px;
+  margin: 3px 3px 3px 0px;
+}
+
+.icon > * {
+  display: block;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.teal {
+  background-color: var(--teal);
+}
+
+.ruby {
+  background-color: var(--ruby);
+}
+
+.purple {
+  background-color: var(--purple);
+}
+
+.mustardGreen {
+  background-color: var(--mustard-green);
+}

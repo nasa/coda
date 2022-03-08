@@ -22,33 +22,47 @@ include:
     file: "/rollups/all-projects.gitlab-ci.yml"
 
 stages:
-  - test
-  - pre-build
-  - build
+  - priority
+  - static
   - deploy_to_server
 
 # Overrride some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
 project-check:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 eslint-sast:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 nodejs-scan-sast:
+  stage: static
+  needs: ["install_dependencies"] # nodejs-scan-sast takes a while, don't wait for "test" job
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 semgrep-sast:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 sast:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
   timeout: 10 minutes
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
-  # Run job during the "test" stage of the pipeline
-  stage: test
+  stage: static
+  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
   tags: ["docker", "linux"]
   timeout: 10 minutes
   image:
@@ -57,8 +71,6 @@ dependency-check:
     name: $CI_REGISTRY/developer-ecosystem/dependency-check:latest
     # Entrypoint is overridden to allow a script to be run
     entrypoint: [""]
-  before_script:
-    - npm ci
   script:
     # Run dependency-check from the location installed in the Docker container with the following arguments:
     # --scan "./"                                         Scans all files and folders within the working folder,
@@ -84,22 +96,52 @@ dependency-check:
       - "./dependency-check-report.html"
       - "./dependency-check-report.json"
 
-test:
+npm-audit:
+  stage: static
+  needs: ["test"]
+  dependencies: [] # doesn't actually need artifacts
   tags: ["docker", "linux"]
-  before_script:
+  timeout: 5 minutes
+  allow_failure: true
+  script:
+    - npm audit --json > npm-audit-report.json && echo "No vulnerabilities found" || npm audit
+  artifacts:
+    # Saving artifacts always forces them to be saved on failure as well as success
+    when: always
+    # Save the JSON formatted results as an artifact
+    paths:
+      - "./npm-audit-report.json"
+
+install_dependencies:
+  stage: priority
+  tags: ["docker", "linux"]
+  script:
     - npm ci
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - ./node_modules/*
+
+test:
+  stage: priority
+  needs: ["install_dependencies"]
+  tags: ["docker", "linux"]
   script:
     - npm run lint
-    - npm t
-  stage: test
+    - npm t -- --coverage
+  artifacts:
+    reports:
+      cobertura: ./coverage/cobertura-coverage.xml
+    paths:
+      - ./coverage/cobertura-coverage.xml
+      - ./test/cases/*
 
 build:
+  stage: priority
+  needs: ["install_dependencies"]
   tags: ["docker", "linux"]
-  before_script:
-    - npm ci
   script:
     - npm run build
-  stage: build
   artifacts:
     paths:
       - .next
@@ -160,9 +202,15 @@ build:
   image: node:14 # Can't use Alpine Linux here without changing the apt-get commands above
   stage: deploy_to_server
   script:
+    ## Stop the CODA server
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      echo -e '\nStop the server' &&
+      sudo systemctl stop coda"
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
     - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
-    # check dependencies and restart the server
+
+    # check dependencies then wait 5 seconds to prevent issue #101 before starting the server
     - >
       ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
       cd /opt/fitbox/apps/coda &&
@@ -170,34 +218,50 @@ build:
       echo -e '\nInstall dependencies' &&
       npm i &&
 
-      echo -e '\nRestart the server' &&
+      sleep 5"
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      cd /opt/fitbox/apps/coda &&
+      echo -e '\nStart the server' &&
+      sudo systemctl daemon-reload &&
+      sudo systemctl start coda &&
+      sleep 5"
+
+    - >
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      cd /opt/fitbox/apps/coda &&
+      echo -e '\nRestart the server because there is probably a 500 error' &&
       sudo systemctl daemon-reload &&
       sudo systemctl restart coda"
 
 deploy_to_dev1:
   extends: .deploy_template
+  needs: ["install_dependencies", "build"]
   variables:
     ENVIRONMENT_HOSTNAME: jsfitdcoda01
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV1
   environment:
     name: development1
     url: https://coda-dev.fit.nasa.gov
-  only:
-    - /^.*--dev1$/
+  when: manual
 
 deploy_to_dev2:
   extends: .deploy_template
+  needs: ["install_dependencies", "build"]
   variables:
     ENVIRONMENT_HOSTNAME: jsfitdcoda02
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_DEV2
   environment:
     name: development2
     url: https://coda-dev2.fit.nasa.gov
-  only:
-    - /^.*--dev2$/
+  when: manual
 
 deploy_to_integration:
   extends: .deploy_template
+  needs:
+    - "install_dependencies"
+    - "build"
+    - { job: "test", artifacts: false }
   variables:
     ENVIRONMENT_HOSTNAME: jsfiticoda
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_INT
@@ -209,6 +273,16 @@ deploy_to_integration:
 
 deploy_to_production:
   extends: .deploy_template
+  needs:
+    - "install_dependencies"
+    - "build"
+    - { job: "test", artifacts: false }
+    - { job: "project-check", artifacts: false }
+    - { job: "phpcs-security-audit-sast", artifacts: false }
+    - { job: "eslint-sast", artifacts: false }
+    - { job: "nodejs-scan-sast", artifacts: false }
+    - { job: "semgrep-sast", artifacts: false }
+    - { job: "dependency-check", artifacts: false }
   variables:
     ENVIRONMENT_HOSTNAME: jsfitpcoda
     SSH_PRIVATE_KEY_VAR_NAME: SSH_PRIVATE_KEY_FITBOXER_PROD

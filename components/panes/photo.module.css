@@ -1,0 +1,202 @@
+.controls {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+  margin-left: auto;
+}
+
+.controlsLeft {
+  display: flex;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+/* Filter button */
+
+.filterButton {
+  display: inline-block;
+  width: 90px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterButton:hover {
+  background-color: #eeeeee;
+}
+
+.selected {
+  border: none;
+  background-color: #eeeeee;
+  color: var(--lighter-grey);
+}
+
+.filterLabel {
+  position: relative;
+  width: 20px;
+  left: -2px;
+}
+
+/* v1 styles  */
+
+.mediaPanel {
+  position: relative;
+  flex: 1;
+}
+
+.photoContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--nearly-black);
+  object-fit: contain;
+}
+.photoOverlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 20px;
+  outline: none;
+  overflow-y: auto;
+}
+
+.overlayTable {
+  width: 100%;
+  font-size: 0.9em;
+  background: rgb(15, 15, 15, 0.8);
+  border: 2px solid #eeeeee;
+  border-radius: 10px;
+  border-spacing: 0;
+}
+
+.overlayTable a {
+  text-decoration: underline;
+}
+
+.overlayTable tr {
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable td:first-child {
+  text-align: right;
+  width: 40px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable td {
+  display: table-cell;
+  border-collapse: collapse;
+  vertical-align: top;
+  font-weight: 200;
+  padding: 5px;
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+.overlayTable tr:last-child td {
+  border-bottom: none;
+}
+
+.overlayTable .digiValue {
+  font-family: "Ubuntu Mono";
+  font-size: 1em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.photoInfo {
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.photoPoster {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
+  background-size: 50%;
+  /* filter: grayscale(100%) contrast(0.75); */
+  opacity: 0.4;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.photoLink {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.photoHeaderText {
+  font-size: 1em;
+  white-space: nowrap;
+}
+
+.dimText {
+  color: #9b9b9b;
+}
+
+.tableButton {
+  font-size: 0.9rem;
+  font-weight: 400;
+
+  background-color: #2b2a2d;
+  border: 1px #ffc000 solid;
+  border-radius: 4px;
+  color: white;
+  padding: 5px;
+  margin-bottom: 2px;
+  margin-right: 5px;
+  margin-left: 5px;
+  user-select: none;
+  cursor: pointer;
+}
+.tableButton:hover {
+  border: 2px #ffc000 solid;
+  padding: 4px;
+}
+
+.overlayVisible {
+  display: block;
+}
+
+.infoText {
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin-right: 5px;
+  margin-left: 5px;
+  user-select: none;
+}

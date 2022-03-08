@@ -1,0 +1,247 @@
+.main_9Rows {
+  display: grid;
+  grid-template-columns: repeat(24, 6fr);
+  /* 50px for header and the rest for timeline because these elements are fixed height */
+  grid-auto-rows: minmax(calc((100vh / 9) - ((50px + 122px) / 9)), auto);
+}
+.icon_9Rows {
+  display: grid;
+  grid-template-columns: repeat(24, 6fr);
+
+  grid-auto-rows: minmax(calc((16px / 9)), auto);
+}
+.largeIcon_9Rows {
+  display: grid;
+  grid-template-columns: repeat(24, 6fr);
+
+  grid-auto-rows: minmax(calc((56px / 9)), auto);
+}
+
+.main_10Rows {
+  display: grid;
+  grid-template-columns: repeat(24, 6fr);
+  /* 50px for header and the rest for timeline because these elements are fixed height */
+  grid-auto-rows: minmax(calc((100vh / 10) - ((50px + 122px) / 10)), auto);
+}
+.icon_10Rows {
+  display: grid;
+  grid-template-columns: repeat(24, 6fr);
+  /* 50px for header and the rest for timeline because these elements are fixed height */
+  grid-auto-rows: minmax(calc((16px / 10)), auto);
+}
+.largeIcon_10Rows {
+  display: grid;
+  grid-template-columns: repeat(24, 6fr);
+  /* 50px for header and the rest for timeline because these elements are fixed height */
+  grid-auto-rows: minmax(calc((56px / 10)), auto);
+}
+
+.frameContainer {
+  margin: 1px;
+}
+
+.layoutIconContainer {
+  display: inline-block;
+  width: 29px;
+  height: 16px;
+  margin-left: 12px;
+}
+
+.layoutLargeIconContainer {
+  display: inline-block;
+  width: 100px;
+  height: 56px;
+  margin-left: 12px;
+}
+
+.iconFrameContainer {
+  margin: 0.5px;
+}
+.largeIconFrameContainer {
+  margin: 1.5px;
+}
+
+.iconFrameBackground {
+  border-radius: 1px;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+}
+.largeIconFrameBackground {
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+}
+
+.f1 {
+  grid-area: f1;
+}
+.f2 {
+  grid-area: f2;
+}
+.f3 {
+  grid-area: f3;
+}
+.f4 {
+  grid-area: f4;
+}
+.f5 {
+  grid-area: f5;
+}
+.f6 {
+  grid-area: f6;
+}
+.f7 {
+  grid-area: f7;
+}
+.f8 {
+  grid-area: f8;
+}
+.f9 {
+  grid-area: f9;
+}
+
+.layout_a {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4";
+}
+
+.layout_b {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6";
+}
+
+.layout_c {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4";
+}
+
+.layout_d {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f3 f3 f3 f3 f3 f3";
+}
+
+.layout_e {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4";
+}
+
+.layout_f {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f7 f7 f7 f7 f7 f7 f7 f7 f8 f8 f8 f8 f8 f8 f8 f8 f9 f9 f9 f9 f9 f9 f9 f9"
+    "f7 f7 f7 f7 f7 f7 f7 f7 f8 f8 f8 f8 f8 f8 f8 f8 f9 f9 f9 f9 f9 f9 f9 f9"
+    "f7 f7 f7 f7 f7 f7 f7 f7 f8 f8 f8 f8 f8 f8 f8 f8 f9 f9 f9 f9 f9 f9 f9 f9";
+}
+
+.layout_g {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6"
+    "f4 f4 f4 f4 f4 f4 f4 f4 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f6 f6";
+}
+
+.layout_h {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1";
+}
+
+.layout_i {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1"
+    "f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
+    "f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
+    "f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2 f2"
+    "f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3 f3";
+}
+
+.layout_j {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f6 f6 f6 f6 f6 f6 f4 f4 f4 f4 f4 f4";
+}
+
+.layout_k {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2 f2 f3 f3 f3 f3 f3 f3 f3 f3"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4"
+    "f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f5 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4";
+}

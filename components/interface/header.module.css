@@ -1,0 +1,262 @@
+.main {
+  display: flex;
+  justify-content: space-between;
+  height: 50px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.left {
+  display: flex;
+}
+
+.eventDropdownWrapper {
+  width: 300px;
+}
+
+@media (max-width: 1351px) {
+  .eventDropdownWrapper {
+    width: 100px;
+  }
+}
+
+.right {
+  display: flex;
+  justify-content: flex-end;
+  margin-left: 3px;
+  align-items: center;
+}
+
+.right > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.logoRight {
+  display: flex;
+  height: 100%;
+}
+
+.meatball {
+  height: 20px;
+}
+
+.logoEmssWrapper {
+  display: flex;
+}
+.logoEmss {
+  width: 60px;
+  height: 10px;
+  background: url('data:image/svg+xml;utf8,<svg width="97" height="18" viewBox="0 0 97 18" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M0.203125 4.08244C0.203125 2.1893 1.73782 0.654602 3.63097 0.654602H17.3758C19.2689 0.654602 20.8036 2.1893 20.8036 4.08244H0.203125Z" fill="white"/> <path d="M26.6893 4.33295C26.6893 2.30129 28.3363 0.654297 30.368 0.654297V15.9542C30.368 16.97 29.5445 17.7935 28.5287 17.7935C27.5128 17.7935 26.6893 16.97 26.6893 15.9542V4.33295Z" fill="white"/> <path d="M34.0459 0.654297H37.7246V9.09849C37.7246 10.1143 36.9011 10.9378 35.8852 10.9378C34.8694 10.9378 34.0459 10.1143 34.0459 9.09849V0.654297Z" fill="white"/> <path d="M41.4069 0.654297C43.4385 0.654297 45.0855 2.30129 45.0855 4.33296V15.9542C45.0855 16.97 44.262 17.7935 43.2462 17.7935C42.2304 17.7935 41.4069 16.97 41.4069 15.9542V0.654297Z" fill="white"/> <path d="M0.203125 7.51001H20.8036V10.9379H0.203125V7.51001Z" fill="white"/> <rect x="0.203125" y="10.9397" width="3.67866" height="3.42784" fill="white"/> <path d="M0.203125 14.3658H20.8036C20.8036 16.2589 19.2689 17.7936 17.3758 17.7936H3.63097C1.73783 17.7936 0.203125 16.2589 0.203125 14.3658Z" fill="white"/> <path d="M50.2355 4.08214C50.2355 2.18899 51.7702 0.654297 53.6633 0.654297H67.4081C69.3013 0.654297 70.836 2.18899 70.836 4.08214H50.2355Z" fill="white"/> <path d="M50.2355 7.51001H67.1573V10.9379H53.6633C51.7702 10.9379 50.2355 9.40315 50.2355 7.51001Z" fill="white"/> <path d="M67.1526 7.51001C69.1843 7.51001 70.8312 9.157 70.8312 11.1887V14.1149C70.8312 16.1465 69.1843 17.7935 67.1526 17.7935V7.51001Z" fill="white"/> <path d="M50.2355 14.3658H67.1573V17.7936H53.6633C51.7702 17.7936 50.2355 16.2589 50.2355 14.3658Z" fill="white"/> <path d="M76.3558 4.08214C76.3558 2.18899 77.8905 0.654297 79.7837 0.654297H93.5285C95.4216 0.654297 96.9563 2.18899 96.9563 4.08214H76.3558Z" fill="white"/> <path d="M76.3558 7.51001H93.2777V10.9379H79.7837C77.8905 10.9379 76.3558 9.40315 76.3558 7.51001Z" fill="white"/> <path d="M93.2727 7.51001C95.3044 7.51001 96.9514 9.157 96.9514 11.1887V14.1149C96.9514 16.1465 95.3044 17.7935 93.2727 17.7935V7.51001Z" fill="white"/> <path d="M76.3558 14.3658H93.2777V17.7936H79.7837C77.8905 17.7936 76.3558 16.2589 76.3558 14.3658Z" fill="white"/> </svg> ')
+    no-repeat center;
+  background-size: 60px 10px;
+  margin-top: 5px;
+  margin-bottom: auto;
+  cursor: pointer;
+}
+
+.wordMark {
+  font-family: "Aldrich";
+  font-weight: 400;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.item > * {
+  height: 40px;
+}
+
+.item:not(:first-of-type) {
+  margin-left: 3px;
+}
+
+.mono {
+  font-family: "Roboto Mono", Courier, monospace;
+  font-weight: 400;
+}
+
+.iconWithText {
+  padding-left: 10px;
+  font-size: 19px;
+}
+
+.clockIconContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+  padding-right: 2px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.helpMenuButton {
+  background-color: var(--lightest-grey);
+  width: 40px;
+  height: 40px;
+  padding-top: 12px;
+  border-radius: var(--radius);
+  margin-left: 2px;
+  cursor: pointer;
+}
+
+.source {
+  padding-left: 10px;
+  font-size: 16px;
+}
+
+.date {
+  font-size: 16px;
+  padding-left: 7px;
+}
+
+.timeContainer {
+  position: relative;
+}
+
+.timeInputContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  padding-left: 15px;
+  padding-right: 25px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  background-color: var(--lightest-grey);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-overflow: ellipsis;
+  outline: 0;
+}
+
+.timeZulu {
+  font-size: 16px;
+}
+
+.timeField {
+  font-size: 16px;
+  font-weight: 300;
+  border-width: 0px;
+  background-color: var(--lightest-grey);
+  color: #fff;
+  border-style: solid;
+  text-align: center;
+  width: 75px;
+  cursor: pointer;
+}
+.timeField:focus {
+  outline: none;
+}
+.timeField:invalid {
+  color: #ff9b9b;
+}
+
+.timeButtonsContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  position: relative;
+  background-color: var(--lightest-grey);
+  width: 100%;
+  top: 0px;
+  left: 0px;
+  height: 30px;
+  z-index: 5;
+}
+
+.timeButton {
+  display: block;
+  width: 30px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.timeButton:hover {
+  background-color: #eeeeee;
+}
+
+.timeButtonLabel {
+  display: inline-block;
+  position: relative;
+}
+
+.select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+.select select {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  cursor: pointer;
+  padding-left: 15px;
+  padding-right: 25px;
+  height: 41px;
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  background-color: var(--lightest-grey);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-overflow: ellipsis;
+  outline: 0;
+}
+.select select::-ms-expand {
+  display: none;
+}
+.select select:hover,
+.select select:focus {
+  outline: 0;
+}
+.select select:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.select_arrow {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  pointer-events: none;
+}
+
+.preset {
+  padding-left: 10px;
+}
+
+.shareButton {
+  padding-left: 10px;
+}
+
+.shareButton .svgShare {
+  width: 15px;
+  height: 15px;
+  background: url(/images/share.svg) no-repeat center;
+  background-size: 15px 15px;
+  margin-left: 0;
+  margin-right: 0;
+}

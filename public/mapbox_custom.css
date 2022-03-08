@@ -10,15 +10,14 @@
   height: 50px;
 }
 
-.mapboxgl-ctrl-group button {
-  background-color: #2b2a2d !important;
-  border: 1px #dbc275 solid !important;
-  border-radius: 4px !important;
-  color: white !important;
+.mapboxgl-ctrl-group {
+  background-color: #000 !important;
 }
 
-.mapboxgl-ctrl-group button:hover {
-  border-color: #ffc000 !important;
+.mapboxgl-ctrl-group button {
+  border: 1px solid #2b2a2d !important;
+  border-radius: var(--radius) !important;
+  background-color: var(--lightest-grey) !important;
 }
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon {

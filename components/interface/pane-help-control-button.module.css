@@ -1,0 +1,16 @@
+.helpButton {
+  display: block;
+  width: 18px;
+  height: 18px;
+  color: var(--even-greyer);
+  border: none;
+  cursor: pointer;
+}
+
+.helpButton:hover {
+  color: #eeeeee;
+}
+
+.selected {
+  color: #eeeeee;
+}

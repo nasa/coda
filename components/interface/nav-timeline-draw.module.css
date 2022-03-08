@@ -1,0 +1,39 @@
+.canvasContainer {
+  position: fixed;
+  width: 100%;
+  height: 162px;
+  bottom: 0;
+  left: 0;
+  /* background-color: blue;
+  opacity: 0.5; */
+  /* background-color: #2e2b34; */
+  z-index: 1;
+}
+
+.canvasContainer canvas {
+  /* position: fixed;
+  left: 0;
+  bottom: 0; */
+  height: 162px;
+  width: 100%;
+}
+
+.collapsedBackground {
+  /* position: fixed; */
+  width: 100%;
+  height: 106px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--very-dark-grey);
+  z-index: 0;
+}
+
+.expandedBackground {
+  /* position: fixed; */
+  width: 100%;
+  height: 122px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--very-dark-grey);
+  z-index: 0;
+}

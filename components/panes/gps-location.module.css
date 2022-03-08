@@ -1,0 +1,126 @@
+.container {
+  position: relative;
+  min-width: 493px;
+  width: 100%;
+  height: 100%;
+  /* position: absolute; */
+  background-color: #19181b;
+}
+
+.mapContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--nearly-black);
+  object-fit: contain;
+  overflow: hidden;
+}
+
+.info {
+  position: absolute;
+  top: 30px;
+  left: 5px;
+  width: 320px;
+
+  display: flex;
+
+  margin-top: 5px;
+  margin-left: 5px;
+  padding: 5px;
+
+  font-size: 1rem;
+  color: #222;
+  background-color: #fff;
+  border: 1px solid black;
+  border-radius: var(--radius);
+  z-index: 10;
+}
+
+.infoSection {
+  flex-direction: column;
+}
+
+.infoSectionTitle {
+  display: flex;
+  align-items: center;
+}
+
+.infoSectionTitleIcon {
+  margin-top: 5px;
+}
+
+.valueTable {
+  width: 100%;
+  font-size: 0.8em;
+  border-collapse: collapse;
+}
+
+.valueTable td {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.valueTable tr td:first-child {
+  text-align: right;
+  font-weight: 600;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.valueTable tr td:last-child {
+  border-left: 1px solid #000;
+}
+
+/* Controls */
+
+.controls {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+  margin-left: auto;
+}
+
+.controlsLeft {
+  display: flex;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+/* Lock Map button */
+
+.lockButton {
+  display: block;
+  width: 110px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lockButtonSelected {
+  border: none;
+  background-color: #eeeeee;
+  color: var(--lighter-grey);
+}
+
+.lockButtonLabel {
+  position: relative;
+  width: 20px;
+  left: -2px;
+}

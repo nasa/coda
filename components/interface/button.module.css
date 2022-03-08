@@ -1,0 +1,69 @@
+.button {
+  align-items: center;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.default {
+  font-size: 16px;
+  padding: 6px 10px;
+}
+
+.small {
+  height: 27px;
+  font-size: 14px;
+  padding: 0;
+}
+
+.all {
+  border-radius: var(--radius);
+}
+
+.left {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+.right {
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+
+.none {
+  border-radius: 0;
+}
+
+.active {
+  background: var(--grey);
+  border: solid var(--grey);
+  color: white;
+}
+.active:hover {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: white;
+}
+
+.selected {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: white;
+}
+
+.disabled {
+  background: var(--grey);
+  border: solid var(--grey);
+  color: var(--extremely-grey);
+}
+
+.active_selected {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: white;
+}
+
+.disabled_selected {
+  background: var(--lightest-grey);
+  border: solid var(--lightest-grey);
+  color: var(--extremely-grey);
+}

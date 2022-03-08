@@ -35,11 +35,11 @@
         "./store/*"
       ],
       "typings/*": [
-        "./typings/*",
+        "./typings/*"
       ],
       "utils/*": [
         "./utils/*"
-      ],
+      ]
     },
     "typeRoots": [
       "./node_modules/@types",
@@ -47,7 +47,8 @@
     ],
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "incremental": true
   },
   "include": [
     "next-env.d.ts",

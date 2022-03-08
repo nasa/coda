@@ -14,10 +14,36 @@ export enum LoadingStatusEnum {
   UNNEEDED = "unneeded",
 }
 
+export enum Source {
+  ISS = "ISS",
+  TEST_EVENTS = "TEST_EVENTS",
+  NBL = "NBL",
+}
+
+export enum SourceShortVal {
+  ISS = 0,
+  TEST_EVENTS = 1,
+  NBL = 2,
+}
+
 export enum SequenceType {
   EVA = 1,
   IVA,
   testing,
   analog,
   training,
+}
+
+/**
+ * Pane types converted to integers
+ */
+export enum PaneTypeShortVal {
+  empty = 0,
+  video_downlink = 1,
+  video_non_downlink = 2,
+  photo = 3,
+  event_info = 4,
+  iss_location = 5,
+  gps_location = 6,
+  photo_all = 7,
 }

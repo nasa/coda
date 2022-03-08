@@ -17,7 +17,7 @@ interface IOResponse {
 /** The base type for all responses from the CODA API */
 interface WrappedResponse<T> {
   data?: T;
-  metadata: ResMetadata;
+  cacheMetadata: CacheMetadata;
 }
 
 /** Wikibot responses */
@@ -94,6 +94,8 @@ interface MediaFile {
   mediaLowResURL: string;
   /** Direct link to the high res version of this file */
   mediaHighResURL?: string;
+  /** Direct link to the thumbnail version of this file */
+  mediaThumbURL?: string;
 }
 
 /** Parsed metadata from an IO video file result */

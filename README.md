@@ -104,7 +104,12 @@ SPACETRACK_PASSWORD=
 
 Ask Ben, James, or Cameron for the keys if you don't have them. You can also overwrite any of the variables found in `next.config.js`.
 
-4. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
+4. Get the required CA Cert:
+   1. Go to https://cset.nasa.gov/application/nasa-trust-anchor-management-ntam-for-linux/
+   2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
+   3. Download zip file
+   4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
+5. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
 
 ### Local Dev Environment
 
@@ -138,7 +143,7 @@ This allows the application to run without being dependant on the NASA network o
 npm t
 ```
 
-We use [Jest](https://jestjs.io/en/) to run tests and [Enzyme](https://enzymejs.github.io/enzyme/) to setup tests against React components.
+We use [Jest](https://jestjs.io/en/) to run tests.
 
 - [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
 
