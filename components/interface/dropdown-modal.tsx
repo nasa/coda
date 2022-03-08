@@ -18,10 +18,11 @@ export interface Options {
   modal?: ({
     closeClick,
     options,
+    display,
   }: {
     closeClick?: () => void;
-    options: any;
-    display: boolean;
+    options?: any;
+    display?: boolean;
   }) => JSX.Element;
   modalOptions?: any;
 }
