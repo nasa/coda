@@ -151,6 +151,14 @@ build:
   stage: priority
   needs: ["install_dependencies"]
 
+  # Use deploy image to be `root` rather than other emss/docker-image images which set user to node
+  # to run in OpenShift. But next.js requires touching some other directories that require more
+  # permissions, so rather than configuring those for now just run as root. Also set home to /root
+  # since default is /tmp to work with OpenShift
+  variables:
+    HOME: /root
+  image: "$CI_REGISTRY/emss/docker-images:deploy-node-14-alpine"
+
   # Could be openshift, but it runs faster in a VM; Since it's the longest-running job, run in VM
   tags: ["docker", "linux"]
   script:
