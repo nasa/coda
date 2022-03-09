@@ -23,3 +23,6 @@ dist/
 
 # typescript
 tsconfig.tsbuildinfo
+
+# created by coverage reporter
+junit.xml

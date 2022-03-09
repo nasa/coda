@@ -3,9 +3,17 @@
 # To check the validity of this file, try the live editor:
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
-# Official framework image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/node/tags/
-image: node:14-alpine
+# Use EMSS' version of node:14-alpine
+image: "$CI_REGISTRY/emss/docker-images:node-14-alpine"
+
+default:
+  artifacts:
+    # Aggressively expire artifacts. The latest for any branch never expires
+    expire_in: 1 day
+  timeout: 10 minutes
+
+variables:
+  HOME: "/tmp" # required for openshift for now
 
 # This folder is cached between builds
 # http://docs.gitlab.com/ee/ci/yaml/README.html#cache
@@ -30,41 +38,30 @@ stages:
 # make GitLab angry, so a lot of repetition
 project-check:
   stage: static
-  needs: ["test"]
-  dependencies: [] # doesn't actually need artifacts
-  tags: ["docker", "linux"]
-  timeout: 10 minutes
+  needs: []
+  tags: ["openshift"]
 eslint-sast:
   stage: static
-  needs: ["test"]
-  dependencies: [] # doesn't actually need artifacts
-  tags: ["docker", "linux"]
-  timeout: 10 minutes
+  needs: []
+  tags: ["openshift"]
 nodejs-scan-sast:
   stage: static
-  needs: ["install_dependencies"] # nodejs-scan-sast takes a while, don't wait for "test" job
-  dependencies: [] # doesn't actually need artifacts
-  tags: ["docker", "linux"]
-  timeout: 10 minutes
+  needs: []
+  tags: ["openshift"]
 semgrep-sast:
   stage: static
-  needs: ["test"]
-  dependencies: [] # doesn't actually need artifacts
-  tags: ["docker", "linux"]
-  timeout: 10 minutes
+  needs: []
+  tags: ["openshift"]
 sast:
   stage: static
-  needs: ["test"]
-  dependencies: [] # doesn't actually need artifacts
-  tags: ["docker", "linux"]
-  timeout: 10 minutes
+  needs: []
+  tags: ["openshift"]
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
   stage: static
   needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
-  tags: ["docker", "linux"]
-  timeout: 10 minutes
+  tags: ["docker", "linux"] # can't use openshift yet
   image:
     # Specify the Docker image to be used for the job, which is a customized image for running OWASP
     # dependency-check in a GitLab CI job
@@ -98,10 +95,8 @@ dependency-check:
 
 npm-audit:
   stage: static
-  needs: ["test"]
-  dependencies: [] # doesn't actually need artifacts
-  tags: ["docker", "linux"]
-  timeout: 5 minutes
+  needs: []
+  tags: ["openshift"]
   allow_failure: true
   script:
     - npm audit --json > npm-audit-report.json && echo "No vulnerabilities found" || npm audit
@@ -114,6 +109,8 @@ npm-audit:
 
 install_dependencies:
   stage: priority
+
+  # This could be openshift, but it runs faster in a VM; other jobs rely on it, so get it done ASAP
   tags: ["docker", "linux"]
   script:
     - npm ci
@@ -125,20 +122,36 @@ install_dependencies:
 test:
   stage: priority
   needs: ["install_dependencies"]
-  tags: ["docker", "linux"]
+  tags: ["openshift"]
   script:
     - npm run lint
-    - npm t -- --coverage
+    - npm run tsc
+    - npm run test:coverage
   artifacts:
     reports:
       cobertura: ./coverage/cobertura-coverage.xml
+      junit:
+        - junit.xml
     paths:
       - ./coverage/cobertura-coverage.xml
-      - ./test/cases/*
+
+# test against next version of node that CODA may use, but allow to fail
+test-node-next:
+  stage: priority
+  image: "$CI_REGISTRY/emss/docker-images:node-16-alpine"
+  needs: ["install_dependencies"]
+  tags: ["openshift"]
+  allow_failure: true
+  script:
+    - npm run lint
+    - npm run tsc
+    - npm t
 
 build:
   stage: priority
   needs: ["install_dependencies"]
+
+  # Could be openshift, but it runs faster in a VM; Since it's the longest-running job, run in VM
   tags: ["docker", "linux"]
   script:
     - npm run build
@@ -147,92 +160,71 @@ build:
       - .next
       - dist
 
-##
-## A hidden job for setting up SSH that is never executed by itself. Instead, we use the `extends`
-## keyword in other jobs to execute this script and setup SSH during deployments
-##
-.setup_ssh:
-  before_script:
-    ## See https://docs.gitlab.com/ee/ci/ssh_keys/index.html#ssh-keys-when-using-the-docker-executor
-    ##
-    ## Install ssh-agent if not already installed, it is required by Docker.
-    ## (change apt-get to yum if you use an RPM-based image)
-    ##
-    - "command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )"
-
-    ##
-    ## Install rsync
-    ##
-    - "which rsync || ( apt-get update -y && apt-get install rsync -y )"
-
-    ##
-    ## Run ssh-agent (inside the build environment)
-    ##
-    - eval $(ssh-agent -s)
-
-    ##
-    ## Create the SSH directory and give it the right permissions
-    ##
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-
-    ##
-    ## Add the FIT server host to known_hosts
-    ##
-    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-
-    ## Since servers may have different private keys, we need to be able to set a variable
-    ## for each job saying what the name of the key in GitLab Variables is called. This
-    ## extracts the key based on the passed in variable name.
-    - SSH_PRIVATE_KEY_VALUE=${!SSH_PRIVATE_KEY_VAR_NAME}
-
-    ##
-    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
-    ## We're using tr to fix line endings which makes ed25519 keys work
-    ## without extra base64 encoding.
-    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
-    ##
-    - echo "$SSH_PRIVATE_KEY_VALUE" | tr -d '\r' | ssh-add -
-
 .deploy_template:
   tags:
     - emss-deploy
-  extends: .setup_ssh
-  image: node:14 # Can't use Alpine Linux here without changing the apt-get commands above
+  variables:
+    HOME: /root # because OpenShift needs HOME set, and it gets set wrong for this job
+  image: "$CI_REGISTRY/emss/docker-images:deploy-node-14-alpine"
   stage: deploy_to_server
   script:
+    # Setup SSH - handled by script included in emss/docker-images:deploy-node-14-alpine image
+    - bash /setup-ssh-user.sh
+
     ## Stop the CODA server
     - >
-      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov
+      -i ~/.ssh/private_key
+      "
       echo -e '\nStop the server' &&
-      sudo systemctl stop coda"
+      sudo systemctl stop coda
+      "
+
     # sync the transpiled front-end and backend code on the server at /opt/fitbox/apps/coda
-    - rsync -acrvz --delete --exclude=node_modules --exclude=.env.local --exclude=.git "$PWD" fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
+    - >
+      rsync
+      -acrvz
+      --delete
+      --exclude=node_modules
+      --exclude=.env.local
+      --exclude=.git
+      -e "ssh -i ~/.ssh/private_key"
+      "$PWD"
+      fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
 
     # check dependencies then wait 5 seconds to prevent issue #101 before starting the server
     - >
-      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov
+      -i ~/.ssh/private_key
+      "
       cd /opt/fitbox/apps/coda &&
 
       echo -e '\nInstall dependencies' &&
       npm i &&
 
-      sleep 5"
+      sleep 5
+      "
+
     - >
-      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov
+      -i ~/.ssh/private_key
+      "
       cd /opt/fitbox/apps/coda &&
       echo -e '\nStart the server' &&
       sudo systemctl daemon-reload &&
       sudo systemctl start coda &&
-      sleep 5"
+      sleep 5
+      "
 
     - >
-      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov "
+      ssh fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov
+      -i ~/.ssh/private_key
+      "
       cd /opt/fitbox/apps/coda &&
       echo -e '\nRestart the server because there is probably a 500 error' &&
       sudo systemctl daemon-reload &&
-      sudo systemctl restart coda"
+      sudo systemctl restart coda
+      "
 
 deploy_to_dev1:
   extends: .deploy_template
