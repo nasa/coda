@@ -56,6 +56,72 @@ export const allPresets: Preset[] = [
     },
   },
   {
+    name: "6-Pack Downlinks",
+    layout: "g",
+    frames: {
+      1: {
+        paneType: "video_downlink",
+        paneStateData: {
+          ready: true,
+          downlink: 0,
+          activeVideoFileID: "",
+          muted: true,
+          showInfo: false,
+        } as VideoPaneStateData,
+      },
+      2: {
+        paneType: "video_downlink",
+        paneStateData: {
+          ready: true,
+          downlink: 1,
+          activeVideoFileID: "",
+          muted: true,
+          showInfo: false,
+        } as VideoPaneStateData,
+      },
+      3: {
+        paneType: "video_downlink",
+        paneStateData: {
+          ready: true,
+          downlink: 2,
+          activeVideoFileID: "",
+          muted: true,
+          showInfo: false,
+        } as VideoPaneStateData,
+      },
+      4: {
+        paneType: "video_downlink",
+        paneStateData: {
+          ready: true,
+          downlink: 3,
+          activeVideoFileID: "",
+          muted: true,
+          showInfo: false,
+        } as VideoPaneStateData,
+      },
+      5: {
+        paneType: "video_downlink",
+        paneStateData: {
+          ready: true,
+          downlink: 4,
+          activeVideoFileID: "",
+          muted: true,
+          showInfo: false,
+        } as VideoPaneStateData,
+      },
+      6: {
+        paneType: "video_downlink",
+        paneStateData: {
+          ready: true,
+          downlink: 5,
+          activeVideoFileID: "",
+          muted: true,
+          showInfo: false,
+        } as VideoPaneStateData,
+      },
+    },
+  },
+  {
     name: "9-Pack Downlinks",
     layout: "f",
     frames: {
