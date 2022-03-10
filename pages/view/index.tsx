@@ -3,7 +3,6 @@ import Header from "components/interface/header";
 import Viewer from "components/framework/frames";
 import styles from "./index.module.css";
 import _, { isNil } from "lodash";
-import Timeline from "components/interface/nav-timeline";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 
@@ -51,6 +50,12 @@ import {
 } from "store/framework";
 import { interpretFramestateQueryString } from "utils/share-state";
 import { Source } from "utils/enums";
+
+/** Dynamically import the nav timeline because paper doesn't like Node  */
+import dynamic from "next/dynamic";
+const Timeline = dynamic(import("components/interface/nav-timeline"), {
+  ssr: false,
+});
 
 export function V2(props: { urlState }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
