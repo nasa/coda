@@ -7,7 +7,7 @@ import { changeDate, diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
-import { Collection, Source } from "utils/enums";
+import { Collection } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function EventDropdown(props: {
@@ -45,12 +45,6 @@ export default function EventDropdown(props: {
     if (e.target.value !== "") {
       const [year, month, day] = e.target.value.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      let source = Source.ISS;
-      if (props.collection === Collection.NBL) {
-        source = Source.NBL;
-      } else if (props.collection === Collection.TEST_EVENTS) {
-        source = Source.TEST_EVENTS;
-      }
       dispatch(changeDate(formattedDate));
       props.setHelpLoaderOpen(true);
     }

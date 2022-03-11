@@ -7,7 +7,7 @@ import { changeDate, diff, isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
-import { Collection, Source } from "utils/enums";
+import { Source } from "utils/enums";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
