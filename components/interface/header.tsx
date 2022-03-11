@@ -29,12 +29,11 @@ import { changeTime, halt, start } from "store/playhead";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock, faFloppyDisk);
 
-export function LoaderHelpMenu() {
+export function LoaderHelpMenu(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
   const dispatch = useDispatch();
-  const [isOpen, setIsOpen] = useState(true);
 
   const setModalIsOpen = (val: boolean) => {
-    setIsOpen(val);
+    props.setHelpLoaderOpen(val);
     if (val === false) {
       dispatch(start()); // start playback when help menu closes
     } else {
@@ -47,14 +46,14 @@ export function LoaderHelpMenu() {
       <div
         className={styles.helpMenuButton}
         onClick={() => {
-          setIsOpen(!isOpen);
+          props.setHelpLoaderOpen(!props.helpLoaderOpen);
         }}
       >
         <div className={styles.verticalCenter}>
           <FontAwesomeIcon icon="question-circle" />
         </div>
       </div>
-      <AboutOverlay modalIsOpen={isOpen} setModalIsOpen={setModalIsOpen} />
+      <AboutOverlay modalIsOpen={props.helpLoaderOpen} setModalIsOpen={setModalIsOpen} />
     </>
   );
 }
@@ -249,13 +248,16 @@ export function Clock() {
   );
 }
 
-export default function Header() {
+export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
   const source = useSelector((state: RootState) => state.framework.source);
   return (
     <div className={styles.main}>
       <div className={styles.left}>
         <div className={styles.item}>
-          <LoaderHelpMenu />
+          <LoaderHelpMenu
+            helpLoaderOpen={props.helpLoaderOpen}
+            setHelpLoaderOpen={props.setHelpLoaderOpen}
+          />
         </div>
         <div className={styles.item} style={{ width: "140px" }}>
           <SourcesDropdown />
@@ -267,7 +269,10 @@ export default function Header() {
           <Clock />
         </div>
         <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
-          <EventDropdown collection={Collection[source]} />
+          <EventDropdown
+            collection={Collection[source]}
+            setHelpLoaderOpen={props.setHelpLoaderOpen}
+          />
         </div>
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
@@ -287,9 +292,8 @@ export default function Header() {
           <span
             className={styles.wordMark}
             onClick={() => {
-              window.open("https://wiki.jsc.nasa.gov/exploration/index.php/CODA", "_blank");
+              props.setHelpLoaderOpen(true);
             }}
-            title="More info about Collaborative Operations Data Activation (CODA)"
           >
             CODA
           </span>

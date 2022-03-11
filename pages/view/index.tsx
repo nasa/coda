@@ -3,11 +3,10 @@ import Header from "components/interface/header";
 import Viewer from "components/framework/frames";
 import styles from "./index.module.css";
 import _, { isNil } from "lodash";
-import Timeline from "components/interface/nav-timeline";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
@@ -52,6 +51,12 @@ import {
 import { interpretFramestateQueryString } from "utils/share-state";
 import { Source } from "utils/enums";
 
+/** Dynamically import the nav timeline because paper doesn't like Node  */
+import dynamic from "next/dynamic";
+const Timeline = dynamic(import("components/interface/nav-timeline"), {
+  ssr: false,
+});
+
 export function V2(props: { urlState }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
   const playhead = useSelector((state: RootState) => state.playhead);
@@ -59,6 +64,8 @@ export function V2(props: { urlState }) {
   const source = useSelector((state: RootState) => state.framework.source);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   let allEVAs = sequencesSelector.selectAll(sequences);
+
+  const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
 
   const dispatch = useDispatch();
 
@@ -246,6 +253,9 @@ export function V2(props: { urlState }) {
     const month = d.getUTCMonth() + 1;
     const day = d.getUTCDate();
 
+    // open the about modal to show data loading
+    setHelpLoaderOpen(true);
+
     // clear all stores
     dispatch(clearEphemera());
     dispatch(clearGPSTracks());
@@ -284,7 +294,7 @@ export function V2(props: { urlState }) {
       <Head>
         <title>{process.env.NEXT_PUBLIC_TITLE}</title>
       </Head>
-      <Header />
+      <Header helpLoaderOpen={helpLoaderOpen} setHelpLoaderOpen={setHelpLoaderOpen} />
       <div className={styles.body}>
         <Viewer />
       </div>

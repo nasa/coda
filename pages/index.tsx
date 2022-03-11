@@ -1,6 +1,5 @@
 import Head from "next/head";
 import Link from "next/link";
-import Button from "components/interface/button";
 import styles from "./index.module.css";
 
 export default function Index() {
@@ -26,36 +25,27 @@ export default function Index() {
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment
               </p>
-            </div>
-            <div style={{ marginTop: "10px" }}>
-              <Button>Tour CODA</Button>
+              <p>A JSC collaboration between XI, CX, XX, and SK</p>
             </div>
           </div>
         </div>
         <div className={styles.verticalCenter}>
           <div className={styles.sources}>
             <div className={styles.sourcesPanel}>
-              <span className={styles.sourcesHeader}>Select a Source</span>
+              <div className={styles.sourcesHeader}>Select a Source</div>
               <ul className={styles.ul}>
                 <li className={styles.li}>
-                  <Link href="/view">ISS</Link>
+                  <Link href="/view/?s=0">ISS</Link>
                 </li>
                 <li className={styles.li}>
-                  <Link href="/view/test-events">JSC Rock Yard</Link>
+                  <Link href="/view/?s=1">Test Events</Link>
+                </li>
+                <li className={styles.li}>
+                  <Link href="/view/?s=2">NBL</Link>
                 </li>
                 <li className={styles.li}>
                   <span className={styles.disabled} title="Coming soon!">
                     Artemis
-                  </span>
-                </li>
-                <li className={styles.li}>
-                  <span className={styles.disabled} title="Coming soon!">
-                    NBL
-                  </span>
-                </li>
-                <li className={styles.li}>
-                  <span className={styles.disabled} title="Coming soon!">
-                    NEEMO
                   </span>
                 </li>
               </ul>

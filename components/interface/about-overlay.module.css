@@ -82,26 +82,23 @@
 .loadingContainer {
   display: flex;
   flex-direction: row;
-  justify-content: center;
-}
-
-.loading {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  max-width: 800px;
+  justify-content: space-between;
   flex-wrap: wrap;
-  padding: 10px;
   border-radius: 8px;
 }
 
 .loadingLeftSection {
-  min-width: 400px;
-  flex: 1;
+  flex-basis: 400px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-left: 35px;
 }
 
 .loadingRightSection {
-  flex: 1;
+  flex-basis: 200px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-right: 20px;
 }
 
 .headerHeadlineContainer {
@@ -119,16 +116,21 @@
   background-color: var(--lightest-grey);
   color: #fff;
   display: block;
-  width: 120px;
-  height: 28px;
+  width: 180px;
+  height: 60px;
   border: 1px solid var(--grey);
   border-radius: var(--radius);
   font-size: 16px;
-  margin-left: 10px;
-  margin-top: auto;
-  margin-bottom: auto;
+  font-weight: 500;
   cursor: pointer;
+}
+
+.headerGoButtonEnabled {
   animation: blinker 1s ease infinite;
+}
+
+.headerGoButtonDisabled {
+  color: black;
 }
 
 @keyframes blinker {
@@ -157,18 +159,19 @@
 .closeArea {
   width: 100%;
 }
-.closeItem {
+
+.checkboxArea {
+  display: flex;
+  flex-direction: row;
   margin-top: 10px;
+  font-size: 13px;
   color: #eeeeee;
 }
 
-.closeButtonX {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 30;
-  background-color: black;
-  cursor: pointer;
+.checkbox {
+  margin-top: 3px;
+  margin-left: 0;
+  margin-right: 5px;
 }
 
 .helpArea {
@@ -254,47 +257,48 @@
   font-size: 50px;
 }
 
-.sources {
-  margin-left: 1em;
+.aboutSection .aboutSectionTitle {
+  font-size: 1.3em;
+  color: #eeeeee;
+  text-align: left;
+  margin-top: 20px;
 }
 
-.sourcesPanel {
-  background-color: var(--grey);
-  border-radius: var(--radius);
-  width: 220px;
-  padding: 16px 5px 5px 5px;
-  /* padding: 16px 16px 5px 16px; */
-}
-
-.sourcesHeader {
-  color: rgba(255, 255, 255, 0.4);
-  padding-left: 11px;
-  padding-bottom: 11px;
-}
-
-.ul {
-  margin: 0;
-  margin-top: 5px;
-  padding: 0;
-}
-
-.li {
-  text-decoration: none;
+.aboutSection ul {
+  list-style-position: outside;
   list-style: none;
-  line-height: 40px;
-  margin-left: 0;
-  padding-left: 11px;
+  margin: 0;
+  padding-left: 5px;
 }
 
-.li:hover {
-  background-color: var(--light-grey);
+.aboutSection li {
+  padding: 2px;
 }
 
-.li > * {
-  display: inline-block;
-  width: 100%;
+.aboutSection .theTeamUl li {
+  padding: 5px;
 }
 
-.disabled {
-  color: var(--extremely-grey);
+.aboutSection a {
+  color: var(--even-greyer);
+  text-decoration: none;
+}
+
+.aboutSection .smallText {
+  color: var(--even-greyer);
+  font-size: 0.9em;
+  text-decoration: underline;
+}
+
+.aboutSection .teamName {
+  color: white;
+}
+
+.aboutSection .teamTitle {
+  color: var(--even-greyer);
+  font-size: 0.9em;
+}
+
+.aboutSection a:hover {
+  text-decoration: underline;
 }

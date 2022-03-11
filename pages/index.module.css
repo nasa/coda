@@ -16,10 +16,6 @@
   min-height: 250px;
 }
 
-.container > * {
-  width: 350px;
-}
-
 .tourText > p {
   font-size: 15px;
   line-height: 18px;
@@ -28,6 +24,7 @@
 .description {
   line-height: 1.1em;
   text-align: right;
+  width: 370px;
 }
 
 .description > p {
@@ -64,20 +61,20 @@
 
 .sources {
   margin-left: 1em;
+  width: 220px;
 }
 
 .sourcesPanel {
   background-color: var(--grey);
   border-radius: var(--radius);
-  width: 220px;
   padding: 16px 5px 5px 5px;
-  /* padding: 16px 16px 5px 16px; */
 }
 
 .sourcesHeader {
   color: rgba(255, 255, 255, 0.4);
   padding-left: 11px;
-  padding-bottom: 11px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ul {
@@ -100,6 +97,7 @@
 
 .li > * {
   display: inline-block;
+  text-decoration: none;
   width: 100%;
 }
 

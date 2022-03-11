@@ -48,6 +48,14 @@ export const allLayouts: Layouts = {
     frameCount: 6,
     cssGridRows: 10,
   },
+  l: {
+    frameCount: 6,
+    cssGridRows: 9,
+  },
+  m: {
+    frameCount: 4,
+    cssGridRows: 9,
+  },
   h: {
     frameCount: 1,
     cssGridRows: 9,
@@ -72,10 +80,10 @@ export const allPanes: Panes = {
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
-      ready: false,
+      ready: true,
       downlink: 0,
       activeVideoFileID: "",
-      muted: false,
+      muted: true,
       showInfo: false,
       showHelp: false,
     } as VideoPaneStateData,
@@ -88,7 +96,7 @@ export const allPanes: Panes = {
       ready: true,
       downlink: 0,
       activeVideoFileID: "",
-      muted: false,
+      muted: true,
       showInfo: false,
       showHelp: false,
     } as VideoPaneStateData,
@@ -204,7 +212,7 @@ export const defaultFrames: FrameState = {
  * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
-  layout: "j",
+  layout: "c",
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: Source.ISS,
