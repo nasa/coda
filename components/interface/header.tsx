@@ -292,9 +292,8 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
           <span
             className={styles.wordMark}
             onClick={() => {
-              window.open("https://wiki.jsc.nasa.gov/exploration/index.php/CODA", "_blank");
+              props.setHelpLoaderOpen(true);
             }}
-            title="More info about Collaborative Operations Data Activation (CODA)"
           >
             CODA
           </span>

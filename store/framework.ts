@@ -212,7 +212,7 @@ export const defaultFrames: FrameState = {
  * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
-  layout: "j",
+  layout: "c",
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: Source.ISS,
