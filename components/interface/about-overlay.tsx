@@ -169,13 +169,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                     </div>
                   </div>
                   <div className={styles.closeArea}>
-                    {/* <div
-                  onClick={() => {
-                    props.closeModalCB();
-                  }}
-                >
-                  <Button>Close</Button>
-                </div> */}
                     <div className={styles.closeItem}>
                       <label>
                         <input
