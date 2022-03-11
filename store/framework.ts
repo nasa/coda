@@ -48,6 +48,14 @@ export const allLayouts: Layouts = {
     frameCount: 6,
     cssGridRows: 10,
   },
+  l: {
+    frameCount: 6,
+    cssGridRows: 9,
+  },
+  m: {
+    frameCount: 4,
+    cssGridRows: 9,
+  },
   h: {
     frameCount: 1,
     cssGridRows: 9,
