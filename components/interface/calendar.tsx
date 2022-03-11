@@ -7,7 +7,7 @@ import { changeDate, diff, isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
-import { Source } from "utils/enums";
+import { Collection, Source } from "utils/enums";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -181,8 +181,16 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   const framework = useSelector((state: RootState) => state.framework);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const playheadDate = useSelector((state: RootState) => state.playhead.date);
+  const source = useSelector((state: RootState) => state.framework.source);
 
-  const allSequences = sequencesSelector.selectAll(sequences);
+  let allSequences = sequencesSelector.selectAll(sequences);
+  if (source === Source.NBL) {
+    // Show only NBL sequences
+    allSequences = allSequences.filter((eva) => eva.displayTitle.includes("NBL"));
+  } else if (source === Source.TEST_EVENTS) {
+    // Filter out all NBL sequences
+    allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
+  }
 
   const today = new Date();
   const todayYYYY = today.getUTCFullYear();
