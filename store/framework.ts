@@ -76,12 +76,12 @@ export const allPanes: Panes = {
     },
   },
   video_downlink: {
-    title: "Video Downlink",
+    title: "Video Channels",
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
       ready: true,
-      downlink: 0,
+      channel: 0,
       activeVideoFileID: "",
       muted: true,
       showInfo: false,
@@ -94,7 +94,7 @@ export const allPanes: Panes = {
     color: "teal",
     defaultPaneStateData: {
       ready: true,
-      downlink: 0,
+      channel: 0,
       activeVideoFileID: "",
       muted: true,
       showInfo: false,
@@ -159,7 +159,7 @@ export const defaultFrames: FrameState = {
     paneType: "video_downlink",
     paneStateData: {
       ready: true,
-      downlink: 0,
+      channel: 0,
       activeVideoFileID: "",
       muted: false,
       showInfo: false,
@@ -169,7 +169,7 @@ export const defaultFrames: FrameState = {
     paneType: "video_downlink",
     paneStateData: {
       ready: true,
-      downlink: 1,
+      channel: 1,
       activeVideoFileID: "",
       muted: true,
       showInfo: false,

@@ -7,7 +7,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 0,
+          channel: 0,
           activeVideoFileID: "",
           muted: false,
           showInfo: false,
@@ -17,7 +17,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 1,
+          channel: 1,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -63,7 +63,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 0,
+          channel: 0,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -73,7 +73,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 1,
+          channel: 1,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -83,7 +83,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 2,
+          channel: 2,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -93,7 +93,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 3,
+          channel: 3,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -103,7 +103,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 4,
+          channel: 4,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -113,7 +113,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 5,
+          channel: 5,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -129,7 +129,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 0,
+          channel: 0,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -139,7 +139,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 1,
+          channel: 1,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -149,7 +149,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 2,
+          channel: 2,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -159,7 +159,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 3,
+          channel: 3,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -169,7 +169,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 4,
+          channel: 4,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -179,7 +179,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 5,
+          channel: 5,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -189,7 +189,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 6,
+          channel: 6,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
@@ -199,7 +199,7 @@ export const allPresets: Preset[] = [
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: 7,
+          channel: 7,
           activeVideoFileID: "",
           muted: true,
           showInfo: false,
