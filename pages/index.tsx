@@ -21,11 +21,11 @@ export default function Index() {
             </div>
             <div className={styles.description}>
               <div className={styles.strong}>Collaborative Operations Data Activation</div>
-              <p>A JSC collaboration between XI, CX, XX, and SK</p>
               <p>
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment
               </p>
+              <p>A JSC collaboration between XI, CX, XX, and SK</p>
             </div>
           </div>
         </div>

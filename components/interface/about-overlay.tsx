@@ -1,11 +1,9 @@
 import styles from "./about-overlay.module.css";
 import Modal from "react-modal";
 import StatusArea from "./status";
-import AboutAccordion from "./about-accordion";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useCookies } from "react-cookie";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
@@ -72,7 +70,9 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
   };
 
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
-  const titleShowGoButtonStyle = isLoaded ? "inline-block" : "none";
+  const titleShowGoButtonStyle = isLoaded
+    ? styles.headerGoButtonEnabled
+    : styles.headerGoButtonDisabled;
 
   return (
     <Modal
@@ -83,15 +83,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
       ariaHideApp={false}
     >
       <div className={styles.main}>
-        <div
-          className={styles.closeButtonX}
-          style={{ display: `${isLoaded === true ? "block" : "none"}` }}
-          onClick={() => {
-            props.setModalIsOpen(false);
-          }}
-        >
-          <FontAwesomeIcon icon="times-circle" size="2x" />
-        </div>
         <div className={styles.container}>
           <div className={styles.leftSection}>
             <div className={styles.logo}>
@@ -121,69 +112,136 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
             </div>
             <div className={styles.description}>
               <div className={styles.strong}>Collaborative Operations Data Activation</div>
-              <p>A JSC collaboration between XI, CX, XX, and SK</p>
               <p>
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment
               </p>
+              <p>A JSC collaboration between XI, CX, XX, and SK</p>
             </div>
-            <div className={styles.strong} style={{ marginTop: "10px" }}>
-              Quick Tour
-            </div>
-            <div className={styles.videoContainer}>
-              <video className={styles.video} muted controls>
-                <source src="https://emss-labs.fit.nasa.gov/public/coda-quick-tour.mp4" />
-              </video>
-            </div>
-            <div className={styles.accordionWrapper}>
-              <AboutAccordion />
+
+            <div className={styles.aboutSection}>
+              <div className={styles.aboutSectionTitle}>Useful Links</div>
+              <ul>
+                <li>
+                  <a
+                    href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA"}
+                    target={"_blank"}
+                  >
+                    About CODA
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={
+                      "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software"
+                    }
+                    target={"_blank"}
+                  >
+                    About the EMSS effort
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA/Awesome_Moments"}
+                    target={"_blank"}
+                  >
+                    CODA Links to awesome moments
+                  </a>
+                </li>
+              </ul>
+              <div className={styles.aboutSectionTitle}>The Team</div>
+              <ul className={styles.theTeamUl}>
+                <li>
+                  <div>
+                    <a className={styles.teamName} href={"mailto:benjamin.f.feist@nasa.gov"}>
+                      Ben Feist
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>
+                    Concept, Software Engineering
+                    <br />{" "}
+                    <a className={styles.smallText} href={"mailto:benjamin.f.feist@nasa.gov"}>
+                      Email for help
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:david.w.charney@nasa.gov"}>
+                      David Charney
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>Interaction and Visual Design</div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:cameron.w.pittman@nasa.gov"}>
+                      Cameron Pittman
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>
+                    Software Architecture Lead,
+                    <br />
+                    Software Engineering
+                  </div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:edwin.j.montalvo@nasa.gov"}>
+                      James Montalvo
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>EMSS Lead, Software Engineering</div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:matthew.j.miller-1@nasa.gov"}>
+                      Matthew Miller
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>Project Management</div>
+                </li>
+              </ul>
             </div>
           </div>
           <div className={styles.rightSection}>
             <div className={styles.loadingArea}>
               <div className={styles.loadingContainer}>
-                <div className={styles.loading}>
-                  <div className={styles.loadingLeftSection}>
-                    <div className={styles.headerHeadlineContainer}>
-                      <div className={styles.headerHeadline}>{titleText}</div>
+                <div className={styles.loadingLeftSection}>
+                  <div className={styles.headerHeadlineContainer}>
+                    <div className={styles.headerHeadline}>{titleText}</div>
+                  </div>
+                  <StatusArea largeDisplay={true} />
+                </div>
+                <div className={styles.loadingRightSection}>
+                  <div className={styles.rightSection}>
+                    <div className={styles.closeArea}>
                       <button
-                        className={styles.headerGoButton}
-                        style={{ display: titleShowGoButtonStyle }}
+                        className={`${styles.headerGoButton} ${titleShowGoButtonStyle}`}
                         onClick={() => {
                           props.setModalIsOpen(false);
                         }}
                       >
-                        Start CODA
+                        START CODA
                       </button>
-                    </div>
-                    <div className={styles.headerBody}>
-                      <div className={styles.headerBodyText}>
-                        All data presented by CODA is housed in external systems. CODA retrieves
-                        data from each system that pertains to the selected event.
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.loadingRightSection}>
-                    <div className={styles.rightSection}>
-                      <StatusArea largeDisplay={true} />
-                    </div>
-                  </div>
-                  <div className={styles.closeArea}>
-                    <div className={styles.closeItem}>
-                      <label>
+                      <div className={styles.checkboxArea}>
                         <input
+                          className={styles.checkbox}
                           type="checkbox"
                           checked={closeAutomatically}
                           onChange={checkCloseAutomatically}
                         />
-                      </label>
-                      Start CODA automatically when loaded
+                        <div>Start CODA automatically when loading complete</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             <div className={styles.helpArea}>
+              <div className={styles.headerHeadlineContainer} style={{ marginLeft: "35px" }}>
+                <div className={styles.headerHeadline}>Using CODA</div>
+              </div>
               <div className={styles.helpCallout}></div>
             </div>
           </div>
