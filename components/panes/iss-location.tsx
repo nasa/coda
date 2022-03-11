@@ -19,6 +19,7 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 
 //tlejs not importable as per module docs
 import { getLatLngObj } from "tle.js";
+import _ from "lodash";
 
 type MapMarker = {
   marker: any; //the MapBox marker reference
@@ -124,7 +125,9 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
     if (playheadMarker.markerNode.style.visibility === "hidden") {
       playheadMarker.markerNode.style.visibility = "visible";
     }
-    playheadMarker.marker.setLngLat(playheadLatLonObj);
+    if (!_.isNaN(playheadLatLonObj.lat) && !_.isNaN(playheadLatLonObj.lng)) {
+      playheadMarker.marker.setLngLat(playheadLatLonObj);
+    }
 
     //position hover marker
     if (playheadHover.seconds !== 0) {
@@ -133,7 +136,9 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
       const tle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
-      hoverMarker.marker.setLngLat(hoverLatLonObj);
+      if (!_.isNaN(hoverLatLonObj.lat) && !_.isNaN(hoverLatLonObj.lng)) {
+        hoverMarker.marker.setLngLat(hoverLatLonObj);
+      }
 
       updateTerminator(map, hoverISODate);
     } else {
@@ -143,7 +148,9 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
       updateTerminator(map, playHeadISODate);
 
       if (paneStateData.lockMap) {
-        map.panTo(playheadLatLonObj);
+        if (!_.isNaN(playheadLatLonObj.lat) && !_.isNaN(playheadLatLonObj.lng)) {
+          map.panTo(playheadLatLonObj);
+        }
       }
     }
   }, [ephemera, playhead.date, playhead.seconds, playheadHover.seconds]);
