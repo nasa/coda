@@ -1,18 +1,20 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { diff, isSameDate } from "store/playhead";
+import { changeDate, diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import { Collection, Source } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function EventDropdown(props: { collection: Collection }) {
+export default function EventDropdown(props: {
+  collection: Collection;
+  setHelpLoaderOpen: Function;
+}) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
-
   const date = useSelector((state: RootState) => state.playhead.date);
 
   let allSequences = sequencesSelector.selectAll(sequences);
@@ -32,6 +34,8 @@ export default function EventDropdown(props: { collection: Collection }) {
   const [value, setValue] = useState("");
   useEffect(() => setValue(get(selectedEVA, "startDate", "")), [evaName]);
 
+  const dispatch = useDispatch();
+
   /**
    * Navigate to another EVA
    */
@@ -47,7 +51,8 @@ export default function EventDropdown(props: { collection: Collection }) {
       } else if (props.collection === Collection.TEST_EVENTS) {
         source = Source.TEST_EVENTS;
       }
-      window.location.assign(`${window.location.pathname}?date=${formattedDate}&s=${source}`);
+      dispatch(changeDate(formattedDate));
+      props.setHelpLoaderOpen(true);
     }
   };
 

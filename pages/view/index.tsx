@@ -6,7 +6,7 @@ import _, { isNil } from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
@@ -64,6 +64,8 @@ export function V2(props: { urlState }) {
   const source = useSelector((state: RootState) => state.framework.source);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   let allEVAs = sequencesSelector.selectAll(sequences);
+
+  const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
 
   const dispatch = useDispatch();
 
@@ -251,6 +253,9 @@ export function V2(props: { urlState }) {
     const month = d.getUTCMonth() + 1;
     const day = d.getUTCDate();
 
+    // open the about modal to show data loading
+    setHelpLoaderOpen(true);
+
     // clear all stores
     dispatch(clearEphemera());
     dispatch(clearGPSTracks());
@@ -289,7 +294,7 @@ export function V2(props: { urlState }) {
       <Head>
         <title>{process.env.NEXT_PUBLIC_TITLE}</title>
       </Head>
-      <Header />
+      <Header helpLoaderOpen={helpLoaderOpen} setHelpLoaderOpen={setHelpLoaderOpen} />
       <div className={styles.body}>
         <Viewer />
       </div>
