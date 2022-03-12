@@ -1,13 +1,13 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { changeDate, diff, isSameDate } from "store/playhead";
+import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
-import { Collection } from "utils/enums";
+import { Collection, SourceShortVal } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function EventDropdown(props: {
@@ -16,6 +16,7 @@ export default function EventDropdown(props: {
 }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const date = useSelector((state: RootState) => state.playhead.date);
+  const framework = useSelector((state: RootState) => state.framework);
 
   let allSequences = sequencesSelector.selectAll(sequences);
   if (props.collection === Collection.NBL) {
@@ -34,10 +35,8 @@ export default function EventDropdown(props: {
   const [value, setValue] = useState("");
   useEffect(() => setValue(get(selectedEVA, "startDate", "")), [evaName]);
 
-  const dispatch = useDispatch();
-
   /**
-   * Navigate to another EVA
+   * Navigate to another Event
    */
   const handleEVASelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.preventDefault();
@@ -45,8 +44,13 @@ export default function EventDropdown(props: {
     if (e.target.value !== "") {
       const [year, month, day] = e.target.value.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      dispatch(changeDate(formattedDate));
-      props.setHelpLoaderOpen(true);
+
+      const sourceParam = SourceShortVal[framework.source];
+      /**TODO: This is a hack to get around the fact that weird things happen when you jump between EVA days by dispatching changeDate.
+      Lots of null tle values and stuff. */
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}&s=${sourceParam}`);
+      // dispatch(changeDate(formattedDate));
+      // props.setHelpLoaderOpen(true);
     }
   };
 
