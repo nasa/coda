@@ -18,7 +18,7 @@ export default function SharePanel({
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
-  const [shareURLtextValue, setShareURLtextValue] = useState(null);
+  const [shareURLtextValue, setShareURLtextValue] = useState("");
 
   const shareURLtextarea = useRef(null);
 
