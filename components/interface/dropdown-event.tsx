@@ -1,9 +1,9 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { changeDate, diff, isSameDate } from "store/playhead";
+import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
@@ -34,8 +34,6 @@ export default function EventDropdown(props: {
 
   const [value, setValue] = useState("");
   useEffect(() => setValue(get(selectedEVA, "startDate", "")), [evaName]);
-
-  const dispatch = useDispatch();
 
   /**
    * Navigate to another Event
