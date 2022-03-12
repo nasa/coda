@@ -186,7 +186,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
                 size="small"
                 rounded={rounded}
                 callback={() => {
-                  setPaneStateValue(dispatch, frameID, "downlink", c);
+                  setPaneStateValue(dispatch, frameID, "channel", c);
                 }}
               >
                 <div className={styles.dlLabel}>{c + 1}</div>
@@ -292,7 +292,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
             className={selectActiveStyle}
             value={paneStateData.activeVideoFileID}
             onChange={(e) => {
-              setPaneStateValue(dispatch, frameID, "downlink", -1);
+              setPaneStateValue(dispatch, frameID, "channel", -1);
               setPaneStateValue(dispatch, frameID, "activeVideoFileID", e.target.value);
             }}
           >
