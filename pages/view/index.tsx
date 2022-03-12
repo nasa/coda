@@ -1,6 +1,5 @@
 import Head from "next/head";
 import Header from "components/interface/header";
-import Viewer from "components/framework/frames";
 import styles from "./index.module.css";
 import _, { isNil } from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
@@ -54,6 +53,10 @@ import { Source } from "utils/enums";
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 import dynamic from "next/dynamic";
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
+  ssr: false,
+});
+/** Dynamically import the whole framework because nothing likes NextJS */
+const Viewer = dynamic(import("components/framework/frames"), {
   ssr: false,
 });
 
