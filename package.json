@@ -51,6 +51,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^12.1.0",
     "@types/cacache": "^15.0.1",
     "@types/geojson": "^7946.0.8",
     "@types/jest": "^27.4.1",
