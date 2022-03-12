@@ -123,7 +123,7 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
   );
 }
 
-const downlinks = [0, 1, 2, 3, 4, 5, 6, 7];
+const channels = [0, 1, 2, 3, 4, 5, 6, 7];
 
 export function VideoDLPaneControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
@@ -141,38 +141,38 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  const [downlinkAvailability, setDownlinkAvailability] = useState([]);
+  const [channelAvailability, setChannelAvailability] = useState([]);
 
   useEffect(() => {
     if (visibleVideos.size === 0) {
       return;
     }
-    const downlinkAvailability = [];
-    for (const downlink in downlinks) {
-      const videosNextSecond = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
-      downlinkAvailability.push(isNil(videosNextSecond) ? false : true);
+    const cAvailability = [];
+    for (const channel in channels) {
+      const videosNextSecond = visibleVideos.get(`${playhead.seconds + 1}/${channel}`);
+      cAvailability.push(isNil(videosNextSecond) ? false : true);
     }
-    setDownlinkAvailability(downlinkAvailability);
+    setChannelAvailability(cAvailability);
   }, [visibleVideos, playhead.seconds]);
 
   if (props.frameDimensions[0] > minWidth) {
     return (
       <div className={styles.controls}>
         <div className={styles.selections}>
-          {downlinks.map((d) => {
+          {channels.map((c) => {
             let rounded = "none";
-            if (d === 0) {
+            if (c === 0) {
               rounded = "left";
-            } else if (d === 7) {
+            } else if (c === 7) {
               rounded = "right";
             }
 
             let color = "disabled";
-            if (downlinkAvailability[d]) {
+            if (channelAvailability[c]) {
               color = "active";
             }
-            if (paneStateData.downlink === d) {
-              if (downlinkAvailability[d]) {
+            if (paneStateData.channel === c) {
+              if (channelAvailability[c]) {
                 color = "active_selected";
               } else {
                 color = "disabled_selected";
@@ -181,15 +181,15 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
 
             return (
               <Button
-                key={"DLBUTTON_" + d + "_" + frameID}
+                key={"DLBUTTON_" + c + "_" + frameID}
                 color={color}
                 size="small"
                 rounded={rounded}
                 callback={() => {
-                  setPaneStateValue(dispatch, frameID, "downlink", d);
+                  setPaneStateValue(dispatch, frameID, "downlink", c);
                 }}
               >
-                <div className={styles.dlLabel}>{d + 1}</div>
+                <div className={styles.dlLabel}>{c + 1}</div>
               </Button>
             );
           })}
@@ -202,13 +202,13 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
       <div className={styles.controls}>
         <div className={`${styles.selectContainer} ${styles.selectContainerNarrow}`}>
           <select
-            value={paneStateData.downlink}
+            value={paneStateData.channel}
             onChange={(e) => {
-              setPaneStateValue(dispatch, frameID, "downlink", e.target.value);
+              setPaneStateValue(dispatch, frameID, "channel", e.target.value);
             }}
           >
             <option value="">DL</option>
-            {downlinks.map((v) => {
+            {channels.map((v) => {
               return (
                 <option value={v} key={v}>
                   {v + 1}
@@ -369,28 +369,28 @@ export default function VideoPane(props: { frameID: number }) {
       return;
     }
 
-    const downlink = paneStateData.downlink;
-    const videosNextSecondThisDownlink = visibleVideos.get(`${playhead.seconds + 1}/${downlink}`);
+    const channel = paneStateData.channel;
+    const videosNextSecondThisChannel = visibleVideos.get(`${playhead.seconds + 1}/${channel}`);
     const activeVideoFileID = paneStateData.activeVideoFileID;
 
     // check for video changes
     let currVideoID = activeVideoFileID;
     // if the timeline just jumped or the video files changed, make sure we start the right video
 
-    if (downlink === -1) {
+    if (channel === -1) {
       // if we're on non-downlink video (designated as downlink -1), we need to reset the video if this video isn't available next second
-      if (videosNextSecondThisDownlink && !videosNextSecondThisDownlink.includes(currVideoID)) {
+      if (videosNextSecondThisChannel && !videosNextSecondThisChannel.includes(currVideoID)) {
         currVideoID = "";
       }
     } else {
       // we always use element 0 of the videos available in this downlink for any given second (see store/videos.ts)
-      if (videosNextSecondThisDownlink && activeVideoFileID !== videosNextSecondThisDownlink[0]) {
+      if (videosNextSecondThisChannel && activeVideoFileID !== videosNextSecondThisChannel[0]) {
         /** there is a different video for this downlink the next second! pick the highest priority video for this downlink.
         See store/videos.ts#videoSorter for how video files are sorted */
-        currVideoID = videosNextSecondThisDownlink[0];
+        currVideoID = videosNextSecondThisChannel[0];
       }
 
-      if (!videosNextSecondThisDownlink) {
+      if (!videosNextSecondThisChannel) {
         // clear the player if no video is playing next second
         currVideoID = "";
       }
@@ -658,22 +658,22 @@ export default function VideoPane(props: { frameID: number }) {
             <p>There are two types of Video displays:</p>
             <ol>
               <li>
-                Video Downlink
+                Video Channels
                 <p>
                   Videos from Imagery Online are categorized based on what ISS downlink channel they
                   were received on. Select a downlink channel using the downlink channel numbers
                   above the video.
                 </p>
                 <p>
-                  For Test and NBL events, downlink channels have been inferred for common video
-                  source types.
+                  For Test and NBL events, channels have been inferred for common video source
+                  types.
                 </p>
               </li>
               <li>
                 Video Other
                 <p>
                   Contains the remaining videos from Imagery Online that have not been categorized
-                  into downlinks. Videos available at a given CODA time are selected via dropdown.
+                  into channels. Videos available at a given CODA time are selected via dropdown.
                 </p>
               </li>
             </ol>

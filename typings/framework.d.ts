@@ -69,7 +69,7 @@ type EmptyPaneStateData = {
 };
 
 type VideoPaneStateData = {
-  downlink: number;
+  channel: number;
   activeVideoFileID: string;
   ready: boolean;
   muted: boolean;

@@ -64,13 +64,13 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
 /**
  * @returns {string}
  * Chars 0,1 digits: pane type
- * Chars 2,3 digits: downlink number. -1 if not downlink
+ * Chars 2,3 digits: channel number. -1 if not downlink
  * Char 4: 0 if muted, 1 if unmuted
  * Chars 5+: String of activeVideoFileID (used for non-downlink video selection)
  */
 function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeShortVal): string {
   const paneTypeString = "0" + paneType;
-  const dlString = state.downlink === -1 ? "-1" : "0" + state.downlink.toString();
+  const dlString = state.channel === -1 ? "-1" : "0" + state.channel.toString();
   const mutedString = state.muted ? "1" : "0";
   const activeVideoFileID = state.activeVideoFileID;
   return `${paneTypeString}${dlString}${mutedString}${activeVideoFileID}`;
@@ -173,7 +173,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
-          downlink: parseInt(frameString.substring(2, 4)),
+          channel: parseInt(frameString.substring(2, 4)),
           muted: frameString.charAt(4) === "1",
           activeVideoFileID: "",
           showInfo: false,
@@ -186,7 +186,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneType: "video_non_downlink",
         paneStateData: {
           ready: true,
-          downlink: -1,
+          channel: -1,
           muted: frameString.charAt(4) === "1",
           activeVideoFileID: frameString.substring(5),
           showHelp: false,
