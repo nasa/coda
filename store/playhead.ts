@@ -24,7 +24,7 @@ export const playheadSlice = createSlice({
      */
     changeDate: (state, action: { payload: string }) => {
       const date = new Date(action.payload);
-      state.date = midnightZulu(date).toUTCString();
+      state.date = midnightZulu(date).toISOString();
     },
 
     /**

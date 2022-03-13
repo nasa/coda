@@ -1,13 +1,13 @@
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
-import { changeDate, diff, isSameDate } from "store/playhead";
+import { diff, isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
-import { Source } from "utils/enums";
+import { Source, SourceShortVal } from "utils/enums";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -135,7 +135,8 @@ export function CalendarDate({
   description: DateDescription;
   closeClick: () => void;
 }) {
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
+  const source = useSelector((state: RootState) => state.framework.source);
 
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
@@ -157,7 +158,13 @@ export function CalendarDate({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!description.isLater) {
-      dispatch(changeDate(description.date.toISOString()));
+      // dispatch(changeDate(description.date.toISOString()));
+      const sourceParam = SourceShortVal[source];
+      const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
+        description.date.getUTCMonth() + 1,
+        2
+      )}-${padZeros(description.date.getUTCDate(), 2)}`;
+      window.location.assign(`${window.location.pathname}?date=${formattedDate}&s=${sourceParam}`);
       closeClick();
     }
   };

@@ -11,16 +11,10 @@ import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { Collection, Source } from "utils/enums";
+import { Collection, Source, SourceShortVal } from "utils/enums";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
-import { changeSource } from "store/framework";
-import { clearVideos } from "store/videos";
-import { clearPhotos } from "store/photos";
-import { clearEphemera } from "store/ephemera";
-import { clearSequences } from "store/sequences";
-import { clearGPSTracks } from "store/gps";
 
 import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
@@ -111,20 +105,30 @@ export function ShareDropdown() {
 }
 
 export function SourcesDropdown() {
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const selectedSource = useSelector((state: RootState) => state.framework.source);
+  const playheadDate = useSelector((state: RootState) => state.playhead.date);
+
+  const handleSourceChange = (e) => {
+    // dispatch(clearVideos());
+    // dispatch(clearPhotos());
+    // dispatch(clearEphemera());
+    // dispatch(clearGPSTracks());
+    // dispatch(clearSequences());
+    // dispatch(changeSource(e.target.value as Source));
+
+    const sourceParam = SourceShortVal[e.target.value];
+    window.location.assign(
+      `${window.location.pathname}?date=${playheadDate.split("T")[0]}&s=${sourceParam}`
+    );
+  };
 
   return (
     <div className={styles.select}>
       <select
         value={selectedSource}
         onChange={(e) => {
-          dispatch(clearVideos());
-          dispatch(clearPhotos());
-          dispatch(clearEphemera());
-          dispatch(clearGPSTracks());
-          dispatch(clearSequences());
-          dispatch(changeSource(e.target.value as Source));
+          handleSourceChange(e);
         }}
       >
         <option value={Source.ISS}>ISS</option>
