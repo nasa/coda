@@ -37,7 +37,7 @@
     "mapbox-gl": "^2.7.0",
     "mwbot": "^2.0.0",
     "next": "^12.1.0",
-    "node-fetch": "^3.2.3",
+    "node-fetch": "^2.6.7",
     "paper": "^0.12.15",
     "react": "^17.0.2",
     "react-cookie": "^4.1.1",
