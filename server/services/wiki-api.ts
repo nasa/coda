@@ -31,9 +31,7 @@ async function _getMWBot(wiki: string) {
   // make sure the cookie jar file exists
   try {
     await fs.writeFile(COOKIE_JAR, "", { flag: "wx" });
-  } catch (e) {
-    console.error("Failed writeFile COOKIE_JAR", e);
-  }
+  } catch (e) {}
 
   bot.setGlobalRequestOptions({
     qs: {

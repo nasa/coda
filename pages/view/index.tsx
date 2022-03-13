@@ -320,17 +320,21 @@ export async function getServerSideProps({ query }) {
   if (source) {
     if (source === SourceShortVal.ISS) {
       fState.source = Source.ISS;
+      fState.layout = "c";
     } else if (source === SourceShortVal.TEST_EVENTS) {
       fState.source = Source.TEST_EVENTS;
-    } else if (source === SourceShortVal.NBL) {
-      fState.source = Source.NBL;
-    }
-
-    if (fState.source === Source.TEST_EVENTS) {
       // if we're looking at the test events, we need to change the ISS location frame to GPS location pane
       fState.frames = setGPSLocationFrame(fState, "5");
+      // set the default layout to the standard without Event Info
+      fState.layout = "c";
+    } else if (source === SourceShortVal.NBL) {
+      fState.source = Source.NBL;
+      // set the default layout to show no map, only All Photos along the bottom
+      fState.layout = "e";
     }
   }
+
+  // Override default layouts with the one requested if it exists
   if (layout) {
     fState.layout = layout;
   }

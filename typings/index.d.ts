@@ -2,7 +2,7 @@
  * Response from a search on Imagery Online
  */
 interface IOResponse {
-  results: {
+  results?: {
     responseheader: any;
     facet_counts: any;
     response: {

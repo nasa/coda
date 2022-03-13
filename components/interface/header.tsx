@@ -11,21 +11,16 @@ import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { Collection, Source } from "utils/enums";
+import { Collection, Source, SourceShortVal } from "utils/enums";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
-import { changeSource } from "store/framework";
-import { clearVideos } from "store/videos";
-import { clearPhotos } from "store/photos";
-import { clearEphemera } from "store/ephemera";
-import { clearSequences } from "store/sequences";
-import { clearGPSTracks } from "store/gps";
 
 import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
+import { generateShareURL } from "utils/share-state";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock, faFloppyDisk);
 
@@ -111,20 +106,32 @@ export function ShareDropdown() {
 }
 
 export function SourcesDropdown() {
-  const dispatch = useDispatch();
-  const selectedSource = useSelector((state: RootState) => state.framework.source);
+  // const dispatch = useDispatch();
+  const framework = useSelector((state: RootState) => state.framework);
+  const playhead = useSelector((state: RootState) => state.playhead);
+
+  const handleSourceChange = (e) => {
+    // dispatch(clearVideos());
+    // dispatch(clearPhotos());
+    // dispatch(clearEphemera());
+    // dispatch(clearGPSTracks());
+    // dispatch(clearSequences());
+    // dispatch(changeSource(e.target.value as Source));
+
+    let URL = generateShareURL(framework, playhead);
+    const sourceParam = SourceShortVal[e.target.value];
+    // replace the source in URL with selected source
+    URL = URL.replace(/s=([^&]*)/, `source=${sourceParam}`);
+
+    window.location.assign(URL);
+  };
 
   return (
     <div className={styles.select}>
       <select
-        value={selectedSource}
+        value={framework.source}
         onChange={(e) => {
-          dispatch(clearVideos());
-          dispatch(clearPhotos());
-          dispatch(clearEphemera());
-          dispatch(clearGPSTracks());
-          dispatch(clearSequences());
-          dispatch(changeSource(e.target.value as Source));
+          handleSourceChange(e);
         }}
       >
         <option value={Source.ISS}>ISS</option>
