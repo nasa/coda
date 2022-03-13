@@ -7,7 +7,8 @@ import { diff, isSameDate } from "store/playhead";
 import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
-import { Source, SourceShortVal } from "utils/enums";
+import { Source } from "utils/enums";
+import { generateShareURL } from "utils/share-state";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -136,7 +137,8 @@ export function CalendarDate({
   closeClick: () => void;
 }) {
   // const dispatch = useDispatch();
-  const source = useSelector((state: RootState) => state.framework.source);
+  const framework = useSelector((state: RootState) => state.framework);
+  const playhead = useSelector((state: RootState) => state.playhead);
 
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
@@ -159,12 +161,14 @@ export function CalendarDate({
     e.preventDefault();
     if (!description.isLater) {
       // dispatch(changeDate(description.date.toISOString()));
-      const sourceParam = SourceShortVal[source];
       const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
         description.date.getUTCMonth() + 1,
         2
       )}-${padZeros(description.date.getUTCDate(), 2)}`;
-      window.location.assign(`${window.location.pathname}?date=${formattedDate}&s=${sourceParam}`);
+      let URL = generateShareURL(framework, playhead);
+      // replace the datestring in URL with selected calendar date
+      URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
+      window.location.assign(URL);
       closeClick();
     }
   };

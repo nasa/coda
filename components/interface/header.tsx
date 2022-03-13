@@ -20,6 +20,7 @@ import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
+import { generateShareURL } from "utils/share-state";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock, faFloppyDisk);
 
@@ -106,8 +107,8 @@ export function ShareDropdown() {
 
 export function SourcesDropdown() {
   // const dispatch = useDispatch();
-  const selectedSource = useSelector((state: RootState) => state.framework.source);
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
+  const framework = useSelector((state: RootState) => state.framework);
+  const playhead = useSelector((state: RootState) => state.playhead);
 
   const handleSourceChange = (e) => {
     // dispatch(clearVideos());
@@ -117,16 +118,18 @@ export function SourcesDropdown() {
     // dispatch(clearSequences());
     // dispatch(changeSource(e.target.value as Source));
 
+    let URL = generateShareURL(framework, playhead);
     const sourceParam = SourceShortVal[e.target.value];
-    window.location.assign(
-      `${window.location.pathname}?date=${playheadDate.split("T")[0]}&s=${sourceParam}`
-    );
+    // replace the source in URL with selected source
+    URL = URL.replace(/s=([^&]*)/, `source=${sourceParam}`);
+
+    window.location.assign(URL);
   };
 
   return (
     <div className={styles.select}>
       <select
-        value={selectedSource}
+        value={framework.source}
         onChange={(e) => {
           handleSourceChange(e);
         }}
