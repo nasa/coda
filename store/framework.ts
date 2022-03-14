@@ -94,7 +94,7 @@ export const allPanes: Panes = {
     color: "teal",
     defaultPaneStateData: {
       ready: true,
-      channel: 0,
+      channel: -1,
       activeVideoFileID: "",
       muted: true,
       showInfo: false,
