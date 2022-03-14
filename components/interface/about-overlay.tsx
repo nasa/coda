@@ -116,25 +116,20 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment
               </p>
-              <p>A JSC collaboration between XI, CX, XX, and SK</p>
+              <p>A JSC collaboration between XI, CX, and SK</p>
             </div>
 
             <div className={styles.aboutSection}>
               <div className={styles.aboutSectionTitle}>Useful Links</div>
               <ul>
                 <li>
-                  <a
-                    href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA"}
-                    target={"_blank"}
-                  >
+                  <a href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA"} target={"_blank"}>
                     About CODA
                   </a>
                 </li>
                 <li>
                   <a
-                    href={
-                      "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software"
-                    }
+                    href={"https://wiki.jsc.nasa.gov/fod/index.php/EVA_Mission_Systems_Software"}
                     target={"_blank"}
                   >
                     About the EMSS effort
@@ -187,19 +182,19 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:edwin.j.montalvo@nasa.gov"}>
-                      James Montalvo
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>EMSS Lead, Software Engineering</div>
-                </li>
-                <li>
-                  <div className={styles.creditHeading}>
                     <a className={styles.teamName} href={"mailto:matthew.j.miller-1@nasa.gov"}>
                       Matthew Miller
                     </a>
                   </div>
                   <div className={styles.teamTitle}>Project Management</div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:edwin.j.montalvo@nasa.gov"}>
+                      James Montalvo
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>EMSS Lead</div>
                 </li>
               </ul>
             </div>
