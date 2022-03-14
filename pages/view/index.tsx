@@ -117,6 +117,13 @@ export function V2(props: { urlState }) {
       userTime = hh * 3600 + mm * 60 + ss;
     } else {
       // change the time if the sequence has a PET start time
+      if (props.urlState.frameworkState.source === Source.NBL) {
+        // Show only NBL sequences
+        allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
+      } else if (props.urlState.frameworkState.source === Source.TEST_EVENTS) {
+        // Filter out all NBL sequences
+        allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
+      }
       const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
       let evaStartSec = null as number;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
@@ -330,7 +337,6 @@ export async function getServerSideProps({ query }) {
       if (_.isNil(date)) {
         // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
         date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
-        gmt = "01:58:00"; // The PET start time of 2021-10-23 is 01:58:00
       }
     } else if (source === SourceShortVal.NBL) {
       fState.source = Source.NBL;
@@ -339,7 +345,6 @@ export async function getServerSideProps({ query }) {
       if (_.isNil(date)) {
         // 2021-10-28 is a good representation of NBL events
         date = new Date(2021, 9, 28).toISOString().split("T")[0]; // 9 = October
-        gmt = "14:29:00"; // The PET start time of NBL run 2021-10-28 is 14:29:00
       }
     }
   }
