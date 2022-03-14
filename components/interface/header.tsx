@@ -121,7 +121,7 @@ export function SourcesDropdown() {
     let URL = generateShareURL(framework, playhead);
     const sourceParam = SourceShortVal[e.target.value];
     // replace the source in URL with selected source
-    URL = URL.replace(/s=([^&]*)/, `source=${sourceParam}`);
+    URL = URL.replace(/s=([^&]*)/, `s=${sourceParam}`);
 
     window.location.assign(URL);
   };
