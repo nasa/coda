@@ -1,15 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { LoadingStatusEnum } from "utils/enums";
 
-export interface GPSState {
-  gpsTracks: GPSTrack[];
-  metadata: ResMetadata;
-  loadingStatus: LoadingStatusEnum;
-}
-
 export const initialState: GPSState = {
   gpsTracks: [],
-  metadata: null,
+  cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
 
@@ -20,10 +14,15 @@ export const gpsSlice = createSlice({
     /** Add new photo files to the store */
     setGPSTracks: (state, action: { payload: WrappedResponse<GPSTrack[]> }) => {
       state.gpsTracks = action.payload.data;
-      state.metadata = { ...state.metadata, ...action.payload.metadata };
+      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+    },
+    clearGPSTracks: (state) => {
+      state.gpsTracks = [];
+      state.cacheMetadata = null;
+      state.loadingStatus = LoadingStatusEnum.LOADING;
     },
     gpsFetchError: (state, action: { payload: string }) => {
-      state.metadata = { ...state.metadata, error: action.payload };
+      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
     },
     setGpsLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;
@@ -31,4 +30,5 @@ export const gpsSlice = createSlice({
   },
 });
 
-export const { setGPSTracks, gpsFetchError, setGpsLoadingStatus } = gpsSlice.actions;
+export const { setGPSTracks, clearGPSTracks, gpsFetchError, setGpsLoadingStatus } =
+  gpsSlice.actions;

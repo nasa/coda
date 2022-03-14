@@ -1,13 +1,13 @@
 module.exports = {
-  async redirects() {
-    return [
-      {
-        source: "/view",
-        destination: "/view/iss",
-        permanent: true,
-      },
-    ];
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: "/view",
+  //       destination: "/view/iss",
+  //       permanent: true,
+  //     },
+  //   ];
+  // },
   onDemandEntries: {
     // period (in ms) where the server will keep pages in the buffer
     maxInactiveAge: 2500 * 1000,

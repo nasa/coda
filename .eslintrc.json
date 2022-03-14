@@ -17,7 +17,8 @@
     },
     "plugins": [
         "react",
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "@next/eslint-plugin-next"
     ],
     "rules": {
         "@typescript-eslint/no-unused-vars": [

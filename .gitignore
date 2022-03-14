@@ -3,6 +3,7 @@
 
 # javascript
 node_modules/
+coverage/
 
 # nextjs
 .next/
@@ -16,3 +17,12 @@ dist/
 
 # don't commit secrets!
 .env.local
+
+# NOCA cert required to hit wiki and IO. See README.md
+.env.local.cert.pem
+
+# typescript
+tsconfig.tsbuildinfo
+
+# created by coverage reporter
+junit.xml

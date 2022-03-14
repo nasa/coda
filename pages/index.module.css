@@ -1,7 +1,106 @@
-.container > a {
-  text-decoration: underline;
+.main {
+  background: black;
+  background-image: url(/images/earth.png);
+  background-position: bottom;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
-.dropdown {
-  width: 10em;
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: space-around;
+  min-height: 250px;
+}
+
+.tourText > p {
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.description {
+  line-height: 1.1em;
+  text-align: right;
+  width: 370px;
+}
+
+.description > p {
+  color: var(--even-greyer);
+}
+
+.description .strong {
+  line-height: 1.7em;
+  font-weight: 600;
+  color: white;
+}
+
+.logo {
+  height: 55px;
+  display: flex;
+  justify-content: right;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.meatball {
+  height: 55px;
+}
+
+.wordMark {
+  font-family: "Aldrich";
+  font-weight: 400;
+  font-size: 40px;
+}
+
+.sources {
+  margin-left: 1em;
+  width: 220px;
+}
+
+.sourcesPanel {
+  background-color: var(--grey);
+  border-radius: var(--radius);
+  padding: 16px 5px 5px 5px;
+}
+
+.sourcesHeader {
+  color: rgba(255, 255, 255, 0.4);
+  padding-left: 11px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ul {
+  margin: 0;
+  margin-top: 5px;
+  padding: 0;
+}
+
+.li {
+  text-decoration: none;
+  list-style: none;
+  line-height: 40px;
+  margin-left: 0;
+  padding-left: 11px;
+}
+
+.li:hover {
+  background-color: var(--light-grey);
+}
+
+.li > * {
+  display: inline-block;
+  text-decoration: none;
+  width: 100%;
+}
+
+.disabled {
+  color: var(--extremely-grey);
 }

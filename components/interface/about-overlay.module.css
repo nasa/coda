@@ -1,0 +1,304 @@
+.modalWrapper {
+  position: absolute;
+  background: #0f0f0f;
+  border: 2px solid #eeeeee;
+  border-radius: 15px;
+  box-sizing: border-box;
+  width: 80%;
+  height: 80%;
+  min-width: 885px;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  outline: none;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: none;
+  background-color: rgb(0, 0, 0, 0.8);
+  z-index: 10;
+}
+
+.main {
+  height: 100%;
+  background: black;
+  background-image: url(/images/earth.png);
+  background-position: bottom;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  border-radius: 15px;
+}
+
+.container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.leftSection {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 450px;
+  background-color: rgba(65, 65, 65, 0.5);
+  padding: 30px;
+  border-top-left-radius: 15px;
+  border-bottom-left-radius: 15px;
+}
+
+.video {
+  width: 390px;
+}
+
+.accordionWrapper {
+  margin-top: auto;
+  overflow-y: auto;
+}
+
+.rightSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.loadingArea {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  border-radius: 8px;
+}
+
+.loadingLeftSection {
+  flex-basis: 400px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-left: 35px;
+}
+
+.loadingRightSection {
+  flex-basis: 200px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-right: 20px;
+}
+
+.headerHeadlineContainer {
+  display: flex;
+  padding-bottom: 5px;
+}
+
+.headerHeadline {
+  font-size: 1.5em;
+  color: #eeeeee;
+  text-align: left;
+}
+
+.headerGoButton {
+  background-color: var(--lightest-grey);
+  color: #fff;
+  display: block;
+  width: 180px;
+  height: 60px;
+  border: 1px solid var(--grey);
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.headerGoButtonEnabled {
+  animation: blinker 1s ease infinite;
+}
+
+.headerGoButtonDisabled {
+  color: black;
+}
+
+@keyframes blinker {
+  0% {
+    border: 1px solid var(--grey);
+  }
+  45% {
+    border: 1px solid var(--grey);
+  }
+  50% {
+    border: 1px solid var(--even-greyer);
+  }
+}
+
+.headerBody {
+  font-size: 1em;
+  box-sizing: border-box;
+  float: left;
+  width: 100%;
+}
+
+.headerBodyText {
+  color: #999999;
+}
+
+.closeArea {
+  width: 100%;
+}
+
+.checkboxArea {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #eeeeee;
+}
+
+.checkbox {
+  margin-top: 3px;
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+.helpArea {
+  padding-top: 20px;
+  flex: 1;
+  border-top: 1px solid #eeeeee;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.helpCallout {
+  width: 100%;
+  height: 100%;
+  max-width: 839px;
+  max-height: 510px;
+  background: url(/images/help_callout.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  margin: auto;
+}
+
+.tourText > p {
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.description {
+  line-height: 1.1em;
+  text-align: left;
+}
+
+.description > p {
+  color: var(--even-greyer);
+}
+
+.description .strong {
+  line-height: 1.7em;
+  font-weight: 600;
+  color: white;
+}
+
+.logo {
+  height: 55px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.logoRight {
+  display: flex;
+}
+
+.logoEmssWrapper {
+  display: flex;
+}
+
+.logoEmss {
+  width: 100px;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg width="97" height="18" viewBox="0 0 97 18" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M0.203125 4.08244C0.203125 2.1893 1.73782 0.654602 3.63097 0.654602H17.3758C19.2689 0.654602 20.8036 2.1893 20.8036 4.08244H0.203125Z" fill="white"/> <path d="M26.6893 4.33295C26.6893 2.30129 28.3363 0.654297 30.368 0.654297V15.9542C30.368 16.97 29.5445 17.7935 28.5287 17.7935C27.5128 17.7935 26.6893 16.97 26.6893 15.9542V4.33295Z" fill="white"/> <path d="M34.0459 0.654297H37.7246V9.09849C37.7246 10.1143 36.9011 10.9378 35.8852 10.9378C34.8694 10.9378 34.0459 10.1143 34.0459 9.09849V0.654297Z" fill="white"/> <path d="M41.4069 0.654297C43.4385 0.654297 45.0855 2.30129 45.0855 4.33296V15.9542C45.0855 16.97 44.262 17.7935 43.2462 17.7935C42.2304 17.7935 41.4069 16.97 41.4069 15.9542V0.654297Z" fill="white"/> <path d="M0.203125 7.51001H20.8036V10.9379H0.203125V7.51001Z" fill="white"/> <rect x="0.203125" y="10.9397" width="3.67866" height="3.42784" fill="white"/> <path d="M0.203125 14.3658H20.8036C20.8036 16.2589 19.2689 17.7936 17.3758 17.7936H3.63097C1.73783 17.7936 0.203125 16.2589 0.203125 14.3658Z" fill="white"/> <path d="M50.2355 4.08214C50.2355 2.18899 51.7702 0.654297 53.6633 0.654297H67.4081C69.3013 0.654297 70.836 2.18899 70.836 4.08214H50.2355Z" fill="white"/> <path d="M50.2355 7.51001H67.1573V10.9379H53.6633C51.7702 10.9379 50.2355 9.40315 50.2355 7.51001Z" fill="white"/> <path d="M67.1526 7.51001C69.1843 7.51001 70.8312 9.157 70.8312 11.1887V14.1149C70.8312 16.1465 69.1843 17.7935 67.1526 17.7935V7.51001Z" fill="white"/> <path d="M50.2355 14.3658H67.1573V17.7936H53.6633C51.7702 17.7936 50.2355 16.2589 50.2355 14.3658Z" fill="white"/> <path d="M76.3558 4.08214C76.3558 2.18899 77.8905 0.654297 79.7837 0.654297H93.5285C95.4216 0.654297 96.9563 2.18899 96.9563 4.08214H76.3558Z" fill="white"/> <path d="M76.3558 7.51001H93.2777V10.9379H79.7837C77.8905 10.9379 76.3558 9.40315 76.3558 7.51001Z" fill="white"/> <path d="M93.2727 7.51001C95.3044 7.51001 96.9514 9.157 96.9514 11.1887V14.1149C96.9514 16.1465 95.3044 17.7935 93.2727 17.7935V7.51001Z" fill="white"/> <path d="M76.3558 14.3658H93.2777V17.7936H79.7837C77.8905 17.7936 76.3558 16.2589 76.3558 14.3658Z" fill="white"/> </svg> ')
+    no-repeat center;
+  background-size: 100px 38px;
+  margin-top: 5px;
+  margin-bottom: auto;
+  cursor: pointer;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.meatball {
+  height: 30px;
+  margin-bottom: auto;
+}
+
+.wordMark {
+  font-family: "Aldrich";
+  font-weight: 400;
+  font-size: 50px;
+}
+
+.aboutSection .aboutSectionTitle {
+  font-size: 1.3em;
+  color: #eeeeee;
+  text-align: left;
+  margin-top: 20px;
+}
+
+.aboutSection ul {
+  list-style-position: outside;
+  list-style: none;
+  margin: 0;
+  padding-left: 5px;
+}
+
+.aboutSection li {
+  padding: 2px;
+}
+
+.aboutSection .theTeamUl li {
+  padding: 5px;
+}
+
+.aboutSection a {
+  color: var(--even-greyer);
+  text-decoration: none;
+}
+
+.aboutSection .smallText {
+  color: var(--even-greyer);
+  font-size: 0.9em;
+  text-decoration: underline;
+}
+
+.aboutSection .teamName {
+  color: white;
+}
+
+.aboutSection .teamTitle {
+  color: var(--even-greyer);
+  font-size: 0.9em;
+}
+
+.aboutSection a:hover {
+  text-decoration: underline;
+}

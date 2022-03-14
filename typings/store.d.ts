@@ -1,6 +1,6 @@
-interface ResMetadata {
+interface CacheMetadata {
   fromCache: boolean;
-  cacheTimestamp: Date;
+  timestamp: Date;
   stale: boolean;
   error?: string;
   mocked?: boolean;
@@ -31,7 +31,7 @@ interface PlayheadHoverState {
 
 type EphemeraEntityState = EntityState<EphemerisFile> & {
   dayNight: DayNightObj[];
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -40,9 +40,8 @@ type EphemeraEntityState = EntityState<EphemerisFile> & {
  */
 
 type SequencesEntityState = EntityState<Sequence> & {
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
-  lastChecked: string;
 };
 
 /**
@@ -52,9 +51,8 @@ type SequencesEntityState = EntityState<Sequence> & {
 type PhotosEntityState = EntityState<PhotoFile> & {
   activePhoto: PhotoFile;
   ready: boolean;
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
-  lastChecked: string;
   collectionFilters: PhotoCollectionFilters[];
 };
 
@@ -70,16 +68,13 @@ interface PhotoCollectionFilters {
 
 /** Info about videos from IO and the desired high-level state of the video players */
 type VideosEntityState = EntityState<VideoFile> & {
-  /** Match the video player to a downlink, @see {VideoFile.downlink}. Keyed by the ID of the video player */
-  downlinks: { [key: number]: number };
-  /** ID of nonDownlinkVideoSelected */
-  nonDownlinkIDs: { [key: number]: string };
-  /** Match the video player to a video file ID, @see {VideoFile.id}. Keyed by the ID of the video player */
-  activeVideoFiles: { [key: number]: string };
-  /** Whether or not the videos are ready to be played and the timeline can run. Keyed by the ID of the video player */
-  ready: { [key: number]: boolean };
-  metadata: ResMetadata;
+  cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
-  /** UTC string of the last time we hit IO */
-  lastChecked: string;
+};
+
+/** GPS Store */
+type GPSState = {
+  gpsTracks: GPSTrack[];
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
 };

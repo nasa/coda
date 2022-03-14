@@ -142,7 +142,7 @@ const videoSorter = (a: VideoFile, b: VideoFile) => {
 
 /** Parse the video result for relevant information */
 function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
-  let downlink = 8;
+  let downlink = -1;
   let LOS = false;
 
   if (+Collection[collection] === +Collection.ISS) {
@@ -170,13 +170,10 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
       const thisCollectionsString = doc.collections_string[i];
       if (thisCollectionsString.includes("EV1")) {
         downlink = 0;
-        break;
       } else if (thisCollectionsString.includes("EV2")) {
         downlink = 1;
-        break;
       } else if (thisCollectionsString.includes("QUAD")) {
         downlink = 2;
-        break;
       }
     }
   }
@@ -350,12 +347,17 @@ function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
     isLocal && process.env.IO_MOCK_MEDIA_URL
       ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
       : `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaThumbURL =
+    isLocal && process.env.IO_MOCK_MEDIA_URL
+      ? process.env.IO_MOCK_MEDIA_URL + "mock_photo1.jpg"
+      : `${process.env.IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,
     description: doc.description || "",
     mediaLowResURL,
     mediaHighResURL,
+    mediaThumbURL,
     dataURL,
     dateAdded: doc.date_added,
     datetimeTaken: doc.md_creation_date,

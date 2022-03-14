@@ -16,11 +16,11 @@ export default async function getPhotoData(
   collection: Collection
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  const previousDate = add(requestedDate, -86400000);
-  const nextDate = add(requestedDate, 86400000);
+  // const previousDate = add(requestedDate, -86400000);
+  // const nextDate = add(requestedDate, 86400000);
 
   const [results, sequences, allOverrides] = await Promise.all([
-    IoService.fetchPhotoData(collection, previousDate, nextDate),
+    IoService.fetchPhotoData(collection, requestedDate),
     // fetch sequence data, but don't throw if the request fails
     await (async () => {
       try {
@@ -46,10 +46,9 @@ export default async function getPhotoData(
   }
 
   const seqs = sequences.data.filter(
-    (seq) =>
-      isSameDate(new Date(seq.startDate), requestedDate) ||
-      isSameDate(new Date(seq.startDate), previousDate) ||
-      isSameDate(new Date(seq.startDate), nextDate)
+    (seq) => isSameDate(new Date(seq.startDate), requestedDate) //||
+    // isSameDate(new Date(seq.startDate), previousDate) ||
+    // isSameDate(new Date(seq.startDate), nextDate)
   );
 
   // no sequence corresponds with this date so there won't be any overrides

@@ -11,7 +11,7 @@ describe("server/services/spacetrack-api", () => {
 
   // as if spacetrack just gave us a good response with no TLEs
   const emptyResponse = Promise.resolve({
-    metadata: null,
+    cacheMetadata: null as CacheMetadata,
     data: {
       ephemera: [],
       dayNight: [],
@@ -20,7 +20,7 @@ describe("server/services/spacetrack-api", () => {
 
   // as if we accidentally cached bad data
   const badCache = Promise.resolve({
-    metadata: null,
+    cacheMetadata: null as CacheMetadata,
     data: {
       ephemera: [],
       dayNight: [],
@@ -47,7 +47,7 @@ describe("server/services/spacetrack-api", () => {
   it("should fetch yesterday's data if we want today and the first one returns empty TLEs", async () => {
     // as if we accidentally cached bad data
     const goodData = Promise.resolve({
-      metadata: null,
+      cacheMetadata: null as CacheMetadata,
       data: {
         // using null here because EphemerisFiles are crazy big
         // just note there are two

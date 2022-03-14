@@ -1,12 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: PlayheadState = {
-  // assume a 00:00:00Z start
-  seconds: 0,
+  // assume a 08:00:00Z start
+  seconds: 8 * 60 * 60,
   date: null,
-  isRunning: true,
-  // assume a user wants the timeline to play as soon as they load the application
-  ready: true,
+  isRunning: false,
+  ready: false,
 };
 
 export const playheadSlice = createSlice({
@@ -25,7 +24,7 @@ export const playheadSlice = createSlice({
      */
     changeDate: (state, action: { payload: string }) => {
       const date = new Date(action.payload);
-      state.date = midnightZulu(date).toUTCString();
+      state.date = midnightZulu(date).toISOString();
     },
 
     /**

@@ -1,0 +1,113 @@
+.main {
+  width: 364px;
+  height: 390px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  background-color: var(--grey);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 18px;
+  margin-bottom: 13px;
+}
+
+.close {
+  cursor: pointer;
+}
+
+.monthAndYear {
+  display: flex;
+  justify-content: space-between;
+  font-size: 19px;
+  margin-bottom: 20px;
+}
+
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.calendarDate {
+  display: flex;
+  justify-content: space-around;
+  width: 42px;
+  height: 37px;
+  margin-bottom: 5px;
+  border-radius: var(--radius);
+  font-size: 19px;
+  cursor: default;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.dot {
+  position: fixed;
+  margin-top: -5px;
+  cursor: pointer;
+}
+
+.labels {
+  margin-bottom: 5px;
+}
+
+.orange {
+  color: var(--orange);
+}
+
+.aqua {
+  color: var(--aqua);
+}
+
+.grey {
+  background-color: var(--lighter-grey);
+}
+
+.bordered {
+  border: 1px solid var(--extremely-grey);
+}
+
+.greyText {
+  color: var(--lighter-grey);
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.monthModal {
+  width: 220px;
+  height: calc(29px * 8);
+  padding: 3px;
+  overflow-y: scroll;
+  background-color: var(--dark-grey);
+  border: 1px solid var(--dark-grey);
+  border-radius: var(--radius);
+}
+
+.option {
+  padding: 5px;
+  color: white;
+  background-color: var(--dark-grey);
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.option:hover {
+  background-color: var(--lightest-grey);
+}
+
+.checkbox {
+  display: inline-block;
+  width: 1em;
+}
