@@ -312,7 +312,7 @@ export default WithPlayheadMonitor(V2);
 export async function getServerSideProps({ query }) {
   const version = query.v === undefined ? "1.0" : query.v; //version of share URL being received
   let date = query.date === undefined ? null : query.date;
-  const gmt = query.gmt === undefined ? null : query.gmt;
+  let gmt = query.gmt === undefined ? null : query.gmt;
   const source = query.s === undefined ? null : parseInt(query.s);
   const layout = query.l === undefined ? null : query.l;
 
@@ -330,6 +330,7 @@ export async function getServerSideProps({ query }) {
       if (_.isNil(date)) {
         // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
         date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
+        gmt = "01:58:00"; // The PET start time of 2021-10-23 is 01:58:00
       }
     } else if (source === SourceShortVal.NBL) {
       fState.source = Source.NBL;
@@ -338,6 +339,7 @@ export async function getServerSideProps({ query }) {
       if (_.isNil(date)) {
         // 2021-10-28 is a good representation of NBL events
         date = new Date(2021, 9, 28).toISOString().split("T")[0]; // 9 = October
+        gmt = "14:29:00"; // The PET start time of NBL run 2021-10-28 is 14:29:00
       }
     }
   }
