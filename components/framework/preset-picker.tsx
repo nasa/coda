@@ -17,7 +17,7 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 library.add(faTrash);
 
 export default function PresetPicker({ closeClick }: { closeClick?: () => void }) {
-  const frameworkState = useSelector((state: RootState) => state.framework);
+  const framework = useSelector((state: RootState) => state.framework);
   const dispatch = useDispatch();
 
   const [helpOpen, setHelpOpen] = useState(false);
@@ -28,12 +28,11 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
   const handleSelectPreset = (preset: Preset) => (e: React.MouseEvent) => {
     e.preventDefault();
     const newFrameworkState: FrameworkState = {
-      ...frameworkState,
+      ...framework,
       layout: preset.layout,
       frames: preset.frames,
     };
     dispatch(setAllFrameworkState(newFrameworkState));
-
     closeClick();
   };
 
@@ -41,8 +40,8 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
     e.preventDefault();
     const newPreset: Preset = {
       uuid: uuidv4(),
-      layout: frameworkState.layout,
-      frames: frameworkState.frames,
+      layout: framework.layout,
+      frames: framework.frames,
       name: presetNameField,
     };
 
