@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Header from "components/interface/header";
 import styles from "./index.module.css";
-import _, { isNil } from "lodash";
+import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 import PlaybackControls from "components/interface/playback-controls";
 
@@ -112,7 +112,7 @@ export function V2(props: { urlState }) {
 
     const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d:[0-9]\d))$/; // matches valid hh:mm:ss times
     // change the time if the user set the `gmt` query param and it's in a valid format
-    if (!_.isNull(props.urlState.gmt) && !isNil(props.urlState.gmt.match(reHHMM))) {
+    if (!_.isNil(props.urlState.gmt) && !_.isNil(props.urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = props.urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
     } else {
@@ -120,7 +120,7 @@ export function V2(props: { urlState }) {
       const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
       let evaStartSec = null as number;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-      if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+      if (!_.isNil(sequence) && !_.isNil(sequence.startTime.match(reHHMM))) {
         const [hh, mm] = sequence.startTime.split(":");
         evaStartSec = 3600 * +hh + 60 * +mm;
         userTime = evaStartSec;
@@ -311,7 +311,7 @@ export default WithPlayheadMonitor(V2);
 
 export async function getServerSideProps({ query }) {
   const version = query.v === undefined ? "1.0" : query.v; //version of share URL being received
-  const date = query.date === undefined ? null : query.date;
+  let date = query.date === undefined ? null : query.date;
   const gmt = query.gmt === undefined ? null : query.gmt;
   const source = query.s === undefined ? null : parseInt(query.s);
   const layout = query.l === undefined ? null : query.l;
@@ -327,22 +327,24 @@ export async function getServerSideProps({ query }) {
       fState.frames = setGPSLocationFrame(fState, "5");
       // set the default layout to the standard without Event Info
       fState.layout = "c";
+      if (_.isNil(date)) {
+        // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
+        date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
+      }
     } else if (source === SourceShortVal.NBL) {
       fState.source = Source.NBL;
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
+      if (_.isNil(date)) {
+        // 2021-10-28 is a good representation of NBL events
+        date = new Date(2021, 9, 28).toISOString().split("T")[0]; // 9 = October
+      }
     }
   }
 
   // Override default layouts with the one requested if it exists
   if (layout) {
     fState.layout = layout;
-  }
-
-  // set default panes depending on source
-  // if the source is not ISS, make the default downlink pane a non-downlink pain
-  if (fState.source === Source.NBL || fState.source === Source.TEST_EVENTS) {
-    fState.frames = setNonDLVideoFrame(fState, "1", "");
   }
 
   // if pane state data was passed in the query string, use it
