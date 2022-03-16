@@ -25,7 +25,7 @@ export default function Index() {
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment
               </p>
-              <p>A JSC collaboration between XI, CX, XX, and SK</p>
+              <p>A JSC collaboration between XI, CX, and SK</p>
             </div>
           </div>
         </div>
