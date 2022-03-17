@@ -71,18 +71,6 @@ export default function PhotoAllPane(props: { frameID: number }) {
   const photoThumbsRef = useRef<HTMLDivElement>(null);
   const activePhotoRef = useRef<HTMLDivElement>(null);
 
-  /** Handle photo thumbs scroll event */
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     setPaneStateValue(dispatch, frameID, "lockPhotosScroll", false);
-  //   };
-  //   window.addEventListener("scroll", handleScroll);
-
-  //   return () => {
-  //     window.removeEventListener("scroll", handleScroll);
-  //   };
-  // }, []);
-
   const handleScroll = () => {
     setPaneStateValue(dispatch, frameID, "lockPhotosScroll", false);
   };

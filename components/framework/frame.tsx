@@ -115,15 +115,21 @@ export default function Frame(options) {
         : []
     );
   }
-  // using useLayoutEffect because it guarantees to fire immediately after the frame has been rendered to the DOM
+  /** Using useLayoutEffect because it guarantees to fire immediately after the frame has been rendered to the DOM
+    Also, set an interval to periodically update the frame size. The onResize event method doesn't seem to capture all new frames. The browser must not always fire resize events when the CSS grid creates new frame layouts */
   useLayoutEffect(() => {
     if (frameRef.current) {
       handleResize();
       window.addEventListener("resize", handleResize);
+      const interval = setTimeout(() => {
+        handleResize();
+      }, 3000);
+
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        clearInterval(interval);
+      };
     }
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
   }, [frameRef]);
 
   return (
