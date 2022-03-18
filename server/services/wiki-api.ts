@@ -8,7 +8,6 @@ See sandboxes:
 import { promises as fs } from "fs";
 import get from "lodash/get";
 import deepEquals from "lodash/isEqual";
-import memoize from "lodash/memoize";
 import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
@@ -20,7 +19,7 @@ import { Collection, SequenceType } from "utils/enums";
 const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
 /** Get a read-only "bot" for the wiki */
-async function _getMWBot(wiki: string) {
+async function getMWBot(wiki: string) {
   const apiUrl = `${process.env.WIKI_BASE_URL}/${wiki}/api.php`;
   const bot = new MWBot({
     apiUrl,
@@ -30,7 +29,7 @@ async function _getMWBot(wiki: string) {
 
   // make sure the cookie jar file exists
   try {
-    await fs.writeFile(COOKIE_JAR, "", { flag: "wx" });
+    await fs.writeFile(COOKIE_JAR, "", { flag: "wx" }); // create the file if it doesn't exist (wx)
   } catch (e) {}
 
   bot.setGlobalRequestOptions({
@@ -51,9 +50,6 @@ async function _getMWBot(wiki: string) {
 
   return bot;
 }
-
-/** Memoized get of a read-only "bot" for the wiki */
-const getMWBot = memoize(_getMWBot);
 
 /**
  * Load mock data from this repo
