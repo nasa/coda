@@ -317,13 +317,6 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     });
   }
 
-  function removeMapLayers(thisMap: mapboxgl.Map) {
-    thisMap.removeLayer("trackEV1Layer");
-    thisMap.removeLayer("trackEV2Layer");
-    thisMap.removeLayer("trackCartLayer");
-    thisMap.removeLayer("trackLightCartLayer");
-  }
-
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
     mapContainer: MutableRefObject<any>
