@@ -1,9 +1,7 @@
-import Head from "next/head";
 import Header from "components/interface/header";
 import styles from "./index.module.css";
 import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
-import PlaybackControls from "components/interface/playback-controls";
 
 import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
@@ -50,13 +48,19 @@ import {
 import { interpretFramestateQueryString } from "utils/share-state";
 import { Source } from "utils/enums";
 
-/** Dynamically import the nav timeline because paper doesn't like Node  */
 import dynamic from "next/dynamic";
+/** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
   ssr: false,
 });
 /** Dynamically import the whole framework because nothing likes NextJS */
 const Viewer = dynamic(import("components/framework/frames"), {
+  ssr: false,
+});
+const PlaybackControls = dynamic(import("components/interface/playback-controls"), {
+  ssr: false,
+});
+const Head = dynamic(import("next/head"), {
   ssr: false,
 });
 

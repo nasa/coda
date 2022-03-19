@@ -1,5 +1,4 @@
 import styles from "./about-overlay.module.css";
-import Modal from "react-modal";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
 import React from "react";
@@ -9,6 +8,12 @@ import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { LoadingStatusEnum } from "utils/enums";
+import dynamic from "next/dynamic";
+
+/** Loading Modal dynamically here to avoid SSR Portal bugs.
+ * Next shouldn't even be aware of this import due to dynamic imports on /pages/view/index.tsx, but apparently it does anyway.
+ */
+const Modal = dynamic(import("react-modal"), { ssr: false });
 
 /** hack to remove spurious error
  * https://stackoverflow.com/a/62791682/3533496
