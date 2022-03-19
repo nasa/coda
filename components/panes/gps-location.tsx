@@ -17,6 +17,7 @@ import type { Point } from "gpxparser";
 import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
+import _ from "lodash";
 
 export function GPSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -207,7 +208,9 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
           lat: markerGPSPoint.lat.toFixed(6),
           lng: markerGPSPoint.lon.toFixed(6),
           ele: markerGPSPoint.ele.toFixed(2).toString(),
-          slope: gpsTracks[track].slopes[markerIndex].toFixed(3).toString(),
+          slope: !_.isNil(gpsTracks[track].slopes[markerIndex])
+            ? gpsTracks[track].slopes[markerIndex].toFixed(3).toString()
+            : "",
           date: timestampArr[0],
           time: timestampArr[1],
           hdg: "",
@@ -227,13 +230,6 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   //Display GPS tracks on map
   useEffect(() => {
     if (!map) return;
-
-    if (gpsState.gpsTracks.length === 0) {
-      removeMapLayers(map);
-      return;
-    } else {
-      addMapLayers(map);
-    }
 
     const gpsTracks = gpsState.gpsTracks;
     // Set a delay to get around buggy mapbox not dealing with sources properly
@@ -380,9 +376,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
           onMouseDown={() => {
             setPaneStateValue(dispatch, frameID, "lockMap", false);
           }}
-        >
-          {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
-        </div>
+        ></div>
+        {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         <HelpOverlay
           isModalOpen={paneStateData.showHelp}
           closeHandler={() => {
