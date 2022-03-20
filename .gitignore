@@ -15,6 +15,9 @@ dist/
 # local cache
 .cache*
 
+# MWBot cookie directory
+.cookies
+
 # don't commit secrets!
 .env.local
 

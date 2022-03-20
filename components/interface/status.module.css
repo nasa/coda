@@ -81,7 +81,7 @@
 }
 
 .error {
-  background-image: url(/images/icon_status_issue.svg);
+  background-image: url(/images/icon_status_error.svg);
 }
 
 .unneeded {
