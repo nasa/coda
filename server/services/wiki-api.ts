@@ -16,7 +16,7 @@ import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
 import { Collection, SequenceType } from "utils/enums";
 
-const COOKIE_JAR = `./.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
+const COOKIE_JAR = `./.cookies/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
 /** Get a read-only "bot" for the wiki */
 async function getMWBot(wiki: string) {
