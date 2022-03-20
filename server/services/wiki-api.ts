@@ -5,7 +5,7 @@ See sandboxes:
 * ISS: https://wiki.jsc.nasa.gov/iss/index.php/Special:ApiSandbox#action=ask&format=json
 * Exploration: https://wiki.jsc.nasa.gov/exploration/index.php/Special:ApiSandbox#action=ask&format=json&query=
 */
-import { promises as fs } from "fs";
+import fs from "fs";
 import get from "lodash/get";
 import deepEquals from "lodash/isEqual";
 import MWBot from "mwbot";
@@ -16,7 +16,8 @@ import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
 import { Collection, SequenceType } from "utils/enums";
 
-const COOKIE_JAR = `.cache/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
+const COOKIE_JAR_DIR = `.cookies`;
+const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
 
 /** Get a read-only "bot" for the wiki */
 async function getMWBot(wiki: string) {
@@ -29,7 +30,10 @@ async function getMWBot(wiki: string) {
 
   // make sure the cookie jar file exists
   try {
-    await fs.writeFile(COOKIE_JAR, "", { flag: "wx" }); // create the file if it doesn't exist (wx)
+    if (!fs.existsSync(COOKIE_JAR_DIR)) {
+      fs.mkdirSync(COOKIE_JAR_DIR);
+    }
+    fs.writeFileSync(COOKIE_JAR, "", { flag: "wx" }); // create the file if it doesn't exist (wx)
   } catch (e) {}
 
   bot.setGlobalRequestOptions({

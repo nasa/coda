@@ -85,13 +85,13 @@ export default async function fetchWithCache<T>(
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
       console.warn(e);
-      cacheMetadata.fromCache = false;
-      cacheMetadata.timestamp = null;
       cacheMetadata.stale = true;
       return { cacheMetadata, data: cachedRes };
     } else {
       // the caller is fine with an error response
       cacheMetadata.error = e.toString();
+      cacheMetadata.fromCache = false;
+      cacheMetadata.timestamp = null;
       return { cacheMetadata };
     }
   }
