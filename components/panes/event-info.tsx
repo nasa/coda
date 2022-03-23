@@ -67,6 +67,8 @@ export default function EventInfo(props: { frameID: number }) {
     const response = [];
     for (let i = 0; i < asPerformed[evNum].length; i++) {
       if (typeof asPerformed[evNum][i] !== undefined) {
+        const color =
+          asPerformed[evNum][i].color !== "#000000" ? asPerformed[evNum][i].color : "grey";
         response.push(
           <div
             key={asPerformed[evNum][i].startTimeSeconds}
@@ -78,7 +80,7 @@ export default function EventInfo(props: { frameID: number }) {
             <div className={styles.taskTime}>
               {hhmmssFromSeconds(asPerformed[evNum][i].startTimeSeconds)}:
             </div>
-            <div className={styles.taskName} style={{ color: asPerformed[evNum][i].color }}>
+            <div className={styles.taskName} style={{ color: color }}>
               {asPerformed[evNum][i].content}
             </div>
           </div>
