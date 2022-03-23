@@ -196,6 +196,7 @@ build:
       --exclude=node_modules
       --exclude=.env.local
       --exclude=.git
+      --exclude=.cookies
       -e "ssh -i ~/.ssh/private_key"
       "$PWD"
       fitboxer@${ENVIRONMENT_HOSTNAME}.ndc.nasa.gov:/opt/fitbox/apps
