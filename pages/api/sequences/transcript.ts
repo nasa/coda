@@ -1,17 +1,16 @@
-import getGPSTracks from "server/sequences/gps";
 import type { NextApiRequest, NextApiResponse } from "next";
+import getWikiTranscript from "server/sequences/transcript";
+import { Source } from "utils/enums";
 
-/**
- * /api/sequences/gps?year=yyyy&month=mm&date=dd&eventType=test_event
- *
- * Get gps tracks from wiki for a given date
- */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { year, month, date } = req.query as { [key: string]: string };
 
   try {
-    const data = await getGPSTracks(`${year}-${month}-${date}`);
-    res.status(200).json(data);
+    const transcript = await getWikiTranscript(
+      Source.ISS,
+      `${year}-${month.padStart(2, "0")}-${date}`
+    );
+    res.status(200).json(transcript);
   } catch (e) {
     console.error(e);
     res.status(400).json({ error: e.toString() });

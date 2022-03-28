@@ -101,3 +101,8 @@ type EventPaneStateData = {
   ready: boolean;
   showHelp: boolean;
 };
+
+type TranscriptPaneStateData = {
+  ready: boolean;
+  showHelp: boolean;
+};
