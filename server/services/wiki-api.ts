@@ -14,7 +14,7 @@ import request from "request";
 import fetchWithCache from "./cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
-import { Collection, SequenceType } from "utils/enums";
+import { Collection, SequenceType, Source } from "utils/enums";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
@@ -622,6 +622,32 @@ async function fetchWikiGPSTrack(
     cacheAge: 604800, // 604800 seconds = 1 week
     staleOk: true,
     preferNew: false,
+  });
+}
+
+export async function fetchWikiTranscript(
+  source: Source,
+  dateWanted: string
+): Promise<WrappedResponse<string>> {
+  const parseQuery = {
+    page: `CODA/Transcripts/${source}/${dateWanted}`, //TODO: Rename these wiki pages to something general instead of "D-RATS"
+    prop: "wikitext",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+    const rawTranscript = JSON.parse(res.data.parse.wikitext["*"]);
+    return rawTranscript;
+  };
+
+  return await fetchWithCache<string>("wiki/transcript/", retriever, {
+    cacheAge: 604800, // 604800 seconds = 1 week
+    staleOk: true,
+    preferNew: true,
   });
 }
 

@@ -72,9 +72,20 @@ type VideosEntityState = EntityState<VideoFile> & {
   loadingStatus: LoadingStatusEnum;
 };
 
-/** GPS Store */
+/**
+ * GPS Store
+ */
 type GPSState = {
   gpsTracks: GPSTrack[];
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
+};
+
+/**
+ * Transcript Store
+ */
+type TranscriptState = {
+  utterances: Utterance[];
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };
