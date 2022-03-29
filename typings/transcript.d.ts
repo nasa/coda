@@ -1,5 +1,6 @@
 interface Utterance {
   secs: number;
+  time: string;
   speaker: string;
   content: string;
 }

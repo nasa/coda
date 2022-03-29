@@ -625,10 +625,37 @@ async function fetchWikiGPSTrack(
   });
 }
 
-export async function fetchWikiTranscript(
+async function fetchWikiTranscriptList(source: Source): Promise<WrappedResponse<string[]>> {
+  const parseQuery = {
+    page: `CODA/Transcripts/${source}`, //TODO: Rename these wiki pages to something general instead of "D-RATS"
+    prop: "links",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+    const links = [];
+    for (let i = 0; i < res.data.parse.links.length; i++) {
+      const link = res.data.parse.links[i]["*"];
+      links.push(link);
+    }
+    return links;
+  };
+
+  return await fetchWithCache<string[]>(`wiki/transcript-list/${source}`, retriever, {
+    cacheAge: 60, // 60 seconds
+    staleOk: true,
+    preferNew: false,
+  });
+}
+
+async function fetchWikiTranscriptPage(
   source: Source,
   dateWanted: string
-): Promise<WrappedResponse<string>> {
+): Promise<WrappedResponse<string[]>> {
   const parseQuery = {
     page: `CODA/Transcripts/${source}/${dateWanted}`, //TODO: Rename these wiki pages to something general instead of "D-RATS"
     prop: "wikitext",
@@ -640,15 +667,49 @@ export async function fetchWikiTranscript(
       wiki: "exploration",
       action: "parse",
     });
+    if (res.data.parse.wikitext["*"] === undefined) {
+      return "";
+    }
     const rawTranscript = JSON.parse(res.data.parse.wikitext["*"]);
     return rawTranscript;
   };
 
-  return await fetchWithCache<string>("wiki/transcript/", retriever, {
+  return await fetchWithCache<string[]>(`wiki/transcript/${source}/${dateWanted}`, retriever, {
     cacheAge: 604800, // 604800 seconds = 1 week
     staleOk: true,
-    preferNew: true,
+    preferNew: false,
   });
+}
+
+export async function fetchWikiTranscript(
+  source: Source,
+  dateWanted: string
+): Promise<WrappedResponse<string[]>> {
+  const transcriptList = await fetchWikiTranscriptList(source);
+  let error = null;
+  // See if the date of interest is in the list of transcripts on the wiki at https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Transcripts
+  const regexStr = `.*${dateWanted}(.*)`;
+  let transcriptExists = false;
+  for (let i = 0; i < transcriptList.data.length; i++) {
+    const match = transcriptList.data[i].match(regexStr);
+    if (match) {
+      transcriptExists = true;
+      break;
+    }
+  }
+  if (transcriptExists) {
+    const transcriptRes = await fetchWikiTranscriptPage(source, dateWanted);
+    if (transcriptRes.cacheMetadata.error !== undefined) {
+      error = transcriptRes.cacheMetadata.error;
+    }
+
+    return {
+      cacheMetadata: { ...transcriptRes.cacheMetadata, ...error },
+      data: transcriptRes.data,
+    };
+  } else {
+    return { cacheMetadata: { fromCache: false, stale: false, timestamp: null }, data: [] };
+  }
 }
 
 /** Get all the manually set shifts for fixing datetimes.
