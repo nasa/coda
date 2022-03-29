@@ -45,6 +45,8 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
         break;
       case "gps_location":
         paneStateString = getStateStringforGPSLocation(element.paneStateData);
+      case "transcript":
+        paneStateString = getStateStringForTranscript();
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
     i++;
@@ -151,6 +153,15 @@ export function interpretFramestateQueryString(query): FrameState {
 }
 
 /**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ */
+function getStateStringForTranscript() {
+  const paneTypeString = "0" + PaneTypeShortVal.transcript;
+  return `${paneTypeString}`;
+}
+
+/**
  *
  * @param frameString A shortened string representing the state of a frame received as a query parameter
  * @returns
@@ -242,7 +253,6 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return issLocationReturnVal;
-
     case PaneTypeShortVal.gps_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
@@ -255,6 +265,15 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return gpsLocationReturnVal;
+    case PaneTypeShortVal.transcript:
+      const transcriptReturnVal: { paneType: string; paneStateData: TranscriptPaneStateData } = {
+        paneType: "transcript",
+        paneStateData: {
+          ready: true,
+          showHelp: false,
+        },
+      };
+      return transcriptReturnVal;
     default:
       return undefined;
   }

@@ -11,6 +11,7 @@ import {
   faLayerGroup,
   faSquare,
   faVideo,
+  faFileLines,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allPanes, setPaneType } from "store/framework";
@@ -25,7 +26,8 @@ library.add(
   faLayerGroup,
   faShareSquare,
   faSquare,
-  faVideo
+  faVideo,
+  faFileLines
 );
 
 /**
