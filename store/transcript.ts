@@ -19,6 +19,7 @@ export const transcriptSlice = createSlice({
       for (let i = 0; i < responseArray.length; i++) {
         const utterance: Utterance = {
           secs: responseArray[i][0],
+          time: new Date(responseArray[i][0] * 1000).toISOString().substring(11, 19),
           speaker: responseArray[i][1],
           content: responseArray[i][2],
         };

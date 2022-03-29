@@ -23,7 +23,7 @@ export default function Index() {
               <div className={styles.strong}>Collaborative Operations Data Activation</div>
               <p>
                 Consolidating the context of mission, training, and testing data into an exploratory
-                platform to relive and analyse each moment
+                platform to relive and analyze each moment
               </p>
               <p>A JSC collaboration between XI, CX, and SK</p>
             </div>
