@@ -30,5 +30,5 @@ export function TranscriptControls(props: { frameID: number }) {
 }
 
 export default function Transcript(props: { frameID: number }) {
-  return <> </>;
+  return <div>{props.frameID}</div>;
 }
