@@ -655,7 +655,7 @@ async function fetchWikiTranscriptList(source: Source): Promise<WrappedResponse<
 async function fetchWikiTranscriptPage(
   source: Source,
   dateWanted: string
-): Promise<WrappedResponse<string[]>> {
+): Promise<WrappedResponse<UnprocessedUtterance[]>> {
   const parseQuery = {
     page: `CODA/Transcripts/${source}/${dateWanted}`, //TODO: Rename these wiki pages to something general instead of "D-RATS"
     prop: "wikitext",
@@ -668,23 +668,27 @@ async function fetchWikiTranscriptPage(
       action: "parse",
     });
     if (res.data.parse.wikitext["*"] === undefined) {
-      return "";
+      return [];
     }
-    const rawTranscript = JSON.parse(res.data.parse.wikitext["*"]);
+    const rawTranscript: UnprocessedUtterance[] = JSON.parse(res.data.parse.wikitext["*"]);
     return rawTranscript;
   };
 
-  return await fetchWithCache<string[]>(`wiki/transcript/${source}/${dateWanted}`, retriever, {
-    cacheAge: 604800, // 604800 seconds = 1 week
-    staleOk: true,
-    preferNew: false,
-  });
+  return await fetchWithCache<UnprocessedUtterance[]>(
+    `wiki/transcript/${source}/${dateWanted}`,
+    retriever,
+    {
+      cacheAge: 604800, // 604800 seconds = 1 week
+      staleOk: true,
+      preferNew: false,
+    }
+  );
 }
 
 export async function fetchWikiTranscript(
   source: Source,
   dateWanted: string
-): Promise<WrappedResponse<string[]>> {
+): Promise<WrappedResponse<UnprocessedUtterance[]>> {
   const transcriptList = await fetchWikiTranscriptList(source);
   let error = null;
   // See if the date of interest is in the list of transcripts on the wiki at https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Transcripts
