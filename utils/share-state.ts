@@ -45,8 +45,10 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
         break;
       case "gps_location":
         paneStateString = getStateStringforGPSLocation(element.paneStateData);
+        break;
       case "transcript":
         paneStateString = getStateStringForTranscript();
+        break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
     i++;
