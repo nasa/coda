@@ -28,8 +28,39 @@
   height: 0;
   width: 100%;
   min-height: 100%;
-  overflow: auto;
   background-color: var(--nearly-black);
+  display: flex;
+  flex-direction: column;
+}
+
+.filterSearch {
+  background-color: var(--grey);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+.filterSearchHidden {
+  display: none;
+}
+
+.inputBoxContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--lightest-grey);
+}
+
+.inputBox {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 15px;
+  background-color: var(--nearly-black);
+  border: 1px solid var(--extremely-grey);
+  border-radius: 3px;
+  padding: 4px 10px;
+  color: white;
+  width: 100%;
 }
 
 .utteranceContainer {
@@ -37,8 +68,6 @@
   align-content: flex-start;
   justify-content: space-around;
   flex-wrap: wrap;
-  height: 100%;
-  width: 100%;
   overflow: auto;
 }
 
@@ -51,7 +80,7 @@
 }
 
 .activeUtterance {
-  border: 1px solid #84b8d9;
+  border: 1px solid #aaaaaa;
 }
 
 .speaker1 {
@@ -70,7 +99,7 @@
   padding: 0px 5px 0px 5px;
 }
 
-/* Lock button */
+/* buttons */
 
 .lockButton {
   display: block;
@@ -85,13 +114,26 @@
   cursor: pointer;
 }
 
-.lockButtonSelected {
+.filterButton {
+  display: block;
+  width: 55px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buttonSelected {
   border: none;
   background-color: #eeeeee;
   color: var(--lighter-grey);
 }
 
-.lockButtonLabel {
+.buttonLabel {
   position: relative;
   width: 20px;
   left: -2px;

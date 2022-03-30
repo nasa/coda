@@ -162,6 +162,8 @@ export const allPanes: Panes = {
     color: "grey",
     defaultPaneStateData: {
       ready: true,
+      lockTranscriptScroll: true,
+      filterActive: false,
       showHelp: false,
     } as TranscriptPaneStateData,
   },

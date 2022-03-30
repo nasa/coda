@@ -106,5 +106,6 @@ type EventPaneStateData = {
 type TranscriptPaneStateData = {
   ready: boolean;
   lockTranscriptScroll: boolean;
+  filterActive: boolean;
   showHelp: boolean;
 };

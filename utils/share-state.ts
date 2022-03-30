@@ -271,6 +271,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneStateData: {
           ready: true,
           lockTranscriptScroll: true,
+          filterActive: false,
           showHelp: false,
         },
       };
