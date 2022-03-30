@@ -680,7 +680,7 @@ async function fetchWikiTranscriptPage(
     {
       cacheAge: 604800, // 604800 seconds = 1 week
       staleOk: true,
-      preferNew: false,
+      preferNew: true,
     }
   );
 }

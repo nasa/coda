@@ -29,7 +29,8 @@ interface Pane {
     | PhotoPaneStateData
     | PhotoAllPaneStateDate
     | LocationPaneStateData
-    | EventPaneStateData;
+    | EventPaneStateData
+    | TranscriptPaneStateData;
 }
 
 interface Panes {
@@ -104,5 +105,6 @@ type EventPaneStateData = {
 
 type TranscriptPaneStateData = {
   ready: boolean;
+  lockTranscriptScroll: boolean;
   showHelp: boolean;
 };

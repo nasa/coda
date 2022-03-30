@@ -270,6 +270,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneType: "transcript",
         paneStateData: {
           ready: true,
+          lockTranscriptScroll: true,
           showHelp: false,
         },
       };

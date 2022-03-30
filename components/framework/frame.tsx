@@ -13,7 +13,7 @@ import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useLayoutEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
-import Transcript, { TranscriptControls } from "components/panes/transcript";
+import TranscriptPane, { TranscriptControls } from "components/panes/transcript";
 
 export interface Options {
   frameID: number;
@@ -82,7 +82,7 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
   },
   transcript: {
     controls: TranscriptControls,
-    pane: Transcript,
+    pane: TranscriptPane,
   },
 };
 

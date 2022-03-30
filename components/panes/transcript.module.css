@@ -22,3 +22,77 @@
 .rightButtons > *:not(:last-of-type) {
   margin-right: 10px;
 }
+
+.main {
+  position: relative;
+  height: 0;
+  width: 100%;
+  min-height: 100%;
+  overflow: auto;
+  background-color: var(--nearly-black);
+}
+
+.utteranceContainer {
+  display: flex;
+  align-content: flex-start;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.utterance {
+  display: flex;
+  font-size: 0.8em;
+  padding-top: 1.5px;
+  padding-bottom: 1.5px;
+  cursor: pointer;
+}
+
+.activeUtterance {
+  border: 1px solid #84b8d9;
+}
+
+.speaker1 {
+  color: #aaaaaa;
+}
+.speaker2 {
+  color: #dddddd;
+}
+
+.time {
+  color: var(--extremely-grey);
+  padding-right: 5px;
+}
+
+.speaker {
+  padding: 0px 5px 0px 5px;
+}
+
+/* Lock button */
+
+.lockButton {
+  display: block;
+  width: 75px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lockButtonSelected {
+  border: none;
+  background-color: #eeeeee;
+  color: var(--lighter-grey);
+}
+
+.lockButtonLabel {
+  position: relative;
+  width: 20px;
+  left: -2px;
+}
