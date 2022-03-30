@@ -4,7 +4,7 @@
   left: 0;
   width: 157px;
   height: 51px;
-  z-index: 3;
+  z-index: 35;
   display: flex;
   background-color: var(--very-dark-grey);
 }
