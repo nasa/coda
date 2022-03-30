@@ -91,6 +91,11 @@ export default function TranscriptPane(props: { frameID: number }) {
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const showHelp = utterances.length === 0 ? true : false;
+    setPaneStateValue(dispatch, frameID, "showHelp", showHelp);
+  }, [utterances]);
+
+  useEffect(() => {
     if (paneStateData.lockTranscriptScroll && activeUtteranceRef.current !== null) {
       activeUtteranceRef.current.scrollIntoView({
         behavior: "smooth",
@@ -143,6 +148,8 @@ export default function TranscriptPane(props: { frameID: number }) {
     ? styles.filterSearch
     : styles.filterSearchHidden;
 
+  const urlRoot = location.origin;
+
   return (
     <div className={styles.main}>
       <div className={displayFilterStyle}>
@@ -183,9 +190,30 @@ export default function TranscriptPane(props: { frameID: number }) {
         }}
       >
         <div>
-          <p>!!Prototype!!</p>
-          <p>Displays transcripts for the day using a test transcription service setup by CD.</p>
-          <p>For testing, the only days that have transcripts are 2021-03-13 and 2022-03-23.</p>
+          <p>
+            <span style={{ color: "yellow" }}>!!Prototype!!</span>
+            <br />
+            Displays transcripts for the day using a prototype audio extraction method and a
+            transcription service setup by CD for evaluation.
+          </p>
+          <p>
+            The only days that have transcripts are
+            <br />
+            <a
+              href={`${urlRoot}/view?date=2021-03-13&gmt=16:34:00&v=2.0&l=n&s=0&f1=01001iss064m010721622&f2=01051iss064m160721624&f3=0300&f4=04&f5=08&f6=04&f7=08`}
+            >
+              2021-03-13
+            </a>{" "}
+            and{" "}
+            <a
+              href={`${urlRoot}/view?date=2022-03-23&gmt=10:34:13&v=2.0&l=n&s=0&f1=01001iss066m010821022&f2=01011&f3=0300&f4=0701&f5=051&f6=04&f7=08`}
+            >
+              2022-03-23
+            </a>
+            .<br />
+            <span style={{ color: "yellow" }}>!!Prototype!!</span>
+          </p>
+          <p></p>
           <p>Click on an utterance to jump to the moment the words were spoken.</p>
         </div>
       </HelpOverlay>

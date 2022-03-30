@@ -7,7 +7,7 @@
   /* background-color: blue;
   opacity: 0.5; */
   /* background-color: #2e2b34; */
-  z-index: 1;
+  z-index: 30;
 }
 
 .canvasContainer canvas {
