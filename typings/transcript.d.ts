@@ -1,4 +1,5 @@
 interface Utterance {
+  id: number;
   secs: number;
   time: string;
   speaker: string;

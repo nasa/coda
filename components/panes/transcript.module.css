@@ -63,7 +63,7 @@
   width: 100%;
 }
 
-.utteranceContainer {
+.utterancesContainer {
   display: flex;
   align-content: flex-start;
   justify-content: space-around;
@@ -77,6 +77,11 @@
   padding-top: 1.5px;
   padding-bottom: 1.5px;
   cursor: pointer;
+  border: 1px solid var(--nearly-black);
+}
+
+.utterance:hover {
+  background-color: var(--dark-grey);
 }
 
 .activeUtterance {

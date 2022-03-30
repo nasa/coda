@@ -118,7 +118,7 @@ export default function TranscriptPane(props: { frameID: number }) {
     return (
       <div
         className={`${styles.utterance} ${uttClass} ${activeUtteranceStyle}`}
-        key={`${utterance.secs} ${utterance.content.length}`}
+        key={utterance.id}
         {...activeRefOnly}
         onClick={() => {
           dispatch(changeTime(Math.round(utterance.secs)));
@@ -169,7 +169,7 @@ export default function TranscriptPane(props: { frameID: number }) {
         </div>
       </div>
       <div
-        className={styles.utteranceContainer}
+        className={styles.utterancesContainer}
         onWheel={() => {
           handleScroll();
         }}
