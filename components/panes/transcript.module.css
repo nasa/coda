@@ -66,7 +66,7 @@
 .utterancesContainer {
   display: flex;
   align-content: flex-start;
-  justify-content: space-around;
+  justify-content: left;
   flex-wrap: wrap;
   overflow: auto;
 }

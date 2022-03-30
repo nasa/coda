@@ -117,9 +117,6 @@ export default function TranscriptPane(props: { frameID: number }) {
     const activeUtteranceStyle =
       utterance.secs === activeUtteranceSecs ? styles.activeUtterance : "";
 
-    if (paneStateData.filterActive && !utterance.content.includes(filterText)) {
-      return <></>;
-    }
     return (
       <div
         className={`${styles.utterance} ${uttClass} ${activeUtteranceStyle}`}
@@ -137,6 +134,14 @@ export default function TranscriptPane(props: { frameID: number }) {
   }
 
   let activeUtteranceSecs = 0;
+
+  let filteredUtterances: Utterance[] = utterances;
+  if (paneStateData.filterActive && filterText !== "") {
+    filteredUtterances = utterances.filter((utterance) => {
+      return utterance.content.includes(filterText);
+    });
+  }
+
   for (let i = 0; i < utterances.length; i++) {
     if (utterances[i].secs > playhead.seconds) {
       activeUtteranceSecs = i !== 0 ? utterances[i - 1].secs : 0;
@@ -181,7 +186,9 @@ export default function TranscriptPane(props: { frameID: number }) {
           handleScroll();
         }}
       >
-        <div>{utterances.map((utterance) => displayUtterance(utterance, activeUtteranceSecs))}</div>
+        <div>
+          {filteredUtterances.map((utterance) => displayUtterance(utterance, activeUtteranceSecs))}
+        </div>
       </div>
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
