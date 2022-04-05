@@ -264,7 +264,8 @@ function getChannel ( collectionStrings ) {
 function ajaxWikiGetAsExecuted(evaName, evNum) {
     var url = './pullwiki.php?action=getAsExecuted&evaName=' + evaName + '&EVNum=' + evNum;
     if (location.hostname === 'localhost') {
-        url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getAsExecuted&evaName=' + evaName + '&EVNum=' + evNum;
+        url = 'fakedata/getAsExecutedUS_EVA_55EV' + evNum + '.json';
+        // url = 'https://coda-dev.fit.nasa.gov/CODA_ISS/pullwiki.php?action=getAsExecuted&evaName=' + evaName + '&EVNum=' + evNum;
     } else if (location.hostname === 'coda-iss.develop') { // use fake data if on dev
         url = 'fakedata/getAsExecutedUS_EVA_55EV' + evNum + '.json';
     }

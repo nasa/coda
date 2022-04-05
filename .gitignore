@@ -4,3 +4,6 @@ Adobe Premiere Pro Auto-Save
 *.iml
 .next
 node_modules
+.env.local.cert.pem
+.env.local
+.cookies

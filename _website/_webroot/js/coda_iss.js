@@ -193,7 +193,8 @@ function loadVideo(playerNum, group, second) {
         if (location.hostname === 'coda-iss.develop') { // use dev video location, otherwise use the stated IO URL
             var tempArray = videoUrl.split('/');
             var filename = tempArray[tempArray.length - 1];
-            videoUrl = '/CODA_data/US_EVA_55/video/' + filename;
+            // videoUrl = '/CODA_data/US_EVA_55/video/' + filename;
+            videoUrl = 'https://io.jsc.nasa.gov/photos/vrps/12673/video/' + filename;
         }
     }
     if ($("#player" + playerNum + " source").attr("src") !== videoUrl) {
