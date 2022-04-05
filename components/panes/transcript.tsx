@@ -200,8 +200,8 @@ export default function TranscriptPane(props: { frameID: number }) {
           <p>
             <span style={{ color: "yellow" }}>!!Prototype!!</span>
             <br />
-            Displays transcripts for the day using a prototype audio extraction method and a
-            transcription service setup by CD for evaluation.
+            Displays transcripts for the day using a prototype audio extraction method and an AI
+            transcription service setup by CD2 for evaluation.
           </p>
           <p>
             The only days that have transcripts are
