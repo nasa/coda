@@ -4,7 +4,8 @@ import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
-import { fetchEVAs, fetchTestEvents, getGPSTracks, getTranscript } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
+import { getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
@@ -36,8 +37,8 @@ import { buildEphemerisStore } from "http-client/location";
 import {
   setTranscriptLoadingStatus,
   transcriptFetchError,
-  setTranscript,
-  clearTranscript,
+  setTranscripts,
+  clearTranscripts,
 } from "store/transcript";
 import {
   setEphemeraLoadingStatus,
@@ -266,9 +267,9 @@ export function V2(props: { urlState }) {
     (async () => {
       dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const transcriptResponse = await getTranscript(source, year, month, day);
+        const transcriptResponse = await getTranscripts(source, year, month, day);
         if (transcriptResponse.cacheMetadata.error === undefined) {
-          dispatch(setTranscript(transcriptResponse));
+          dispatch(setTranscripts(transcriptResponse));
         } else {
           dispatch(transcriptFetchError(transcriptResponse.cacheMetadata.error));
         }
@@ -299,7 +300,7 @@ export function V2(props: { urlState }) {
     dispatch(clearPhotos());
     dispatch(clearSequences());
     dispatch(clearVideos());
-    dispatch(clearTranscript());
+    dispatch(clearTranscripts());
 
     // populate the sequence store
     populateSequenceStore(Collection[source]);

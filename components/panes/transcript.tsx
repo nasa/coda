@@ -73,13 +73,15 @@ export function TranscriptControls(props: { frameID: number }) {
 }
 
 export default function TranscriptPane(props: { frameID: number }) {
-  const utterances = useSelector((state: RootState) => state.transcript.utterances);
+  const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
   const playhead = useSelector((state: RootState) => state.playhead);
   const paneStateData: TranscriptPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
   const [filterText, setFilterText] = useState("");
+  const [isTranscripts, setIsTranscripts] = useState(false);
+  const [filteredUtterances, setFiltereredUtterances] = useState([]);
 
   const frameID = props.frameID;
   const dispatch = useDispatch();
@@ -91,11 +93,6 @@ export default function TranscriptPane(props: { frameID: number }) {
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const showHelp = utterances.length === 0 ? true : false;
-    setPaneStateValue(dispatch, frameID, "showHelp", showHelp);
-  }, [utterances]);
-
-  useEffect(() => {
     if (paneStateData.lockTranscriptScroll && activeUtteranceRef.current !== null) {
       activeUtteranceRef.current.scrollIntoView({
         behavior: "smooth",
@@ -103,14 +100,34 @@ export default function TranscriptPane(props: { frameID: number }) {
     }
   }, [activeUtteranceRef, playhead.seconds, paneStateData.lockTranscriptScroll]);
 
-  function displayUtterance(utterance: Utterance, activeUtteranceSecs: number) {
+  useEffect(() => {
+    let isTranscript = false;
+    transcripts.forEach((transcript) => {
+      if (transcript.utterances.length > 0) {
+        isTranscript = true;
+      }
+    });
+    setIsTranscripts(isTranscript);
+  }, [transcripts]);
+
+  useEffect(() => {
+    if (isTranscripts) {
+      let filteredUtterances: Utterance[] = transcripts[0].utterances;
+      if (paneStateData.filterActive && filterText !== "") {
+        filteredUtterances = transcripts[0].utterances.filter((utterance) => {
+          return utterance.content.includes(filterText);
+        });
+      }
+      setFiltereredUtterances(filteredUtterances);
+    }
+  }, [playhead.seconds, paneStateData.filterActive, filterText, isTranscripts]);
+
+  function displayUtterance(utterance: Utterance, activeUtteranceSecs: number, idx: number) {
     let uttClass = styles.speaker1;
-    if (utterance.speaker.includes("1")) {
-      uttClass = styles.speaker1;
-    } else if (utterance.speaker.includes("2")) {
-      uttClass = styles.speaker2;
+    if (idx % 2 === 0) {
+      uttClass = "";
     } else {
-      uttClass = styles.speakerOther;
+      uttClass = styles.utteranceColorAlt;
     }
 
     const activeRefOnly = utterance.secs === activeUtteranceSecs ? { ref: activeUtteranceRef } : {};
@@ -134,18 +151,12 @@ export default function TranscriptPane(props: { frameID: number }) {
   }
 
   let activeUtteranceSecs = 0;
-
-  let filteredUtterances: Utterance[] = utterances;
-  if (paneStateData.filterActive && filterText !== "") {
-    filteredUtterances = utterances.filter((utterance) => {
-      return utterance.content.includes(filterText);
-    });
-  }
-
-  for (let i = 0; i < utterances.length; i++) {
-    if (utterances[i].secs > playhead.seconds) {
-      activeUtteranceSecs = i !== 0 ? utterances[i - 1].secs : 0;
-      break;
+  if (isTranscripts) {
+    for (let i = 0; i < transcripts[0].utterances.length; i++) {
+      if (transcripts[0].utterances[i].secs > playhead.seconds) {
+        activeUtteranceSecs = i !== 0 ? transcripts[0].utterances[i - 1].secs : 0;
+        break;
+      }
     }
   }
 
@@ -187,7 +198,9 @@ export default function TranscriptPane(props: { frameID: number }) {
         }}
       >
         <div>
-          {filteredUtterances.map((utterance) => displayUtterance(utterance, activeUtteranceSecs))}
+          {filteredUtterances.map((utterance, idx) =>
+            displayUtterance(utterance, activeUtteranceSecs, idx)
+          )}
         </div>
       </div>
       <HelpOverlay

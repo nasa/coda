@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import getWikiTranscript from "server/sequences/transcript";
+import getTranscripts from "server/emss-labs/transcript";
 import { Source } from "utils/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { year, month, date } = req.query as { [key: string]: string };
 
   try {
-    const transcript = await getWikiTranscript(
+    const transcript = await getTranscripts(
       Source.ISS,
       `${year}-${month.padStart(2, "0")}-${date}`
     );

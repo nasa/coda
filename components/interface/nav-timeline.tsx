@@ -60,12 +60,6 @@ export default function NavTimeline(props: { collection: Collection }) {
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
 
-  useEffect(() => {
-    const canvasElement = canvas.current;
-    const ctx = canvasElement.getContext("2d");
-    console.log("canvas context", ctx);
-  }, [canvas]);
-
   /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
     if (isNil(paper.project) && typeof window !== "undefined") {

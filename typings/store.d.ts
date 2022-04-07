@@ -85,7 +85,7 @@ type GPSState = {
  * Transcript Store
  */
 type TranscriptState = {
-  utterances: Utterance[];
+  transcripts: Transcript[];
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };

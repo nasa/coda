@@ -1,3 +1,14 @@
+type UnprocessedUtterance = [number, string, string];
+
+interface UnprocessedTranscript {
+  sgNum: number;
+  unprocessedUtterances: UnprocessedUtterance[];
+}
+
+interface Transcript {
+  utterances: Utterance[];
+}
+
 interface Utterance {
   id: number;
   secs: number;
@@ -5,5 +16,3 @@ interface Utterance {
   speaker: string;
   content: string;
 }
-
-type UnprocessedUtterance = [number, string, string];

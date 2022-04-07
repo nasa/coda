@@ -61,12 +61,15 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
   useEffect(() => {
+    let isTranscript = false;
+    transcript.transcripts.forEach((transcript) => {
+      if (transcript.utterances.length > 0) {
+        isTranscript = true;
+      }
+    });
+
     setTranscriptStatus(
-      createStatus(
-        transcript.loadingStatus,
-        transcript.cacheMetadata,
-        transcript.utterances.length > 0
-      )
+      createStatus(transcript.loadingStatus, transcript.cacheMetadata, isTranscript)
     );
   }, [transcript.loadingStatus, transcript.cacheMetadata]);
 

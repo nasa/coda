@@ -1,4 +1,3 @@
-import { Source } from "utils/enums";
 /**
  * Methods for fetching data from the Wiki. Browsers will use a proxy, servers will hit the ISS Wiki directly
  */
@@ -26,18 +25,4 @@ export async function getGPSTracks(
   const gpsTracks: WrappedResponse<GPSTrack[]> = await res.json();
 
   return gpsTracks;
-}
-
-export async function getTranscript(
-  source: Source,
-  year: number,
-  month: number,
-  date: number
-): Promise<WrappedResponse<UnprocessedUtterance[]>> {
-  const res = await fetch(
-    `/api/sequences/transcript?source=${source}&year=${year}&month=${month}&date=${date}`
-  );
-  const transcript: WrappedResponse<UnprocessedUtterance[]> = await res.json();
-
-  return transcript;
 }

@@ -77,6 +77,7 @@
   padding-top: 1.5px;
   padding-bottom: 1.5px;
   cursor: pointer;
+  color: var(--even-greyer);
   border: 1px solid var(--nearly-black);
 }
 
@@ -85,14 +86,11 @@
 }
 
 .activeUtterance {
-  border: 1px solid #aaaaaa;
+  border: 1px solid var(--lightest-grey);
 }
 
-.speaker1 {
-  color: #aaaaaa;
-}
-.speaker2 {
-  color: #dddddd;
+.utteranceColorAlt {
+  background-color: black;
 }
 
 .time {
