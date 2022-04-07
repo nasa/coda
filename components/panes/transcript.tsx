@@ -9,12 +9,16 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
+import Button from "components/interface/button";
 
 library.add(faCircleXmark);
+const sgChannels = [0, 1, 2, 3];
 
-export function TranscriptControls(props: { frameID: number }) {
+export function TranscriptControls(props: { frameID: number; frameDimensions: [number, number] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
+
+  const minWidth = 470; // minimum width of the transcript pane before breaking into dropdown for downlinks
 
   const paneStateData: TranscriptPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
@@ -28,9 +32,73 @@ export function TranscriptControls(props: { frameID: number }) {
     filterButtonSelected = styles.buttonSelected;
   }
 
+  const controlsLeft = () => {
+    if (props.frameDimensions[0] > minWidth) {
+      return (
+        <div className={styles.selections}>
+          {sgChannels.map((c) => {
+            let rounded = "none";
+            if (c === 0) {
+              rounded = "left";
+            } else if (c === 3) {
+              rounded = "right";
+            }
+
+            let color = "disabled";
+
+            color = "active";
+
+            if (paneStateData.sgChannel === c) {
+              color = "active_selected";
+            }
+
+            return (
+              <Button
+                key={"SGBUTTON_" + c + "_" + frameID}
+                color={color}
+                size="small"
+                rounded={rounded}
+                callback={() => {
+                  setPaneStateValue(dispatch, frameID, "sgChannel", c);
+                }}
+              >
+                <div className={styles.dlLabel}>{c + 1}</div>
+              </Button>
+            );
+          })}
+        </div>
+      );
+    } else {
+      return (
+        <>
+          <div className={`${styles.selectContainer} ${styles.selectContainerNarrow}`}>
+            <select
+              value={paneStateData.sgChannel}
+              onChange={(e) => {
+                setPaneStateValue(dispatch, frameID, "channel", e.target.value);
+              }}
+            >
+              <option value="">DL</option>
+              {sgChannels.map((v) => {
+                return (
+                  <option value={v} key={v}>
+                    {v + 1}
+                  </option>
+                );
+              })}
+            </select>
+            <div className={styles.nonDlSelect_arrow}>
+              <FontAwesomeIcon icon="chevron-down" size="sm" />
+            </div>
+          </div>
+        </>
+      );
+    }
+  };
+
   return (
     <div className={styles.controls}>
-      <div className={styles.controlsLeft}></div>
+      <div className={styles.controlsLeft}>{controlsLeft()}</div>
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
           <button
@@ -87,7 +155,9 @@ export default function TranscriptPane(props: { frameID: number }) {
   const dispatch = useDispatch();
 
   const handleScroll = () => {
-    setPaneStateValue(dispatch, frameID, "lockTranscriptScroll", false);
+    if (paneStateData.lockTranscriptScroll) {
+      setPaneStateValue(dispatch, frameID, "lockTranscriptScroll", false);
+    }
   };
 
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
@@ -112,15 +182,15 @@ export default function TranscriptPane(props: { frameID: number }) {
 
   useEffect(() => {
     if (isTranscripts) {
-      let filteredUtterances: Utterance[] = transcripts[0].utterances;
+      let filteredUtterances: Utterance[] = transcripts[paneStateData.sgChannel].utterances;
       if (paneStateData.filterActive && filterText !== "") {
-        filteredUtterances = transcripts[0].utterances.filter((utterance) => {
+        filteredUtterances = transcripts[paneStateData.sgChannel].utterances.filter((utterance) => {
           return utterance.content.includes(filterText);
         });
       }
       setFiltereredUtterances(filteredUtterances);
     }
-  }, [playhead.seconds, paneStateData.filterActive, filterText, isTranscripts]);
+  }, [playhead.seconds, paneStateData, filterText, isTranscripts]);
 
   function displayUtterance(utterance: Utterance, activeUtteranceSecs: number, idx: number) {
     let uttClass = styles.speaker1;
@@ -144,7 +214,6 @@ export default function TranscriptPane(props: { frameID: number }) {
         }}
       >
         <div className={styles.time}>{utterance.time}</div>
-        {/* <div className={styles.speaker}>{utterance.speaker}</div> */}
         <div className={styles.content}>{utterance.content}</div>
       </div>
     );
@@ -163,8 +232,6 @@ export default function TranscriptPane(props: { frameID: number }) {
   const displayFilterStyle = paneStateData.filterActive
     ? styles.filterSearch
     : styles.filterSearchHidden;
-
-  const urlRoot = location.origin;
 
   return (
     <div className={styles.main}>
@@ -213,27 +280,16 @@ export default function TranscriptPane(props: { frameID: number }) {
           <p>
             <span style={{ color: "yellow" }}>!!Prototype!!</span>
             <br />
-            Displays transcripts for the day using a prototype audio extraction method and an AI
-            transcription service setup by CD2 for evaluation.
+            Displays transcripts for all four space-to-ground channels.{" "}
+            <i>Not available for all days</i>. We are currently processing audio for all days in
+            reverse chronological order.
           </p>
           <p>
-            The only days that have transcripts are
+            Select a downlink channel using the downlink channel numbers above the transcript.
             <br />
-            <a
-              href={`${urlRoot}/view?date=2021-03-13&gmt=16:34:00&v=2.0&l=n&s=0&f1=01001iss064m010721622&f2=01051iss064m160721624&f3=0300&f4=04&f5=08&f6=04&f7=08`}
-            >
-              2021-03-13
-            </a>{" "}
-            and{" "}
-            <a
-              href={`${urlRoot}/view?date=2022-03-23&gmt=10:34:13&v=2.0&l=n&s=0&f1=01001iss066m010821022&f2=01011&f3=0300&f4=0701&f5=051&f6=04&f7=08`}
-            >
-              2022-03-23
-            </a>
-            .<br />
-            <span style={{ color: "yellow" }}>!!Prototype!!</span>
+            Filter for specific text using the filter button.
           </p>
-          <p></p>
+
           <p>Click on an utterance to jump to the moment the words were spoken.</p>
         </div>
       </HelpOverlay>

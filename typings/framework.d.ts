@@ -107,5 +107,6 @@ type TranscriptPaneStateData = {
   ready: boolean;
   lockTranscriptScroll: boolean;
   filterActive: boolean;
+  sgChannel: number;
   showHelp: boolean;
 };

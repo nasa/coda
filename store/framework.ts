@@ -164,6 +164,7 @@ export const allPanes: Panes = {
       ready: true,
       lockTranscriptScroll: true,
       filterActive: false,
+      sgChannel: 0,
       showHelp: false,
     } as TranscriptPaneStateData,
   },
