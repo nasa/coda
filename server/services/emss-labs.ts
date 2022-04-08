@@ -70,8 +70,8 @@ export async function fetchSGActivity(
       const activityRanges = video.sgChannels[sgChannel].activity_ranges;
       const reducedActivityRanges = activityRanges.map((activityRange) => {
         return {
-          sound_start_secs: activityRange.sound_start_secs,
-          sound_stop_secs: activityRange.sound_stop_secs,
+          sound_start_secs: activityRange.sound_start_secs + video.start_seconds,
+          sound_stop_secs: activityRange.sound_stop_secs + video.start_seconds,
           aacSegmentFilename: activityRange.aacSegmentFilename,
         };
       });
