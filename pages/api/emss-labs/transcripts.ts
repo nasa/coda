@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const transcript = await getTranscripts(
       Source.ISS,
-      `${year}-${month.padStart(2, "0")}-${date}`
+      `${year}-${month.padStart(2, "0")}-${date.padStart(2, "0")}`
     );
     res.status(200).json(transcript);
   } catch (e) {
