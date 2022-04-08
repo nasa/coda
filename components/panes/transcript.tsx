@@ -150,6 +150,7 @@ export default function TranscriptPane(props: { frameID: number }) {
   const [filterText, setFilterText] = useState("");
   const [isTranscripts, setIsTranscripts] = useState(false);
   const [filteredUtterances, setFiltereredUtterances] = useState([]);
+  const [activeUtteranceSecs, setActiveUtteranceSecs] = useState(0);
 
   const frameID = props.frameID;
   const dispatch = useDispatch();
@@ -190,9 +191,25 @@ export default function TranscriptPane(props: { frameID: number }) {
       }
       setFiltereredUtterances(filteredUtterances);
     }
-  }, [playhead.seconds, paneStateData, filterText, isTranscripts]);
+  }, [paneStateData, filterText, isTranscripts]);
 
-  function displayUtterance(utterance: Utterance, activeUtteranceSecs: number, idx: number) {
+  useEffect(() => {
+    if (isTranscripts) {
+      let activeUtteranceSecs = 0;
+      if (isTranscripts) {
+        for (let i = 0; i < transcripts[paneStateData.sgChannel].utterances.length; i++) {
+          if (transcripts[paneStateData.sgChannel].utterances[i].secs > playhead.seconds) {
+            activeUtteranceSecs =
+              i !== 0 ? transcripts[paneStateData.sgChannel].utterances[i - 1].secs : 0;
+            setActiveUtteranceSecs(activeUtteranceSecs);
+            break;
+          }
+        }
+      }
+    }
+  }, [playhead.seconds, isTranscripts]);
+
+  function displayUtterance(utterance: Utterance, idx: number) {
     let uttClass = styles.speaker1;
     if (idx % 2 === 0) {
       uttClass = "";
@@ -217,16 +234,6 @@ export default function TranscriptPane(props: { frameID: number }) {
         <div className={styles.content}>{utterance.content}</div>
       </div>
     );
-  }
-
-  let activeUtteranceSecs = 0;
-  if (isTranscripts) {
-    for (let i = 0; i < transcripts[0].utterances.length; i++) {
-      if (transcripts[0].utterances[i].secs > playhead.seconds) {
-        activeUtteranceSecs = i !== 0 ? transcripts[0].utterances[i - 1].secs : 0;
-        break;
-      }
-    }
   }
 
   const displayFilterStyle = paneStateData.filterActive
@@ -264,11 +271,7 @@ export default function TranscriptPane(props: { frameID: number }) {
           handleScroll();
         }}
       >
-        <div>
-          {filteredUtterances.map((utterance, idx) =>
-            displayUtterance(utterance, activeUtteranceSecs, idx)
-          )}
-        </div>
+        <div>{filteredUtterances.map((utterance, idx) => displayUtterance(utterance, idx))}</div>
       </div>
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}

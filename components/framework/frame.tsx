@@ -14,6 +14,7 @@ import { ISSLocation, ISSLocationControls } from "components/panes/iss-location"
 import { useLayoutEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 import TranscriptPane, { TranscriptControls } from "components/panes/transcript";
+import SGAudio from "components/panes/sg-audio";
 
 export interface Options {
   frameID: number;
@@ -86,7 +87,7 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
   },
   sg_audio: {
     controls: () => null,
-    pane: () => null,
+    pane: SGAudio,
   },
 };
 
