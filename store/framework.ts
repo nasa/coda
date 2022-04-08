@@ -168,6 +168,15 @@ export const allPanes: Panes = {
       showHelp: false,
     } as TranscriptPaneStateData,
   },
+  sg_audio: {
+    title: "S/G Audio",
+    icon: "satellite",
+    color: "burntOrange",
+    defaultPaneStateData: {
+      ready: true,
+      showHelp: false,
+    } as SGAudioPaneStateData,
+  },
 };
 
 export const defaultFrames: FrameState = {

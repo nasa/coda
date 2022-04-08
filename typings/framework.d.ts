@@ -108,5 +108,9 @@ type TranscriptPaneStateData = {
   lockTranscriptScroll: boolean;
   filterActive: boolean;
   sgChannel: number;
+};
+
+type SGAudioPaneStateData = {
+  ready: boolean;
   showHelp: boolean;
 };

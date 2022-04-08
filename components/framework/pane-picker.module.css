@@ -70,3 +70,7 @@
 .mustardGreen {
   background-color: var(--mustard-green);
 }
+
+.burntOrange {
+  background-color: var(--burnt-orange);
+}

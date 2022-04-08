@@ -84,6 +84,10 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
     controls: TranscriptControls,
     pane: TranscriptPane,
   },
+  sg_audio: {
+    controls: () => null,
+    pane: () => null,
+  },
 };
 
 /** Identify the frame */
