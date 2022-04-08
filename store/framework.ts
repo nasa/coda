@@ -175,7 +175,8 @@ export const allPanes: Panes = {
     defaultPaneStateData: {
       ready: true,
       showHelp: false,
-    } as SGAudioPaneStateData,
+      sgChannel: 0,
+    } as SgAudioPaneStateData,
   },
 };
 

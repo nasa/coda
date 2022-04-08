@@ -49,6 +49,9 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
       case "transcript":
         paneStateString = getStateStringForTranscript(element.paneStateData);
         break;
+      case "sg_audio":
+        paneStateString = getStateStringForSGAudio(element.paneStateData);
+        break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
     i++;
@@ -138,6 +141,28 @@ function getStateStringforGPSLocation(state: LocationPaneStateData) {
 }
 
 /**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: S/G channel number - 1
+ */
+function getStateStringForTranscript(state: TranscriptPaneStateData) {
+  const paneTypeString = "0" + PaneTypeShortVal.transcript;
+  const sgChannel = state.sgChannel.toString();
+  return `${paneTypeString}${sgChannel}`;
+}
+
+/**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: S/G channel number - 1
+ */
+function getStateStringForSGAudio(state: TranscriptPaneStateData) {
+  const paneTypeString = "0" + PaneTypeShortVal.sgAudio;
+  const sgChannel = state.sgChannel.toString();
+  return `${paneTypeString}${sgChannel}`;
+}
+
+/**
  *
  * @param url All query params sent in the share URL
  * @returns FrameState object populated with the data from the URL
@@ -152,17 +177,6 @@ export function interpretFramestateQueryString(query): FrameState {
     }
   }
   return frameState;
-}
-
-/**
- * @returns {string}
- * Chars 0,1 digits: pane type
- * Char 2: S/G channel number - 1
- */
-function getStateStringForTranscript(state: TranscriptPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.transcript;
-  const sgChannel = state.sgChannel.toString();
-  return `${paneTypeString}${sgChannel}`;
 }
 
 /**
@@ -283,6 +297,18 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return transcriptReturnVal;
+    case PaneTypeShortVal.sgAudio:
+      /* Char 2: sgChannel number
+       */
+      const sgAudioReturnVal: { paneType: string; paneStateData: SgAudioPaneStateData } = {
+        paneType: "sg_audio",
+        paneStateData: {
+          ready: true,
+          sgChannel: parseInt(frameString.substring(2, 3)),
+          showHelp: false,
+        },
+      };
+      return sgAudioReturnVal;
     default:
       return undefined;
   }
