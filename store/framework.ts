@@ -28,6 +28,10 @@ export const allLayouts: Layouts = {
     frameCount: 6,
     cssGridRows: 9,
   },
+  n: {
+    frameCount: 7,
+    cssGridRows: 9,
+  },
   k: {
     frameCount: 5,
     cssGridRows: 9,
@@ -151,6 +155,18 @@ export const allPanes: Panes = {
       ready: true,
       showHelp: false,
     } as EventPaneStateData,
+  },
+  transcript: {
+    title: "Transcript",
+    icon: "file-lines",
+    color: "grey",
+    defaultPaneStateData: {
+      ready: true,
+      lockTranscriptScroll: true,
+      filterActive: false,
+      sgChannel: 0,
+      showHelp: false,
+    } as TranscriptPaneStateData,
   },
 };
 

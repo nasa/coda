@@ -68,7 +68,6 @@ export default function PhotoAllPane(props: { frameID: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const photoThumbsRef = useRef<HTMLDivElement>(null);
   const activePhotoRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = () => {
@@ -81,7 +80,7 @@ export default function PhotoAllPane(props: { frameID: number }) {
         behavior: "smooth",
       });
     }
-  }, [photos.activePhoto, activePhotoRef, playhead.seconds]);
+  }, [photos.activePhoto, activePhotoRef, playhead.seconds, paneStateData.lockPhotosScroll]);
 
   // function that displays thumbnails of all photos in photoFiles
   function photoThumbnails() {
@@ -122,7 +121,6 @@ export default function PhotoAllPane(props: { frameID: number }) {
     <div className={styles.main}>
       <div
         className={styles.photoThumbs}
-        ref={photoThumbsRef}
         onWheel={() => {
           handleScroll();
         }}

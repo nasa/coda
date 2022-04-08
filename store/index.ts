@@ -8,6 +8,7 @@ import { frameworkSlice, initialState as viewerInitialState } from "./framework"
 import { photoSlice, initialState as photosInitialState } from "./photos";
 import { ephemeraSlice, initialState as ephemeraInitialState } from "./ephemera";
 import { gpsSlice, initialState as gpsInitialState } from "./gps";
+import { transcriptSlice, initialState as transcriptInitialState } from "./transcript";
 
 let store;
 
@@ -19,6 +20,7 @@ export const initialState = {
   photos: photosInitialState,
   ephemera: ephemeraInitialState,
   gps: gpsInitialState,
+  transcript: transcriptInitialState,
   framework: viewerInitialState,
 };
 
@@ -32,6 +34,7 @@ const reducer = combineReducers({
   photos: photoSlice.reducer,
   ephemera: ephemeraSlice.reducer,
   gps: gpsSlice.reducer,
+  transcript: transcriptSlice.reducer,
   framework: frameworkSlice.reducer,
 });
 

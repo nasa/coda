@@ -29,7 +29,8 @@ interface Pane {
     | PhotoPaneStateData
     | PhotoAllPaneStateDate
     | LocationPaneStateData
-    | EventPaneStateData;
+    | EventPaneStateData
+    | TranscriptPaneStateData;
 }
 
 interface Panes {
@@ -99,5 +100,13 @@ type LocationPaneStateData = {
 
 type EventPaneStateData = {
   ready: boolean;
+  showHelp: boolean;
+};
+
+type TranscriptPaneStateData = {
+  ready: boolean;
+  lockTranscriptScroll: boolean;
+  filterActive: boolean;
+  sgChannel: number;
   showHelp: boolean;
 };

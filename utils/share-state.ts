@@ -45,6 +45,10 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
         break;
       case "gps_location":
         paneStateString = getStateStringforGPSLocation(element.paneStateData);
+        break;
+      case "transcript":
+        paneStateString = getStateStringForTranscript(element.paneStateData);
+        break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
     i++;
@@ -151,6 +155,17 @@ export function interpretFramestateQueryString(query): FrameState {
 }
 
 /**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: S/G channel number - 1
+ */
+function getStateStringForTranscript(state: TranscriptPaneStateData) {
+  const paneTypeString = "0" + PaneTypeShortVal.transcript;
+  const sgChannel = state.sgChannel.toString();
+  return `${paneTypeString}${sgChannel}`;
+}
+
+/**
  *
  * @param frameString A shortened string representing the state of a frame received as a query parameter
  * @returns
@@ -187,8 +202,8 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneStateData: {
           ready: true,
           channel: -1,
-          muted: frameString.charAt(4) === "1",
-          activeVideoFileID: frameString.substring(5),
+          muted: frameString.substring(4, 5) === "1",
+          activeVideoFileID: frameString.substring(5, 6),
           showHelp: false,
         } as VideoPaneStateData,
       };
@@ -202,7 +217,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneStateData: {
           ready: true,
           showInfo: frameString[2] === "1",
-          showFilter: frameString[3] === "1",
+          showFilter: frameString.substring(3, 4) === "1",
           showHelp: false,
         },
       };
@@ -215,8 +230,8 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneType: "photo_all",
         paneStateData: {
           ready: true,
-          showFilter: frameString[2] === "1",
-          lockPhotosScroll: frameString[3] === "1",
+          showFilter: frameString.substring(2, 3) === "1",
+          lockPhotosScroll: frameString.substring(3, 4) === "1",
           showHelp: false,
         },
       };
@@ -237,12 +252,11 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneType: "iss_location",
         paneStateData: {
           ready: true,
-          lockMap: frameString[2] === "1",
+          lockMap: frameString.substring(2, 3) === "1",
           showHelp: false,
         },
       };
       return issLocationReturnVal;
-
     case PaneTypeShortVal.gps_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
@@ -250,11 +264,25 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         paneType: "gps_location",
         paneStateData: {
           ready: true,
-          lockMap: frameString[2] === "1",
+          lockMap: frameString.substring(2, 3) === "1",
           showHelp: false,
         },
       };
       return gpsLocationReturnVal;
+    case PaneTypeShortVal.transcript:
+      /* Char 2: sgChannel number
+       */
+      const transcriptReturnVal: { paneType: string; paneStateData: TranscriptPaneStateData } = {
+        paneType: "transcript",
+        paneStateData: {
+          ready: true,
+          lockTranscriptScroll: true,
+          filterActive: false,
+          sgChannel: parseInt(frameString.substring(2, 3)),
+          showHelp: false,
+        },
+      };
+      return transcriptReturnVal;
     default:
       return undefined;
   }
