@@ -285,7 +285,7 @@ export default function TranscriptPane(props: { frameID: number }) {
             reverse chronological order.
           </p>
           <p>
-            Select a downlink channel using the downlink channel numbers above the transcript.
+            Select a space-to-ground channel using the channel numbers above the transcript.
             <br />
             Filter for specific text using the filter button.
           </p>
