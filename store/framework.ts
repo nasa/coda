@@ -173,7 +173,7 @@ export const allPanes: Panes = {
     icon: "satellite",
     color: "burntOrange",
     defaultPaneStateData: {
-      ready: true,
+      ready: false,
       showHelp: false,
       sgChannel: 0,
     } as SgAudioPaneStateData,

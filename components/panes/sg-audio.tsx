@@ -208,22 +208,18 @@ export default function SGAudio(props: { frameID: number }) {
       }
 
       try {
-        if (playhead.ready && playhead.isRunning) {
+        if (playhead.ready && playhead.isRunning && paneStateData.ready) {
           if (!isPlaying && srcUrl !== "") {
             audioPlayerRef.current.play();
           }
         } else {
-          if (isPlaying) {
-            audioPlayerRef.current.pause();
-          }
+          audioPlayerRef.current.pause();
         }
       } catch (e) {
         // eat play errors. They are all bogus
       }
     } else {
-      if (isPlaying) {
-        audioPlayerRef.current.pause();
-      }
+      audioPlayerRef.current.pause();
     }
   }, [srcUrl, audioPlayerRef, playhead.seconds, playhead.isRunning]);
 
