@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { Stats } from "fs";
 import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: TranscriptState = {
