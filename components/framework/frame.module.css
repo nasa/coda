@@ -33,7 +33,7 @@
   justify-content: flex-start;
   height: 35px;
   background-color: var(--nearly-black);
-  padding: 4px 6px;
+  padding: 4px 6px 4px 0px;
 }
 
 .verticalCenter {

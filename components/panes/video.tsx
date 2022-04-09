@@ -96,19 +96,19 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
   return (
     <div className={styles.rightButtons}>
       <div className={styles.verticalCenter}>
-        <IOInfoButton
-          clickHandler={() => {
-            setPaneStateValue(dispatch, frameID, "showInfo", !props.paneStateData.showInfo);
-          }}
-          selected={props.paneStateData.showInfo}
-        />
-      </div>
-      <div className={styles.verticalCenter} style={{ width: "30px" }}>
         <MuteButton
           clickHandler={() => {
             handleMuteButtonClick();
           }}
           muted={props.paneStateData.muted}
+        />
+      </div>
+      <div className={styles.verticalCenter}>
+        <IOInfoButton
+          clickHandler={() => {
+            setPaneStateValue(dispatch, frameID, "showInfo", !props.paneStateData.showInfo);
+          }}
+          selected={props.paneStateData.showInfo}
         />
       </div>
       <div className={styles.verticalCenter}>

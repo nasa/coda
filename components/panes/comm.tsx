@@ -4,27 +4,29 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { changeTime } from "store/playhead";
 import { RootState } from "store/index";
-import styles from "./transcript.module.css";
+import styles from "./comm.module.css";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import Button from "components/interface/button";
+import { faVolumeUp, faVolumeMute, faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+import { MuteButton } from "components/panes/video";
 
-library.add(faCircleXmark);
+library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen);
 const sgChannels = [0, 1, 2, 3];
 
-export function TranscriptControls(props: { frameID: number; frameDimensions: [number, number] }) {
+export function CommControls(props: { frameID: number; frameDimensions: [number, number] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
   const minWidth = 470; // minimum width of the transcript pane before breaking into dropdown for downlinks
 
-  const paneStateData: TranscriptPaneStateData = useSelector(
+  const paneStateData: CommPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   let lockButtonSelected = "";
-  if (typeof paneStateData !== "undefined" && paneStateData.lockTranscriptScroll) {
+  if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
   }
   let filterButtonSelected = "";
@@ -101,6 +103,14 @@ export function TranscriptControls(props: { frameID: number; frameDimensions: [n
       <div className={styles.controlsLeft}>{controlsLeft()}</div>
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
+          <MuteButton
+            clickHandler={() => {
+              setPaneStateValue(dispatch, frameID, "isMuted", !paneStateData.isMuted);
+            }}
+            muted={paneStateData.isMuted}
+          />
+        </div>
+        <div className={styles.verticalCenter}>
           <button
             className={`${styles.filterButton} ${filterButtonSelected}`}
             title={`Filter utterances by words`}
@@ -108,7 +118,7 @@ export function TranscriptControls(props: { frameID: number; frameDimensions: [n
               setPaneStateValue(dispatch, frameID, "filterActive", !paneStateData.filterActive);
             }}
           >
-            <span className={styles.lockButtonLabel}>Filter</span>
+            <span>Filter</span>
           </button>
         </div>
         <div className={styles.verticalCenter}>
@@ -116,15 +126,15 @@ export function TranscriptControls(props: { frameID: number; frameDimensions: [n
             className={`${styles.lockButton} ${lockButtonSelected}`}
             title={`Scroll automatically to the last spoken utterance`}
             onClick={() => {
-              setPaneStateValue(
-                dispatch,
-                frameID,
-                "lockTranscriptScroll",
-                !paneStateData.lockTranscriptScroll
-              );
+              setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
             }}
           >
-            <span className={styles.lockButtonLabel}>Lock Scroll</span>
+            <span className={styles.buttonLabel}>
+              <div>Scroll</div>
+              <div>
+                <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
+              </div>
+            </span>
           </button>
         </div>
         <div className={styles.verticalCenter}>
@@ -140,10 +150,10 @@ export function TranscriptControls(props: { frameID: number; frameDimensions: [n
   );
 }
 
-export default function TranscriptPane(props: { frameID: number }) {
+export default function CommPane(props: { frameID: number }) {
   const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
   const playhead = useSelector((state: RootState) => state.playhead);
-  const paneStateData: TranscriptPaneStateData = useSelector(
+  const paneStateData: CommPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
@@ -156,7 +166,7 @@ export default function TranscriptPane(props: { frameID: number }) {
   const dispatch = useDispatch();
 
   const handleScroll = () => {
-    if (paneStateData.lockTranscriptScroll) {
+    if (paneStateData.lockScroll) {
       setPaneStateValue(dispatch, frameID, "lockTranscriptScroll", false);
     }
   };
@@ -164,12 +174,12 @@ export default function TranscriptPane(props: { frameID: number }) {
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (paneStateData.lockTranscriptScroll && activeUtteranceRef.current !== null) {
+    if (paneStateData.lockScroll && activeUtteranceRef.current !== null) {
       activeUtteranceRef.current.scrollIntoView({
         behavior: "smooth",
       });
     }
-  }, [activeUtteranceRef, playhead.seconds, paneStateData.lockTranscriptScroll]);
+  }, [activeUtteranceRef, playhead.seconds, paneStateData.lockScroll]);
 
   useEffect(() => {
     let isTranscript = false;

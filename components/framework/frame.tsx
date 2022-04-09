@@ -13,7 +13,7 @@ import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
 import { useLayoutEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
-import TranscriptPane, { TranscriptControls } from "components/panes/transcript";
+import CommPane, { CommControls } from "components/panes/comm";
 import SGAudio, { SgAudioControls } from "components/panes/sg-audio";
 
 export interface Options {
@@ -81,13 +81,9 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
     controls: EventInfoControls,
     pane: EventInfo,
   },
-  transcript: {
-    controls: TranscriptControls,
-    pane: TranscriptPane,
-  },
-  sg_audio: {
-    controls: SgAudioControls,
-    pane: SGAudio,
+  comm: {
+    controls: CommControls,
+    pane: CommPane,
   },
 };
 

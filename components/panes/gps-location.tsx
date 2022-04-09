@@ -43,7 +43,7 @@ export function GPSLocationControls(props: { frameID: number }) {
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
-            <span className={styles.lockButtonLabel}>Lock Map to GPS</span>
+            <span className={styles.lockButtonLabel}>Lock</span>
           </button>
         </div>
         <div className={styles.verticalCenter}>

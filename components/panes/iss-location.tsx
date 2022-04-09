@@ -50,7 +50,7 @@ export function ISSLocationControls(props: { frameID: number; frameDimensions: n
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
-            <span className={styles.lockButtonLabel}>Lock Map to ISS</span>
+            <span className={styles.lockButtonLabel}>Lock</span>
           </button>
         </div>
         <div className={styles.verticalCenter}>

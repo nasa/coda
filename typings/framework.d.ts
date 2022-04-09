@@ -30,7 +30,7 @@ interface Pane {
     | PhotoAllPaneStateDate
     | LocationPaneStateData
     | EventPaneStateData
-    | TranscriptPaneStateData;
+    | CommPaneStateData;
 }
 
 interface Panes {
@@ -103,11 +103,12 @@ type EventPaneStateData = {
   showHelp: boolean;
 };
 
-type TranscriptPaneStateData = {
+type CommPaneStateData = {
   ready: boolean;
-  lockTranscriptScroll: boolean;
+  lockScroll: boolean;
   filterActive: boolean;
   sgChannel: number;
+  isMuted: boolean;
   showHelp: boolean;
 };
 

@@ -34,14 +34,14 @@
 }
 
 .rightButtons > *:not(:last-of-type) {
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 /* Lock Map button */
 
 .lockButton {
   display: block;
-  width: 100px;
+  width: 40px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -60,6 +60,4 @@
 
 .lockButtonLabel {
   position: relative;
-  width: 20px;
-  left: -2px;
 }

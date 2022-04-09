@@ -156,27 +156,18 @@ export const allPanes: Panes = {
       showHelp: false,
     } as EventPaneStateData,
   },
-  transcript: {
-    title: "Transcript",
-    icon: "file-lines",
+  comm: {
+    title: "Communications",
+    icon: "satellite",
     color: "grey",
     defaultPaneStateData: {
       ready: true,
-      lockTranscriptScroll: true,
+      lockScroll: true,
       filterActive: false,
       sgChannel: 0,
+      isMuted: false,
       showHelp: false,
-    } as TranscriptPaneStateData,
-  },
-  sg_audio: {
-    title: "S/G Audio",
-    icon: "satellite",
-    color: "burntOrange",
-    defaultPaneStateData: {
-      ready: false,
-      showHelp: false,
-      sgChannel: 0,
-    } as SgAudioPaneStateData,
+    } as CommPaneStateData,
   },
 };
 

@@ -41,7 +41,7 @@ export function PhotoAllControls(props: { frameID: number }) {
               );
             }}
           >
-            <span className={styles.lockButtonLabel}>Lock Scroll</span>
+            <span className={styles.lockButtonLabel}>Scroll</span>
           </button>
         </div>
         <div className={styles.verticalCenter}>
