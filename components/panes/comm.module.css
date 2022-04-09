@@ -149,6 +149,10 @@
   width: 19px;
 }
 
+.player {
+  display: none;
+}
+
 .selectContainer {
   position: relative;
   display: flex;

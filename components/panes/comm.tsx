@@ -14,6 +14,7 @@ import { faVolumeUp, faVolumeMute, faLock, faLockOpen } from "@fortawesome/free-
 import { MuteButton } from "components/panes/video";
 
 library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen);
+
 const sgChannels = [0, 1, 2, 3];
 
 export function CommControls(props: { frameID: number; frameDimensions: [number, number] }) {
@@ -25,6 +26,34 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
   const paneStateData: CommPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
+  const sgActivityRanges = useSelector((state: RootState) => state.sgAudio.sgActivityRanges);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+
+  const [channelAvailability, setChannelAvailability] = useState([]);
+
+  useEffect(() => {
+    if (sgActivityRanges?.length === 0) {
+      return;
+    }
+    const cAvailability = [];
+    for (const channel in sgChannels) {
+      const activityRanges = sgActivityRanges[channel];
+      let activeRange = false;
+      for (let i = 0; i < activityRanges.length; i++) {
+        const range = activityRanges[i];
+        if (
+          playhead.seconds >= range.sound_start_secs &&
+          playhead.seconds <= range.sound_stop_secs
+        ) {
+          activeRange = true;
+          break;
+        }
+      }
+      cAvailability.push(activeRange);
+    }
+    setChannelAvailability(cAvailability);
+  }, [sgActivityRanges, playhead.seconds]);
+
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
@@ -47,11 +76,15 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
             }
 
             let color = "disabled";
-
-            color = "active";
-
+            if (channelAvailability[c]) {
+              color = "active";
+            }
             if (paneStateData.sgChannel === c) {
-              color = "active_selected";
+              if (channelAvailability[c]) {
+                color = "active_selected";
+              } else {
+                color = "disabled_selected";
+              }
             }
 
             return (
@@ -150,28 +183,111 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
   );
 }
 
+type SgAudioObj = {
+  range: SgActivityRangeRecord;
+  playOffset: number;
+};
+
 export default function CommPane(props: { frameID: number }) {
   const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
   const playhead = useSelector((state: RootState) => state.playhead);
+  const sgActivityRanges = useSelector((state: RootState) => state.sgAudio.sgActivityRanges);
   const paneStateData: CommPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
+  // SG audio state
+  const [activeSgAudioObj, setActiveSgAudioObj] = useState({} as SgAudioObj);
+  const [srcUrl, setSrcUrl] = useState("");
+
+  // Transcript state
   const [filterText, setFilterText] = useState("");
   const [isTranscripts, setIsTranscripts] = useState(false);
   const [filteredUtterances, setFiltereredUtterances] = useState([]);
   const [activeUtteranceSecs, setActiveUtteranceSecs] = useState(0);
+
+  const audioPlayerRef = useRef<HTMLVideoElement>(null);
+  const activeUtteranceRef = useRef<HTMLDivElement>(null);
 
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
   const handleScroll = () => {
     if (paneStateData.lockScroll) {
-      setPaneStateValue(dispatch, frameID, "lockTranscriptScroll", false);
+      setPaneStateValue(dispatch, frameID, "lockScroll", false);
     }
   };
 
-  const activeUtteranceRef = useRef<HTMLDivElement>(null);
+  // Set the activeSgAudioObj for this second and update the srcUrl
+  useEffect(() => {
+    if (sgActivityRanges.length > 0) {
+      const activityRanges = sgActivityRanges[paneStateData.sgChannel];
+      let activeRange = false;
+      for (let i = 0; i < activityRanges.length; i++) {
+        const range = activityRanges[i];
+        if (
+          playhead.seconds >= range.sound_start_secs &&
+          playhead.seconds <= range.sound_stop_secs
+        ) {
+          const newSrcUrl = `https://emss-labs.fit.nasa.gov/transcriptions/${
+            playhead.date.split("T")[0]
+          }/audio_files/SG${paneStateData.sgChannel + 1}/${range.aacSegmentFilename}`;
+          if (srcUrl !== newSrcUrl) {
+            setSrcUrl(newSrcUrl);
+          }
+          setActiveSgAudioObj({
+            range,
+            playOffset:
+              playhead.seconds - range.sound_start_secs < range.sound_stop_secs
+                ? playhead.seconds - range.sound_start_secs
+                : -1,
+          });
+
+          activeRange = true;
+          break;
+        }
+      }
+      if (!activeRange) {
+        setActiveSgAudioObj({
+          range: null,
+          playOffset: -1,
+        });
+        setSrcUrl("");
+      }
+    }
+  }, [sgActivityRanges, playhead.seconds]);
+
+  // Cue the audio and figure out whether to play or pause the audio
+  useEffect(() => {
+    if (!audioPlayerRef.current || srcUrl === "") {
+      return;
+    }
+    const isPlaying =
+      audioPlayerRef.current.currentTime > 0 &&
+      !audioPlayerRef.current.paused &&
+      !audioPlayerRef.current.ended &&
+      audioPlayerRef.current.readyState > audioPlayerRef.current.HAVE_CURRENT_DATA;
+
+    if (activeSgAudioObj.playOffset > -1) {
+      if (Math.abs(audioPlayerRef.current.currentTime - activeSgAudioObj.playOffset) > 1) {
+        audioPlayerRef.current.currentTime = activeSgAudioObj.playOffset;
+      }
+
+      try {
+        if (playhead.ready && playhead.isRunning && paneStateData.ready) {
+          if (!isPlaying && srcUrl !== "") {
+            audioPlayerRef.current.play();
+          }
+        } else {
+          audioPlayerRef.current.pause();
+        }
+      } catch (e) {
+        // eat play errors. They are all bogus
+      }
+    } else {
+      audioPlayerRef.current.pause();
+    }
+  }, [srcUrl, audioPlayerRef, playhead.seconds, playhead.isRunning]);
 
   useEffect(() => {
     if (paneStateData.lockScroll && activeUtteranceRef.current !== null) {
@@ -274,6 +390,31 @@ export default function CommPane(props: { frameID: number }) {
             </div>
           </div>
         </div>
+      </div>
+      <div className={styles.player}>
+        <video
+          controls={true}
+          autoPlay={false}
+          loop={false}
+          ref={audioPlayerRef}
+          src={srcUrl}
+          muted={paneStateData.isMuted}
+          onCanPlay={() => {
+            if (!paneStateData.ready) {
+              setPaneStateValue(dispatch, frameID, "ready", true);
+            }
+          }}
+          onEnded={() => {
+            // ready up because we don't want a missing video to hold up the playhead
+            setSrcUrl("");
+            setPaneStateValue(dispatch, frameID, "ready", true);
+          }}
+          onWaiting={() => {
+            if (paneStateData.ready && srcUrl !== "") {
+              setPaneStateValue(dispatch, frameID, "ready", false);
+            }
+          }}
+        />
       </div>
       <div
         className={styles.utterancesContainer}
