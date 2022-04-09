@@ -159,7 +159,7 @@ export const allPanes: Panes = {
   comm: {
     title: "Communications",
     icon: "satellite",
-    color: "grey",
+    color: "burntOrange",
     defaultPaneStateData: {
       ready: true,
       lockScroll: true,
@@ -222,6 +222,17 @@ export const defaultFrames: FrameState = {
       showHelp: false,
     } as EventPaneStateData,
   },
+  7: {
+    paneType: "comm",
+    paneStateData: {
+      ready: true,
+      lockScroll: true,
+      filterActive: false,
+      sgChannel: 0,
+      isMuted: false,
+      showHelp: false,
+    } as CommPaneStateData,
+  },
 };
 
 /**
@@ -229,7 +240,7 @@ export const defaultFrames: FrameState = {
  * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
-  layout: "j",
+  layout: "n",
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: Source.ISS,

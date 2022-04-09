@@ -1,10 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { Stats } from "fs";
 import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: TranscriptState = {
   transcripts: [], // indexed by S/G channel number - 1
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
+  isTranscripts: false,
 };
 
 export const transcriptSlice = createSlice({
@@ -16,6 +18,7 @@ export const transcriptSlice = createSlice({
       const unprocessedTranscripts = action.payload.data;
       /** Convert the unprocessed transcript into process transcript objects in the store */
       const transcripts: Transcript[] = [];
+      let anyUtterances = false;
       for (let t = 0; t < unprocessedTranscripts.length; t++) {
         const transcript: Transcript = {
           utterances: [],
@@ -32,11 +35,15 @@ export const transcriptSlice = createSlice({
             content: unprocessedTranscripts[t].unprocessedUtterances[i][2],
           };
           transcript.utterances.push(utterance);
+          if (!anyUtterances) {
+            anyUtterances = true;
+          }
         }
         transcripts.push(transcript);
       }
       state.transcripts = transcripts;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.isTranscripts = anyUtterances;
     },
     clearTranscripts: (state) => {
       state.transcripts = [];

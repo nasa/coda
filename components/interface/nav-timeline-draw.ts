@@ -43,6 +43,7 @@ export default class DrawNav {
   gColorBarBorder = new paper.Color("#2a282e");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
+  gColorSgAudio = new paper.Color("#cc5500"); // Burnt orange
   gColorPhotoTicks = new paper.Color("#28B463");
   gColorPhotoTicksFiltered = new paper.Color("#0c331c");
 
@@ -59,7 +60,8 @@ export default class DrawNav {
     /** Keep track of which EVA was rendered for bookkeping purposes */
     readonly evaRendered: string,
     readonly evaStartSec: number,
-    readonly isToday: boolean
+    readonly isToday: boolean,
+    readonly sgAudioActivityRanges: SgActivityRangeRecord[][]
   ) {}
 
   initGroups() {
@@ -346,10 +348,10 @@ export default class DrawNav {
           let activityText = new paper.PointText({
             justification: "left",
             fontFamily: this.gNavigatorFontFamilyActivity,
-            fontSize: 12,
+            fontSize: 9,
             fillColor: textColor,
           });
-          let textTop = startLocY + 11;
+          let textTop = startLocY + 8;
           activityText.point = new paper.Point(startLocX + 2, textTop);
           activityText.content = this.dayNight[i].daylight ? "Insolation" : "Eclipse";
           group.addChild(activityText);
@@ -367,11 +369,10 @@ export default class DrawNav {
     vidBarsTop: number;
     vidBarHeight: number;
     vidBarGapHeight: number;
-    drawLabels: boolean;
   }): paper.Group {
     const group = new paper.Group();
+    const startOfDay = this.dateRendered.valueOf() / 1000;
     for (let i = 0; i < this.videoFiles.length; i++) {
-      const startOfDay = this.dateRendered.valueOf() / 1000;
       const downlink = this.videoFiles[i].downlink === -1 ? 8 : this.videoFiles[i].downlink; // -1 means non downlink, put it on the 8th row
       if (
         // if video starts before the end of the tier display and ends after the start of the tier display, then draw a bar
@@ -406,6 +407,64 @@ export default class DrawNav {
           vidLine.opacity = 0.4;
         }
         group.addChild(vidLine);
+      }
+    }
+    return group;
+  }
+
+  drawSgAudioSegments(param: {
+    secondsStart: number;
+    secondsEnd: number;
+    pixelsPerSecond: number;
+    leftPx: number;
+    barsTop: number;
+    barHeight: number;
+    barGapHeight: number;
+    compress: boolean;
+  }): paper.Group {
+    const group = new paper.Group();
+    if (this.sgAudioActivityRanges.length < 4) {
+      return;
+    }
+    for (let sgChannel = 0; sgChannel <= 3; sgChannel++) {
+      const activityRanges = this.sgAudioActivityRanges[sgChannel];
+
+      for (let i = 0; i < activityRanges.length; i++) {
+        const range = activityRanges[i];
+        if (
+          // if video starts before the end of the tier display and ends after the start of the tier display, then draw a bar
+          range.sound_start_secs <= param.secondsEnd &&
+          range.sound_stop_secs >= param.secondsStart
+        ) {
+          let startLocX =
+            param.leftPx +
+            (Math.max(range.sound_start_secs, 0) - param.secondsStart) * param.pixelsPerSecond;
+          let endLocX =
+            param.leftPx +
+            (Math.min(range.sound_stop_secs, 86399) - param.secondsStart) * param.pixelsPerSecond;
+
+          let startLocY = null;
+          let endLocY = null;
+          if (param.compress) {
+            startLocY = param.barsTop;
+            endLocY = startLocY + param.barHeight + 0.5;
+          } else {
+            startLocY = param.barsTop + sgChannel * (param.barHeight + param.barGapHeight);
+            endLocY = startLocY + param.barHeight + 1;
+          }
+
+          let name = `sg${sgChannel}Item_${i}`;
+
+          let line = new paper.Path.Rectangle({
+            from: [startLocX, startLocY],
+            to: [endLocX, endLocY],
+            strokeWidth: param.compress ? 0.1 : 1,
+            strokeColor: param.compress ? this.gColorSgAudio : this.gColorBarBorder,
+            name: name,
+          });
+          line.fillColor = this.gColorSgAudio;
+          group.addChild(line);
+        }
       }
     }
     return group;
@@ -502,10 +561,10 @@ export default class DrawNav {
               justification: "left",
               fontFamily: this.gNavigatorFontFamilyActivity,
               //fontWeight: 'bold',
-              fontSize: 12,
+              fontSize: 9,
               fillColor: "white",
             });
-            let textTop = startLocY + 11;
+            let textTop = startLocY + 8;
             activityText.point = new paper.Point(startLocX + 2, textTop);
             activityText.content = evActivityArray[i].content;
             if (evActivityArray[i].content === "Insolation") {
@@ -650,7 +709,19 @@ export default class DrawNav {
         vidBarsTop: drawingTop,
         vidBarHeight: 2,
         vidBarGapHeight: 1,
-        drawLabels: false,
+      })
+    );
+
+    this.gTier1Group.addChild(
+      this.drawSgAudioSegments({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        barsTop: drawingBottom - 23,
+        barHeight: 2,
+        barGapHeight: 1,
+        compress: true,
       })
     );
 
@@ -752,7 +823,19 @@ export default class DrawNav {
         vidBarsTop: drawingBottom - 69,
         vidBarHeight: 2,
         vidBarGapHeight: 1,
-        drawLabels,
+      })
+    );
+
+    this.gTier2Group.addChild(
+      this.drawSgAudioSegments({
+        secondsStart,
+        secondsEnd,
+        pixelsPerSecond,
+        leftPx,
+        barsTop: drawingBottom - 42,
+        barHeight: 2,
+        barGapHeight: 1,
+        compress: false,
       })
     );
 
@@ -762,8 +845,8 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        barTop: drawingBottom - 14,
-        barHeight: this.navigatorCollapsed ? 2 : 14,
+        barTop: drawingBottom - 10,
+        barHeight: this.navigatorCollapsed ? 2 : 10,
         drawLabels,
       })
     );
@@ -774,7 +857,7 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        ticksTop: drawingBottom - 14,
+        ticksTop: drawingBottom - 11,
         tickHeight: this.navigatorCollapsed ? 3 : 8,
       })
     );
@@ -785,8 +868,8 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        barTop: drawingBottom - 42,
-        barHeight: this.navigatorCollapsed ? 2 : 14,
+        barTop: drawingBottom - 30,
+        barHeight: this.navigatorCollapsed ? 2 : 10,
         drawLabels,
       })
     );

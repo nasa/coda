@@ -88,6 +88,7 @@ type TranscriptState = {
   transcripts: Transcript[];
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
+  isTranscripts: boolean;
 };
 
 /**

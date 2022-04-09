@@ -18,6 +18,7 @@ export const sgAudioSlice = createSlice({
     ) => {
       state.sgActivityRanges = action.payload.data;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.loadingStatus = LoadingStatusEnum.LOADED;
     },
     clearSgAudioActivity: (state) => {
       state.sgActivityRanges = [];

@@ -195,6 +195,7 @@ type SgAudioObj = {
 
 export default function CommPane(props: { frameID: number }) {
   const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
+  const isTranscripts = useSelector((state: RootState) => state.transcript.isTranscripts);
   const playhead = useSelector((state: RootState) => state.playhead);
   const sgActivityRanges = useSelector((state: RootState) => state.sgAudio.sgActivityRanges);
   const paneStateData: CommPaneStateData = useSelector(
@@ -207,7 +208,6 @@ export default function CommPane(props: { frameID: number }) {
 
   // Transcript state
   const [filterText, setFilterText] = useState("");
-  const [isTranscripts, setIsTranscripts] = useState(false);
   const [filteredUtterances, setFiltereredUtterances] = useState([]);
   const [activeUtteranceSecs, setActiveUtteranceSecs] = useState(0);
 
@@ -223,9 +223,9 @@ export default function CommPane(props: { frameID: number }) {
     }
   };
 
-  // Set the activeSgAudioObj for this second and update the srcUrl
+  // Set the activeSgAudioObj for this second and update the srcUrl if audio unmuted, otherwise no need to load the audio file
   useEffect(() => {
-    if (sgActivityRanges.length > 0) {
+    if (sgActivityRanges.length > 0 && !paneStateData.isMuted) {
       const activityRanges = sgActivityRanges[paneStateData.sgChannel];
       let activeRange = false;
       for (let i = 0; i < activityRanges.length; i++) {
@@ -260,7 +260,7 @@ export default function CommPane(props: { frameID: number }) {
         setSrcUrl("");
       }
     }
-  }, [sgActivityRanges, playhead.seconds]);
+  }, [sgActivityRanges, playhead.seconds, paneStateData.isMuted]);
 
   // Cue the audio and figure out whether to play or pause the audio
   useEffect(() => {
@@ -294,6 +294,7 @@ export default function CommPane(props: { frameID: number }) {
     }
   }, [srcUrl, audioPlayerRef, playhead.seconds, playhead.isRunning]);
 
+  // Scroll to the active utterance
   useEffect(() => {
     if (paneStateData.lockScroll && activeUtteranceRef.current !== null) {
       activeUtteranceRef.current.scrollIntoView({
@@ -302,43 +303,45 @@ export default function CommPane(props: { frameID: number }) {
     }
   }, [activeUtteranceRef, playhead.seconds, paneStateData.lockScroll]);
 
+  // Update the filtered utterances
   useEffect(() => {
-    let isTranscript = false;
-    transcripts.forEach((transcript) => {
-      if (transcript.utterances.length > 0) {
-        isTranscript = true;
-      }
-    });
-    setIsTranscripts(isTranscript);
-  }, [transcripts]);
-
-  useEffect(() => {
-    if (isTranscripts) {
-      let filteredUtterances: Utterance[] = transcripts[paneStateData.sgChannel].utterances;
-      if (paneStateData.filterActive && filterText !== "") {
-        filteredUtterances = transcripts[paneStateData.sgChannel].utterances.filter((utterance) => {
-          return utterance.content.includes(filterText);
-        });
-      }
-      setFiltereredUtterances(filteredUtterances);
+    if (!isTranscripts) {
+      return;
     }
+    let filteredUtterances: Utterance[] = transcripts[paneStateData.sgChannel].utterances;
+    if (paneStateData.filterActive && filterText !== "") {
+      filteredUtterances = transcripts[paneStateData.sgChannel].utterances.filter((utterance) => {
+        return utterance.content.includes(filterText);
+      });
+    }
+    setFiltereredUtterances(filteredUtterances);
   }, [paneStateData, filterText, isTranscripts]);
 
+  // Update the active utterance secds
   useEffect(() => {
-    if (isTranscripts) {
-      let activeUtteranceSecs = 0;
-      if (isTranscripts) {
-        for (let i = 0; i < transcripts[paneStateData.sgChannel].utterances.length; i++) {
-          if (transcripts[paneStateData.sgChannel].utterances[i].secs > playhead.seconds) {
-            activeUtteranceSecs =
-              i !== 0 ? transcripts[paneStateData.sgChannel].utterances[i - 1].secs : 0;
-            setActiveUtteranceSecs(activeUtteranceSecs);
-            break;
-          }
+    if (!isTranscripts) {
+      return;
+    }
+    let aUtteranceSecs = 0;
+    for (let i = 0; i < transcripts[paneStateData.sgChannel].utterances.length; i++) {
+      if (transcripts[paneStateData.sgChannel].utterances[i].secs > playhead.seconds) {
+        aUtteranceSecs = i !== 0 ? transcripts[paneStateData.sgChannel].utterances[i - 1].secs : 0;
+        if (activeUtteranceSecs !== aUtteranceSecs) {
+          setActiveUtteranceSecs(aUtteranceSecs);
         }
+        break;
       }
     }
-  }, [playhead.seconds, isTranscripts]);
+  }, [playhead.seconds, isTranscripts, paneStateData.sgChannel]);
+
+  // Show the help panel if there are no transcripts
+  useEffect(() => {
+    if (isTranscripts) {
+      setPaneStateValue(dispatch, frameID, "showHelp", false);
+    } else {
+      setPaneStateValue(dispatch, frameID, "showHelp", true);
+    }
+  }, [isTranscripts]);
 
   function displayUtterance(utterance: Utterance, idx: number) {
     let uttClass = styles.speaker1;
@@ -436,19 +439,16 @@ export default function CommPane(props: { frameID: number }) {
         }}
       >
         <div>
+          <p>Plays Space-to-ground comm audio for all 4 S/G loops with transcripts for each.</p>
           <p>
-            <span style={{ color: "yellow" }}>!!Prototype!!</span>
-            <br />
-            Displays transcripts for all four space-to-ground channels.{" "}
-            <i>Not available for all days</i>. We are currently processing audio for all days in
-            reverse chronological order.
+            <span style={{ color: "yellow" }}>Not available for all days</span>. We are currently
+            processing ISS audio in reverse chronological order. For days missing this comm audio,
+            use the mute button on the videos to hear S/G 1 and 2.
           </p>
           <p>
-            Select a space-to-ground channel using the channel numbers above the transcript.
-            <br />
-            Filter for specific text using the filter button.
+            Select a S/G loop using the 4 channel numbers above. Use the Filter button to Filter for
+            specific text.
           </p>
-
           <p>Click on an utterance to jump to the moment the words were spoken.</p>
         </div>
       </HelpOverlay>
