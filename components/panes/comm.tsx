@@ -449,7 +449,7 @@ export default function CommPane(props: { frameID: number }) {
             Select a S/G loop using the 4 channel numbers above. Use the Filter button to Filter for
             specific text.
           </p>
-          <p>Click on an utterance to jump to the moment the words were spoken.</p>
+          <p>Click on an utterance to jump to the moment the words are spoken.</p>
         </div>
       </HelpOverlay>
     </div>

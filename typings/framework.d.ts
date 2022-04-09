@@ -111,9 +111,3 @@ type CommPaneStateData = {
   isMuted: boolean;
   showHelp: boolean;
 };
-
-type SgAudioPaneStateData = {
-  ready: boolean;
-  sgChannel: number;
-  showHelp: boolean;
-};
