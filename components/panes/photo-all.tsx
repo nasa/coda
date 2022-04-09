@@ -10,6 +10,10 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import styles from "./photo-all.module.css";
 import { useEffect, useRef } from "react";
 import { hhmmssFromSeconds } from "utils/formatting";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+library.add(faLock, faLockOpen);
 
 export function PhotoAllControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -20,7 +24,7 @@ export function PhotoAllControls(props: { frameID: number }) {
   );
 
   let lockButtonSelected = "";
-  if (typeof paneStateData !== "undefined" && paneStateData.lockPhotosScroll) {
+  if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.lockButtonSelected;
   }
 
@@ -33,15 +37,15 @@ export function PhotoAllControls(props: { frameID: number }) {
             className={`${styles.lockButton} ${lockButtonSelected}`}
             title={`Scroll automatically to the current photo`}
             onClick={() => {
-              setPaneStateValue(
-                dispatch,
-                frameID,
-                "lockPhotosScroll",
-                !paneStateData.lockPhotosScroll
-              );
+              setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
             }}
           >
-            <span className={styles.lockButtonLabel}>Scroll</span>
+            <span className={styles.buttonLabel}>
+              <div>Scroll</div>
+              <div>
+                <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
+              </div>
+            </span>
           </button>
         </div>
         <div className={styles.verticalCenter}>
@@ -75,12 +79,12 @@ export default function PhotoAllPane(props: { frameID: number }) {
   };
 
   useEffect(() => {
-    if (paneStateData.lockPhotosScroll && activePhotoRef.current !== null) {
+    if (paneStateData.lockScroll && activePhotoRef.current !== null) {
       activePhotoRef.current.scrollIntoView({
         behavior: "smooth",
       });
     }
-  }, [photos.activePhoto, activePhotoRef, playhead.seconds, paneStateData.lockPhotosScroll]);
+  }, [photos.activePhoto, activePhotoRef, playhead.seconds, paneStateData.lockScroll]);
 
   // function that displays thumbnails of all photos in photoFiles
   function photoThumbnails() {

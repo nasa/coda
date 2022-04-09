@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,7 +18,10 @@ import type { Point } from "gpxparser";
 import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import _ from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+library.add(faLock, faLockOpen);
 
 export function GPSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -43,7 +47,12 @@ export function GPSLocationControls(props: { frameID: number }) {
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
-            <span className={styles.lockButtonLabel}>Lock</span>
+            <span className={styles.buttonLabel}>
+              <div>Scroll</div>
+              <div>
+                <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+              </div>
+            </span>
           </button>
         </div>
         <div className={styles.verticalCenter}>

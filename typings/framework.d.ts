@@ -88,7 +88,7 @@ type PhotoPaneStateData = {
 type PhotoAllPaneStateData = {
   ready: boolean;
   showFilter: boolean;
-  lockPhotosScroll: boolean;
+  lockScroll: boolean;
   showHelp: boolean;
 };
 

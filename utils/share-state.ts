@@ -97,13 +97,13 @@ function getStateStringForPhoto(state: PhotoPaneStateData) {
  * @returns {string}
  * Chars 0,1 digits: pane type
  * Char 2: 0 if showFilter is false, 1 if showFilter is true
- * Char 3: 0 if lockPhotosScroll is false, 1 if lockPhotosScroll is true
+ * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
  */
 function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
   const paneTypeString = "0" + PaneTypeShortVal.photo_all;
   const showFilter = state.showFilter ? "1" : "0";
-  const lockPhotosScroll = state.lockPhotosScroll ? "1" : "0";
-  return `${paneTypeString}${showFilter}${lockPhotosScroll}`;
+  const lockScroll = state.lockScroll ? "1" : "0";
+  return `${paneTypeString}${showFilter}${lockScroll}`;
 }
 
 /**
@@ -224,14 +224,14 @@ function interpretFrameQueryParam(frameString: string): PaneState {
       return photoReturnVal;
     case PaneTypeShortVal.photo_all:
       /* Char 2: 0 if showFilter is false, 1 if showInfo is true
-       * Char 3: 0 if lockPhotosScroll is false, 1 if lockPhotosScroll is true
+       * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
        */
       const photoAllReturnVal: { paneType: string; paneStateData: PhotoAllPaneStateData } = {
         paneType: "photo_all",
         paneStateData: {
           ready: true,
           showFilter: frameString.substring(2, 3) === "1",
-          lockPhotosScroll: frameString.substring(3, 4) === "1",
+          lockScroll: frameString.substring(3, 4) === "1",
           showHelp: false,
         },
       };

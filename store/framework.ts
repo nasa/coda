@@ -123,7 +123,7 @@ export const allPanes: Panes = {
     defaultPaneStateData: {
       ready: true,
       showFilter: false,
-      lockPhotosScroll: true,
+      lockScroll: true,
       showHelp: false,
     } as PhotoAllPaneStateData,
   },
@@ -205,7 +205,7 @@ export const defaultFrames: FrameState = {
     paneStateData: {
       ready: true,
       showFilter: false,
-      lockPhotosScroll: true,
+      lockScroll: true,
     } as PhotoAllPaneStateData,
   },
   5: {

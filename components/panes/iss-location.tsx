@@ -20,6 +20,10 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 //tlejs not importable as per module docs
 import { getLatLngObj } from "tle.js";
 import _ from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+library.add(faLock, faLockOpen);
 
 type MapMarker = {
   marker: any; //the MapBox marker reference
@@ -50,7 +54,12 @@ export function ISSLocationControls(props: { frameID: number; frameDimensions: n
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
-            <span className={styles.lockButtonLabel}>Lock</span>
+            <span className={styles.buttonLabel}>
+              <div>Scroll</div>
+              <div>
+                <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+              </div>
+            </span>
           </button>
         </div>
         <div className={styles.verticalCenter}>

@@ -6,11 +6,16 @@ import { changeTime } from "store/playhead";
 import { RootState } from "store/index";
 import styles from "./comm.module.css";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import Button from "components/interface/button";
-import { faVolumeUp, faVolumeMute, faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+  faCircleXmark,
+  faVolumeUp,
+  faVolumeMute,
+  faLock,
+  faLockOpen,
+} from "@fortawesome/free-solid-svg-icons";
 import { MuteButton } from "components/panes/video";
 
 library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen);
