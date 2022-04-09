@@ -75,7 +75,7 @@ export function TranscriptControls(props: { frameID: number; frameDimensions: [n
             <select
               value={paneStateData.sgChannel}
               onChange={(e) => {
-                setPaneStateValue(dispatch, frameID, "channel", e.target.value);
+                setPaneStateValue(dispatch, frameID, "sgChannel", e.target.value);
               }}
             >
               <option value="">DL</option>

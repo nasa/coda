@@ -1,0 +1,32 @@
+.controls {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+  margin-left: auto;
+}
+
+.controlsLeft {
+  display: flex;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 10px;
+}
+
+.dlLabel {
+  width: 19px;
+}
+
+.player {
+  display: block;
+}
