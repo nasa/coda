@@ -5,6 +5,16 @@
   margin-left: auto;
 }
 
+.main {
+  position: relative;
+  height: 0;
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--nearly-black);
+  display: flex;
+  flex-direction: column;
+}
+
 .controlsLeft {
   display: flex;
 }

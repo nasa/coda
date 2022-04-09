@@ -210,12 +210,10 @@ export default function SGAudio(props: { frameID: number }) {
       try {
         if (playhead.ready && playhead.isRunning) {
           if (!isPlaying && srcUrl !== "") {
-            console.log("Play called");
             audioPlayerRef.current.play();
           }
         } else {
           if (isPlaying) {
-            console.log("Pause called because playhead is not running");
             audioPlayerRef.current.pause();
           }
         }
@@ -224,7 +222,6 @@ export default function SGAudio(props: { frameID: number }) {
       }
     } else {
       if (isPlaying) {
-        console.log("Pause called because playOffset is -1");
         audioPlayerRef.current.pause();
       }
     }
@@ -248,7 +245,6 @@ export default function SGAudio(props: { frameID: number }) {
           }}
           onEnded={() => {
             // ready up because we don't want a missing video to hold up the playhead
-            console.log("Ended");
             setSrcUrl("");
             setPaneStateValue(dispatch, frameID, "ready", true);
           }}
