@@ -10,9 +10,8 @@ export async function fetchLabsTranscripts(
         fromCache: false,
         stale: false,
         timestamp: new Date(),
-        error: "Source not supported",
       },
-      data: null,
+      data: returnEmptyUnprocessedTranscriptArray(),
     };
   }
 
@@ -59,9 +58,8 @@ export async function fetchSGActivity(
         fromCache: false,
         stale: false,
         timestamp: new Date(),
-        error: "Source not supported",
       },
-      data: null,
+      data: [[], [], [], []],
     };
   }
   const url = `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}/day-activity.json`;
@@ -100,4 +98,15 @@ export async function fetchSGActivity(
     data: sgChannelsActivityRanges,
   };
   return returnVal;
+}
+
+function returnEmptyUnprocessedTranscriptArray(): UnprocessedTranscript[] {
+  const emptyReponse: UnprocessedTranscript[] = [];
+  for (let i = 1; i <= 3; i++) {
+    emptyReponse.push({
+      sgNum: i,
+      unprocessedUtterances: [],
+    });
+  }
+  return emptyReponse;
 }
