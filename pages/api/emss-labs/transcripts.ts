@@ -3,11 +3,11 @@ import getTranscripts from "server/emss-labs/transcript";
 import { Source } from "utils/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { year, month, date } = req.query as { [key: string]: string };
+  const { source, year, month, date } = req.query as { [key: string]: string };
 
   try {
     const transcript = await getTranscripts(
-      Source.ISS,
+      source as Source,
       `${year}-${month.padStart(2, "0")}-${date.padStart(2, "0")}`
     );
     res.status(200).json(transcript);

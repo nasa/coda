@@ -178,7 +178,7 @@ export const defaultFrames: FrameState = {
       ready: true,
       channel: 0,
       activeVideoFileID: "",
-      muted: false,
+      muted: true,
       showInfo: false,
     } as VideoPaneStateData,
   },

@@ -439,7 +439,7 @@ export default function CommPane(props: { frameID: number }) {
         }}
       >
         <div>
-          <p>Plays Space-to-ground comm audio for all 4 S/G loops with transcripts for each.</p>
+          <p>Plays Space-to-ground comm audio for all 4 ISS S/G loops with transcripts for each.</p>
           <p>
             <span style={{ color: "yellow" }}>Not available for all days</span>. We are currently
             processing ISS audio in reverse chronological order. For days missing this comm audio,

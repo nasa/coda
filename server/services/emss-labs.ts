@@ -4,6 +4,18 @@ export async function fetchLabsTranscripts(
   source: Source,
   dateWanted: string
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
+  if (source !== Source.ISS) {
+    return {
+      cacheMetadata: {
+        fromCache: false,
+        stale: false,
+        timestamp: new Date(),
+        error: "Source not supported",
+      },
+      data: null,
+    };
+  }
+
   const transcripts: UnprocessedTranscript[] = [];
 
   const filter = require("leo-profanity");
