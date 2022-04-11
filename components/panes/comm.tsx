@@ -115,7 +115,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
             <select
               value={paneStateData.sgChannel}
               onChange={(e) => {
-                setPaneStateValue(dispatch, frameID, "sgChannel", e.target.value);
+                setPaneStateValue(dispatch, frameID, "sgChannel", parseInt(e.target.value));
               }}
             >
               <option value="">DL</option>
