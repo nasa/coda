@@ -24,7 +24,7 @@ export function FilterButton(props: { clickHandler; selected?: boolean }) {
         props.clickHandler();
       }}
     >
-      <span className={styles.filterLabel}>Filter Photos</span>
+      <span className={styles.filterLabel}>Filter</span>
     </button>
   );
 }

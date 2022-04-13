@@ -12,6 +12,7 @@ import {
   faSquare,
   faVideo,
   faFileLines,
+  faSatellite,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allPanes, setPaneType } from "store/framework";
@@ -27,7 +28,8 @@ library.add(
   faShareSquare,
   faSquare,
   faVideo,
-  faFileLines
+  faFileLines,
+  faSatellite
 );
 
 /**

@@ -46,8 +46,8 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
       case "gps_location":
         paneStateString = getStateStringforGPSLocation(element.paneStateData);
         break;
-      case "transcript":
-        paneStateString = getStateStringForTranscript(element.paneStateData);
+      case "comm":
+        paneStateString = getStateStringForComm(element.paneStateData);
         break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
@@ -97,13 +97,13 @@ function getStateStringForPhoto(state: PhotoPaneStateData) {
  * @returns {string}
  * Chars 0,1 digits: pane type
  * Char 2: 0 if showFilter is false, 1 if showFilter is true
- * Char 3: 0 if lockPhotosScroll is false, 1 if lockPhotosScroll is true
+ * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
  */
 function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
   const paneTypeString = "0" + PaneTypeShortVal.photo_all;
   const showFilter = state.showFilter ? "1" : "0";
-  const lockPhotosScroll = state.lockPhotosScroll ? "1" : "0";
-  return `${paneTypeString}${showFilter}${lockPhotosScroll}`;
+  const lockScroll = state.lockScroll ? "1" : "0";
+  return `${paneTypeString}${showFilter}${lockScroll}`;
 }
 
 /**
@@ -138,6 +138,17 @@ function getStateStringforGPSLocation(state: LocationPaneStateData) {
 }
 
 /**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: S/G channel number - 1
+ */
+function getStateStringForComm(state: CommPaneStateData) {
+  const paneTypeString = "0" + PaneTypeShortVal.transcript;
+  const sgChannel = state.sgChannel.toString();
+  return `${paneTypeString}${sgChannel}`;
+}
+
+/**
  *
  * @param url All query params sent in the share URL
  * @returns FrameState object populated with the data from the URL
@@ -152,17 +163,6 @@ export function interpretFramestateQueryString(query): FrameState {
     }
   }
   return frameState;
-}
-
-/**
- * @returns {string}
- * Chars 0,1 digits: pane type
- * Char 2: S/G channel number - 1
- */
-function getStateStringForTranscript(state: TranscriptPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.transcript;
-  const sgChannel = state.sgChannel.toString();
-  return `${paneTypeString}${sgChannel}`;
 }
 
 /**
@@ -224,14 +224,14 @@ function interpretFrameQueryParam(frameString: string): PaneState {
       return photoReturnVal;
     case PaneTypeShortVal.photo_all:
       /* Char 2: 0 if showFilter is false, 1 if showInfo is true
-       * Char 3: 0 if lockPhotosScroll is false, 1 if lockPhotosScroll is true
+       * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
        */
       const photoAllReturnVal: { paneType: string; paneStateData: PhotoAllPaneStateData } = {
         paneType: "photo_all",
         paneStateData: {
           ready: true,
           showFilter: frameString.substring(2, 3) === "1",
-          lockPhotosScroll: frameString.substring(3, 4) === "1",
+          lockScroll: frameString.substring(3, 4) === "1",
           showHelp: false,
         },
       };
@@ -272,17 +272,18 @@ function interpretFrameQueryParam(frameString: string): PaneState {
     case PaneTypeShortVal.transcript:
       /* Char 2: sgChannel number
        */
-      const transcriptReturnVal: { paneType: string; paneStateData: TranscriptPaneStateData } = {
-        paneType: "transcript",
+      const returnVal: { paneType: string; paneStateData: CommPaneStateData } = {
+        paneType: "comm",
         paneStateData: {
           ready: true,
-          lockTranscriptScroll: true,
+          lockScroll: true,
           filterActive: false,
           sgChannel: parseInt(frameString.substring(2, 3)),
+          isMuted: false,
           showHelp: false,
         },
       };
-      return transcriptReturnVal;
+      return returnVal;
     default:
       return undefined;
   }

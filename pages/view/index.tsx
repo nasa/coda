@@ -5,7 +5,7 @@ import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
-import { getTranscripts } from "http-client/emss-labs";
+import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
@@ -40,6 +40,12 @@ import {
   setTranscripts,
   clearTranscripts,
 } from "store/transcript";
+import {
+  setSgAudioActivity,
+  setSgAudioLoadingStatus,
+  sgAudioFetchError,
+  clearSgAudioActivity,
+} from "store/sg-audio";
 import {
   setEphemeraLoadingStatus,
   fetchError as ephemeraFetchError,
@@ -280,6 +286,23 @@ export function V2(props: { urlState }) {
     })();
   };
 
+  const populateSgAudioStore = (source, year, month, day) => {
+    (async () => {
+      dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const sgAudioResponse = await getSgAudio(source, year, month, day);
+        if (sgAudioResponse.cacheMetadata.error === undefined) {
+          dispatch(setSgAudioActivity(sgAudioResponse));
+        } else {
+          dispatch(sgAudioFetchError(sgAudioResponse.cacheMetadata.error));
+        }
+      } catch (e) {
+        dispatch(sgAudioFetchError(e.toString()));
+      }
+      dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
   // populate store when date or source change
   useEffect(() => {
     if (_.isNull(playheadDate) || _.isNull(source)) {
@@ -301,6 +324,7 @@ export function V2(props: { urlState }) {
     dispatch(clearSequences());
     dispatch(clearVideos());
     dispatch(clearTranscripts());
+    dispatch(clearSgAudioActivity());
 
     // populate the sequence store
     populateSequenceStore(Collection[source]);
@@ -319,6 +343,9 @@ export function V2(props: { urlState }) {
 
     // populate transcript store
     populateTranscriptStore(source, year, month, day);
+
+    // populate S/G audio store
+    populateSgAudioStore(source, year, month, day);
   }, [playheadDate, source]);
 
   // look for new videos every 5 minutes if the user is looking at today's date

@@ -37,7 +37,7 @@
 }
 
 .rightButtons > *:not(:last-of-type) {
-  margin-right: 1px;
+  margin-right: 5px;
 }
 
 .ioButton {
@@ -307,5 +307,4 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  padding-left: 3px;
 }

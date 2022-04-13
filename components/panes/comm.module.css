@@ -20,7 +20,7 @@
 }
 
 .rightButtons > *:not(:last-of-type) {
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 .main {
@@ -106,7 +106,7 @@
 
 .lockButton {
   display: block;
-  width: 75px;
+  width: 55px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -137,9 +137,8 @@
 }
 
 .buttonLabel {
-  position: relative;
-  width: 20px;
-  left: -2px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .selections {
@@ -148,6 +147,10 @@
 
 .dlLabel {
   width: 19px;
+}
+
+.player {
+  display: none;
 }
 
 .selectContainer {

@@ -123,7 +123,7 @@ export const allPanes: Panes = {
     defaultPaneStateData: {
       ready: true,
       showFilter: false,
-      lockPhotosScroll: true,
+      lockScroll: true,
       showHelp: false,
     } as PhotoAllPaneStateData,
   },
@@ -156,17 +156,18 @@ export const allPanes: Panes = {
       showHelp: false,
     } as EventPaneStateData,
   },
-  transcript: {
-    title: "Transcript",
-    icon: "file-lines",
-    color: "grey",
+  comm: {
+    title: "Communications",
+    icon: "satellite",
+    color: "burntOrange",
     defaultPaneStateData: {
       ready: true,
-      lockTranscriptScroll: true,
+      lockScroll: true,
       filterActive: false,
       sgChannel: 0,
+      isMuted: false,
       showHelp: false,
-    } as TranscriptPaneStateData,
+    } as CommPaneStateData,
   },
 };
 
@@ -177,7 +178,7 @@ export const defaultFrames: FrameState = {
       ready: true,
       channel: 0,
       activeVideoFileID: "",
-      muted: false,
+      muted: true,
       showInfo: false,
     } as VideoPaneStateData,
   },
@@ -204,7 +205,7 @@ export const defaultFrames: FrameState = {
     paneStateData: {
       ready: true,
       showFilter: false,
-      lockPhotosScroll: true,
+      lockScroll: true,
     } as PhotoAllPaneStateData,
   },
   5: {
@@ -221,6 +222,17 @@ export const defaultFrames: FrameState = {
       showHelp: false,
     } as EventPaneStateData,
   },
+  7: {
+    paneType: "comm",
+    paneStateData: {
+      ready: true,
+      lockScroll: true,
+      filterActive: false,
+      sgChannel: 0,
+      isMuted: false,
+      showHelp: false,
+    } as CommPaneStateData,
+  },
 };
 
 /**
@@ -228,7 +240,7 @@ export const defaultFrames: FrameState = {
  * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
  */
 export const initialState: FrameworkState = {
-  layout: "j",
+  layout: "n",
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: Source.ISS,

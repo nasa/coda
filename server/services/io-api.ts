@@ -46,7 +46,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
 
   const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
-    timeout: 5000,
+    timeout: 8000,
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
       "Accept-Encoding": "gzip,deflate,br",

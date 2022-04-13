@@ -9,6 +9,7 @@ import { photoSlice, initialState as photosInitialState } from "./photos";
 import { ephemeraSlice, initialState as ephemeraInitialState } from "./ephemera";
 import { gpsSlice, initialState as gpsInitialState } from "./gps";
 import { transcriptSlice, initialState as transcriptInitialState } from "./transcript";
+import { sgAudioSlice, initialState as sgAudioInitialState } from "./sg-audio";
 
 let store;
 
@@ -22,6 +23,7 @@ export const initialState = {
   gps: gpsInitialState,
   transcript: transcriptInitialState,
   framework: viewerInitialState,
+  sgAudio: sgAudioInitialState,
 };
 
 // server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
@@ -36,6 +38,7 @@ const reducer = combineReducers({
   gps: gpsSlice.reducer,
   transcript: transcriptSlice.reducer,
   framework: frameworkSlice.reducer,
+  sgAudio: sgAudioSlice.reducer,
 });
 
 export type RootState = ReturnType<typeof reducer>;

@@ -1,9 +1,20 @@
-// Bad words filter
+import { Source } from "utils/enums";
 
 export async function fetchLabsTranscripts(
   source: Source,
   dateWanted: string
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
+  if (source !== Source.ISS) {
+    return {
+      cacheMetadata: {
+        fromCache: false,
+        stale: false,
+        timestamp: new Date(),
+      },
+      data: returnEmptyUnprocessedTranscriptArray(),
+    };
+  }
+
   const transcripts: UnprocessedTranscript[] = [];
 
   const filter = require("leo-profanity");
@@ -35,4 +46,67 @@ export async function fetchLabsTranscripts(
   };
 
   return returnVal;
+}
+
+export async function fetchSGActivity(
+  source: Source,
+  dateWanted: string
+): Promise<WrappedResponse<SgActivityRangeRecord[][]>> {
+  if (source !== Source.ISS) {
+    return {
+      cacheMetadata: {
+        fromCache: false,
+        stale: false,
+        timestamp: new Date(),
+      },
+      data: [[], [], [], []],
+    };
+  }
+  const url = `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}/day-activity.json`;
+
+  let dayActivities: SgVideoRecord[] = [];
+  try {
+    const res = await fetch(url);
+    dayActivities = await res.json();
+  } catch (e) {
+    dayActivities = [];
+  }
+
+  const sgChannelsActivityRanges: SgActivityRangeRecord[][] = [];
+  for (let sgChannel = 0; sgChannel <= 3; sgChannel++) {
+    const sgChannelActivityRanges: SgActivityRangeRecord[] = [];
+    for (let videoIndex = 0; videoIndex < dayActivities.length; videoIndex++) {
+      const video = dayActivities[videoIndex];
+      const activityRanges = video.sgChannels[sgChannel].activity_ranges;
+      const reducedActivityRanges = activityRanges.map((activityRange) => {
+        return {
+          sound_start_secs: activityRange.sound_start_secs + video.start_seconds,
+          sound_stop_secs: activityRange.sound_stop_secs + video.start_seconds,
+          aacSegmentFilename: activityRange.aacSegmentFilename,
+        };
+      });
+      sgChannelActivityRanges.push(...reducedActivityRanges);
+    }
+    sgChannelActivityRanges.sort((a, b) =>
+      a.sound_start_secs > b.sound_start_secs ? 1 : b.sound_start_secs > a.sound_start_secs ? -1 : 0
+    );
+    sgChannelsActivityRanges.push(sgChannelActivityRanges);
+  }
+
+  const returnVal: WrappedResponse<SgActivityRangeRecord[][]> = {
+    cacheMetadata: { fromCache: false, stale: false, timestamp: new Date() },
+    data: sgChannelsActivityRanges,
+  };
+  return returnVal;
+}
+
+function returnEmptyUnprocessedTranscriptArray(): UnprocessedTranscript[] {
+  const emptyReponse: UnprocessedTranscript[] = [];
+  for (let i = 1; i <= 3; i++) {
+    emptyReponse.push({
+      sgNum: i,
+      unprocessedUtterances: [],
+    });
+  }
+  return emptyReponse;
 }
