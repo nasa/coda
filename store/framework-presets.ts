@@ -36,7 +36,7 @@ export const allPresets: Preset[] = [
         paneStateData: {
           ready: true,
           showFilter: false,
-          lockPhotosScroll: true,
+          lockScroll: true,
         } as PhotoAllPaneStateData,
       },
       5: {

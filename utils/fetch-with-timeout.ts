@@ -21,6 +21,7 @@ export default async function fetchWithTimeout(
   const { timeout = 8000 } = options;
 
   const controller = new AbortController();
+  const signal = controller.signal;
   const id = setTimeout(() => controller.abort(), timeout);
 
   // To avoid invalid cert errors in development environments, don't reject unauthorized certs when in development
@@ -33,6 +34,7 @@ export default async function fetchWithTimeout(
     headers: options.headers,
     method: "GET",
     agent: httpsAgent,
+    signal,
   });
 
   clearTimeout(id);

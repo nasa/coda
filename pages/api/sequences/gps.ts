@@ -7,7 +7,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
  * Get gps tracks from wiki for a given date
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { year, month, date } = req.query;
+  const { year, month, date } = req.query as { [key: string]: string };
 
   try {
     const data = await getGPSTracks(`${year}-${month}-${date}`);

@@ -46,4 +46,6 @@ export enum PaneTypeShortVal {
   iss_location = 5,
   gps_location = 6,
   photo_all = 7,
+  transcript = 8,
+  sgAudio = 9,
 }

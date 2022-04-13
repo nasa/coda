@@ -72,9 +72,30 @@ type VideosEntityState = EntityState<VideoFile> & {
   loadingStatus: LoadingStatusEnum;
 };
 
-/** GPS Store */
+/**
+ * GPS Store
+ */
 type GPSState = {
   gpsTracks: GPSTrack[];
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
+};
+
+/**
+ * Transcript Store
+ */
+type TranscriptState = {
+  transcripts: Transcript[];
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
+  isTranscripts: boolean;
+};
+
+/**
+ * SG Audio Store
+ */
+type SgAudioState = {
+  sgActivityRanges: SgActivityRangeRecord[][];
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };

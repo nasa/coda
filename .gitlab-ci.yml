@@ -56,6 +56,10 @@ sast:
   stage: static
   needs: []
   tags: ["openshift"]
+secret_detection:
+  stage: static
+  needs: []
+  tags: ["openshift"]
 
 # manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:

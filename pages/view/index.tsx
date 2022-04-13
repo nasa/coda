@@ -5,6 +5,7 @@ import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
+import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
 import {
@@ -33,6 +34,18 @@ import {
 import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
 import { clearGPSTracks, gpsFetchError, setGpsLoadingStatus, setGPSTracks } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
+import {
+  setTranscriptLoadingStatus,
+  transcriptFetchError,
+  setTranscripts,
+  clearTranscripts,
+} from "store/transcript";
+import {
+  setSgAudioActivity,
+  setSgAudioLoadingStatus,
+  sgAudioFetchError,
+  clearSgAudioActivity,
+} from "store/sg-audio";
 import {
   setEphemeraLoadingStatus,
   fetchError as ephemeraFetchError,
@@ -247,12 +260,46 @@ export function V2(props: { urlState }) {
         if (gpsTracksResponse.cacheMetadata.error === undefined) {
           dispatch(setGPSTracks(gpsTracksResponse));
         } else {
-          dispatch(ephemeraFetchError(gpsTracksResponse.cacheMetadata.error));
+          dispatch(gpsFetchError(gpsTracksResponse.cacheMetadata.error));
         }
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));
       }
       dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
+  const populateTranscriptStore = (source, year, month, day) => {
+    (async () => {
+      dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const transcriptResponse = await getTranscripts(source, year, month, day);
+        if (transcriptResponse.cacheMetadata.error === undefined) {
+          dispatch(setTranscripts(transcriptResponse));
+        } else {
+          dispatch(transcriptFetchError(transcriptResponse.cacheMetadata.error));
+        }
+      } catch (e) {
+        dispatch(transcriptFetchError(e.toString()));
+      }
+      dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
+  const populateSgAudioStore = (source, year, month, day) => {
+    (async () => {
+      dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const sgAudioResponse = await getSgAudio(source, year, month, day);
+        if (sgAudioResponse.cacheMetadata.error === undefined) {
+          dispatch(setSgAudioActivity(sgAudioResponse));
+        } else {
+          dispatch(sgAudioFetchError(sgAudioResponse.cacheMetadata.error));
+        }
+      } catch (e) {
+        dispatch(sgAudioFetchError(e.toString()));
+      }
+      dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   };
 
@@ -276,6 +323,8 @@ export function V2(props: { urlState }) {
     dispatch(clearPhotos());
     dispatch(clearSequences());
     dispatch(clearVideos());
+    dispatch(clearTranscripts());
+    dispatch(clearSgAudioActivity());
 
     // populate the sequence store
     populateSequenceStore(Collection[source]);
@@ -291,6 +340,12 @@ export function V2(props: { urlState }) {
 
     // populate GPS store
     populateGPSStore(year, month, day, Collection[source]);
+
+    // populate transcript store
+    populateTranscriptStore(source, year, month, day);
+
+    // populate S/G audio store
+    populateSgAudioStore(source, year, month, day);
   }, [playheadDate, source]);
 
   // look for new videos every 5 minutes if the user is looking at today's date

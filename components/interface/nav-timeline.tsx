@@ -29,6 +29,9 @@ export default function NavTimeline(props: { collection: Collection }) {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sgAudioActivityRanges: SgActivityRangeRecord[][] = useSelector(
+    (state: RootState) => state.sgAudio.sgActivityRanges
+  );
 
   const dispatch = useDispatch();
   const dayNight = ephemera.dayNight;
@@ -59,12 +62,6 @@ export default function NavTimeline(props: { collection: Collection }) {
     const [hh, mm] = sequence.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
-
-  useEffect(() => {
-    const canvasElement = canvas.current;
-    const ctx = canvasElement.getContext("2d");
-    console.log("canvas context", ctx);
-  }, [canvas]);
 
   /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
@@ -105,7 +102,8 @@ export default function NavTimeline(props: { collection: Collection }) {
       playheadDate,
       evaName,
       evaStartSec,
-      isToday
+      isToday,
+      sgAudioActivityRanges
     );
 
     drawNav.current.initGroups();

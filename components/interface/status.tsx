@@ -10,6 +10,7 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const transcript: TranscriptState = useSelector((state: RootState) => state.transcript);
 
   const [videoStatus, setVideoStatus] = useState({
     message: "",
@@ -28,6 +29,10 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     classname: styles.loading,
   });
   const [ephemeraStatus, setEphemeraStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
+  const [transcriptStatus, setTranscriptStatus] = useState({
     message: "",
     classname: styles.loading,
   });
@@ -55,6 +60,18 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
       createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ids.length > 0)
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
+  useEffect(() => {
+    let isTranscript = false;
+    transcript.transcripts.forEach((transcript) => {
+      if (transcript.utterances.length > 0) {
+        isTranscript = true;
+      }
+    });
+
+    setTranscriptStatus(
+      createStatus(transcript.loadingStatus, transcript.cacheMetadata, isTranscript)
+    );
+  }, [transcript.loadingStatus, transcript.cacheMetadata]);
 
   if (!props.largeDisplay) {
     return (
@@ -89,8 +106,10 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
               <td title={"Orbit ephemera " + ephemeraStatus.message}>
                 <span className={`${styles.status} ${ephemeraStatus.classname}`}></span>
               </td>
-              <td></td>
-              <td></td>
+              <td>Transcript</td>
+              <td title={"Transcript " + transcriptStatus.message}>
+                <span className={`${styles.status} ${transcriptStatus.classname}`}></span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -129,8 +148,10 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
               <td title={"Orbit ephemera " + ephemeraStatus.message}>
                 <span className={`${styles.statusLarge} ${ephemeraStatus.classname}`}></span>
               </td>
-              <td></td>
-              <td></td>
+              <td>Transcript</td>
+              <td title={"Transcript " + transcriptStatus.message}>
+                <span className={`${styles.statusLarge} ${transcriptStatus.classname}`}></span>
+              </td>
             </tr>
           </tbody>
         </table>
