@@ -106,7 +106,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     const { numfound } = res.results.response;
     const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
-    // create array of photos from first API call
+    // create array of videos from first API call
     const videos1: VideoFile[] = parseIOVideoResponse(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
@@ -129,16 +129,16 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
     const resArray = await Promise.all(promiseArray);
 
-    // Parse out results into array of photo objects
+    // Parse out results into array of video objects
 
     const additionalVideosArray: VideoFile[][] = resArray.map((res) => {
       return parseIOVideoResponse(res, collection);
     });
 
-    // Turn array of videoFile arrays into one enormous photoFile array
+    // Turn array of videoFile arrays into one enormous videoFile array
     let additionalVideos: VideoFile[] = additionalVideosArray.flat(1);
 
-    // Merge the additional photos with the photos from the first API call and return it
+    // Merge the additional videos with the videos from the first API call and return it
     const videos: VideoFile[] = [...videos1, ...additionalVideos];
     return videos;
   };
@@ -147,8 +147,7 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
   return fetchWithCache<VideoFile[]>(`io/videos/${collection}/${dateQuery}`, retriever, {
     cacheAge: 3600,
     staleOk: true,
-    // preferNew: isBetweenDates(now, start, end),
-    preferNew: true,
+    preferNew: isBetweenDates(now, start, end),
   });
 }
 
