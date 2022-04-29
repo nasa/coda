@@ -97,24 +97,65 @@ function formatDateQuery(start: Date, end?: Date): string {
 export async function fetchVideoData(collection: Collection, start: Date, end?: Date) {
   const now = new Date();
 
-  const dateQuery = formatDateQuery(start, end);
-  return fetchWithCache<VideoFile[]>(
-    `io/videos/${collection}/${dateQuery}`,
-    async () => {
-      const res = await fetchIO(`${dateQuery}&cols=${Collection[collection]}&as=2`, "videoData");
-      return parseIOVideoResponse(res, collection);
-    },
-    {
-      cacheAge: 3600,
-      staleOk: true,
-      preferNew: isBetweenDates(now, start, end),
+  const retriever = async () => {
+    let queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
+
+    const res = await fetchIO(queryParams, "videoData");
+    // return parseIOVideoResponse(res, collection);
+
+    const { numfound } = res.results.response;
+    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
+
+    // create array of videos from first API call
+    const videos1: VideoFile[] = parseIOVideoResponse(res, collection);
+
+    if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
+      // If using mock data, just return the first 500 in the mock response
+      // Only one API call was needed because we got fewer than 500 results. Just return it.
+      return videos1;
     }
-  );
+
+    // Construct an array of queryParams, one for each page required to reach numFound from first API call
+    let queryParamsArray = [];
+    for (let i = 1; i < callsRequired; i++) {
+      let startNum = 500 * i + 1;
+      queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2&sr=${startNum}`;
+      queryParamsArray.push(queryParams);
+    }
+
+    // create an array of promises for async IO calls
+    const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
+
+    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
+    const resArray = await Promise.all(promiseArray);
+
+    // Parse out results into array of video objects
+
+    const additionalVideosArray: VideoFile[][] = resArray.map((res) => {
+      return parseIOVideoResponse(res, collection);
+    });
+
+    // Turn array of videoFile arrays into one enormous videoFile array
+    let additionalVideos: VideoFile[] = additionalVideosArray.flat(1);
+
+    // Merge the additional videos with the videos from the first API call and return it
+    const videos: VideoFile[] = [...videos1, ...additionalVideos];
+    return videos;
+  };
+
+  const dateQuery = formatDateQuery(start, end);
+  return fetchWithCache<VideoFile[]>(`io/videos/${collection}/${dateQuery}`, retriever, {
+    cacheAge: 3600,
+    staleOk: true,
+    preferNew: isBetweenDates(now, start, end),
+  });
 }
 
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
+
+  console.log("DOCS is this long: ", docs.length);
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
@@ -147,12 +188,11 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
 
   if (+Collection[collection] === +Collection.ISS) {
     const channel = getChannel(doc.collections_string);
+
     if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
       downlink = parseInt(channel) - 1;
     }
-  }
-
-  if (+Collection[collection] === +Collection.TEST_EVENTS) {
+  } else if (+Collection[collection] === +Collection.TEST_EVENTS) {
     //modify downlink numbers for test events based on strings in video title on IO
     if (doc.md_title) {
       if (doc.md_title.includes("EV1")) {
