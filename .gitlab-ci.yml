@@ -123,6 +123,23 @@ install_dependencies:
     paths:
       - ./node_modules/*
 
+#
+# Creates Software Bill of Materials
+#
+node-sbom:
+  stage: static
+  allow_failure: true
+  tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
+  needs: ["install_dependencies"]
+  image: $CI_REGISTRY/emss/docker-images:node-ci-sbom
+  script:
+    - /create-and-compare-bom.sh ./BOM.md
+  artifacts:
+    when: always
+    paths:
+      - "./bom.json"
+      - "./new-bom.md"
+
 test:
   stage: priority
   needs: ["install_dependencies"]
