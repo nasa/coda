@@ -163,7 +163,7 @@ test:
       junit:
         - junit.xml
     paths:
-      - ./coverage/cobertura-coverage.xml
+      - ./coverage/*
 
 # test against next version of node that CODA may use, but allow to fail
 test-node-next:
