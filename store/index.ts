@@ -41,6 +41,7 @@ const reducer = combineReducers({
   framework: frameworkSlice.reducer,
   sgAudio: sgAudioSlice.reducer,
 });
+export type RootState = ReturnType<typeof reducer>;
 
 const initStore = () => {
   store = configureStore({
@@ -52,8 +53,3 @@ const initStore = () => {
 };
 
 export const wrapper = createWrapper(initStore);
-
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
-export type AppDispatch = typeof store.dispatch;
