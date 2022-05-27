@@ -1,7 +1,5 @@
-import clone from "lodash/clone";
 import type { AppProps } from "next/app";
-import { Provider } from "react-redux";
-import { useStore, initialState } from "store";
+import { wrapper } from "../store";
 import "../styles.css";
 
 // The following import prevents a Font Awesome icon server-side rendering bug,
@@ -9,15 +7,10 @@ import "../styles.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 
-// This default export is required in a new `pages/_app.js` file.
-export default function App({ Component, pageProps }: AppProps) {
+const App = ({ Component, pageProps }: AppProps) => {
   config.autoAddCss = false; // Tell Font Awesome to skip adding the CSS automatically since we did it manually above.
 
-  const store = useStore(clone(initialState));
+  return <Component {...pageProps} />;
+};
 
-  return (
-    <Provider store={store}>
-      <Component {...pageProps} />
-    </Provider>
-  );
-}
+export default wrapper.withRedux(App);

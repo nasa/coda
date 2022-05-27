@@ -1,5 +1,6 @@
-import { useMemo } from "react";
-import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { createWrapper } from "next-redux-wrapper";
+
 import { playheadSlice, initialState as playheadInitialState } from "./playhead";
 import { playheadHoverSlice, initialState as playheadHoverInitialState } from "./playheadHover";
 import { sequencesSlice, initialState as sequencesInitialState } from "./sequences";
@@ -41,41 +42,18 @@ const reducer = combineReducers({
   sgAudio: sgAudioSlice.reducer,
 });
 
-export type RootState = ReturnType<typeof reducer>;
-
-const initStore = (preloadedState = initialState) => {
-  const store = configureStore({
+const initStore = () => {
+  store = configureStore({
     reducer,
-    preloadedState,
+    preloadedState: initialState,
     devTools: true,
-    middleware: [...getDefaultMiddleware({ immutableCheck: false, serializableCheck: false })],
   });
   return store;
 };
 
-export const initializeStore = (preloadedState) => {
-  let _store = store ?? initStore(preloadedState);
+export const wrapper = createWrapper(initStore);
 
-  // After navigating to a page with an initial Redux state, merge that state
-  // with the current state in the store, and create a new store
-  if (preloadedState && store) {
-    _store = initStore({
-      ...store.getState(),
-      ...preloadedState,
-    });
-    // Reset the current store
-    store = undefined;
-  }
-
-  // For SSG and SSR always create a new store
-  if (typeof window === "undefined") return _store;
-  // Create the store once in the client
-  if (!store) store = _store;
-
-  return _store;
-};
-
-export function useStore(initialState) {
-  store = useMemo(() => initializeStore(initialState), [initialState]);
-  return store;
-}
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<typeof store.getState>;
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = typeof store.dispatch;

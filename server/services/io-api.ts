@@ -155,8 +155,6 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 
-  console.log("DOCS is this long: ", docs.length);
-
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
     const metadata = parseVideoResultMetadata(doc, collection);
