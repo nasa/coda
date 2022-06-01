@@ -27,8 +27,6 @@ export const initialState = {
   sgAudio: sgAudioInitialState,
 };
 
-// server-side redux technique adapted from https://github.com/vercel/next.js/blob/canary/examples/with-redux/store.js#L50
-
 const reducer = combineReducers({
   playhead: playheadSlice.reducer,
   playheadHover: playheadHoverSlice.reducer,
