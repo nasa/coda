@@ -1,0 +1,514 @@
+class: F
+applicable_sections:
+  "3.1.2":
+    SWE Number: 033
+    Requirement Text: |
+      The project manager shall assess options for software acquisition versus development.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: No software is known to exist that does what CODA does, and certainly not for the messy data formats that make up CODA's sources.
+  "3.1.3":
+    SWE Number: 013
+    Requirement Text: |
+      The project manager shall develop, maintain, and execute software plans, including security plans, that cover the entire software life cycle and, as a minimum, address the requirements of this directive with approved tailoring.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: "CODA is covered by the FOD Information Technology (FIT) security plan, (JSC # SPCA5100, Agency #: SO-9999-M-JSC-3308"
+  "3.1.4":
+    SWE Number: 024
+    Requirement Text: |
+      The project manager shall track the actual results and performance of software activities against the software plans.
+      a. Corrective actions are taken, recorded, and managed to closure.
+      b. Changes to commitments (e.g., software plans) that have been agreed to by the affected groups and individuals are taken, recorded, and managed.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "3.1.5":
+    SWE Number: 034
+    Requirement Text: |
+      The project manager shall define and document the acceptance criteria for the software.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Functional Requirements" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.1.6":
+    SWE Number: 036
+    Requirement Text: |
+      The project manager shall establish and maintain the software processes, software documentation plans, list of developed electronic products, deliverables, and list of tasks for the software development that are required for the project’s software developers, as well as the action required (e.g., approval, review) of the Government upon receipt of each of the deliverables.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See relevant sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.1.7":
+    SWE Number: 037
+    Requirement Text: |
+      The project manager shall define and document the milestones at which the software developer(s) progress will be reviewed and audited.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See https://wiki.jsc.nasa.gov/fod/index.php/CODA/Roadmap
+  "3.1.8":
+    SWE Number: 039
+    Requirement Text: |
+      The project manager shall require the software developer(s) to periodically report status and provide insight into software development and test activities; at a minimum, the software developer(s) will be required to allow the project manager and software assurance personnel to:
+      a. Monitor product integration.
+      b. Review the verification activities to ensure adequacy.
+      c. Review trades studies and source data.
+      d. Audit the software development processes and practices.e. Participate in software reviews and technical interchange meetings.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "EMSS Open Development" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.1.9":
+    SWE Number: 040
+    Requirement Text: |
+      The project manager shall require the software developer(s) to provide NASA with software products, traceability, software change tracking information and nonconformances in electronic format, including software development and management metrics.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Traceability" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.1.10":
+    SWE Number: 042
+    Requirement Text: |
+      The project manager shall require the software developer(s) to provide NASA with electronic access to the source code developed for the project in a modifiable format.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See https://gitlab.fit.nasa.gov/coda/coda
+  "3.1.11":
+    SWE Number: 139
+    Requirement Text: |
+      The project manager shall comply with the requirements in this NPR that are marked with an “X” in Appendix C consistent with their software classification.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: Compliant via this document
+  "3.1.12":
+    SWE Number: 121
+    Requirement Text: |
+      Where approved, the project manager shall document and reflect the tailored requirement in the plans or procedures controlling the development, acquisition, and deployment of the affected software.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: Compliant via this document
+  "3.1.13":
+    SWE Number: 125
+    Requirement Text: |
+      Each project manager with software components shall maintain a requirements mapping matrix or multiple requirements mapping matrices against requirements in this NPR, including those delegated to other parties or accomplished by contract vehicles or Space Act Agreements.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: Compliant via this document
+  "3.1.14":
+    SWE Number: 027
+    Requirement Text: |
+      The project manager shall satisfy the following conditions when a COTS, GOTS, MOTS, OSS, or reused software component is acquired or used:
+      a. The requirements to be met by the software component are identified.
+      b. The software component includes documentation to fulfill its intended purpose (e.g., usage instructions).
+      c. Proprietary rights, usage rights, ownership, warranty, licensing rights, transfer rights, and conditions of use (e.g., required copyright, author, and applicable license notices within the software code, or a requirement to redistribute the licensed software only under the same license (e.g., GNU GPL, ver. 3, license)) have been addressed and coordinated with Center Intellectual Property Counsel.
+      d. Future support for the software product is planned and adequate for project needs.
+      e. The software component is verified and validated to the same level required to accept a similar developed software component for its intended use.
+      f. The project has a plan to perform periodic assessments of vendor reported defects to ensure the defects do not impact the selected software components.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See sections "Functional Requirements", "Documentation Requirements", "Rights and Licensing", "Future Support" of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.2.1":
+    SWE Number: 015
+    Requirement Text: |
+      To better estimate the cost of development, the project manager shall establish, document, and maintain:
+      a. Two cost estimate models and associated cost parameters for all Class A and B software projects that have an estimated project cost of $2 million or more.
+      b. One software cost estimate model and associated cost parameter(s) for all Class A and Class B software projects that have an estimated project cost of less than $2 million.
+      c. One software cost estimate model and associated cost parameter(s) for all Class C and Class D software projects.
+      d. One software cost estimate model and associated cost parameter(s) for all Class F software projects.
+    Authority:
+    Compliance: Fully Compliant
+    Reference: See "Cost Estimates" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.2.2":
+    SWE Number: 151
+    Requirement Text: |
+      The project manager's software cost estimate(s) shall satisfy the following conditions:
+      a. Covers the entire software life cycle.
+      b. Is based on selected project attributes (e.g., programmatic assumptions/constraints, assessment of the size, functionality, complexity, criticality, reuse code, modified code, and risk of the software processes and products).
+      c. Is based on the cost implications of the technology to be used and the required maturation of that technology.
+      d. Incorporates risk and uncertainty, including end state risk and threat assessments for cybersecurity.
+      e. Includes the cost of the required software assurance support.
+      f. Includes other direct costs.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Cost Estimates" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.3.1":
+    SWE Number: 016
+    Requirement Text: |
+      The project manager shall document and maintain a software schedule that satisfies the following conditions:
+      a. Coordinates with the overall project schedule.
+      b. Documents the interactions of milestones and deliverables between software, hardware, operations, and the rest of the system.
+      c. Reflects the critical dependencies for software development activities.
+      d. Identifies and accounts for dependencies with other projects and cross-program dependencies.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Schedule" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.3.2":
+    SWE Number: 018
+    Requirement Text: |
+      The project manager shall regularly hold reviews of software schedule activities, status, performance metrics, and assessment/analysis results with the project stakeholders and track issues to resolution.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Schedule" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.3.3":
+    SWE Number: 046
+    Requirement Text: |
+      The project manager shall require the software developer(s) to provide a software schedule for the project's review and schedule updates as requested.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Schedule" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.4.1":
+    SWE Number: 017
+    Requirement Text: |
+      The project manager shall plan, track, and ensure project specific software training for project personnel.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Training" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.5.1":
+    SWE Number: 020
+    Requirement Text: |
+      The project manager shall classify each system and subsystem containing software in accordance with the highest applicable software classification definitions for Classes A, B, C, D, E, and F software in Appendix D.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Software Classification" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.5.2":
+    SWE Number: 176
+    Requirement Text: |
+      The project manager shall maintain records of each software classification determination, each software Requirements Mapping Matrix, and the results of each software independent classification assessments for the life of the project.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Software Classification" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.8.1":
+    SWE Number: 146
+    Requirement Text: |
+      The project manager shall define the approach to the automatic generation of software source code including:
+      a. Validation and verification of auto-generation tools.
+      b. Configuration management of the auto-generation tools and associated data.
+      c. Description of the limits and the allowable scope for the use of the auto-generated software.
+      d. Verification and validation of auto-generated source code using the same software standards and processes as hand-generated code.
+      e. Monitoring the actual use of auto-generated source code compared to the planned use.
+      f. Policies and procedures for making manual changes to auto-generated source code.
+      g. Configuration management of the input to the auto-generation tool, the output of the auto-generation tool, and modifications made to the output of the auto-generation tools.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Auto-Generated Source Code" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.8.2":
+    SWE Number: 206
+    Requirement Text: |
+      The project manager shall require the software developers and custom software suppliers to provide NASA with electronic access to the models, simulations, and associated data used as inputs for auto-generation of software.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Auto-Generated Source Code" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.10.1":
+    SWE Number: 147
+    Requirement Text: |
+      The project manager shall specify reusability requirements that apply to its software development activities to enable future reuse of the software, including the models, simulations, and associated data used as inputs for auto-generation of software, for U.S. Government purposes.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Reusability Requirements" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.10.2":
+    SWE Number: 148
+    Requirement Text: |
+      The project manager shall evaluate software for potential reuse by other projects across NASA and contribute reuse candidates to the appropriate NASA internal sharing and reuse software system.  However, if the project manager is not a civil servant, then a civil servant will pre-approve all such software contributions; all software contributions should include, at a minimum, the following information:
+      a. Software Title.
+      b. Software Description.
+      c. The Civil Servant Software Technical POC for the software product.
+      d. The language or languages used to develop the software.
+      e. Any third party code contained therein and the record of the requisite license or permission received from the third party permitting the Government’s use and any required markings (e.g., required copyright, author, applicable license notices within the software code, and the source of each third-party software component (e.g., software URL & license URL)), if applicable.
+      f. Release notes.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Reusability Requirements" section of https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
+  "3.11.2":
+    SWE Number: 156
+    Requirement Text: |
+      The project manager shall perform a software cybersecurity assessment on the software components per the Agency security policies and the project requirements, including risks posed by the use of COTS, GOTS, MOTS, OSS, or reused software components.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Security Requirements" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.11.5":
+    SWE Number: 159
+    Requirement Text: |
+      The project manager shall test the software and record test results for the required software cybersecurity mitigation implementations identified from the security vulnerabilities and security weaknesses analysis.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Security Requirements" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.11.7":
+    SWE Number: 185
+    Requirement Text: |
+      The project manager shall verify that the software code meets the project's secure coding standard by using the results from static analysis tool(s).
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Security Requirements" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.11.8":
+    SWE Number: 210
+    Requirement Text: |
+      The project manager shall identify software requirements for the collection, reporting, and storage of data relating to the detection of adversarial actions.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Security Requirements" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "3.12.1":
+    SWE Number: 052
+    Requirement Text: |
+      The project manager shall perform, record, and maintain bi-directional traceability between the following software elements: (See Table in 3.12.1)
+      1. Higher-level requirements to the software requirements
+      2. Not required for Class F
+      3. Not required for Class F
+      4. Not required for Class F
+      5. Software requirements to the software test procedures
+      6. Software requirements to the software non-conformances
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Functional Requirements", "Test Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.1.2":
+    SWE Number: 050
+    Requirement Text: |
+      The project manager shall establish, capture, record, approve, and maintain software requirements, including requirements for COTS, GOTS, MOTS, OSS, or reused software components, as part of the technical specification.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Functional Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.1.5":
+    SWE Number: 053
+    Requirement Text: |
+      The project manager shall track and manage changes to the software requirements.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Functional Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.1.6":
+    SWE Number: 054
+    Requirement Text: |
+      The project manager shall identify, initiate corrective actions, and track until closure inconsistencies among requirements, project plans, and software products.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Functional Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.1.7":
+    SWE Number: 055
+    Requirement Text: |
+      The project manager shall perform requirements validation to ensure that the software will perform as intended in the customer environment.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Functional Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.4.2":
+    SWE Number: 060
+    Requirement Text: |
+      The project manager shall implement the software design into software code.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "4.4.3":
+    SWE Number: 061
+    Requirement Text: |
+      The project manager shall select, define, and adhere to software coding methods, standards, and criteria.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Coding Standards" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.4.4":
+    SWE Number: 135
+    Requirement Text: |
+      The project manager shall use static analysis tools to analyze the code during the development and testing phases to, at a minimum, detect defects, software security, code coverage, and software complexity.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Static Analysis" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.4.5":
+    SWE Number: 062
+    Requirement Text: |
+      The project manager shall unit test the software code.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.4.6":
+    SWE Number: 186
+    Requirement Text: |
+      The project manager shall assure that the unit test results are repeatable.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.4.7":
+    SWE Number: 063
+    Requirement Text: |
+      The project manager shall provide a software version description for each software release.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Release Notes" section of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.2":
+    SWE Number: 065
+    Requirement Text: |
+      The project manager shall establish and maintain:
+      a. Software test plan(s).
+      b. Software test procedure(s).
+      c. Software test(s), including any code specifically written to perform test procedures.
+      d. Software test report(s).
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.3":
+    SWE Number: 066
+    Requirement Text: |
+      The project manager shall test the software against its requirements.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.4":
+    SWE Number: 187
+    Requirement Text: |
+      The project manager shall place software items under configuration management prior to testing.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Configuration Management" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.5":
+    SWE Number: 068
+    Requirement Text: |
+      The project manager shall evaluate test results and record the evaluation.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.7":
+    SWE Number: 071
+    Requirement Text: |
+      The project manager shall update the software test and verification plan(s) and procedure(s) to be consistent with software requirements.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.11":
+    SWE Number: 191
+    Requirement Text: |
+      The project manager shall plan and conduct software regression testing to demonstrate that defects have not been introduced into previously integrated or tested software and have not produced a security vulnerability.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.5.13":
+    SWE Number: 193
+    Requirement Text: |
+      The project manager shall develop acceptance tests for loaded or uplinked data, rules, and code that affects software and software system behavior.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Testing Requirements" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.6.2":
+    SWE Number: 075
+    Requirement Text: |
+      The project manager shall plan and implement software operations, maintenance, and retirement activities.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference: See "Software Lifecycle" sections of https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
+  "4.6.3":
+    SWE Number: 077
+    Requirement Text: |
+      The project manager shall complete and deliver the software product to the customer with appropriate records, including as-built records, to support the operations and maintenance phase of the software's life cycle.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "4.6.4":
+    SWE Number: 194
+    Requirement Text: |
+      The project manager shall complete, prior to delivery, verification that all software requirements identified for this delivery have been met or dispositioned, that all approved changes have been implemented and that all defects designated for resolution prior to delivery have been resolved.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "4.6.5":
+    SWE Number: 195
+    Requirement Text: |
+      The project manager shall maintain the software using standards and processes per the applicable software classification throughout the maintenance phase.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "4.6.6":
+    SWE Number: 196
+    Requirement Text: |
+      The project manager shall identify the records and software tools to be archived, the location of the archive, and procedures for access to the products for software retirement or disposal.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.2":
+    SWE Number: 079
+    Requirement Text: |
+      The project manager shall develop a software configuration management plan that describes the functions, responsibilities, and authority for the implementation of software configuration management for the project.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.3":
+    SWE Number: 080
+    Requirement Text: |
+      The project manager shall track and evaluate changes to software products.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.4":
+    SWE Number: 081
+    Requirement Text: |
+      The project manager shall identify the software configuration items (e.g., software records, code, data, tools, models, scripts) and their versions to be controlled for the project.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.5":
+    SWE Number: 082
+    Requirement Text: |
+      The project manager shall establish and implement procedures to:
+      a. Designate the levels of control through which each identified software configuration item is required to pass.
+      b. Identify the persons or groups with authority to authorize changes.
+      c. Identify the persons or groups to make changes at each level.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.6":
+    SWE Number: 083
+    Requirement Text: |
+      The project manager shall prepare and maintain records of the configuration status of software configuration items.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.7":
+    SWE Number: 084
+    Requirement Text: |
+      The project manager shall perform software configuration audits to determine the correct version of the software configuration items and verify that they conform to the records that define them.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.8":
+    SWE Number: 085
+    Requirement Text: |
+      The project manager shall establish and implement procedures for the storage, handling, delivery, release, and maintenance of deliverable software products.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.1.9":
+    SWE Number: 045
+    Requirement Text: |
+      The project manager shall participate in any joint NASA/developer audits.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.2":
+    SWE Number: 086
+    Requirement Text: |
+      The project manager shall record, analyze, plan, track, control, and communicate all of the software risks and mitigation plans.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.3.2":
+    SWE Number: 087
+    Requirement Text: |
+      The project manager shall perform and report the results of software peer reviews or software inspections for:
+      a. Software requirements.
+      b. Software plans, including cybersecurity.
+      c. Any design items that the project identified for software peer review or software inspections according to the software development plans.
+      d. Software code as defined in the software and or project plans.
+      e. Software test procedures.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.3.4":
+    SWE Number: 089
+    Requirement Text: |
+      The project manager shall, for each planned software peer review or software inspection, record necessary measurements.
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.5.1":
+    SWE Number: 201
+    Requirement Text: |
+      The project manager shall track and maintain software non-conformances (including defects in tools and appropriate ground software).
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
+  "5.5.2":
+    SWE Number: 202
+    Requirement Text: |
+      The project manager shall define and implement clear software severity levels for all software non-conformances (including tools, COTS, GOTS, MOTS, OSS, reused software components, and applicable ground systems).
+    Authority: CIO
+    Compliance: Fully Compliant
+    Reference:
