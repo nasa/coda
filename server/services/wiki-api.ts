@@ -356,7 +356,7 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
       });
 
       return {
-        /** EVA name upper-cased with spaces, eg. `US EVA 55` */
+        /** EVA name upper-cased with spaces, eg. `US EVA 55`  */
         name: evaName,
         location: Collection.ISS,
         type: SequenceType.EVA,

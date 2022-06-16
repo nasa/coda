@@ -107,8 +107,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
 
   //init map app
   useEffect(() => {
-    mapboxgl.accessToken =
-      "pk.eyJ1IjoiYmZlaXN0IiwiYSI6ImNpbDJva2hseTNnZnd1Z20zNmU0cDExdXUifQ.3acQyDaKU1HS8k5hqPmp1w";
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_KEY;
 
     if (!map) initializeMap(setMap, mapContainer);
   }, [map]);
