@@ -260,7 +260,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
                 </button>
                 <button
                   className={styles.filterButton}
-                  style={{ marginLeft: "0.5em" }}
+                  style={{ marginLeft: "0.5em", width: "80px" }}
                   onClick={() => {
                     changeAllFilters(false);
                   }}
