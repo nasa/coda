@@ -50,8 +50,6 @@ export default function EventDropdown(props: {
       // replace the datestring in URL with selected calendar date
       URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
       window.location.assign(URL);
-      // dispatch(changeDate(formattedDate));
-      // props.setHelpLoaderOpen(true);
     }
   };
 

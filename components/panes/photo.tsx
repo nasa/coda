@@ -251,6 +251,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
               <td className={`${styles.overlayTableCell}`}>
                 <button
                   className={styles.filterButton}
+                  style={{ width: "70px" }}
                   onClick={() => {
                     changeAllFilters(true);
                   }}
@@ -259,7 +260,7 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
                 </button>
                 <button
                   className={styles.filterButton}
-                  style={{ marginLeft: "0.5em" }}
+                  style={{ marginLeft: "0.5em", width: "80px" }}
                   onClick={() => {
                     changeAllFilters(false);
                   }}
