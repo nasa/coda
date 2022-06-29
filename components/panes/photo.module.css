@@ -27,7 +27,7 @@
 
 .filterButton {
   display: inline-block;
-  width: 40px;
+  width: 80px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
