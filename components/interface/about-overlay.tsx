@@ -195,6 +195,14 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:jackie.vu@nasa.gov"}>
+                      Jackie Vu
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>Software Engineering</div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
                     <a className={styles.teamName} href={"mailto:edwin.j.montalvo@nasa.gov"}>
                       James Montalvo
                     </a>
