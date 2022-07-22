@@ -17,16 +17,16 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
-import { isNil } from "lodash";
-import { isBetweenDates } from "store/playhead";
+import { inRange } from "lodash";
+import { add } from "store/playhead";
 import { Collection } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
-async function fetchIO(params: string, action?: string): Promise<IOResponse> {
+async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IOResponse> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
-    if (action === "videoData") {
+    if (action === "videos") {
       // we're in the local environment. mock the request
       console.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("/mocks/fakedata/io_videos.json");
@@ -35,7 +35,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
       return await Promise.resolve(mockIOData);
     }
 
-    if (action === "photoData") {
+    if (action === "photos") {
       console.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("/mocks/fakedata/io_photos.json");
 
@@ -66,7 +66,7 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
 }
 
 /** Format an IO query string for a single day */
-function formatDateQuery(start: Date, end?: Date): string {
+function formatDateQuery(start: Date): string {
   const startYear = start.getUTCFullYear();
   const startMonth = start.getUTCMonth() + 1;
   const startDay = start.getUTCDate();
@@ -75,52 +75,84 @@ function formatDateQuery(start: Date, end?: Date): string {
   const rangeStartDate = padZeros(startDay, 2);
 
   let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
-  if (isNil(end)) {
-    rangeEndYear = rangeStartYear;
-    rangeEndMonth = rangeStartMonth;
-    rangeEndDate = rangeStartDate;
-  } else {
-    const endYear = end.getUTCFullYear();
-    const endMonth = end.getUTCMonth() + 1;
-    const endDay = end.getUTCDate();
-    rangeEndYear = `${endYear}`;
-    rangeEndMonth = padZeros(endMonth, 2);
-    rangeEndDate = padZeros(endDay, 2);
-  }
+  // if (isNil(end)) {
+  rangeEndYear = rangeStartYear;
+  rangeEndMonth = rangeStartMonth;
+  rangeEndDate = rangeStartDate;
+  // } else {
+  //   const endYear = end.getUTCFullYear();
+  //   const endMonth = end.getUTCMonth() + 1;
+  //   const endDay = end.getUTCDate();
+  //   rangeEndYear = `${endYear}`;
+  //   rangeEndMonth = padZeros(endMonth, 2);
+  //   rangeEndDate = padZeros(endDay, 2);
+  // }
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
 
+  //TODO see if IO acutally needs both start and end query parameters
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
-export async function fetchVideoData(collection: Collection, start: Date, end?: Date) {
+/**
+ *
+ * @param collection
+ * @param dataType either "videos" or "photos"
+ * @param requestDate date to fetch data for
+ * @returns
+ */
+export async function fetchData(
+  collection: Collection,
+  dataType: "photos" | "videos",
+  requestDate: Date
+) {
   const now = new Date();
+  const dateQuery = formatDateQuery(requestDate);
+  let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[],
+    preferNew: boolean,
+    queryParams: string;
+  switch (dataType) {
+    case "photos":
+      parser = parseIOPhotoResponse;
+      preferNew = false;
+      queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
+      break;
+    case "videos":
+      parser = parseIOVideoResponse;
+      // If we're looking for video older than yesterday than the cache will do just fine (taking into account cacheAge).
+      // If we're looking more recent (between start of yesterday and end of today) then definitely pull new data becuase there's a chance it's been updated
+      preferNew = inRange(
+        requestDate.getTime(),
+        add(now, -86400000).getTime(),
+        add(now, 86400000).getTime()
+      )
+        ? true
+        : false;
+      queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
+      break;
+  }
 
   const retriever = async () => {
-    let queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
-
-    const res = await fetchIO(queryParams, "videoData");
-    // return parseIOVideoResponse(res, collection);
+    const res = await fetchIO(queryParams, dataType);
 
     const { numfound } = res.results.response;
     const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
 
-    // create array of videos from first API call
-    const videos1: VideoFile[] = parseIOVideoResponse(res, collection);
+    // create array from first API call
+    const data1 = parser(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
       // If using mock data, just return the first 500 in the mock response
       // Only one API call was needed because we got fewer than 500 results. Just return it.
-      return videos1;
+      return data1;
     }
 
     // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray = [];
+    let queryParamsArray: string[] = [];
     for (let i = 1; i < callsRequired; i++) {
       let startNum = 500 * i + 1;
-      queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2&sr=${startNum}`;
-      queryParamsArray.push(queryParams);
+      queryParamsArray.push(`${queryParams}&sr=${startNum}`);
     }
 
     // create an array of promises for async IO calls
@@ -129,26 +161,28 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
     const resArray = await Promise.all(promiseArray);
 
-    // Parse out results into array of video objects
-
-    const additionalVideosArray: VideoFile[][] = resArray.map((res) => {
-      return parseIOVideoResponse(res, collection);
+    // Parse out results into array of objects
+    const additionalDataArray = resArray.map((res) => {
+      return parser(res, collection);
     });
 
-    // Turn array of videoFile arrays into one enormous videoFile array
-    let additionalVideos: VideoFile[] = additionalVideosArray.flat(1);
+    // Turn array of arrays into one enormous array
+    let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
 
-    // Merge the additional videos with the videos from the first API call and return it
-    const videos: VideoFile[] = [...videos1, ...additionalVideos];
-    return videos;
+    // Merge the additional objects with the objects from the first API call and return it
+    const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
+    return allData;
   };
 
-  const dateQuery = formatDateQuery(start, end);
-  return fetchWithCache<VideoFile[]>(`io/videos/${collection}/${dateQuery}`, retriever, {
-    cacheAge: 3600,
-    staleOk: true,
-    preferNew: isBetweenDates(now, start, end),
-  });
+  return fetchWithCache<PhotoFile[] | VideoFile[]>(
+    `io/${dataType}/${collection}/${dateQuery}`,
+    retriever,
+    {
+      cacheAge: 3600,
+      staleOk: true,
+      preferNew: preferNew,
+    }
+  );
 }
 
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
@@ -295,67 +329,6 @@ export function getChannel(collectionStrings: string[]): string {
     }
   }
   return "";
-}
-
-/**
- * Fetch video data from IO
- */
-export async function fetchPhotoData(
-  collection: Collection,
-  start: Date,
-  end?: Date
-): Promise<WrappedResponse<PhotoFile[]>> {
-  const dateQuery = formatDateQuery(start, end);
-
-  const retriever = async () => {
-    let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
-
-    const res = await fetchIO(queryParams, "photoData");
-
-    const { numfound } = res.results.response;
-    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
-
-    // create array of photos from first API call
-    const photos1: PhotoFile[] = parseIOPhotoResponse(res, collection);
-
-    if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
-      // If using mock data, just return the first 500 in the mock response
-      // Only one API call was needed because we got fewer than 500 results. Just return it.
-      return photos1;
-    }
-
-    // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray = [];
-    for (let i = 1; i < callsRequired; i++) {
-      let startNum = 500 * i + 1;
-      queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}&sr=${startNum}`;
-      queryParamsArray.push(queryParams);
-    }
-
-    // create an array of promises for async IO calls
-    const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
-
-    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
-    const resArray = await Promise.all(promiseArray);
-
-    // Parse out results into array of photo objects
-
-    const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
-      return parseIOPhotoResponse(res, collection);
-    });
-
-    // Turn array of photoFile arays into one enormous photoFile array
-    let additionalPhotos: PhotoFile[] = additionalPhotosArray.flat(1);
-
-    // Merge the additional photos with the photos from the first API call and return it
-    const photos: PhotoFile[] = [...photos1, ...additionalPhotos];
-    return photos;
-  };
-
-  return fetchWithCache<PhotoFile[]>(`io/photos/${collection}/${dateQuery}`, retriever, {
-    cacheAge: 3600,
-    staleOk: true,
-  });
 }
 
 function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFile[] {
