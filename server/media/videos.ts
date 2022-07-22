@@ -13,8 +13,6 @@ export default async function getVideoData(
   collection: Collection
 ): Promise<WrappedResponse<VideoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  //const previousDate = add(requestedDate, -86400000);
-  //const nextDate = add(requestedDate, 86400000);
 
   // fetch video info and fudge factors in parallel
   const [results, overrides] = await Promise.all([

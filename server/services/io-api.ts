@@ -75,23 +75,13 @@ function formatDateQuery(start: Date): string {
   const rangeStartDate = padZeros(startDay, 2);
 
   let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
-  // if (isNil(end)) {
   rangeEndYear = rangeStartYear;
   rangeEndMonth = rangeStartMonth;
   rangeEndDate = rangeStartDate;
-  // } else {
-  //   const endYear = end.getUTCFullYear();
-  //   const endMonth = end.getUTCMonth() + 1;
-  //   const endDay = end.getUTCDate();
-  //   rangeEndYear = `${endYear}`;
-  //   rangeEndMonth = padZeros(endMonth, 2);
-  //   rangeEndDate = padZeros(endDay, 2);
-  // }
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
 
-  //TODO see if IO acutally needs both start and end query parameters
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
@@ -107,7 +97,6 @@ export async function fetchData(
   dataType: "photos" | "videos",
   requestDate: Date
 ) {
-  const now = new Date();
   const dateQuery = formatDateQuery(requestDate);
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[],
     preferNew: boolean,
@@ -119,16 +108,11 @@ export async function fetchData(
       queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
       break;
     case "videos":
+      const today = new Date().setHours(0, 0, 0, 0);
       parser = parseIOVideoResponse;
       // If we're looking for video older than yesterday than the cache will do just fine (taking into account cacheAge).
       // If we're looking more recent (between start of yesterday and end of today) then definitely pull new data becuase there's a chance it's been updated
-      preferNew = inRange(
-        requestDate.getTime(),
-        add(now, -86400000).getTime(),
-        add(now, 86400000).getTime()
-      )
-        ? true
-        : false;
+      preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
       queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
       break;
   }
