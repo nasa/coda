@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import { add, isSameDate } from "store/playhead";
-import { Collection } from "utils/enums";
+import { Collection, IOFetchType } from "utils/enums";
 import { appSecondsFromDateString } from "utils/formatting";
 
 /**
@@ -20,7 +20,7 @@ export default async function getPhotoData(
   // const nextDate = add(requestedDate, 86400000);
 
   const [results, sequences, allOverrides] = await Promise.all([
-    IoService.fetchData(collection, "photos", requestedDate) as Promise<
+    IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate) as Promise<
       WrappedResponse<PhotoFile[]>
     >,
     // fetch sequence data, but don't throw if the request fails

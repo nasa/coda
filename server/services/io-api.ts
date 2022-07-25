@@ -19,7 +19,7 @@ import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
 import { add } from "store/playhead";
 import { inRange, isNil } from "lodash";
-import { Collection } from "utils/enums";
+import { Collection, IOFetchType } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IOResponse> {
@@ -98,26 +98,22 @@ function formatDateQuery(start: Date, end?: Date): string {
 /**
  * Fetch for either photo or video data from the IO API. Checks cache. Uses multiple parallel calls if necessary
  * @param collection Collection object used to build the IO query string
- * @param dataType Either "videos" or "photos"
+ * @param fetchType IOFetchType
  * @param requestDate The date to fetch data for
  * @returns PhotoFile[] | VideoFile[]
  */
-export async function fetchData(
-  collection: Collection,
-  dataType: "photos" | "videos",
-  requestDate: Date
-) {
+export async function fetchData(collection: Collection, fetchType: IOFetchType, requestDate: Date) {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let preferNew: boolean;
   let dateQuery: string;
   let queryParams: string;
 
-  if (dataType === "photos") {
+  if (fetchType === IOFetchType.PHOTOS) {
     parser = parseIOPhotoResponse;
     preferNew = false;
     dateQuery = formatDateQuery(requestDate);
     queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
-  } else if (dataType === "videos") {
+  } else if (fetchType === IOFetchType.VIDEOS) {
     const today = new Date().setHours(0, 0, 0, 0);
     parser = parseIOVideoResponse;
     // If we're looking for today's video then definitely pull new data becuase there's a chance it's been updated
@@ -127,7 +123,7 @@ export async function fetchData(
   }
 
   const retriever = async () => {
-    const res = await fetchIO(queryParams, dataType);
+    const res = await fetchIO(queryParams, fetchType);
 
     const { numfound } = res.results.response;
     const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
@@ -168,7 +164,7 @@ export async function fetchData(
   };
 
   return fetchWithCache<PhotoFile[] | VideoFile[]>(
-    `io/${dataType}/${collection}/${dateQuery}`,
+    `io/${fetchType}/${collection}/${dateQuery}`,
     retriever,
     {
       cacheAge: 3600,
