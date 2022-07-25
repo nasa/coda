@@ -17,8 +17,8 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
-import { inRange } from "lodash";
 import { add } from "store/playhead";
+import { inRange, isNil } from "lodash";
 import { Collection } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
@@ -66,7 +66,7 @@ async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IO
 }
 
 /** Format an IO query string for a single day */
-function formatDateQuery(start: Date): string {
+function formatDateQuery(start: Date, end?: Date): string {
   const startYear = start.getUTCFullYear();
   const startMonth = start.getUTCMonth() + 1;
   const startDay = start.getUTCDate();
@@ -75,9 +75,19 @@ function formatDateQuery(start: Date): string {
   const rangeStartDate = padZeros(startDay, 2);
 
   let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
-  rangeEndYear = rangeStartYear;
-  rangeEndMonth = rangeStartMonth;
-  rangeEndDate = rangeStartDate;
+
+  if (isNil(end)) {
+    rangeEndYear = rangeStartYear;
+    rangeEndMonth = rangeStartMonth;
+    rangeEndDate = rangeStartDate;
+  } else {
+    const endYear = end.getUTCFullYear();
+    const endMonth = end.getUTCMonth() + 1;
+    const endDay = end.getUTCDate();
+    rangeEndYear = `${endYear}`;
+    rangeEndMonth = padZeros(endMonth, 2);
+    rangeEndDate = padZeros(endDay, 2);
+  }
 
   const rangeStartIO = `${rangeStartMonth}-${rangeStartDate}-${rangeStartYear}`;
   const rangeEndIO = `${rangeEndMonth}-${rangeEndDate}-${rangeEndYear}`;
@@ -86,35 +96,34 @@ function formatDateQuery(start: Date): string {
 }
 
 /**
- *
- * @param collection
- * @param dataType either "videos" or "photos"
- * @param requestDate date to fetch data for
- * @returns
+ * Fetch for either photo or video data from the IO API. Checks cache. Uses multiple parallel calls if necessary
+ * @param collection Collection object used to build the IO query string
+ * @param dataType Either "videos" or "photos"
+ * @param requestDate The date to fetch data for
+ * @returns PhotoFile[] | VideoFile[]
  */
 export async function fetchData(
   collection: Collection,
   dataType: "photos" | "videos",
   requestDate: Date
 ) {
-  const dateQuery = formatDateQuery(requestDate);
-  let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[],
-    preferNew: boolean,
-    queryParams: string;
-  switch (dataType) {
-    case "photos":
-      parser = parseIOPhotoResponse;
-      preferNew = false;
-      queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
-      break;
-    case "videos":
-      const today = new Date().setHours(0, 0, 0, 0);
-      parser = parseIOVideoResponse;
-      // If we're looking for video older than yesterday than the cache will do just fine (taking into account cacheAge).
-      // If we're looking more recent (between start of yesterday and end of today) then definitely pull new data becuase there's a chance it's been updated
-      preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
-      queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
-      break;
+  let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
+  let preferNew: boolean;
+  let dateQuery: string;
+  let queryParams: string;
+
+  if (dataType === "photos") {
+    parser = parseIOPhotoResponse;
+    preferNew = false;
+    dateQuery = formatDateQuery(requestDate);
+    queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
+  } else if (dataType === "videos") {
+    const today = new Date().setHours(0, 0, 0, 0);
+    parser = parseIOVideoResponse;
+    // If we're looking for today's video then definitely pull new data becuase there's a chance it's been updated
+    preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
+    dateQuery = formatDateQuery(add(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
+    queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
   }
 
   const retriever = async () => {
