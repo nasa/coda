@@ -1,4 +1,4 @@
-import { getChannel } from "server/services/io-api";
+import { getChannel, formatDateQuery, videoSorter } from "server/services/io-api";
 
 describe("services/io-api", () => {
   describe("getChannel()", () => {
@@ -25,6 +25,98 @@ describe("services/io-api", () => {
       ];
 
       expect(getChannel(collectionString)).toEqual("");
+    });
+  });
+
+  describe("formatDateQuery()", () => {
+    const dateStart = new Date("2020/01/30"); //yyyy mm dd format
+    const dateEnd = new Date("2020/06/15");
+    it("formats query with end date", () => {
+      expect(formatDateQuery(dateStart, dateEnd)).toEqual("s_dt=01-30-2020&e_dt=06-15-2020");
+    });
+
+    it("formats query with no end date", () => {
+      expect(formatDateQuery(dateStart)).toEqual("s_dt=01-30-2020&e_dt=01-30-2020");
+    });
+  });
+
+  describe("videoSorter()", () => {
+    const videos: VideoFile[] = Array.from({ length: 3 }, () => {
+      return {
+        id: null,
+        description: null,
+        collection: null,
+        collections: null,
+        dataURL: null,
+        mediaLowResURL: null,
+        start: 0,
+        end: 0,
+        downlink: 0,
+        LOS: false,
+        priority: 0,
+        startDateTime: null,
+      };
+    });
+
+    it("sorts priority no change", () => {
+      videos[0].id = "1";
+      videos[0].priority = 1;
+      videos[1].id = "2";
+      videos[1].priority = 2;
+      videos[2].id = "3";
+      videos[2].priority = 3;
+
+      videos.sort(videoSorter);
+      expect([videos[0].id, videos[1].id, videos[2].id]).toEqual(["1", "2", "3"]);
+    });
+    it("sorts priority resulting in backwards array", () => {
+      videos[0].id = "1";
+      videos[0].priority = 3;
+      videos[1].id = "2";
+      videos[1].priority = 2;
+      videos[2].id = "3";
+      videos[2].priority = 1;
+
+      videos.sort(videoSorter);
+      expect([videos[0].id, videos[1].id, videos[2].id]).toEqual(["3", "2", "1"]);
+    });
+    it("priority is all the same, sorts duration longest to shortest", () => {
+      videos[0].id = "1";
+      videos[0].priority = 1;
+      videos[0].start = 1;
+      videos[0].end = 1.1;
+
+      videos[1].id = "2";
+      videos[1].priority = 1;
+      videos[1].start = 1;
+      videos[1].end = 1.3;
+
+      videos[2].id = "3";
+      videos[2].priority = 1;
+      videos[2].start = 1;
+      videos[2].end = 1.2;
+
+      videos.sort(videoSorter);
+      expect([videos[0].id, videos[1].id, videos[2].id]).toEqual(["2", "3", "1"]);
+    });
+    it("sorts combination of priority and duration", () => {
+      videos[0].id = "1";
+      videos[0].priority = 2;
+      videos[0].start = 1;
+      videos[0].end = 1.1;
+
+      videos[1].id = "2";
+      videos[1].priority = 2;
+      videos[1].start = 1;
+      videos[1].end = 1.3;
+
+      videos[2].id = "3";
+      videos[2].priority = 1;
+      videos[2].start = 1;
+      videos[2].end = 1.1;
+
+      videos.sort(videoSorter);
+      expect([videos[0].id, videos[1].id, videos[2].id]).toEqual(["3", "2", "1"]);
     });
   });
 });

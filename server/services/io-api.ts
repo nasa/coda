@@ -65,8 +65,8 @@ async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IO
   return res.json();
 }
 
-/** Format an IO query string for a single day */
-function formatDateQuery(start: Date, end?: Date): string {
+/** Format an IO query string for a single day.  Exported for testing purposes.*/
+export function formatDateQuery(start: Date, end?: Date): string {
   const startYear = start.getUTCFullYear();
   const startMonth = start.getUTCMonth() + 1;
   const startDay = start.getUTCDate();
@@ -120,6 +120,11 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
     preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
     dateQuery = formatDateQuery(add(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
+  } else {
+    // will this error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
+    // Ref: https://www.typescriptlang.org/docs/handbook/2/functions.html#never
+    const exhaustiveCheck: never = fetchType;
+    throw new Error(exhaustiveCheck);
   }
 
   const retriever = async () => {
@@ -190,16 +195,13 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
 
 /**
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
+ * Exported for testing
  */
-const videoSorter = (a: VideoFile, b: VideoFile) => {
+export const videoSorter = (a: VideoFile, b: VideoFile) => {
   const aDuration = a.end - a.start;
   const bDuration = b.end - b.start;
-  return (
-    +(a.priority < b.priority) ||
-    +(a.priority === b.priority) ||
-    +(aDuration < bDuration) ||
-    +(aDuration === bDuration)
-  );
+  // > 0 sorts a after b, < 0 sorts a before b, === 0 keep original order of a and b
+  return a.priority - b.priority || bDuration - aDuration;
 };
 
 /** Parse the video result for relevant information */
