@@ -1,4 +1,4 @@
-import { getChannel, formatDateQuery, videoSorter } from "server/services/io-api";
+import { getChannel, formatDateQuery, videoSorter, buildQueryArray } from "server/services/io-api";
 
 describe("services/io-api", () => {
   describe("getChannel()", () => {
@@ -117,6 +117,16 @@ describe("services/io-api", () => {
 
       videos.sort(videoSorter);
       expect([videos[0].id, videos[1].id, videos[2].id]).toEqual(["3", "2", "1"]);
+    });
+  });
+
+  describe("buildQueryArray()", () => {
+    it("should create 3 items in array", () => {
+      expect(buildQueryArray("a=b&b=c", 4, 500)).toEqual([
+        "a=b&b=c&sr=501",
+        "a=b&b=c&sr=1001",
+        "a=b&b=c&sr=1501",
+      ]);
     });
   });
 });

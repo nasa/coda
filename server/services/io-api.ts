@@ -22,11 +22,11 @@ import { inRange, isNil } from "lodash";
 import { Collection, IOFetchType } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
-async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IOResponse> {
+async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
-    if (action === "videos") {
+    if (action === IOFetchType.VIDEOS) {
       // we're in the local environment. mock the request
       console.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("/mocks/fakedata/io_videos.json");
@@ -35,7 +35,7 @@ async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IO
       return await Promise.resolve(mockIOData);
     }
 
-    if (action === "photos") {
+    if (action === IOFetchType.PHOTOS) {
       console.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("/mocks/fakedata/io_photos.json");
 
@@ -121,7 +121,7 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
     dateQuery = formatDateQuery(add(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
   } else {
-    // will this error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
+    //  this will error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
     // Ref: https://www.typescriptlang.org/docs/handbook/2/functions.html#never
     const exhaustiveCheck: never = fetchType;
     throw new Error(exhaustiveCheck);
@@ -129,25 +129,22 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
 
   const retriever = async () => {
     const res = await fetchIO(queryParams, fetchType);
+    const limit = 500; //limit on results per call for IO API
 
     const { numfound } = res.results.response;
-    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
+    const callsRequired = Math.ceil(numfound / limit);
 
     // create array from first API call
     const data1 = parser(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
-      // If using mock data, just return the first 500 in the mock response
-      // Only one API call was needed because we got fewer than 500 results. Just return it.
+      // If using mock data, just return the first batch in the mock response
+      // Only one API call was needed because we got fewer results than the limit. Just return it.
       return data1;
     }
 
     // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray: string[] = [];
-    for (let i = 1; i < callsRequired; i++) {
-      let startNum = 500 * i + 1;
-      queryParamsArray.push(`${queryParams}&sr=${startNum}`);
-    }
+    let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
 
     // create an array of promises for async IO calls
     const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
@@ -177,6 +174,27 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
       preferNew: preferNew,
     }
   );
+}
+
+/**
+ * Builds a string array of URL parameters to feed into the api.
+ * Pulled into a separate function and exported for unit testing.
+ * @param queryParams the unique query parameter string to prepend
+ * @param callsRequired the number of calls required to cover all the records returned
+ * @param limit the limit of records per call
+ * @returns string[] containing the query params for each api call
+ */
+export function buildQueryArray(
+  queryParams: string,
+  callsRequired: number,
+  limit: number
+): string[] {
+  let queryParamsArray: string[] = [];
+  for (let i = 1; i < callsRequired; i++) {
+    let startNum = limit * i + 1;
+    queryParamsArray.push(`${queryParams}&sr=${startNum}`);
+  }
+  return queryParamsArray;
 }
 
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
