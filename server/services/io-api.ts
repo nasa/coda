@@ -26,21 +26,22 @@ async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
+    // we're in the local environment. mock the request
     if (action === IOFetchType.VIDEOS) {
-      // we're in the local environment. mock the request
       console.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("/mocks/fakedata/io_videos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
-    }
-
-    if (action === IOFetchType.PHOTOS) {
+    } else if (action === IOFetchType.PHOTOS) {
       console.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("/mocks/fakedata/io_photos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
+    } else {
+      const exhaustiveCheck: never = action;
+      throw new Error(exhaustiveCheck);
     }
   }
 
