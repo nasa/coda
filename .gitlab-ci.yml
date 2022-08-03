@@ -155,6 +155,7 @@ test:
     - npm run lint
     - npm run tsc
     - npm run test:coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     reports:
       coverage_report:
