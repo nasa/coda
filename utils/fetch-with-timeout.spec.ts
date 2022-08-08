@@ -1,31 +1,32 @@
-import fetchWithTimeout, { withFetch } from "utils/testfetch";
-import fetch, { RequestInit } from "node-fetch";
+import fetchWithTimeout from "utils/fetch-with-timeout";
+import fetch, { RequestInit, RequestInfo } from "node-fetch";
 import https from "https";
-import AbortSignal from "abort-controller";
+import { AbortSignal } from "abort-controller";
 
 //turn the node-fetch module fetch call into jest mocked call
 jest.mock("node-fetch");
 //return acutal node-fetch response instead of the mocked version of the response
-const { Response, RequestInit } = jest.requireActual("node-fetch");
-const res = new Response(JSON.stringify({ testData: 100 }));
-// (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(res);
-setTimeout(
-  (fetch as jest.MockedFunction<typeof fetch>).mockImplementation(() => {
-    // const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    // return wait(0).then(new Response(JSON.stringify({ testData: 100 })));
+const { Response } = jest.requireActual("node-fetch");
 
-    return Promise.resolve(res);
-  }),
-  10000
+(fetch as jest.MockedFunction<typeof fetch>).mockImplementation(
+  async (url: RequestInfo, init?: RequestInit) => {
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    try {
+      await wait(50); //50 ms timeout for this test
+      if (init.signal.aborted) return undefined;
+      return new Response(JSON.stringify({ testData: 123 }));
+    } finally {
+    }
+  }
 );
 
 describe("fetchWithTimeout", () => {
-  it("fetch valid", async () => {
-    const response = await fetchWithTimeout("url", { timeout: 1000 });
-    const json = await response.json();
+  it("fetch completes and all options passed in correctly", async () => {
+    const response = await fetchWithTimeout("url", { timeout: 100 });
 
     //check mock response
-    expect(json).toEqual({ testData: 100 });
+    const json = await response.json();
+    expect(json).toEqual({ testData: 123 });
 
     //check first argument URL
     expect((fetch as jest.MockedFunction<typeof fetch>).mock.calls[0][0]).toEqual("url");
@@ -39,12 +40,18 @@ describe("fetchWithTimeout", () => {
     } else {
       expect(rejUnauth).toBe(false);
     }
-    //check signal passed in
-    expect(reqInit.signal).not.toBeNull();
-    expect(reqInit.signal).not.toBeUndefined();
-    //expect(reqInit.signal).toBeInstanceOf(AbortSignal);
+    //check AbortSignal
+    expect(reqInit.signal).toBeInstanceOf(AbortSignal);
   });
 
-  //put the fetch call back to original call
+  it("fetch times out", async () => {
+    const response = await fetchWithTimeout("url", { timeout: 10 });
+
+    //check mock response
+    expect(response).toBeUndefined();
+  });
+
+  //put the fetch call and spy calls back to original
   jest.unmock("node-fetch");
+  jest.restoreAllMocks();
 });
