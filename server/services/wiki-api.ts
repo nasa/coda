@@ -330,9 +330,11 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 /**
  * Fetch as-planned and as-executed EVA data and standardize the format
  *
- * @param agency us|rs|all. Get US EVAs, RS EVAs, or all EVAs across both space agencies
+ * @param agency `us|rs|all`. Get US EVAs, RS EVAs, or all EVAs across both space agencies
  * */
-export async function getAllEVAData(agency: string): Promise<WikibotResponse<Sequence[]>> {
+export async function getAllEVAData(
+  agency: "us" | "rs" | "all"
+): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
 
   const retriever = async () => {
@@ -381,7 +383,7 @@ export async function getAllEVAData(agency: string): Promise<WikibotResponse<Seq
     }
 
     const matchAgency = (eva: Sequence) => {
-      const re = new RegExp(`.*${agency} EVA.*/i`);
+      const re = new RegExp(`.*${agency} EVA.*`, "i");
       return !isNil(eva.name.match(re));
     };
 
