@@ -332,9 +332,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
  *
  * @param agency `us|rs|all`. Get US EVAs, RS EVAs, or all EVAs across both space agencies
  * */
-export async function getAllEVAData(
-  agency: "us" | "rs" | "all"
-): Promise<WikibotResponse<Sequence[]>> {
+export async function getAllEVAData(agency: Agency): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
 
   const retriever = async () => {
@@ -359,8 +357,8 @@ export async function getAllEVAData(
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
       const displayTitle = formatEVADisplayTitle({
-        descriptiveTitle: allEVAs[evaName].printouts["EVA title"][0],
         pageName: evaName,
+        descriptiveTitle: allEVAs[evaName].printouts["EVA title"][0],
       });
 
       return {
@@ -670,7 +668,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
   });
 }
 
-/** Given wikitext that includes one or more tables, parse the tables into objects
+/** Given wikitext that includes one or more tables, parse the tables into objects. Exported for testing
  *
  * Wikitable syntax must be in the form of:
  *
@@ -685,7 +683,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
  *
  * Inspired by: https://www.mediawiki.org/wiki/API:Parsing_wikitext#Example_1:_Parse_content_of_a_page
  */
-function parseWikitextTable(wikitext: string): DatetimeOverrides {
+export function parseWikitextTable(wikitext: string): DatetimeOverrides {
   const data = [];
   const lines = wikitext.split("|-");
 
