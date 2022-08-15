@@ -4,7 +4,7 @@
 
 /** Fetch all EVA data */
 export async function fetchEVAs(): Promise<WrappedResponse<Sequence[]>> {
-  const res = await fetch("/api/sequences/evas");
+  const res = await fetch("/api/sequences/evas?agency=all");
   let wrappedResponse: WrappedResponse<Sequence[]> = await res.json();
   return wrappedResponse;
 }

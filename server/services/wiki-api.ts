@@ -8,6 +8,7 @@ See sandboxes:
 import fs from "fs";
 import get from "lodash/get";
 import deepEquals from "lodash/isEqual";
+import isNil from "lodash/isNil";
 import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
@@ -168,7 +169,7 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WikibotResponse<Wik
 async function getAllEVAs(): Promise<WikibotResponse<EVASummaryResponse>> {
   // wiki query parameters
   const askQuery = `
-    [[~US EVA*]]
+    [[~*S EVA*]]
     [[EVA Classification::Scheduled or Historical]]
     |? EVA title
     |? Start date
@@ -326,9 +327,14 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
   return res;
 }
 
-/** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
+/**
+ * Fetch as-planned and as-executed EVA data and standardize the format
+ *
+ * @param agency `us|rs|all`. Get US EVAs, RS EVAs, or all EVAs across both space agencies
+ * */
+export async function getAllEVAData(agency: Agency): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
+
   const retriever = async () => {
     const { data: allEVAs, mocked: allEVAsMocked } = await getAllEVAs();
     const { data: asExecuted, mocked: asExecutedMocked } = await getAllAsExecuted();
@@ -336,7 +342,7 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
 
     mocked = allEVAsMocked || asExecutedMocked || crewsMocked;
 
-    return Object.keys(allEVAs).map((evaName) => {
+    const evas = Object.keys(allEVAs).map((evaName) => {
       const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
       let duration = -1;
       const [wikiDuration] = allEVAs[evaName].printouts.Duration;
@@ -351,8 +357,8 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
       const startDate = `${yyyy}-${padZeros(+mm, 2)}-${padZeros(+dd, 2)}`;
 
       const displayTitle = formatEVADisplayTitle({
-        descriptiveTitle: allEVAs[evaName].printouts["EVA title"][0],
         pageName: evaName,
+        descriptiveTitle: allEVAs[evaName].printouts["EVA title"][0],
       });
 
       return {
@@ -369,9 +375,20 @@ export async function getAllEVAData(): Promise<WikibotResponse<Sequence[]>> {
         crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
       };
     });
+
+    if (agency === "all") {
+      return evas;
+    }
+
+    const matchAgency = (eva: Sequence) => {
+      const re = new RegExp(`.*${agency} EVA.*`, "i");
+      return !isNil(eva.name.match(re));
+    };
+
+    return evas.filter(matchAgency);
   };
 
-  const response = await fetchWithCache<Sequence[]>("wiki/all", retriever, {
+  const response = await fetchWithCache<Sequence[]>(`wiki/all/${agency}`, retriever, {
     cacheAge: 60,
     staleOk: true,
   });
@@ -520,7 +537,7 @@ export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]
 
 export async function fetchSequences(collection: Collection): Promise<WikibotResponse<Sequence[]>> {
   if (collection === Collection.ISS) {
-    return getAllEVAData();
+    return getAllEVAData("us");
   } else {
     return getAllTestEventsData();
   }
@@ -651,7 +668,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
   });
 }
 
-/** Given wikitext that includes one or more tables, parse the tables into objects
+/** Given wikitext that includes one or more tables, parse the tables into objects. Exported for testing
  *
  * Wikitable syntax must be in the form of:
  *
@@ -666,7 +683,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
  *
  * Inspired by: https://www.mediawiki.org/wiki/API:Parsing_wikitext#Example_1:_Parse_content_of_a_page
  */
-function parseWikitextTable(wikitext: string): DatetimeOverrides {
+export function parseWikitextTable(wikitext: string): DatetimeOverrides {
   const data = [];
   const lines = wikitext.split("|-");
 
