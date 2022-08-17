@@ -1,5 +1,5 @@
 import cacache from "cacache";
-import retrieveJSON from "server/services/cache-client";
+import fetchWithCache from "server/services/cache-client";
 
 describe("services/cache-client", () => {
   it("should execute a retriever async function when nothing is in the cache", async () => {
@@ -13,7 +13,7 @@ describe("services/cache-client", () => {
       return {};
     };
 
-    await retrieveJSON(identifier, retriever);
+    await fetchWithCache(identifier, retriever);
 
     expect(ran).toBeTruthy();
   });
@@ -26,7 +26,7 @@ describe("services/cache-client", () => {
       return data;
     };
 
-    const res = await retrieveJSON(identifier, retriever);
+    const res = await fetchWithCache(identifier, retriever);
 
     expect(res.data.message).toEqual("executed");
   });
@@ -40,8 +40,8 @@ describe("services/cache-client", () => {
       return {};
     };
 
-    await retrieveJSON(identifier, retriever);
-    await retrieveJSON(identifier, retriever);
+    await fetchWithCache(identifier, retriever);
+    await fetchWithCache(identifier, retriever);
 
     expect(runs).toEqual(1);
   });
@@ -57,12 +57,12 @@ describe("services/cache-client", () => {
 
     let unhandledErrors = 0;
     try {
-      await retrieveJSON(identifier, retriever);
+      await fetchWithCache(identifier, retriever);
     } catch (_e) {
       unhandledErrors += 1;
     }
     try {
-      await retrieveJSON(identifier, retriever);
+      await fetchWithCache(identifier, retriever);
     } catch (_e) {
       unhandledErrors += 1;
     }
@@ -80,7 +80,7 @@ describe("services/cache-client", () => {
       return {};
     };
 
-    await retrieveJSON(identifier, retriever);
+    await fetchWithCache(identifier, retriever);
 
     // wait 10 ms
     await (async () => {
@@ -90,7 +90,7 @@ describe("services/cache-client", () => {
     })();
 
     // only accept cache entries younger than 10 ms. the cache entry must be older than 10 ms given the above wait, so the retriever runs again
-    await retrieveJSON(identifier, retriever, { cacheAge: 0.01 });
+    await fetchWithCache(identifier, retriever, { cacheAge: 0.01 });
 
     expect(runs).toEqual(2);
   });
@@ -104,8 +104,8 @@ describe("services/cache-client", () => {
       return {};
     };
 
-    await retrieveJSON(identifier, retriever);
-    await retrieveJSON(identifier, retriever, { preferNew: true });
+    await fetchWithCache(identifier, retriever);
+    await fetchWithCache(identifier, retriever, { preferNew: true });
 
     expect(runs).toEqual(2);
   });
@@ -128,7 +128,7 @@ describe("services/cache-client", () => {
       throw new Error("Something went wrong");
     };
 
-    await retrieveJSON(identifier, retriever);
+    await fetchWithCache(identifier, retriever);
 
     // wait 10 ms
     await (async () => {
@@ -137,7 +137,7 @@ describe("services/cache-client", () => {
       });
     })();
 
-    const res = await retrieveJSON(identifier, retriever, { cacheAge: 0.01, staleOk: true });
+    const res = await fetchWithCache(identifier, retriever, { cacheAge: 0.01, staleOk: true });
 
     expect(ran).toEqual(2);
     expect(res.data.message).toEqual("Worked!");

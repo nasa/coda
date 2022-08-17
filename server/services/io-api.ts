@@ -22,25 +22,26 @@ import { inRange, isNil } from "lodash";
 import { Collection, IOFetchType } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
-async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IOResponse> {
+async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
-    if (action === "videos") {
-      // we're in the local environment. mock the request
+    // we're in the local environment. mock the request
+    if (action === IOFetchType.VIDEOS) {
       console.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("/mocks/fakedata/io_videos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
-    }
-
-    if (action === "photos") {
+    } else if (action === IOFetchType.PHOTOS) {
       console.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("/mocks/fakedata/io_photos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
+    } else {
+      const exhaustiveCheck: never = action;
+      throw new Error(exhaustiveCheck);
     }
   }
 
@@ -65,8 +66,8 @@ async function fetchIO(params: string, action?: "photos" | "videos"): Promise<IO
   return res.json();
 }
 
-/** Format an IO query string for a single day */
-function formatDateQuery(start: Date, end?: Date): string {
+/** Format an IO query string for a single day.  Exported for testing purposes.*/
+export function formatDateQuery(start: Date, end?: Date): string {
   const startYear = start.getUTCFullYear();
   const startMonth = start.getUTCMonth() + 1;
   const startDay = start.getUTCDate();
@@ -120,29 +121,31 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
     preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
     dateQuery = formatDateQuery(add(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
+  } else {
+    //  this will error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
+    // Ref: https://www.typescriptlang.org/docs/handbook/2/functions.html#never
+    const exhaustiveCheck: never = fetchType;
+    throw new Error(exhaustiveCheck);
   }
 
   const retriever = async () => {
     const res = await fetchIO(queryParams, fetchType);
+    const limit = 500; //limit on results per call for IO API
 
     const { numfound } = res.results.response;
-    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
+    const callsRequired = Math.ceil(numfound / limit);
 
     // create array from first API call
     const data1 = parser(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
-      // If using mock data, just return the first 500 in the mock response
-      // Only one API call was needed because we got fewer than 500 results. Just return it.
+      // If using mock data, just return the first batch in the mock response
+      // Only one API call was needed because we got fewer results than the limit. Just return it.
       return data1;
     }
 
     // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray: string[] = [];
-    for (let i = 1; i < callsRequired; i++) {
-      let startNum = 500 * i + 1;
-      queryParamsArray.push(`${queryParams}&sr=${startNum}`);
-    }
+    let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
 
     // create an array of promises for async IO calls
     const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
@@ -174,6 +177,27 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
   );
 }
 
+/**
+ * Builds a string array of URL parameters to feed into the api.
+ * Pulled into a separate function and exported for unit testing.
+ * @param queryParams the unique query parameter string to prepend
+ * @param callsRequired the number of calls required to cover all the records returned
+ * @param limit the limit of records per call
+ * @returns string[] containing the query params for each api call
+ */
+export function buildQueryArray(
+  queryParams: string,
+  callsRequired: number,
+  limit: number
+): string[] {
+  let queryParamsArray: string[] = [];
+  for (let i = 1; i < callsRequired; i++) {
+    let startNum = limit * i + 1;
+    queryParamsArray.push(`${queryParams}&sr=${startNum}`);
+  }
+  return queryParamsArray;
+}
+
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
@@ -190,16 +214,13 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
 
 /**
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
+ * Exported for testing
  */
-const videoSorter = (a: VideoFile, b: VideoFile) => {
+export const videoSorter = (a: VideoFile, b: VideoFile) => {
   const aDuration = a.end - a.start;
   const bDuration = b.end - b.start;
-  return (
-    +(a.priority < b.priority) ||
-    +(a.priority === b.priority) ||
-    +(aDuration < bDuration) ||
-    +(aDuration === bDuration)
-  );
+  // > 0 sorts a after b, < 0 sorts a before b, === 0 keep original order of a and b
+  return a.priority - b.priority || bDuration - aDuration;
 };
 
 /** Parse the video result for relevant information */
