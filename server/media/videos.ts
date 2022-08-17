@@ -1,8 +1,7 @@
 import clone from "lodash/cloneDeep";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
-import { add } from "store/playhead";
-import { Collection } from "utils/enums";
+import { Collection, IOFetchType } from "utils/enums";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
@@ -14,13 +13,13 @@ export default async function getVideoData(
   collection: Collection
 ): Promise<WrappedResponse<VideoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  const previousDate = add(requestedDate, -86400000);
-  const nextDate = add(requestedDate, 86400000);
 
   // fetch video info and fudge factors in parallel
   const [results, overrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after
-    IoService.fetchVideoData(collection, previousDate, nextDate),
+    IoService.fetchData(collection, IOFetchType.VIDEOS, requestedDate) as Promise<
+      WrappedResponse<VideoFile[]>
+    >,
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {

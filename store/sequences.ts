@@ -50,12 +50,8 @@ export const sequencesSlice = createSlice({
   },
 });
 
-export const {
-  addSequences,
-  clearSequences,
-  fetchError,
-  setSequenceLoadingStatus,
-} = sequencesSlice.actions;
+export const { addSequences, clearSequences, fetchError, setSequenceLoadingStatus } =
+  sequencesSlice.actions;
 
 export const sequencesSelector = sequencesAdapter.getSelectors<SequencesEntityState>(
   (state) => state
@@ -108,35 +104,4 @@ export const getAsPerformedMissionTime = (
   }
 
   return res;
-};
-
-/** Translate day/night cycles to mission time */
-export const getDayNightMissionTime = (dayNight: DayNight): DayNight => {
-  const events = [] as Activity[];
-  const startOfDay = new Date(
-    `${new Date(dayNight.dataStartUTC).toUTCString().split("T")[0]}T00:00:00Z`
-  );
-
-  // slightly different for dayNight object
-  let thisStartTimeSeconds = (dayNight.dataStartUTC - startOfDay.getTime()) / 1000;
-
-  for (let e = 0; e < dayNight.events.length; e++) {
-    const { color, content, duration } = dayNight.events[e];
-    const event = {
-      color,
-      content,
-      duration,
-      startTimeSeconds: thisStartTimeSeconds,
-      endTimeSeconds: thisStartTimeSeconds + duration * 60,
-    } as Activity;
-
-    events.push(event);
-
-    thisStartTimeSeconds = thisStartTimeSeconds + duration * 60;
-  }
-
-  return {
-    dataStartUTC: dayNight.dataStartUTC,
-    events,
-  };
 };

@@ -185,3 +185,6 @@ interface TestEventOffsets {
   /** In the form of UTC-05:00 */
   timeoffset: string;
 }
+
+/** API query options */
+type Agency = "us" | "rs" | "all";

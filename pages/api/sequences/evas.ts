@@ -4,11 +4,17 @@ import getEVAData from "server/sequences/evas";
 /**
  * `/api/sequences/evas`
  *
+ * Query Params:
+ *  agency=us|rs|all - default us
+ *   if 'us', only US EVAs. if 'rs', only RS EVAs. if 'all', all EVAs
+ *
  * Get all as-planned EVA data in the wiki
  */
-export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { agency = "us" } = req.query as { [key: string]: string };
+
   try {
-    const evas = await getEVAData();
+    const evas = await getEVAData(agency as Agency);
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);

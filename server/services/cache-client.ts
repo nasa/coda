@@ -81,7 +81,7 @@ export default async function fetchWithCache<T>(
   try {
     res = await retriever();
   } catch (e) {
-    if (!isNull(cachedRes) && (opts.staleOk || opts.preferNew)) {
+    if (!isNull(cachedRes) && opts.staleOk) {
       // even though this request failed, we still have good stale data in the cache and the caller is fine with that
       console.warn(`Stale data is being returned for '${identifier}'`);
       console.warn(e);

@@ -100,6 +100,7 @@ WIKI_USER=
 WIKI_PASSWORD=
 SPACETRACK_USER=
 SPACETRACK_PASSWORD=
+NEXT_PUBLIC_MAPBOX_KEY=
 ```
 
 Ask Ben, James, or Cameron for the keys if you don't have them. You can also overwrite any of the variables found in `next.config.js`.
@@ -109,7 +110,8 @@ Ask Ben, James, or Cameron for the keys if you don't have them. You can also ove
    2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
-5. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
+5. Get a Mapbox API key https://account.mapbox.com/
+6. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
 
 ### Local Dev Environment
 

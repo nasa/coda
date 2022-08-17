@@ -17,30 +17,31 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
-import { isNil } from "lodash";
-import { isBetweenDates } from "store/playhead";
-import { Collection } from "utils/enums";
+import { add } from "store/playhead";
+import { inRange, isNil } from "lodash";
+import { Collection, IOFetchType } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
-async function fetchIO(params: string, action?: string): Promise<IOResponse> {
+async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
-    if (action === "videoData") {
-      // we're in the local environment. mock the request
+    // we're in the local environment. mock the request
+    if (action === IOFetchType.VIDEOS) {
       console.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("/mocks/fakedata/io_videos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
-    }
-
-    if (action === "photoData") {
+    } else if (action === IOFetchType.PHOTOS) {
       console.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("/mocks/fakedata/io_photos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
+    } else {
+      const exhaustiveCheck: never = action;
+      throw new Error(exhaustiveCheck);
     }
   }
 
@@ -65,8 +66,8 @@ async function fetchIO(params: string, action?: string): Promise<IOResponse> {
   return res.json();
 }
 
-/** Format an IO query string for a single day */
-function formatDateQuery(start: Date, end?: Date): string {
+/** Format an IO query string for a single day.  Exported for testing purposes.*/
+export function formatDateQuery(start: Date, end?: Date): string {
   const startYear = start.getUTCFullYear();
   const startMonth = start.getUTCMonth() + 1;
   const startDay = start.getUTCDate();
@@ -75,6 +76,7 @@ function formatDateQuery(start: Date, end?: Date): string {
   const rangeStartDate = padZeros(startDay, 2);
 
   let rangeEndYear: string, rangeEndMonth: string, rangeEndDate: string;
+
   if (isNil(end)) {
     rangeEndYear = rangeStartYear;
     rangeEndMonth = rangeStartMonth;
@@ -94,34 +96,56 @@ function formatDateQuery(start: Date, end?: Date): string {
   return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
 }
 
-export async function fetchVideoData(collection: Collection, start: Date, end?: Date) {
-  const now = new Date();
+/**
+ * Fetch for either photo or video data from the IO API. Checks cache. Uses multiple parallel calls if necessary
+ * @param collection Collection object used to build the IO query string
+ * @param fetchType IOFetchType
+ * @param requestDate The date to fetch data for
+ * @returns PhotoFile[] | VideoFile[]
+ */
+export async function fetchData(collection: Collection, fetchType: IOFetchType, requestDate: Date) {
+  let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
+  let preferNew: boolean;
+  let dateQuery: string;
+  let queryParams: string;
+
+  if (fetchType === IOFetchType.PHOTOS) {
+    parser = parseIOPhotoResponse;
+    preferNew = false;
+    dateQuery = formatDateQuery(requestDate);
+    queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
+  } else if (fetchType === IOFetchType.VIDEOS) {
+    const today = new Date().setHours(0, 0, 0, 0);
+    parser = parseIOVideoResponse;
+    // If we're looking for today's video then definitely pull new data becuase there's a chance it's been updated
+    preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
+    dateQuery = formatDateQuery(add(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
+    queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
+  } else {
+    //  this will error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
+    // Ref: https://www.typescriptlang.org/docs/handbook/2/functions.html#never
+    const exhaustiveCheck: never = fetchType;
+    throw new Error(exhaustiveCheck);
+  }
 
   const retriever = async () => {
-    let queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
-
-    const res = await fetchIO(queryParams, "videoData");
-    // return parseIOVideoResponse(res, collection);
+    const res = await fetchIO(queryParams, fetchType);
+    const limit = 500; //limit on results per call for IO API
 
     const { numfound } = res.results.response;
-    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
+    const callsRequired = Math.ceil(numfound / limit);
 
-    // create array of videos from first API call
-    const videos1: VideoFile[] = parseIOVideoResponse(res, collection);
+    // create array from first API call
+    const data1 = parser(res, collection);
 
     if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
-      // If using mock data, just return the first 500 in the mock response
-      // Only one API call was needed because we got fewer than 500 results. Just return it.
-      return videos1;
+      // If using mock data, just return the first batch in the mock response
+      // Only one API call was needed because we got fewer results than the limit. Just return it.
+      return data1;
     }
 
     // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray = [];
-    for (let i = 1; i < callsRequired; i++) {
-      let startNum = 500 * i + 1;
-      queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2&sr=${startNum}`;
-      queryParamsArray.push(queryParams);
-    }
+    let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
 
     // create an array of promises for async IO calls
     const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
@@ -129,26 +153,49 @@ export async function fetchVideoData(collection: Collection, start: Date, end?: 
     // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
     const resArray = await Promise.all(promiseArray);
 
-    // Parse out results into array of video objects
-
-    const additionalVideosArray: VideoFile[][] = resArray.map((res) => {
-      return parseIOVideoResponse(res, collection);
+    // Parse out results into array of objects
+    const additionalDataArray = resArray.map((res) => {
+      return parser(res, collection);
     });
 
-    // Turn array of videoFile arrays into one enormous videoFile array
-    let additionalVideos: VideoFile[] = additionalVideosArray.flat(1);
+    // Turn array of arrays into one enormous array
+    let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
 
-    // Merge the additional videos with the videos from the first API call and return it
-    const videos: VideoFile[] = [...videos1, ...additionalVideos];
-    return videos;
+    // Merge the additional objects with the objects from the first API call and return it
+    const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
+    return allData;
   };
 
-  const dateQuery = formatDateQuery(start, end);
-  return fetchWithCache<VideoFile[]>(`io/videos/${collection}/${dateQuery}`, retriever, {
-    cacheAge: 3600,
-    staleOk: true,
-    preferNew: isBetweenDates(now, start, end),
-  });
+  return fetchWithCache<PhotoFile[] | VideoFile[]>(
+    `io/${fetchType}/${collection}/${dateQuery}`,
+    retriever,
+    {
+      cacheAge: 3600,
+      staleOk: true,
+      preferNew: preferNew,
+    }
+  );
+}
+
+/**
+ * Builds a string array of URL parameters to feed into the api.
+ * Pulled into a separate function and exported for unit testing.
+ * @param queryParams the unique query parameter string to prepend
+ * @param callsRequired the number of calls required to cover all the records returned
+ * @param limit the limit of records per call
+ * @returns string[] containing the query params for each api call
+ */
+export function buildQueryArray(
+  queryParams: string,
+  callsRequired: number,
+  limit: number
+): string[] {
+  let queryParamsArray: string[] = [];
+  for (let i = 1; i < callsRequired; i++) {
+    let startNum = limit * i + 1;
+    queryParamsArray.push(`${queryParams}&sr=${startNum}`);
+  }
+  return queryParamsArray;
 }
 
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
@@ -167,16 +214,13 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
 
 /**
  * Sorts by priority first, then duration second. This sorting is later used to choose the item with the highest array position for the preferred video stream for a given group and time.
+ * Exported for testing
  */
-const videoSorter = (a: VideoFile, b: VideoFile) => {
+export const videoSorter = (a: VideoFile, b: VideoFile) => {
   const aDuration = a.end - a.start;
   const bDuration = b.end - b.start;
-  return (
-    +(a.priority < b.priority) ||
-    +(a.priority === b.priority) ||
-    +(aDuration < bDuration) ||
-    +(aDuration === bDuration)
-  );
+  // > 0 sorts a after b, < 0 sorts a before b, === 0 keep original order of a and b
+  return a.priority - b.priority || bDuration - aDuration;
 };
 
 /** Parse the video result for relevant information */
@@ -295,67 +339,6 @@ export function getChannel(collectionStrings: string[]): string {
     }
   }
   return "";
-}
-
-/**
- * Fetch video data from IO
- */
-export async function fetchPhotoData(
-  collection: Collection,
-  start: Date,
-  end?: Date
-): Promise<WrappedResponse<PhotoFile[]>> {
-  const dateQuery = formatDateQuery(start, end);
-
-  const retriever = async () => {
-    let queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
-
-    const res = await fetchIO(queryParams, "photoData");
-
-    const { numfound } = res.results.response;
-    const callsRequired = Math.ceil(numfound / 500); // 500 results per call limit on IO API
-
-    // create array of photos from first API call
-    const photos1: PhotoFile[] = parseIOPhotoResponse(res, collection);
-
-    if (callsRequired <= 1 || process.env.NEXT_PUBLIC_APP_ENV === "local") {
-      // If using mock data, just return the first 500 in the mock response
-      // Only one API call was needed because we got fewer than 500 results. Just return it.
-      return photos1;
-    }
-
-    // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray = [];
-    for (let i = 1; i < callsRequired; i++) {
-      let startNum = 500 * i + 1;
-      queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}&sr=${startNum}`;
-      queryParamsArray.push(queryParams);
-    }
-
-    // create an array of promises for async IO calls
-    const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
-
-    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
-    const resArray = await Promise.all(promiseArray);
-
-    // Parse out results into array of photo objects
-
-    const additionalPhotosArray: PhotoFile[][] = resArray.map((res) => {
-      return parseIOPhotoResponse(res, collection);
-    });
-
-    // Turn array of photoFile arays into one enormous photoFile array
-    let additionalPhotos: PhotoFile[] = additionalPhotosArray.flat(1);
-
-    // Merge the additional photos with the photos from the first API call and return it
-    const photos: PhotoFile[] = [...photos1, ...additionalPhotos];
-    return photos;
-  };
-
-  return fetchWithCache<PhotoFile[]>(`io/photos/${collection}/${dateQuery}`, retriever, {
-    cacheAge: 3600,
-    staleOk: true,
-  });
 }
 
 function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFile[] {

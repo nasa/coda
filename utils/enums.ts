@@ -8,6 +8,11 @@ export enum Collection {
   NBL = 78178,
 }
 
+export enum IOFetchType {
+  VIDEOS = "videos",
+  PHOTOS = "photos",
+}
+
 export enum LoadingStatusEnum {
   LOADING = "loading",
   LOADED = "loaded",
