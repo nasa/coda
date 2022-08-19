@@ -160,9 +160,11 @@ export async function fetchISSLocation(
   const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   try {
+    // one year in seconds
+    const oneYearInSeconds = 31536000;
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retriever, {
       preferNew: isToday,
-      cacheAge: isToday ? 60 : Infinity,
+      cacheAge: isToday ? 60 : oneYearInSeconds,
       staleOk: true,
     });
   } catch (e) {
