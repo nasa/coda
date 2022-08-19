@@ -143,7 +143,7 @@ export async function fetchISSLocation(
       numResults = ephemera.length;
       if (numResults === 0) {
         //subtract 1 day from dateToGet if we didn't get any results
-        dateToGet = new Date(dateToGet.getTime() - 1000 * 60 * 60 * 24);
+        dateToGet = new Date(dateToGet.getTime() - ONE_DAY_MS);
 
         // pause 5 seconds before hitting spacetrack again
         await new Promise((resolve) => setTimeout(resolve, 5000));
