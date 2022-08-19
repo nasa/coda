@@ -78,9 +78,9 @@ function calcDayNight(
 
     prevDaylight = daylight;
   }
-  const dayNightObj = {
+  const dayNightObj: DayNightObj = {
     appSeconds: secondsIn24Hours,
-    datlight: false,
+    daylight: false,
   };
   dayNightObjArray.push(dayNightObj);
 
@@ -117,70 +117,59 @@ export async function fetchISSLocation(
   date: number
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
-  const today = new Date(Date.UTC(year, month - 1, date));
-  const isToday = isSameDate(now, today);
+  const dateObj = new Date(Date.UTC(year, month - 1, date));
+  const isToday = isSameDate(now, dateObj);
 
   let res: WrappedResponse<EphemerisStore> = {
     cacheMetadata: null,
     data: { ephemera: [], dayNight: [] },
   };
 
-  // try with the date asked for first
-  const retrieverToday = async (): Promise<EphemerisStore> => {
-    const ephemera = await fetchSpacetrack(year, month, date);
+  const retriever = async (): Promise<EphemerisStore> => {
+    // Keep hitting spacetrack going back one day per call until we get some results
 
-    if (ephemera.length === 0) {
-      // can happen when no TLE is available for today yet. make sure this data isn't cached
-      throw new Error("Missing TLE Error");
+    let dateToGet = new Date(Date.UTC(year, month - 1, date));
+    let count = 0;
+    let numResults = 0;
+    let ephemera: EphemerisFile[] = [];
+
+    while (numResults === 0 && count < 10) {
+      ephemera = await fetchSpacetrack(
+        dateToGet.getFullYear(),
+        dateToGet.getUTCMonth(),
+        dateToGet.getDate()
+      );
+
+      numResults = ephemera.length;
+      if (numResults === 0) {
+        //subtract 1 day from dateToGet if we didn't get any results
+        dateToGet = new Date(dateToGet.getTime() - 1000 * 60 * 60 * 24);
+
+        // pause 5 seconds before hitting spacetrack again
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     }
 
-    const dayNight = calcDayNight(ephemera, year, month, date);
-    return { dayNight, ephemera };
+    let dayNight: DayNightObj[] = [];
+    if (ephemera.length > 0) {
+      dayNight = calcDayNight(ephemera, year, month, date);
+    }
+    return { ephemera, dayNight };
   };
 
-  const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
+  const identifier = isToday
+    ? "today"
+    : `isslocation-${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   try {
-    res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
+    res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retriever, {
       preferNew: isToday,
-      cacheAge: Infinity,
-    });
-  } catch (e) {
-    if (e.toString() !== "Error: Missing TLE Error") {
-      // something went wrong that isn't us avoiding the situation where we cache bad data
-      throw e;
-    }
-  }
-
-  if (isToday && res.data.ephemera.length === 0) {
-    // couldn't get a response for today. try yesterday
-    const yesterday = new Date(today.valueOf() - ONE_DAY_MS);
-    const yesterdayYear = yesterday.getUTCFullYear();
-    const yesterdayMonth = yesterday.getUTCMonth() + 1;
-    const yesterdayDate = yesterday.getUTCDate();
-    const dateParam = `${yesterdayYear}-${padZeros(yesterdayMonth, 2)}-${padZeros(
-      yesterdayDate,
-      2
-    )}`;
-
-    const retrieverYesterday = async (): Promise<EphemerisStore> => {
-      const ephemera = await fetchSpacetrack(yesterdayYear, yesterdayMonth, yesterdayDate);
-      const dayNight = calcDayNight(ephemera, yesterdayYear, yesterdayMonth - 1, yesterdayDate);
-      return { dayNight, ephemera };
-    };
-
-    res = await fetchWithCache<EphemerisStore>(`spacetrack/${dateParam}`, retrieverYesterday, {
-      cacheAge: Infinity,
-    });
-  }
-
-  // maybe we retrieved bad data from the cache. force another fetch against the spacetrack API
-  // only necessary because pre-issue-85, we would erroneously cache empty TLE responses
-  if (!isToday && res.data.ephemera.length === 0) {
-    res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retrieverToday, {
-      preferNew: true,
+      cacheAge: isToday ? 60 : Infinity,
       staleOk: true,
     });
+  } catch (e) {
+    // something went wrong that really shouldn't have
+    throw e;
   }
 
   return res;
