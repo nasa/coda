@@ -18,15 +18,6 @@ describe("server/services/spacetrack-api", () => {
     },
   });
 
-  // as if we accidentally cached bad data
-  const badCache = Promise.resolve({
-    cacheMetadata: null as CacheMetadata,
-    data: {
-      ephemera: [],
-      dayNight: [],
-    },
-  });
-
   it("should fetch locations from spacetrack", async () => {
     fetchMock.mockReturnValue(emptyResponse);
 
