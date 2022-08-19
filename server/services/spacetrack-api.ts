@@ -157,9 +157,7 @@ export async function fetchISSLocation(
     return { ephemera, dayNight };
   };
 
-  const identifier = isToday
-    ? "today"
-    : `isslocation-${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
+  const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   try {
     res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retriever, {
