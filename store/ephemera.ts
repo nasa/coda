@@ -14,7 +14,6 @@ const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
 });
 
 export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
-  dayNight: [{ appSeconds: 0, daylight: false }],
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 });
@@ -31,7 +30,7 @@ export const ephemeraSlice = createSlice({
     addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
       ephemerisAdapter.removeAll(state);
       ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
-      state.dayNight = action.payload.data.dayNight;
+      //state.dayNight = action.payload.data.dayNight;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
     },
     clearEphemera: (state) => {
@@ -48,12 +47,8 @@ export const ephemeraSlice = createSlice({
   },
 });
 
-export const {
-  addEphemera,
-  clearEphemera,
-  fetchError,
-  setEphemeraLoadingStatus,
-} = ephemeraSlice.actions;
+export const { addEphemera, clearEphemera, fetchError, setEphemeraLoadingStatus } =
+  ephemeraSlice.actions;
 
 /**
  * Returns a Two-Line Element (TLE) from space-track.org that is closest to dateTimeWanted
