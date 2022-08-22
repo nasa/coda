@@ -9,18 +9,7 @@ describe("server/services/spacetrack-api", () => {
     fetchMock.mockClear();
   });
 
-  // as if spacetrack just gave us a good response with no TLEs
-  const emptyResponse = Promise.resolve({
-    cacheMetadata: null as CacheMetadata,
-    data: {
-      ephemera: [],
-      dayNight: [],
-    },
-  });
-
   it("should fetch locations from spacetrack", async () => {
-    fetchMock.mockReturnValue(emptyResponse);
-
     await SpacetrackService.fetchISSLocation(2000, 1, 1);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
