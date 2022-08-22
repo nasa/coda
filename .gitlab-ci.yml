@@ -155,6 +155,7 @@ test:
     - npm run lint
     - npm run tsc
     - npm run test:coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     reports:
       coverage_report:
@@ -163,7 +164,7 @@ test:
       junit:
         - junit.xml
     paths:
-      - ./coverage/cobertura-coverage.xml
+      - ./coverage/*
 
 # test against next version of node that CODA may use, but allow to fail
 test-node-next:

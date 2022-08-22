@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "baseUrl": ".",
     "skipLibCheck": true,
@@ -15,48 +11,23 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
+    "sourceMap": true,
     "paths": {
-      "http-client/*": [
-        "http-client/*"
-      ],
-      "components/*": [
-        "./components/*"
-      ],
-      "pages/*": [
-        "pages/*"
-      ],
-      "public/*": [
-        "./public/*"
-      ],
-      "server/*": [
-        "server/*"
-      ],
-      "store/*": [
-        "./store/*"
-      ],
-      "typings/*": [
-        "./typings/*"
-      ],
-      "utils/*": [
-        "./utils/*"
-      ]
+      "http-client/*": ["http-client/*"],
+      "components/*": ["./components/*"],
+      "pages/*": ["pages/*"],
+      "public/*": ["./public/*"],
+      "server/*": ["server/*"],
+      "store/*": ["./store/*"],
+      "typings/*": ["./typings/*"],
+      "utils/*": ["./utils/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./typings"
-    ],
+    "typeRoots": ["./node_modules/@types", "./typings"],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "next.config.js"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "next.config.js"],
+  "exclude": ["node_modules"]
 }
