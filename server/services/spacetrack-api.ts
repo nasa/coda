@@ -2,13 +2,9 @@
  * Use space-track.org to find the location of ISS at any point in time
  * See https://www.space-track.org/documentation
  */
-import { getAppropriateTLE } from "store/ephemera";
 import { isSameDate } from "store/playhead";
-import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { getTimes } from "utils/suncalc";
+import { padZeros } from "utils/formatting";
 import fetchWithCache from "./cache-client";
-
-import { getSatelliteInfo } from "tle.js";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";
@@ -47,64 +43,6 @@ async function fetchSpacetrack(
   return [];
 }
 
-function calcDayNight(
-  ephemera: EphemerisFile[],
-  year: number,
-  month: number,
-  date: number
-): DayNightObj[] {
-  const secondsIn24Hours = 86400;
-  const startDate = new Date(Date.UTC(year, month - 1, date));
-
-  const dayNightObjArray = [];
-  let prevDaylight = null;
-  //5 seconds resolution on day/night times
-  for (let i = 0; i < secondsIn24Hours; i = i + 5) {
-    const iISODate = startDate.toISOString().split("T")[0] + "T" + hhmmssFromSeconds(i) + "Z";
-    const iDate = new Date(iISODate);
-    const tle = getAppropriateTLE(ephemera, iDate.toISOString());
-    const issInfo = getSatelliteInfo(tle, iDate.getTime());
-
-    let daylight = true;
-    daylight = isSunlit(iDate, issInfo.lng, issInfo.lat, issInfo.height * 1000);
-
-    if (daylight !== prevDaylight) {
-      const dayNightObj: DayNightObj = {
-        appSeconds: i,
-        daylight: daylight,
-      };
-      dayNightObjArray.push(dayNightObj);
-    }
-
-    prevDaylight = daylight;
-  }
-  const dayNightObj: DayNightObj = {
-    appSeconds: secondsIn24Hours,
-    daylight: false,
-  };
-  dayNightObjArray.push(dayNightObj);
-
-  return dayNightObjArray;
-}
-
-function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
-  const sunTimes = getTimes(date, lat, lng, heightMeters);
-
-  // get time between sunset start and golden hour.
-  let sunlightEnd = new Date((sunTimes.sunset.getTime() + sunTimes.goldenHour.getTime()) / 2);
-
-  let sunlight = true;
-  // if sunrise or sunset are NaN then it's high beta angle season and the sun never sets
-  if (!isNaN(sunTimes.sunriseEnd.getTime()) && !isNaN(sunlightEnd.getTime())) {
-    if (date > sunTimes.sunriseEnd && date < sunlightEnd) {
-      sunlight = true;
-    } else {
-      sunlight = false;
-    }
-  }
-  return sunlight;
-}
-
 /**
  * Get spacetrack ephemeris data for ISS. If the request is for today, get new data. If the request is for a day in the past, always return cached data if we have it
  * @param year yyyy
@@ -122,7 +60,7 @@ export async function fetchISSLocation(
 
   let res: WrappedResponse<EphemerisStore> = {
     cacheMetadata: null,
-    data: { ephemera: [], dayNight: [] },
+    data: { ephemera: [] },
   };
 
   const retriever = async (): Promise<EphemerisStore> => {
@@ -150,11 +88,7 @@ export async function fetchISSLocation(
       }
     }
 
-    let dayNight: DayNightObj[] = [];
-    if (ephemera.length > 0) {
-      dayNight = calcDayNight(ephemera, year, month, date);
-    }
-    return { ephemera, dayNight };
+    return { ephemera };
   };
 
   const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;

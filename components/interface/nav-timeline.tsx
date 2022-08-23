@@ -25,7 +25,7 @@ import styles from "./nav-timeline-draw.module.css";
 export default function NavTimeline(props: { collection: Collection }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
-  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const dayNights: DayNightState = useSelector((state: RootState) => state.dayNight);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
@@ -34,7 +34,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   );
 
   const dispatch = useDispatch();
-  const dayNight = ephemera.dayNight;
+  const dayNight = dayNights.dayNight;
 
   const videoFiles = videoSelectors.selectAll(videos);
   const photoFiles = photosSelectors.selectAll(photos);

@@ -326,8 +326,33 @@ export default class DrawNav {
     for (let i = 0; i < this.dayNight.length - 1; i++) {
       const startSeconds = this.dayNight[i].appSeconds;
       const endSeconds = this.dayNight[i + 1].appSeconds;
-      const fillColor = this.dayNight[i].daylight ? "#dbc275" : "black";
-      const textColor = this.dayNight[i].daylight ? "black" : "#dddddd";
+      const lighting: SunLighting = this.dayNight[i].daylight;
+
+      let fillColor = "#dbc275";
+      let textColor = "black";
+      let activityTextContent = "";
+      switch (lighting) {
+        case "day":
+          fillColor = "#dbc275";
+          textColor = "black";
+          activityTextContent = "Insolation";
+          break;
+        case "night":
+          fillColor = "black";
+          textColor = "#dddddd";
+          activityTextContent = "Eclipse";
+          break;
+        case "sunrise":
+          //placeholder topo data
+          break;
+        case "sunset":
+          //placeholder topo data
+          break;
+        default:
+          const exhaustiveCheck: never = lighting;
+          throw new Error("never-check reached on sunLighting value: " + exhaustiveCheck);
+      }
+
       if (startSeconds <= param.secondsEnd && endSeconds >= param.secondsStart) {
         let startLocX = param.leftPx + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
         let endLocX = param.leftPx + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
@@ -353,7 +378,7 @@ export default class DrawNav {
           });
           let textTop = startLocY + 8;
           activityText.point = new paper.Point(startLocX + 2, textTop);
-          activityText.content = this.dayNight[i].daylight ? "Insolation" : "Eclipse";
+          activityText.content = activityTextContent;
           group.addChild(activityText);
         }
       }
