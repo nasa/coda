@@ -30,7 +30,6 @@ export const ephemeraSlice = createSlice({
     addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
       ephemerisAdapter.removeAll(state);
       ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
-      //state.dayNight = action.payload.data.dayNight;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
     },
     clearEphemera: (state) => {

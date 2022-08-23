@@ -12,8 +12,9 @@ export const dayNightSlice = createSlice({
   initialState,
   reducers: {
     /** Add new day night to the store */
-    addDayNight: (state, action: { payload: DayNightObj[] }) => {
-      state.dayNight = action.payload;
+    addDayNight: (state, action: { payload: WrappedResponse<DayNightStore> }) => {
+      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.dayNight = action.payload.data.dayNight;
     },
     clearDayNight: (state) => {
       state.dayNight = [];
