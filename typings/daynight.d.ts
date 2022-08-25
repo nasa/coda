@@ -11,7 +11,8 @@ interface DayNightObj {
   daylight: SunLighting;
 }
 
-interface DayNight {
-  dataStartUTC?: number;
-  events?: Activity[];
+// TODO: Depricated and to be removed when dayNight is removed from the iss location API response
+interface DayNightObjDepricated {
+  appSeconds: number;
+  daylight: boolean;
 }

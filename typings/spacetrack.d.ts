@@ -2,6 +2,10 @@ interface EphemerisStore {
   ephemera: EphemerisFile[];
 }
 
+interface EphemerisStoreWithDayNight extends EphemerisStore {
+  dayNight: DayNightObjDepricated[];
+}
+
 interface EphemerisFile {
   COMMENT: string;
   ORIGINATOR: string;
