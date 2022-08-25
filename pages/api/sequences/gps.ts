@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { year, month, date } = req.query as { [key: string]: string };
 
   try {
-    const data = await getGPSTracks(`${year}-${month}-${date}`);
+    const data = await getGPSTracks(`${year}-${month.toString().padStart(2, "0")}-${date}`);
     res.status(200).json(data);
   } catch (e) {
     console.error(e);

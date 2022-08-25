@@ -543,11 +543,11 @@ export async function fetchSequences(collection: Collection): Promise<WikibotRes
   }
 }
 
-/** Get list of GPS tracks available in the wiki */
+/** Get list of external data products from the wiki */
 
-async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
+async function fetchWikiExternalData(): Promise<WrappedResponse<string[]>> {
   const parseQuery = {
-    page: "CODA/D-RATS_2021_Data", //TODO: Rename these wiki pages to something general instead of "D-RATS"
+    page: "CODA/External Data",
     prop: "links",
   };
 
@@ -573,7 +573,7 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
 }
 
 export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedResponse<GPSTrack[]>> {
-  const gpsList = await fetchWikiGPSList();
+  const gpsList = await fetchWikiExternalData();
   let error = null;
   // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
   const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
@@ -585,7 +585,10 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedRes
         match[1] === "EV1" ||
         match[1] === "EV2" ||
         match[1] === "Cart" ||
-        match[1] === "LightCart"
+        match[1] === "LightCart" ||
+        match[1] === "RUN1" ||
+        match[1] === "RUN2" ||
+        match[1] === "RUN3"
       ) {
         const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
         if (gpsTrackRes.cacheMetadata.error !== undefined) {
