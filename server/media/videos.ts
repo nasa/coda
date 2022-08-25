@@ -14,6 +14,20 @@ export default async function getVideoData(
 ): Promise<WrappedResponse<VideoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
+  // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
+  const videoOverrides = await WikiService.fetchVideoOverrides();
+
+  // Check if there is a video override for this date and Source
+  const videoOverride = videoOverrides.data.find((vo) => {
+    const overrideDate = new Date(vo.date);
+    return overrideDate.getTime() === requestedDate.getTime() && vo.source === collection;
+  });
+
+  if (videoOverride) {
+    // If there is a video override, use that instead of IO
+    return await WikiService.fetchVideoMetadataFromOverride(videoOverride);
+  }
+
   // fetch video info and fudge factors in parallel
   const [results, overrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after

@@ -186,5 +186,14 @@ interface TestEventOffsets {
   timeoffset: string;
 }
 
+/**
+ * Manual overrides from the wiki to use a different source for videos
+ */
+interface VideoSourceOverride {
+  date: string;
+  source: Source | Collection;
+  url: string;
+}
+
 /** API query options */
 type Agency = "us" | "rs" | "all";
