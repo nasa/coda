@@ -1,28 +1,63 @@
 /**
- * Create store of single run
+ * Fetch override video manifest from the override location specified in the wiki
  */
-export async function buildRunStore(runName: string): Promise<Run> {
-  const run = await getRun(runName);
-  for (let i = 0; i < run.colors.length; i++) {
-    run.colors[i].tagNames = await getTagnames(run.run_metadata.run_name, run.colors[i].color);
-  }
-  run.run_metadata.fieldKeys = await getDBFFieldsKey();
+export async function getVideoManifest(override: VideoSourceOverride): Promise<OverrideVideo[]> {
+  const dataPath = `${override.url}/videoMetadata.json`;
 
-  //find the video for EV1
-  let ev1Index = 0;
-  for (let x = 0; x < run.videos.length; x++) {
-    if (run.videos[x].EV_number === "EV1") {
-      ev1Index = x;
-      break;
-    }
+  let res: Response;
+  try {
+    res = await fetch(dataPath);
+  } catch (e) {
+    throw e;
   }
+  return res.json();
+}
 
-  //grab waveform data for each video segment
-  const videoSelected = run.videos[ev1Index];
-  for (let i = 0; i < videoSelected.video_segments.length; i++) {
-    const filename = videoSelected.video_segments[i].segment_filename.split(".mp4")[0] + ".dat";
-    const dataPath = `${process.env.RUN_DATA_ROOT_URL}/${run.run_metadata.run_name}/video_feeds/${filename}`;
-    videoSelected.video_segments[i].waveformData = await getWaveformData(dataPath);
-  }
-  return run;
+/**
+ * Convert overrideVideo[] videoFile[]
+ */
+export function convertOverrideVideosToVideoFiles(
+  oVideos: OverrideVideo[],
+  override: VideoSourceOverride
+): VideoFile[] {
+  const videos: VideoFile[] = oVideos.map((oVideo) => {
+    // Create array of date elements from creation date
+    const dateToUse = oVideo.dateTime;
+    let dateArr = dateToUse
+      // regex match for the date
+      .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
+      // remove the first item (the full matched string)
+      .slice(1)
+      .map((n: string) => parseInt(n));
+
+    // create date object. Note, month is 0-11 in javascript.
+    const UTCstartMilliseconds = Date.UTC(
+      dateArr[0],
+      dateArr[1] - 1,
+      dateArr[2],
+      dateArr[3],
+      dateArr[4],
+      dateArr[5]
+    );
+    const duration_ms = oVideo.durationSeconds * 1000;
+    const UTCend = new Date(UTCstartMilliseconds + duration_ms);
+
+    const video: VideoFile = {
+      id: oVideo.filename,
+      title: oVideo.filename,
+      downlink: oVideo.downlink - 1, // base 0 index
+      startDateTime: oVideo.dateTime,
+      start: UTCstartMilliseconds / 1000,
+      end: UTCend.valueOf() / 1000,
+      mediaLowResURL: `${override.url}/video/${oVideo.filename}`,
+      priority: 1,
+      LOS: false,
+      description: oVideo.filename,
+      collection: "",
+      collections: "",
+      dataURL: "",
+    };
+    return video;
+  });
+  return videos;
 }
