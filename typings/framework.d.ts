@@ -111,3 +111,9 @@ type CommPaneStateData = {
   isMuted: boolean;
   showHelp: boolean;
 };
+
+type LineGraphPaneStateData = {
+  ready: boolean;
+  lockScroll: boolean;
+  showHelp: boolean;
+};

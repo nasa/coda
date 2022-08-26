@@ -169,6 +169,16 @@ export const allPanes: Panes = {
       showHelp: false,
     } as CommPaneStateData,
   },
+  line_graph: {
+    title: "Line Graph",
+    icon: "chart-line",
+    color: "burntUmber",
+    defaultPaneStateData: {
+      ready: true,
+      lockScroll: true,
+      showHelp: false,
+    } as LineGraphPaneStateData,
+  },
 };
 
 export const defaultFrames: FrameState = {
