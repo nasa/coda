@@ -53,4 +53,5 @@ export enum PaneTypeShortVal {
   photo_all = 7,
   transcript = 8,
   sgAudio = 9,
+  graph = 10,
 }

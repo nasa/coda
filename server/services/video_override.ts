@@ -2,7 +2,7 @@
  * Fetch override video manifest from the override location specified in the wiki
  */
 export async function getVideoManifest(override: VideoSourceOverride): Promise<OverrideVideo[]> {
-  const dataPath = `${override.url}/videoMetadata.json`;
+  const dataPath = `${override.url}/videoManifest.json`;
 
   let res: Response;
   try {

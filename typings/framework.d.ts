@@ -112,7 +112,7 @@ type CommPaneStateData = {
   showHelp: boolean;
 };
 
-type LineGraphPaneStateData = {
+type GraphPaneStateData = {
   ready: boolean;
   lockScroll: boolean;
   showHelp: boolean;

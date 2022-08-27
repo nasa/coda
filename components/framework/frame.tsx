@@ -85,7 +85,7 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
     controls: CommControls,
     pane: CommPane,
   },
-  line_graph: {
+  graph: {
     controls: LineGraphControls,
     pane: LineGraph,
   },

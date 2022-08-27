@@ -49,6 +49,9 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
       case "comm":
         paneStateString = getStateStringForComm(element.paneStateData);
         break;
+      case "graph":
+        paneStateString = getStateStringForGraph(element.paneStateData);
+        break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
     i++;
@@ -146,6 +149,17 @@ function getStateStringForComm(state: CommPaneStateData) {
   const paneTypeString = "0" + PaneTypeShortVal.transcript;
   const sgChannel = state.sgChannel.toString();
   return `${paneTypeString}${sgChannel}`;
+}
+
+/**
+ * @returns {string}
+ * Chars 0,1 digits: pane type
+ * Char 2: S/G channel number - 1
+ */
+function getStateStringForGraph(state: GraphPaneStateData) {
+  const paneTypeString = PaneTypeShortVal.graph;
+  const lockToggle = state.lockScroll ? "1" : "0";
+  return `${paneTypeString}${lockToggle}`;
 }
 
 /**
@@ -258,7 +272,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
       };
       return issLocationReturnVal;
     case PaneTypeShortVal.gps_location:
-      /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
+      /* Char 2: 0 if lockScroll is false, 1 if lockToggle is true
        */
       const gpsLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
         paneType: "gps_location",
@@ -272,7 +286,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
     case PaneTypeShortVal.transcript:
       /* Char 2: sgChannel number
        */
-      const returnVal: { paneType: string; paneStateData: CommPaneStateData } = {
+      const commReturnVal: { paneType: string; paneStateData: CommPaneStateData } = {
         paneType: "comm",
         paneStateData: {
           ready: true,
@@ -283,7 +297,19 @@ function interpretFrameQueryParam(frameString: string): PaneState {
           showHelp: false,
         },
       };
-      return returnVal;
+      return commReturnVal;
+    case PaneTypeShortVal.graph:
+      /* Char 2: 0 if lockScroll is false, 1 if lockToggle is true
+       */
+      const graphReturnVal: { paneType: string; paneStateData: GraphPaneStateData } = {
+        paneType: "graph",
+        paneStateData: {
+          ready: true,
+          lockScroll: true,
+          showHelp: false,
+        },
+      };
+      return graphReturnVal;
     default:
       return undefined;
   }

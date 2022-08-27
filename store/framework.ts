@@ -169,15 +169,15 @@ export const allPanes: Panes = {
       showHelp: false,
     } as CommPaneStateData,
   },
-  line_graph: {
-    title: "Line Graph",
+  graph: {
+    title: "Graph",
     icon: "chart-line",
     color: "burntUmber",
     defaultPaneStateData: {
       ready: true,
       lockScroll: true,
       showHelp: false,
-    } as LineGraphPaneStateData,
+    } as GraphPaneStateData,
   },
 };
 
