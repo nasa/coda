@@ -697,6 +697,34 @@ export async function fetchVideoOverrides(): Promise<WrappedResponse<VideoSource
   });
 }
 
+/** Get the list of ancillary data sources from the wiki
+ *
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Ancillary_Data_Sources
+ */
+export async function fetchAncillaryDataSourceList(): Promise<
+  WrappedResponse<AncillaryDataSource[]>
+> {
+  const parseQuery = {
+    page: "CODA/Ancillary_Data_Sources",
+    prop: "wikitext",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+    return parseWikitextTableIntoAncillaryDataSources(res.data.parse.wikitext["*"]);
+  };
+
+  return await fetchWithCache<AncillaryDataSource[]>("wiki/ancillary-data-sources", retriever, {
+    cacheAge: 60,
+    staleOk: true,
+    preferNew: false,
+  });
+}
+
 /** Given wikitext that includes one or more tables, parse the tables into objects. Exported for testing
  *
  * Wikitable syntax must be in the form of:
@@ -807,4 +835,51 @@ export function parseWikitextTableIntoVideoSourceOverrides(
   });
 
   return data[0] as VideoSourceOverride[];
+}
+
+export function parseWikitextTableIntoAncillaryDataSources(
+  wikitext: string
+): AncillaryDataSource[] {
+  const data = [];
+  const lines = wikitext.split("|-");
+
+  let currentHeader: string[] = [];
+
+  // assume more than one table in the wikitext. use this index to increment which result to put table
+  let tableIndex = 0;
+
+  lines.forEach((line) => {
+    let t: any = {};
+
+    const stripped = line.trim();
+
+    if (stripped.match(/^!.*/g)) {
+      // every time we find a new header, create a new list of rows for the response
+      data[tableIndex] = [];
+      currentHeader = stripped
+        .slice(1)
+        .split("!!")
+        .map((s) => s.trim());
+    }
+
+    if (stripped.match(/^\|(?!-|}).*/g)) {
+      const row = stripped
+        .slice(1)
+        .split("||")
+        .map((s) => s.trim());
+      row.forEach(
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+      );
+    }
+
+    if (!deepEquals(t, {})) {
+      data[tableIndex].push(t);
+    }
+
+    if (stripped.match(/\|\}/g)) {
+      tableIndex += 1;
+    }
+  });
+
+  return data[0] as AncillaryDataSource[];
 }

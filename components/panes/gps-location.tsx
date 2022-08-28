@@ -561,12 +561,12 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
                   <td>{eventType === "DRATS" ? infoDisplay.EV2.ele : infoDisplay.RUN2.ele}</td>
                   {eventType === "GANDALF" && <td>{infoDisplay.RUN3.ele}</td>}
                 </tr>
-                <tr>
+                {/* <tr>
                   <td>Slope:</td>
                   <td>{eventType === "DRATS" ? infoDisplay.EV1.slope : infoDisplay.RUN1.slope}</td>
                   <td>{eventType === "DRATS" ? infoDisplay.EV2.slope : infoDisplay.RUN2.slope}</td>
                   {eventType === "GANDALF" && <td>{infoDisplay.RUN3.slope}</td>}
-                </tr>
+                </tr> */}
                 <tr>
                   <td>Timestamp:</td>
                   <td>

@@ -195,5 +195,15 @@ interface VideoSourceOverride {
   url: string;
 }
 
+/**
+ * Ancillary data sources listed from the wiki
+ */
+interface AncillaryDataSource {
+  date: string;
+  source: Source | Collection;
+  type: "graphs";
+  url: string;
+}
+
 /** API query options */
 type Agency = "us" | "rs" | "all";
