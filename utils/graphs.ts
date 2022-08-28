@@ -37,7 +37,7 @@ export const parseGandalfHeartrateDataFile = (data: string): HeartrateData[] => 
 
       const timestamp = new Date(startDateTime.getTime() + parseInt(line[0]) * 1000);
       const heartrate: HeartrateData = {
-        timestamp: new Date(line[0]),
+        timestamp,
         heartrate: parseInt(line[1]),
       };
       heartrateData.push(heartrate);
