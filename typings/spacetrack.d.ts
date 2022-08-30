@@ -1,16 +1,9 @@
 interface EphemerisStore {
   ephemera: EphemerisFile[];
-  dayNight: DayNightObj[];
 }
 
-interface DayNightObj {
-  appSeconds: number;
-  daylight: boolean;
-}
-
-interface DayNight {
-  dataStartUTC?: number;
-  events?: Activity[];
+interface EphemerisStoreWithDayNight extends EphemerisStore {
+  dayNight: DayNightObjDepricated[];
 }
 
 interface EphemerisFile {

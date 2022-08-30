@@ -8,6 +8,7 @@ import { videoSlice, initialState as videosInitialState } from "./videos";
 import { frameworkSlice, initialState as viewerInitialState } from "./framework";
 import { photoSlice, initialState as photosInitialState } from "./photos";
 import { ephemeraSlice, initialState as ephemeraInitialState } from "./ephemera";
+import { dayNightSlice, initialState as dayNightInitialState } from "./daynight";
 import { gpsSlice, initialState as gpsInitialState } from "./gps";
 import { transcriptSlice, initialState as transcriptInitialState } from "./transcript";
 import { sgAudioSlice, initialState as sgAudioInitialState } from "./sg-audio";
@@ -21,6 +22,7 @@ export const initialState = {
   videos: videosInitialState,
   photos: photosInitialState,
   ephemera: ephemeraInitialState,
+  dayNight: dayNightInitialState,
   gps: gpsInitialState,
   transcript: transcriptInitialState,
   framework: viewerInitialState,
@@ -34,6 +36,7 @@ const reducer = combineReducers({
   videos: videoSlice.reducer,
   photos: photoSlice.reducer,
   ephemera: ephemeraSlice.reducer,
+  dayNight: dayNightSlice.reducer,
   gps: gpsSlice.reducer,
   transcript: transcriptSlice.reducer,
   framework: frameworkSlice.reducer,

@@ -1,9 +1,34 @@
 import * as SpacetrackService from "server/services/spacetrack-api";
+import * as DayNightService from "server/services/daynight-api";
 
 export default async function getISSLocation(
   year: number,
   month: number,
   date: number
-): Promise<WrappedResponse<EphemerisStore>> {
-  return SpacetrackService.fetchISSLocation(year, month, date);
+): Promise<WrappedResponse<EphemerisStoreWithDayNight>> {
+  const dayNight = await DayNightService.fetchDayNight(year, month, date);
+  const ephemeris = await SpacetrackService.fetchISSLocation(year, month, date);
+
+  // Converting the new day/night data to the old format
+  let convertedDayNight: DayNightObjDepricated[] = dayNight.data.dayNight.map((dn) => {
+    return {
+      appSeconds: dn.appSeconds,
+      daylight: dn.daylight === "day" ? true : false,
+    };
+  });
+
+  // Custom response that should be removed when dayNight is removed from is API response
+  const response: WrappedResponse<EphemerisStoreWithDayNight> = {
+    cacheMetadata: {
+      fromCache: ephemeris.cacheMetadata.fromCache,
+      timestamp: ephemeris.cacheMetadata.timestamp,
+      stale: ephemeris.cacheMetadata.stale,
+    },
+    data: {
+      ephemera: ephemeris.data.ephemera,
+      dayNight: convertedDayNight,
+    },
+  };
+
+  return response;
 }

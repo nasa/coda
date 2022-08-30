@@ -62,6 +62,13 @@ import { interpretFramestateQueryString } from "utils/share-state";
 import { Source } from "utils/enums";
 
 import dynamic from "next/dynamic";
+import {
+  setDayNightLoadingStatus,
+  fetchError as daynightFetchError,
+  addDayNight,
+  clearDayNight,
+} from "store/daynight";
+import { buildDayNightStore } from "http-client/daynight";
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
   ssr: false,
@@ -247,6 +254,28 @@ export function V2(props: { urlState }) {
     })();
   };
 
+  /** Update the day night store */
+  const populateDayNightStore = (year, month, day, collection) => {
+    (async () => {
+      if (collection !== Collection.ISS) {
+        dispatch(setDayNightLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
+      dispatch(setDayNightLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const daynightStoreResponse = await buildDayNightStore(year, month, day);
+        if (daynightStoreResponse.cacheMetadata.error === undefined) {
+          dispatch(addDayNight(daynightStoreResponse));
+        } else {
+          dispatch(daynightFetchError(daynightStoreResponse.cacheMetadata.error));
+        }
+      } catch (e) {
+        dispatch(daynightFetchError(e.toString()));
+      }
+      dispatch(setDayNightLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
   const populateGPSStore = (year, month, day, collection) => {
     (async () => {
       if (collection !== Collection.TEST_EVENTS) {
@@ -319,6 +348,7 @@ export function V2(props: { urlState }) {
 
     // clear all stores
     dispatch(clearEphemera());
+    dispatch(clearDayNight());
     dispatch(clearGPSTracks());
     dispatch(clearPhotos());
     dispatch(clearSequences());
@@ -337,6 +367,9 @@ export function V2(props: { urlState }) {
 
     // populate the ephemeris store
     populateEphemerisStore(year, month, day, Collection[source]);
+
+    // populate the day night store
+    populateDayNightStore(year, month, day, Collection[source]);
 
     // populate GPS store
     populateGPSStore(year, month, day, Collection[source]);

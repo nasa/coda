@@ -30,9 +30,17 @@ interface PlayheadHoverState {
  */
 
 type EphemeraEntityState = EntityState<EphemerisFile> & {
-  dayNight: DayNightObj[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
+};
+
+/**
+ * DayNight Store
+ */
+type DayNightState = {
+  dayNight: DayNightObj[];
+  cacheMetadata: ResMetadata;
+  loadingStatus: LoadingStatusEnum.LOADING;
 };
 
 /**
