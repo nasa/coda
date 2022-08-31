@@ -136,7 +136,6 @@ export function CalendarDate({
   description: DateDescription;
   closeClick: () => void;
 }) {
-  // const dispatch = useDispatch();
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
 
@@ -160,7 +159,6 @@ export function CalendarDate({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!description.isLater) {
-      // dispatch(changeDate(description.date.toISOString()));
       const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
         description.date.getUTCMonth() + 1,
         2
