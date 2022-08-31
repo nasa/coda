@@ -1,5 +1,4 @@
 import * as Plotly from "plotly.js";
-import { PlotlyChartTrace } from "utils/charts";
 
 export default class PlotlyClass {
   constructor() {}
