@@ -12,7 +12,7 @@ type Graph = {
 };
 
 type HeartrateData = {
-  timestamp: Date;
+  timestamp: string;
   heartrate: number;
 };
 

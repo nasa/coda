@@ -29,6 +29,10 @@ export const parseGandalfHeartrateDataFile = (data: string): HeartrateData[] => 
 
   let startRecording = false;
   for (let i = 1; i < lines.length; i++) {
+    // if end of heart rate data then stop processing values and ignore lines of garbage
+    if (lines[i].match(/^\r/)) {
+      startRecording = false;
+    }
     if (lines[i].match(/^Sec,HR_bpm,DeltaRR_ms/)) {
       startRecording = true;
     } else if (startRecording) {
@@ -36,8 +40,9 @@ export const parseGandalfHeartrateDataFile = (data: string): HeartrateData[] => 
       const line = lines[i].split(",");
 
       const timestamp = new Date(startDateTime.getTime() + parseInt(line[0]) * 1000);
+      const timestampStr = timestamp.toISOString().split("T")[1].split(".")[0];
       const heartrate: HeartrateData = {
-        timestamp,
+        timestamp: timestampStr,
         heartrate: parseInt(line[1]),
       };
       heartrateData.push(heartrate);
