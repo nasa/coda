@@ -119,8 +119,8 @@ export function YearsModal({
 
 interface DateDescription {
   date: Date;
-  /** Is today's calendar date. TODO: should it be "Is the playhead date"? */
-  isToday: boolean;
+  /** Is the calendar day the same as the playhead day */
+  isPlayheadDay: boolean;
   /** In the same month that's visible */
   inMonth: boolean;
   /** Is a date in the future */
@@ -145,7 +145,7 @@ export function CalendarDate({
     classes.push(styles.grey);
   }
 
-  if (description.isToday) {
+  if (description.isPlayheadDay) {
     classes.push(styles.bordered);
   }
 
@@ -204,6 +204,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   }
 
   const today = new Date();
+  const playheadDay = new Date(playheadDate);
   const todayYYYY = today.getUTCFullYear();
   const todayMM = padZeros(today.getUTCMonth() + 1, 2);
 
@@ -233,7 +234,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   for (let i = 0; i < 42; i++) {
     const d = iterDate.getUTCDate();
     const inMonth = iterDate.getUTCMonth() === mm;
-    const isToday = isSameDate(iterDate, today);
+    const isPlayheadDay = isSameDate(iterDate, playheadDay);
     const isLater = diff(today, iterDate) < 0;
 
     const EVA = allSequences.find((seq) => isSameDate(new Date(seq.startDate), iterDate));
@@ -241,7 +242,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
     datesToRender.push({
       date: new Date(iterDate),
       inMonth,
-      isToday,
+      isPlayheadDay,
       isLater,
       EVA,
     });
