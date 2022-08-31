@@ -116,4 +116,5 @@ type GraphPaneStateData = {
   ready: boolean;
   lockScroll: boolean;
   showHelp: boolean;
+  selectedGraphId: string;
 };

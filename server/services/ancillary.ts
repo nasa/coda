@@ -1,8 +1,8 @@
 import * as WikiService from "server/services/wiki-api";
 
-export const fetchGraphManifest = async (
+export const fetchGraphsManifest = async (
   dateWanted: string
-): Promise<WrappedResponse<GraphManifest>> => {
+): Promise<WrappedResponse<GraphsManifest>> => {
   const ancillaryDataSources = await WikiService.fetchAncillaryDataSourceList();
 
   // Check if there is a video override for this date and Source
@@ -14,7 +14,7 @@ export const fetchGraphManifest = async (
 
   if (ancillaryDataSource) {
     // Get the graph manifest json from the url in the wiki
-    let graphManifest: GraphManifest = null;
+    let graphManifest: GraphsManifest = null;
     try {
       const res = await fetch(ancillaryDataSource.url);
       graphManifest = await res.json();

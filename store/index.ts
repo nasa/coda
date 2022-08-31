@@ -12,7 +12,7 @@ import { dayNightSlice, initialState as dayNightInitialState } from "./daynight"
 import { gpsSlice, initialState as gpsInitialState } from "./gps";
 import { transcriptSlice, initialState as transcriptInitialState } from "./transcript";
 import { sgAudioSlice, initialState as sgAudioInitialState } from "./sg-audio";
-import { graphSlice, initialState as graphInitialState } from "./graph";
+import { graphSlice, initialState as graphInitialState } from "./graphs";
 
 let store;
 
@@ -28,7 +28,7 @@ export const initialState = {
   transcript: transcriptInitialState,
   framework: viewerInitialState,
   sgAudio: sgAudioInitialState,
-  graph: graphInitialState,
+  graphs: graphInitialState,
 };
 
 const reducer = combineReducers({
@@ -43,7 +43,7 @@ const reducer = combineReducers({
   transcript: transcriptSlice.reducer,
   framework: frameworkSlice.reducer,
   sgAudio: sgAudioSlice.reducer,
-  graph: graphSlice.reducer,
+  graphs: graphSlice.reducer,
 });
 export type RootState = ReturnType<typeof reducer>;
 

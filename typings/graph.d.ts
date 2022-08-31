@@ -1,4 +1,5 @@
-type GraphManifest = {
+type GraphsManifest = {
+  sourceUrl: string;
   graphs: Graph[];
 };
 
@@ -13,4 +14,15 @@ type Graph = {
 type HeartrateData = {
   timestamp: Date;
   heartrate: number;
+};
+
+type PlotlyChartTrace = {
+  x: string[];
+  y: number[];
+  type: string;
+  mode: string;
+  line: {
+    color: string;
+  };
+  name: string;
 };

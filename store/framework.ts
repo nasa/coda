@@ -177,6 +177,7 @@ export const allPanes: Panes = {
       ready: true,
       lockScroll: true,
       showHelp: false,
+      selectedGraphId: "01", //TODO default this to null. just "01" for testing.
     } as GraphPaneStateData,
   },
 };

@@ -159,7 +159,8 @@ function getStateStringForComm(state: CommPaneStateData) {
 function getStateStringForGraph(state: GraphPaneStateData) {
   const paneTypeString = PaneTypeShortVal.graph;
   const lockToggle = state.lockScroll ? "1" : "0";
-  return `${paneTypeString}${lockToggle}`;
+  const selectedGraphId = state.selectedGraphId;
+  return `${paneTypeString}${lockToggle}${selectedGraphId}`;
 }
 
 /**
@@ -299,14 +300,17 @@ function interpretFrameQueryParam(frameString: string): PaneState {
       };
       return commReturnVal;
     case PaneTypeShortVal.graph:
-      /* Char 2: 0 if lockScroll is false, 1 if lockToggle is true
+      /** Char 2: 0 if lockScroll is false, 1 if lockToggle is true
+       * Char 3+4 graph id:
        */
+
       const graphReturnVal: { paneType: string; paneStateData: GraphPaneStateData } = {
         paneType: "graph",
         paneStateData: {
           ready: true,
-          lockScroll: true,
+          lockScroll: frameString.substring(2, 3) === "1",
           showHelp: false,
+          selectedGraphId: frameString.substring(3, 5),
         },
       };
       return graphReturnVal;

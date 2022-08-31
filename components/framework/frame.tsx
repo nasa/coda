@@ -14,7 +14,7 @@ import { ISSLocation, ISSLocationControls } from "components/panes/iss-location"
 import { useLayoutEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 import CommPane, { CommControls } from "components/panes/comm";
-import LineGraph, { LineGraphControls } from "components/panes/line-graph";
+import Graph, { GraphControls } from "components/panes/graph/graph";
 
 export interface Options {
   frameID: number;
@@ -86,8 +86,8 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
     pane: CommPane,
   },
   graph: {
-    controls: LineGraphControls,
-    pane: LineGraph,
+    controls: GraphControls,
+    pane: Graph,
   },
 };
 

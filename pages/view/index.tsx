@@ -4,7 +4,7 @@ import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
-import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphManifest } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
@@ -70,11 +70,11 @@ import {
 } from "store/daynight";
 import { buildDayNightStore } from "http-client/daynight";
 import {
-  clearGraphManifest,
-  graphFetchError,
-  setGraphLoadingStatus,
-  setGraphManifest,
-} from "store/graph";
+  clearGraphsManifest,
+  graphsFetchError,
+  setGraphsLoadingStatus,
+  setGraphsManifest,
+} from "store/graphs";
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
   ssr: false,
@@ -340,18 +340,18 @@ export function V2(props: { urlState }) {
 
   const populateGraphStore = (year, month, day) => {
     (async () => {
-      dispatch(setGraphLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const graphResponse = await getGraphManifest(year, month, day);
+        const graphResponse = await getGraphsManifest(year, month, day);
         if (graphResponse.cacheMetadata.error === undefined) {
-          dispatch(setGraphManifest(graphResponse));
+          dispatch(setGraphsManifest(graphResponse));
         } else {
-          dispatch(graphFetchError(graphResponse.cacheMetadata.error));
+          dispatch(graphsFetchError(graphResponse.cacheMetadata.error));
         }
       } catch (e) {
-        dispatch(graphFetchError(e.toString()));
+        dispatch(graphsFetchError(e.toString()));
       }
-      dispatch(setGraphLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   };
 
@@ -378,7 +378,7 @@ export function V2(props: { urlState }) {
     dispatch(clearVideos());
     dispatch(clearTranscripts());
     dispatch(clearSgAudioActivity());
-    dispatch(clearGraphManifest());
+    dispatch(clearGraphsManifest());
 
     // populate the sequence store
     populateSequenceStore(Collection[source]);

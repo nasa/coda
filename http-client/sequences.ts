@@ -27,13 +27,13 @@ export async function getGPSTracks(
   return gpsTracks;
 }
 
-export async function getGraphManifest(
+export async function getGraphsManifest(
   year: number,
   month: number,
   date: number
-): Promise<WrappedResponse<GraphManifest>> {
+): Promise<WrappedResponse<GraphsManifest>> {
   const res = await fetch(`/api/sequences/graphs?year=${year}&month=${month}&date=${date}`);
-  const graphManifest: WrappedResponse<GraphManifest> = await res.json();
+  const graphManifest: WrappedResponse<GraphsManifest> = await res.json();
 
   return graphManifest;
 }
