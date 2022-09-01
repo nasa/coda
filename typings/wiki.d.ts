@@ -187,4 +187,4 @@ interface TestEventOffsets {
 }
 
 /** API query options */
-type Agency = "us" | "rs" | "all";
+type AgencyQuery = "us" | "rs" | "all";

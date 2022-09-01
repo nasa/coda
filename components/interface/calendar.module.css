@@ -56,6 +56,7 @@
 }
 
 .labels {
+  font-size: 0.9em;
   margin-bottom: 5px;
 }
 
@@ -73,6 +74,11 @@
 
 .bordered {
   border: 1px solid var(--extremely-grey);
+}
+
+.inverted {
+  background-color: white;
+  color: var(--dark-grey);
 }
 
 .greyText {
