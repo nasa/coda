@@ -4,9 +4,15 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { parseGandalfHeartrateDataFile } from "utils/graphs";
+import { getPlotlyChartLayout, parseGandalfHeartrateDataFile } from "utils/graphs";
+import dynamic from "next/dynamic";
+
+const DynPlotlyChart = dynamic(import("./plotly"), {
+  ssr: false,
+});
 
 import styles from "./graph.module.css";
+import { appSecondsFromDateString } from "utils/formatting";
 
 export function GraphControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -40,8 +46,21 @@ export default function Graph(props: { frameID: number }) {
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   const graphs: GraphsState = useSelector((state: RootState) => state.graphs);
+  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
 
-  const [graphData, setGraphData] = useState(null);
+  const initialChartData = {
+    plotlyChartTraces: null,
+    plotlyChartLayout: getPlotlyChartLayout(),
+  };
+
+  const initialChartProps = {
+    plotIndexToHighlight: 0,
+    chartData: initialChartData,
+  };
+
+  const [heartrateData, setHeartratehData] = useState<HeartrateData[]>(null);
+  const [chartProps, setChartProps] = useState(initialChartProps);
 
   const frameID = props.frameID;
   const dispatch = useDispatch();
@@ -61,25 +80,56 @@ export default function Graph(props: { frameID: number }) {
     const localAsyncFetchData = async () => {
       const response = await fetch(graphs.graphsManifest.sourceUrl + graph.dataURL);
       const data = await response.text();
-      setGraphData(data);
+      setHeartratehData(parseGandalfHeartrateDataFile(data, playhead.date.split("T")[0]));
     };
 
     localAsyncFetchData();
   }, [graphs.graphsManifest]);
 
   useEffect(() => {
-    if (!graphData) {
+    if (!heartrateData) {
       return;
     }
 
-    const heartRateData = parseGandalfHeartrateDataFile(graphData);
-    console.log(heartRateData);
-  }, [graphData]);
+    const chartTrace: PlotlyChartTrace = {
+      x: heartrateData.map((a) => a.timestamp),
+      y: heartrateData.map((a) => a.heartrate),
+      type: "scatter",
+      mode: "lines",
+      line: {
+        color: "#B7AC0B",
+      },
+      name: "test",
+    };
+
+    let plotIndexToHighlight = 0;
+
+    //find the telemetry plotpoint closest to the current playhead time by comparing against the plot timestamps
+    for (let i = 0; i < heartrateData.length; i++) {
+      const indexAppSeconds = appSecondsFromDateString(heartrateData[i].timestamp);
+      const secondsToHighlight =
+        playheadHover.seconds !== 0 ? playheadHover.seconds : playhead.seconds;
+      if (indexAppSeconds > secondsToHighlight) {
+        break;
+      }
+      plotIndexToHighlight = i;
+    }
+
+    setChartProps({
+      plotIndexToHighlight,
+      chartData: {
+        plotlyChartTraces: [chartTrace],
+        plotlyChartLayout: getPlotlyChartLayout(),
+      },
+    });
+  }, [heartrateData, playhead.seconds, playheadHover.seconds]);
 
   return (
     <div className={styles.main}>
-      <div>Hello</div>
-      <div>Graph data: {JSON.stringify(graphData)}</div>
+      <div>Heart Rate</div>
+      <div style={{ width: "100%" }}>
+        <DynPlotlyChart {...chartProps}></DynPlotlyChart>
+      </div>
 
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}

@@ -7,22 +7,19 @@ export const getGraphParser = (graph: Graph) => {
   return graphParser;
 };
 
-export const parseGandalfHeartrateDataFile = (data: string): HeartrateData[] => {
+export const parseGandalfHeartrateDataFile = (data: string, startDate: string): HeartrateData[] => {
   const lines = data.split("\n");
   const heartrateData: HeartrateData[] = [];
 
   // Get the date of the hr data file
-  let startDate = null;
+
   let startTime = null;
   let startDateTime = null;
   for (let i = 1; i < lines.length; i++) {
-    // if line matches "Date,mm/dd/yyyy", then store the start date
-    if (lines[i].match(/^Date,/)) {
-      startDate = lines[i].split(",")[1];
-      // if line matches "Start,hh:mm:ss", then store the start time
-    } else if (lines[i].match(/^Start,/)) {
-      startTime = lines[i].split(",")[1];
-      startDateTime = new Date(`${startDate} ${startTime}`);
+    // if line matches "Start,hh:mm:ss", then store the start time
+    if (lines[i].match(/^Start,/)) {
+      startTime = lines[i].split(",")[1].trim();
+      startDateTime = new Date(`${startDate}T${startTime}Z`);
       break;
     }
   }
@@ -40,7 +37,7 @@ export const parseGandalfHeartrateDataFile = (data: string): HeartrateData[] => 
       const line = lines[i].split(",");
 
       const timestamp = new Date(startDateTime.getTime() + parseInt(line[0]) * 1000);
-      const timestampStr = timestamp.toISOString().split("T")[1].split(".")[0];
+      const timestampStr = timestamp.toISOString();
       const heartrate: HeartrateData = {
         timestamp: timestampStr,
         heartrate: parseInt(line[1]),
