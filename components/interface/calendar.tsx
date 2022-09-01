@@ -188,7 +188,7 @@ export function CalendarDate({
         <div
           title={description.EVA.name}
           className={`${styles.dot} ${
-            description.EVA.displayTitle.startsWith("US") ? styles.orange : styles.aqua
+            description.EVA.displayTitle.startsWith("RS") ? styles.aqua : styles.orange
           }`}
         >
           •
