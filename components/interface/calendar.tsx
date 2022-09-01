@@ -154,10 +154,6 @@ export function CalendarDate({
     classes.push(styles.inverted);
   }
 
-  // if (!description.inMonth || description.isLater) {
-  //   classes.push(styles.greyText);
-  // }
-
   if (!description.inMonth && !description.isLater) {
     classes.push(styles.greyText);
     classes.push(styles.darkerGrayBkg);
