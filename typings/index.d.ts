@@ -26,24 +26,10 @@ interface WikibotResponse<T> {
   mocked?: boolean;
 }
 
-/** Space agencies */
-enum Agency {
-  /** US */
-  NASA = 0,
-  /** Russia */
-  ROSCOSMOS,
-  /** Europe */
-  ESA,
-  /** Japan */
-  JAXA,
-}
-
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */
 interface Sequence {
   /** The mission associated with this sequence */
   location: Collection;
-  /** NASA, ROSCOSMOS, ESA, JAXA */
-  agency: Agency;
   /** Broad category of this sequence */
   type: SequenceType;
   /** Short identifier, eg. `US EVA 55` */

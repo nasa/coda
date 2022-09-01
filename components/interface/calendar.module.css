@@ -51,8 +51,17 @@
 
 .dot {
   position: fixed;
-  margin-top: -5px;
+  margin-top: -0.3em;
+  margin-left: 0.1em;
   cursor: pointer;
+}
+
+.dotdiv {
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.6em;
+  width: 0.6em;
+  vertical-align: middle;
 }
 
 .labels {
@@ -64,16 +73,28 @@
   color: var(--orange);
 }
 
+.orangeBkg {
+  background-color: var(--orange);
+}
+
 .aqua {
   color: var(--aqua);
 }
 
-.grey {
+.aquaBkg {
+  background-color: var(--aqua);
+}
+
+.greyBkg {
   background-color: var(--lighter-grey);
 }
 
+.darkerGrayBkg {
+  background-color: #3c3e48;
+}
+
 .bordered {
-  border: 1px solid var(--extremely-grey);
+  border: 2px solid var(--extremely-grey);
 }
 
 .inverted {

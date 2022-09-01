@@ -143,7 +143,7 @@ export function CalendarDate({
 
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
-    classes.push(styles.grey);
+    classes.push(styles.greyBkg);
   }
 
   if (description.isToday) {
@@ -154,7 +154,16 @@ export function CalendarDate({
     classes.push(styles.inverted);
   }
 
-  if (!description.inMonth || description.isLater) {
+  // if (!description.inMonth || description.isLater) {
+  //   classes.push(styles.greyText);
+  // }
+
+  if (!description.inMonth && !description.isLater) {
+    classes.push(styles.greyText);
+    classes.push(styles.darkerGrayBkg);
+  }
+
+  if (description.isLater) {
     classes.push(styles.greyText);
   }
 
@@ -183,7 +192,7 @@ export function CalendarDate({
         <div
           title={description.EVA.name}
           className={`${styles.dot} ${
-            description.EVA.agency === Agency.NASA ? styles.orange : styles.aqua
+            description.EVA.displayTitle.startsWith("US") ? styles.orange : styles.aqua
           }`}
         >
           •
@@ -305,14 +314,14 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       </div>
       <div className={styles.events}>
         <div className={styles.labels}>
-          <span className={`${styles.orange}`}>•</span>
+          <div className={`${styles.dotdiv} ${styles.orangeBkg}`}></div>
           <span style={{ margin: "5px" }}>
             {framework.source === Source.ISS ? "EVA (US)" : "Event"}
           </span>
-          &nbsp;
+          &nbsp;&nbsp;
           {framework.source === Source.ISS && (
             <>
-              <span className={`${styles.aqua}`}>•</span>
+              <div className={`${styles.dotdiv} ${styles.aquaBkg}`}></div>
               <span style={{ margin: "5px" }}>EVA (RS)</span>
             </>
           )}
