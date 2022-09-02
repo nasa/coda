@@ -332,7 +332,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
  *
  * @param agency `us|rs|all`. Get US EVAs, RS EVAs, or all EVAs across both space agencies
  * */
-export async function getAllEVAData(agency: Agency): Promise<WikibotResponse<Sequence[]>> {
+export async function getAllEVAData(agency: AgencyQuery): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
 
   const retriever = async () => {

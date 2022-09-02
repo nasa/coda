@@ -119,8 +119,10 @@ export function YearsModal({
 
 interface DateDescription {
   date: Date;
-  /** Is today's calendar date. TODO: should it be "Is the playhead date"? */
+  /** Is the calendar day the same as today */
   isToday: boolean;
+  /** Is the calendar day the same as the playhead day */
+  isPlayheadDay: boolean;
   /** In the same month that's visible */
   inMonth: boolean;
   /** Is a date in the future */
@@ -136,20 +138,28 @@ export function CalendarDate({
   description: DateDescription;
   closeClick: () => void;
 }) {
-  // const dispatch = useDispatch();
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
 
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
-    classes.push(styles.grey);
+    classes.push(styles.greyBkg);
   }
 
   if (description.isToday) {
     classes.push(styles.bordered);
   }
 
-  if (!description.inMonth || description.isLater) {
+  if (description.isPlayheadDay) {
+    classes.push(styles.inverted);
+  }
+
+  if (!description.inMonth && !description.isLater) {
+    classes.push(styles.greyText);
+    classes.push(styles.darkerGrayBkg);
+  }
+
+  if (description.isLater) {
     classes.push(styles.greyText);
   }
 
@@ -160,7 +170,6 @@ export function CalendarDate({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!description.isLater) {
-      // dispatch(changeDate(description.date.toISOString()));
       const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
         description.date.getUTCMonth() + 1,
         2
@@ -176,7 +185,12 @@ export function CalendarDate({
   return (
     <div onClick={handleClick}>
       {!_.isNil(description.EVA) && (
-        <div title={description.EVA.name} className={`${styles.dot} ${styles.orange}`}>
+        <div
+          title={description.EVA.name}
+          className={`${styles.dot} ${
+            description.EVA.displayTitle.startsWith("RS") ? styles.aqua : styles.orange
+          }`}
+        >
           •
         </div>
       )}
@@ -204,6 +218,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   }
 
   const today = new Date();
+  const playheadDay = new Date(playheadDate);
   const todayYYYY = today.getUTCFullYear();
   const todayMM = padZeros(today.getUTCMonth() + 1, 2);
 
@@ -234,6 +249,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
     const d = iterDate.getUTCDate();
     const inMonth = iterDate.getUTCMonth() === mm;
     const isToday = isSameDate(iterDate, today);
+    const isPlayheadDay = isSameDate(iterDate, playheadDay);
     const isLater = diff(today, iterDate) < 0;
 
     const EVA = allSequences.find((seq) => isSameDate(new Date(seq.startDate), iterDate));
@@ -242,6 +258,7 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       date: new Date(iterDate),
       inMonth,
       isToday,
+      isPlayheadDay,
       isLater,
       EVA,
     });
@@ -293,8 +310,17 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       </div>
       <div className={styles.events}>
         <div className={styles.labels}>
-          <span className={`${styles.orange}`}>•</span>
-          <span style={{ margin: "5px" }}>{framework.source === Source.ISS ? "EVA" : "Event"}</span>
+          <div className={`${styles.dotdiv} ${styles.orangeBkg}`}></div>
+          <span style={{ margin: "5px" }}>
+            {framework.source === Source.ISS ? "EVA (US)" : "Event"}
+          </span>
+          &nbsp;&nbsp;
+          {framework.source === Source.ISS && (
+            <>
+              <div className={`${styles.dotdiv} ${styles.aquaBkg}`}></div>
+              <span style={{ margin: "5px" }}>EVA (RS)</span>
+            </>
+          )}
           {/* <span className={`${styles.aqua}`}>•</span> IVA or Other Event */}
         </div>
       </div>

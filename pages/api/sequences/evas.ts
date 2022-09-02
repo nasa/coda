@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { agency = "us" } = req.query as { [key: string]: string };
 
   try {
-    const evas = await getEVAData(agency as Agency);
+    const evas = await getEVAData(agency as AgencyQuery);
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);
