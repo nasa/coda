@@ -45,7 +45,7 @@ function PlotlyComponent(props) {
 
   useEffect(() => {
     plotlyClass.current.hoverPoint("plotlyChart", props.plotIndexToHighlight);
-  }, [props.plotIndexToHighlight]);
+  }, [plotlyClass, props.plotIndexToHighlight]);
 
   return (
     <div>

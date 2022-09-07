@@ -671,13 +671,13 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
   });
 }
 
-/** Get all the manually set video source overrides.
+/** Get all the manually set media source overrides.
  *
- * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Video_Source_Overrides
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Media_Source_Overrides
  */
-export async function fetchVideoOverrides(): Promise<WrappedResponse<VideoSourceOverride[]>> {
+export async function fetchMediaOverrides(): Promise<WrappedResponse<MediaSourceOverride[]>> {
   const parseQuery = {
-    page: "CODA/Video_Source_Overrides",
+    page: "CODA/Media_Source_Overrides",
     prop: "wikitext",
   };
 
@@ -687,10 +687,10 @@ export async function fetchVideoOverrides(): Promise<WrappedResponse<VideoSource
       wiki: "exploration",
       action: "parse",
     });
-    return parseWikitextTableIntoVideoSourceOverrides(res.data.parse.wikitext["*"]);
+    return parseWikitextTableIntoMediaSourceOverrides(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<VideoSourceOverride[]>("wiki/video-overrides", retriever, {
+  return await fetchWithCache<MediaSourceOverride[]>("wiki/media-overrides", retriever, {
     cacheAge: 60,
     staleOk: true,
     preferNew: false,
@@ -790,9 +790,9 @@ export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): Datet
   };
 }
 
-export function parseWikitextTableIntoVideoSourceOverrides(
+export function parseWikitextTableIntoMediaSourceOverrides(
   wikitext: string
-): VideoSourceOverride[] {
+): MediaSourceOverride[] {
   const data = [];
   const lines = wikitext.split("|-");
 
@@ -834,7 +834,7 @@ export function parseWikitextTableIntoVideoSourceOverrides(
     }
   });
 
-  return data[0] as VideoSourceOverride[];
+  return data[0] as MediaSourceOverride[];
 }
 
 export function parseWikitextTableIntoAncillaryDataSources(

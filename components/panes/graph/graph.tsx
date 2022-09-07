@@ -41,7 +41,7 @@ export function GraphControls(props: { frameID: number }) {
   );
 }
 
-export default function Graph(props: { frameID: number }) {
+export default function Graph(props: { frameID: number; frameDimensions: number[] }) {
   const paneStateData: GraphPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
@@ -49,9 +49,11 @@ export default function Graph(props: { frameID: number }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
 
+  const graphHeight = props.frameDimensions[1] - 40;
+
   const initialChartData = {
     plotlyChartTraces: null,
-    plotlyChartLayout: getPlotlyChartLayout(),
+    plotlyChartLayout: getPlotlyChartLayout(graphHeight),
   };
 
   const initialChartProps = {
@@ -119,7 +121,7 @@ export default function Graph(props: { frameID: number }) {
       plotIndexToHighlight,
       chartData: {
         plotlyChartTraces: [chartTrace],
-        plotlyChartLayout: getPlotlyChartLayout(),
+        plotlyChartLayout: getPlotlyChartLayout(graphHeight),
       },
     });
   }, [heartrateData, playhead.seconds, playheadHover.seconds]);

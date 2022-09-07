@@ -189,9 +189,10 @@ interface TestEventOffsets {
 /**
  * Manual overrides from the wiki to use a different source for videos
  */
-interface VideoSourceOverride {
+interface MediaSourceOverride {
   date: string;
   source: Source | Collection;
+  type: "video" | "photo";
   url: string;
 }
 

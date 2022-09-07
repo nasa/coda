@@ -1,8 +1,12 @@
+import { appSecondsFromDateString } from "utils/formatting";
+
 /**
  * Fetch override video manifest from the override location specified in the wiki
  */
-export async function getVideoManifest(override: VideoSourceOverride): Promise<OverrideVideo[]> {
-  const dataPath = `${override.url}/videoManifest.json`;
+export async function getManifest(
+  override: MediaSourceOverride
+): Promise<OverrideVideo[] | OverridePhoto[]> {
+  const dataPath = `${override.url}/${override.type}Manifest.json`;
 
   let res: Response;
   try {
@@ -14,11 +18,11 @@ export async function getVideoManifest(override: VideoSourceOverride): Promise<O
 }
 
 /**
- * Convert overrideVideo[] videoFile[]
+ * Convert overrideVideo[] to videoFile[]
  */
 export function convertOverrideVideosToVideoFiles(
   oVideos: OverrideVideo[],
-  override: VideoSourceOverride
+  override: MediaSourceOverride
 ): VideoFile[] {
   const videos: VideoFile[] = oVideos.map((oVideo) => {
     // Create array of date elements from creation date
@@ -60,4 +64,31 @@ export function convertOverrideVideosToVideoFiles(
     return video;
   });
   return videos;
+}
+
+/**
+ *  Convert overridePhoto[] to photoFile[]
+ */
+export function convertOverridePhotosToPhotoFiles(
+  oPhotos: OverridePhoto[],
+  override: MediaSourceOverride
+): PhotoFile[] {
+  const photos: PhotoFile[] = oPhotos.map((oPhoto) => {
+    const photo: PhotoFile = {
+      id: oPhoto.filenameRoot,
+      title: oPhoto.filenameRoot,
+      dateAdded: oPhoto.dateTimeOriginal,
+      datetimeTaken: oPhoto.dateTimeOriginal,
+      datetimeTakenAppSeconds: appSecondsFromDateString(oPhoto.dateTimeOriginal),
+      mediaLowResURL: `${override.url}/photo/${oPhoto.directory}/lores/${oPhoto.filenameRoot}.jpg`,
+      mediaHighResURL: `${override.url}/photo/${oPhoto.directory}/hires/${oPhoto.filenameRoot}.png`,
+      mediaThumbURL: `${override.url}/photo/${oPhoto.directory}/thumb/${oPhoto.filenameRoot}.jpg`,
+      description: oPhoto.filenameRoot,
+      collection: "",
+      collections: "",
+      dataURL: "",
+    };
+    return photo;
+  });
+  return photos;
 }

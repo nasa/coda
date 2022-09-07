@@ -48,11 +48,11 @@ export const parseGandalfHeartrateDataFile = (data: string, startDate: string): 
   return heartrateData;
 };
 
-export function getPlotlyChartLayout() {
+export function getPlotlyChartLayout(height) {
   const labelcolor = "#999999";
   const chartLayout = {
     autosize: true,
-    height: 200,
+    height,
     showlegend: false,
     plot_bgcolor: "#19181b",
     paper_bgcolor: "#19181b",
@@ -74,7 +74,7 @@ export function getPlotlyChartLayout() {
       nticks: 50,
       ticks: "inside",
       tickfont: {
-        size: 12,
+        size: 11,
         color: labelcolor,
       },
       tickformat: "%H:%M:%S",
