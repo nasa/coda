@@ -21,11 +21,20 @@ export function GraphControls(props: { frameID: number }) {
   const paneStateData: GraphPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
+  const graphs: GraphsState = useSelector((state: RootState) => state.graphs);
+
+  useEffect(() => {
+    if (!graphs.graphsManifest && !paneStateData.showHelp) {
+      setPaneStateValue(dispatch, frameID, "showHelp", true);
+    } else {
+      setPaneStateValue(dispatch, frameID, "showHelp", false);
+    }
+  }, [graphs]);
 
   return (
     <div className={styles.controls}>
       <div className={styles.controlsLeft}>
-        <div>Selected Graph id: {paneStateData.selectedGraphId}</div>
+        {graphs.graphsManifest && <div>Selected Graph id: {paneStateData.selectedGraphId}</div>}
       </div>
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
@@ -128,9 +137,9 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   return (
     <div className={styles.main}>
-      <div>Heart Rate</div>
+      {graphs.graphsManifest && <div>Heart Rate</div>}
       <div style={{ width: "100%" }}>
-        <DynPlotlyChart {...chartProps}></DynPlotlyChart>
+        {graphs.graphsManifest && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
       </div>
 
       <HelpOverlay

@@ -368,7 +368,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     thisMap.addLayer({
       id: "trackRun1Layer",
       type: "line",
-      source: "trackRun1Source",
+      source: "trackRUN1Source",
       paint: {
         "line-color": "red",
         "line-opacity": 0.3,
@@ -379,7 +379,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     thisMap.addLayer({
       id: "trackRun2Layer",
       type: "line",
-      source: "trackRun2Source",
+      source: "trackRUN2Source",
       paint: {
         "line-color": "blue",
 
@@ -390,7 +390,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     thisMap.addLayer({
       id: "trackRun3Layer",
       type: "line",
-      source: "trackRun3Source",
+      source: "trackRUN3Source",
       paint: {
         "line-color": "orange",
         "line-opacity": 0.3,
