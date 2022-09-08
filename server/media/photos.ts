@@ -34,13 +34,8 @@ export default async function getPhotoData(
 
     // if there are media overrides, use those instead of IO
     if (mediaOverride) {
-      const oPhotos: OverridePhoto[] = (await OverrideService.getManifest(
-        mediaOverride
-      )) as OverridePhoto[];
-      const photos: PhotoFile[] = OverrideService.convertOverridePhotosToPhotoFiles(
-        oPhotos,
-        mediaOverride
-      );
+      const photos = (await OverrideService.getManifest(mediaOverride)) as PhotoFile[];
+
       return {
         cacheMetadata: {
           fromCache: false,

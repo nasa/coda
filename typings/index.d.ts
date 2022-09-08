@@ -118,6 +118,7 @@ interface VideoFile extends MediaFile {
 interface PhotoFile extends MediaFile {
   dateAdded: string;
   datetimeTaken: string;
+  /** appSeconds is seconds since midnight on the current date */
   datetimeTakenAppSeconds: number;
   gps?: {
     lat: number;

@@ -31,13 +31,7 @@ export default async function getVideoData(
 
     // if there are media overrides, use those instead of IO
     if (mediaOverride) {
-      const oVideos: OverrideVideo[] = (await OverrideService.getManifest(
-        mediaOverride
-      )) as OverrideVideo[];
-      const videos: VideoFile[] = OverrideService.convertOverrideVideosToVideoFiles(
-        oVideos,
-        mediaOverride
-      );
+      const videos = (await OverrideService.getManifest(mediaOverride)) as VideoFile[];
       return {
         cacheMetadata: {
           fromCache: false,
