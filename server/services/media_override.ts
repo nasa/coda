@@ -1,5 +1,3 @@
-import { appSecondsFromDateString } from "utils/formatting";
-
 /**
  * Fetch override video manifest from the override location specified in the wiki
  */
