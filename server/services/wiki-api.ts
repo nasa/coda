@@ -586,9 +586,7 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedRes
         match[1] === "EV2" ||
         match[1] === "Cart" ||
         match[1] === "LightCart" ||
-        match[1] === "RUN1" ||
-        match[1] === "RUN2" ||
-        match[1] === "RUN3"
+        match[1] === "Staff"
       ) {
         const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
         if (gpsTrackRes.cacheMetadata.error !== undefined) {

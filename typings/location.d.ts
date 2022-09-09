@@ -8,9 +8,7 @@ type MapMarkers = {
   EV2?: MapMarker;
   Cart?: MapMarker;
   LightCart?: MapMarker;
-  RUN1?: MapMarker;
-  RUN2?: MapMarker;
-  RUN3?: MapMarker;
+  Staff?: MapMarker;
 };
 
 type mapInfoDisplayItems = {
@@ -28,9 +26,7 @@ type MapInfoDisplay = {
   EV2?: mapInfoDisplayItems;
   Cart?: mapInfoDisplayItems;
   LightCart?: mapInfoDisplayItems;
-  RUN1?: mapInfoDisplayItems;
-  RUN2?: mapInfoDisplayItems;
-  RUN3?: mapInfoDisplayItems;
+  Staff?: mapInfoDisplayItems;
 };
 
 type TrackFeatures = {
@@ -38,7 +34,5 @@ type TrackFeatures = {
   EV2?: FeatureCollection;
   Cart?: FeatureCollection;
   LightCart?: FeatureCollection;
-  RUN1?: FeatureCollection;
-  RUN2?: FeatureCollection;
-  RUN3?: FeatureCollection;
+  Staff?: FeatureCollection;
 };

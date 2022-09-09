@@ -36,8 +36,8 @@
   z-index: 10;
 }
 
-.info_wider {
-  width: 360px;
+.info_narrower {
+  width: 180px;
 }
 
 .infoSection {
