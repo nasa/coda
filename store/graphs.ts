@@ -21,6 +21,28 @@ export const graphSlice = createSlice({
       state.cacheMetadata = null;
       state.loadingStatus = LoadingStatusEnum.LOADING;
     },
+    setGraphsData: (state, action: { payload: { graphId: string; graphData: GraphData[] } }) => {
+      const graph = state.graphsManifest?.graphs.find((g) => g.id === action.payload.graphId);
+      graph.data = action.payload.graphData;
+      state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
+        if (stateGraph.id === graph.id) {
+          return graph;
+        } else {
+          return stateGraph;
+        }
+      });
+    },
+    clearGraphsData: (state, action: { payload: { graphId: string } }) => {
+      const graph = state.graphsManifest?.graphs.find((g) => g.id === action.payload.graphId);
+      graph.data = null;
+      state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
+        if (stateGraph.id === graph.id) {
+          return graph;
+        } else {
+          return stateGraph;
+        }
+      });
+    },
     graphsFetchError: (state, action: { payload: string }) => {
       state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
     },
@@ -30,5 +52,11 @@ export const graphSlice = createSlice({
   },
 });
 
-export const { setGraphsManifest, clearGraphsManifest, graphsFetchError, setGraphsLoadingStatus } =
-  graphSlice.actions;
+export const {
+  setGraphsManifest,
+  clearGraphsManifest,
+  setGraphsData,
+  clearGraphsData,
+  graphsFetchError,
+  setGraphsLoadingStatus,
+} = graphSlice.actions;

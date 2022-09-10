@@ -1,15 +1,6 @@
-/**
- *  create an object of functions that parse graph data as defined in manifest
- */
-export const getGraphParser = (graph: Graph) => {
-  const graphParser = eval(graph.dataParserFunctionName);
-
-  return graphParser;
-};
-
-export const parseGandalfHeartrateDataFile = (data: string, startDate: string): HeartrateData[] => {
+export const parseGandalfHeartrateDataFile = (data: string, startDate: string): GraphData[] => {
   const lines = data.split("\n");
-  const heartrateData: HeartrateData[] = [];
+  const heartrateData: GraphData[] = [];
 
   // Get the date of the hr data file
 
@@ -38,9 +29,9 @@ export const parseGandalfHeartrateDataFile = (data: string, startDate: string): 
 
       const timestamp = new Date(startDateTime.getTime() + parseInt(line[0]) * 1000);
       const timestampStr = timestamp.toISOString();
-      const heartrate: HeartrateData = {
+      const heartrate: GraphData = {
         timestamp: timestampStr,
-        heartrate: parseInt(line[1]),
+        value: parseInt(line[1]),
       };
       heartrateData.push(heartrate);
     }

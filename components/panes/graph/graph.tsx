@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { getPlotlyChartLayout, parseGandalfHeartrateDataFile } from "utils/graphs";
+import { setGraphsData } from "store/graphs";
 import dynamic from "next/dynamic";
 
 const DynPlotlyChart = dynamic(import("./plotly"), {
@@ -55,6 +56,13 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   const graphs: GraphsState = useSelector((state: RootState) => state.graphs);
+
+  // get graph data where id matches selectedGraphId
+  const selectedGraph = graphs.graphsManifest?.graphs.find(
+    (graph) => graph.id === paneStateData.selectedGraphId
+  );
+  const graphData = selectedGraph?.data;
+
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
 
@@ -70,7 +78,6 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     chartData: initialChartData,
   };
 
-  const [heartrateData, setHeartratehData] = useState<HeartrateData[]>(null);
   const [chartProps, setChartProps] = useState(initialChartProps);
 
   const frameID = props.frameID;
@@ -91,20 +98,33 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     const localAsyncFetchData = async () => {
       const response = await fetch(graphs.graphsManifest.sourceUrl + graph.dataURL);
       const data = await response.text();
-      setHeartratehData(parseGandalfHeartrateDataFile(data, playhead.date.split("T")[0]));
+
+      // Parse the data into a format that plotly can use depending on the graph type
+      const parsedData =
+        graph.type === "GandalfHeartrate"
+          ? parseGandalfHeartrateDataFile(data, playhead.date.split("T")[0])
+          : null;
+
+      // Store the parsed data in the graph manifest in the store
+      dispatch(
+        setGraphsData({
+          graphId: paneStateData.selectedGraphId,
+          graphData: parsedData,
+        })
+      );
     };
 
     localAsyncFetchData();
   }, [graphs.graphsManifest]);
 
   useEffect(() => {
-    if (!heartrateData) {
+    if (!graphData) {
       return;
     }
 
     const chartTrace: PlotlyChartTrace = {
-      x: heartrateData.map((a) => a.timestamp),
-      y: heartrateData.map((a) => a.heartrate),
+      x: graphData.map((a) => a.timestamp),
+      y: graphData.map((a) => a.value),
       type: "scatter",
       mode: "lines",
       line: {
@@ -116,8 +136,8 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     let plotIndexToHighlight = 0;
 
     //find the telemetry plotpoint closest to the current playhead time by comparing against the plot timestamps
-    for (let i = 0; i < heartrateData.length; i++) {
-      const indexAppSeconds = appSecondsFromDateString(heartrateData[i].timestamp);
+    for (let i = 0; i < graphData.length; i++) {
+      const indexAppSeconds = appSecondsFromDateString(graphData[i].timestamp);
       const secondsToHighlight =
         playheadHover.seconds !== 0 ? playheadHover.seconds : playhead.seconds;
       if (indexAppSeconds > secondsToHighlight) {
@@ -133,11 +153,11 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
         plotlyChartLayout: getPlotlyChartLayout(graphHeight),
       },
     });
-  }, [heartrateData, playhead.seconds, playheadHover.seconds]);
+  }, [graphData, playhead.seconds, playheadHover.seconds]);
 
   return (
     <div className={styles.main}>
-      {graphs.graphsManifest && <div>Heart Rate</div>}
+      {graphs.graphsManifest && <div>{selectedGraph.title}</div>}
       <div style={{ width: "100%" }}>
         {graphs.graphsManifest && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
       </div>

@@ -6,14 +6,14 @@ type GraphsManifest = {
 type Graph = {
   id: string;
   title: string;
-  type: "line";
+  type: "GandalfHeartrate";
   dataURL: string;
-  dataParserFunctionName: string;
+  data?: GraphData[];
 };
 
-type HeartrateData = {
+type GraphData = {
   timestamp: string;
-  heartrate: number;
+  value: number;
 };
 
 type PlotlyChartTrace = {

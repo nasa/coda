@@ -26,16 +26,25 @@ function PlotlyComponent(props) {
       props.chartData.plotlyChartLayout
     );
 
-    //now that drawChart has been called, the "on" method is now attached to the plotlyChart div. Don't know how to make the error go away
+    //now that drawChart has been called, the "on" method is now attached to the plotlyChart div
     plotlyChartRef.current.on("plotly_click", (data) => {
-      const dateStr = data.points[0].x.replace(" " + "T") + "Z";
-      dispatch(changeTime(appSecondsFromDateString(dateStr)));
+      // ignore errors caused by graph data being unavailable for a given point
+      try {
+        const dateStr = data.points[0].x.replace(" " + "T") + "Z";
+        dispatch(changeTime(appSecondsFromDateString(dateStr)));
+      } catch {
+        //do nothing
+      }
     });
 
-    // TODO - the nav currently doesn't react to hover in this way, but it should
     plotlyChartRef.current.on("plotly_hover", (data) => {
-      const dateStr = data.points[0].x.replace(" " + "T") + "Z";
-      dispatch(changeHoverTime(appSecondsFromDateString(dateStr)));
+      // ignore errors caused by graph data being unavailable for a given point
+      try {
+        const dateStr = data.points[0].x.replace(" " + "T") + "Z";
+        dispatch(changeHoverTime(appSecondsFromDateString(dateStr)));
+      } catch {
+        //do nothing
+      }
     });
 
     plotlyChartRef.current.on("plotly_unhover", () => {
