@@ -50,6 +50,10 @@ export type RootState = ReturnType<typeof reducer>;
 const initStore = () => {
   store = configureStore({
     reducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+      }),
     preloadedState: initialState,
     devTools: true,
   });
