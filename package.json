@@ -51,7 +51,8 @@
     "tle.js": "^4.7.0",
     "tough-cookie-file-store": "^2.0.3",
     "typescript": "^4.6.2",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "weeknumber": "^1.2.1"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^12.1.0",
