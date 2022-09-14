@@ -53,7 +53,7 @@ function PlotlyComponent(props) {
   }, [plotlyChartRef, props.chartData.plotlyChartTraces]);
 
   useEffect(() => {
-    plotlyClass.current.hoverPoint("plotlyChart", props.plotIndexToHighlight);
+    plotlyClass.current.hoverPoint(plotlyChartRef, props.plotIndexToHighlight);
   }, [plotlyClass, props.plotIndexToHighlight]);
 
   return (

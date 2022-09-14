@@ -84,7 +84,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!graphs.graphsManifest || !paneStateData.selectedGraphId) {
+    if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) {
       return;
     }
 
@@ -115,7 +115,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     };
 
     localAsyncFetchData();
-  }, [graphs.graphsManifest]);
+  }, [graphs.loadingStatus]);
 
   useEffect(() => {
     if (!graphData) {

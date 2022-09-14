@@ -1,4 +1,5 @@
 import * as Plotly from "plotly.js";
+import { MutableRefObject } from "react";
 
 export default class PlotlyClass {
   constructor() {}
@@ -9,10 +10,7 @@ export default class PlotlyClass {
     });
   }
 
-  hoverPoint(chartID: string, pointNumber: number) {
-    Plotly.Fx.hover(chartID, [
-      { curveNumber: 0, pointNumber: pointNumber },
-      { curveNumber: 1, pointNumber: pointNumber },
-    ]);
+  hoverPoint(chartRef: MutableRefObject<HTMLDivElement>, pointNumber: number) {
+    Plotly.Fx.hover(chartRef.current, [{ curveNumber: 0, pointNumber: pointNumber }]);
   }
 }
