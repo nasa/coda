@@ -148,16 +148,16 @@ export async function fetchDayNight(
   };
 
   const requestDate = new Date(Date.UTC(year, month - 1, date)); //requested date in UTC
-  const isToday = isSameDate(new Date(), requestDate);
   let res: WrappedResponse<DayNightStore> = {
     cacheMetadata: null,
     data: { dayNight: [] },
   };
-  const oneYearInSeconds = 31536000;
-  let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-
   let requestUrl = getTopoURL(requestDate);
   if (requestUrl === null) return res; //date requested is too far in the future. No data available
+
+  const isToday = isSameDate(new Date(), requestDate);
+  const oneYearInSeconds = 31536000;
+  let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   //fetch topo.
   //this is the prefered method. If this fails for any reason, fallback is spacetrack
@@ -176,6 +176,8 @@ export async function fetchDayNight(
 
   //TODO check error?
   if (res.cacheMetadata.error) {
+  } else {
+    return res;
   }
 
   //fetch spacetrack.
