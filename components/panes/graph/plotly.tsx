@@ -1,10 +1,9 @@
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
 
 import PlotlyClass from "components/panes/graph/plotly-class";
 import { appSecondsFromDateString } from "utils/formatting";
 import { changeTime } from "store/playhead";
 import { useDispatch } from "react-redux";
-import { changeHoverTime } from "store/playheadHover";
 
 //disgusting hack to make IDE errors go away in the useEffect below
 type HTMLDivElementExtended = HTMLDivElement & { on: Function };
