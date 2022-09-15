@@ -74,6 +74,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   };
 
   const initialChartProps = {
+    frameID: props.frameID,
     plotIndexToHighlight: 0,
     chartData: initialChartData,
   };
@@ -147,6 +148,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     }
 
     setChartProps({
+      frameID,
       plotIndexToHighlight,
       chartData: {
         plotlyChartTraces: [chartTrace],

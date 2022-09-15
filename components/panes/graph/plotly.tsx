@@ -19,8 +19,11 @@ function PlotlyComponent(props) {
   }, []);
 
   useEffect(() => {
+    if (!plotlyChartRef.current) {
+      return;
+    }
     plotlyClass.current.drawChart(
-      "plotlyChart",
+      `plotlyChart${props.frameID}`,
       props.chartData.plotlyChartTraces,
       props.chartData.plotlyChartLayout
     );
@@ -43,7 +46,7 @@ function PlotlyComponent(props) {
 
   return (
     <div>
-      <div ref={plotlyChartRef} id="plotlyChart"></div>
+      <div ref={plotlyChartRef} id={`plotlyChart${props.frameID}`}></div>
     </div>
   );
 }
