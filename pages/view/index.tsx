@@ -342,7 +342,7 @@ export function V2(props: { urlState }) {
     (async () => {
       dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const graphResponse = await getGraphsManifest(year, month, day);
+        const graphResponse = await getGraphsManifest(source, year, month, day);
         if (graphResponse.cacheMetadata.error === undefined) {
           dispatch(setGraphsManifest(graphResponse));
         } else {

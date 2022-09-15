@@ -1,6 +1,7 @@
 import * as WikiService from "server/services/wiki-api";
 
 export const fetchGraphsManifest = async (
+  source: Source,
   dateWanted: string
 ): Promise<WrappedResponse<GraphsManifest>> => {
   const ancillaryDataSources = await WikiService.fetchAncillaryDataSourceList();
@@ -9,7 +10,11 @@ export const fetchGraphsManifest = async (
   const ancillaryDataSource = ancillaryDataSources.data.find((vo) => {
     const overrideDate = new Date(vo.date);
     const requestedDate = new Date(dateWanted);
-    return overrideDate.getTime() === requestedDate.getTime() && vo.type === "graphs";
+    return (
+      overrideDate.getTime() === requestedDate.getTime() &&
+      vo.source === source &&
+      vo.type === "graphs"
+    );
   });
 
   if (ancillaryDataSource) {

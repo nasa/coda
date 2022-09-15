@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 
 import PlotlyClass from "components/panes/graph/plotly-class";
 import { appSecondsFromDateString } from "utils/formatting";
@@ -35,20 +35,6 @@ function PlotlyComponent(props) {
       } catch {
         //do nothing
       }
-    });
-
-    plotlyChartRef.current.on("plotly_hover", (data) => {
-      // ignore errors caused by graph data being unavailable for a given point
-      try {
-        const dateStr = data.points[0].x.replace(" " + "T") + "Z";
-        dispatch(changeHoverTime(appSecondsFromDateString(dateStr)));
-      } catch {
-        //do nothing
-      }
-    });
-
-    plotlyChartRef.current.on("plotly_unhover", () => {
-      dispatch(changeHoverTime(0));
     });
   }, [plotlyChartRef, props.chartData.plotlyChartTraces]);
 

@@ -89,7 +89,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     }
 
     // Get the graph for the selected graphId
-    const graph = graphs.graphsManifest.graphs.find((g) => g.id === paneStateData.selectedGraphId);
+    const graph = graphs.graphsManifest?.graphs.find((g) => g.id === paneStateData.selectedGraphId);
     if (!graph) {
       return;
     }
@@ -169,7 +169,9 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
         }}
       >
         <div>
-          <p>Displays a line graph of data available for the selected event.</p>
+          <p>
+            Displays a line graph if data is available for the selected source on the selected date.
+          </p>
         </div>
       </HelpOverlay>
     </div>

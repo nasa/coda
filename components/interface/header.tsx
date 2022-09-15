@@ -299,7 +299,7 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
           <span
             className={styles.wordMark}
             onClick={() => {
-              props.setHelpLoaderOpen(true);
+              window.location.assign(location.origin);
             }}
           >
             CODA
