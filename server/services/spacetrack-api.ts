@@ -86,6 +86,7 @@ export async function fetchISSLocation(
         // pause 5 seconds before hitting spacetrack again
         await new Promise((resolve) => setTimeout(resolve, 5000));
       }
+      count++;
     }
 
     return { ephemera };

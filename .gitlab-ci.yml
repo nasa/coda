@@ -27,7 +27,7 @@ cache:
 # https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates
 include:
   - project: "developer-ecosystem/ci-job-templates"
-    ref: master
+    ref: 3.3.0
     file: "/rollups/all-projects.gitlab-ci.yml"
   - template: "Verify/Accessibility.gitlab-ci.yml"
 

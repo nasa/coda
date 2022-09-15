@@ -234,12 +234,15 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                       </button>
                       <div className={styles.checkboxArea}>
                         <input
+                          id="autostart"
                           className={styles.checkbox}
                           type="checkbox"
                           checked={closeAutomatically}
                           onChange={checkCloseAutomatically}
                         />
-                        <div>Start CODA automatically when loading complete</div>
+                        <label htmlFor="autostart">
+                          Start CODA automatically when loading complete
+                        </label>
                       </div>
                     </div>
                   </div>
