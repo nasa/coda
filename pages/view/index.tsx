@@ -4,7 +4,7 @@ import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
-import { fetchEVAs, fetchTestEvents, getGPSTracks } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
@@ -69,6 +69,12 @@ import {
   clearDayNight,
 } from "store/daynight";
 import { buildDayNightStore } from "http-client/daynight";
+import {
+  clearGraphsManifest,
+  graphsFetchError,
+  setGraphsLoadingStatus,
+  setGraphsManifest,
+} from "store/graphs";
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
   ssr: false,
@@ -332,6 +338,23 @@ export function V2(props: { urlState }) {
     })();
   };
 
+  const populateGraphStore = (year, month, day) => {
+    (async () => {
+      dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADING));
+      try {
+        const graphResponse = await getGraphsManifest(source, year, month, day);
+        if (graphResponse.cacheMetadata.error === undefined) {
+          dispatch(setGraphsManifest(graphResponse));
+        } else {
+          dispatch(graphsFetchError(graphResponse.cacheMetadata.error));
+        }
+      } catch (e) {
+        dispatch(graphsFetchError(e.toString()));
+      }
+      dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADED));
+    })();
+  };
+
   // populate store when date or source change
   useEffect(() => {
     if (_.isNull(playheadDate) || _.isNull(source)) {
@@ -355,6 +378,7 @@ export function V2(props: { urlState }) {
     dispatch(clearVideos());
     dispatch(clearTranscripts());
     dispatch(clearSgAudioActivity());
+    dispatch(clearGraphsManifest());
 
     // populate the sequence store
     populateSequenceStore(Collection[source]);
@@ -379,6 +403,9 @@ export function V2(props: { urlState }) {
 
     // populate S/G audio store
     populateSgAudioStore(source, year, month, day);
+
+    // populate graph store
+    populateGraphStore(year, month, day);
   }, [playheadDate, source]);
 
   // look for new videos every 5 minutes if the user is looking at today's date

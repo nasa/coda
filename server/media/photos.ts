@@ -2,6 +2,7 @@ import clone from "lodash/clone";
 import isNil from "lodash/isNil";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
+import * as OverrideService from "server/services/media_override";
 import { add, isSameDate } from "store/playhead";
 import { Collection, IOFetchType } from "utils/enums";
 import { appSecondsFromDateString } from "utils/formatting";
@@ -16,8 +17,38 @@ export default async function getPhotoData(
   collection: Collection
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
-  // const previousDate = add(requestedDate, -86400000);
-  // const nextDate = add(requestedDate, 86400000);
+
+  // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
+  try {
+    const mediaOverrides = await WikiService.fetchMediaOverrides();
+
+    // Check if there is a video override for this date and Source
+    const mediaOverride = mediaOverrides.data.find((vo) => {
+      const overrideDate = new Date(vo.date);
+      return (
+        overrideDate.getTime() === requestedDate.getTime() &&
+        vo.source === collection &&
+        vo.type === "photo"
+      );
+    });
+
+    // if there are media overrides, use those instead of IO
+    if (mediaOverride) {
+      const photos = (await OverrideService.getManifest(mediaOverride)) as PhotoFile[];
+
+      return {
+        cacheMetadata: {
+          fromCache: false,
+          timestamp: new Date(),
+          stale: false,
+        },
+        data: photos,
+      } as WrappedResponse<PhotoFile[]>;
+    }
+  } catch (e) {
+    // don't block results if media overrides call fails
+    console.error(e);
+  }
 
   const [results, sequences, allOverrides] = await Promise.all([
     IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate) as Promise<

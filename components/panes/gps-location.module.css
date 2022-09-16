@@ -20,20 +20,24 @@
   position: absolute;
   top: 30px;
   left: 5px;
-  width: 320px;
+  width: 290px;
 
   display: flex;
 
-  margin-top: 5px;
+  margin-top: 2px;
   margin-left: 5px;
-  padding: 5px;
+  padding: 2px;
 
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #222;
   background-color: #fff;
   border: 1px solid black;
   border-radius: var(--radius);
   z-index: 10;
+}
+
+.info_narrower {
+  width: 180px;
 }
 
 .infoSection {

@@ -1,4 +1,4 @@
-import { parseWikitextTable } from "server/services/wiki-api";
+import { parseWikitextTableIntoDatetimeOverrides } from "server/services/wiki-api";
 
 describe("prase date time shifts from wiki", () => {
   it("should convert wiki tables to objects", async () => {
@@ -15,6 +15,6 @@ describe("prase date time shifts from wiki", () => {
         { testEventID: "50", timeoffset: "UTC-05:01:12" },
       ],
     };
-    expect(parseWikitextTable(wikiRaw)).toEqual(output);
+    expect(parseWikitextTableIntoDatetimeOverrides(wikiRaw)).toEqual(output);
   });
 });

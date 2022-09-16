@@ -1,0 +1,34 @@
+.main {
+  position: relative;
+  height: 0;
+  width: 100%;
+  min-height: 100%;
+  overflow: auto;
+  background-color: var(--nearly-black);
+  overflow: auto;
+}
+
+.controls {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+  margin-left: auto;
+}
+
+.controlsLeft {
+  display: flex;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 5px;
+}

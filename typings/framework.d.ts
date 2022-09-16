@@ -111,3 +111,10 @@ type CommPaneStateData = {
   isMuted: boolean;
   showHelp: boolean;
 };
+
+type GraphPaneStateData = {
+  ready: boolean;
+  lockScroll: boolean;
+  showHelp: boolean;
+  selectedGraphId: string;
+};

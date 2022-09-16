@@ -82,6 +82,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     EV2: { ...initialMarker },
     Cart: { ...initialMarker },
     LightCart: { ...initialMarker },
+    Staff: { ...initialMarker },
   };
 
   const initialTrackFeature: FeatureCollection = {
@@ -103,6 +104,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     EV2: { ...initialTrackFeature },
     Cart: { ...initialTrackFeature },
     LightCart: { ...initialTrackFeature },
+    Staff: { ...initialTrackFeature },
   };
 
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
@@ -116,6 +118,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
 
   const [map, setMap] = useState<Map>(null);
   const [mapMarkers, setMapMarkers] = useState(initialMarkers);
+  const [eventType, setEventType] = useState<"DRATS" | "GANDALF">("DRATS");
 
   const infoItemsDefaultValue = {
     lat: "",
@@ -126,11 +129,12 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     date: "",
     time: "",
   };
-  const [infoDisplay, setInfoDisplay] = useState<mapInfoDisplay>({
-    ev1: infoItemsDefaultValue,
-    ev2: infoItemsDefaultValue,
-    cart: infoItemsDefaultValue,
-    lightCart: infoItemsDefaultValue,
+  const [infoDisplay, setInfoDisplay] = useState<MapInfoDisplay>({
+    EV1: infoItemsDefaultValue,
+    EV2: infoItemsDefaultValue,
+    Cart: infoItemsDefaultValue,
+    LightCart: infoItemsDefaultValue,
+    Staff: infoItemsDefaultValue,
   });
 
   //just need any location for getSatelliteInfo
@@ -162,11 +166,17 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       // map.setPitch(45);
     }
 
+    // set eventType to DRATS if EV1 is present, set as GANDALF if Staff is present
+    if (gpsState.gpsTracks.filter((track) => track.name === "EV1").length > 0) {
+      setEventType("DRATS");
+    } else if (gpsState.gpsTracks.filter((track) => track.name === "Staff").length > 0) {
+      setEventType("GANDALF");
+    }
+
+    // hide all markers
     for (var key in mapMarkers) {
-      if (mapMarkers.hasOwnProperty(key)) {
-        const marker = mapMarkers[key];
-        marker.markerNode.style.visibility = "visible";
-      }
+      const marker = mapMarkers[key];
+      marker.markerNode.style.visibility = "hidden";
     }
 
     const gpsTracks = gpsState.gpsTracks;
@@ -175,6 +185,9 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     //loop through the gps track objects (EV1, EV2, and Cart)
     for (let track = 0; track < gpsTracks.length; track++) {
       let markerGPSPoint: Point = null;
+
+      // make visible the marker for the current track
+      mapMarkers[gpsTracks[track].name].markerNode.style.visibility = "visible";
 
       let markerIndex = 0;
       // If not hovering move the markers to the playheadTime
@@ -225,14 +238,23 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
           hdg: "",
         };
         const tempInfo = infoDisplay;
-        tempInfo[gpsTracks[track].name.toLowerCase()] = items;
+        tempInfo[gpsTracks[track].name] = items;
         setInfoDisplay(tempInfo);
       } catch (error) {
         console.log("Info display error: ", error);
       }
     }
+
     if (paneStateData.lockMap) {
-      map.panTo(mapMarkers.EV1.marker.getLngLat());
+      // check if there is an EV1 value in store. If so, we're tracking DRATS so track EV1.
+      if (eventType === "DRATS") {
+        map.panTo(mapMarkers.EV1.marker.getLngLat());
+        // check if there is an Staff value in store. If so, we're tracking Gandalf's Staff so track Staff.
+      } else if (eventType === "GANDALF") {
+        map.panTo(mapMarkers.Staff.marker.getLngLat());
+      } else {
+        map.panTo(houstonLatLng);
+      }
     }
   }, [map, playhead.date, playhead.seconds, playheadHover.seconds, gpsState.gpsTracks]);
 
@@ -277,6 +299,10 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     thisMap.addSource("trackLightCartSource", {
       type: "geojson",
       data: trackFeatures.Cart,
+    });
+    thisMap.addSource("trackStaffSource", {
+      type: "geojson",
+      data: trackFeatures.Staff,
     });
   }
 
@@ -324,6 +350,17 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
         "line-width": 2,
       },
     });
+
+    thisMap.addLayer({
+      id: "trackStaffLayer",
+      type: "line",
+      source: "trackStaffSource",
+      paint: {
+        "line-color": "red",
+        "line-opacity": 0.3,
+        "line-width": 2,
+      },
+    });
   }
 
   function initializeMap(
@@ -341,11 +378,12 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     });
 
     thisMap.on("load", () => {
-      const newMarkers = {
+      const newMarkers: MapMarkers = {
         EV1: addMapMarker(thisMap, "EV1"),
         EV2: addMapMarker(thisMap, "EV2"),
-        Cart: addMapMarker(thisMap, "Cart"),
+        Cart: addMapMarker(thisMap, "cart"),
         LightCart: addMapMarker(thisMap, "LightCart"),
+        Staff: addMapMarker(thisMap, "Staff"),
       };
       setMapMarkers(newMarkers);
 
@@ -416,7 +454,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   function showInfo() {
     return (
       <>
-        <div className={styles.info}>
+        <div className={`${styles.info} ${eventType === "GANDALF" ? styles.info_narrower : ""}`}>
           <div className={styles.infoSection}>
             <table className={styles.valueTable}>
               <tbody>
@@ -425,7 +463,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
                   <td>
                     <div className={styles.infoSectionTitle}>
                       <div>
-                        <strong>EV1</strong>
+                        <strong>{eventType === "DRATS" ? "EV1" : "EV1"}</strong>
                       </div>
                       <div>
                         <img
@@ -436,53 +474,52 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
                       </div>
                     </div>
                   </td>
-                  <td>
-                    <div className={styles.infoSectionTitle}>
-                      <div>
-                        <strong>EV2</strong>
+                  {eventType === "DRATS" && (
+                    <td>
+                      <div className={styles.infoSectionTitle}>
+                        <div>
+                          <strong>EV2</strong>
+                        </div>
+                        <div>
+                          <img
+                            className="infoSectionTitleIcon"
+                            src="/images/marker_ev2.png"
+                            width="30px"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <img
-                          className="infoSectionTitleIcon"
-                          src="/images/marker_ev2.png"
-                          width="30px"
-                        />
-                      </div>
-                    </div>
-                  </td>
+                    </td>
+                  )}
                 </tr>
                 <tr>
                   <td>Latitude:</td>
-                  <td>{infoDisplay.ev1.lat}</td>
-                  <td>{infoDisplay.ev2.lat}</td>
+                  <td>{eventType === "DRATS" ? infoDisplay.EV1.lat : infoDisplay.Staff.lat}</td>
+                  {eventType === "DRATS" && <td>{infoDisplay.EV2.lat}</td>}
                 </tr>
                 <tr>
                   <td>Longitude:</td>
-                  <td>{infoDisplay.ev1.lng}</td>
-                  <td>{infoDisplay.ev2.lng}</td>
+                  <td>{eventType === "DRATS" ? infoDisplay.EV1.lng : infoDisplay.Staff.lng}</td>
+                  {eventType === "DRATS" && <td>{infoDisplay.EV2.lng}</td>}
                 </tr>
                 <tr>
                   <td>Elevation (m):</td>
-                  <td>{infoDisplay.ev1.ele}</td>
-                  <td>{infoDisplay.ev2.ele}</td>
-                </tr>
-                <tr>
-                  <td>Slope:</td>
-                  <td>{infoDisplay.ev1.slope}</td>
-                  <td>{infoDisplay.ev2.slope}</td>
+                  <td>{eventType === "DRATS" ? infoDisplay.EV1.ele : infoDisplay.Staff.ele}</td>
+                  {eventType === "DRATS" && <td>{infoDisplay.EV2.ele}</td>}
                 </tr>
                 <tr>
                   <td>Timestamp:</td>
                   <td>
-                    {infoDisplay.ev1.date}
+                    {eventType === "DRATS" ? infoDisplay.EV1.date : infoDisplay.Staff.date}
                     <br />
-                    {infoDisplay.ev1.time}
+                    {eventType === "DRATS" ? infoDisplay.EV1.time : infoDisplay.Staff.time}
                   </td>
-                  <td>
-                    {infoDisplay.ev2.date}
-                    <br />
-                    {infoDisplay.ev2.time}
-                  </td>
+                  {eventType === "DRATS" && (
+                    <td>
+                      {infoDisplay.EV2.date}
+                      <br />
+                      {infoDisplay.EV2.time}
+                    </td>
+                  )}
                 </tr>
               </tbody>
             </table>
