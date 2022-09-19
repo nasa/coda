@@ -13,6 +13,8 @@ const GPSMarker = (props) => {
     markerClass = styles.lightCartMarker;
   } else if (props.type === "Photo") {
     markerClass = styles.photoMarker;
+  } else if (props.type === "Staff") {
+    markerClass = styles.ev1Marker;
   }
 
   return <div id={`marker-${props.id}`} className={markerClass} />;

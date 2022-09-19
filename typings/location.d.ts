@@ -4,10 +4,11 @@ type MapMarker = {
 };
 
 type MapMarkers = {
-  EV1: MapMarker;
-  EV2: MapMarker;
-  Cart: MapMarker;
+  EV1?: MapMarker;
+  EV2?: MapMarker;
+  Cart?: MapMarker;
   LightCart?: MapMarker;
+  Staff?: MapMarker;
 };
 
 type mapInfoDisplayItems = {
@@ -20,16 +21,18 @@ type mapInfoDisplayItems = {
   time: string;
 };
 
-type mapInfoDisplay = {
-  ev1: mapInfoDisplayItems;
-  ev2: mapInfoDisplayItems;
-  cart: mapInfoDisplayItems;
-  lightCart?: mapInfoDisplayItems;
+type MapInfoDisplay = {
+  EV1?: mapInfoDisplayItems;
+  EV2?: mapInfoDisplayItems;
+  Cart?: mapInfoDisplayItems;
+  LightCart?: mapInfoDisplayItems;
+  Staff?: mapInfoDisplayItems;
 };
 
 type TrackFeatures = {
-  EV1: FeatureCollection;
-  EV2: FeatureCollection;
-  Cart: FeatureCollection;
+  EV1?: FeatureCollection;
+  EV2?: FeatureCollection;
+  Cart?: FeatureCollection;
   LightCart?: FeatureCollection;
+  Staff?: FeatureCollection;
 };

@@ -107,3 +107,12 @@ type SgAudioState = {
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };
+
+/**
+ * Graph Store
+ */
+type GraphsState = {
+  graphsManifest: GraphsManifest;
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
+};

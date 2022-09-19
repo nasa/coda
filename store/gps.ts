@@ -11,7 +11,7 @@ export const gpsSlice = createSlice({
   name: "gps",
   initialState,
   reducers: {
-    /** Add new photo files to the store */
+    /** Add new gps tracks to the store */
     setGPSTracks: (state, action: { payload: WrappedResponse<GPSTrack[]> }) => {
       state.gpsTracks = action.payload.data;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };

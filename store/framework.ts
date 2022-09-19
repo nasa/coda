@@ -169,6 +169,17 @@ export const allPanes: Panes = {
       showHelp: false,
     } as CommPaneStateData,
   },
+  graph: {
+    title: "Graph",
+    icon: "chart-line",
+    color: "burntUmber",
+    defaultPaneStateData: {
+      ready: true,
+      lockScroll: true,
+      showHelp: false,
+      selectedGraphId: "01", //TODO default this to null. just "01" for testing.
+    } as GraphPaneStateData,
+  },
 };
 
 export const defaultFrames: FrameState = {

@@ -543,11 +543,11 @@ export async function fetchSequences(collection: Collection): Promise<WikibotRes
   }
 }
 
-/** Get list of GPS tracks available in the wiki */
+/** Get list of external data products from the wiki */
 
-async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
+async function fetchWikiExternalData(): Promise<WrappedResponse<string[]>> {
   const parseQuery = {
-    page: "CODA/D-RATS_2021_Data", //TODO: Rename these wiki pages to something general instead of "D-RATS"
+    page: "CODA/External Data",
     prop: "links",
   };
 
@@ -573,7 +573,7 @@ async function fetchWikiGPSList(): Promise<WrappedResponse<string[]>> {
 }
 
 export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedResponse<GPSTrack[]>> {
-  const gpsList = await fetchWikiGPSList();
+  const gpsList = await fetchWikiExternalData();
   let error = null;
   // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
   const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
@@ -585,7 +585,8 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedRes
         match[1] === "EV1" ||
         match[1] === "EV2" ||
         match[1] === "Cart" ||
-        match[1] === "LightCart"
+        match[1] === "LightCart" ||
+        match[1] === "Staff"
       ) {
         const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
         if (gpsTrackRes.cacheMetadata.error !== undefined) {
@@ -658,10 +659,64 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
       wiki: "exploration",
       action: "parse",
     });
-    return parseWikitextTable(res.data.parse.wikitext["*"]);
+    return parseWikitextTableIntoDatetimeOverrides(res.data.parse.wikitext["*"]);
   };
 
   return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
+    cacheAge: 60,
+    staleOk: true,
+    preferNew: false,
+  });
+}
+
+/** Get all the manually set media source overrides.
+ *
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Media_Source_Overrides
+ */
+export async function fetchMediaOverrides(): Promise<WrappedResponse<MediaSourceOverride[]>> {
+  const parseQuery = {
+    page: "CODA/Media_Source_Overrides",
+    prop: "wikitext",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+    return parseWikitextTableIntoMediaSourceOverrides(res.data.parse.wikitext["*"]);
+  };
+
+  return await fetchWithCache<MediaSourceOverride[]>("wiki/media-overrides", retriever, {
+    cacheAge: 60,
+    staleOk: true,
+    preferNew: false,
+  });
+}
+
+/** Get the list of ancillary data sources from the wiki
+ *
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Ancillary_Data_Sources
+ */
+export async function fetchAncillaryDataSourceList(): Promise<
+  WrappedResponse<AncillaryDataSource[]>
+> {
+  const parseQuery = {
+    page: "CODA/Ancillary_Data_Sources",
+    prop: "wikitext",
+  };
+
+  const retriever = async () => {
+    const res = await fetchWiki({
+      parseQuery,
+      wiki: "exploration",
+      action: "parse",
+    });
+    return parseWikitextTableIntoAncillaryDataSources(res.data.parse.wikitext["*"]);
+  };
+
+  return await fetchWithCache<AncillaryDataSource[]>("wiki/ancillary-data-sources", retriever, {
     cacheAge: 60,
     staleOk: true,
     preferNew: false,
@@ -683,7 +738,7 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
  *
  * Inspired by: https://www.mediawiki.org/wiki/API:Parsing_wikitext#Example_1:_Parse_content_of_a_page
  */
-export function parseWikitextTable(wikitext: string): DatetimeOverrides {
+export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): DatetimeOverrides {
   const data = [];
   const lines = wikitext.split("|-");
 
@@ -731,4 +786,98 @@ export function parseWikitextTable(wikitext: string): DatetimeOverrides {
     // the second table maps test events to camera timezones
     testEventTimezones: data[1],
   };
+}
+
+export function parseWikitextTableIntoMediaSourceOverrides(
+  wikitext: string
+): MediaSourceOverride[] {
+  const data = [];
+  const lines = wikitext.split("|-");
+
+  let currentHeader: string[] = [];
+
+  // assume more than one table in the wikitext. use this index to increment which result to put table
+  let tableIndex = 0;
+
+  lines.forEach((line) => {
+    let t: any = {};
+
+    const stripped = line.trim();
+
+    if (stripped.match(/^!.*/g)) {
+      // every time we find a new header, create a new list of rows for the response
+      data[tableIndex] = [];
+      currentHeader = stripped
+        .slice(1)
+        .split("!!")
+        .map((s) => s.trim());
+    }
+
+    if (stripped.match(/^\|(?!-|}).*/g)) {
+      const row = stripped
+        .slice(1)
+        .split("||")
+        .map((s) => s.trim());
+      row.forEach(
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+      );
+    }
+
+    if (!deepEquals(t, {})) {
+      data[tableIndex].push(t);
+    }
+
+    if (stripped.match(/\|\}/g)) {
+      tableIndex += 1;
+    }
+  });
+
+  return data[0] as MediaSourceOverride[];
+}
+
+export function parseWikitextTableIntoAncillaryDataSources(
+  wikitext: string
+): AncillaryDataSource[] {
+  const data = [];
+  const lines = wikitext.split("|-");
+
+  let currentHeader: string[] = [];
+
+  // assume more than one table in the wikitext. use this index to increment which result to put table
+  let tableIndex = 0;
+
+  lines.forEach((line) => {
+    let t: any = {};
+
+    const stripped = line.trim();
+
+    if (stripped.match(/^!.*/g)) {
+      // every time we find a new header, create a new list of rows for the response
+      data[tableIndex] = [];
+      currentHeader = stripped
+        .slice(1)
+        .split("!!")
+        .map((s) => s.trim());
+    }
+
+    if (stripped.match(/^\|(?!-|}).*/g)) {
+      const row = stripped
+        .slice(1)
+        .split("||")
+        .map((s) => s.trim());
+      row.forEach(
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+      );
+    }
+
+    if (!deepEquals(t, {})) {
+      data[tableIndex].push(t);
+    }
+
+    if (stripped.match(/\|\}/g)) {
+      tableIndex += 1;
+    }
+  });
+
+  return data[0] as AncillaryDataSource[];
 }
