@@ -121,7 +121,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
 
   //update map based on changes in seconds / hoverSeconds
   useEffect(() => {
-    if (!map || !playhead.date || todayEphemera.length === 0) {
+    if (!map || !playhead.date || todayEphemera?.length === 0) {
       return;
     }
 
