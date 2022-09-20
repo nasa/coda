@@ -77,7 +77,8 @@ interface PhotoCollectionFilters {
  */
 
 /** Info about videos from IO and the desired high-level state of the video players */
-type VideosEntityState = EntityState<VideoFile> & {
+type VideosState = {
+  videoFiles: VideoFile[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };

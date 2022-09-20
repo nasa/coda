@@ -6,7 +6,7 @@ import { LoadingStatusEnum } from "utils/enums";
 
 export default function StatusArea(props: { largeDisplay: boolean }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const videos: VideosState = useSelector((state: RootState) => state.videos);
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
@@ -38,7 +38,9 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
   });
 
   useEffect(() => {
-    setVideoStatus(createStatus(videos.loadingStatus, videos.cacheMetadata, videos.ids.length > 0));
+    setVideoStatus(
+      createStatus(videos.loadingStatus, videos.cacheMetadata, videos.videoFiles?.length > 0)
+    );
   }, [videos.loadingStatus, videos.cacheMetadata]);
 
   useEffect(() => {

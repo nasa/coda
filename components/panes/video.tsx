@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
 import type { RootState } from "store/index";
 import { isSameDate, midnightZulu } from "store/playhead";
-import { videoSelectors, visibleVideosBySecond } from "store/videos";
+import { visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { setPaneStateValue } from "store/framework";
@@ -131,10 +131,10 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
 
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const videos: VideosState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadDate = new Date(playhead.date);
-  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const paneStateData: VideoPaneStateData = useSelector(
@@ -232,10 +232,10 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
 
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const videos: VideosState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadDate = new Date(playhead.date);
-  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const [nonDlVideoIDs, setNonDlVideoIDs] = useState([]);
@@ -245,7 +245,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
   );
 
   const getPrettyVideoTitle = (videoID: string) => {
-    const video = videoSelectors.selectById(videos, videoID);
+    const video = videoFiles.find((v) => v.id === videoID);
     if (video) {
       if (video.title && video.title.trim() !== "") {
         return video.title;
@@ -334,7 +334,7 @@ export default function VideoPane(props: { frameID: number }) {
   const frameID: number = props.frameID;
   const dispatch = useDispatch();
 
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
+  const videos: VideosState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const paneStateData: VideoPaneStateData = useSelector(
@@ -344,7 +344,7 @@ export default function VideoPane(props: { frameID: number }) {
   const playheadDate = new Date(playhead.date);
   const startOfDay = playheadDate.valueOf() / 1000;
 
-  const videoFiles: VideoFile[] = videoSelectors.selectAll(videos);
+  const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
@@ -419,11 +419,7 @@ export default function VideoPane(props: { frameID: number }) {
     const { currentTime } = videoElement.current;
 
     // make sure the video times are correct
-
-    const currentlyPlayingVideo = videoSelectors.selectById(
-      videos,
-      paneStateData.activeVideoFileID
-    );
+    const currentlyPlayingVideo = videoFiles.find((v) => v.id === paneStateData.activeVideoFileID);
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
       videoStartOffset = playhead.seconds - (currentlyPlayingVideo.start - startOfDay);
@@ -459,7 +455,7 @@ export default function VideoPane(props: { frameID: number }) {
 
     if (videoID !== "" && videoID !== undefined) {
       // there is a video for this downlink
-      const currentlyPlayingVideo = videoSelectors.selectById(videos, videoID);
+      const currentlyPlayingVideo = videoFiles.find((v) => v.id === videoID);
       if (currentlyPlayingVideo) {
         setSourceURL(currentlyPlayingVideo.mediaLowResURL);
       }
@@ -485,9 +481,8 @@ export default function VideoPane(props: { frameID: number }) {
   const cueVideoToPlayhead = () => {
     // cue the new video to the right start time to avoid buffering the beginning of the video needlessly
     if (sourceURL !== "") {
-      const currentlyPlayingVideo = videoSelectors.selectById(
-        videos,
-        paneStateData.activeVideoFileID
+      const currentlyPlayingVideo = videoFiles.find(
+        (v) => v.id === paneStateData.activeVideoFileID
       );
 
       if (isNil(currentlyPlayingVideo)) {
@@ -531,7 +526,7 @@ export default function VideoPane(props: { frameID: number }) {
     const videoID = paneStateData.activeVideoFileID;
     let video: VideoFile;
     if (videoID !== "") {
-      video = videoSelectors.selectById(videos, videoID);
+      video = videoFiles.find((v) => v.id === videoID);
     }
 
     const ioError = status === "error" && sourceURL !== "";
@@ -688,10 +683,7 @@ export default function VideoPane(props: { frameID: number }) {
   };
 
   const renderVideoOverlay = () => {
-    const currentlyPlayingVideo = videoSelectors.selectById(
-      videos,
-      paneStateData.activeVideoFileID
-    );
+    const currentlyPlayingVideo = videoFiles.find((v) => v.id === paneStateData.activeVideoFileID);
     let videoStartOffset = 0;
     let ioSearchLink = "";
     let ioVideoURL = "";

@@ -3,14 +3,11 @@ import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 import { isSameDate } from "./playhead";
 import { LoadingStatusEnum } from "utils/enums";
 
-const videoAdapter = createEntityAdapter<VideoFile>();
-
-export const initialState: VideosEntityState = videoAdapter.getInitialState({
+export const initialState: VideosState = {
+  videoFiles: [],
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
-});
-
-export const videoSelectors = videoAdapter.getSelectors<VideosEntityState>((state) => state);
+};
 
 export const videoSlice = createSlice({
   name: "video",
@@ -18,14 +15,13 @@ export const videoSlice = createSlice({
   reducers: {
     /** Add new video files to the store */
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
-      videoAdapter.removeAll(state);
-      videoAdapter.upsertMany(state, action.payload.data);
+      state.videoFiles = action.payload.data;
       state.cacheMetadata = action.payload.cacheMetadata;
     },
 
     /** Clear all videos from the store */
     clearVideos: (state) => {
-      videoAdapter.removeAll(state);
+      state.videoFiles = [];
       state.cacheMetadata = null;
     },
 
