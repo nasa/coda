@@ -3,8 +3,8 @@ import { LoadingStatusEnum } from "utils/enums";
 import { diff } from "./playhead";
 
 export function idFromEphemeris(ephemeris: EphemerisFile): string {
-  const { FILE } = ephemeris;
-  return FILE;
+  const { EPOCH } = ephemeris;
+  return EPOCH;
 }
 
 const ephemerisAdapter = createEntityAdapter<EphemerisFile>({

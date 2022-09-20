@@ -18,6 +18,7 @@ interface IOResponse {
 interface WrappedResponse<T> {
   data?: T;
   cacheMetadata: CacheMetadata;
+  source?: string;
 }
 
 /** Wikibot responses */
