@@ -29,7 +29,8 @@ interface PlayheadHoverState {
  * Ephemera store
  */
 
-type EphemeraEntityState = EntityState<EphemerisFile> & {
+type EphemeraState = {
+  ephemerisFiles: EphemerisFile[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
@@ -47,7 +48,8 @@ type DayNightState = {
  * Sequence store
  */
 
-type SequencesEntityState = EntityState<Sequence> & {
+type SequencesState = {
+  allSequences: Sequence[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
@@ -56,7 +58,8 @@ type SequencesEntityState = EntityState<Sequence> & {
  * Photo store
  */
 
-type PhotosEntityState = EntityState<PhotoFile> & {
+type PhotosState = {
+  photoFiles: PhotoFile[];
   activePhoto: PhotoFile;
   ready: boolean;
   cacheMetadata: ResMetadata;
@@ -75,7 +78,8 @@ interface PhotoCollectionFilters {
  */
 
 /** Info about videos from IO and the desired high-level state of the video players */
-type VideosEntityState = EntityState<VideoFile> & {
+type VideosState = {
+  videoFiles: VideoFile[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };

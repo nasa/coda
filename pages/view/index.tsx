@@ -13,7 +13,6 @@ import {
   clearSequences,
   fetchError as sequencesFetchError,
   idFromDate,
-  sequencesSelector,
   setSequenceLoadingStatus,
 } from "store/sequences";
 import useInterval from "utils/useInterval";
@@ -95,8 +94,8 @@ export function V2(props: { urlState }) {
   const playhead = useSelector((state: RootState) => state.playhead);
   const playheadDate = playhead.date;
   const source = useSelector((state: RootState) => state.framework.source);
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
-  let allEVAs = sequencesSelector.selectAll(sequences);
+  const sequences = useSelector((state: RootState) => state.sequences);
+  let allEVAs = sequences.allSequences;
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
 

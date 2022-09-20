@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { LoadingStatusEnum } from "utils/enums";
 
 export default function StatusArea(props: { largeDisplay: boolean }) {
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
-  const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
+  const videos: VideosState = useSelector((state: RootState) => state.videos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
-  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
   const transcript: TranscriptState = useSelector((state: RootState) => state.transcript);
 
   const [videoStatus, setVideoStatus] = useState({
@@ -38,16 +38,24 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
   });
 
   useEffect(() => {
-    setVideoStatus(createStatus(videos.loadingStatus, videos.cacheMetadata, videos.ids.length > 0));
+    setVideoStatus(
+      createStatus(videos.loadingStatus, videos.cacheMetadata, videos.videoFiles?.length > 0)
+    );
   }, [videos.loadingStatus, videos.cacheMetadata]);
 
   useEffect(() => {
-    setPhotoStatus(createStatus(photos.loadingStatus, photos.cacheMetadata, photos.ids.length > 0));
+    setPhotoStatus(
+      createStatus(photos.loadingStatus, photos.cacheMetadata, photos.photoFiles?.length > 0)
+    );
   }, [photos.loadingStatus, photos.cacheMetadata]);
 
   useEffect(() => {
     setSequenceStatus(
-      createStatus(sequences.loadingStatus, sequences.cacheMetadata, sequences.ids.length > 0)
+      createStatus(
+        sequences.loadingStatus,
+        sequences.cacheMetadata,
+        sequences.allSequences?.length > 0
+      )
     );
   }, [sequences.loadingStatus, sequences.cacheMetadata]);
 
@@ -57,7 +65,11 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   useEffect(() => {
     setEphemeraStatus(
-      createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ids.length > 0)
+      createStatus(
+        ephemera.loadingStatus,
+        ephemera.cacheMetadata,
+        ephemera.ephemerisFiles?.length > 0
+      )
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
   useEffect(() => {
