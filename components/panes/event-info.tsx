@@ -5,11 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { changeTime, isSameDate } from "store/playhead";
-import {
-  sequencesSelector,
-  getAsPerformedMissionTime,
-  getSequenceStartMilliseconds,
-} from "store/sequences";
+import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
 import { SequenceType } from "utils/enums";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
@@ -40,13 +36,13 @@ export function EventInfoControls(props: { frameID: number }) {
 }
 
 export default function EventInfo(props: { frameID: number }) {
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const paneStateData: EventPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  const allSequences = sequencesSelector.selectAll(sequences);
+  const allSequences = sequences.allSequences;
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );

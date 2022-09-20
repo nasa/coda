@@ -48,7 +48,8 @@ type DayNightState = {
  * Sequence store
  */
 
-type SequencesEntityState = EntityState<Sequence> & {
+type SequencesState = {
+  allSequences: Sequence[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };

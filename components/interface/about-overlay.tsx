@@ -23,7 +23,7 @@ React.useLayoutEffect = React.useEffect;
 library.add(faTimesCircle);
 
 export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOpen: Function }) {
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
   const videos: VideosState = useSelector((state: RootState) => state.videos);
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);

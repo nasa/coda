@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { LoadingStatusEnum } from "utils/enums";
 
 export default function StatusArea(props: { largeDisplay: boolean }) {
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
   const videos: VideosState = useSelector((state: RootState) => state.videos);
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
@@ -51,7 +51,11 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   useEffect(() => {
     setSequenceStatus(
-      createStatus(sequences.loadingStatus, sequences.cacheMetadata, sequences.ids.length > 0)
+      createStatus(
+        sequences.loadingStatus,
+        sequences.cacheMetadata,
+        sequences.allSequences?.length > 0
+      )
     );
   }, [sequences.loadingStatus, sequences.cacheMetadata]);
 

@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { isSameDate, changeTime } from "store/playhead";
 import { changeHoverTime } from "store/playheadHover";
 import {
-  sequencesSelector,
   getAsPerformedMissionTime,
   getSequenceStartMilliseconds,
   idFromDate,
@@ -27,7 +26,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   const dayNights: DayNightState = useSelector((state: RootState) => state.dayNight);
   const videos: VideosState = useSelector((state: RootState) => state.videos);
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
   const sgAudioActivityRanges: SgActivityRangeRecord[][] = useSelector(
     (state: RootState) => state.sgAudio.sgActivityRanges
   );
@@ -38,7 +37,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   const videoFiles = videos.videoFiles;
   const photoFiles = photos.photoFiles;
 
-  let allEVAs = sequencesSelector.selectAll(sequences);
+  let allEVAs = sequences.allSequences;
   if (props.collection === Collection.NBL) {
     // Show only NBL sequences
     allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
