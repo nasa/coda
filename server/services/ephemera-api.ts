@@ -154,7 +154,7 @@ export async function fetchISSLocation(
       cacheAge: isToday ? 60 : oneYearInSeconds,
       staleOk: true,
     });
-    spacetrackRes.source = "spacetrack";
+    spacetrackRes = { ...spacetrackRes, source: "spacetrack" };
   } catch (e) {
     // something went wrong that really shouldn't have
     throw e;

@@ -4,7 +4,7 @@ import fetchWithCache from "server/services/cache-client";
 jest.mock("server/services/cache-client");
 const fetchMock = fetchWithCache as jest.MockedFunction<typeof fetchWithCache>;
 
-describe("server/services/spacetrack-api", () => {
+describe("server/services/ephemera-api", () => {
   beforeEach(() => {
     fetchMock.mockClear();
   });
