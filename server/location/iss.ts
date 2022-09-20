@@ -29,6 +29,9 @@ export default async function getISSLocation(
       dayNight: convertedDayNight,
     },
   };
+  if (ephemeris.source) {
+    response.source = ephemeris.source;
+  }
 
   return response;
 }

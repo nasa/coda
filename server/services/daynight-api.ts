@@ -37,8 +37,8 @@ export async function fetchDayNight(
      * Vice versa for location if this day night fetch executes before the location fetch.
      * Essentially only one call to space-track.org will ultimately occur.
      */
-    let spacetrack: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
-    let ephemera = spacetrack.data.ephemera;
+    let apiResponse: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
+    let ephemera = apiResponse.data.ephemera;
 
     //calculate day night based off ephemera
     if (ephemera.length > 0) {

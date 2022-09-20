@@ -69,9 +69,9 @@ async function fetchCelestrakToday() {
 
     const result: EphemerisFile = {
       EPOCH: epochString,
-      TLE_LINE0: lines[0],
-      TLE_LINE1: lines[1],
-      TLE_LINE2: lines[2],
+      TLE_LINE0: lines[0].trim(),
+      TLE_LINE1: lines[1].trim(),
+      TLE_LINE2: lines[2].trim(),
     };
 
     return result;
@@ -96,23 +96,21 @@ export async function fetchISSLocation(
   const dateObj = new Date(Date.UTC(year, month - 1, date));
   const isToday = isSameDate(now, dateObj);
 
-  let res: WrappedResponse<EphemerisStore> = {
-    cacheMetadata: null,
-    data: { ephemera: [] },
-  };
-
   if (isToday) {
     // if today, first try to get TLE data from celestrak, and don't cache the result (because it's today)
     const celestrakResult = await fetchCelestrakToday();
     if (celestrakResult) {
-      return {
+      const result: WrappedResponse<EphemerisStore> = {
         cacheMetadata: { fromCache: false, timestamp: null, stale: false },
         data: { ephemera: [celestrakResult] },
+        source: "celestrak",
       };
+      return result;
     }
   }
 
   // if celestrak didn't work, or if it's not today, try to get data from spacetrack
+  let spacetrackRes: WrappedResponse<EphemerisStore> = null;
   try {
     const retriever = async (): Promise<EphemerisStore> => {
       // Keep hitting spacetrack going back one day per call until we get some results
@@ -151,15 +149,16 @@ export async function fetchISSLocation(
       return { ephemera: ephemera };
     };
     const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-    res = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retriever, {
+    spacetrackRes = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retriever, {
       preferNew: isToday,
       cacheAge: isToday ? 60 : oneYearInSeconds,
       staleOk: true,
     });
+    spacetrackRes.source = "spacetrack";
   } catch (e) {
     // something went wrong that really shouldn't have
     throw e;
   }
 
-  return res;
+  return spacetrackRes;
 }
