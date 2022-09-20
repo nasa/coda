@@ -12,7 +12,6 @@ import {
   idFromDate,
 } from "store/sequences";
 import { filterVisibleVideos, videoSelectors } from "store/videos";
-import { photosSelectors } from "store/photos";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
@@ -27,7 +26,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const dayNights: DayNightState = useSelector((state: RootState) => state.dayNight);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const sgAudioActivityRanges: SgActivityRangeRecord[][] = useSelector(
     (state: RootState) => state.sgAudio.sgActivityRanges
@@ -37,7 +36,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   const dayNight = dayNights.dayNight;
 
   const videoFiles = videoSelectors.selectAll(videos);
-  const photoFiles = photosSelectors.selectAll(photos);
+  const photoFiles = photos.photoFiles;
 
   let allEVAs = sequencesSelector.selectAll(sequences);
   if (props.collection === Collection.NBL) {

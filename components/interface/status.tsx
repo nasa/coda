@@ -7,7 +7,7 @@ import { LoadingStatusEnum } from "utils/enums";
 export default function StatusArea(props: { largeDisplay: boolean }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
   const transcript: TranscriptState = useSelector((state: RootState) => state.transcript);
@@ -42,7 +42,9 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
   }, [videos.loadingStatus, videos.cacheMetadata]);
 
   useEffect(() => {
-    setPhotoStatus(createStatus(photos.loadingStatus, photos.cacheMetadata, photos.ids.length > 0));
+    setPhotoStatus(
+      createStatus(photos.loadingStatus, photos.cacheMetadata, photos.photoFiles?.length > 0)
+    );
   }, [photos.loadingStatus, photos.cacheMetadata]);
 
   useEffect(() => {
@@ -57,7 +59,11 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   useEffect(() => {
     setEphemeraStatus(
-      createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ephemera?.length > 0)
+      createStatus(
+        ephemera.loadingStatus,
+        ephemera.cacheMetadata,
+        ephemera.ephemerisFiles?.length > 0
+      )
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
   useEffect(() => {

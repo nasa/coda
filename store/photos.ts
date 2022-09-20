@@ -1,7 +1,5 @@
-import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { LoadingStatusEnum } from "utils/enums";
-
-const photoAdapter = createEntityAdapter<PhotoFile>();
 
 export const initialPhotoFileState: PhotoFile = {
   id: "",
@@ -17,15 +15,14 @@ export const initialPhotoFileState: PhotoFile = {
   collections: "",
 };
 
-export const initialState: PhotosEntityState = photoAdapter.getInitialState({
+export const initialState: PhotosState = {
+  photoFiles: [],
   activePhoto: initialPhotoFileState,
   ready: false,
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
   collectionFilters: [],
-});
-
-export const photosSelectors = photoAdapter.getSelectors<PhotosEntityState>((state) => state);
+};
 
 export const photoSlice = createSlice({
   name: "photo",
@@ -33,14 +30,13 @@ export const photoSlice = createSlice({
   reducers: {
     /** Add new photo files to the store */
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
-      photoAdapter.removeAll(state);
-      photoAdapter.upsertMany(state, action.payload.data);
+      state.photoFiles = action.payload.data;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
       state.ready = true;
     },
 
     clearPhotos: (state) => {
-      photoAdapter.removeAll(state);
+      state.photoFiles = [];
       state.cacheMetadata = null;
       state.ready = false;
     },

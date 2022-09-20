@@ -91,7 +91,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
   const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  const todayEphemera = ephemera.ephemera;
+  const todayEphemera = ephemera.ephemerisFiles;
 
   const [map, setMap] = useState<Map>(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);

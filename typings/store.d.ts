@@ -30,7 +30,7 @@ interface PlayheadHoverState {
  */
 
 type EphemeraState = {
-  ephemera: EphemerisFile[];
+  ephemerisFiles: EphemerisFile[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };
@@ -57,7 +57,8 @@ type SequencesEntityState = EntityState<Sequence> & {
  * Photo store
  */
 
-type PhotosEntityState = EntityState<PhotoFile> & {
+type PhotosState = {
+  photoFiles: PhotoFile[];
   activePhoto: PhotoFile;
   ready: boolean;
   cacheMetadata: ResMetadata;

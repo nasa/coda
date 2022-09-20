@@ -25,7 +25,7 @@ library.add(faTimesCircle);
 export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOpen: Function }) {
   const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
   const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
 

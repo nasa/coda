@@ -1,11 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  initialPhotoFileState,
-  setActivePhoto,
-  setCollectionFilters,
-  photosSelectors,
-} from "store/photos";
+import { initialPhotoFileState, setActivePhoto, setCollectionFilters } from "store/photos";
 import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
@@ -37,7 +32,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   let datetimeTakenLabel = "";
@@ -102,9 +97,9 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
   );
 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
 
-  const photoFiles = photosSelectors.selectAll(photos);
+  const photoFiles = photos.photoFiles;
 
   const changePhoto = () => {
     if (!photos.ready) {

@@ -3,7 +3,7 @@ import { LoadingStatusEnum } from "utils/enums";
 import { diff } from "./playhead";
 
 export const initialState: EphemeraState = {
-  ephemera: [],
+  ephemerisFiles: [],
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
@@ -14,11 +14,11 @@ export const ephemeraSlice = createSlice({
   reducers: {
     /** Add new photo files to the store */
     addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
-      state.ephemera = action.payload.data.ephemera;
+      state.ephemerisFiles = action.payload.data.ephemera;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
     },
     clearEphemera: (state) => {
-      state.ephemera = null;
+      state.ephemerisFiles = null;
       state.cacheMetadata = null;
     },
 
