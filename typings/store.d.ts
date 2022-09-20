@@ -29,7 +29,8 @@ interface PlayheadHoverState {
  * Ephemera store
  */
 
-type EphemeraEntityState = EntityState<EphemerisFile> & {
+type EphemeraState = {
+  ephemera: EphemerisFile[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum;
 };

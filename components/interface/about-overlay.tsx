@@ -27,7 +27,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
-  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [closeAutomatically, setCloseAutomatically] = useState(false);

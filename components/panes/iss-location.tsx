@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import ReactDOM from "react-dom";
 import { RootState } from "store/index";
-import { ephemeraSelectors, getAppropriateTLE } from "store/ephemera";
+import { getAppropriateTLE } from "store/ephemera";
 import { setPaneStateValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
 
@@ -84,14 +84,14 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
     markerNode: null,
   };
 
-  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
   const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  const todayEphemera = ephemeraSelectors.selectAll(ephemera);
+  const todayEphemera = ephemera.ephemera;
 
   const [map, setMap] = useState<Map>(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);

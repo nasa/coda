@@ -9,7 +9,7 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
   const videos: VideosEntityState = useSelector((state: RootState) => state.videos);
   const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
   const gps: GPSState = useSelector((state: RootState) => state.gps);
-  const ephemera: EphemeraEntityState = useSelector((state: RootState) => state.ephemera);
+  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
   const transcript: TranscriptState = useSelector((state: RootState) => state.transcript);
 
   const [videoStatus, setVideoStatus] = useState({
@@ -57,7 +57,7 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   useEffect(() => {
     setEphemeraStatus(
-      createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ids.length > 0)
+      createStatus(ephemera.loadingStatus, ephemera.cacheMetadata, ephemera.ephemera?.length > 0)
     );
   }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
   useEffect(() => {
