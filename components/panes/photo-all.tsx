@@ -3,7 +3,7 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { photosSelectors, setActivePhoto } from "store/photos";
+import { setActivePhoto } from "store/photos";
 import { changeTime } from "store/playhead";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
@@ -62,13 +62,13 @@ export function PhotoAllControls(props: { frameID: number }) {
 }
 
 export default function PhotoAllPane(props: { frameID: number }) {
-  const photos: PhotosEntityState = useSelector((state: RootState) => state.photos);
+  const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const paneStateData: PhotoAllPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  const photoFiles = photosSelectors.selectAll(photos);
+  const photoFiles = photos.photoFiles;
   const frameID = props.frameID;
   const dispatch = useDispatch();
 

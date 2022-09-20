@@ -1,26 +1,12 @@
-import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { LoadingStatusEnum } from "utils/enums";
 import { diff } from "./playhead";
 
-export function idFromEphemeris(ephemeris: EphemerisFile): string {
-  const { FILE } = ephemeris;
-  return FILE;
-}
-
-const ephemerisAdapter = createEntityAdapter<EphemerisFile>({
-  selectId: idFromEphemeris,
-  // Keep the "all IDs" array sorted based on date descending
-  sortComparer: (a, b) => diff(new Date(a.EPOCH), new Date(b.EPOCH)),
-});
-
-export const initialState: EphemeraEntityState = ephemerisAdapter.getInitialState({
+export const initialState: EphemeraState = {
+  ephemerisFiles: [],
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
-});
-
-export const ephemeraSelectors = ephemerisAdapter.getSelectors<EphemeraEntityState>(
-  (state) => state
-);
+};
 
 export const ephemeraSlice = createSlice({
   name: "ephemera",
@@ -28,12 +14,11 @@ export const ephemeraSlice = createSlice({
   reducers: {
     /** Add new photo files to the store */
     addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
-      ephemerisAdapter.removeAll(state);
-      ephemerisAdapter.upsertMany(state, action.payload.data.ephemera);
+      state.ephemerisFiles = action.payload.data.ephemera;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
     },
     clearEphemera: (state) => {
-      ephemerisAdapter.removeAll(state);
+      state.ephemerisFiles = null;
       state.cacheMetadata = null;
     },
 

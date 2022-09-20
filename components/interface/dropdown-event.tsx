@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
-import { sequencesSelector } from "store/sequences";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,12 +14,12 @@ export default function EventDropdown(props: {
   collection: Collection;
   setHelpLoaderOpen: Function;
 }) {
-  const sequences: SequencesEntityState = useSelector((state: RootState) => state.sequences);
+  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
   const date = useSelector((state: RootState) => state.playhead.date);
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
 
-  let allSequences = sequencesSelector.selectAll(sequences);
+  let allSequences = sequences.allSequences;
   if (props.collection === Collection.NBL) {
     // Show only NBL sequences
     allSequences = allSequences.filter((eva) => eva.displayTitle.includes("NBL"));

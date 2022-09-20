@@ -1,26 +1,12 @@
-import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import { diff } from "./playhead";
+import { createSlice } from "@reduxjs/toolkit";
 import { padZeros } from "utils/formatting";
 import { LoadingStatusEnum } from "utils/enums";
 
-/** Parse the ID from an Sequence, currently set to a `yyyy-mm-dd-name` string */
-export function idFromSequence(sequence: Sequence): string {
-  const { startDate, name, type, location } = sequence;
-  const [yyyy, mm, dd] = startDate.split("-").map((d) => padZeros(+d, 2));
-  // TODO: location isn't working?
-  return `${yyyy}-${mm}-${dd}-${location}-${type}-${name}`;
-}
-
-const sequencesAdapter = createEntityAdapter<Sequence>({
-  selectId: idFromSequence,
-  // Keep the "all IDs" array sorted based on date descending
-  sortComparer: (a, b) => diff(new Date(a.startDate), new Date(b.startDate)),
-});
-
-export const initialState: SequencesEntityState = sequencesAdapter.getInitialState({
+export const initialState: SequencesState = {
+  allSequences: [],
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
-});
+};
 
 export const sequencesSlice = createSlice({
   name: "sequences",
@@ -28,14 +14,13 @@ export const sequencesSlice = createSlice({
   reducers: {
     /** Add one (or more) Sequence(s) to the store */
     addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
-      sequencesAdapter.removeAll(state);
-      sequencesAdapter.upsertMany(state, action.payload.data);
+      state.allSequences = action.payload.data;
       state.cacheMetadata = action.payload.cacheMetadata;
     },
 
     /** Clear all Sequences from the store */
     clearSequences: (state) => {
-      sequencesAdapter.removeAll(state);
+      state.allSequences = [];
       state.cacheMetadata = null;
     },
 
@@ -52,10 +37,6 @@ export const sequencesSlice = createSlice({
 
 export const { addSequences, clearSequences, fetchError, setSequenceLoadingStatus } =
   sequencesSlice.actions;
-
-export const sequencesSelector = sequencesAdapter.getSelectors<SequencesEntityState>(
-  (state) => state
-);
 
 /**
  * Get a potential Sequence ID from an ISO or UTC date string

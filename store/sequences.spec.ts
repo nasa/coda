@@ -1,5 +1,4 @@
 import {
-  idFromSequence,
   idFromDate,
   getSequenceStartMilliseconds,
   getAsPerformedMissionTime,
@@ -21,9 +20,6 @@ describe("store/sequences", () => {
     asPerformed: null,
     asPlanned: null,
   };
-  it("idFromSequence() - converts sequence to id string", () => {
-    expect(idFromSequence(seq)).toEqual("2022-07-27-testLoc-3-testName");
-  });
 
   it("idFromDate() - converts UTC string date to yyyy-mm-dd string", () => {
     expect(idFromDate("2022-07-27T21:39:19Z")).toEqual("2022-07-27");
