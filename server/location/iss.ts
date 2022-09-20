@@ -1,4 +1,4 @@
-import * as SpacetrackService from "server/services/spacetrack-api";
+import * as EphemeraService from "server/services/ephemera-api";
 import * as DayNightService from "server/services/daynight-api";
 
 export default async function getISSLocation(
@@ -7,7 +7,7 @@ export default async function getISSLocation(
   date: number
 ): Promise<WrappedResponse<EphemerisStoreWithDayNight>> {
   const dayNight = await DayNightService.fetchDayNight(year, month, date);
-  const ephemeris = await SpacetrackService.fetchISSLocation(year, month, date);
+  const ephemeris = await EphemeraService.fetchISSLocation(year, month, date);
 
   // Converting the new day/night data to the old format
   let convertedDayNight: DayNightObjDepricated[] = dayNight.data.dayNight.map((dn) => {

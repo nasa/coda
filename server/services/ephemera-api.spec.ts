@@ -1,4 +1,4 @@
-import * as SpacetrackService from "server/services/spacetrack-api";
+import * as EphemeraService from "server/services/ephemera-api";
 import fetchWithCache from "server/services/cache-client";
 
 jest.mock("server/services/cache-client");
@@ -10,7 +10,7 @@ describe("server/services/spacetrack-api", () => {
   });
 
   it("should fetch locations from spacetrack", async () => {
-    await SpacetrackService.fetchISSLocation(2000, 1, 1);
+    await EphemeraService.fetchISSLocation(2000, 1, 1);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -20,7 +20,7 @@ describe("server/services/spacetrack-api", () => {
 
     let erred = false;
     try {
-      await SpacetrackService.fetchISSLocation(2000, 1, 1);
+      await EphemeraService.fetchISSLocation(2000, 1, 1);
     } catch (e) {
       erred = true;
     }

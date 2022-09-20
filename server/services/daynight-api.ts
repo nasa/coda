@@ -7,7 +7,7 @@ import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
 import { getTimes } from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
-import { fetchISSLocation } from "./spacetrack-api";
+import { fetchISSLocation } from "./ephemera-api";
 
 /**
  * Get day night data.
