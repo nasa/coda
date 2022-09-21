@@ -18,7 +18,7 @@ export const ephemeraSlice = createSlice({
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
     },
     clearEphemera: (state) => {
-      state.ephemerisFiles = null;
+      state.ephemerisFiles = [];
       state.cacheMetadata = null;
     },
 
