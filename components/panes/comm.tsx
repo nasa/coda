@@ -60,11 +60,11 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
   }, [sgActivityRanges, playhead.seconds]);
 
   let lockButtonSelected = "";
-  if (paneStateData?.lockScroll) {
+  if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
   }
   let filterButtonSelected = "";
-  if (paneStateData?.filterActive) {
+  if (typeof paneStateData !== "undefined" && paneStateData.filterActive) {
     filterButtonSelected = styles.buttonSelected;
   }
 
@@ -297,7 +297,9 @@ export default function CommPane(props: { frameID: number }) {
   // Scroll to the active utterance
   useEffect(() => {
     if (paneStateData.lockScroll && activeUtteranceRef.current !== null) {
-      activeUtteranceRef.current.scrollIntoView();
+      activeUtteranceRef.current.scrollIntoView({
+        behavior: "smooth",
+      });
     }
   }, [activeUtteranceRef, playhead.seconds, paneStateData.lockScroll]);
 
@@ -315,7 +317,7 @@ export default function CommPane(props: { frameID: number }) {
     setFiltereredUtterances(filteredUtterances);
   }, [paneStateData, filterText, isTranscripts]);
 
-  // Update the active utterance secs
+  // Update the active utterance secds
   useEffect(() => {
     if (!isTranscripts) {
       return;
