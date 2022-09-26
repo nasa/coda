@@ -60,11 +60,11 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
   }, [sgActivityRanges, playhead.seconds]);
 
   let lockButtonSelected = "";
-  if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
+  if (paneStateData?.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
   }
   let filterButtonSelected = "";
-  if (typeof paneStateData !== "undefined" && paneStateData.filterActive) {
+  if (paneStateData?.filterActive) {
     filterButtonSelected = styles.buttonSelected;
   }
 
@@ -297,9 +297,7 @@ export default function CommPane(props: { frameID: number }) {
   // Scroll to the active utterance
   useEffect(() => {
     if (paneStateData.lockScroll && activeUtteranceRef.current !== null) {
-      activeUtteranceRef.current.scrollIntoView({
-        behavior: "smooth",
-      });
+      activeUtteranceRef.current.scrollIntoView();
     }
   }, [activeUtteranceRef, playhead.seconds, paneStateData.lockScroll]);
 
