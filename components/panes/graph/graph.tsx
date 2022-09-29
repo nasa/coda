@@ -1,6 +1,6 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
@@ -29,10 +29,10 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
   const paneStateData: GraphPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  const graphs: GraphsState = useSelector((state: RootState) => state.graphs);
+  const graphs: Graph[] = useSelector((state: RootState) => state.graphs.graphsManifest?.graphs);
 
   useEffect(() => {
-    if (!graphs.graphsManifest && !paneStateData.showHelp) {
+    if (!graphs && !paneStateData.showHelp) {
       setPaneStateValue(dispatch, frameID, "showHelp", true);
     } else {
       setPaneStateValue(dispatch, frameID, "showHelp", false);
@@ -42,7 +42,7 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
   return (
     <div className={styles.controls}>
       <div className={styles.controlsLeft}>
-        {graphs.graphsManifest && (
+        {graphs && (
           <div>
             <GraphSelectorDropdown />
           </div>
@@ -79,7 +79,7 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
             }}
           >
             <option value="">Select a graph</option>
-            {graphs.graphsManifest.graphs.map((graph) => {
+            {graphs.map((graph) => {
               return (
                 <option key={graph.id} value={graph.id}>
                   {graph.title}
