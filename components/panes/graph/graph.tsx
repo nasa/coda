@@ -1,7 +1,7 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { getPlotlyChartLayout } from "utils/graphs";
@@ -27,9 +27,13 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
   const minWidth = 527; // minimum width of the graph pane before shortening the dropdown
 
   const paneStateData: GraphPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData,
+    shallowEqual
   );
-  const graphs: Graph[] = useSelector((state: RootState) => state.graphs.graphsManifest?.graphs);
+  const graphs: Graph[] = useSelector(
+    (state: RootState) => state.graphs.graphsManifest?.graphs,
+    shallowEqual
+  );
 
   useEffect(() => {
     if (!graphs && !paneStateData.showHelp) {
@@ -44,7 +48,11 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
       <div className={styles.controlsLeft}>
         {graphs && (
           <div>
-            <GraphSelectorDropdown />
+            <GraphSelectorDropdown
+              frameID={props.frameID}
+              frameDimensions={props.frameDimensions}
+              minWidth={minWidth}
+            />
           </div>
         )}
       </div>
@@ -60,47 +68,62 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
       </div>
     </div>
   );
+}
 
-  function GraphSelectorDropdown() {
-    const dropDownWidthClass =
-      props.frameDimensions[0] > minWidth
-        ? styles.selectContainerWide
-        : styles.selectContainerNarrow;
+function GraphSelectorDropdown(props: {
+  frameID: number;
+  frameDimensions: number[];
+  minWidth: number;
+}) {
+  const paneStateData: GraphPaneStateData = useSelector(
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData,
+    shallowEqual
+  );
+  const dispatch = useDispatch();
+  const graphs: Graph[] = useSelector(
+    (state: RootState) => state.graphs.graphsManifest?.graphs,
+    shallowEqual
+  );
 
-    return (
-      <div className={styles.controls}>
-        <div className={`${styles.selectContainer} ${dropDownWidthClass}`} title="Select a graph">
-          <select
-            className={styles.selectActive}
-            value={paneStateData.selectedGraphId}
-            onChange={(event) => {
-              console.log("Graph dropdown changed");
-              setPaneStateValue(dispatch, frameID, "selectedGraphId", event.target.value);
-            }}
-          >
-            <option value="">Select a graph</option>
-            {graphs.map((graph) => {
-              return (
-                <option key={graph.id} value={graph.id}>
-                  {graph.title}
-                </option>
-              );
-            })}
-          </select>
-          <div className={styles.select_arrow}>
-            <FontAwesomeIcon icon="chevron-down" size="sm" />
-          </div>
+  const dropDownWidthClass =
+    props.frameDimensions[0] > props.minWidth
+      ? styles.selectContainerWide
+      : styles.selectContainerNarrow;
+
+  return (
+    <div className={styles.controls}>
+      <div className={`${styles.selectContainer} ${dropDownWidthClass}`} title="Select a graph">
+        <select
+          className={styles.selectActive}
+          value={paneStateData.selectedGraphId}
+          onChange={(event) => {
+            console.log("Graph dropdown changed");
+            setPaneStateValue(dispatch, props.frameID, "selectedGraphId", event.target.value);
+          }}
+        >
+          <option value="">Select a graph</option>
+          {graphs.map((graph) => {
+            return (
+              <option key={graph.id} value={graph.id}>
+                {graph.title}
+              </option>
+            );
+          })}
+        </select>
+        <div className={styles.select_arrow}>
+          <FontAwesomeIcon icon="chevron-down" size="sm" />
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default function Graph(props: { frameID: number; frameDimensions: number[] }) {
   const paneStateData: GraphPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[props.frameID].paneStateData,
+    shallowEqual
   );
-  const graphs: GraphsState = useSelector((state: RootState) => state.graphs);
+  const graphs: GraphsState = useSelector((state: RootState) => state.graphs, shallowEqual);
 
   // get graph data where id matches selectedGraphId
   const selectedGraph = graphs.graphsManifest?.graphs.find(
@@ -202,14 +225,16 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
       plotIndexToHighlight = i;
     }
 
+    console.log("highlighting plot index: " + plotIndexToHighlight);
+
     setChartProps({ ...chartProps, plotIndexToHighlight });
-  }, [playhead.seconds, playheadHover.seconds]);
+  }, [playhead, playheadHover]);
 
   return (
     <div className={styles.main}>
-      {paneStateData.selectedGraphId && <div>{selectedGraph?.title}</div>}
+      {selectedGraph && <div>{selectedGraph?.title}</div>}
       <div style={{ width: "100%" }}>
-        {paneStateData.selectedGraphId && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
+        {selectedGraph && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
       </div>
 
       <HelpOverlay
