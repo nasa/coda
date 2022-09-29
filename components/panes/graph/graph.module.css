@@ -32,3 +32,53 @@
 .rightButtons > *:not(:last-of-type) {
   margin-right: 5px;
 }
+
+.selectContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.selectContainerWide {
+  width: 14em;
+}
+.selectContainerNarrow {
+  width: 70px;
+}
+
+.selectContainer select {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  cursor: pointer;
+  padding-left: 15px;
+  padding-right: 15px;
+  height: 27px;
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  background-color: var(--lightest-grey);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-overflow: ellipsis;
+  outline: 0;
+}
+.selectContainer select::-ms-expand {
+  display: none;
+}
+.selectContainer select:hover,
+.selectContainer select:focus {
+  outline: 0;
+}
+.selectContainer select:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.select_arrow {
+  position: absolute;
+  pointer-events: none;
+  top: 3px;
+  right: 6px;
+}
