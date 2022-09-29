@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { getPlotlyChartLayout, parseGandalfHeartrateDataFile } from "utils/graphs";
-import { setGraphsData } from "store/graphs";
+import { getPlotlyChartLayout } from "utils/graphs";
+import { setGraphsData, clearGraphsData } from "store/graphs";
 import dynamic from "next/dynamic";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faExpandAlt } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+library.add(faExpandAlt);
 
 const DynPlotlyChart = dynamic(import("./plotly"), {
   ssr: false,
@@ -15,9 +20,11 @@ const DynPlotlyChart = dynamic(import("./plotly"), {
 import styles from "./graph.module.css";
 import { appSecondsFromDateString } from "utils/formatting";
 
-export function GraphControls(props: { frameID: number }) {
+export function GraphControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
+
+  const minWidth = 527; // minimum width of the graph pane before shortening the dropdown
 
   const paneStateData: GraphPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
@@ -35,7 +42,11 @@ export function GraphControls(props: { frameID: number }) {
   return (
     <div className={styles.controls}>
       <div className={styles.controlsLeft}>
-        {graphs.graphsManifest && <div>Selected Graph id: {paneStateData.selectedGraphId}</div>}
+        {graphs.graphsManifest && (
+          <div>
+            <GraphSelectorDropdown />
+          </div>
+        )}
       </div>
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
@@ -49,6 +60,40 @@ export function GraphControls(props: { frameID: number }) {
       </div>
     </div>
   );
+
+  function GraphSelectorDropdown() {
+    const dropDownWidthClass =
+      props.frameDimensions[0] > minWidth
+        ? styles.selectContainerWide
+        : styles.selectContainerNarrow;
+
+    return (
+      <div className={styles.controls}>
+        <div className={`${styles.selectContainer} ${dropDownWidthClass}`} title="Select a graph">
+          <select
+            className={styles.selectActive}
+            value={paneStateData.selectedGraphId}
+            onChange={(event) => {
+              console.log("Graph dropdown changed");
+              setPaneStateValue(dispatch, frameID, "selectedGraphId", event.target.value);
+            }}
+          >
+            <option value="">Select a graph</option>
+            {graphs.graphsManifest.graphs.map((graph) => {
+              return (
+                <option key={graph.id} value={graph.id}>
+                  {graph.title}
+                </option>
+              );
+            })}
+          </select>
+          <div className={styles.select_arrow}>
+            <FontAwesomeIcon icon="chevron-down" size="sm" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
 export default function Graph(props: { frameID: number; frameDimensions: number[] }) {
@@ -84,40 +129,33 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
+  // Fetch the data for the selected graphId from the graph dataURL
+  const localAsyncFetchData = async () => {
+    const response = await fetch(graphs.graphsManifest.sourceUrl + selectedGraph.dataURL);
+    const data = await response.json();
+
+    // Store the data in the graph manifest in the store
+    dispatch(
+      setGraphsData({
+        graphId: paneStateData.selectedGraphId,
+        graphData: data,
+      })
+    );
+  };
+
+  // Trigger loading of graph data when selectedGraphId changes
   useEffect(() => {
     if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) {
       return;
     }
+    setPaneStateValue(dispatch, frameID, "showHelp", false);
 
-    // Get the graph for the selected graphId
-    const graph = graphs.graphsManifest?.graphs.find((g) => g.id === paneStateData.selectedGraphId);
-    if (!graph) {
-      return;
-    }
-
-    // Fetch the data for the selected graphId from the graph dataURL
-    const localAsyncFetchData = async () => {
-      const response = await fetch(graphs.graphsManifest.sourceUrl + graph.dataURL);
-      const data = await response.text();
-
-      // Parse the data into a format that plotly can use depending on the graph type
-      const parsedData =
-        graph.type === "GandalfHeartrate"
-          ? parseGandalfHeartrateDataFile(data, playhead.date.split("T")[0])
-          : null;
-
-      // Store the parsed data in the graph manifest in the store
-      dispatch(
-        setGraphsData({
-          graphId: paneStateData.selectedGraphId,
-          graphData: parsedData,
-        })
-      );
-    };
+    dispatch(clearGraphsData());
 
     localAsyncFetchData();
-  }, [graphs.loadingStatus]);
+  }, [paneStateData.selectedGraphId]);
 
+  // Trigger updating of chart data when graph data changes
   useEffect(() => {
     if (!graphData) {
       return;
@@ -136,6 +174,23 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
     let plotIndexToHighlight = 0;
 
+    setChartProps({
+      frameID,
+      plotIndexToHighlight,
+      chartData: {
+        plotlyChartTraces: [chartTrace],
+        plotlyChartLayout: getPlotlyChartLayout(graphHeight),
+      },
+    });
+  }, [graphData]);
+
+  // Set the playhead position on the graph
+  useEffect(() => {
+    if (!graphData) {
+      return;
+    }
+
+    let plotIndexToHighlight = 0;
     //find the telemetry plotpoint closest to the current playhead time by comparing against the plot timestamps
     for (let i = 0; i < graphData.length; i++) {
       const indexAppSeconds = appSecondsFromDateString(graphData[i].timestamp);
@@ -147,21 +202,14 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
       plotIndexToHighlight = i;
     }
 
-    setChartProps({
-      frameID,
-      plotIndexToHighlight,
-      chartData: {
-        plotlyChartTraces: [chartTrace],
-        plotlyChartLayout: getPlotlyChartLayout(graphHeight),
-      },
-    });
-  }, [graphData, playhead.seconds, playheadHover.seconds]);
+    setChartProps({ ...chartProps, plotIndexToHighlight });
+  }, [playhead.seconds, playheadHover.seconds]);
 
   return (
     <div className={styles.main}>
-      {graphs.graphsManifest && <div>{selectedGraph.title}</div>}
+      {paneStateData.selectedGraphId && <div>{selectedGraph?.title}</div>}
       <div style={{ width: "100%" }}>
-        {graphs.graphsManifest && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
+        {paneStateData.selectedGraphId && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
       </div>
 
       <HelpOverlay
