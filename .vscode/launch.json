@@ -10,11 +10,11 @@
     },
     {
       "type": "chrome",
-       "request": "attach",
-       "name": "Attach to Chrome",
-       "port": 9222,
-       "urlFilter": "http://coda-local.nasa.gov:3000/*",
-       "webRoot": "${workspaceFolder}"
+      "request": "attach",
+      "name": "Attach to Chrome",
+      "port": 9222,
+      "urlFilter": "http://coda-local.fit.nasa.gov:3000/*",
+      "webRoot": "${workspaceFolder}"
     }
   ]
 }

@@ -32,15 +32,9 @@ export const graphSlice = createSlice({
         }
       });
     },
-    clearGraphsData: (state, action: { payload: { graphId: string } }) => {
-      const graph = state.graphsManifest?.graphs.find((g) => g.id === action.payload.graphId);
-      graph.data = null;
+    clearGraphsData: (state) => {
       state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
-        if (stateGraph.id === graph.id) {
-          return graph;
-        } else {
-          return stateGraph;
-        }
+        return { ...stateGraph, data: null };
       });
     },
     graphsFetchError: (state, action: { payload: string }) => {
