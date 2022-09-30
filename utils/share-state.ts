@@ -310,7 +310,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
           ready: true,
           lockScroll: frameString.substring(2, 3) === "1",
           showHelp: false,
-          selectedGraphId: frameString.substring(3, 5),
+          selectedGraphId: frameString.substring(3),
         },
       };
       return graphReturnVal;

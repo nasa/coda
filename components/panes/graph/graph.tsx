@@ -176,7 +176,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     dispatch(clearGraphsData());
 
     localAsyncFetchData();
-  }, [paneStateData.selectedGraphId]);
+  }, [paneStateData.selectedGraphId, graphs.loadingStatus]);
 
   // Trigger updating of chart data when graph data changes
   useEffect(() => {
