@@ -8,6 +8,9 @@ import { fetchISSLocation } from "./ephemera-api";
 import { weekNumberSun } from "weeknumber";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
+import ntlmclient from "node-ntlm-client";
+import { HttpsAgent } from "agentkeepalive";
+import fetch from "node-fetch";
 
 /**
  * Get day night data.
@@ -23,8 +26,10 @@ export async function fetchDayNight(
 ): Promise<WrappedResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
-   *  Each file pulled from topo is also cached
-   *  All the file data is aggregated and parsed down to find the requested day. Then formatted into day/night.
+   *  Each raw file pulled from topo is also cached (performed in the nested retriever func)
+   *
+   *  All the file data is aggregated and parsed down to find the requested day.
+   * Then formatted into day/night and cached.
    */
   const retrieverTopoDay = async (): Promise<DayNightStore> => {
     let dayNight: DayNightObj[] = [];
@@ -32,6 +37,7 @@ export async function fetchDayNight(
     let topoResArray: WrappedResponse<string>[] = [];
     try {
       for (let i = -1; i < 2; i++) {
+        //generate the 3 dates for querying before/current/after weeks
         let queryDate = new Date(
           Date.UTC(
             requestDate.getUTCFullYear(),
@@ -39,12 +45,17 @@ export async function fetchDayNight(
             requestDate.getUTCDate() + i * 7
           )
         );
+
+        //topo raw data is cached using a week number identifier
         let identifier: string = requestDate.getUTCFullYear() + "-" + weekNumberSun(queryDate);
+
         let topoRes: WrappedResponse<string> = {
           cacheMetadata: null,
           data: "",
         };
-        //topo raw data is cached using a week number identifier
+
+        //fetch topo raw data
+        console.log("fetch for week identifier " + identifier);
         topoRes = await fetchWithCache<string>(
           `daynight/topo/${identifier}`,
           function () {
@@ -68,32 +79,22 @@ export async function fetchDayNight(
     return { dayNight };
   };
 
-  /** Get data file for a given week from TOPO.
+  /** Get the week's data file for a given day from TOPO.
    *  Try fetching a file name for every day of the week starting on Tuesday
    *  (Tuesday is the day of the week the file is supposed to be uploaded)
    * @param queryDate a day during the week from which we need to get TOPO data
    * @returns raw topo file data
    */
   const retrieverTopo = async (queryDate: Date): Promise<string> => {
-    const options = {
-      timeout: 8000,
-      headers: {
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Accept-Encoding": "gzip,deflate,br",
-        "Accept-Language": "en-US,en;q=0.9",
-        Connection: "keep-alive",
-        Origin: process.env.HOST,
-      },
-    };
-
-    let res: Response;
     //set query date to the previous Tuesday
-    const tuesDelta = (queryDate.getUTCDay() - 5) % 7;
+    let tuesDelta = queryDate.getUTCDay() - 2;
+    if (tuesDelta < 0) tuesDelta += 7;
     queryDate.setUTCDate(queryDate.getUTCDate() - tuesDelta);
 
+    let topoData = "";
     try {
       for (let tries = 7; tries > 0; tries--) {
+        //try every day of the week
         let queryUrl = getTopoURL(queryDate); //build topo URL for this date
         if (!queryUrl) {
           //A null or blank means querydate it's outside topo range. Try the next day
@@ -101,11 +102,59 @@ export async function fetchDayNight(
           continue;
         }
 
-        res = await fetchWithTimeout(queryUrl, options);
-        if (res.status === 200) {
-          break; //got a success response. yay!
+        console.log("fetching " + queryUrl);
+
+        var keepaliveAgent = new HttpsAgent();
+        //run these messages sequentally using async waterfall func.
+        //type 1 and 3 messages come from us. type 2 is response from topo
+
+        //generate type 1 message and wait for response
+        var type1msg = ntlmclient.createType1Message();
+        var type1res = await fetch(queryUrl, {
+          method: "GET",
+          headers: {
+            Connection: "keep-alive",
+            Authorization: type1msg,
+          },
+          agent: keepaliveAgent, //must use node-fetch for this option to be available
+        });
+        if (!type1res.headers["www-authenticate"]) {
+          new Error("www-authenticate not found on response of second request");
+        }
+        //decode type 2 response
+        var type2msg = ntlmclient.decodeType2Message(type1res.headers.get("www-authenticate"));
+
+        //generate type 3 message
+        var type3msg = ntlmclient.createType3Message(
+          type2msg,
+          process.env.TOPO_USER,
+          process.env.TOPO_PASSWORD
+        );
+        var type3res = await fetch(queryUrl, {
+          headers: {
+            Connection: "Close",
+            Authorization: type3msg,
+          },
+          agent: keepaliveAgent,
+        });
+
+        console.log("response status " + type3res.status);
+
+        //server will auth first before checking if data exists
+        if (type3res.status === 200) {
+          //response from type 3 message is a stream containing all the topo data.
+          const streamChunks = [];
+          for await (const chunk of type3res.body) {
+            streamChunks.push(Buffer.from(chunk));
+          }
+
+          //raw data pulled from topo
+          topoData = Buffer.concat(streamChunks).toString("utf-8");
+
+          break; //got a success response. yay! exit loop.
         } else {
-          if (res.status === 404) {
+          console.log("got bad response " + type3res.status);
+          if (type3res.status === 404) {
             //file not found. Try the next day day
             queryDate.setUTCDate(queryDate.getUTCDate() + 1);
             continue;
@@ -113,7 +162,7 @@ export async function fetchDayNight(
             //something else went wrong.
             throw new Error(
               "Something went wrong fetching TOPO data. Response status " +
-                res.status +
+                type3res.status +
                 " for URL " +
                 queryUrl
             );
@@ -121,11 +170,12 @@ export async function fetchDayNight(
         }
       }
     } catch (e) {
+      console.log(e.message);
       throw e;
     }
 
     //TODO what does this return on an empty response?
-    return res.json();
+    return topoData;
   };
 
   /** Get data from spacetrack
@@ -153,6 +203,7 @@ export async function fetchDayNight(
     data: { dayNight: [] },
   };
   let requestUrl = getTopoURL(requestDate);
+  console.log(requestUrl);
   if (requestUrl === null) return res; //date requested is too far in the future. No data available
 
   const isToday = isSameDate(new Date(), requestDate);
@@ -160,12 +211,15 @@ export async function fetchDayNight(
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   //fetch topo.
-  //this is the prefered method. If this fails for any reason, fallback is spacetrack
+  //this is the prefered method.
   try {
     if (requestUrl !== "") {
       res = await fetchWithCache<DayNightStore>(`daynight/${identifier}`, retrieverTopoDay, {
-        preferNew: isToday,
-        cacheAge: isToday ? 60 : oneYearInSeconds,
+        // preferNew: isToday,
+        // cacheAge: isToday ? 60 : oneYearInSeconds,
+        // staleOk: true,
+        preferNew: false,
+        cacheAge: 60,
         staleOk: true,
       });
     }
@@ -182,16 +236,16 @@ export async function fetchDayNight(
 
   //fetch spacetrack.
   //either topo returned bad data or date requested is too far in the past for topo.
-  try {
-    res = await fetchWithCache<DayNightStore>(`daynight/${identifier}`, retrieverSpacetrack, {
-      preferNew: isToday,
-      cacheAge: isToday ? 60 : oneYearInSeconds,
-      staleOk: true,
-    });
-  } catch (e) {
-    // something went wrong
-    throw e;
-  }
+  // try {
+  //   res = await fetchWithCache<DayNightStore>(`daynight/${identifier}`, retrieverSpacetrack, {
+  //     preferNew: isToday,
+  //     cacheAge: isToday ? 60 : oneYearInSeconds,
+  //     staleOk: true,
+  //   });
+  // } catch (e) {
+  //   // something went wrong
+  //   throw e;
+  // }
 
   return res;
 }
@@ -202,6 +256,8 @@ export async function fetchDayNight(
  * @returns a parsed array of the day night values
  */
 function parseTopoData(resArray: WrappedResponse<string>[]): DayNightObj[] {
+  console.log("inside parseTopoData with item count " + resArray.length);
+
   let dayNight: DayNightObj[] = [];
 
   //check valid responses

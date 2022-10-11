@@ -101,6 +101,8 @@ WIKI_PASSWORD=
 SPACETRACK_USER=
 SPACETRACK_PASSWORD=
 NEXT_PUBLIC_MAPBOX_KEY=
+TOPO_USER=
+TOPO_PASSWORD=
 ```
 
 Ask Ben, James, or Cameron for the keys if you don't have them. You can also overwrite any of the variables found in `next.config.js`.
