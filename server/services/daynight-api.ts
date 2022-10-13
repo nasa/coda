@@ -6,8 +6,6 @@ import { getTimes } from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { weekNumberSun } from "weeknumber";
-import fetchWithTimeout from "utils/fetch-with-timeout";
-import type { Response } from "node-fetch";
 import ntlmclient from "node-ntlm-client";
 import { HttpsAgent } from "agentkeepalive";
 import fetch from "node-fetch";
@@ -29,7 +27,7 @@ export async function fetchDayNight(
    *  Each raw file pulled from topo is also cached (performed in the nested retriever func)
    *
    *  All the file data is aggregated and parsed down to find the requested day.
-   * Then formatted into day/night and cached.
+   *  Then formatted into day/night and cached.
    */
   const retrieverTopoDay = async (): Promise<DayNightStore> => {
     let dayNight: DayNightObj[] = [];
@@ -55,26 +53,27 @@ export async function fetchDayNight(
         };
 
         //fetch topo raw data
-        console.log("fetch for week identifier " + identifier);
+        //console.log("fetch for week identifier " + identifier);
         topoRes = await fetchWithCache<string>(
-          `daynight/topo/${identifier}`,
+          `daynight/topoRawWeek/${identifier}`,
           function () {
-            return retrieverTopo(queryDate);
+            return retrieverTopoRawWeek(queryDate);
           },
           {
-            preferNew: isToday,
-            cacheAge: isToday ? 60 : oneYearInSeconds,
+            preferNew: !isHistoric,
+            cacheAge: isHistoric ? oneYearInSeconds : 60,
             staleOk: true,
           }
         );
         topoResArray.push(topoRes); //push responses for each week into an array for processing
       }
     } catch (e) {
+      console.log(e);
       throw e;
     }
 
     //process and parse responses
-    dayNight = parseTopoData(topoResArray);
+    dayNight = parseTopoData(topoResArray, requestDate);
 
     return { dayNight };
   };
@@ -83,9 +82,10 @@ export async function fetchDayNight(
    *  Try fetching a file name for every day of the week starting on Tuesday
    *  (Tuesday is the day of the week the file is supposed to be uploaded)
    * @param queryDate a day during the week from which we need to get TOPO data
-   * @returns raw topo file data
+   * @returns raw topo file data or blank if date was outside topo range or no data was found (can occur when date is close to today)
+   * If an error happens during retrieval throw error and return blank
    */
-  const retrieverTopo = async (queryDate: Date): Promise<string> => {
+  const retrieverTopoRawWeek = async (queryDate: Date): Promise<string> => {
     //set query date to the previous Tuesday
     let tuesDelta = queryDate.getUTCDay() - 2;
     if (tuesDelta < 0) tuesDelta += 7;
@@ -102,10 +102,10 @@ export async function fetchDayNight(
           continue;
         }
 
-        console.log("fetching " + queryUrl);
+        //console.log("fetching " + queryUrl);
 
         var keepaliveAgent = new HttpsAgent();
-        //run these messages sequentally using async waterfall func.
+        //run the handshake messages sequentally
         //type 1 and 3 messages come from us. type 2 is response from topo
 
         //generate type 1 message and wait for response
@@ -121,7 +121,7 @@ export async function fetchDayNight(
         if (!type1res.headers["www-authenticate"]) {
           new Error("www-authenticate not found on response of second request");
         }
-        //decode type 2 response
+        //decode type 2 response from server
         var type2msg = ntlmclient.decodeType2Message(type1res.headers.get("www-authenticate"));
 
         //generate type 3 message
@@ -138,7 +138,7 @@ export async function fetchDayNight(
           agent: keepaliveAgent,
         });
 
-        console.log("response status " + type3res.status);
+        //console.log("response status " + type3res.status);
 
         //server will auth first before checking if data exists
         if (type3res.status === 200) {
@@ -153,7 +153,6 @@ export async function fetchDayNight(
 
           break; //got a success response. yay! exit loop.
         } else {
-          console.log("got bad response " + type3res.status);
           if (type3res.status === 404) {
             //file not found. Try the next day day
             queryDate.setUTCDate(queryDate.getUTCDate() + 1);
@@ -174,7 +173,6 @@ export async function fetchDayNight(
       throw e;
     }
 
-    //TODO what does this return on an empty response?
     return topoData;
   };
 
@@ -186,6 +184,7 @@ export async function fetchDayNight(
   const retrieverSpacetrack = async (): Promise<DayNightStore> => {
     let dayNight: DayNightObj[] = [];
 
+    console.log("daynight-api call to fetchISSLocation");
     let spacetrack: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
     let ephemera = spacetrack.data.ephemera;
 
@@ -203,82 +202,134 @@ export async function fetchDayNight(
     data: { dayNight: [] },
   };
   let requestUrl = getTopoURL(requestDate);
-  console.log(requestUrl);
   if (requestUrl === null) return res; //date requested is too far in the future. No data available
 
-  const isToday = isSameDate(new Date(), requestDate);
+  const todayMidnight = new Date(Date.now()).setUTCHours(0, 0, 0, 0); //today at midnight
+  const isHistoric = requestDate.getTime() < todayMidnight;
   const oneYearInSeconds = 31536000;
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
-  //fetch topo.
-  //this is the prefered method.
+  //fetch topo. this is the prefered method.
   try {
     if (requestUrl !== "") {
-      res = await fetchWithCache<DayNightStore>(`daynight/${identifier}`, retrieverTopoDay, {
-        // preferNew: isToday,
-        // cacheAge: isToday ? 60 : oneYearInSeconds,
-        // staleOk: true,
-        preferNew: false,
-        cacheAge: 60,
-        staleOk: true,
-      });
+      res = await fetchWithCache<DayNightStore>(
+        `daynight/topoDay/${identifier}`,
+        retrieverTopoDay,
+        {
+          preferNew: !isHistoric,
+          cacheAge: isHistoric ? oneYearInSeconds : 60,
+          staleOk: true,
+        }
+      );
     }
   } catch (e) {
     // something went wrong
     throw e;
   }
 
-  //TODO check error?
-  if (res.cacheMetadata.error) {
-  } else {
+  //topo successfully retrieved data!
+  if (res.data.dayNight.length > 0) {
+    res.source = "topo";
     return res;
   }
 
   //fetch spacetrack.
-  //either topo returned bad data or date requested is too far in the past for topo.
-  // try {
-  //   res = await fetchWithCache<DayNightStore>(`daynight/${identifier}`, retrieverSpacetrack, {
-  //     preferNew: isToday,
-  //     cacheAge: isToday ? 60 : oneYearInSeconds,
-  //     staleOk: true,
-  //   });
-  // } catch (e) {
-  //   // something went wrong
-  //   throw e;
-  // }
+  //either topo returned bad/no data or date requested is too far in the past for topo.
+  console.log("daynight-api failover to retrieverSpacetrack");
+  try {
+    res = await fetchWithCache<DayNightStore>(
+      `daynight/spacetrack/${identifier}`,
+      retrieverSpacetrack,
+      {
+        preferNew: !isHistoric,
+        cacheAge: isHistoric ? oneYearInSeconds : 60,
+        staleOk: true,
+      }
+    );
+  } catch (e) {
+    // something went wrong
+    throw e;
+  }
 
+  console.log("daynight-api fromCache " + res.cacheMetadata.fromCache);
+  res.source = "spacetrack";
   return res;
 }
 
 /**
- * Takes in an array of fetch Responses and parses them into a daynight array
+ * Takes in an array of fetch Responses and parses them into a daynight array.
  * @param resArray array of Response objects from topo
- * @returns a parsed array of the day night values
+ * @param requestDate the date to look for in the responses
+ * @returns a parsed array of the day night values for the given requestDate
  */
-function parseTopoData(resArray: WrappedResponse<string>[]): DayNightObj[] {
-  console.log("inside parseTopoData with item count " + resArray.length);
+function parseTopoData(resArray: WrappedResponse<string>[], requestDate: Date): DayNightObj[] {
+  let dayNightArr: DayNightObj[] = [];
+  let foundSTPfile = false; //is short term plan (stp) predicted file
 
-  let dayNight: DayNightObj[] = [];
+  //loop through responses
+  for (let i = 0; i < resArray.length; i++) {
+    //fetch with cache returned an error.
+    if (resArray[i].cacheMetadata.error) {
+      continue; //check next file
+    }
 
-  //check valid responses
-  if (resArray[0].cacheMetadata.error) {
-    //fetch returned an error
+    //read the file
+    if (resArray[i].data) {
+      const lines = resArray[i].data.split("\n"); //split every line up
+
+      //check for predcited (stp) file. We only want to read this kind of file one time.
+      //  these files contain full days so the requested date will not be split between 2 files (unlike bet data).
+      //  however multiple respones may come back with the precited files and the requested date could be present in both.
+      //  ex. requested date is multiple weeks in the future. We only want to push 1 copy to the day/night array
+      if (lines[0] === "topo52.ISS.sun_lighting_events.ascii") {
+        if (foundSTPfile) {
+          continue; //this is the 2nd time we've hit an stp file. Go to the next file
+        } else {
+          foundSTPfile = true;
+        }
+      }
+
+      //loop through lines in the file
+      for (let j = 0; j < lines.length; j++) {
+        //check valid line
+        if (isNaN(parseInt(lines[j].trim().charAt(0)))) {
+          continue; //this line doesn't start with a number. probably a header or footer line. skip it.
+        }
+
+        //reduce multiple spaces to single space, then split to get columns
+        const regEx: RegExp = /\s+/g;
+        const line = lines[j].trim().replaceAll(regEx, " ").split(" ");
+
+        //check date (0th column)
+        const dateArr = line[0].split(":").map(Number); //split on : and convert from string to numbers
+        if (!isSameDate(requestDate, new Date(Date.UTC(dateArr[0], dateArr[1] - 1, dateArr[2])))) {
+          continue; //date doesn't match the day we're looking for. Move to next line.
+        }
+
+        //check sun acquisition (9th column)
+        let sunState: SunLighting = getSunLighting(line[9]);
+        if (!sunState) continue; //this is a sun acquisiton state we don't track. Move to next line.
+
+        //date and sun acquisiton are valid!
+        //calcuate app seconds and add to daynight array
+        const appSecs = dateArr[3] * 3600 + dateArr[4] * 60 + Math.round(dateArr[5]); //convert hour minutes seconds to just total seconds
+        dayNightArr.push({
+          appSeconds: appSecs,
+          daylight: sunState,
+        } as DayNightObj);
+      }
+    } else {
+      //data does not exist (should have been caught on the cachemetadata.error test)
+      //or it exists but is null meaning the request spilled over topo boundries
+      continue;
+    }
   }
 
-  //grab all the data
-  if (resArray[0].data) {
-    //we have data
-  } else {
-    //data option not exist    (should have been caught on the cachemetadata.error test)
-    //or it exists but is null meaning the request spilled over topo boundries
-  }
+  //check if we have rough expected number of entries. Should get roughly ~64
+  //if we got partial data (bet data ends on half day, and remaining half not released yet) then return nothing
+  if (dayNightArr.length < 50) return [];
 
-  //check that requested date is in one of the responses.
-
-  //parse into day/night
-
-  //console.log(resArray);
-  return dayNight;
+  return dayNightArr;
 }
 
 /**
@@ -291,10 +342,12 @@ function parseTopoData(resArray: WrappedResponse<string>[]): DayNightObj[] {
  *          Empty string if date is too far in the past. Use Spacetrack in this instance
  */
 export function getTopoURL(requestDate: Date): string {
-  const now = midnightZulu(new Date()); //curent date with time to 0 UTC
-  const futureMax = new Date(now.getTime()); //copy date
-  futureMax.setUTCDate(now.getUTCDate() + 50); //advance today by 50 days (not 49, use midnight UTC on the 50th day)
   const historicMin = new Date(Date.UTC(2013, 2, 31)); //cutoff day for pulling TOPO. Around this time TOPO also changed from 2x week data dumps to 1x week.
+  const now = midnightZulu(new Date()); //curent date with time to 0 UTC
+
+  //advance today by 50 days (not 49, use midnight UTC on the 50th day)
+  const futureMax = new Date(now.getTime());
+  futureMax.setUTCDate(now.getUTCDate() + 50);
 
   let topoURL = "";
   if (requestDate.getTime() >= futureMax.getTime()) {
@@ -303,18 +356,42 @@ export function getTopoURL(requestDate: Date): string {
     requestDate.getTime() >= midnightZulu(now).getTime() &&
     requestDate.getTime() < futureMax.getTime()
   ) {
-    //use predicted data. Requested date is between today at midnight zulu and 50 days
+    //use stp (short term plan) predicted data . Requested date is between today at midnight zulu and 50 days
     topoURL = "https://fod2.jsc.nasa.gov/CM/TOPO/data/stp/topo52.ISS.sun_lighting_events.txt";
   } else if (requestDate.getTime() >= historicMin.getTime()) {
     //historic data. Use best estimated trajectory data (bet). Build filename
+    const extChange = new Date(Date.UTC(2015, 0, 5)); //date when BET file naming extension changed
+    let ext = requestDate.getTime() < extChange.getTime() ? ".cff.txt" : ".cff.conv.txt";
+
     topoURL =
       "https://fod2.jsc.nasa.gov/CM/TOPO/data/bet/Sun%20Lighting%20Data/As%20Flown/" +
       requestDate.getUTCFullYear() +
       "/bet_data1_" +
       mmddyy(requestDate) +
-      ".ISS.sun_lighting_events.cff.conv.txt";
+      ".ISS.sun_lighting_events" +
+      ext;
   }
   return topoURL;
+}
+
+/**
+ * Translates the sun acquisition flags from the topo raw data to the SunLighting type for day/night
+ * @param sunAcquisition string representing a sun acquisiton state from topo
+ * @returns the SunLighting value for day night
+ */
+function getSunLighting(sunAcquisition: string): SunLighting {
+  switch (sunAcquisition) {
+    case "Effective_Sunset":
+      return "sunset";
+    case "Full_Sunset":
+      return "night";
+    case "Start_Sunrise":
+      return "sunrise";
+    case "Start_Effective_Sunrise":
+      return "day";
+    default:
+      return null; //this is a sun acquisiton state we don't track.
+  }
 }
 
 /**

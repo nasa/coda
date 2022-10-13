@@ -188,7 +188,7 @@ build:
   # since default is /tmp to work with OpenShift
   variables:
     HOME: /root
-  image: "$CI_REGISTRY/emss/docker-images:deploy-node-14-alpine"
+  image: "$CI_REGISTRY/emss/docker-images:deploy-node-16-alpine"
 
   # Could be openshift, but it runs faster in a VM; Since it's the longest-running job, run in VM
   tags: ["docker", "linux"]
@@ -204,7 +204,7 @@ build:
     - emss-deploy
   variables:
     HOME: /root # because OpenShift needs HOME set, and it gets set wrong for this job
-  image: "$CI_REGISTRY/emss/docker-images:deploy-node-14-alpine"
+  image: "$CI_REGISTRY/emss/docker-images:deploy-node-16-alpine"
   stage: deploy_to_server
   script:
     # Setup SSH - handled by script included in emss/docker-images:deploy-node-14-alpine image
