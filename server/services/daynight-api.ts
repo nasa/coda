@@ -10,6 +10,13 @@ import ntlmclient from "node-ntlm-client";
 import { HttpsAgent } from "agentkeepalive";
 import fetch from "node-fetch";
 
+type TopoState = "outOfRange_past" | "historic" | "predicted" | "outOfRange_future";
+
+type TopoURL = {
+  state: TopoState;
+  url: string;
+};
+
 /**
  * Get day night data.
  * @param year yyyy
@@ -24,7 +31,7 @@ export async function fetchDayNight(
 ): Promise<WrappedResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
-   *  Each raw file pulled from topo is also cached (performed in the nested retriever func)
+   *  Each raw week pulled from topo is also cached (performed in the nested retriever func retrieverTopoRawWeek )
    *
    *  All the file data is aggregated and parsed down to find the requested day.
    *  Then formatted into day/night and cached.
@@ -52,17 +59,16 @@ export async function fetchDayNight(
           data: "",
         };
 
-        //fetch topo raw data
-        //console.log("fetch for week identifier " + identifier);
+        //fetch topo raw week data
         topoRes = await fetchWithCache<string>(
           `daynight/topoRawWeek/${identifier}`,
           function () {
             return retrieverTopoRawWeek(queryDate);
           },
           {
-            preferNew: !isHistoric,
-            cacheAge: isHistoric ? oneYearInSeconds : 60,
-            staleOk: true,
+            preferNew: preferNew,
+            cacheAge: cacheAge,
+            staleOk: staleOk,
           }
         );
         topoResArray.push(topoRes); //push responses for each week into an array for processing
@@ -78,12 +84,12 @@ export async function fetchDayNight(
     return { dayNight };
   };
 
-  /** Get the week's data file for a given day from TOPO.
-   *  Try fetching a file name for every day of the week starting on Tuesday
-   *  (Tuesday is the day of the week the file is supposed to be uploaded)
+  /** Get the week's raw file for a given day from TOPO.
+   *  Try fetching a file for every day of the week starting on Tuesday
+   *  (Tuesday is the day of the week the file is supposed to be uploaded.)
    * @param queryDate a day during the week from which we need to get TOPO data
-   * @returns raw topo file data or blank if date was outside topo range or no data was found (can occur when date is close to today)
-   * If an error happens during retrieval throw error and return blank
+   * @returns raw topo file or null if date was outside topo range or no data was found (can occur when date is close to today)
+   * If an error happens during retrieval throw error and return null
    */
   const retrieverTopoRawWeek = async (queryDate: Date): Promise<string> => {
     //set query date to the previous Tuesday
@@ -91,24 +97,26 @@ export async function fetchDayNight(
     if (tuesDelta < 0) tuesDelta += 7;
     queryDate.setUTCDate(queryDate.getUTCDate() - tuesDelta);
 
-    let topoData = "";
+    let topoData = null;
     try {
       for (let tries = 7; tries > 0; tries--) {
-        //try every day of the week
-        let queryUrl = getTopoURL(queryDate); //build topo URL for this date
+        //try every day of the week.
+        //This loop should normally run once because files are normally dropped on Tuesday.
+        let queryUrl = getTopoURL(queryDate).url; //build topo URL for this date
         if (!queryUrl) {
-          //A null or blank means querydate it's outside topo range. Try the next day
+          //A null means querydate is outside topo range. Try the next day
+          //Only occurs if the date is on the border of historic Min for topo.
           queryDate.setUTCDate(queryDate.getUTCDate() + 1);
           continue;
         }
 
-        //console.log("fetching " + queryUrl);
-
         var keepaliveAgent = new HttpsAgent();
-        //run the handshake messages sequentally
-        //type 1 and 3 messages come from us. type 2 is response from topo
+        //run the handshake messages sequentally.
+        //type 1 and 3 messages come from us. type 2 is response from topo.
+        //This is using a npm library called ntlm-client that builds nltm v2 messages
+        //service account credentials are supplied
 
-        //generate type 1 message and wait for response
+        //generate type 1 message (the request to the server) and wait for response
         var type1msg = ntlmclient.createType1Message();
         var type1res = await fetch(queryUrl, {
           method: "GET",
@@ -121,10 +129,10 @@ export async function fetchDayNight(
         if (!type1res.headers["www-authenticate"]) {
           new Error("www-authenticate not found on response of second request");
         }
-        //decode type 2 response from server
+        //decode type 2 response from server (the challenge)
         var type2msg = ntlmclient.decodeType2Message(type1res.headers.get("www-authenticate"));
 
-        //generate type 3 message
+        //generate type 3 message (respond with challenge key and user/pwd)
         var type3msg = ntlmclient.createType3Message(
           type2msg,
           process.env.TOPO_USER,
@@ -138,8 +146,6 @@ export async function fetchDayNight(
           agent: keepaliveAgent,
         });
 
-        //console.log("response status " + type3res.status);
-
         //server will auth first before checking if data exists
         if (type3res.status === 200) {
           //response from type 3 message is a stream containing all the topo data.
@@ -151,7 +157,7 @@ export async function fetchDayNight(
           //raw data pulled from topo
           topoData = Buffer.concat(streamChunks).toString("utf-8");
 
-          break; //got a success response. yay! exit loop.
+          break; //got a success response. we have our data for this week. do not check additional days.
         } else {
           if (type3res.status === 404) {
             //file not found. Try the next day day
@@ -176,15 +182,14 @@ export async function fetchDayNight(
     return topoData;
   };
 
-  /** Get data from spacetrack
+  /** Get data from spacetrack using the service fetchISSLocation.
+   * Calculate Day/Night from ephemera (this is what get's cached)
    * If the ephemera data was already retrieved earlier during the iss location fetch, then the cache is returned.
    * Vice versa for location if this day night fetch executes before the location fetch.
-   * Essentially only one call to space-track.org will ultimately occur.
    */
   const retrieverSpacetrack = async (): Promise<DayNightStore> => {
     let dayNight: DayNightObj[] = [];
 
-    console.log("daynight-api call to fetchISSLocation");
     let spacetrack: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
     let ephemera = spacetrack.data.ephemera;
 
@@ -201,26 +206,33 @@ export async function fetchDayNight(
     cacheMetadata: null,
     data: { dayNight: [] },
   };
-  let requestUrl = getTopoURL(requestDate);
-  if (requestUrl === null) return res; //date requested is too far in the future. No data available
+  let topoState = getTopoState(requestDate);
+  if (topoState === "outOfRange_future") return res; //date requested is too far in the future. No data available
 
   const todayMidnight = new Date(Date.now()).setUTCHours(0, 0, 0, 0); //today at midnight
   const isHistoric = requestDate.getTime() < todayMidnight;
   const oneYearInSeconds = 31536000;
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
+  //cache settings for all 3 fetch retreiver functions
+  const preferNew = !isHistoric;
+  const cacheAge = isHistoric ? oneYearInSeconds : 1209600; //60*60*24*14 = 2 weeks in seconds
+  const staleOk = true;
+
   //fetch topo. this is the prefered method.
   try {
-    if (requestUrl !== "") {
+    if (topoState !== "outOfRange_past") {
       res = await fetchWithCache<DayNightStore>(
         `daynight/topoDay/${identifier}`,
         retrieverTopoDay,
         {
-          preferNew: !isHistoric,
-          cacheAge: isHistoric ? oneYearInSeconds : 60,
-          staleOk: true,
+          preferNew: preferNew,
+          cacheAge: cacheAge,
+          staleOk: staleOk,
         }
       );
+    } else {
+      //requested date is too far in the past. fall through to spacetrack
     }
   } catch (e) {
     // something went wrong
@@ -235,15 +247,14 @@ export async function fetchDayNight(
 
   //fetch spacetrack.
   //either topo returned bad/no data or date requested is too far in the past for topo.
-  console.log("daynight-api failover to retrieverSpacetrack");
   try {
     res = await fetchWithCache<DayNightStore>(
       `daynight/spacetrack/${identifier}`,
       retrieverSpacetrack,
       {
-        preferNew: !isHistoric,
-        cacheAge: isHistoric ? oneYearInSeconds : 60,
-        staleOk: true,
+        preferNew: preferNew,
+        cacheAge: cacheAge,
+        staleOk: staleOk,
       }
     );
   } catch (e) {
@@ -251,13 +262,12 @@ export async function fetchDayNight(
     throw e;
   }
 
-  console.log("daynight-api fromCache " + res.cacheMetadata.fromCache);
   res.source = "spacetrack";
   return res;
 }
 
 /**
- * Takes in an array of fetch Responses and parses them into a daynight array.
+ * Takes in an array of fetch responses each containing raw topo week data and parses them into a daynight array.
  * @param resArray array of Response objects from topo
  * @param requestDate the date to look for in the responses
  * @returns a parsed array of the day night values for the given requestDate
@@ -269,101 +279,122 @@ function parseTopoData(resArray: WrappedResponse<string>[], requestDate: Date): 
   //loop through responses
   for (let i = 0; i < resArray.length; i++) {
     //fetch with cache returned an error.
-    if (resArray[i].cacheMetadata.error) {
+    //or data does not exist (should have been caught on the cachemetadata.error test)
+    //or data exists but is null meaning the request spilled over topo boundries
+    if (resArray[i].cacheMetadata.error || !resArray[i].data) {
       continue; //check next file
     }
 
     //read the file
-    if (resArray[i].data) {
-      const lines = resArray[i].data.split("\n"); //split every line up
+    const lines = resArray[i].data.split("\n"); //split every line up
 
-      //check for predcited (stp) file. We only want to read this kind of file one time.
-      //  these files contain full days so the requested date will not be split between 2 files (unlike bet data).
-      //  however multiple respones may come back with the precited files and the requested date could be present in both.
-      //  ex. requested date is multiple weeks in the future. We only want to push 1 copy to the day/night array
-      if (lines[0] === "topo52.ISS.sun_lighting_events.ascii") {
-        if (foundSTPfile) {
-          continue; //this is the 2nd time we've hit an stp file. Go to the next file
-        } else {
-          foundSTPfile = true;
-        }
+    //check if this is a predcited (stp) file. We only want to read this kind of file one time.
+    //  These files contain full days so the requested date will not be split between 2 files (unlike bet historic data).
+    //  However multiple responses may come back with the precited file and the requested date could be present more than once.
+    //  We only want to push 1 copy to the day/night array. Ex. requested date is multiple weeks in the future.
+    if (lines[0] === "topo52.ISS.sun_lighting_events.ascii") {
+      if (foundSTPfile) {
+        continue; //this is the 2nd time we've hit an stp file. Skip and go to the next file
+      } else {
+        foundSTPfile = true;
+      }
+    }
+
+    //loop through lines in the file
+    for (let j = 0; j < lines.length; j++) {
+      //check valid line
+      if (isNaN(parseInt(lines[j].trim().charAt(0)))) {
+        continue; //this line doesn't start with a number. probably a header or footer line. skip it.
       }
 
-      //loop through lines in the file
-      for (let j = 0; j < lines.length; j++) {
-        //check valid line
-        if (isNaN(parseInt(lines[j].trim().charAt(0)))) {
-          continue; //this line doesn't start with a number. probably a header or footer line. skip it.
-        }
+      //reduce multiple spaces to single space, then split the line to get columns
+      const regEx: RegExp = /\s+/g;
+      const columns = lines[j].trim().replaceAll(regEx, " ").split(" ");
 
-        //reduce multiple spaces to single space, then split to get columns
-        const regEx: RegExp = /\s+/g;
-        const line = lines[j].trim().replaceAll(regEx, " ").split(" ");
-
-        //check date (0th column)
-        const dateArr = line[0].split(":").map(Number); //split on : and convert from string to numbers
-        if (!isSameDate(requestDate, new Date(Date.UTC(dateArr[0], dateArr[1] - 1, dateArr[2])))) {
-          continue; //date doesn't match the day we're looking for. Move to next line.
-        }
-
-        //check sun acquisition (9th column)
-        let sunState: SunLighting = getSunLighting(line[9]);
-        if (!sunState) continue; //this is a sun acquisiton state we don't track. Move to next line.
-
-        //date and sun acquisiton are valid!
-        //calcuate app seconds and add to daynight array
-        const appSecs = dateArr[3] * 3600 + dateArr[4] * 60 + Math.round(dateArr[5]); //convert hour minutes seconds to just total seconds
-        dayNightArr.push({
-          appSeconds: appSecs,
-          daylight: sunState,
-        } as DayNightObj);
+      //check date (0th column)
+      const [year, month, day, hour, min, sec] = columns[0].split(":").map(Number); //split on : and convert from string to numbers
+      if (!isSameDate(requestDate, new Date(Date.UTC(year, month - 1, day)))) {
+        continue; //date doesn't match the day we're looking for. Move to next line.
       }
-    } else {
-      //data does not exist (should have been caught on the cachemetadata.error test)
-      //or it exists but is null meaning the request spilled over topo boundries
-      continue;
+
+      //check sun acquisition (9th column)
+      let sunState: SunLighting = getSunLighting(columns[9]);
+      if (!sunState) continue; //this is a sun acquisiton state we don't track. Move to next line.
+
+      //date and sun acquisiton are valid!
+      //calcuate app seconds and add to daynight array
+      const appSecs = hour * 3600 + min * 60 + Math.round(sec); //convert hour minutes seconds to just total seconds
+      dayNightArr.push({
+        appSeconds: appSecs,
+        daylight: sunState,
+      } as DayNightObj);
     }
   }
 
-  //check if we have rough expected number of entries. Should get roughly ~64
-  //if we got partial data (bet data ends on half day, and remaining half not released yet) then return nothing
-  if (dayNightArr.length < 50) return [];
+  /**
+   * Check if we have at least one entry in the morning and one in the evening, else this may indicate we have partial data.
+   * Partial data may occur when a bet data ends on half day, and remaining half is not released yet.
+   * If we are in high beta angle season, this will also trigger
+   * Returning blank array will trigger a call to spacetrack as the fall back
+   * */
+  let appSecCheck = { morning: false, evening: false };
+  for (let dayNight of dayNightArr) {
+    //60*60*24 = 86400 app seconds in a day.  43200 is half day mark.
+    if (dayNight.appSeconds < 43200) appSecCheck.morning = true;
+    if (dayNight.appSeconds >= 43200) appSecCheck.evening = true;
+  }
+  if (!appSecCheck.morning || !appSecCheck.evening) return [];
+
+  //add first and last entries of the 24 hour period
+  if (dayNightArr[0].appSeconds !== 0) {
+    switch (dayNightArr[0].daylight) {
+      case "day":
+        dayNightArr.unshift({ appSeconds: 0, daylight: "sunrise" });
+        break;
+      case "night":
+        dayNightArr.unshift({ appSeconds: 0, daylight: "sunset" });
+        break;
+      case "sunrise":
+        dayNightArr.unshift({ appSeconds: 0, daylight: "night" });
+        break;
+      case "sunset":
+        dayNightArr.unshift({ appSeconds: 0, daylight: "day" });
+        break;
+      default:
+        const exhaustiveCheck: never = dayNightArr[0].daylight;
+        throw new Error("never-check reached on sunLighting value: " + exhaustiveCheck);
+    }
+  }
+  const lastItem = dayNightArr[dayNightArr.length - 1];
+  if (lastItem.appSeconds !== 86400) {
+    dayNightArr.push({ appSeconds: 86400, daylight: lastItem.daylight });
+  }
 
   return dayNightArr;
 }
 
 /**
- * Determines what TOPO url to use
- * Use predicted datasource if requested date is today and 7 weeks forward.
- * Don't pull the 8th week to account for potential lag in update
+ * Determines what TOPO url to use for a given topo state
  * @param date UTC
- * @returns URL of the file to fetch.
- *          Null if date is too far in the future and there is no data.
- *          Empty string if date is too far in the past. Use Spacetrack in this instance
+ * @returns TopoURL object with URL and State. URL is Null if date is out of range.
  */
-export function getTopoURL(requestDate: Date): string {
-  const historicMin = new Date(Date.UTC(2013, 2, 31)); //cutoff day for pulling TOPO. Around this time TOPO also changed from 2x week data dumps to 1x week.
-  const now = midnightZulu(new Date()); //curent date with time to 0 UTC
+export function getTopoURL(requestDate: Date): TopoURL {
+  const topoState: TopoState = getTopoState(requestDate);
+  let topoURL: TopoURL = { url: "", state: topoState };
 
-  //advance today by 50 days (not 49, use midnight UTC on the 50th day)
-  const futureMax = new Date(now.getTime());
-  futureMax.setUTCDate(now.getUTCDate() + 50);
-
-  let topoURL = "";
-  if (requestDate.getTime() >= futureMax.getTime()) {
-    return null; //date is too far in the future. No data is available
-  } else if (
-    requestDate.getTime() >= midnightZulu(now).getTime() &&
-    requestDate.getTime() < futureMax.getTime()
-  ) {
+  if (topoState === "outOfRange_future" || topoState === "outOfRange_past") {
+    //date is too far in the future or too far in the past. No data is available
+    topoURL.url = null;
+    return topoURL;
+  } else if (topoState === "predicted") {
     //use stp (short term plan) predicted data . Requested date is between today at midnight zulu and 50 days
-    topoURL = "https://fod2.jsc.nasa.gov/CM/TOPO/data/stp/topo52.ISS.sun_lighting_events.txt";
-  } else if (requestDate.getTime() >= historicMin.getTime()) {
+    topoURL.url = "https://fod2.jsc.nasa.gov/CM/TOPO/data/stp/topo52.ISS.sun_lighting_events.txt";
+  } else if (topoState === "historic") {
     //historic data. Use best estimated trajectory data (bet). Build filename
     const extChange = new Date(Date.UTC(2015, 0, 5)); //date when BET file naming extension changed
     let ext = requestDate.getTime() < extChange.getTime() ? ".cff.txt" : ".cff.conv.txt";
 
-    topoURL =
+    topoURL.url =
       "https://fod2.jsc.nasa.gov/CM/TOPO/data/bet/Sun%20Lighting%20Data/As%20Flown/" +
       requestDate.getUTCFullYear() +
       "/bet_data1_" +
@@ -372,6 +403,40 @@ export function getTopoURL(requestDate: Date): string {
       ext;
   }
   return topoURL;
+}
+
+/**
+ * Determines what state the topo data is in for a given date.
+ * As long as the state returned is not "outOfRange_" then data will be available on the topo server
+ * @param requestDate the date to check
+ * @returns the state of the data will be in when it is retrieved from the topo server
+ */
+export function getTopoState(requestDate: Date): TopoState {
+  const historicMin = new Date(Date.UTC(2013, 2, 31)); //cutoff day for pulling TOPO. Around this time TOPO also changed from 2x week data dumps to 1x week.
+  const now = midnightZulu(new Date()); //curent date with time to 0 UTC
+
+  //advance today by 50 days (not 49, use midnight UTC on the 50th day)
+  const futureMax = new Date(now.getTime());
+  futureMax.setUTCDate(now.getUTCDate() + 50);
+
+  if (requestDate.getTime() >= futureMax.getTime()) {
+    //date is too far in the future.
+    return "outOfRange_future";
+  } else if (
+    requestDate.getTime() >= midnightZulu(now).getTime() &&
+    requestDate.getTime() < futureMax.getTime()
+  ) {
+    //Requested date is between today at midnight zulu and 50 days
+    //Use predicted datasource if requested date is today and 7 weeks forward.
+    //Don't pull the 8th week to account for potential lag in update
+    return "predicted";
+  } else if (requestDate.getTime() >= historicMin.getTime()) {
+    //historic data.
+    return "historic";
+  } else {
+    //date is too far in the past.
+    return "outOfRange_past";
+  }
 }
 
 /**
