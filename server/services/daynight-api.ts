@@ -10,7 +10,7 @@ import ntlmclient from "node-ntlm-client";
 import { HttpsAgent } from "agentkeepalive";
 import fetch from "node-fetch";
 
-type TopoState = "outOfRange_past" | "historic" | "predicted" | "outOfRange_future";
+type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 
 type TopoURL = {
   state: TopoState;
@@ -66,9 +66,9 @@ export async function fetchDayNight(
             return retrieverTopoRawWeek(queryDate);
           },
           {
-            preferNew: preferNew,
-            cacheAge: cacheAge,
-            staleOk: staleOk,
+            preferNew,
+            cacheAge,
+            staleOk,
           }
         );
         topoResArray.push(topoRes); //push responses for each week into an array for processing
@@ -182,23 +182,29 @@ export async function fetchDayNight(
     return topoData;
   };
 
-  /** Get data from spacetrack using the service fetchISSLocation.
+  /** Get data using the service fetchISSLocation.
    * Calculate Day/Night from ephemera (this is what get's cached)
    * If the ephemera data was already retrieved earlier during the iss location fetch, then the cache is returned.
    * Vice versa for location if this day night fetch executes before the location fetch.
+   *
+   * Return a wrapped response in order to pass the source (spacetrack or celestrack)
    */
-  const retrieverSpacetrack = async (): Promise<DayNightStore> => {
+  const retrieverIssLocation = async (): Promise<WrappedResponse<DayNightStore>> => {
     let dayNight: DayNightObj[] = [];
 
-    let spacetrack: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
-    let ephemera = spacetrack.data.ephemera;
+    let issLocation: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
+    let ephemera = issLocation.data.ephemera;
 
     //calculate day night based off ephemera
     if (ephemera.length > 0) {
       dayNight = calcDayNight(ephemera, year, month, date);
     }
 
-    return { dayNight };
+    return {
+      cacheMetadata: issLocation.cacheMetadata,
+      source: issLocation.source,
+      data: { dayNight },
+    };
   };
 
   const requestDate = new Date(Date.UTC(year, month - 1, date)); //requested date in UTC
@@ -207,7 +213,7 @@ export async function fetchDayNight(
     data: { dayNight: [] },
   };
   let topoState = getTopoState(requestDate);
-  if (topoState === "outOfRange_future") return res; //date requested is too far in the future. No data available
+  if (topoState === "outOfRange_predicted") return res; //date requested is too far in the future. No data available
 
   const todayMidnight = new Date(Date.now()).setUTCHours(0, 0, 0, 0); //today at midnight
   const isHistoric = requestDate.getTime() < todayMidnight;
@@ -216,23 +222,24 @@ export async function fetchDayNight(
 
   //cache settings for all 3 fetch retreiver functions
   const preferNew = !isHistoric;
-  const cacheAge = isHistoric ? oneYearInSeconds : 1209600; //60*60*24*14 = 2 weeks in seconds
+  const cacheAge = isHistoric ? oneYearInSeconds : 604800; //60*60*24*7 = 1 weeks in seconds
   const staleOk = true;
 
   //fetch topo. this is the prefered method.
   try {
-    if (topoState !== "outOfRange_past") {
+    if (topoState !== "outOfRange_historic") {
       res = await fetchWithCache<DayNightStore>(
         `daynight/topoDay/${identifier}`,
         retrieverTopoDay,
         {
-          preferNew: preferNew,
-          cacheAge: cacheAge,
-          staleOk: staleOk,
+          preferNew,
+          cacheAge,
+          staleOk,
         }
       );
+      res.source = "topo";
     } else {
-      //requested date is too far in the past. fall through to spacetrack
+      //requested date is too far in the past. fall through to iss location
     }
   } catch (e) {
     // something went wrong
@@ -241,28 +248,31 @@ export async function fetchDayNight(
 
   //topo successfully retrieved data!
   if (res.data.dayNight.length > 0) {
-    res.source = "topo";
     return res;
   }
 
-  //fetch spacetrack.
+  //fetch iss location.
   //either topo returned bad/no data or date requested is too far in the past for topo.
+  let doubleWrapRes: WrappedResponse<WrappedResponse<DayNightStore>>;
   try {
-    res = await fetchWithCache<DayNightStore>(
-      `daynight/spacetrack/${identifier}`,
-      retrieverSpacetrack,
+    doubleWrapRes = await fetchWithCache<WrappedResponse<DayNightStore>>(
+      `daynight/issLocation/${identifier}`,
+      retrieverIssLocation,
       {
-        preferNew: preferNew,
-        cacheAge: cacheAge,
-        staleOk: staleOk,
+        preferNew,
+        cacheAge,
+        staleOk,
       }
     );
   } catch (e) {
     // something went wrong
     throw e;
   }
+  //unwrap the double wrap
+  res.cacheMetadata = doubleWrapRes.cacheMetadata; //return cache status of the outer wrap (our calculated day/night from the ephemera)
+  res.data = doubleWrapRes.data.data;
+  res.source = doubleWrapRes.data.source;
 
-  res.source = "spacetrack";
   return res;
 }
 
@@ -335,7 +345,7 @@ function parseTopoData(resArray: WrappedResponse<string>[], requestDate: Date): 
    * Check if we have at least one entry in the morning and one in the evening, else this may indicate we have partial data.
    * Partial data may occur when a bet data ends on half day, and remaining half is not released yet.
    * If we are in high beta angle season, this will also trigger
-   * Returning blank array will trigger a call to spacetrack as the fall back
+   * Returning blank array will trigger a call to use iss location as the fall back
    * */
   let appSecCheck = { morning: false, evening: false };
   for (let dayNight of dayNightArr) {
@@ -382,7 +392,7 @@ export function getTopoURL(requestDate: Date): TopoURL {
   const topoState: TopoState = getTopoState(requestDate);
   let topoURL: TopoURL = { url: "", state: topoState };
 
-  if (topoState === "outOfRange_future" || topoState === "outOfRange_past") {
+  if (topoState === "outOfRange_predicted" || topoState === "outOfRange_historic") {
     //date is too far in the future or too far in the past. No data is available
     topoURL.url = null;
     return topoURL;
@@ -421,7 +431,7 @@ export function getTopoState(requestDate: Date): TopoState {
 
   if (requestDate.getTime() >= futureMax.getTime()) {
     //date is too far in the future.
-    return "outOfRange_future";
+    return "outOfRange_predicted";
   } else if (
     requestDate.getTime() >= midnightZulu(now).getTime() &&
     requestDate.getTime() < futureMax.getTime()
@@ -435,7 +445,7 @@ export function getTopoState(requestDate: Date): TopoState {
     return "historic";
   } else {
     //date is too far in the past.
-    return "outOfRange_past";
+    return "outOfRange_historic";
   }
 }
 

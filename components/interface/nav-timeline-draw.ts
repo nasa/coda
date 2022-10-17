@@ -358,8 +358,16 @@ export default class DrawNav {
             };
             break;
           case "sunset":
+            let stops = ["#dbc275", "black"];
+            if (
+              //edge case when it's beta high season and we don't have a full night
+              typeof this.dayNight[i + 1] !== undefined &&
+              this.dayNight[i + 1].daylight === "day"
+            ) {
+              stops = ["#dbc275", "#413A23", "#dbc275"];
+            }
             fillColor = {
-              gradient: { stops: ["#dbc275", "black"] },
+              gradient: { stops },
               origin: [startLocX, startLocY],
               destination: [endLocX, endLocY],
             };
