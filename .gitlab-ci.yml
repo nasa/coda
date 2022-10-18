@@ -4,7 +4,7 @@
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
 # Use EMSS' version of node:14-alpine
-image: "$CI_REGISTRY/emss/docker-images:node-14-alpine"
+image: "$CI_REGISTRY/emss/docker-images:node-16-alpine"
 
 default:
   artifacts:
