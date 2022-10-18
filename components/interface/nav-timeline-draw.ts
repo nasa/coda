@@ -334,7 +334,6 @@ export default class DrawNav {
 
         let startLocY = param.barTop;
         let endLocY = startLocY + param.barHeight;
-        let activityLine;
 
         let fillColor: string | object = "#dbc275";
         let textColor = "black";
@@ -377,7 +376,7 @@ export default class DrawNav {
             throw new Error("never-check reached on sunLighting value: " + exhaustiveCheck);
         }
 
-        activityLine = new paper.Path.Rectangle({
+        let activityLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           fillColor: fillColor,

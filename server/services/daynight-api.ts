@@ -187,7 +187,7 @@ export async function fetchDayNight(
    * If the ephemera data was already retrieved earlier during the iss location fetch, then the cache is returned.
    * Vice versa for location if this day night fetch executes before the location fetch.
    *
-   * Return a wrapped response in order to pass the source (spacetrack or celestrack)
+   * Return a wrapped response in order to pass along source value returned from fetchISSLocation (spacetrack or celestrack)
    */
   const retrieverIssLocation = async (): Promise<WrappedResponse<DayNightStore>> => {
     let dayNight: DayNightObj[] = [];
@@ -342,7 +342,8 @@ function parseTopoData(resArray: WrappedResponse<string>[], requestDate: Date): 
   }
 
   /**
-   * Check if we have at least one entry in the morning and one in the evening, else this may indicate we have partial data.
+   * Check if we have at least one entry in the morning and one in the evening.
+   * If we don't, then this may indicate we have partial data.
    * Partial data may occur when a bet data ends on half day, and remaining half is not released yet.
    * If we are in high beta angle season, this will also trigger
    * Returning blank array will trigger a call to use iss location as the fall back
