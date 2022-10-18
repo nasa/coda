@@ -7,12 +7,12 @@ describe("function getTopoURL()", () => {
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 3, now.getUTCDate())
     );
     expect(getTopoURL(requestDate).url).toBeNull();
-    expect(getTopoURL(requestDate).state).toEqual("outOfRange_future");
+    expect(getTopoURL(requestDate).state).toEqual("outOfRange_predicted");
   });
   it("should return out of range past", () => {
     const requestDate = new Date(Date.UTC(2000, 1, 1));
     expect(getTopoURL(requestDate).url).toBeNull();
-    expect(getTopoURL(requestDate).state).toEqual("outOfRange_past");
+    expect(getTopoURL(requestDate).state).toEqual("outOfRange_historic");
   });
   it("should return predicted url", () => {
     const requestDate = new Date(
