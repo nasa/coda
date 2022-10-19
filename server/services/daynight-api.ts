@@ -71,16 +71,18 @@ export async function fetchDayNight(
             staleOk,
           }
         );
+        if (topoRes.cacheMetadata.error) {
+          throw new Error(topoRes.cacheMetadata.error);
+        }
         topoResArray.push(topoRes); //push responses for each week into an array for processing
       }
+
+      //process and parse responses
+      dayNight = parseTopoData(topoResArray, requestDate);
     } catch (e) {
-      console.log(e);
+      console.log("Caught error in retrieverTopoDay: " + e);
       throw e;
     }
-
-    //process and parse responses
-    dayNight = parseTopoData(topoResArray, requestDate);
-
     return { dayNight };
   };
 
@@ -175,7 +177,7 @@ export async function fetchDayNight(
         }
       }
     } catch (e) {
-      console.log(e.message);
+      console.log("Caught error in retrieverTopoRawWeek: " + e);
       throw e;
     }
 
@@ -191,20 +193,27 @@ export async function fetchDayNight(
    */
   const retrieverIssLocation = async (): Promise<WrappedResponse<DayNightStore>> => {
     let dayNight: DayNightObj[] = [];
+    try {
+      let issLocation: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
+      if (issLocation.cacheMetadata.error) {
+        throw new Error(issLocation.cacheMetadata.error);
+      }
+      let ephemera = issLocation.data.ephemera;
 
-    let issLocation: WrappedResponse<EphemerisStore> = await fetchISSLocation(year, month, date);
-    let ephemera = issLocation.data.ephemera;
+      //calculate day night based off ephemera
+      if (ephemera.length > 0) {
+        dayNight = calcDayNight(ephemera, year, month, date);
+      }
 
-    //calculate day night based off ephemera
-    if (ephemera.length > 0) {
-      dayNight = calcDayNight(ephemera, year, month, date);
+      return {
+        cacheMetadata: issLocation.cacheMetadata,
+        source: issLocation.source,
+        data: { dayNight },
+      };
+    } catch (e) {
+      console.log("Caught error in retrieverIssLocation: " + e);
+      throw e;
     }
-
-    return {
-      cacheMetadata: issLocation.cacheMetadata,
-      source: issLocation.source,
-      data: { dayNight },
-    };
   };
 
   const requestDate = new Date(Date.UTC(year, month - 1, date)); //requested date in UTC
@@ -246,16 +255,18 @@ export async function fetchDayNight(
     throw e;
   }
 
-  //topo successfully retrieved data!
-  if (res.data.dayNight.length > 0) {
-    return res;
+  //check topo response.
+  if (res.cacheMetadata.error) {
+    throw new Error(res.cacheMetadata.error);
+  } else if (res.data.dayNight.length > 0) {
+    return res; //topo successfully retrieved data!
   }
 
   //fetch iss location.
   //either topo returned bad/no data or date requested is too far in the past for topo.
-  let doubleWrapRes: WrappedResponse<WrappedResponse<DayNightStore>>;
+  let res_issLocation: WrappedResponse<WrappedResponse<DayNightStore>>;
   try {
-    doubleWrapRes = await fetchWithCache<WrappedResponse<DayNightStore>>(
+    res_issLocation = await fetchWithCache<WrappedResponse<DayNightStore>>(
       `daynight/issLocation/${identifier}`,
       retrieverIssLocation,
       {
@@ -264,14 +275,18 @@ export async function fetchDayNight(
         staleOk,
       }
     );
+
+    if (res_issLocation.cacheMetadata.error) {
+      throw new Error(res_issLocation.cacheMetadata.error);
+    }
+    //unwrap and set response
+    res.cacheMetadata = res_issLocation.cacheMetadata; //return cache status of the outer wrap (our calculated day/night from the ephemera)
+    res.data = res_issLocation.data.data;
+    res.source = res_issLocation.data.source;
   } catch (e) {
     // something went wrong
     throw e;
   }
-  //unwrap the double wrap
-  res.cacheMetadata = doubleWrapRes.cacheMetadata; //return cache status of the outer wrap (our calculated day/night from the ephemera)
-  res.data = doubleWrapRes.data.data;
-  res.source = doubleWrapRes.data.source;
 
   return res;
 }
