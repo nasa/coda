@@ -420,7 +420,7 @@ export function V2(props: { urlState }) {
   return (
     <div className={styles.main}>
       <Head>
-        <title>{process.env.NEXT_PUBLIC_TITLE}</title>
+        <title>CODA</title>
       </Head>
       <Header helpLoaderOpen={helpLoaderOpen} setHelpLoaderOpen={setHelpLoaderOpen} />
       <div className={styles.body}>
