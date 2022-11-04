@@ -3,8 +3,8 @@
 # To check the validity of this file, try the live editor:
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
-# Use EMSS' version of node:14-alpine
-image: "$CI_REGISTRY/emss/docker-images:node-14-alpine"
+# Use EMSS' version of node:18-alpine
+image: "$CI_REGISTRY/emss/docker-images:node-18-alpine"
 
 default:
   artifacts:
@@ -244,7 +244,7 @@ build:
   # since default is /tmp to work with OpenShift
   variables:
     HOME: /root
-  image: "$CI_REGISTRY/emss/docker-images:deploy-node-14-alpine"
+  image: "$CI_REGISTRY/emss/docker-images:deploy-node-18-alpine"
 
   # Could be openshift, but it runs faster in a VM; Since it's the longest-running job, run in VM
   tags: ["docker", "linux"]
