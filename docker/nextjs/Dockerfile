@@ -2,9 +2,10 @@
 # IMAGE: base #
 # # # # # # # #
 
-
-FROM node:18-alpine as base
-RUN mkdir /app
+FROM node:16-bullseye-slim as base
+RUN mkdir /app \
+  && apt-get update \
+  && apt-get install dos2unix
 WORKDIR /app
 COPY package*.json ./
 COPY docker/nextjs/docker-entrypoint.sh /
