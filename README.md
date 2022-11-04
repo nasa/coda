@@ -18,15 +18,15 @@ We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged wh
 | ---------- | ---------------- | ------------------------------------ |
 | `prod`     | production       | https://coda.fit.nasa.gov            |
 | `int`      | integration      | https://coda-int.fit.nasa.gov        |
-| `.*--dev`  | development      | https://coda-dev.fit.nasa.gov        |
-| `.*--dev2` | development2     | https://coda-dev2.fit.nasa.gov       |
+| any        | development      | https://coda-dev.fit.nasa.gov        |
+| any        | development2     | https://coda-dev2.fit.nasa.gov       |
 | `pages`    | redirect to prod | https://coda.pages.fit.nasa.gov/coda |
 
 You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
 
 The rules for deployments are as follows:
 
-- Anyone can push a branch that ends in `--dev` or `--dev2` at any time to deploy to a development server. This is a great place to quickly test changes in a real deployed environment.
+- Anyone can push a branch at any time, and in the GitLab pipeline for that branch you can click to deploy to a development server. This is a great place to quickly test changes in a real deployed environment.
 - MRs for new features go into integration. This is the area for ensuring new, tested features work as expected in the real environment before deploying to users. Merge requests are made against `int` by default.
 - MRs to production:
   - Are only allowed from integration. This means the merge request will have a "Target branch" of `prod` and "Source branch" of `int`.
@@ -36,42 +36,21 @@ The `pages` branch only exists to redirect old GitLab Pages URLs to the producti
 
 ### Server Strategy
 
-**Dependencies**
+#### Production-like server dependencies
 
-- Node 14
-- Any Linux distro with systemd. FIT uses [CentOS](https://www.centos.org/) 7 mostly (coda-dev is CentOS 8 pre-release for now)
-- A reverse proxy (CODA is using Nginx, except coda-dev using Apache)
-
-We run CODA as a Node server and keep it alive with [systemd](https://www.freedesktop.org/wiki/Software/systemd/). Why systemd? We're running on CentOS 7 FIT VMs. CentOS, like most major Linux distros, uses systemd to manage core services. It's fairly easy to configure and it's really good at keeping a process alive.
+- Docker 20+
+- GitLab Runner installed
+  - `gitlab-runner` user able to `sudo` with password made available to EMSS for loading into GitLab CI/CD variables
+  - Runner registered with the CODA repository
+- Linux (historically RedHat or CentOS 7, but moving to Ubuntu 20.04)
 
 #### First Time Setup
 
-CODA's FIT servers are maintained with [FITBox](https://gitlab.fit.nasa.gov/fitbox/fitbox) using [this FITBox config](https://gitlab.fit.nasa.gov/coda/coda-fitbox-config). The steps below cover what needs to be done to get the CODA application up and running. Details for setting up supporting software is not included. The FITBox config outlines precisely how to get a CentOS 7 server up and running.
+CODA has no first-time setup requirements beyond the dependencies listed above. On first deploy it will bootstrap itself.
 
-Perform these steps on the VM as the user who will be running CODA.
+#### Configuring host resources
 
-1. Configure Nginx to proxy ports 80 and/or 443 to port 3000
-1. Install an SSH key on the VM for the user you want to run CODA. Follow [these instruction on GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/index.html) to set the `SSH_PRIVATE_KEY` variable under the GitLab CI/CD settings
-1. Get an initial copy of this repo on the VM at `~/coda`
-1. Create a systemd service file for coda (see [here](https://gitlab.fit.nasa.gov/coda/coda-fitbox-role/-/blob/master/templates/coda.service.j2) for an example) and placed in `/usr/lib/systemd/system/coda.service`
-1. `sudo systemctl enable coda`. You should see a confirmation message that the service was created
-
-At this point, we're ready to start deploying to the server but CODA is not running. You should do a test run.
-
-1. `cd ~/coda && npm i && npm run build`. Transpile all the TypeScript and build all the HTML, CSS, and JS files
-1. `npm run start`. Do a quick manual run of CODA. You should see the server spin up. `ctrl-c` to close it
-1. `sudo systemctl start coda`. Tell systemd to run and monitor CODA. You won't see anything printed in the console
-1. `curl localhost:3000` and see if you get a response. If so, yay! You're done
-1. `systemctl status coda`. You'll see the status of the service, including the command systemd ran to start the server. It should be green and running. You'll see an exit code if not
-1. `sudo journalctl -u coda`. This should give you server logs.
-
-If everything is good, no further steps are necessary. Make sure `.gitlab-ci.yml` is setup with this VM's DNS entry and this user and you should be ready to deploy. If the server did not spin up, check the logs.
-
-#### Changing the systemd service
-
-Do you need to change how the server is being run and monitored by systemd? The reasons you might want to do this is to modify environment variables, change working directories, or something else specific to systemd. If it's just a matter of a TypeScript thing, you should look at changing the `start` script in `package.json` first, in which case the instructions below do not apply.
-
-If you change `/usr/lib/systemd/system/coda.service`, run `systemctl --user daemon-reload` to pick up the changes, then `systemctl restart coda-dev` to restart.
+CODA's setup with Docker is great for managing container resources, but often it is necessary to configure the host machine's resources, such as `mkdir`/`chown`/`chmod` directories to be used as Docker volumes or setting up SSL certs. CODA allows minimal configuration of these items via it's `.fitdock.yml` file.
 
 ## Development
 
@@ -83,7 +62,7 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 
 ### Software Dependencies
 
-- [NodeJS](https://nodejs.dev/) v14. Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (Mac/Linux) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) (Windows)
+- [NodeJS](https://nodejs.dev/) v18. Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (Mac/Linux) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) (Windows)
 
 ### First Time Installation
 
@@ -92,34 +71,38 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 - `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
 
 2. Install JavaScript dependencies: `npm i`
-3. Create a `.env.local` file at the root of the repo. It must contain:
-
-```
-IO_KEY=
-WIKI_USER=
-WIKI_PASSWORD=
-SPACETRACK_USER=
-SPACETRACK_PASSWORD=
-NEXT_PUBLIC_MAPBOX_KEY=
-```
-
-Ask Ben, James, or Cameron for the keys if you don't have them. You can also overwrite any of the variables found in `next.config.js`.
-
-4. Get the required CA Cert:
+3. Create a `.env.secret` file by running `bash ./scripts/make-dotenv.sh local`. This will create a file with blank variables. Ask [someone listed as a maintainer or owner of the CODA repo](https://eegitlab.fit.nasa.gov/emss/coda/-/project_members) for the values if you don't have them.
+4. Re-run `bash ./scripts/make-dotenv.sh local` to generate a `.env` file for your local setup based on the `.env.secret` you populated.
+5. Get the required CA Cert:
    1. Go to https://cset.nasa.gov/application/nasa-trust-anchor-management-ntam-for-linux/
    2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
-5. Get a Mapbox API key https://account.mapbox.com/
-6. (Required) Change your hosts file to map `coda-local.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work.
+6. (Optional generally, required if you're going to make a lot of map requests) Get a Mapbox API key https://account.mapbox.com/
+7. Change your hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
+8. (Required for Docker) Create a self-signed SSL certificate by doing `bash ./scripts/make-dev-ssl-cert.sh`
 
-### Local Dev Environment
+### Local Dev Environment (Docker)
+
+```sh
+npm run docker:dev
+```
+
+Then go to https://coda-local.fit.nasa.gov. Note the HTTPS not HTTP, since the Docker setup is behind an nginx proxy with a self-signed certificate. Also there is no port number specified, since this is over port 443.
+
+You will likely need to accept the self-signed certificate.
+
+The first time you run this it will have to `npm install` all packages, even if you have a recent `node_modules` from running `npm install` on your host machine. The packages on our Linux container may be OS-specific, so they cannot be shared with your host machine. They are cached (in `./.local/docker_node_modules`), so subsequent runs of `npm run docker:dev` won't take as long.
+
+If you make changes to CODA and want to be very sure that the Docker images are fully rebuilt, you can run `npm run docker:dev:rebuild` and it will rebuild images completely. This is generally not required, however, and simply running `npm run docker:dev` again will be sufficient to rebuild just what is necessary (not rebuild everything).
+
+### Local Dev Environment (non-Docker)
 
 ```sh
 npm run dev
 ```
 
-Then head over to (http://coda-local.nasa.gov:3000/coda)
+Then head over to (http://coda-local.fit.nasa.gov:3000)
 
 This command sets up a hot-reloading fullstack node server. If you make any changes to the client, you should see them appear automatically in the browser. If you make any changes to the server, you should see the server restart.
 
@@ -133,11 +116,21 @@ Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) 
 npm run local
 ```
 
-Then hit (http://coda-local.nasa.gov:3000/coda/view?date=2021-03-13)
+Then hit (http://coda-local.fit.nasa.gov:3000)
 
 Setup is the same as the Dev Server above, but pulls mock API response json from the /mocks folder and streams placeholder video and shows a placeholder folder that is located on govcloud.
 
 This allows the application to run without being dependant on the NASA network or placing SBU data outside of the NASA network
+
+### Docker with production-like setup
+
+Using the typical dev setup of `npm run docker:dev` sets up a development environment with hot-reloading and debugging. To preview a production-like setup, essentially identical to what would be deployed to one of our servers, run the following:
+
+```sh
+npm run docker:preview
+```
+
+Like with `docker:dev`, if you want to fully rebuild images you can do `npm run docker:preview:rebuild`.
 
 ### Run Tests
 

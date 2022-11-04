@@ -5,17 +5,21 @@
   "main": "server/index.ts",
   "scripts": {
     "build": "next build",
-    "dev": "cross-env NODE_EXTRA_CA_CERTS=./.env.local.cert.pem NODE_OPTIONS='--inspect' next dev",
-    "local": "cross-env NODE_ENV=local npm run dev",
+    "dev": "cross-env NODE_EXTRA_CA_CERTS=./.env.local.cert.pem NODE_OPTIONS='--inspect' next dev -p 3000",
+    "local": "cross-env NODE_ENV=local npm run dev -p 3000",
     "export": "next export",
-    "start": "cross-env NODE_ENV=production next start",
+    "start": "cross-env NODE_ENV=production next start -p 3000",
     "test": "jest",
     "test:all": "npm run lint && npm run tsc && npm run build && npm run test",
     "test:coverage": "jest --coverage --reporters=default --reporters=jest-junit",
     "tsc": "tsc --pretty",
     "lint": "eslint . --color --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --color --fix --ext .js,.jsx,.ts,.tsx",
-    "postinstall": "sh scripts/postinstall"
+    "postinstall": "rimraf node_modules/paper/dist/docs",
+    "docker:dev": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
+    "docker:dev:rebuild": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache",
+    "docker:preview": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.preview.yml up --build -d",
+    "docker:preview:rebuild": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.preview.yml build --no-cache"
   },
   "repository": {
     "type": "git",
@@ -76,6 +80,7 @@
     "jest": "^27.5.1",
     "jest-junit": "^13.0.0",
     "prettier": "^2.6.0",
+    "rimraf": "^3.0.2",
     "ts-jest": "^27.1.3"
   },
   "browser": {
