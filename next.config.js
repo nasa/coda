@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // async redirects() {
   //   return [
   //     {
@@ -14,4 +15,17 @@ module.exports = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 20,
   },
+
+  // this allows hot-refresh to work in Docker on Windows until this WSL issue is resolved:
+  // https://github.com/microsoft/WSL/issues/4739
+  webpack: (config) => {
+    config.watchOptions = {
+      poll: 1000,
+      aggregateTimeout: 300,
+      ignored: /\.cache|\.cookies|\.local|\.next|\.vscode|ci|coverage|docker|docs|node_modules/,
+    };
+    return config;
+  },
 };
+
+module.exports = nextConfig;

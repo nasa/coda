@@ -23,7 +23,7 @@ export default async function getPhotoData(
     const mediaOverrides = await WikiService.fetchMediaOverrides();
 
     // Check if there is a video override for this date and Source
-    const mediaOverride = mediaOverrides.data.find((vo) => {
+    const mediaOverride = mediaOverrides?.data?.find((vo) => {
       const overrideDate = new Date(vo.date);
       return (
         overrideDate.getTime() === requestedDate.getTime() &&

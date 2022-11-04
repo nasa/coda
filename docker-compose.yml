@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  nginx:
+    image: ${REGISTRY_IMAGE}/nginx:${IMAGE_VERSION}
+    restart: unless-stopped
+    depends_on:
+      - nextjs
+    volumes:
+      - ${DOCKER_HOST_HTTP_STATIC_DIR}:/usr/share/nginx/static:ro
+      - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
+      - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
+    ports:
+      # AEGIS requires launchpad, so must be over HTTPS and not have a port specified in the URL
+      # e.g. https://aegis.fit.nasa.gov not https://aegis.fit.nasa.gov:8000
+      - "443:443"
+
+  nextjs:
+    image: ${REGISTRY_IMAGE}/nextjs:${IMAGE_VERSION}
+    restart: unless-stopped
+    ports:
+      # nextjs is hard-coded to run on 3000 in docker, and nginx proxies 3000. Hard-coding this and
+      # not making it configurable keeps docker config simpler.
+      - "3000:3000"
+
+      # VS Code debug port. This isn't needed in production, and won't be exposed by FIT servers,
+      # but is simpler config-wise to put here versus in the overrides file
+      - "9229:9229"
+    volumes:
+      - ./.env:/app/.env
+      - ${DOCKER_HOST_HTTP_STATIC_DIR}:/static

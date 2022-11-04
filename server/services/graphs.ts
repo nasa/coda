@@ -7,7 +7,7 @@ export const fetchGraphsManifest = async (
   const ancillaryDataSources = await WikiService.fetchAncillaryDataSourceList();
 
   // Check if there is a video override for this date and Source
-  const ancillaryDataSource = ancillaryDataSources.data.find((vo) => {
+  const ancillaryDataSource = ancillaryDataSources?.data?.find((vo) => {
     const overrideDate = new Date(vo.date);
     const requestedDate = new Date(dateWanted);
     return (
