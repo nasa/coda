@@ -429,7 +429,7 @@ deploy:int:
 
 deploy:prod:
   extends: .docker-deploy-template
-  tags: ["coda-int-runner"]
+  tags: ["coda-prod-runner"]
   needs:
     - make-fit-dotenv
     - docker:push
