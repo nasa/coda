@@ -6,9 +6,7 @@ import { getTimes } from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { weekNumberSun } from "weeknumber";
-import ntlmclient from "node-ntlm-client";
-import { HttpsAgent } from "agentkeepalive";
-import fetch from "node-fetch";
+import httpntlm from "httpntlm";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 
@@ -112,47 +110,31 @@ export async function fetchDayNight(
           continue;
         }
 
-        var keepaliveAgent = new HttpsAgent();
-        //run the handshake messages sequentally.
-        //type 1 and 3 messages come from us. type 2 is response from topo.
-        //This is using a npm library called ntlm-client that builds nltm v2 messages
-        //service account credentials are supplied
-
-        //generate type 1 message (the request to the server) and wait for response
-        var type1msg = ntlmclient.createType1Message();
-        var type1res = await fetch(queryUrl, {
-          method: "GET",
-          headers: {
-            Connection: "keep-alive",
-            Authorization: type1msg,
-          },
-          agent: keepaliveAgent, //must use node-fetch for this option to be available
-        });
-        if (!type1res.headers["www-authenticate"]) {
-          new Error("www-authenticate not found on response of second request");
-        }
-        //decode type 2 response from server (the challenge)
-        var type2msg = ntlmclient.decodeType2Message(type1res.headers.get("www-authenticate"));
-
-        //generate type 3 message (respond with challenge key and user/pwd)
-        var type3msg = ntlmclient.createType3Message(
-          type2msg,
-          process.env.TOPO_USER,
-          process.env.TOPO_PASSWORD
+        const response: { statusCode: number; body: string } = await new Promise(
+          (resolve, reject) => {
+            httpntlm.get(
+              {
+                url: queryUrl,
+                username: process.env.TOPO_USER,
+                password: process.env.TOPO_PASSWORD,
+                workstation: "any.workstation",
+                domain: "",
+              },
+              function (err, res) {
+                if (err) {
+                  return reject(err);
+                }
+                resolve(res);
+              }
+            );
+          }
         );
-        var type3res = await fetch(queryUrl, {
-          headers: {
-            Connection: "Close",
-            Authorization: type3msg,
-          },
-          agent: keepaliveAgent,
-        });
 
         //server will auth first before checking if data exists
-        if (type3res.status === 200) {
+        if (response.statusCode === 200) {
           //response from type 3 message is a stream containing all the topo data.
           const streamChunks = [];
-          for await (const chunk of type3res.body) {
+          for await (const chunk of response.body) {
             streamChunks.push(Buffer.from(chunk));
           }
 
@@ -161,7 +143,7 @@ export async function fetchDayNight(
 
           break; //got a success response. we have our data for this week. do not check additional days.
         } else {
-          if (type3res.status === 404) {
+          if (response.statusCode === 404) {
             //file not found. Try the next day day
             queryDate.setUTCDate(queryDate.getUTCDate() + 1);
             continue;
@@ -169,7 +151,7 @@ export async function fetchDayNight(
             //something else went wrong.
             throw new Error(
               "Something went wrong fetching TOPO data. Response status " +
-                type3res.status +
+                response.statusCode +
                 " for URL " +
                 queryUrl
             );
