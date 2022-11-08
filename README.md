@@ -257,9 +257,13 @@ From James Montalvo
 
 We use [WikiMedia action queries](https://www.mediawiki.org/wiki/API:Query) to pull data from the [ISS Wiki](https://wiki.jsc.nasa.gov/iss/index.php/Main_Page)
 
+### Celestrack
+
+For current day ephemeris data
+
 ### Spacetrack
 
-For Empeherma data
+For Ephemeris data and also calculated day/night data when not available from TOPO
 
 ### Topo
 

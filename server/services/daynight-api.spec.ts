@@ -2,7 +2,7 @@ import { getTopoURL } from "server/services/daynight-api";
 
 describe("function getTopoURL()", () => {
   const now = new Date();
-  it("should return out of rnage future", () => {
+  it("should return out of range future", () => {
     const requestDate = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 3, now.getUTCDate())
     );
