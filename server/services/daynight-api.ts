@@ -6,7 +6,7 @@ import { getTimes } from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { weekNumberSun } from "weeknumber";
-import httpntlm from "@evamss/ntlm";
+import { get as ntlmGET } from "@evamss/ntlm";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 
@@ -112,7 +112,7 @@ export async function fetchDayNight(
 
         const response: { statusCode: number; body: string } = await new Promise(
           (resolve, reject) => {
-            httpntlm.get(
+            ntlmGET(
               {
                 url: queryUrl,
                 username: process.env.TOPO_USER,
