@@ -6,7 +6,7 @@ import { getTimes } from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { weekNumberSun } from "weeknumber";
-import httpntlm from "httpntlm";
+import httpntlm from "@evamss/ntlm";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 
