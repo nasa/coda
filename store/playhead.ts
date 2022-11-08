@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { padZeros } from "utils/formatting";
 
 export const initialState: PlayheadState = {
   // assume a 08:00:00Z start
@@ -68,6 +69,11 @@ export const playheadSlice = createSlice({
 
 export const { tick, changeDate, changeTime, start, stop, run, halt } = playheadSlice.actions;
 
+/**
+ * Sets the time to 0:0:0 UTC for a given date
+ * @param d date
+ * @returns date with cleared 0:0:0:0 time
+ */
 export const midnightZulu = (d: Date): Date => {
   d.setUTCHours(0);
   d.setUTCMinutes(0);
@@ -118,4 +124,17 @@ export const isSameDate = (a: Date, b: Date): boolean => {
   const D2 = b.getUTCDate();
 
   return Y1 === Y2 && M1 === M2 && D1 === D2;
+};
+
+/**
+ * converts a date into a string mmddyy
+ * @param d date object
+ * @returns String of MMDDYY in UTC. Month is 1 indexed
+ */
+export const mmddyy = (d: Date): string => {
+  return (
+    padZeros(d.getUTCMonth() + 1, 2) +
+    padZeros(d.getUTCDate(), 2) +
+    d.getUTCFullYear().toString().substring(2)
+  );
 };

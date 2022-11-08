@@ -10,11 +10,14 @@ export default async function getISSLocation(
   const ephemeris = await EphemeraService.fetchISSLocation(year, month, date);
 
   // Converting the new day/night data to the old format
-  let convertedDayNight: DayNightObjDepricated[] = dayNight.data.dayNight.map((dn) => {
-    return {
-      appSeconds: dn.appSeconds,
-      daylight: dn.daylight === "day" ? true : false,
-    };
+  let convertedDayNight: DayNightObjDepricated[] = [];
+  dayNight.data.dayNight.forEach((dn) => {
+    if (dn.daylight === "day" || dn.daylight === "night") {
+      convertedDayNight.push({
+        appSeconds: dn.appSeconds,
+        daylight: dn.daylight === "day" ? true : false,
+      });
+    }
   });
 
   // Custom response that should be removed when dayNight is removed from is API response

@@ -3,8 +3,8 @@
 # To check the validity of this file, try the live editor:
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
-# Use EMSS' version of node:14-alpine
-image: "$CI_REGISTRY/emss/docker-images:node-14-alpine"
+# Use EMSS' version of node:18-alpine
+image: "$CI_REGISTRY/emss/docker-images:node-18-alpine"
 
 default:
   artifacts:
@@ -190,12 +190,16 @@ make-fit-dotenv:
   extends: .make-dotenv
   script:
     - bash ./make-dotenv.sh fit
+    - cd ..
+    - echo "export IMAGE_VERSION=${IMAGE_VERSION}" > IMAGE_VERSION.sh
   artifacts:
     paths:
       - .env
       # Also export these for easy use by deployer
       - .fitdock.yml
       - docker-compose.yml
+      # Exports this to make it easy to know what the IMAGE_VERSION var is inside .env
+      - IMAGE_VERSION.sh
 
 test:
   stage: stageless
@@ -242,9 +246,12 @@ build:
   # to run in OpenShift. But next.js requires touching some other directories that require more
   # permissions, so rather than configuring those for now just run as root. Also set home to /root
   # since default is /tmp to work with OpenShift
+  #
+  # We're using Node 16 here just because there isn't a deploy-node-18-alpine yet in
+  # emss/docker-images. Could add one easily enough.
   variables:
     HOME: /root
-  image: "$CI_REGISTRY/emss/docker-images:deploy-node-14-alpine"
+  image: "$CI_REGISTRY/emss/docker-images:deploy-node-16-alpine"
 
   # Could be openshift, but it runs faster in a VM; Since it's the longest-running job, run in VM
   tags: ["docker", "linux"]
@@ -264,8 +271,9 @@ build:
     # required for nextjs to have NASA CA cert
     - echo "${ENV_LOCAL_CERT_PEM}" > ./.env.local.cert.pem
 
-    # Get IMAGE_VERSION from .env
-    - source .env
+    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env. See
+    # make-dotenv job/template.
+    - source IMAGE_VERSION.sh
 
     - docker-compose -f docker-compose.yml -f docker-compose.preview.yml build --no-cache ${SERVICE_NAME}
     - TEMP_IMAGE_NAME="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:preview-${IMAGE_VERSION}"
@@ -309,8 +317,9 @@ docker:push:
     # Login to registry
     - echo $CI_JOB_TOKEN | skopeo login -u gitlab-ci-token --password-stdin $CI_REGISTRY
 
-    # Get IMAGE_VERSION from .env
-    - source .env
+    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env. See
+    # make-dotenv job/template.
+    - source IMAGE_VERSION.sh
 
     - SERVICE=nginx
     - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
