@@ -6,6 +6,7 @@ import {
   changeTime,
   changeDate,
   tick,
+  mmddyy,
 } from "store/playhead";
 
 describe("store/playheadSlice", () => {
@@ -64,5 +65,16 @@ describe("store/playheadSlice", () => {
       const { isRunning } = playheadSlice.reducer(initialState, action);
       expect(isRunning).toEqual(false);
     });
+  });
+});
+
+describe("date functions", () => {
+  it("should return mmddyy", () => {
+    let testDate = new Date(Date.UTC(2015, 0, 3));
+    expect(mmddyy(testDate)).toEqual("010315");
+
+    testDate.setUTCDate(25);
+    testDate.setUTCMonth(11);
+    expect(mmddyy(testDate)).toEqual("122515");
   });
 });

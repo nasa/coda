@@ -205,7 +205,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
         plotlyChartLayout: getPlotlyChartLayout(graphHeight),
       },
     });
-  }, [graphData]);
+  }, [graphData, props.frameDimensions]);
 
   // Set the playhead position on the graph
   useEffect(() => {

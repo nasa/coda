@@ -42,6 +42,7 @@ type DayNightState = {
   dayNight: DayNightObj[];
   cacheMetadata: ResMetadata;
   loadingStatus: LoadingStatusEnum.LOADING;
+  source?: string;
 };
 
 /**

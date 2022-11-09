@@ -2,7 +2,6 @@
 # IMAGE: base #
 # # # # # # # #
 
-
 FROM node:18-alpine as base
 RUN mkdir /app
 WORKDIR /app

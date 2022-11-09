@@ -7,7 +7,7 @@ set -eu
 # In dev we wan to run `npm i` when the container starts. This is because the dependencies could
 # change from the time the docker image was built to the time the image was used to create the
 # container. In prod the dependencies are locked, so we don't need to re-run.
-if [[ "${RUN_NPM_INSTALL_ON_START}" == "yes" ]]; then
+if [ "${RUN_NPM_INSTALL_ON_START}" = "yes" ]; then
   npm i
 else
   echo "RUN_NPM_INSTALL_ON_START=${RUN_NPM_INSTALL_ON_START}. Not running 'npm i' at container start"

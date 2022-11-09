@@ -328,31 +328,6 @@ export default class DrawNav {
       const endSeconds = this.dayNight[i + 1].appSeconds;
       const lighting: SunLighting = this.dayNight[i].daylight;
 
-      let fillColor = "#dbc275";
-      let textColor = "black";
-      let activityTextContent = "";
-      switch (lighting) {
-        case "day":
-          fillColor = "#dbc275";
-          textColor = "black";
-          activityTextContent = "Insolation";
-          break;
-        case "night":
-          fillColor = "black";
-          textColor = "#dddddd";
-          activityTextContent = "Eclipse";
-          break;
-        case "sunrise":
-          //placeholder topo data
-          break;
-        case "sunset":
-          //placeholder topo data
-          break;
-        default:
-          const exhaustiveCheck: never = lighting;
-          throw new Error("never-check reached on sunLighting value: " + exhaustiveCheck);
-      }
-
       if (startSeconds <= param.secondsEnd && endSeconds >= param.secondsStart) {
         let startLocX = param.leftPx + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
         let endLocX = param.leftPx + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
@@ -360,11 +335,50 @@ export default class DrawNav {
         let startLocY = param.barTop;
         let endLocY = startLocY + param.barHeight;
 
+        let fillColor: string | object = "#dbc275";
+        let textColor = "black";
+        let activityTextContent = "";
+        switch (lighting) {
+          case "day":
+            fillColor = "#dbc275";
+            textColor = "black";
+            activityTextContent = "Insolation";
+            break;
+          case "night":
+            fillColor = "black";
+            textColor = "#dddddd";
+            activityTextContent = "Eclipse";
+            break;
+          case "sunrise":
+            fillColor = {
+              gradient: { stops: ["black", "#dbc275"] },
+              origin: [startLocX, startLocY],
+              destination: [endLocX, endLocY],
+            };
+            break;
+          case "sunset":
+            let stops = ["#dbc275", "black"];
+            if (
+              //edge case when it's beta high season and we don't have a full night
+              typeof this.dayNight[i + 1] !== undefined &&
+              this.dayNight[i + 1].daylight === "day"
+            ) {
+              stops = ["#dbc275", "#413A23", "#dbc275"];
+            }
+            fillColor = {
+              gradient: { stops },
+              origin: [startLocX, startLocY],
+              destination: [endLocX, endLocY],
+            };
+            break;
+          default:
+            const exhaustiveCheck: never = lighting;
+            throw new Error("never-check reached on sunLighting value: " + exhaustiveCheck);
+        }
+
         let activityLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
-          strokeWidth: 0.5,
-          strokeColor: this.gColorBarBorder,
           fillColor: fillColor,
         });
         group.addChild(activityLine);
