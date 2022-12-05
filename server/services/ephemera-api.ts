@@ -145,7 +145,7 @@ export async function fetchISSLocation(
 
   const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
   if (isToday) {
-    // if today, first try to get TLE data from celestrak, and don't cache the result (because it's today)
+    // if today, first try to get TLE data from celestrak, cache only for 5 minutes
     celestrakRes = await fetchWithCache<EphemerisStore>(
       `celestrak/${identifier}`,
       retrieverCelestrak,
@@ -157,14 +157,15 @@ export async function fetchISSLocation(
     );
     celestrakRes = { ...celestrakRes, source: "celestrak" };
 
-    // if celestrak didn't work, or if it's not today, try to get data from spacetrack
+    //check response from celestrak
     if (celestrakRes.cacheMetadata.error) {
       console.error(celestrakRes.cacheMetadata.error);
     } else if (celestrakRes.data?.ephemera.length > 0) {
-      return celestrakRes;
+      return celestrakRes; //got data from celestrak!
     }
   }
 
+  // if celestrak didn't work, or if it's not today, try to get data from spacetrack
   spacetrackRes = await fetchWithCache<EphemerisStore>(
     `spacetrack/${identifier}`,
     retrieverSpacetrack,
