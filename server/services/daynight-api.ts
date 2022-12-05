@@ -212,7 +212,7 @@ export async function fetchDayNight(
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   //cache settings for all 3 fetch retreiver functions
-  const preferNew = !isHistoric;
+  const preferNew = false;
   const cacheAge = isHistoric ? oneYearInSeconds : 604800; //60*60*24*7 = 1 weeks in seconds
   const staleOk = true;
 
