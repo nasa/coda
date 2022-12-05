@@ -217,58 +217,54 @@ export async function fetchDayNight(
   const staleOk = true;
 
   //fetch topo. this is the prefered method.
-  try {
-    if (topoState !== "outOfRange_historic") {
-      res = await fetchWithCache<DayNightStore>(
-        `daynight/topoDay/${identifier}`,
-        retrieverTopoDay,
-        {
-          preferNew,
-          cacheAge,
-          staleOk,
-        }
-      );
-      res.source = "topo";
-    } else {
-      //requested date is too far in the past. fall through to iss location
-    }
-  } catch (e) {
-    // something went wrong
-    throw e;
+  if (topoState !== "outOfRange_historic") {
+    res = await fetchWithCache<DayNightStore>(`daynight/topoDay/${identifier}`, retrieverTopoDay, {
+      preferNew,
+      cacheAge,
+      staleOk,
+    });
+    res.source = "topo";
+  } else {
+    //requested date is too far in the past. fall through to iss location
   }
 
   //check topo response.
   if (res.cacheMetadata.error) {
-    throw new Error(res.cacheMetadata.error);
+    console.error(res.cacheMetadata.error);
   } else if (res.data.dayNight.length > 0) {
     return res; //topo successfully retrieved data!
+  }
+
+  //if requested date is after tomorrow midnight, don't fall back to spacetrack. Return blank.
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const tomorrowMidnight = new Date(Date.now() + ONE_DAY_MS).setUTCHours(0, 0, 0, 0);
+  if (requestDate.getTime() > tomorrowMidnight) {
+    return {
+      cacheMetadata: null,
+      data: { dayNight: [] },
+    };
   }
 
   //fetch iss location.
   //either topo returned bad/no data or date requested is too far in the past for topo.
   let res_issLocation: WrappedResponse<WrappedResponse<DayNightStore>>;
-  try {
-    res_issLocation = await fetchWithCache<WrappedResponse<DayNightStore>>(
-      `daynight/issLocation/${identifier}`,
-      retrieverIssLocation,
-      {
-        preferNew,
-        cacheAge,
-        staleOk,
-      }
-    );
-
-    if (res_issLocation.cacheMetadata.error) {
-      throw new Error(res_issLocation.cacheMetadata.error);
+  res_issLocation = await fetchWithCache<WrappedResponse<DayNightStore>>(
+    `daynight/issLocation/${identifier}`,
+    retrieverIssLocation,
+    {
+      preferNew,
+      cacheAge: isHistoric ? oneYearInSeconds : 300,
+      staleOk,
     }
-    //unwrap and set response
-    res.cacheMetadata = res_issLocation.cacheMetadata; //return cache status of the outer wrap (our calculated day/night from the ephemera)
-    res.data = res_issLocation.data.data;
-    res.source = res_issLocation.data.source;
-  } catch (e) {
-    // something went wrong
-    throw e;
+  );
+
+  if (res_issLocation.cacheMetadata.error) {
+    throw new Error(res_issLocation.cacheMetadata.error);
   }
+  //unwrap and set response
+  res.cacheMetadata = res_issLocation.cacheMetadata; //return cache status of the outer wrap (our calculated day/night from the ephemera)
+  res.data = res_issLocation.data.data;
+  res.source = res_issLocation.data.source;
 
   return res;
 }
