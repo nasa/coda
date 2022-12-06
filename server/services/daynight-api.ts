@@ -66,7 +66,7 @@ export async function fetchDayNight(
           },
           {
             preferNew,
-            cacheAge,
+            cacheAge: cacheAge_topo,
             staleOk,
           }
         );
@@ -218,20 +218,33 @@ export async function fetchDayNight(
   } //date requested is too far in the future. No data available
 
   const todayMidnight = new Date(Date.now()).setUTCHours(0, 0, 0, 0); //today at midnight
+  const twoWeeksAgo = todayMidnight - 1209600000; //60*60*24*14*1000 = ms UTC two weeks ago
   const isHistoric = requestDate.getTime() < todayMidnight;
   const oneYearInSeconds = 31536000;
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   //shared cache settings for fetch retriever functions
   const preferNew = false;
-  const cacheAge = isHistoric ? oneYearInSeconds : 604800; //60*60*24*7 = 1 weeks in seconds
   const staleOk = true;
+
+  /**
+   * if today and future, cache for 1 week (the schedule that topo predicted data is released)
+   * if in the last 2 weeks, cache for 24 hours incase topo data is missing.
+   *    we are accepting the risk that if topo data *is* available, it will be short-cached until 2 weeks past
+   * if older than 2 weeks, cache for a year
+   * */
+  let cacheAge_topo = oneYearInSeconds;
+  if (!isHistoric) {
+    cacheAge_topo = 604800; //60*60*24*7 = 1 weeks in seconds
+  } else if (requestDate.getTime() >= twoWeeksAgo) {
+    cacheAge_topo = 86400; //60*60*24 = 1 day in seconds
+  }
 
   //fetch topo. this is the prefered method.
   if (topoState !== "outOfRange_historic") {
     res = await fetchWithCache<DayNightStore>(`daynight/topoDay/${identifier}`, retrieverTopoDay, {
       preferNew,
-      cacheAge,
+      cacheAge: cacheAge_topo,
       staleOk,
     });
     res.source = "topo";
@@ -241,7 +254,7 @@ export async function fetchDayNight(
 
   //check topo response.
   if (res.cacheMetadata.error) {
-    console.error(res.cacheMetadata.error);
+    console.error("TOPO fetch with cache returned an error: " + res.cacheMetadata.error);
   } else if (res.data.dayNight.length > 0) {
     return res; //topo successfully retrieved data!
   }
