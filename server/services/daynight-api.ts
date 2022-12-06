@@ -222,7 +222,7 @@ export async function fetchDayNight(
   const oneYearInSeconds = 31536000;
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
-  //shared cache settings for fetch retreiver functions
+  //shared cache settings for fetch retriever functions
   const preferNew = false;
   const cacheAge = isHistoric ? oneYearInSeconds : 604800; //60*60*24*7 = 1 weeks in seconds
   const staleOk = true;
