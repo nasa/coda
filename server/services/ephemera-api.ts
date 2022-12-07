@@ -96,69 +96,86 @@ export async function fetchISSLocation(
   const dateObj = new Date(Date.UTC(year, month - 1, date));
   const isToday = isSameDate(now, dateObj);
 
-  if (isToday) {
-    // if today, first try to get TLE data from celestrak, and don't cache the result (because it's today)
+  const retrieverCelestrak = async (): Promise<EphemerisStore> => {
     const celestrakResult = await fetchCelestrakToday();
     if (celestrakResult) {
-      const result: WrappedResponse<EphemerisStore> = {
-        cacheMetadata: { fromCache: false, timestamp: null, stale: false },
-        data: { ephemera: [celestrakResult] },
-        source: "celestrak",
+      return { ephemera: [celestrakResult] };
+    }
+  };
+
+  const retrieverSpacetrack = async (): Promise<EphemerisStore> => {
+    // Keep hitting spacetrack going back one day per call until we get some results
+
+    let dateToGet = new Date(Date.UTC(year, month - 1, date));
+    let count = 0;
+    let numResults = 0;
+    let spacetrackResults: EphemerisFile[] = [];
+
+    while (numResults === 0 && count < 10) {
+      spacetrackResults = await fetchSpacetrack(
+        dateToGet.getFullYear(),
+        dateToGet.getUTCMonth(),
+        dateToGet.getDate()
+      );
+
+      numResults = spacetrackResults.length;
+      if (numResults === 0) {
+        //subtract 1 day from dateToGet if we didn't get any results
+        dateToGet = new Date(dateToGet.getTime() - ONE_DAY_MS);
+
+        // pause 5 seconds before hitting spacetrack again
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+      count++;
+    }
+    const ephemera: EphemerisFile[] = spacetrackResults.map((result) => {
+      return {
+        EPOCH: result.EPOCH,
+        TLE_LINE0: result.TLE_LINE0,
+        TLE_LINE1: result.TLE_LINE1,
+        TLE_LINE2: result.TLE_LINE2,
       };
-      return result;
+    });
+
+    return { ephemera: ephemera };
+  };
+
+  let spacetrackRes: WrappedResponse<EphemerisStore> = null;
+  let celestrakRes: WrappedResponse<EphemerisStore> = null;
+
+  const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
+  if (isToday) {
+    // if today, first try to get TLE data from celestrak, cache only for 5 minutes
+    celestrakRes = await fetchWithCache<EphemerisStore>(
+      `celestrak/${identifier}`,
+      retrieverCelestrak,
+      {
+        preferNew: false,
+        cacheAge: 300,
+        staleOk: true,
+      }
+    );
+    celestrakRes = { ...celestrakRes, source: "celestrak" };
+
+    //check response from celestrak
+    if (celestrakRes.cacheMetadata.error) {
+      console.error(celestrakRes.cacheMetadata.error);
+    } else if (celestrakRes.data?.ephemera.length > 0) {
+      return celestrakRes; //got data from celestrak!
     }
   }
 
   // if celestrak didn't work, or if it's not today, try to get data from spacetrack
-  let spacetrackRes: WrappedResponse<EphemerisStore> = null;
-  try {
-    const retriever = async (): Promise<EphemerisStore> => {
-      // Keep hitting spacetrack going back one day per call until we get some results
-
-      let dateToGet = new Date(Date.UTC(year, month - 1, date));
-      let count = 0;
-      let numResults = 0;
-      let spacetrackResults: EphemerisFile[] = [];
-
-      while (numResults === 0 && count < 10) {
-        spacetrackResults = await fetchSpacetrack(
-          dateToGet.getFullYear(),
-          dateToGet.getUTCMonth(),
-          dateToGet.getDate()
-        );
-
-        numResults = spacetrackResults.length;
-        if (numResults === 0) {
-          //subtract 1 day from dateToGet if we didn't get any results
-          dateToGet = new Date(dateToGet.getTime() - ONE_DAY_MS);
-
-          // pause 5 seconds before hitting spacetrack again
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        }
-        count++;
-      }
-      const ephemera: EphemerisFile[] = spacetrackResults.map((result) => {
-        return {
-          EPOCH: result.EPOCH,
-          TLE_LINE0: result.TLE_LINE0,
-          TLE_LINE1: result.TLE_LINE1,
-          TLE_LINE2: result.TLE_LINE2,
-        };
-      });
-
-      return { ephemera: ephemera };
-    };
-    const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-    spacetrackRes = await fetchWithCache<EphemerisStore>(`spacetrack/${identifier}`, retriever, {
-      preferNew: isToday,
-      cacheAge: isToday ? 60 : oneYearInSeconds,
+  spacetrackRes = await fetchWithCache<EphemerisStore>(
+    `spacetrack/${identifier}`,
+    retrieverSpacetrack,
+    {
+      preferNew: false,
+      cacheAge: isToday ? 300 : oneYearInSeconds,
       staleOk: true,
-    });
-    spacetrackRes = { ...spacetrackRes, source: "spacetrack" };
-  } catch (e) {
-    // something went wrong that really shouldn't have
-    throw e;
-  }
+    }
+  );
+  spacetrackRes = { ...spacetrackRes, source: "spacetrack" };
 
   return spacetrackRes;
 }
