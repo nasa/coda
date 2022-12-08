@@ -214,6 +214,9 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   } else if (source === Source.TEST_EVENTS) {
     // Filter out all NBL sequences
     allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
+  } else if (source === Source.ARTEMIS) {
+    // Filter out all sequences because there's nothing to show in the dropdown for Artemis (currently)
+    allSequences = [];
   }
 
   const today = new Date();

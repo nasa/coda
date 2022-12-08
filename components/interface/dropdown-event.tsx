@@ -98,6 +98,9 @@ export default function EventDropdown(props: {
             );
           })}
         </select>
+        <div className={styles.select_arrow}>
+          <FontAwesomeIcon icon="chevron-down" />
+        </div>
       </div>
     );
   } else {

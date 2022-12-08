@@ -41,10 +41,10 @@ export default function Index() {
                   <Link href="/view/?s=0">ISS</Link>
                 </li>
                 <li className={styles.li}>
-                  <Link href="/view/?s=1">Test Events</Link>
+                  <Link href="/view/?s=2">NBL</Link>
                 </li>
                 <li className={styles.li}>
-                  <Link href="/view/?s=2">NBL</Link>
+                  <Link href="/view/?s=1">Test Events</Link>
                 </li>
                 <li className={styles.li}>
                   <span className={styles.disabled} title="Coming soon!">
