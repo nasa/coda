@@ -172,7 +172,7 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
     {
       cacheAge: 3600,
       staleOk: true,
-      preferNew: true,
+      preferNew: preferNew,
     }
   );
 }
