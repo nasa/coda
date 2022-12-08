@@ -35,6 +35,9 @@ export default function Index() {
               <div className={styles.sourcesHeader}>Select a Source</div>
               <ul className={styles.ul}>
                 <li className={styles.li}>
+                  <Link href="/view/?s=3">Artemis</Link>
+                </li>
+                <li className={styles.li}>
                   <Link href="/view/?s=0">ISS</Link>
                 </li>
                 <li className={styles.li}>
@@ -42,11 +45,6 @@ export default function Index() {
                 </li>
                 <li className={styles.li}>
                   <Link href="/view/?s=2">NBL</Link>
-                </li>
-                <li className={styles.li}>
-                  <span className={styles.disabled} title="Coming soon!">
-                    Artemis
-                  </span>
                 </li>
               </ul>
             </div>

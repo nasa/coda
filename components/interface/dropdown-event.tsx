@@ -26,6 +26,9 @@ export default function EventDropdown(props: {
   } else if (props.collection === Collection.TEST_EVENTS) {
     // Filter out all NBL sequences
     allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
+  } else if (props.collection === Collection.ARTEMIS) {
+    // Filter out all sequences because there's nothing to show in the dropdown for Artemis (currently)
+    allSequences = [];
   }
 
   const selectedEVA = allSequences.find((eva) =>
@@ -57,11 +60,15 @@ export default function EventDropdown(props: {
   const today = new Date();
   const earliestCutoff = new Date("2013-03-30");
 
-  let selectText = "Select EVA";
-  if (props.collection === Collection.NBL) {
+  let selectText = "";
+  if (props.collection === Collection.ISS) {
+    selectText = "Select EVA";
+  } else if (props.collection === Collection.NBL) {
     selectText = "Select NBL Run";
   } else if (props.collection === Collection.TEST_EVENTS) {
     selectText = "Select Test Event";
+  } else if (props.collection === Collection.ARTEMIS) {
+    selectText = "";
   }
 
   return (
