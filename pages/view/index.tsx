@@ -176,6 +176,10 @@ export function V2(props: { urlState }) {
   /** Update the EVA store */
   const populateSequenceStore = (collection) => {
     (async () => {
+      if (collection === Collection.ARTEMIS) {
+        dispatch(setSequenceLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
       dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
@@ -305,6 +309,10 @@ export function V2(props: { urlState }) {
 
   const populateTranscriptStore = (source, year, month, day) => {
     (async () => {
+      if (source !== Source.ISS) {
+        dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
       dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const transcriptResponse = await getTranscripts(source, year, month, day);
@@ -322,6 +330,10 @@ export function V2(props: { urlState }) {
 
   const populateSgAudioStore = (source, year, month, day) => {
     (async () => {
+      if (source !== Source.ISS) {
+        dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
       dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const sgAudioResponse = await getSgAudio(source, year, month, day);
