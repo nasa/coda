@@ -46,6 +46,11 @@ export default function Index() {
                 <li className={styles.li}>
                   <Link href="/view/?s=2">NBL</Link>
                 </li>
+                <li className={styles.li}>
+                  <span className={styles.disabled} title="Coming soon!">
+                    Mars
+                  </span>
+                </li>
               </ul>
             </div>
           </div>

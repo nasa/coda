@@ -1,8 +1,9 @@
 .main {
-  background: black;
-  background-image: url(/images/earth.png);
-  background-position: bottom;
+  background-color: black;
+  background-image: url(/images/earth_moon.jpg);
+  background-position: left top;
   background-repeat: no-repeat;
+  background-size: cover;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
