@@ -6,6 +6,8 @@ export enum Collection {
   TEST_EVENTS = 2359932,
   /** Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=78178 */
   NBL = 78178,
+  /** Artemis Missions. https://io.jsc.nasa.gov/app/collections.cfm?cid=2346894 */
+  ARTEMIS = 2346894,
 }
 
 export enum IOFetchType {
@@ -23,12 +25,14 @@ export enum Source {
   ISS = "ISS",
   TEST_EVENTS = "TEST_EVENTS",
   NBL = "NBL",
+  ARTEMIS = "ARTEMIS",
 }
 
 export enum SourceShortVal {
   ISS = 0,
   TEST_EVENTS = 1,
   NBL = 2,
+  ARTEMIS = 3,
 }
 
 export enum SequenceType {

@@ -17,6 +17,7 @@ enum Source {
   ISS = "ISS",
   TEST_EVENTS = "TEST_EVENTS",
   NBL = "NBL",
+  ARTEMIS = "ARTEMIS",
 }
 
 interface Pane {

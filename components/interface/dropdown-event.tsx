@@ -26,6 +26,9 @@ export default function EventDropdown(props: {
   } else if (props.collection === Collection.TEST_EVENTS) {
     // Filter out all NBL sequences
     allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
+  } else if (props.collection === Collection.ARTEMIS) {
+    // Filter out all sequences because there's nothing to show in the dropdown for Artemis (currently)
+    allSequences = [];
   }
 
   const selectedEVA = allSequences.find((eva) =>
@@ -57,47 +60,85 @@ export default function EventDropdown(props: {
   const today = new Date();
   const earliestCutoff = new Date("2013-03-30");
 
-  let selectText = "Select EVA";
-  if (props.collection === Collection.NBL) {
+  let selectText = "";
+  if (props.collection === Collection.ISS) {
+    selectText = "Select EVA";
+  } else if (props.collection === Collection.NBL) {
     selectText = "Select NBL Run";
   } else if (props.collection === Collection.TEST_EVENTS) {
     selectText = "Select Test Event";
+  } else if (props.collection === Collection.ARTEMIS) {
+    selectText = "Select Mission Date";
   }
 
-  return (
-    <div className={styles.select}>
-      <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
-        {isNil(selectedEVA) ? (
+  if (props.collection === Collection.ARTEMIS) {
+    // Create a dropdown of just dates for Artemis 1. There's no Wiki source for this.
+    return (
+      <div className={styles.select}>
+        <select
+          name="EVAsDropdown"
+          id="EVAsDropdown"
+          onChange={handleEVASelect}
+          value={date.split("T")[0]}
+        >
           <option key="" value="">
             {selectText}
           </option>
-        ) : (
-          <option disabled>Select Event</option>
-        )}
-        {isNil(allSequences) ? (
-          <option disabled>Loading...</option>
-        ) : (
-          allSequences
-            .filter((sequence) => {
-              // don't show future EVAs or EVAs before 2013-03-30 (because of IO data being unavailable before that)
-              const [year, month, day] = sequence.startDate.split("-").map(Number);
-              const dateOfEVA = new Date(Date.UTC(year, month - 1, day));
-              return diff(today, dateOfEVA) > 0 && diff(earliestCutoff, dateOfEVA) < 0;
-            })
-            // sort most recent to oldest
-            .reverse()
-            .map((eva) => {
-              return (
-                <option key={eva.name + eva.startDate} value={eva.startDate}>
-                  {eva.displayTitle}
-                </option>
-              );
-            })
-        )}
-      </select>
-      <div className={styles.select_arrow}>
-        <FontAwesomeIcon icon="chevron-down" />
+          {Array.from({ length: 27 }, (_, i) => i).map((i) => {
+            const date = new Date("2022-11-16");
+            date.setDate(date.getDate() + i);
+            const year = date.getFullYear();
+            const month = padZeros(date.getMonth() + 1, 2);
+            const day = padZeros(date.getDate(), 2);
+            const formattedDate = `${year}-${month}-${day}`;
+            return (
+              <option key={formattedDate} value={formattedDate}>
+                Artemis I - FD{padZeros(i + 1, 2)}
+              </option>
+            );
+          })}
+        </select>
+        <div className={styles.select_arrow}>
+          <FontAwesomeIcon icon="chevron-down" />
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return (
+      <div className={styles.select}>
+        <select name="EVAsDropdown" id="EVAsDropdown" onChange={handleEVASelect} value={value}>
+          {isNil(selectedEVA) ? (
+            <option key="" value="">
+              {selectText}
+            </option>
+          ) : (
+            <option disabled>Select Event</option>
+          )}
+          {isNil(allSequences) ? (
+            <option disabled>Loading...</option>
+          ) : (
+            allSequences
+              .filter((sequence) => {
+                // don't show future EVAs or EVAs before 2013-03-30 (because of IO data being unavailable before that)
+                const [year, month, day] = sequence.startDate.split("-").map(Number);
+                const dateOfEVA = new Date(Date.UTC(year, month - 1, day));
+                return diff(today, dateOfEVA) > 0 && diff(earliestCutoff, dateOfEVA) < 0;
+              })
+              // sort most recent to oldest
+              .reverse()
+              .map((eva) => {
+                return (
+                  <option key={eva.name + eva.startDate} value={eva.startDate}>
+                    {eva.displayTitle}
+                  </option>
+                );
+              })
+          )}
+        </select>
+        <div className={styles.select_arrow}>
+          <FontAwesomeIcon icon="chevron-down" />
+        </div>
+      </div>
+    );
+  }
 }

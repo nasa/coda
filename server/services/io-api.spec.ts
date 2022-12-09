@@ -1,4 +1,9 @@
-import { getChannel, formatDateQuery, videoSorter, buildQueryArray } from "server/services/io-api";
+import {
+  getISSChannel,
+  formatDateQuery,
+  videoSorter,
+  buildQueryArray,
+} from "server/services/io-api";
 
 describe("services/io-api", () => {
   describe("getChannel()", () => {
@@ -13,7 +18,7 @@ describe("services/io-api", () => {
         "P2344048/ISS Missions|ISS-060|Video|US Downlink|Channel 03|SD|2019-08-19 to 08-23 (GMT 231 to 235)",
       ];
 
-      expect(getChannel(collectionString)).toEqual("03");
+      expect(getISSChannel(collectionString)).toEqual("03");
     });
 
     it("should return an empty string when a channel is not available", () => {
@@ -24,7 +29,7 @@ describe("services/io-api", () => {
         "P2342255/ISS Missions|ISS-060|Video|US Downlink",
       ];
 
-      expect(getChannel(collectionString)).toEqual("");
+      expect(getISSChannel(collectionString)).toEqual("");
     });
   });
 
