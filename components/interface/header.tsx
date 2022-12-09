@@ -134,6 +134,7 @@ export function SourcesDropdown() {
           handleSourceChange(e);
         }}
       >
+        <option value={Source.ARTEMIS}>ARTEMIS</option>
         <option value={Source.ISS}>ISS</option>
         <option value={Source.NBL}>NBL</option>
         <option value={Source.TEST_EVENTS}>Test Events</option>

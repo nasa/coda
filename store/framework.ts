@@ -326,6 +326,8 @@ function getEventInfoTitleBySource(source: Source): string {
     return "NBL Event Info";
   } else if (source === Source.TEST_EVENTS) {
     return "Test Event Info";
+  } else if (source === Source.ARTEMIS) {
+    return "Mission Info";
   } else {
     const exhaustiveCheck: never = source;
     throw new Error(exhaustiveCheck);

@@ -229,7 +229,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
   let LOS = false;
 
   if (+Collection[collection] === +Collection.ISS) {
-    const channel = getChannel(doc.collections_string);
+    const channel = getISSChannel(doc.collections_string);
 
     if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
       downlink = parseInt(channel) - 1;
@@ -258,6 +258,11 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
         downlink = 2;
       }
     }
+  } else if (+Collection[collection] === +Collection.ARTEMIS) {
+    // Modify downlink numbers for artemis collection results based on strings in collections list
+    const channel = getArtemisChannel(doc.collections_string);
+
+    downlink = channel !== "" ? parseInt(channel) - 1 : -1;
   }
 
   // Create array of date elements from creation date
@@ -330,12 +335,29 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
 /**
  * Pull a channel from the IO response of available channels. Exported for testing purposes.
  */
-export function getChannel(collectionStrings: string[]): string {
+export function getISSChannel(collectionStrings: string[]): string {
   for (let j = 0; j < collectionStrings.length; j++) {
     const chMatch = collectionStrings[j].match(/US Downlink\|Channel (\d+)/);
 
     if (chMatch) {
       return padZeros(parseInt(chMatch[1]), 2);
+    }
+  }
+  return "";
+}
+
+/**
+ * Pull a channel from the IO response of available channels. Exported for testing purposes.
+ */
+export function getArtemisChannel(collectionStrings: string[]): string {
+  for (let j = 0; j < collectionStrings.length; j++) {
+    const chMatch = collectionStrings[j].match(/Downlink/);
+    if (chMatch) {
+      return padZeros(1, 2);
+    }
+    const nasaTVMatch = collectionStrings[j].match(/NASA TV/);
+    if (nasaTVMatch) {
+      return padZeros(2, 2);
     }
   }
   return "";

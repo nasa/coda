@@ -1013,7 +1013,7 @@ export default class DrawNav {
     const navBoxEffectBar = new paper.Path.Line({
       from: [0, this.gTier1Top],
       to: [this.gNavigatorWidth, this.gTier1Top],
-      strokeColor: this.gColorNavBox,
+      strokeColor: this.gColorVideoLOS,
       strokeWidth: this.gTierSpacing,
     });
     this.gTier1NavGroup.addChild(navBoxEffectBar);

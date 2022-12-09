@@ -176,6 +176,10 @@ export function V2(props: { urlState }) {
   /** Update the EVA store */
   const populateSequenceStore = (collection) => {
     (async () => {
+      if (collection === Collection.ARTEMIS) {
+        dispatch(setSequenceLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
       dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
@@ -305,6 +309,10 @@ export function V2(props: { urlState }) {
 
   const populateTranscriptStore = (source, year, month, day) => {
     (async () => {
+      if (source !== Source.ISS) {
+        dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
       dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const transcriptResponse = await getTranscripts(source, year, month, day);
@@ -322,6 +330,10 @@ export function V2(props: { urlState }) {
 
   const populateSgAudioStore = (source, year, month, day) => {
     (async () => {
+      if (source !== Source.ISS) {
+        dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.UNNEEDED));
+        return;
+      }
       dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const sgAudioResponse = await getSgAudio(source, year, month, day);
@@ -420,7 +432,7 @@ export function V2(props: { urlState }) {
   return (
     <div className={styles.main}>
       <Head>
-        <title>CODA</title>
+        <title>CODA - {source}</title>
       </Head>
       <Header helpLoaderOpen={helpLoaderOpen} setHelpLoaderOpen={setHelpLoaderOpen} />
       <div className={styles.body}>
@@ -463,6 +475,18 @@ export async function getServerSideProps({ query }) {
       if (_.isNil(date)) {
         // 2021-10-28 is a good representation of NBL events
         date = new Date(2021, 9, 28).toISOString().split("T")[0]; // 9 = October
+      }
+    } else if (source === SourceShortVal.ARTEMIS) {
+      fState.source = Source.ARTEMIS;
+      // set the default layout to show no map, only All Photos along the bottom
+      fState.layout = "e";
+      if (_.isNil(date)) {
+        // 2022-12-05 is a good representation of Artemis 1 events
+        date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
+      }
+      if (_.isNil(gmt)) {
+        // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
+        gmt = "17:14:44";
       }
     }
   }
