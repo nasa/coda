@@ -1,7 +1,6 @@
 import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
-import React from "react";
 import { useCookies } from "react-cookie";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
@@ -14,11 +13,6 @@ import dynamic from "next/dynamic";
  * Next shouldn't even be aware of this import due to dynamic imports on /pages/view/index.tsx, but apparently it does anyway.
  */
 const Modal = dynamic(import("react-modal"), { ssr: false });
-
-/** hack to remove spurious error
- * https://stackoverflow.com/a/62791682/3533496
- */
-React.useLayoutEffect = React.useEffect;
 
 library.add(faTimesCircle);
 
