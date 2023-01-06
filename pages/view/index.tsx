@@ -74,6 +74,7 @@ import {
   setGraphsLoadingStatus,
   setGraphsManifest,
 } from "store/graphs";
+
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
   ssr: false,
