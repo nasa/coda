@@ -1,6 +1,6 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { isNil, get } from "lodash";
+import { isNil } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
@@ -52,13 +52,19 @@ export default function EventInfo(props: { frameID: number }) {
   function asExecutedTable(evNum: string) {
     const asPerformed = { EV1: [], EV2: [] };
     const activityStartUTCMilliseconds = getSequenceStartMilliseconds(seq);
-    const EV1 = get(seq.asPerformed, "EV1", null);
-    if (!isNil(EV1)) {
-      asPerformed.EV1 = getAsPerformedMissionTime(EV1, seq.startDate, activityStartUTCMilliseconds);
-    }
-    const EV2 = get(seq.asPerformed, "EV2", null);
-    if (!isNil(EV2)) {
-      asPerformed.EV2 = getAsPerformedMissionTime(EV2, seq.startDate, activityStartUTCMilliseconds);
+    for (const evName in seq.asPerformed) {
+      if (evName.includes("EV1"))
+        asPerformed.EV1 = getAsPerformedMissionTime(
+          seq.asPerformed[evName],
+          seq.startDate,
+          activityStartUTCMilliseconds
+        );
+      if (evName.includes("EV2"))
+        asPerformed.EV2 = getAsPerformedMissionTime(
+          seq.asPerformed[evName],
+          seq.startDate,
+          activityStartUTCMilliseconds
+        );
     }
     const response = [];
     for (let i = 0; i < asPerformed[evNum].length; i++) {

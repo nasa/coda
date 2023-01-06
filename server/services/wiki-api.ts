@@ -147,7 +147,7 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WikibotResponse<Wik
           password: process.env.WIKI_PASSWORD,
         });
       } catch (e) {
-        console.error("Wiki login unsuccessful");
+        console.error("Wiki login unsuccessful: ", e);
         throw e;
       }
     } else {
@@ -263,8 +263,11 @@ function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
     } else {
       console.error("color not found: " + colorString);
     }
+    const activityTitle = results[r].printouts["Has text title"][0]
+      ? results[r].printouts["Has text title"][0]
+      : "";
     const activity: Activity = {
-      content: results[r].printouts["Has text title"][0].replace("[[", "").replace("]]", ""),
+      content: activityTitle.replace("[[", "").replace("]]", ""),
       duration: durationTotalSeconds,
       color: colorString,
     };

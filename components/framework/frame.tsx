@@ -11,7 +11,7 @@ import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "componen
 import PhotoPane, { PhotoControls } from "components/panes/photo";
 import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useEffect, useRef, useState } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 import CommPane, { CommControls } from "components/panes/comm";
 import Graph, { GraphControls } from "components/panes/graph/graph";
@@ -126,8 +126,11 @@ export default function Frame(options) {
     );
   }
   /** Using useLayoutEffect because it guarantees to fire immediately after the frame has been rendered to the DOM
-    Also, set an interval to periodically update the frame size. The onResize event method doesn't seem to capture all new frames. The browser must not always fire resize events when the CSS grid creates new frame layouts */
-  useLayoutEffect(() => {
+    Also, set an interval to periodically update the frame size. The onResize event method doesn't seem to capture all new frames.
+    The browser must not always fire resize events when the CSS grid creates new frame layouts */
+  const canUseDOM = typeof window !== "undefined";
+  const useIsomorphicLayoutEffect = canUseDOM ? useLayoutEffect : useEffect;
+  useIsomorphicLayoutEffect(() => {
     if (frameRef.current) {
       handleResize();
       window.addEventListener("resize", handleResize);
