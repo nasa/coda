@@ -2,10 +2,6 @@ interface EphemerisStore {
   ephemera: EphemerisFile[];
 }
 
-interface EphemerisStoreWithDayNight extends EphemerisStore {
-  dayNight: DayNightObjDepricated[];
-}
-
 interface EphemerisFile {
   EPOCH: string;
   TLE_LINE0: string;
