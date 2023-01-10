@@ -1,7 +1,7 @@
-export function pulseTrack(auid, Pulse) {
+export function pulseTrack(Pulse) {
   if (typeof Pulse !== "undefined") {
     try {
-      Pulse.track("CODA", { auid: auid });
+      Pulse.track("CODA", { auid: "" }); //coda doesn't have auth to track username
     } catch (e) {
       console.log("Pulse tracking failed " + e);
       var Pulse = (function () {

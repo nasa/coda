@@ -21,7 +21,7 @@ const App = ({ Component, pageProps }: AppProps) => {
           src="https://pulse.nasa.gov/track.js"
           strategy="beforeInteractive"
           onReady={() => {
-            pulseTrack(process.env.USERNAME, Pulse);
+            pulseTrack(Pulse);
           }}
         />
       ) : (
@@ -29,7 +29,7 @@ const App = ({ Component, pageProps }: AppProps) => {
           src="https://pulse.staging.nasa.gov/track.js"
           strategy="beforeInteractive"
           onReady={() => {
-            pulseTrack(process.env.USERNAME, Pulse);
+            pulseTrack(Pulse);
           }}
         />
       )}
