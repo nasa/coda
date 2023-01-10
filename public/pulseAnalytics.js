@@ -30,3 +30,15 @@ export function pulseEvent(event) {
     console.log("Pulse Event - undefined");
   }
 }
+
+export function pulseLogInfo(message) {
+  if (typeof Pulse !== "undefined") {
+    try {
+      Pulse.logInfo(message);
+    } catch (e) {
+      console.log("Pulse log info failed " + message + " - " + e);
+    }
+  } else {
+    console.log("Pulse Log Info - undefined");
+  }
+}
