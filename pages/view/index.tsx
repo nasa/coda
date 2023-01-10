@@ -74,6 +74,9 @@ import {
   setGraphsLoadingStatus,
   setGraphsManifest,
 } from "store/graphs";
+import { pulseEvent, pulseLogInfo } from "public/pulseAnalytics";
+import { generateShareURL } from "utils/share-state";
+
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
   ssr: false,
@@ -91,6 +94,7 @@ const Head = dynamic(import("next/head"), {
 
 export function V2(props: { urlState }) {
   const FIVE_MINS_MS = 5 * 60 * 1000;
+  const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
   const playheadDate = playhead.date;
   const source = useSelector((state: RootState) => state.framework.source);
@@ -371,6 +375,9 @@ export function V2(props: { urlState }) {
     if (_.isNull(playheadDate) || _.isNull(source)) {
       return;
     }
+
+    pulseEvent(source);
+    pulseLogInfo(generateShareURL(framework, playhead));
 
     const d = new Date(playheadDate);
     const year = d.getUTCFullYear();
