@@ -26,6 +26,10 @@ const nextConfig = {
     };
     return config;
   },
+
+  env: {
+    USERNAME: process.env.USERNAME,
+  },
 };
 
 module.exports = nextConfig;

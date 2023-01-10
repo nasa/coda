@@ -74,6 +74,7 @@ import {
   setGraphsLoadingStatus,
   setGraphsManifest,
 } from "store/graphs";
+import { pulseEvent } from "public/pulseAnalytics";
 
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
@@ -372,6 +373,8 @@ export function V2(props: { urlState }) {
     if (_.isNull(playheadDate) || _.isNull(source)) {
       return;
     }
+
+    pulseEvent(source);
 
     const d = new Date(playheadDate);
     const year = d.getUTCFullYear();
