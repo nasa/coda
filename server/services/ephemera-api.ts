@@ -114,7 +114,7 @@ export async function fetchISSLocation(
     while (numResults === 0 && count < 10) {
       spacetrackResults = await fetchSpacetrack(
         dateToGet.getFullYear(),
-        dateToGet.getUTCMonth(),
+        dateToGet.getUTCMonth() + 1,
         dateToGet.getDate()
       );
 
