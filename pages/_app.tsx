@@ -16,7 +16,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 
   return (
     <>
-      {process.env.NEXT_PUBLIC_APP_ENV === "production" ? (
+      {process.env.IMAGE_VERSION === "prod" ? (
         <Script
           src="https://pulse.nasa.gov/track.js"
           strategy="beforeInteractive"
