@@ -1,4 +1,3 @@
-import Header from "components/interface/header";
 import styles from "./index.module.css";
 import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
@@ -89,6 +88,10 @@ const PlaybackControls = dynamic(import("components/interface/playback-controls"
   ssr: false,
 });
 const Head = dynamic(import("next/head"), {
+  ssr: false,
+});
+
+const Header = dynamic(import("components/interface/header"), {
   ssr: false,
 });
 
