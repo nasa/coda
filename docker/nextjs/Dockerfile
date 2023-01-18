@@ -46,6 +46,7 @@ COPY . /app
 # env vars via another method (e.g. having an API endpoint for config).
 ARG NEXT_PUBLIC_MAPBOX_KEY
 ARG NEXT_PUBLIC_APP_ENV
+ARG IMAGE_VERSION
 
 RUN npm run build \
   && rm -f ./.env
