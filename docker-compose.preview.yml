@@ -24,3 +24,4 @@ services:
         # Build args needed in context during build (see note in Dockerfile)
         - NEXT_PUBLIC_MAPBOX_KEY=${NEXT_PUBLIC_MAPBOX_KEY}
         - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
+        - IMAGE_VERSION=${IMAGE_VERSION}
