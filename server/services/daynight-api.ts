@@ -25,7 +25,8 @@ type TopoURL = {
 export async function fetchDayNight(
   year: number,
   month: number,
-  date: number
+  date: number,
+  forceRefresh?: boolean
 ): Promise<WrappedResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
@@ -224,7 +225,7 @@ export async function fetchDayNight(
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   //shared cache settings for fetch retriever functions
-  const preferNew = false;
+  const preferNew = forceRefresh;
   const staleOk = true;
 
   /**
