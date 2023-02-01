@@ -2,9 +2,9 @@ import type { AppProps } from "next/app";
 import { wrapper } from "../store";
 import "../styles.css";
 
-import { pulseTrack } from "../public/pulseAnalytics.js";
-import Script from "next/script";
-declare var Pulse: any;
+// import { pulseTrack } from "../public/pulseAnalytics.js";
+// import Script from "next/script";
+// declare var Pulse: any;
 
 // The following import prevents a Font Awesome icon server-side rendering bug,
 // where the icons flash from a very large icon down to a properly sized one:
@@ -23,23 +23,23 @@ const App = ({ Component, pageProps }: AppProps) => {
          * Note: if you run a pipeline for prod but then also deploy it to dev, that dev server will identify itself as prod and
          * analytics will be sent to the prod Pulse Analytics server. This is not a problem, but it is something to be aware of.
          */
-        process.env.IMAGE_VERSION === "prod" ? (
-          <Script
-            src="https://pulse.nasa.gov/track.js"
-            strategy="beforeInteractive"
-            onReady={() => {
-              pulseTrack(Pulse);
-            }}
-          />
-        ) : (
-          <Script
-            src="https://pulse.staging.nasa.gov/track.js"
-            strategy="beforeInteractive"
-            onReady={() => {
-              pulseTrack(Pulse);
-            }}
-          />
-        )
+        // process.env.IMAGE_VERSION === "prod" ? (
+        //   <Script
+        //     src="https://pulse.nasa.gov/track.js"
+        //     strategy="beforeInteractive"
+        //     onReady={() => {
+        //       pulseTrack(Pulse);
+        //     }}
+        //   />
+        // ) : (
+        //   <Script
+        //     src="https://pulse.staging.nasa.gov/track.js"
+        //     strategy="beforeInteractive"
+        //     onReady={() => {
+        //       pulseTrack(Pulse);
+        //     }}
+        //   />
+        // )
       }
       <Component {...pageProps} />
     </>
