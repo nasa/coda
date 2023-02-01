@@ -3,7 +3,8 @@ import * as DayNightService from "server/services/daynight-api";
 export default async function getDayNight(
   year: number,
   month: number,
-  date: number
+  date: number,
+  forceRefresh?: boolean
 ): Promise<WrappedResponse<DayNightStore>> {
-  return await DayNightService.fetchDayNight(year, month, date);
+  return await DayNightService.fetchDayNight(year, month, date, forceRefresh);
 }
