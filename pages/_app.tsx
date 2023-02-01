@@ -2,9 +2,9 @@ import type { AppProps } from "next/app";
 import { wrapper } from "../store";
 import "../styles.css";
 
-import { pulseTrack } from "../public/pulseAnalytics.js";
-import Script from "next/script";
-declare var Pulse: any;
+// import { pulseTrack } from "../public/pulseAnalytics.js";
+// import Script from "next/script";
+// declare var Pulse: any;
 
 // The following import prevents a Font Awesome icon server-side rendering bug,
 // where the icons flash from a very large icon down to a properly sized one:
