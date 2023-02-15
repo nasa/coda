@@ -13,8 +13,8 @@ const App = ({ Component, pageProps }: AppProps) => {
 
   return (
     <>
-      <PulseAnyatics />
       <Component {...pageProps} />
+      <PulseAnyatics />
     </>
   );
 };
