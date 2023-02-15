@@ -1,7 +1,5 @@
-// import { pulseTrack } from "../public/pulseAnalytics.js";
 import Script from "next/script";
 import { FunctionComponent } from "react";
-declare var Pulse: any;
 
 const PulseAnyatics: FunctionComponent = () => {
   return (
