@@ -12,11 +12,13 @@ const PulseAnyatics: FunctionComponent = () => {
          * the deployment environment of the CI/CD pipeline. We use it here to determine which Pulse Analytics script to load.
          * Note: if you run a pipeline for prod but then also deploy it to dev, that dev server will identify itself as prod and
          * analytics will be sent to the prod Pulse Analytics server. This is not a problem, but it is something to be aware of.
+         *
+         * Strategy needs to be beforeInteractive to make sure this loads before the event/log calls on the routes
          */
         process.env.IMAGE_VERSION === "prod" ? (
           <Script
             src="https://pulse.nasa.gov/track.js"
-            strategy="afterInteractive"
+            strategy="beforeInteractive"
             onReady={() => {
               try {
                 pulseTrack(Pulse);
@@ -27,8 +29,8 @@ const PulseAnyatics: FunctionComponent = () => {
           />
         ) : (
           <Script
-            src="https://pulse.staging.nasa.gov/track.js"
-            strategy="afterInteractive"
+            src="https://pulse.broken.staging.nasa.gov/track.js"
+            strategy="beforeInteractive"
             onReady={() => {
               try {
                 pulseTrack(Pulse);
