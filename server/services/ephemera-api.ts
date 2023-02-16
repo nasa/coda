@@ -33,7 +33,7 @@ async function fetchSpacetrack(
   const body = `identity=${process.env.SPACETRACK_USER}&password=${process.env.SPACETRACK_PASSWORD}&query=${queryURL}`;
 
   try {
-    const res = await fetch(SPACETRACK_LOGIN, {
+    const res = await fetchWithTimeout(SPACETRACK_LOGIN, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body,
