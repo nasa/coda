@@ -104,10 +104,8 @@ export async function fetchDayNight(
       for (let tries = 7; tries > 0; tries--) {
         //try every day of the week.
         //This loop should normally run once because files are normally dropped on Tuesday.
-        let queryUrl = getTopoURL(queryDate).url; //build topo URL for this date
-        if (!queryUrl) {
-          //A null means querydate is outside topo range. Try the next day
-          //Only occurs if the date is on the border of historic Min for topo.
+        let topoURL = getTopoURL(queryDate);
+        if (topoURL.state === "outOfRange_historic" || topoURL.state === "outOfRange_predicted") {
           queryDate.setUTCDate(queryDate.getUTCDate() + 1);
           continue;
         }
@@ -116,7 +114,7 @@ export async function fetchDayNight(
           (resolve, reject) => {
             ntlmGET(
               {
-                url: queryUrl,
+                url: topoURL.url,
                 username: process.env.TOPO_USER,
                 password: process.env.TOPO_PASSWORD,
                 workstation: "any.workstation",
@@ -155,7 +153,7 @@ export async function fetchDayNight(
               "Something went wrong fetching TOPO data. Response status " +
                 response.statusCode +
                 " for URL " +
-                queryUrl
+                topoURL.url
             );
           }
         }
