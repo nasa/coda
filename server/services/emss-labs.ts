@@ -1,4 +1,5 @@
 import { Source } from "utils/enums";
+import fetchWithTimeout from "utils/fetch-with-timeout";
 
 export async function fetchLabsTranscripts(
   source: Source,
@@ -8,8 +9,8 @@ export async function fetchLabsTranscripts(
     return {
       cacheMetadata: {
         fromCache: false,
-        stale: false,
         timestamp: new Date(),
+        expiration: null,
       },
       data: returnEmptyUnprocessedTranscriptArray(),
     };
@@ -28,7 +29,7 @@ export async function fetchLabsTranscripts(
       unprocessedUtterances: [],
     };
     try {
-      const res = await fetch(url);
+      const res = await fetchWithTimeout(url);
       unprocessedTranscript.unprocessedUtterances = await res.json();
     } catch (e) {
       unprocessedTranscript.unprocessedUtterances = [];
@@ -41,7 +42,7 @@ export async function fetchLabsTranscripts(
   }
 
   const returnVal: WrappedResponse<UnprocessedTranscript[]> = {
-    cacheMetadata: { fromCache: false, stale: false, timestamp: new Date() },
+    cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
     data: transcripts,
   };
 
@@ -56,8 +57,8 @@ export async function fetchSGActivity(
     return {
       cacheMetadata: {
         fromCache: false,
-        stale: false,
         timestamp: new Date(),
+        expiration: null,
       },
       data: [[], [], [], []],
     };
@@ -66,7 +67,7 @@ export async function fetchSGActivity(
 
   let dayActivities: SgVideoRecord[] = [];
   try {
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     dayActivities = await res.json();
   } catch (e) {
     dayActivities = [];
@@ -94,7 +95,7 @@ export async function fetchSGActivity(
   }
 
   const returnVal: WrappedResponse<SgActivityRangeRecord[][]> = {
-    cacheMetadata: { fromCache: false, stale: false, timestamp: new Date() },
+    cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
     data: sgChannelsActivityRanges,
   };
   return returnVal;

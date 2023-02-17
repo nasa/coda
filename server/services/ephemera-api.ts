@@ -7,6 +7,7 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 import { padZeros } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import { getEpochTimestamp } from "tle.js";
+import { CacheFolder } from "utils/enums";
 
 const oneYearInSeconds = 31536000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -90,7 +91,8 @@ async function fetchCelestrakToday() {
 export async function fetchISSLocation(
   year: number,
   month: number,
-  date: number
+  date: number,
+  forceNew?: boolean
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
   const dateObj = new Date(Date.UTC(year, month - 1, date));
@@ -140,6 +142,8 @@ export async function fetchISSLocation(
     return { ephemera: ephemera };
   };
 
+  const tryFetchNewFirst = forceNew ? forceNew : false;
+
   let spacetrackRes: WrappedResponse<EphemerisStore> = null;
   let celestrakRes: WrappedResponse<EphemerisStore> = null;
 
@@ -147,12 +151,13 @@ export async function fetchISSLocation(
   if (isToday) {
     // if today, first try to get TLE data from celestrak, cache only for 5 minutes
     celestrakRes = await fetchWithCache<EphemerisStore>(
-      `celestrak/${identifier}`,
+      identifier,
+      CacheFolder.Celestrak,
       retrieverCelestrak,
       {
-        preferNew: false,
+        tryFetchNewFirst,
         cacheAge: 300,
-        staleOk: true,
+        expiredCacheOkIfFetchFails: true,
       }
     );
     celestrakRes = { ...celestrakRes, source: "celestrak" };
@@ -167,12 +172,13 @@ export async function fetchISSLocation(
 
   // if celestrak didn't work, or if it's not today, try to get data from spacetrack
   spacetrackRes = await fetchWithCache<EphemerisStore>(
-    `spacetrack/${identifier}`,
+    identifier,
+    CacheFolder.Spacetrack,
     retrieverSpacetrack,
     {
-      preferNew: false,
+      tryFetchNewFirst,
       cacheAge: isToday ? 300 : oneYearInSeconds,
-      staleOk: true,
+      expiredCacheOkIfFetchFails: true,
     }
   );
   spacetrackRes = { ...spacetrackRes, source: "spacetrack" };

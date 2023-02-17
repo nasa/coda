@@ -20,6 +20,7 @@ import type { Response } from "node-fetch";
 import { add } from "store/playhead";
 import { inRange, isNil } from "lodash";
 import { Collection, IOFetchType } from "utils/enums";
+import { CacheFolder } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
@@ -166,12 +167,13 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
   };
 
   return fetchWithCache<PhotoFile[] | VideoFile[]>(
-    `io/${fetchType}/${collection}/${dateQuery}`,
+    `${fetchType}/${collection}/${dateQuery}`,
+    CacheFolder.Io,
     retriever,
     {
       cacheAge: 3600,
-      staleOk: true,
-      preferNew: preferNew,
+      expiredCacheOkIfFetchFails: true,
+      tryFetchNewFirst: preferNew,
     }
   );
 }

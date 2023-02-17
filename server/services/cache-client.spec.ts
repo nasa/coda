@@ -71,7 +71,7 @@ describe("services/cache-client", () => {
     expect(unhandledErrors).toEqual(0);
   });
 
-  it("should run the retriever again if the cache is stale", async () => {
+  it("should run the retriever again if the cache is expired", async () => {
     const identifier = expect.getState().currentTestName;
 
     let runs = 0;
@@ -105,15 +105,15 @@ describe("services/cache-client", () => {
     };
 
     await fetchWithCache(identifier, retriever);
-    await fetchWithCache(identifier, retriever, { preferNew: true });
+    await fetchWithCache(identifier, retriever, { tryFetchNewFirst: true });
 
     expect(runs).toEqual(2);
   });
 
-  it("should return cached data when the cache is stale, an error occurs, and opts.staleOk", async () => {
+  it("should return cached data when the cache is expired, an error occurs, and opts.expiredCacheOkIfFetchFails", async () => {
     const identifier = expect.getState().currentTestName;
 
-    // turn off warning messages about stale data for this test
+    // turn off warning messages about expired data for this test
     const old = console.warn;
     console.warn = () => {};
 
@@ -137,7 +137,10 @@ describe("services/cache-client", () => {
       });
     })();
 
-    const res = await fetchWithCache(identifier, retriever, { cacheAge: 0.01, staleOk: true });
+    const res = await fetchWithCache(identifier, retriever, {
+      cacheAge: 0.01,
+      expiredCacheOkIfFetchFails: true,
+    });
 
     expect(ran).toEqual(2);
     expect(res.data.message).toEqual("Worked!");

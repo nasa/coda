@@ -3,41 +3,52 @@ import crypto from "crypto";
 import isNull from "lodash/isNull";
 import { diff } from "store/playhead";
 import _ from "lodash";
+import { CacheFolder } from "utils/enums";
 
 /** Caching options for managing how JSON is retrieved and stored */
-interface Options {
-  /** Default 5 mins (300s). Unless `staleOk` is true, this is the max age allowed for cache entries before retrieving new data. Setting `{ cacheAge: 0, staleOk: true }` always runs the `retriever` and treats the cache like a fallback (or you could simply set `{ preferNew: true }`) */
+interface CacheOptions {
+  /** Default 5 mins (300s). This is the max age allowed for cache entries before retrieving new data. */
   cacheAge?: number;
-  /** Default false. Whether or not returning stale data is acceptable when the `retriever` fails */
-  staleOk?: boolean;
-  /** Default false. Always retrieve new data. Only return cached data if the `retriever` fails */
-  preferNew?: boolean;
+  /** Default true. Whether or not returning expired data (data thats older than cacheAge) is acceptable when the `retriever` fails */
+  expiredCacheOkIfFetchFails?: boolean;
+  /** Default false. Whether or not to retrieve new data first before checking the cache. Only return cached data if the `retriever` fails */
+  tryFetchNewFirst?: boolean;
 }
 
-const defaultOptions: Options = {
+const defaultOptions: CacheOptions = {
   cacheAge: +process.env.DEFAULT_CACHE_AGE,
-  staleOk: false,
-  preferNew: false,
+  expiredCacheOkIfFetchFails: true,
+  tryFetchNewFirst: false,
 };
 
 /**
  * Get data from the cache when it exists and is less than `process.env.CACHE_AGE` old. Otherwise, hit the network and add to the cache
- * @param identifier The cache key
+ * @param uniqueIdentifier The cache key. Must be unique for the folder
  * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
+ * @param cacheFolder name of the subdirectory in the cacheRoot for this data
  * @param options Cache behavior options
+ * @param responseValidator Test function returning bool if the retriever response is valid and should be cached. Default will always cache. This can be used to prevent empty responses being cached
  */
 export default async function fetchWithCache<T>(
-  identifier: string,
+  uniqueIdentifier: string,
+  cacheFolder: CacheFolder,
   retriever: () => Promise<T>,
-  options?: Options
+  options?: CacheOptions,
+  responseValidator?: (data: T) => boolean
 ): Promise<WrappedResponse<T>> {
   const opts = { ...defaultOptions, ...options };
+  if (!responseValidator) {
+    responseValidator = () => {
+      return true;
+    };
+  }
+  const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder}`;
 
-  opts.preferNew = process.env.DISABLE_CACHE === "true" ? true : opts.preferNew;
+  opts.tryFetchNewFirst = process.env.DISABLE_CACHE === "true" ? true : opts.tryFetchNewFirst;
 
   // to be clear, we're not hashing sensitive data, just cache keys
   const hash = crypto.createHash("md5");
-  hash.update(identifier);
+  hash.update(uniqueIdentifier);
   const cacheKey = hash.copy().digest("hex");
 
   let res = null as T;
@@ -47,17 +58,17 @@ export default async function fetchWithCache<T>(
   let cacheMetadata = {
     fromCache: false,
     timestamp: null,
-    stale: false,
+    expiration: null,
   } as CacheMetadata;
 
-  let cacheIsHot = false;
+  let cacheIsHot = false; //if cache is not expired (has not hit cacheAge yet)
 
-  const cacheInfo = await cacache.get.info(process.env.CACHE_ROOT, cacheKey);
+  const cacheInfo = await cacache.get.info(cachePath, cacheKey);
 
   try {
     if (!isNull(cacheInfo)) {
       // get the cached data now, decide if we want to use it later
-      const cacheEntry = await cacache.get(process.env.CACHE_ROOT, cacheKey);
+      const cacheEntry = await cacache.get(cachePath, cacheKey);
       cachedData = cacheEntry.data.toString();
       cachedRes = JSON.parse(cachedData);
 
@@ -65,7 +76,7 @@ export default async function fetchWithCache<T>(
       cacheMetadata = {
         fromCache: true,
         timestamp: new Date(cacheInfo.time),
-        stale: !cacheIsHot,
+        expiration: new Date(new Date(cacheInfo.time).getTime() + opts.cacheAge * 1000),
       };
     }
   } catch (e) {
@@ -73,39 +84,55 @@ export default async function fetchWithCache<T>(
     console.warn(e);
   }
 
-  if (cacheIsHot && !opts.preferNew) {
-    // nothing else to do! give the caller the cached data
+  // cache is within cacheAge and caller does not want to try to retrieve a new copy
+  if (cacheIsHot && !opts.tryFetchNewFirst) {
     return { cacheMetadata, data: cachedRes };
   }
 
+  //cache is empty or expired, or caller wants to try to retrieve a new copy
   try {
     res = await retriever();
   } catch (e) {
-    if (!isNull(cachedRes) && opts.staleOk) {
-      // even though this request failed, we still have good stale data in the cache and the caller is fine with that
-      console.warn(`Stale data is being returned for '${identifier}'`);
+    //Retriever failed
+    if (!isNull(cachedRes) && opts.expiredCacheOkIfFetchFails) {
+      // we have expired data in the cache and the caller is ok with expired data
+      console.warn(`Expired data is being returned for '${uniqueIdentifier}'`);
       console.warn(e);
-      cacheMetadata.stale = true;
       return { cacheMetadata, data: cachedRes };
     } else {
-      // the caller is fine with an error response
       cacheMetadata.error = e.toString();
+      cacheMetadata.fromCache = false;
+      cacheMetadata.timestamp = null;
+      cacheMetadata.expiration = null;
+      return { cacheMetadata };
+    }
+  }
+
+  //the retriever returned fresh data. Validate to determine if we should cache it
+  if (!responseValidator(res)) {
+    // data is not valid. Attempt to return expired data or error
+    if (!isNull(cachedRes) && opts.expiredCacheOkIfFetchFails) {
+      console.warn(
+        `Retriever returned invalid data. Expired data is being returned for '${uniqueIdentifier}'`
+      );
+      return { cacheMetadata, data: cachedRes };
+    } else {
+      cacheMetadata.error = "Retriever returned invalid data. No data available to return";
       cacheMetadata.fromCache = false;
       cacheMetadata.timestamp = null;
       return { cacheMetadata };
     }
   }
 
-  // the retriever has returned fresh data
   cacheMetadata.fromCache = false;
   cacheMetadata.timestamp = null;
-  cacheMetadata.stale = false;
+  cacheMetadata.expiration = null;
 
   // cache the fresh data for later
   try {
-    await cacache.put(process.env.CACHE_ROOT, cacheKey, Buffer.from(JSON.stringify(res)));
+    await cacache.put(cachePath, cacheKey, Buffer.from(JSON.stringify(res)));
   } catch (e) {
-    console.warn(`Could not cache: '${identifier}'`);
+    console.warn(`Could not cache: '${uniqueIdentifier}'`);
     console.warn(e);
   }
 
@@ -113,6 +140,39 @@ export default async function fetchWithCache<T>(
 }
 
 /** Nuke the cache */
-export async function clear() {
-  await cacache.rm.all(process.env.CACHE_ROOT);
+export async function clearAll() {
+  try {
+    for (const folder in CacheFolder) {
+      const cachePath = `${process.env.CACHE_ROOT}/${CacheFolder[folder]}`;
+      await cacache.rm.all(cachePath);
+    }
+  } catch (e) {
+    console.warn(`Could not clear cache`);
+    console.warn(e);
+  }
+}
+
+export async function clearCacheByIdentifer(identifier: string, folder: CacheFolder) {
+  const cachePath = `${process.env.CACHE_ROOT}/${folder}`;
+  const hash = crypto.createHash("md5");
+  hash.update(identifier);
+  const cacheKey = hash.copy().digest("hex");
+  try {
+    if (!folder) throw new Error("invalid folder");
+    await cacache.rm(cachePath, cacheKey);
+  } catch (e) {
+    console.warn(`Could not clear cache identifier: '${folder}/${identifier}'`);
+    console.warn(e);
+  }
+}
+
+export async function clearCacheByFolder(folder: CacheFolder) {
+  const cachePath = `${process.env.CACHE_ROOT}/${folder}`;
+  try {
+    if (!folder) throw new Error("invalid folder");
+    await cacache.rm.all(cachePath);
+  } catch (e) {
+    console.warn(`Could not clear cache folder: '${folder}'`);
+    console.warn(e);
+  }
 }

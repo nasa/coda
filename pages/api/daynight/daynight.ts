@@ -7,12 +7,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
  * Get day night data
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { year, month, date, preferNew } = req.query;
-
-  const forceRefresh = preferNew === "1";
+  const { year, month, date, forceNew } = req.query;
 
   try {
-    const data = await getDayNight(+year, +month, +date, forceRefresh);
+    const data = await getDayNight(+year, +month, +date, forceNew === "1");
     res.status(200).json(data);
   } catch (e) {
     console.error(e);

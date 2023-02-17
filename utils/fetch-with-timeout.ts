@@ -10,7 +10,7 @@ import https from "https";
  */
 export default async function fetchWithTimeout(
   url: string,
-  options: RequestInit,
+  options?: RequestInit,
   timeout: number = 8000 /** Milliseconds to timeout */
 ): Promise<Response> {
   const controller = new AbortController();

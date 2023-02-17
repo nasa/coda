@@ -19,6 +19,7 @@ const DynPlotlyChart = dynamic(import("./plotly"), {
 
 import styles from "./graph.module.css";
 import { appSecondsFromDateString } from "utils/formatting";
+import fetchWithTimeout from "utils/fetch-with-timeout";
 
 export function GraphControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
@@ -154,7 +155,9 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // Fetch the data for the selected graphId from the graph dataURL
   const localAsyncFetchData = async () => {
-    const response = await fetch(graphs.graphsManifest.sourceUrl + selectedGraph.dataURL);
+    const response = await fetchWithTimeout(
+      graphs.graphsManifest.sourceUrl + selectedGraph.dataURL
+    );
     const data = await response.json();
 
     // Store the data in the graph manifest in the store

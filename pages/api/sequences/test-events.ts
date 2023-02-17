@@ -6,9 +6,11 @@ import getTestEventsData from "server/sequences/test-events";
  *
  * Get all as-planned test event data in the wiki
  */
-export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { forceNew } = req.query as { [key: string]: string };
+
   try {
-    const testEvents = await getTestEventsData();
+    const testEvents = await getTestEventsData(forceNew === "1");
     res.status(200).json(testEvents);
   } catch (e) {
     console.error(e);

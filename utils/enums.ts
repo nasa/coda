@@ -59,3 +59,19 @@ export enum PaneTypeShortVal {
   sgAudio = 9,
   graph = 10,
 }
+
+/**
+ * Conatins all the possible subfolders for the cache.
+ * This enum is iterated through when clearing the entire cache
+ */
+export enum CacheFolder {
+  Celestrak = "celestrak",
+  Spacetrack = "spacetrack",
+  Daynight_topoDay = "daynight/topoDay",
+  Daynight_topoRawWeek = "daynight/topoRawWeek",
+  Daynight_issLocation = "daynight/issLocation",
+  Io = "io",
+  Wiki = "wiki",
+  Wiki_all = "wiki/all",
+  Wiki_gps = "wiki/gps",
+}
