@@ -52,7 +52,7 @@ export default async function getPhotoData(
   }
 
   const [results, sequences, allOverrides] = await Promise.all([
-    IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate) as Promise<
+    IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate, forceNew) as Promise<
       WrappedResponse<PhotoFile[]>
     >,
     // fetch sequence data, but don't throw if the request fails

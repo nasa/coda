@@ -397,7 +397,7 @@ export async function getAllEVAData(
 
   const response = await fetchWithCache<Sequence[]>(agency, CacheFolder.Wiki_all, retriever, {
     cacheAge: 60,
-    expiredCacheOkIfFetchFails: true,
+    returnExpiredCacheIfFetchFails: true,
     tryFetchNewFirst: forceNew ? forceNew : false,
   });
   if (mocked) {
@@ -537,7 +537,7 @@ export async function getAllTestEventsData(
 
   const response = await fetchWithCache<Sequence[]>("test-events", CacheFolder.Wiki, retriever, {
     cacheAge: 60,
-    expiredCacheOkIfFetchFails: true,
+    returnExpiredCacheIfFetchFails: true,
     tryFetchNewFirst: forceNew ? forceNew : false,
   });
   if (mocked) {
@@ -581,7 +581,7 @@ async function fetchWikiExternalData(forceNew?: boolean): Promise<WrappedRespons
 
   return await fetchWithCache<string[]>("gps-list", CacheFolder.Wiki, retriever, {
     cacheAge: 60, // 60 seconds
-    expiredCacheOkIfFetchFails: true,
+    returnExpiredCacheIfFetchFails: true,
     tryFetchNewFirst: forceNew ? forceNew : false,
   });
 }
@@ -656,7 +656,7 @@ async function fetchWikiGPSTrack(
 
   return await fetchWithCache<GPSTrack>(pageName, CacheFolder.Wiki_gps, retriever, {
     cacheAge: 604800, // 604800 seconds = 1 week
-    expiredCacheOkIfFetchFails: true,
+    returnExpiredCacheIfFetchFails: true,
     tryFetchNewFirst: forceNew ? forceNew : false,
   });
 }
@@ -688,7 +688,7 @@ export async function fetchDatetimeOverrides(
     retriever,
     {
       cacheAge: 60,
-      expiredCacheOkIfFetchFails: true,
+      returnExpiredCacheIfFetchFails: true,
       tryFetchNewFirst: forceNew ? forceNew : false,
     }
   );
@@ -721,7 +721,7 @@ export async function fetchMediaOverrides(
     retriever,
     {
       cacheAge: 60,
-      expiredCacheOkIfFetchFails: true,
+      returnExpiredCacheIfFetchFails: true,
       tryFetchNewFirst: forceNew ? forceNew : false,
     }
   );
@@ -754,7 +754,7 @@ export async function fetchAncillaryDataSourceList(
     retriever,
     {
       cacheAge: 60,
-      expiredCacheOkIfFetchFails: true,
+      returnExpiredCacheIfFetchFails: true,
       tryFetchNewFirst: forceNew ? forceNew : false,
     }
   );

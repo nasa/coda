@@ -70,7 +70,7 @@ export async function fetchDayNight(
           {
             tryFetchNewFirst,
             cacheAge: cacheAge_topo,
-            expiredCacheOkIfFetchFails: expiredCacheOkIfFetchFails,
+            returnExpiredCacheIfFetchFails: expiredCacheOkIfFetchFails,
           }
         );
         if (topoRes.cacheMetadata.error) {
@@ -250,7 +250,7 @@ export async function fetchDayNight(
       {
         tryFetchNewFirst,
         cacheAge: cacheAge_topo,
-        expiredCacheOkIfFetchFails,
+        returnExpiredCacheIfFetchFails: expiredCacheOkIfFetchFails,
       }
     );
     res.source = "topo";
@@ -291,7 +291,7 @@ export async function fetchDayNight(
     {
       tryFetchNewFirst,
       cacheAge: isHistoric ? oneYearInSeconds : 300,
-      expiredCacheOkIfFetchFails,
+      returnExpiredCacheIfFetchFails: expiredCacheOkIfFetchFails,
     }
   );
 

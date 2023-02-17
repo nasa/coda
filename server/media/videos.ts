@@ -50,7 +50,7 @@ export default async function getVideoData(
   // fetch video info and fudge factors in parallel
   const [results, timeOverrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after
-    IoService.fetchData(collection, IOFetchType.VIDEOS, requestedDate) as Promise<
+    IoService.fetchData(collection, IOFetchType.VIDEOS, requestedDate, forceNew) as Promise<
       WrappedResponse<VideoFile[]>
     >,
     // fetch start time overrides, but don't throw if the request fails

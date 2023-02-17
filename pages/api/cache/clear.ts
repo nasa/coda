@@ -10,15 +10,16 @@ import { CacheFolder } from "utils/enums";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { folder, identifier } = req.query as { [key: string]: string };
   try {
-    if (!folder) {
-      res.status(200).json({ success: false, error: "no folder specified" });
-    }
-    if (identifier) {
-      await clearCacheByIdentifer(identifier, CacheFolder[folder]);
-      res.status(200).json({ success: true });
+    if (typeof CacheFolder[folder] === "undefined") {
+      res.status(200).json({ success: false, error: "invalid folder specified" });
     } else {
-      await clearCacheByFolder(CacheFolder[folder]);
-      res.status(200).json({ success: true });
+      if (identifier) {
+        await clearCacheByIdentifer(identifier, CacheFolder[folder]);
+        res.status(200).json({ success: true });
+      } else {
+        await clearCacheByFolder(CacheFolder[folder]);
+        res.status(200).json({ success: true });
+      }
     }
   } catch (e) {
     console.error(e);

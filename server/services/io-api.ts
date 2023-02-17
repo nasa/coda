@@ -103,7 +103,12 @@ export function formatDateQuery(start: Date, end?: Date): string {
  * @param requestDate The date to fetch data for
  * @returns PhotoFile[] | VideoFile[]
  */
-export async function fetchData(collection: Collection, fetchType: IOFetchType, requestDate: Date) {
+export async function fetchData(
+  collection: Collection,
+  fetchType: IOFetchType,
+  requestDate: Date,
+  forceNew?: boolean
+) {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let preferNew: boolean;
   let dateQuery: string;
@@ -172,8 +177,8 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
     retriever,
     {
       cacheAge: 3600,
-      expiredCacheOkIfFetchFails: true,
-      tryFetchNewFirst: preferNew,
+      returnExpiredCacheIfFetchFails: true,
+      tryFetchNewFirst: forceNew ? forceNew : preferNew,
     }
   );
 }

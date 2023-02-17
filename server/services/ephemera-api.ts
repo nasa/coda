@@ -157,7 +157,7 @@ export async function fetchISSLocation(
       {
         tryFetchNewFirst,
         cacheAge: 300,
-        expiredCacheOkIfFetchFails: true,
+        returnExpiredCacheIfFetchFails: true,
       }
     );
     celestrakRes = { ...celestrakRes, source: "celestrak" };
@@ -178,7 +178,7 @@ export async function fetchISSLocation(
     {
       tryFetchNewFirst,
       cacheAge: isToday ? 300 : oneYearInSeconds,
-      expiredCacheOkIfFetchFails: true,
+      returnExpiredCacheIfFetchFails: true,
     }
   );
   spacetrackRes = { ...spacetrackRes, source: "spacetrack" };

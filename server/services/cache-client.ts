@@ -10,22 +10,22 @@ interface CacheOptions {
   /** Default 5 mins (300s). This is the max age allowed for cache entries before retrieving new data. */
   cacheAge?: number;
   /** Default true. Whether or not returning expired data (data thats older than cacheAge) is acceptable when the `retriever` fails */
-  expiredCacheOkIfFetchFails?: boolean;
-  /** Default false. Whether or not to retrieve new data first before checking the cache. Only return cached data if the `retriever` fails */
+  returnExpiredCacheIfFetchFails?: boolean;
+  /** Default false. Whether or not to retrieve new data first before returning a valid cache. Only return cached data if the `retriever` fails */
   tryFetchNewFirst?: boolean;
 }
 
 const defaultOptions: CacheOptions = {
   cacheAge: +process.env.DEFAULT_CACHE_AGE,
-  expiredCacheOkIfFetchFails: true,
+  returnExpiredCacheIfFetchFails: true,
   tryFetchNewFirst: false,
 };
 
 /**
  * Get data from the cache when it exists and is less than `process.env.CACHE_AGE` old. Otherwise, hit the network and add to the cache
  * @param uniqueIdentifier The cache key. Must be unique for the folder
- * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
  * @param cacheFolder name of the subdirectory in the cacheRoot for this data
+ * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
  * @param options Cache behavior options
  * @param responseValidator Test function returning bool if the retriever response is valid and should be cached. Default will always cache. This can be used to prevent empty responses being cached
  */
@@ -94,12 +94,14 @@ export default async function fetchWithCache<T>(
     res = await retriever();
   } catch (e) {
     //Retriever failed
-    if (!isNull(cachedRes) && opts.expiredCacheOkIfFetchFails) {
+    if (!isNull(cachedRes) && opts.returnExpiredCacheIfFetchFails) {
       // we have expired data in the cache and the caller is ok with expired data
-      console.warn(`Expired data is being returned for '${uniqueIdentifier}'`);
+      console.warn(`Expired data is being returned for '${cacheFolder}/${uniqueIdentifier}'`);
       console.warn(e);
       return { cacheMetadata, data: cachedRes };
     } else {
+      console.warn(`Error in retriver for '${cacheFolder}/${uniqueIdentifier}'`);
+      console.warn(e);
       cacheMetadata.error = e.toString();
       cacheMetadata.fromCache = false;
       cacheMetadata.timestamp = null;
@@ -108,15 +110,18 @@ export default async function fetchWithCache<T>(
     }
   }
 
-  //the retriever returned fresh data. Validate to determine if we should cache it
+  //the retriever returned fresh data. Use caller supplied validator to determine if we should cache it
   if (!responseValidator(res)) {
     // data is not valid. Attempt to return expired data or error
-    if (!isNull(cachedRes) && opts.expiredCacheOkIfFetchFails) {
+    if (!isNull(cachedRes) && opts.returnExpiredCacheIfFetchFails) {
       console.warn(
-        `Retriever returned invalid data. Expired data is being returned for '${uniqueIdentifier}'`
+        `Retriever returned invalid data. Expired data is being returned for '${cacheFolder}/${uniqueIdentifier}'`
       );
       return { cacheMetadata, data: cachedRes };
     } else {
+      console.warn(
+        `Retriever returned invalid data. No data available to return for '${cacheFolder}/${uniqueIdentifier}'`
+      );
       cacheMetadata.error = "Retriever returned invalid data. No data available to return";
       cacheMetadata.fromCache = false;
       cacheMetadata.timestamp = null;
@@ -158,7 +163,6 @@ export async function clearCacheByIdentifer(identifier: string, folder: CacheFol
   hash.update(identifier);
   const cacheKey = hash.copy().digest("hex");
   try {
-    if (!folder) throw new Error("invalid folder");
     await cacache.rm(cachePath, cacheKey);
   } catch (e) {
     console.warn(`Could not clear cache identifier: '${folder}/${identifier}'`);
@@ -169,7 +173,6 @@ export async function clearCacheByIdentifer(identifier: string, folder: CacheFol
 export async function clearCacheByFolder(folder: CacheFolder) {
   const cachePath = `${process.env.CACHE_ROOT}/${folder}`;
   try {
-    if (!folder) throw new Error("invalid folder");
     await cacache.rm.all(cachePath);
   } catch (e) {
     console.warn(`Could not clear cache folder: '${folder}'`);
