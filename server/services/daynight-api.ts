@@ -7,6 +7,7 @@ import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { weekNumberSun } from "weeknumber";
 import { get as ntlmGET } from "@evamss/ntlm";
+import { CacheFolder } from "utils/enums";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 
@@ -26,7 +27,7 @@ export async function fetchDayNight(
   year: number,
   month: number,
   date: number,
-  forceRefresh?: boolean
+  forceNew?: boolean
 ): Promise<WrappedResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
@@ -61,14 +62,15 @@ export async function fetchDayNight(
 
         //fetch topo raw week data
         topoRes = await fetchWithCache<string>(
-          `daynight/topoRawWeek/${identifier}`,
+          identifier,
+          CacheFolder.Daynight_topoRawWeek,
           function () {
             return retrieverTopoRawWeek(queryDate);
           },
           {
-            preferNew,
+            tryFetchNewFirst,
             cacheAge: cacheAge_topo,
-            staleOk,
+            returnExpiredCacheIfFetchFails: expiredCacheOkIfFetchFails,
           }
         );
         if (topoRes.cacheMetadata.error) {
@@ -104,10 +106,8 @@ export async function fetchDayNight(
       for (let tries = 7; tries > 0; tries--) {
         //try every day of the week.
         //This loop should normally run once because files are normally dropped on Tuesday.
-        let queryUrl = getTopoURL(queryDate).url; //build topo URL for this date
-        if (!queryUrl) {
-          //A null means querydate is outside topo range. Try the next day
-          //Only occurs if the date is on the border of historic Min for topo.
+        let topoURL = getTopoURL(queryDate);
+        if (topoURL.state === "outOfRange_historic" || topoURL.state === "outOfRange_predicted") {
           queryDate.setUTCDate(queryDate.getUTCDate() + 1);
           continue;
         }
@@ -116,7 +116,7 @@ export async function fetchDayNight(
           (resolve, reject) => {
             ntlmGET(
               {
-                url: queryUrl,
+                url: topoURL.url,
                 username: process.env.TOPO_USER,
                 password: process.env.TOPO_PASSWORD,
                 workstation: "any.workstation",
@@ -155,7 +155,7 @@ export async function fetchDayNight(
               "Something went wrong fetching TOPO data. Response status " +
                 response.statusCode +
                 " for URL " +
-                queryUrl
+                topoURL.url
             );
           }
         }
@@ -213,7 +213,7 @@ export async function fetchDayNight(
         error: "Requested date is too far in the future",
         fromCache: false,
         timestamp: null,
-        stale: false,
+        expiration: null,
       },
     };
   } //date requested is too far in the future. No data available
@@ -225,8 +225,8 @@ export async function fetchDayNight(
   let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   //shared cache settings for fetch retriever functions
-  const preferNew = forceRefresh;
-  const staleOk = true;
+  const tryFetchNewFirst = forceNew ? forceNew : false;
+  const expiredCacheOkIfFetchFails = true;
 
   /**
    * if today and future, cache for 1 week (the schedule that topo predicted data is released)
@@ -243,11 +243,16 @@ export async function fetchDayNight(
 
   //fetch topo. this is the prefered method.
   if (topoState !== "outOfRange_historic") {
-    res = await fetchWithCache<DayNightStore>(`daynight/topoDay/${identifier}`, retrieverTopoDay, {
-      preferNew,
-      cacheAge: cacheAge_topo,
-      staleOk,
-    });
+    res = await fetchWithCache<DayNightStore>(
+      identifier,
+      CacheFolder.Daynight_topoDay,
+      retrieverTopoDay,
+      {
+        tryFetchNewFirst,
+        cacheAge: cacheAge_topo,
+        returnExpiredCacheIfFetchFails: expiredCacheOkIfFetchFails,
+      }
+    );
     res.source = "topo";
   } else {
     //requested date is too far in the past. fall through to iss location
@@ -270,7 +275,7 @@ export async function fetchDayNight(
           "TOPO fetch failed. Unable to failover to ISS Location because requested date is too far in the future.",
         fromCache: false,
         timestamp: null,
-        stale: false,
+        expiration: null,
       },
       data: { dayNight: [] },
     };
@@ -280,12 +285,13 @@ export async function fetchDayNight(
   //topo either returned bad/no data or date requested is too far in the past for topo.
   let res_issLocation: WrappedResponse<WrappedResponse<DayNightStore>>;
   res_issLocation = await fetchWithCache<WrappedResponse<DayNightStore>>(
-    `daynight/issLocation/${identifier}`,
+    identifier,
+    CacheFolder.Daynight_issLocation,
     retrieverIssLocation,
     {
-      preferNew,
+      tryFetchNewFirst,
       cacheAge: isHistoric ? oneYearInSeconds : 300,
-      staleOk,
+      returnExpiredCacheIfFetchFails: expiredCacheOkIfFetchFails,
     }
   );
 

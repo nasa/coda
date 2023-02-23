@@ -8,9 +8,15 @@ import { Collection } from "utils/enums";
  * Get IO photo data proxied through our API
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { year, month, date, collection } = req.query;
+  const { year, month, date, collection, forceNew } = req.query;
   try {
-    const photos = await getPhotoData(+year, +month, +date, Collection[collection as string]);
+    const photos = await getPhotoData(
+      +year,
+      +month,
+      +date,
+      Collection[collection as string],
+      forceNew === "1"
+    );
     res.status(200).json(photos);
   } catch (e) {
     console.error(e);

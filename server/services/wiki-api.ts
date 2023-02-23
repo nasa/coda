@@ -16,6 +16,7 @@ import fetchWithCache from "./cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import gpxParser from "gpxparser";
 import { Collection, SequenceType } from "utils/enums";
+import { CacheFolder } from "utils/enums";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
@@ -335,7 +336,10 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
  *
  * @param agency `us|rs|all`. Get US EVAs, RS EVAs, or all EVAs across both space agencies
  * */
-export async function getAllEVAData(agency: AgencyQuery): Promise<WikibotResponse<Sequence[]>> {
+export async function getAllEVAData(
+  agency: AgencyQuery,
+  forceNew?: boolean
+): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
 
   const retriever = async () => {
@@ -391,9 +395,10 @@ export async function getAllEVAData(agency: AgencyQuery): Promise<WikibotRespons
     return evas.filter(matchAgency);
   };
 
-  const response = await fetchWithCache<Sequence[]>(`wiki/all/${agency}`, retriever, {
+  const response = await fetchWithCache<Sequence[]>(agency, CacheFolder.Wiki_all, retriever, {
     cacheAge: 60,
-    staleOk: true,
+    returnExpiredCacheIfFetchFails: true,
+    tryFetchNewFirst: forceNew ? forceNew : false,
   });
   if (mocked) {
     response.cacheMetadata.mocked = true;
@@ -473,7 +478,9 @@ export async function getTestEventCrews(): Promise<WikibotResponse<AllCrews>> {
 }
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
-export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]>> {
+export async function getAllTestEventsData(
+  forceNew?: boolean
+): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
     const { data: allTestEvents, mocked: allTestEventsMocked } = await getAllTestEvents();
@@ -528,9 +535,10 @@ export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]
     });
   };
 
-  const response = await fetchWithCache<Sequence[]>("wiki/test-events", retriever, {
+  const response = await fetchWithCache<Sequence[]>("test-events", CacheFolder.Wiki, retriever, {
     cacheAge: 60,
-    staleOk: true,
+    returnExpiredCacheIfFetchFails: true,
+    tryFetchNewFirst: forceNew ? forceNew : false,
   });
   if (mocked) {
     response.cacheMetadata.mocked = true;
@@ -538,17 +546,20 @@ export async function getAllTestEventsData(): Promise<WikibotResponse<Sequence[]
   return response;
 }
 
-export async function fetchSequences(collection: Collection): Promise<WikibotResponse<Sequence[]>> {
+export async function fetchSequences(
+  collection: Collection,
+  forceNew?: boolean
+): Promise<WikibotResponse<Sequence[]>> {
   if (collection === Collection.ISS) {
-    return getAllEVAData("us");
+    return getAllEVAData("us", forceNew);
   } else {
-    return getAllTestEventsData();
+    return getAllTestEventsData(forceNew);
   }
 }
 
 /** Get list of external data products from the wiki */
 
-async function fetchWikiExternalData(): Promise<WrappedResponse<string[]>> {
+async function fetchWikiExternalData(forceNew?: boolean): Promise<WrappedResponse<string[]>> {
   const parseQuery = {
     page: "CODA/External Data",
     prop: "links",
@@ -568,15 +579,18 @@ async function fetchWikiExternalData(): Promise<WrappedResponse<string[]>> {
     return links;
   };
 
-  return await fetchWithCache<string[]>("wiki/gps-list", retriever, {
+  return await fetchWithCache<string[]>("gps-list", CacheFolder.Wiki, retriever, {
     cacheAge: 60, // 60 seconds
-    staleOk: true,
-    preferNew: false,
+    returnExpiredCacheIfFetchFails: true,
+    tryFetchNewFirst: forceNew ? forceNew : false,
   });
 }
 
-export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedResponse<GPSTrack[]>> {
-  const gpsList = await fetchWikiExternalData();
+export async function fetchWikiGPSTracks(
+  dateWanted: string,
+  forceNew?: boolean
+): Promise<WrappedResponse<GPSTrack[]>> {
+  const gpsList = await fetchWikiExternalData(forceNew);
   let error = null;
   // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
   const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
@@ -591,7 +605,7 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedRes
         match[1] === "LightCart" ||
         match[1] === "Staff"
       ) {
-        const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1]);
+        const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1], forceNew);
         if (gpsTrackRes.cacheMetadata.error !== undefined) {
           error = gpsTrackRes.cacheMetadata.error;
         }
@@ -604,7 +618,8 @@ export async function fetchWikiGPSTracks(dateWanted: string): Promise<WrappedRes
 
 async function fetchWikiGPSTrack(
   pageName: string,
-  name: string
+  name: string,
+  forceNew?: boolean
 ): Promise<WrappedResponse<GPSTrack>> {
   const parseQuery = {
     page: pageName,
@@ -639,10 +654,10 @@ async function fetchWikiGPSTrack(
     return track;
   };
 
-  return await fetchWithCache<GPSTrack>(`wiki/gps/${pageName}`, retriever, {
+  return await fetchWithCache<GPSTrack>(pageName, CacheFolder.Wiki_gps, retriever, {
     cacheAge: 604800, // 604800 seconds = 1 week
-    staleOk: true,
-    preferNew: false,
+    returnExpiredCacheIfFetchFails: true,
+    tryFetchNewFirst: forceNew ? forceNew : false,
   });
 }
 
@@ -650,7 +665,9 @@ async function fetchWikiGPSTrack(
  *
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Datetime_Shifts
  */
-export async function fetchDatetimeOverrides(): Promise<WrappedResponse<DatetimeOverrides>> {
+export async function fetchDatetimeOverrides(
+  forceNew?: boolean
+): Promise<WrappedResponse<DatetimeOverrides>> {
   const parseQuery = {
     page: "CODA/Datetime_Shifts",
     prop: "wikitext",
@@ -665,18 +682,25 @@ export async function fetchDatetimeOverrides(): Promise<WrappedResponse<Datetime
     return parseWikitextTableIntoDatetimeOverrides(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<DatetimeOverrides>("wiki/datetime-overrides", retriever, {
-    cacheAge: 60,
-    staleOk: true,
-    preferNew: false,
-  });
+  return await fetchWithCache<DatetimeOverrides>(
+    "datetime-overrides",
+    CacheFolder.Wiki,
+    retriever,
+    {
+      cacheAge: 60,
+      returnExpiredCacheIfFetchFails: true,
+      tryFetchNewFirst: forceNew ? forceNew : false,
+    }
+  );
 }
 
 /** Get all the manually set media source overrides.
  *
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Media_Source_Overrides
  */
-export async function fetchMediaOverrides(): Promise<WrappedResponse<MediaSourceOverride[]>> {
+export async function fetchMediaOverrides(
+  forceNew?: boolean
+): Promise<WrappedResponse<MediaSourceOverride[]>> {
   const parseQuery = {
     page: "CODA/Media_Source_Overrides",
     prop: "wikitext",
@@ -691,20 +715,25 @@ export async function fetchMediaOverrides(): Promise<WrappedResponse<MediaSource
     return parseWikitextTableIntoMediaSourceOverrides(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<MediaSourceOverride[]>("wiki/media-overrides", retriever, {
-    cacheAge: 60,
-    staleOk: true,
-    preferNew: false,
-  });
+  return await fetchWithCache<MediaSourceOverride[]>(
+    "media-overrides",
+    CacheFolder.Wiki,
+    retriever,
+    {
+      cacheAge: 60,
+      returnExpiredCacheIfFetchFails: true,
+      tryFetchNewFirst: forceNew ? forceNew : false,
+    }
+  );
 }
 
 /** Get the list of ancillary data sources from the wiki
  *
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Ancillary_Data_Sources
  */
-export async function fetchAncillaryDataSourceList(): Promise<
-  WrappedResponse<AncillaryDataSource[]>
-> {
+export async function fetchAncillaryDataSourceList(
+  forceNew?: boolean
+): Promise<WrappedResponse<AncillaryDataSource[]>> {
   const parseQuery = {
     page: "CODA/Ancillary_Data_Sources",
     prop: "wikitext",
@@ -719,11 +748,16 @@ export async function fetchAncillaryDataSourceList(): Promise<
     return parseWikitextTableIntoAncillaryDataSources(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<AncillaryDataSource[]>("wiki/ancillary-data-sources", retriever, {
-    cacheAge: 60,
-    staleOk: true,
-    preferNew: false,
-  });
+  return await fetchWithCache<AncillaryDataSource[]>(
+    "ancillary-data-sources",
+    CacheFolder.Wiki,
+    retriever,
+    {
+      cacheAge: 60,
+      returnExpiredCacheIfFetchFails: true,
+      tryFetchNewFirst: forceNew ? forceNew : false,
+    }
+  );
 }
 
 /** Given wikitext that includes one or more tables, parse the tables into objects. Exported for testing

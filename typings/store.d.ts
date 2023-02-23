@@ -1,7 +1,7 @@
 interface CacheMetadata {
   fromCache: boolean;
   timestamp: Date;
-  stale: boolean;
+  expiration: Date;
   error?: string;
   mocked?: boolean;
 }

@@ -22,7 +22,7 @@ const { Response } = jest.requireActual("node-fetch");
 
 describe("fetchWithTimeout", () => {
   it("fetch completes and all options passed in correctly", async () => {
-    const response = await fetchWithTimeout("url", { timeout: 100 });
+    const response = await fetchWithTimeout("url", {}, 100);
 
     //check mock response
     const json = await response.json();
@@ -45,7 +45,7 @@ describe("fetchWithTimeout", () => {
   });
 
   it("fetch times out", async () => {
-    const response = await fetchWithTimeout("url", { timeout: 10 });
+    const response = await fetchWithTimeout("url", {}, 10);
 
     //check mock response
     expect(response).toBeUndefined();

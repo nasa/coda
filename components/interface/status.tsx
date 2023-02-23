@@ -176,30 +176,39 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     cacheMetadata: CacheMetadata,
     resultsReturned: boolean
   ): { message: string; classname: string } {
-    let message;
-    let classname;
+    let message: string;
+    let classname: string;
     if (loadingStatus === LoadingStatusEnum.LOADING) {
       message = "data loading...";
       classname = styles.loading;
     } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
-      message = "data unneeded";
+      message = "data not applicable";
       classname = styles.unneeded;
     } else {
+      if (!resultsReturned) {
+        message = "data is empty";
+        classname = styles.unneeded;
+        return { message, classname };
+      }
+
       if (cacheMetadata?.error) {
         message = "Error: " + cacheMetadata.error;
         classname = styles.error;
-      } else if (cacheMetadata?.stale) {
-        message = `stale data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
-        classname = styles.stale;
-      } else if (!resultsReturned) {
-        message = "data not returned (without error)";
-        classname = styles.unneeded;
-      } else {
-        if (cacheMetadata?.fromCache) {
-          message = `data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
-        } else {
-          message = "data is fresh";
+        return { message, classname };
+      }
+
+      //have data and no error
+      if (cacheMetadata?.fromCache) {
+        message = `data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
+        classname = styles.noError;
+        if (cacheMetadata?.expiration < new Date()) {
+          message = `data from cache but expired on: ${new Date(
+            cacheMetadata.expiration
+          ).toLocaleString()}`;
+          classname = styles.stale;
         }
+      } else {
+        message = "data is fresh!";
         classname = styles.noError;
       }
     }
