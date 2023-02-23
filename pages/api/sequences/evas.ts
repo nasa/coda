@@ -11,10 +11,10 @@ import getEVAData from "server/sequences/evas";
  * Get all as-planned EVA data in the wiki
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { agency = "us" } = req.query as { [key: string]: string };
+  const { agency = "us", forceNew } = req.query as { [key: string]: string };
 
   try {
-    const evas = await getEVAData(agency as AgencyQuery);
+    const evas = await getEVAData(agency as AgencyQuery, forceNew === "1");
     res.status(200).json(evas);
   } catch (e) {
     console.error(e);

@@ -14,13 +14,14 @@ export default async function getPhotoData(
   year: number,
   month: number,
   date: number,
-  collection: Collection
+  collection: Collection,
+  forceNew: boolean
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
   // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
   try {
-    const mediaOverrides = await WikiService.fetchMediaOverrides();
+    const mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
 
     // Check if there is a video override for this date and Source
     const mediaOverride = mediaOverrides?.data?.find((vo) => {
@@ -40,7 +41,7 @@ export default async function getPhotoData(
         cacheMetadata: {
           fromCache: false,
           timestamp: new Date(),
-          stale: false,
+          expiration: null,
         },
         data: photos,
       } as WrappedResponse<PhotoFile[]>;
@@ -51,13 +52,13 @@ export default async function getPhotoData(
   }
 
   const [results, sequences, allOverrides] = await Promise.all([
-    IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate) as Promise<
+    IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate, forceNew) as Promise<
       WrappedResponse<PhotoFile[]>
     >,
     // fetch sequence data, but don't throw if the request fails
     await (async () => {
       try {
-        return await WikiService.fetchSequences(collection);
+        return await WikiService.fetchSequences(collection, forceNew);
       } catch (e) {
         console.error(e);
       }
@@ -65,7 +66,7 @@ export default async function getPhotoData(
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        return await WikiService.fetchDatetimeOverrides();
+        return await WikiService.fetchDatetimeOverrides(forceNew);
       } catch (e) {
         // don't block photo results if we can't find overrides
         console.error(e);

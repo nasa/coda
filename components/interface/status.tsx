@@ -188,8 +188,10 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
       if (cacheMetadata?.error) {
         message = "Error: " + cacheMetadata.error;
         classname = styles.error;
-      } else if (cacheMetadata?.stale) {
-        message = `stale data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
+      } else if (cacheMetadata?.expiration < new Date()) {
+        message = `expired data from cache (expired on: ${new Date(
+          cacheMetadata.expiration
+        ).toLocaleString()})`;
         classname = styles.stale;
       } else if (!resultsReturned) {
         message = "data not returned (without error)";

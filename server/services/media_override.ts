@@ -1,3 +1,6 @@
+import fetchWithTimeout from "utils/fetch-with-timeout";
+import type { Response } from "node-fetch";
+
 /**
  * Fetch override video manifest from the override location specified in the wiki
  */
@@ -8,7 +11,7 @@ export async function getManifest(
 
   let res: Response;
   try {
-    res = await fetch(dataPath);
+    res = await fetchWithTimeout(dataPath);
   } catch (e) {
     throw e;
   }

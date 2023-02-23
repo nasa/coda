@@ -20,6 +20,7 @@ import type { Response } from "node-fetch";
 import { add } from "store/playhead";
 import { inRange, isNil } from "lodash";
 import { Collection, IOFetchType } from "utils/enums";
+import { CacheFolder } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
@@ -47,7 +48,6 @@ async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse
 
   const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
-    timeout: 8000,
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
       "Accept-Encoding": "gzip,deflate,br",
@@ -103,7 +103,12 @@ export function formatDateQuery(start: Date, end?: Date): string {
  * @param requestDate The date to fetch data for
  * @returns PhotoFile[] | VideoFile[]
  */
-export async function fetchData(collection: Collection, fetchType: IOFetchType, requestDate: Date) {
+export async function fetchData(
+  collection: Collection,
+  fetchType: IOFetchType,
+  requestDate: Date,
+  forceNew?: boolean
+) {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let preferNew: boolean;
   let dateQuery: string;
@@ -167,12 +172,13 @@ export async function fetchData(collection: Collection, fetchType: IOFetchType, 
   };
 
   return fetchWithCache<PhotoFile[] | VideoFile[]>(
-    `io/${fetchType}/${collection}/${dateQuery}`,
+    `${fetchType}/${collection}/${dateQuery}`,
+    CacheFolder.Io,
     retriever,
     {
       cacheAge: 3600,
-      staleOk: true,
-      preferNew: preferNew,
+      returnExpiredCacheIfFetchFails: true,
+      tryFetchNewFirst: forceNew ? forceNew : preferNew,
     }
   );
 }
