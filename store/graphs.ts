@@ -33,6 +33,7 @@ export const graphSlice = createSlice({
       });
     },
     clearGraphsData: (state) => {
+      if (!state.graphsManifest) return;
       state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
         return { ...stateGraph, data: null };
       });
