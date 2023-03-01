@@ -25,7 +25,7 @@ export default async function fetchWithTimeout(
   });
   const response = await fetch(url, {
     ...requestInit,
-    method: requestInit.method || "GET",
+    method: requestInit?.method || "GET",
     agent: httpsAgent,
     signal,
   });
