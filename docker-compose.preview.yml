@@ -13,6 +13,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/nginx/Dockerfile
+      args:
+        - NGINX_BASE_IMAGE=${NGINX_BASE_IMAGE}
 
   nextjs:
     image: ${REGISTRY_IMAGE}/nextjs:preview-${IMAGE_VERSION}
@@ -25,3 +27,4 @@ services:
         - NEXT_PUBLIC_MAPBOX_KEY=${NEXT_PUBLIC_MAPBOX_KEY}
         - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
         - IMAGE_VERSION=${IMAGE_VERSION}
+        - NEXTJS_BASE_IMAGE=${NEXTJS_BASE_IMAGE}
