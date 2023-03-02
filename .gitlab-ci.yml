@@ -192,6 +192,7 @@ make-fit-dotenv:
     - bash ./make-dotenv.sh fit
     - cd ..
     - echo "export IMAGE_VERSION=${IMAGE_VERSION}" > IMAGE_VERSION.sh
+    - chmod 777 IMAGE_VERSION.sh
   artifacts:
     paths:
       - .env
@@ -262,22 +263,60 @@ build:
       - .next
       - dist
 
-.docker-compose-build-template:
+.kaniko-build-template:
   stage: stageless
+  image:
+    # Specify the Docker image to be used for the job, which is the latest
+    # official kaniko executor debug image, as the debug image includes the
+    # shell needed for GitLab CI to function
+    name: gcr.io/kaniko-project/executor:debug
+    # Entrypoint is overridden to allow a script to be run
+    entrypoint: [""]
   needs:
     - make-fit-dotenv
-  extends: .dind
   script:
+    # Make the directory where the config file created in the following setup
+    # will reside
+    - mkdir -p /kaniko/.docker
+
+    # Add the GitLab container registry and the registry user credentials to
+    # JSON config file for use by the executor
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
+
     # required for nextjs to have NASA CA cert
     - echo "${ENV_LOCAL_CERT_PEM}" > ./.env.local.cert.pem
 
+    - ls -al
+
     # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env. See
     # make-dotenv job/template.
-    - source IMAGE_VERSION.sh
+    - source ./IMAGE_VERSION.sh
 
-    - docker-compose -f docker-compose.yml -f docker-compose.preview.yml build --no-cache ${SERVICE_NAME}
     - TEMP_IMAGE_NAME="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:preview-${IMAGE_VERSION}"
-    - docker push "${TEMP_IMAGE_NAME}"
+    - echo "Temp image name = ${TEMP_IMAGE_NAME}"
+
+    # Run the kaniko executor with the following arguments:
+    # --context $CI_PROJECT_DIR               Set the path the repo is cloned
+    #                                         to as the build context (default
+    #                                         location for the Dockerfile and
+    #                                         other referenced files). For more
+    #                                         info see
+    #                                         https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#understand-build-context
+    # --dockerfile $CI_PROJECT_DIR/Dockerfile Path to the Dockerfile to be
+    #                                         built
+    # --destination $TARGET_IMAGE             Where to push the built image
+    #                                         with the targeted container repo,
+    #                                         name, and tag selected based upon
+    #                                         the rules logic above
+    - >
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --target "${MULTISTAGE_TARGET}"
+      --build-arg "${BASE_IMAGE_VAR}=${BASE_IMAGE_VALUE}"
+      --skip-unused-stages
+      --dockerfile "${CI_PROJECT_DIR}/docker/${SERVICE_NAME}/Dockerfile"
+      --destination "${TEMP_IMAGE_NAME}"
+      --no-push
 
 #
 # Build docker images immediately (needs: [], meaning it has not prerequisites)
@@ -287,14 +326,20 @@ build:
 # SERVICE_NAME = name of service from docker-compose.yml (key in services object)
 #
 docker:build:nginx:
-  extends: .docker-compose-build-template
+  extends: .kaniko-build-template
   variables:
     SERVICE_NAME: nginx
+    MULTISTAGE_TARGET: base
+    BASE_IMAGE_VAR: NGINX_BASE_IMAGE
+    BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
 
 docker:build:nextjs:
-  extends: .docker-compose-build-template
+  extends: .kaniko-build-template
   variables:
     SERVICE_NAME: nextjs
+    MULTISTAGE_TARGET: prod
+    BASE_IMAGE_VAR: NEXTJS_BASE_IMAGE
+    BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
 
 #
 # Push docker images after necessary jobs pass (e.g. unit testing passes)
