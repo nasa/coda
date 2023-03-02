@@ -316,7 +316,6 @@ build:
       --skip-unused-stages
       --dockerfile "${CI_PROJECT_DIR}/docker/${SERVICE_NAME}/Dockerfile"
       --destination "${TEMP_IMAGE_NAME}"
-      --no-push
 
 #
 # Build docker images immediately (needs: [], meaning it has not prerequisites)
