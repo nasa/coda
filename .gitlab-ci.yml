@@ -191,16 +191,12 @@ make-fit-dotenv:
   script:
     - bash ./make-dotenv.sh fit
     - cd ..
-    - echo "export IMAGE_VERSION=${IMAGE_VERSION}" > IMAGE_VERSION.sh
-    - chmod 777 IMAGE_VERSION.sh
   artifacts:
     paths:
       - .env
       # Also export these for easy use by deployer
       - .fitdock.yml
       - docker-compose.yml
-      # Exports this to make it easy to know what the IMAGE_VERSION var is inside .env
-      - IMAGE_VERSION.sh
 
 test:
   stage: stageless
@@ -286,14 +282,34 @@ build:
     # required for nextjs to have NASA CA cert
     - echo "${ENV_LOCAL_CERT_PEM}" > ./.env.local.cert.pem
 
-    - ls -al
-
-    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env. See
-    # make-dotenv job/template.
-    - source ./IMAGE_VERSION.sh
+    # Set shell to export all variable definitions, then source .env, then turn off allexport
+    - set -o allexport && source ./.env && set +o allexport
 
     - TEMP_IMAGE_NAME="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:preview-${IMAGE_VERSION}"
     - echo "Temp image name = ${TEMP_IMAGE_NAME}"
+
+    - MORE_BUILD_ARGS=""
+
+    # If present, turn $MAP_ENV_VARS_TO_BUILD_ARGS into a string like:
+    # --build-arg VARNAME=VALUE --build-arg VAR2=VAL2 --build-arg VAR3=VAL3
+    - |
+      if [ -z "${MAP_ENV_VARS_TO_BUILD_ARGS}" ]; then
+        echo 'No env vars to map to build args'
+      else
+        echo "${MAP_ENV_VARS_TO_BUILD_ARGS}" > args.txt
+        while read VARNAME; do
+          if [ -z "${VARNAME}" ]; then
+            echo "empty varname"
+          else
+            VALUE=$(eval "echo \${${VARNAME}}")
+            NEW_BUILD_ARG="--build-arg ${VARNAME}=${VALUE}"
+            MORE_BUILD_ARGS="${MORE_BUILD_ARGS} ${NEW_BUILD_ARG}"
+            echo "Added new build arg: ${NEW_BUILD_ARG}"
+          fi
+        done <args.txt
+      fi
+
+    - echo "${MORE_BUILD_ARGS}"
 
     # Run the kaniko executor with the following arguments:
     # --context $CI_PROJECT_DIR               Set the path the repo is cloned
@@ -313,10 +329,10 @@ build:
       --context "${CI_PROJECT_DIR}"
       --target "${MULTISTAGE_TARGET}"
       --build-arg "${BASE_IMAGE_VAR}=${BASE_IMAGE_VALUE}"
+      $(echo ${MORE_BUILD_ARGS})
       --skip-unused-stages
       --dockerfile "${CI_PROJECT_DIR}/docker/${SERVICE_NAME}/Dockerfile"
       --destination "${TEMP_IMAGE_NAME}"
-      --no-push
 
 #
 # Build docker images immediately (needs: [], meaning it has not prerequisites)
@@ -340,6 +356,10 @@ docker:build:nextjs:
     MULTISTAGE_TARGET: prod
     BASE_IMAGE_VAR: NEXTJS_BASE_IMAGE
     BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
+    MAP_ENV_VARS_TO_BUILD_ARGS: |
+      NEXT_PUBLIC_MAPBOX_KEY
+      NEXT_PUBLIC_APP_ENV
+      IMAGE_VERSION
 
 #
 # Push docker images after necessary jobs pass (e.g. unit testing passes)
@@ -364,7 +384,7 @@ docker:push:
 
     # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env. See
     # make-dotenv job/template.
-    - source IMAGE_VERSION.sh
+    - set -o allexport && source ./.env && set +o allexport
 
     - SERVICE=nginx
     - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
