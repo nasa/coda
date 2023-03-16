@@ -1,6 +1,6 @@
 # Must have base image, which is supplied by docker-compose, defined in .env, and
 # set appropriately for the environment via scripts/make-dotenv.sh
-ARG NGINX_BASE_IMAGE
+ARG NGINX_BASE_IMAGE=nginx:1.23.0-alpine
 
 # This build doesn't actually need the "AS base" except that it simplifies our .gitlab-ci.yml by
 # allowing us to specify `--target base`

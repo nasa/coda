@@ -17,6 +17,12 @@ services:
   nextjs:
     image: ${REGISTRY_IMAGE}/nextjs:${IMAGE_VERSION}
     restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      # Override the value of CACHE_ROOT from .env, such that it's always
+      # /cache in the container.
+      - CACHE_ROOT=/cache
     ports:
       # nextjs is hard-coded to run on 3000 in docker, and nginx proxies 3000. Hard-coding this and
       # not making it configurable keeps docker config simpler.
@@ -26,5 +32,5 @@ services:
       # but is simpler config-wise to put here versus in the overrides file
       - "9229:9229"
     volumes:
-      - ./.env:/app/.env
+      - ${CACHE_ROOT}:/cache
       - ${DOCKER_HOST_HTTP_STATIC_DIR}:/static
