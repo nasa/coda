@@ -110,17 +110,25 @@ dependency-check:
 
 npm-audit:
   stage: stageless
+  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit
   needs: []
   tags: ["openshift"]
   allow_failure: true
   script:
-    - npm audit --json > npm-audit-report.json && echo "No vulnerabilities found" || npm audit
-  artifacts:
-    # Saving artifacts always forces them to be saved on failure as well as success
-    when: always
-    # Save the JSON formatted results as an artifact
-    paths:
-      - "./npm-audit-report.json"
+    # Runs `npm audit --json` then sends the results to EMSS dashboard (only on EMSS major branches)
+    - >
+      if
+      [ "${CI_COMMIT_REF_SLUG}" == "prod" ] ||
+      [ "${CI_COMMIT_REF_SLUG}" == "int" ] ||
+      [ "${CI_COMMIT_REF_SLUG}" == "stable" ] ||
+      [ "${CI_COMMIT_REF_SLUG}" == "beta" ] ||
+      [ "${CI_COMMIT_REF_SLUG}" == "alpha" ];
+      then
+        node /postAuditReport.js;
+      fi
+
+    # Run this without --json to make a pretty-print for the job log, plus will pass/fail the job
+    - npm audit
 
 install_dependencies:
   stage: stageless
