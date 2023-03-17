@@ -4,7 +4,7 @@
 
 # Must have base image, which is supplied by docker-compose, defined in .env, and
 # set appropriately for the environment via scripts/make-dotenv.sh
-ARG NEXTJS_BASE_IMAGE
+ARG NEXTJS_BASE_IMAGE=node:18-alpine
 
 FROM $NEXTJS_BASE_IMAGE as base
 RUN mkdir /app
