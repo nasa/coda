@@ -23,12 +23,18 @@ if [ "${1}" = "local" ]; then
     DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
     IMAGE_VERSION="local"
     CACHE_ROOT=./.cache/dev
+
+    NGINX_BASE_IMAGE=nginx:1.23.0-alpine
+    NEXTJS_BASE_IMAGE=node:18-alpine
 else
     DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
     DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
     DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
     IMAGE_VERSION="${IMAGE_VERSION}"
     CACHE_ROOT=/d1/coda/cache
+
+    NGINX_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
+    NEXTJS_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
 fi
 
 # Actual FIT environments deployed by GitLab CI have different requirement for CACHE_ROOT
@@ -59,6 +65,8 @@ export DOCKER_HOST_SSL_CERTS_DIR \
     DOCKER_HOST_SSL_PRIVATE_DIR \
     DOCKER_HOST_HTTP_STATIC_DIR \
     IMAGE_VERSION \
+    NGINX_BASE_IMAGE \
+    NEXTJS_BASE_IMAGE \
     CACHE_ROOT
 
 # envsubst must be installed. Installed by default in Git Bash for Windows.
