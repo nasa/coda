@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
 import { diff, isSameDate } from "store/playhead";
-import { padZeros } from "utils/formatting";
+import { getYearDayNumber, padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
 import { Source } from "utils/enums";
 import { generateShareURL } from "utils/share-state";
@@ -140,6 +140,7 @@ export function CalendarDate({
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
 
+  let dayOfYearColor = "var(--even-greyer)";
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
     classes.push(styles.greyBkg);
@@ -151,15 +152,18 @@ export function CalendarDate({
 
   if (description.isPlayheadDay) {
     classes.push(styles.inverted);
+    dayOfYearColor = "var(--dark-grey)";
   }
 
   if (!description.inMonth && !description.isLater) {
     classes.push(styles.greyText);
     classes.push(styles.darkerGrayBkg);
+    dayOfYearColor = "var(--lighter-grey)";
   }
 
   if (description.isLater) {
     classes.push(styles.greyText);
+    dayOfYearColor = "var(--lighter-grey)";
   }
 
   if (!description.isLater) {
@@ -194,7 +198,17 @@ export function CalendarDate({
         </div>
       )}
       <div className={classes.join(" ")}>
-        <div className={styles.verticalCenter}>{description.date.getUTCDate()}</div>
+        <div className={styles.verticalCenter}>
+          <div className={styles.dateCellDayOfMonth}>{description.date.getUTCDate()}</div>
+          <div
+            className={`${styles.dateCellDayOfYear} ${
+              description.isPlayheadDay && styles.inverted
+            }`}
+            style={{ color: dayOfYearColor }}
+          >
+            {getYearDayNumber(description.date)}
+          </div>
+        </div>
       </div>
     </div>
   );
