@@ -141,6 +141,7 @@ export function CalendarDate({
   const playhead = useSelector((state: RootState) => state.playhead);
 
   let dayOfYearColor = "var(--even-greyer)";
+  let toolTipText = "";
   const classes = [styles.calendarDate];
   if (description.inMonth && !description.isLater) {
     classes.push(styles.greyBkg);
@@ -164,6 +165,7 @@ export function CalendarDate({
   if (description.isLater) {
     classes.push(styles.greyText);
     dayOfYearColor = "var(--lighter-grey)";
+    toolTipText = "No content in CODA from future dates";
   }
 
   if (!description.isLater) {
@@ -186,7 +188,7 @@ export function CalendarDate({
   };
 
   return (
-    <div onClick={handleClick}>
+    <div onClick={handleClick} title={toolTipText}>
       {!_.isNil(description.EVA) && (
         <div
           title={description.EVA.name}
