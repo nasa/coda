@@ -42,7 +42,18 @@
   margin-bottom: 5px;
   border-radius: var(--radius);
   font-size: 19px;
+  font-weight: 500;
   cursor: default;
+}
+
+.dateCellDayOfMonth {
+  align-self: center;
+  height: 18px;
+}
+.dateCellDayOfYear {
+  font-size: 0.6em;
+  font-weight: 500;
+  align-self: center;
 }
 
 .clickable {
