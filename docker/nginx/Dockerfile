@@ -21,6 +21,7 @@ RUN mkdir -p /usr/share/nginx/static && \
 
 # Nginx config files
 COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY .htpasswd /etc/nginx/.htpasswd
 
 # This image is intended to be run with docker-compose. See docker-compose*.yml files for necessary
 # environment variables
