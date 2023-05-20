@@ -3,9 +3,10 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 
 export async function fetchLabsTranscripts(
   source: Source,
-  dateWanted: string
+  dateWanted: string,
+  overrideBaseUrl?: string
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
-  if (source !== Source.ISS) {
+  if (source === Source.NBL) {
     return {
       cacheMetadata: {
         fromCache: false,
@@ -23,7 +24,10 @@ export async function fetchLabsTranscripts(
 
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
   for (let i = 1; i <= 4; i++) {
-    const url = `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}/transcript-SG${i}.json`;
+    const urlBase = overrideBaseUrl
+      ? overrideBaseUrl
+      : `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}`;
+    const url = `${urlBase}/transcript-SG${i}.json`;
     const unprocessedTranscript: UnprocessedTranscript = {
       sgNum: i,
       unprocessedUtterances: [],

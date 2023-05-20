@@ -1,11 +1,14 @@
+import { Collection } from "utils/enums";
+
 export async function getTranscripts(
   source: Source,
   year: number,
   month: number,
-  date: number
+  date: number,
+  collection: Collection
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   const res = await fetch(
-    `/api/emss-labs/transcripts?source=${source}&year=${year}&month=${month}&date=${date}`
+    `/api/emss-labs/transcripts?source=${source}&year=${year}&month=${month}&date=${date}&collection=${collection}`
   );
   const transcripts: WrappedResponse<UnprocessedTranscript[]> = await res.json();
 

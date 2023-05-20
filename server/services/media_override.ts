@@ -6,7 +6,7 @@ import type { Response } from "node-fetch";
  */
 export async function getManifest(
   override: MediaSourceOverride
-): Promise<VideoFile[] | PhotoFile[]> {
+): Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]> {
   const dataPath = `${override.url}/${override.type}Manifest.json`;
 
   let res: Response;

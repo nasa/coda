@@ -192,7 +192,7 @@ interface TestEventOffsets {
 interface MediaSourceOverride {
   date: string;
   source: Source | Collection;
-  type: "video" | "photo";
+  type: "video" | "photo" | "transcript";
   url: string;
 }
 
