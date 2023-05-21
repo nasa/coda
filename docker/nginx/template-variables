@@ -1,0 +1,3 @@
+map $host $web_login_password {
+  default "$WEB_LOGIN_PASSWORD";
+}

@@ -2,10 +2,13 @@ version: "3.9"
 services:
   nginx:
     image: ${REGISTRY_IMAGE}/nginx:${IMAGE_VERSION}
+    environment: 
+      - WEB_LOGIN_PASSWORD=${WEB_LOGIN_PASSWORD}
     restart: unless-stopped
     depends_on:
       - nextjs
     volumes:
+      - ./template-variables:/etc/nginx/templates/10-variables.conf.template:ro
       - ${DOCKER_HOST_HTTP_STATIC_DIR}:/usr/share/nginx/static:ro
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private

@@ -10,6 +10,8 @@ FROM $NGINX_BASE_IMAGE as base
 COPY docker/nginx/docker-entrypoint.sh /
 RUN dos2unix /docker-entrypoint.sh
 
+RUN echo $WEB_LOGIN_PASSWORD > /etc/nginx/.htpasswd
+
 # redundant with base nginx image? Keep anyway in case that image changes?
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
 
