@@ -3,3 +3,7 @@ interface GPSTrack {
   points: Point[];
   slopes: number[];
 }
+
+interface GPSTrackToggles {
+  [key: string]: boolean;
+}

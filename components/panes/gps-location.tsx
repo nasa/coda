@@ -21,23 +21,60 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+import Button from "components/interface/button";
 library.add(faLock, faLockOpen);
 
 export function GPSLocationControls(props: { frameID: number }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const paneStateData: LocationPaneStateData = useSelector(
+  const paneStateData: GpsTrackPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
+
+  const gpsTracks = useSelector((state: RootState) => state.gps.gpsTracks);
 
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
   }
+
   return (
     <div className={styles.controls}>
-      <div className={styles.controlsLeft}></div>
+      <div className={styles.controlsLeft}>
+        <div className={styles.selections}>
+          {gpsTracks.map((track, index) => {
+            let rounded = "none";
+            if (index === 0) {
+              rounded = "left";
+            } else if (index === gpsTracks.length - 1) {
+              rounded = "right";
+            }
+
+            const color = paneStateData.gpsTrackToggles[track.name]
+              ? "active_selected"
+              : "disabled";
+
+            return (
+              <Button
+                key={"DLBUTTON_" + track.name + "_" + frameID}
+                color={color}
+                size="medium"
+                rounded={rounded}
+                callback={() => {
+                  const onOff = !paneStateData.gpsTrackToggles[track.name];
+
+                  const newTogglesData = { ...paneStateData.gpsTrackToggles, [track.name]: onOff };
+
+                  setPaneStateValue(dispatch, frameID, "gpsTrackToggles", newTogglesData);
+                }}
+              >
+                <div className={styles.dlLabel}>{track.name}</div>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
           <button
@@ -80,6 +117,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   const initialMarkers: MapMarkers = {
     EV1: { ...initialMarker },
     EV2: { ...initialMarker },
+    EV3: { ...initialMarker },
+    EV4: { ...initialMarker },
     Cart: { ...initialMarker },
     LightCart: { ...initialMarker },
     Staff: { ...initialMarker },
@@ -102,6 +141,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   let trackFeatures: TrackFeatures = {
     EV1: { ...initialTrackFeature },
     EV2: { ...initialTrackFeature },
+    EV3: { ...initialTrackFeature },
+    EV4: { ...initialTrackFeature },
     Cart: { ...initialTrackFeature },
     LightCart: { ...initialTrackFeature },
     Staff: { ...initialTrackFeature },
@@ -111,7 +152,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
   const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
-  const paneStateData: LocationPaneStateData = useSelector(
+  const paneStateData: GpsTrackPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
   const mapContainer = useRef(null);
@@ -132,6 +173,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   const [infoDisplay, setInfoDisplay] = useState<MapInfoDisplay>({
     EV1: infoItemsDefaultValue,
     EV2: infoItemsDefaultValue,
+    EV3: infoItemsDefaultValue,
+    EV4: infoItemsDefaultValue,
     Cart: infoItemsDefaultValue,
     LightCart: infoItemsDefaultValue,
     Staff: infoItemsDefaultValue,
@@ -157,7 +200,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     }
   }, [props.frameDimensions, layoutLastChanged]);
 
-  //update map GPS markers
+  //update map GPS markers and tracks
   useEffect(() => {
     if (!map || !playhead.date || gpsState.gpsTracks.length === 0) return;
 
@@ -182,12 +225,18 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     const gpsTracks = gpsState.gpsTracks;
 
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
-    //loop through the gps track objects (EV1, EV2, and Cart)
+    //loop through the gps track objects
     for (let track = 0; track < gpsTracks.length; track++) {
       let markerGPSPoint: Point = null;
 
       // make visible the marker for the current track
-      mapMarkers[gpsTracks[track].name].markerNode.style.visibility = "visible";
+      if (paneStateData.gpsTrackToggles[gpsTracks[track].name]) {
+        mapMarkers[gpsTracks[track].name].markerNode.style.visibility = "visible";
+        map.setLayoutProperty(`track${gpsTracks[track].name}Layer`, "visibility", "visible");
+      } else {
+        mapMarkers[gpsTracks[track].name].markerNode.style.visibility = "hidden";
+        map.setLayoutProperty(`track${gpsTracks[track].name}Layer`, "visibility", "none");
+      }
 
       let markerIndex = 0;
       // If not hovering move the markers to the playheadTime
@@ -246,17 +295,31 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     }
 
     if (paneStateData.lockMap) {
-      // check if there is an EV1 value in store. If so, we're tracking DRATS so track EV1.
-      if (eventType === "DRATS") {
-        map.panTo(mapMarkers.EV1.marker.getLngLat());
-        // check if there is an Staff value in store. If so, we're tracking Gandalf's Staff so track Staff.
-      } else if (eventType === "GANDALF") {
-        map.panTo(mapMarkers.Staff.marker.getLngLat());
-      } else {
+      // get the name of the first selected track and pan to it
+      let somethingSelected = false;
+      // loop through the keys in paneStateData.gpsTrackToggles
+      for (const key in paneStateData.gpsTrackToggles) {
+        // if the track is selected
+        if (paneStateData.gpsTrackToggles[key]) {
+          // pan to the track
+          map.panTo(mapMarkers[key].marker.getLngLat());
+          somethingSelected = true;
+          break;
+        }
+      }
+      // if nothing is selected, pan to Houston
+      if (!somethingSelected) {
         map.panTo(houstonLatLng);
       }
     }
-  }, [map, playhead.date, playhead.seconds, playheadHover.seconds, gpsState.gpsTracks]);
+  }, [
+    map,
+    playhead.date,
+    playhead.seconds,
+    playheadHover.seconds,
+    gpsState.gpsTracks,
+    paneStateData,
+  ]);
 
   //Display GPS tracks on map
   useEffect(() => {
@@ -265,7 +328,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     const gpsTracks = gpsState.gpsTracks;
     // Set a delay to get around buggy mapbox not dealing with sources properly
     setTimeout(() => {
-      //loop through the gps track objects (EV1, EV2, Cart, and LightCart)
+      //loop through the gps track objects
       for (let track = 0; track < gpsTracks.length; track++) {
         const gpsTrack = gpsTracks[track];
         const newCoordinates: LngLatLike[] = [];
@@ -292,13 +355,21 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       type: "geojson",
       data: trackFeatures.EV2,
     });
+    thisMap.addSource("trackEV3Source", {
+      type: "geojson",
+      data: trackFeatures.EV3,
+    });
+    thisMap.addSource("trackEV4Source", {
+      type: "geojson",
+      data: trackFeatures.EV4,
+    });
     thisMap.addSource("trackCartSource", {
       type: "geojson",
       data: trackFeatures.Cart,
     });
     thisMap.addSource("trackLightCartSource", {
       type: "geojson",
-      data: trackFeatures.Cart,
+      data: trackFeatures.LightCart,
     });
     thisMap.addSource("trackStaffSource", {
       type: "geojson",
@@ -324,6 +395,28 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       source: "trackEV2Source",
       paint: {
         "line-color": "blue",
+        "line-opacity": 0.3,
+        "line-width": 4,
+      },
+    });
+
+    thisMap.addLayer({
+      id: "trackEV3Layer",
+      type: "line",
+      source: "trackEV3Source",
+      paint: {
+        "line-color": "orange",
+        "line-opacity": 0.6,
+        "line-width": 4,
+      },
+    });
+
+    thisMap.addLayer({
+      id: "trackEV4Layer",
+      type: "line",
+      source: "trackEV4Source",
+      paint: {
+        "line-color": "green",
         "line-opacity": 0.3,
         "line-width": 4,
       },
@@ -381,6 +474,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       const newMarkers: MapMarkers = {
         EV1: addMapMarker(thisMap, "EV1"),
         EV2: addMapMarker(thisMap, "EV2"),
+        EV3: addMapMarker(thisMap, "EV3"),
+        EV4: addMapMarker(thisMap, "EV4"),
         Cart: addMapMarker(thisMap, "cart"),
         LightCart: addMapMarker(thisMap, "LightCart"),
         Staff: addMapMarker(thisMap, "Staff"),
@@ -428,7 +523,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
             <p>
               Displays GPS tracks stored in the{" "}
               <a
-                href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA/D-RATS_2021_Data"}
+                href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA/External_Data"}
                 target={"_blank"}
               >
                 Exploration Wiki
@@ -436,15 +531,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
               for test events on an interactive map. Hovering over the CODA timeline will move the
               GPS subjects to their corresponding positions for that time.
             </p>
-            <p>GPS track types include EV1, EV2, Tool Cart, and Light Cart.</p>
-            <p>
-              Currently the only GPS data events available are for the 2021 D-RATS activites, such
-              as{" "}
-              <a href={"https://coda.fit.nasa.gov/view?v=2.0&date=2021-10-21&gmt=04:13:20"}>
-                this one
-              </a>
-              .
-            </p>
+            <p>GPS track types include EV1, EV2, EV3, EV4, Tool Cart, and Light Cart.</p>
           </div>
         </HelpOverlay>
       </div>
@@ -452,80 +539,78 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   );
 
   function showInfo() {
-    return (
-      <>
-        <div className={`${styles.info} ${eventType === "GANDALF" ? styles.info_narrower : ""}`}>
-          <div className={styles.infoSection}>
-            <table className={styles.valueTable}>
-              <tbody>
-                <tr>
-                  <td></td>
-                  <td>
-                    <div className={styles.infoSectionTitle}>
-                      <div>
-                        <strong>{eventType === "DRATS" ? "EV1" : "EV1"}</strong>
-                      </div>
-                      <div>
-                        <img
-                          className="infoSectionTitleIcon"
-                          src="/images/marker_ev1.png"
-                          width="30px"
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  {eventType === "DRATS" && (
-                    <td>
-                      <div className={styles.infoSectionTitle}>
-                        <div>
-                          <strong>EV2</strong>
-                        </div>
-                        <div>
-                          <img
-                            className="infoSectionTitleIcon"
-                            src="/images/marker_ev2.png"
-                            width="30px"
-                          />
-                        </div>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-                <tr>
-                  <td>Latitude:</td>
-                  <td>{eventType === "DRATS" ? infoDisplay.EV1.lat : infoDisplay.Staff.lat}</td>
-                  {eventType === "DRATS" && <td>{infoDisplay.EV2.lat}</td>}
-                </tr>
-                <tr>
-                  <td>Longitude:</td>
-                  <td>{eventType === "DRATS" ? infoDisplay.EV1.lng : infoDisplay.Staff.lng}</td>
-                  {eventType === "DRATS" && <td>{infoDisplay.EV2.lng}</td>}
-                </tr>
-                <tr>
-                  <td>Elevation (m):</td>
-                  <td>{eventType === "DRATS" ? infoDisplay.EV1.ele : infoDisplay.Staff.ele}</td>
-                  {eventType === "DRATS" && <td>{infoDisplay.EV2.ele}</td>}
-                </tr>
-                <tr>
-                  <td>Timestamp:</td>
-                  <td>
-                    {eventType === "DRATS" ? infoDisplay.EV1.date : infoDisplay.Staff.date}
-                    <br />
-                    {eventType === "DRATS" ? infoDisplay.EV1.time : infoDisplay.Staff.time}
-                  </td>
-                  {eventType === "DRATS" && (
-                    <td>
-                      {infoDisplay.EV2.date}
-                      <br />
-                      {infoDisplay.EV2.time}
-                    </td>
-                  )}
-                </tr>
-              </tbody>
-            </table>
+    const tracksEnabled = Object.entries(paneStateData.gpsTrackToggles).filter((value) => {
+      return value[1];
+    });
+
+    const sortedEnabledKeys = [];
+    for (const [key, value] of tracksEnabled) {
+      if (value) {
+        sortedEnabledKeys.push(key);
+      }
+    }
+    sortedEnabledKeys.sort();
+
+    if (tracksEnabled.length > 0) {
+      return (
+        <>
+          <div className={`${styles.info} ${eventType === "GANDALF" ? styles.info_narrower : ""}`}>
+            <div className={styles.infoSection}>
+              <table className={styles.valueTable}>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    {sortedEnabledKeys.map((key) => {
+                      return (
+                        <td key={key}>
+                          <div className={styles.infoSectionTitle}>
+                            <div>
+                              <strong>{key}</strong>
+                            </div>
+                            <div>
+                              <img
+                                className="infoSectionTitleIcon"
+                                src={`/images/marker_${key.toLowerCase()}.png`}
+                                width="30px"
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  <tr>
+                    <td>Latitude:</td>
+                    {sortedEnabledKeys.map((key) => {
+                      return <td key={key}>{infoDisplay[key].lat}</td>;
+                    })}
+                  </tr>
+                  <tr>
+                    <td>Longitude:</td>
+                    {sortedEnabledKeys.map((key) => {
+                      return <td key={key}>{infoDisplay[key].lng}</td>;
+                    })}
+                  </tr>
+                  <tr>
+                    <td>Elevation (m):</td>
+                    {sortedEnabledKeys.map((key) => {
+                      return <td key={key}>{infoDisplay[key].ele}</td>;
+                    })}
+                  </tr>
+                  <tr>
+                    <td>Timestamp:</td>
+                    {sortedEnabledKeys.map((key) => {
+                      return <td key={key}>{infoDisplay[key].time}</td>;
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </>
-    );
+        </>
+      );
+    } else {
+      return <></>;
+    }
   }
 }

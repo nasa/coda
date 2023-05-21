@@ -7,6 +7,10 @@ const GPSMarker = (props) => {
     markerClass = styles.ev1Marker;
   } else if (props.type === "EV2") {
     markerClass = styles.ev2Marker;
+  } else if (props.type === "EV3") {
+    markerClass = styles.ev3Marker;
+  } else if (props.type === "EV4") {
+    markerClass = styles.ev4Marker;
   } else if (props.type === "Cart") {
     markerClass = styles.cartMarker;
   } else if (props.type === "LightCart") {

@@ -99,6 +99,13 @@ type LocationPaneStateData = {
   showHelp: boolean;
 };
 
+type GpsTrackPaneStateData = {
+  ready: boolean;
+  lockMap: boolean;
+  showHelp: boolean;
+  gpsTrackToggles: GPSTrackToggles;
+};
+
 type EventPaneStateData = {
   ready: boolean;
   showHelp: boolean;
