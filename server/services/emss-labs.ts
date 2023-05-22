@@ -6,7 +6,8 @@ export async function fetchLabsTranscripts(
   dateWanted: string,
   overrideBaseUrl?: string
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
-  if (source === Source.NBL) {
+  // if not ISS return nothing unless an override URL has been send, then use the override URL
+  if (source !== Source.ISS && !overrideBaseUrl) {
     return {
       cacheMetadata: {
         fromCache: false,

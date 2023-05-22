@@ -160,6 +160,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   const [map, setMap] = useState<Map>(null);
   const [mapMarkers, setMapMarkers] = useState(initialMarkers);
   const [eventType, setEventType] = useState<"DRATS" | "GANDALF">("DRATS");
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [sortedEnabledTracks, setSortedEnabledTracks] = useState<string[]>([]);
 
   const infoItemsDefaultValue = {
     lat: "",
@@ -200,14 +202,18 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     }
   }, [props.frameDimensions, layoutLastChanged]);
 
+  useEffect(() => {
+    if (!map) return;
+    map.setZoom(zoomLevel);
+  }, [map, zoomLevel]);
+
   //update map GPS markers and tracks
   useEffect(() => {
     if (!map || !playhead.date || gpsState.gpsTracks.length === 0) return;
 
-    if (map.getZoom() === 1) {
-      map.setZoom(15);
-      // map.setPitch(45);
-    }
+    // if (map.getZoom() === 1) {
+    //   map.setZoom(15);
+    // }
 
     // set eventType to DRATS if EV1 is present, set as GANDALF if Staff is present
     if (gpsState.gpsTracks.filter((track) => track.name === "EV1").length > 0) {
@@ -224,7 +230,6 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
 
     const gpsTracks = gpsState.gpsTracks;
 
-    const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
     //loop through the gps track objects
     for (let track = 0; track < gpsTracks.length; track++) {
       let markerGPSPoint: Point = null;
@@ -239,30 +244,24 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       }
 
       let markerIndex = 0;
-      // If not hovering move the markers to the playheadTime
+
+      let isoDate = null;
       if (playheadHover.seconds === 0) {
-        //Look for the point in each GPS track closest to the playheadTime
-        for (let i = 0; i < gpsTracks[track].points.length; i++) {
-          if (gpsTracks[track].points[i].time.toString() > playHeadISODate) {
-            if (i > 0) {
-              markerIndex = i - 1;
-            }
-            break;
-          }
-        }
+        isoDate = getPlayheadISOString(playhead.date, playhead.seconds);
       } else {
-        //if mousing over the timeline and hovering move markers to hover time point
-        //Look for the point in each GPS track closest to the hover time
-        const playHeadhoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
-        for (let i = 0; i < gpsTracks[track].points.length; i++) {
-          if (gpsTracks[track].points[i].time.toString() > playHeadhoverISODate) {
-            if (i > 0) {
-              markerIndex = i - 1;
-            }
-            break;
+        isoDate = getPlayheadISOString(playhead.date, playheadHover.seconds);
+      }
+
+      //Look for the point in each GPS track closest to the playheadTime
+      for (let i = 0; i < gpsTracks[track].points.length; i++) {
+        if (gpsTracks[track].points[i].time.toString() > isoDate) {
+          if (i > 0) {
+            markerIndex = i - 1;
           }
+          break;
         }
       }
+
       //save the found track point
       markerGPSPoint = gpsTracks[track].points[markerIndex];
 
@@ -297,19 +296,23 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     if (paneStateData.lockMap) {
       // get the name of the first selected track and pan to it
       let somethingSelected = false;
-      // loop through the keys in paneStateData.gpsTrackToggles
+      // loop through the sortedEnabledTracks
       for (const key in paneStateData.gpsTrackToggles) {
         // if the track is selected
         if (paneStateData.gpsTrackToggles[key]) {
           // pan to the track
           map.panTo(mapMarkers[key].marker.getLngLat());
           somethingSelected = true;
+          if (zoomLevel === 1) {
+            setZoomLevel(15);
+          }
           break;
         }
       }
       // if nothing is selected, pan to Houston
       if (!somethingSelected) {
         map.panTo(houstonLatLng);
+        setZoomLevel(1);
       }
     }
   }, [
@@ -345,6 +348,21 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       }
     }, 500);
   }, [map, gpsState.gpsTracks]);
+
+  useEffect(() => {
+    const tracksEnabled = Object.entries(paneStateData.gpsTrackToggles).filter((value) => {
+      return value[1];
+    });
+
+    const sortedEnabledKeys = [];
+    for (const [key, value] of tracksEnabled) {
+      if (value) {
+        sortedEnabledKeys.push(key);
+      }
+    }
+    sortedEnabledKeys.sort();
+    setSortedEnabledTracks(sortedEnabledKeys);
+  }, [paneStateData.gpsTrackToggles]);
 
   function addMapSources(thisMap: mapboxgl.Map) {
     thisMap.addSource("trackEV1Source", {
@@ -539,19 +557,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   );
 
   function showInfo() {
-    const tracksEnabled = Object.entries(paneStateData.gpsTrackToggles).filter((value) => {
-      return value[1];
-    });
-
-    const sortedEnabledKeys = [];
-    for (const [key, value] of tracksEnabled) {
-      if (value) {
-        sortedEnabledKeys.push(key);
-      }
-    }
-    sortedEnabledKeys.sort();
-
-    if (tracksEnabled.length > 0) {
+    if (sortedEnabledTracks.length > 0) {
       return (
         <>
           <div className={`${styles.info} ${eventType === "GANDALF" ? styles.info_narrower : ""}`}>
@@ -560,7 +566,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
                 <tbody>
                   <tr>
                     <td></td>
-                    {sortedEnabledKeys.map((key) => {
+                    {sortedEnabledTracks.map((key) => {
                       return (
                         <td key={key}>
                           <div className={styles.infoSectionTitle}>
@@ -581,25 +587,25 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
                   </tr>
                   <tr>
                     <td>Latitude:</td>
-                    {sortedEnabledKeys.map((key) => {
+                    {sortedEnabledTracks.map((key) => {
                       return <td key={key}>{infoDisplay[key].lat}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Longitude:</td>
-                    {sortedEnabledKeys.map((key) => {
+                    {sortedEnabledTracks.map((key) => {
                       return <td key={key}>{infoDisplay[key].lng}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Elevation (m):</td>
-                    {sortedEnabledKeys.map((key) => {
+                    {sortedEnabledTracks.map((key) => {
                       return <td key={key}>{infoDisplay[key].ele}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Timestamp:</td>
-                    {sortedEnabledKeys.map((key) => {
+                    {sortedEnabledTracks.map((key) => {
                       return <td key={key}>{infoDisplay[key].time}</td>;
                     })}
                   </tr>
