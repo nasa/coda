@@ -133,11 +133,19 @@ function getStateStringforISSLocation(state: LocationPaneStateData) {
  * @returns {string}
  * Chars 0,1 digits: pane type
  * Char 2: 0 if lockToggle is false, 1 if lockToggle is true
+ * Chars 3+: Comma delimited list of GPS track names that have been enabled
  */
-function getStateStringforGPSLocation(state: LocationPaneStateData) {
+function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
   const paneTypeString = "0" + PaneTypeShortVal.gps_location;
   const lockToggle = state.lockMap ? "1" : "0";
-  return `${paneTypeString}${lockToggle}`;
+  const enabledTracks = [];
+  for (const [key, value] of Object.entries(state.gpsTrackToggles)) {
+    if (value) {
+      enabledTracks.push(key);
+    }
+  }
+  const enabledTracksString = enabledTracks.join(",");
+  return `${paneTypeString}${lockToggle}${enabledTracksString}`;
 }
 
 /**
@@ -274,13 +282,29 @@ function interpretFrameQueryParam(frameString: string): PaneState {
       return issLocationReturnVal;
     case PaneTypeShortVal.gps_location:
       /* Char 2: 0 if lockScroll is false, 1 if lockToggle is true
+       * Char 3+: Comma delimited list of GPS track names that have been enabled
        */
-      const gpsLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
+      const enabledTracksString = frameString.substring(3);
+      let gpsTrackToggles: GPSTrackToggles = {};
+      // if legacy link
+      if (!enabledTracksString) {
+        gpsTrackToggles = {
+          EV1: true,
+          EV2: true,
+        };
+      } else {
+        const enabledTracks = frameString.substring(3).split(",");
+        for (let name of enabledTracks) {
+          gpsTrackToggles[name] = true;
+        }
+      }
+      const gpsLocationReturnVal: { paneType: string; paneStateData: GpsTrackPaneStateData } = {
         paneType: "gps_location",
         paneStateData: {
           ready: true,
           lockMap: frameString.substring(2, 3) === "1",
           showHelp: false,
+          gpsTrackToggles,
         },
       };
       return gpsLocationReturnVal;

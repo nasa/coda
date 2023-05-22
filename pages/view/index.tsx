@@ -314,15 +314,15 @@ export function V2(props: { urlState }) {
     })();
   };
 
-  const populateTranscriptStore = (source, year, month, day) => {
+  const populateTranscriptStore = (source, year, month, day, collection) => {
     (async () => {
-      if (source !== Source.ISS) {
+      if (source === Source.NBL) {
         dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
       dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const transcriptResponse = await getTranscripts(source, year, month, day);
+        const transcriptResponse = await getTranscripts(source, year, month, day, collection);
         if (transcriptResponse.cacheMetadata.error === undefined) {
           dispatch(setTranscripts(transcriptResponse));
         } else {
@@ -420,7 +420,7 @@ export function V2(props: { urlState }) {
     populateGPSStore(year, month, day, Collection[source]);
 
     // populate transcript store
-    populateTranscriptStore(source, year, month, day);
+    populateTranscriptStore(source, year, month, day, Collection[source]);
 
     // populate S/G audio store
     populateSgAudioStore(source, year, month, day);

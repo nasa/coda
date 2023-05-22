@@ -145,7 +145,8 @@ export const allPanes: Panes = {
       ready: true,
       lockMap: true,
       showHelp: false,
-    } as LocationPaneStateData,
+      gpsTrackToggles: {},
+    } as GpsTrackPaneStateData,
   },
   event_info: {
     title: "EVA Info",
