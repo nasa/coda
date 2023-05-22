@@ -297,7 +297,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       // get the name of the first selected track and pan to it
       let somethingSelected = false;
       // loop through the sortedEnabledTracks
-      for (const key in paneStateData.gpsTrackToggles) {
+      for (const key of sortedEnabledTracks) {
         // if the track is selected
         if (paneStateData.gpsTrackToggles[key]) {
           // pan to the track
