@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const data = await getGraphManifest(
       source as Source,
-      `${year}-${month.toString().padStart(2, "0")}-${date}`,
+      `${year}-${month.padStart(2, "0")}-${date.padStart(2, "0")}`,
       forceNew === "1"
     );
     res.status(200).json(data);

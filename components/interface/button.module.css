@@ -2,6 +2,7 @@
   align-items: center;
   text-transform: uppercase;
   cursor: pointer;
+  overflow-x: hidden;
 }
 
 .default {
@@ -11,6 +12,13 @@
 
 .small {
   height: 27px;
+  font-size: 14px;
+  padding: 0;
+}
+
+.medium {
+  height: 27px;
+  width: 40px;
   font-size: 14px;
   padding: 0;
 }

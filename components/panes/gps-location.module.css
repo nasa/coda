@@ -20,7 +20,6 @@
   position: absolute;
   top: 30px;
   left: 5px;
-  width: 290px;
 
   display: flex;
 
@@ -59,9 +58,10 @@
   border-collapse: collapse;
 }
 
-.valueTable td {
+.valueTable tr td {
   padding-left: 10px;
   padding-right: 10px;
+  border-left: 1px none;
 }
 
 .valueTable tr td:first-child {
@@ -71,8 +71,9 @@
   padding-right: 0;
 }
 
-.valueTable tr td:last-child {
-  border-left: 1px solid #000;
+/* second child no border */
+.valueTable tr td:nth-child(2) {
+  border-left: none;
 }
 
 /* Controls */

@@ -601,6 +601,8 @@ export async function fetchWikiGPSTracks(
       if (
         match[1] === "EV1" ||
         match[1] === "EV2" ||
+        match[1] === "EV3" ||
+        match[1] === "EV4" ||
         match[1] === "Cart" ||
         match[1] === "LightCart" ||
         match[1] === "Staff"

@@ -1,14 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import getTranscripts from "server/emss-labs/transcript";
-import { Source } from "utils/enums";
+import { Source, Collection } from "utils/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { source, year, month, date } = req.query as { [key: string]: string };
+  const { source, year, month, date, collection, forceNew } = req.query as {
+    [key: string]: string;
+  };
 
   try {
     const transcript = await getTranscripts(
       source as Source,
-      `${year}-${month.padStart(2, "0")}-${date.padStart(2, "0")}`
+      `${year}-${month.padStart(2, "0")}-${date.padStart(2, "0")}`,
+      Collection[collection as string],
+      forceNew === "1"
     );
     res.status(200).json(transcript);
   } catch (e) {
