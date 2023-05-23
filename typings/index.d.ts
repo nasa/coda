@@ -53,6 +53,11 @@ interface Sequence {
   asPerformed: { [key: Crew]: Activity[] };
   /** List of planned activities for the crew */
   asPlanned?: { [key: Crew]: Activity[] };
+  /**
+   * UUID of event in Maestro, as recorded on wiki page, if there is one.
+   * Enables hitting maestro endpoint /api/v1/event/exetimelinestatus/:uuid
+   */
+  maestroEventUuid?: string | false;
 }
 
 /** Crew names keyed by actor, eg. `{EV1: "Bob"}` */

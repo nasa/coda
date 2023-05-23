@@ -40,3 +40,15 @@ export async function getGraphsManifest(
 
   return graphManifest;
 }
+
+export const fetchMaestroExecuteTimelineStatus = async (
+  executeEventUuid: string
+): Promise<WrappedResponse<MaestroTimelineStatusApiResponse>> => {
+  const res = await fetch(
+    // "https://maestro.fit.nasa.gov/event/exetimelinestatus/" + executeEventUuid
+    "https://maestro-dev.fit.nasa.gov/api/v1/event/exetimelinestatus/bbb19373-1695-4378-ad1d-d82cbe74a8c5"
+  );
+  const maestroExe: WrappedResponse<MaestroTimelineStatusApiResponse> = await res.json();
+
+  return maestroExe;
+};
