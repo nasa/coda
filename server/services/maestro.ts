@@ -59,7 +59,14 @@ export const fetchMaestroExecuteTimelineStatus = async (
     const midnightUnix = midnightZulu(new Date(resJson.timeOfZeroPET as number)).getTime();
 
     // eva start time in app seconds
-    const evaStartSec = Math.round(((resJson.timeOfZeroPET as number) - midnightUnix) / 1000);
+    const evaStartSec = resJson.timeOfZeroPET
+      ? Math.round(((resJson.timeOfZeroPET as number) - midnightUnix) / 1000)
+      : null;
+
+    // eva end time in app seconds
+    const evaEndSec = resJson.timeOfEndPET
+      ? Math.round(((resJson.timeOfEndPET as number) - midnightUnix) / 1000)
+      : null;
 
     // Convert the maestro response to Activity[] per EV
     const ev1Activity: Activity[] = activityFromMaestroResponse(
@@ -74,8 +81,11 @@ export const fetchMaestroExecuteTimelineStatus = async (
     );
 
     const maestroInternalAPIData: MaestroInternalAPIData = {
+      title: resJson.title,
       crew,
       evaStartSec,
+      evaEndSec,
+      evaDurationSec: resJson.duration / 1000,
       processedActivitiesData: {
         EV1: ev1Activity,
         EV2: ev2Activity,

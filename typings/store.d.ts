@@ -126,9 +126,12 @@ type GraphsState = {
  * Maestro Store
  */
 type MaestroState = {
+  title: string;
   crewAssignment: Crew;
   processedActivitiesData: { [key: string]: Activity[] };
   evaStartSec: number;
+  evaEndSec: number;
+  evaDurationSec: number;
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };

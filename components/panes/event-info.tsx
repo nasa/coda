@@ -51,7 +51,7 @@ export default function EventInfo(props: { frameID: number }) {
   const maestro = useSelector((state: RootState) => state.maestro);
   const frameID = props.frameID;
   const dispatch = useDispatch();
-  const [seqSourceName, setSeqSourceName] = useState("Wiki");
+  const [seqSourceName, setSeqSourceName] = useState<"Maestro" | "Wiki">("Wiki");
 
   useEffect(() => {
     const newSeqSourceName = maestro?.processedActivitiesData ? "Maestro" : "Wiki";
@@ -116,7 +116,7 @@ export default function EventInfo(props: { frameID: number }) {
               <tr>
                 <td>Event:</td>
                 <td className={styles.labelValue} colSpan={2}>
-                  {seq.displayTitle}
+                  {seqSourceName === "Wiki" ? seq.displayTitle : maestro.title}
                 </td>
               </tr>
               <tr>
@@ -131,13 +131,18 @@ export default function EventInfo(props: { frameID: number }) {
                       );
                     }}
                   >
-                    {seq.startTime}Z
+                    {seqSourceName === "Wiki"
+                      ? seq.startTime
+                      : hhmmFromSeconds(maestro.evaStartSec)}
+                    Z
                   </span>
                 </td>
                 <td>
                   <span>Duration:</span>
                   <span className={`${styles.labelValue} ${styles.leftPadded}`}>
-                    {hhmmFromSeconds(seq.duration)}
+                    {seqSourceName === "Wiki"
+                      ? hhmmFromSeconds(seq.duration)
+                      : hhmmFromSeconds(maestro.evaDurationSec)}
                   </span>
                 </td>
               </tr>
@@ -147,17 +152,29 @@ export default function EventInfo(props: { frameID: number }) {
             <tbody>
               <tr>
                 <th colSpan={2} style={{ textAlign: "center" }}>
-                  Timeline
+                  {seqSourceName} Timeline
                 </th>
               </tr>
               <tr>
                 <th>
-                  <span style={{ fontWeight: 300 }}>EV1: </span>
-                  <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                  {seqSourceName === "Wiki" ? (
+                    <>
+                      <span style={{ fontWeight: 300 }}>EV1: </span>
+                      <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                    </>
+                  ) : (
+                    <span className={styles.labelValue}>{maestro.crewAssignment.EV1}</span>
+                  )}
                 </th>
                 <th>
-                  <span style={{ fontWeight: 300 }}>EV2: </span>
-                  <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                  {seqSourceName === "Wiki" ? (
+                    <>
+                      <span style={{ fontWeight: 300 }}>EV2: </span>
+                      <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                    </>
+                  ) : (
+                    <span className={styles.labelValue}>{maestro.crewAssignment.EV2}</span>
+                  )}
                 </th>
               </tr>
               <tr>
@@ -166,7 +183,6 @@ export default function EventInfo(props: { frameID: number }) {
               </tr>
             </tbody>
           </table>
-          <div className={styles.seqSourceName}>Source: {seqSourceName}</div>
         </>
       ) : (
         <>No event details in wiki</>

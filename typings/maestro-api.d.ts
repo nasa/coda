@@ -24,7 +24,10 @@ type MaestroTimelineStatusApiResponse = {
 };
 
 type MaestroInternalAPIData = {
+  title: string;
   crew: Crew;
   evaStartSec: number;
+  evaEndSec: number;
+  evaDurationSec: number;
   processedActivitiesData: { [key: string]: Activity[] };
 };
