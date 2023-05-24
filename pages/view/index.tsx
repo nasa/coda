@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
-import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
+import { changeDate, changeTime } from "store/playhead";
+import { diff, isSameDate } from "utils/date";
 import {
   addSequences,
   clearSequences,

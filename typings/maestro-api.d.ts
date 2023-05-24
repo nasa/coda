@@ -12,15 +12,13 @@ type MaestroActivityTimelineStatus = {
   actors: Record<string, ActorTimelineStatus>;
 };
 
-type MaestroTimelineStatusApiResponseSuccess = {
-  activities: Record<string, ActivityTimelineStatus>;
+type MaestroActor = { key: string; display: string };
+
+type MaestroTimelineStatusApiResponse = {
+  activities: Record<string, MaestroActivityTimelineStatus>;
   timeOfZeroPET: number | false;
   timeOfEndPET: number | false;
   title: string;
   duration: number;
+  columns: MaestroActor[];
 };
-
-/**
- * Response type when hitting Maestro /api/v1/event/exetimelinestatus/$eventUuid
- */
-type MaestroTimelineStatusApiResponse = MaestroTimelineStatusApiResponseSuccess | { error: string };

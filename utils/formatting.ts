@@ -1,5 +1,5 @@
 import { isNaN } from "lodash";
-import { add } from "store/playhead";
+import { add } from "./date";
 
 /**
  * Return a zero padded string of a number
@@ -32,6 +32,19 @@ export function hhmmssFromDateString(dateStringParam: string): string {
   const mm = padZeros(tempDate.getUTCMinutes(), 2);
   const ss = padZeros(tempDate.getUTCSeconds(), 2);
   return `${hh}:${mm}:${ss}`;
+}
+
+/**
+ * Formats any isoString timestamp into hh:mm
+ */
+export function hhmmFromSeconds(secondsParam: number): string {
+  const hours = Math.abs(Math.trunc(secondsParam / 3600));
+  const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
+  let timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2);
+  if (secondsParam < 0) {
+    timeStr = "-" + timeStr;
+  }
+  return timeStr;
 }
 
 /**
