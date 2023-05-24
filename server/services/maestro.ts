@@ -1,6 +1,5 @@
-// import fetchWithTimeout from "utils/fetch-with-timeout";
-import * as fakeData from "server/maestro/fake-response.json";
 import { midnightZulu } from "store/playhead";
+import fetchWithTimeout from "utils/fetch-with-timeout";
 
 export const fetchMaestroExecuteTimelineStatus = async (
   executeEventUuid: string
@@ -40,13 +39,11 @@ export const fetchMaestroExecuteTimelineStatus = async (
 
   try {
     console.log(executeEventUuid);
-    //TODO: replace with production url when ready
-    const resJson = fakeData as MaestroTimelineStatusApiResponse;
-
-    // const res = await fetchWithTimeout(
-    //   "https://maestro-dev.fit.nasa.gov/api/v1/event/exetimelinestatus/bbb19373-1695-4378-ad1d-d82cbe74a8c5"
-    // );
-    // const resJson = await res.json();
+    //TODO: remove fake response files when this is the prod URL
+    const res = await fetchWithTimeout(
+      "https://maestro-alpha.fit.nasa.gov/api/v1/event/exetimelinestatus/7e741a09-a500-4beb-a6dd-dc0c0915e102"
+    );
+    const resJson = await res.json();
 
     // set the crew using the maestro response
     const crew: Crew = {

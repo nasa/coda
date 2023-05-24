@@ -1,6 +1,6 @@
 import isNull from "lodash/isNull";
 import paper from "paper";
-import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
+import { appSecondsFromDateString, hhmmssFromSeconds, lightColor } from "utils/formatting";
 
 export default class DrawNav {
   gTier1Group: paper.Group;
@@ -336,28 +336,25 @@ export default class DrawNav {
         let endLocY = startLocY + param.barHeight;
 
         let fillColor: string | object = "#dbc275";
-        let textColor = "black";
         let activityTextContent = "";
         switch (lighting) {
           case "day":
             fillColor = "#dbc275";
-            textColor = "black";
             activityTextContent = "Insolation";
             break;
           case "night":
-            fillColor = "black";
-            textColor = "#dddddd";
+            fillColor = "#000000";
             activityTextContent = "Eclipse";
             break;
           case "sunrise":
             fillColor = {
-              gradient: { stops: ["black", "#dbc275"] },
+              gradient: { stops: ["#000000", "#dbc275"] },
               origin: [startLocX, startLocY],
               destination: [endLocX, endLocY],
             };
             break;
           case "sunset":
-            let stops = ["#dbc275", "black"];
+            let stops = ["#dbc275", "#000000"];
             if (
               //edge case when it's beta high season and we don't have a full night
               typeof this.dayNight[i + 1] !== undefined &&
@@ -388,7 +385,7 @@ export default class DrawNav {
             justification: "left",
             fontFamily: this.gNavigatorFontFamilyActivity,
             fontSize: 9,
-            fillColor: textColor,
+            fillColor: lightColor(fillColor) ? "#000000" : "#dddddd",
           });
           let textTop = startLocY + 8;
           activityText.point = new paper.Point(startLocX + 2, textTop);
@@ -601,7 +598,7 @@ export default class DrawNav {
               fontFamily: this.gNavigatorFontFamilyActivity,
               //fontWeight: 'bold',
               fontSize: 9,
-              fillColor: "white",
+              fillColor: lightColor(evActivityArray[i].color) ? "black" : "white",
             });
             let textTop = startLocY + 8;
             activityText.point = new paper.Point(startLocX + 2, textTop);
