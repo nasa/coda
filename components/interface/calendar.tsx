@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
-import { diff, isSameDate } from "utils/date";
+import { diff, isSameDate } from "store/playhead";
 import { getYearDayNumber, padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
 import { Source } from "utils/enums";

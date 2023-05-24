@@ -9,9 +9,8 @@ import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/s
 import { SequenceType } from "utils/enums";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
+import { isSameDate } from "store/playhead";
 import { useEffect, useState } from "react";
-import { getMaestroExecuteTimelineStatus } from "http-client/maestro";
-import { midnightZulu, isSameDate } from "utils/date";
 
 export function EventInfoControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -49,95 +48,20 @@ export default function EventInfo(props: { frameID: number }) {
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
+  const maestro = useSelector((state: RootState) => state.maestro);
   const frameID = props.frameID;
   const dispatch = useDispatch();
+  const [seqSourceName, setSeqSourceName] = useState("Wiki");
 
-  const [seqSourceName, setSeqSourceName] = useState<string>(null);
-  const [maestroAsPerformedEv1, setMaestroAsPerformedEv1] = useState<Activity[]>([]);
-  const [maestroAsPerformedEv2, setMaestroAsPerformedEv2] = useState<Activity[]>([]);
-
-  function activityFromMaestroResponse(
-    crewName: string,
-    activities: Record<string, MaestroActivityTimelineStatus>
-  ): Activity[] {
-    const midnightUnix = midnightZulu(new Date(playhead.date)).getTime();
-    const resActivities: Activity[] = [];
-    for (const activityUuid in activities) {
-      const activity: MaestroActivityTimelineStatus = activities[activityUuid];
-      if (activity.actors[crewName] !== undefined) {
-        const startTime = activity.actors[crewName].startTime
-          ? activity.actors[crewName].startTime
-          : activity.actors[crewName].plannedStartTime;
-        const endTime = activity.actors[crewName].endTime
-          ? activity.actors[crewName].endTime
-          : activity.actors[crewName].plannedEndTime;
-        const startTimeAppSeconds = (startTime - midnightUnix) / 1000;
-        const endTimeAppSeconds = (endTime - midnightUnix) / 1000;
-        const duration = endTimeAppSeconds - startTimeAppSeconds;
-
-        const newActivity: Activity = {
-          content: activity.title,
-          startTimeSeconds: startTimeAppSeconds,
-          endTimeSeconds: endTimeAppSeconds,
-          duration: duration,
-          color: activity.color,
-        };
-
-        resActivities.push(newActivity);
-      }
-    }
-    debugger;
-    return resActivities;
-  }
-
-  // hit maestro
   useEffect(() => {
-    (async () => {
-      if (!seq || seqSourceName) return;
-      const sourceName = seq.maestroEventUuid ? "Maestro" : "Wiki";
-      setSeqSourceName(sourceName);
-
-      if (seq.maestroEventUuid) {
-        // get the maestro timeline via CODA's internal api
-        const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
-
-        if (maestroResponse.cacheMetadata?.error) {
-          // if maestro returned an error, use the wiki data
-          setMaestroAsPerformedEv1([]);
-          setMaestroAsPerformedEv2([]);
-          setSeqSourceName("Wiki");
-          return;
-        }
-
-        // set the crew using the maestro response
-        const crew: Crew = {
-          SUIT_IV: maestroResponse.data.columns[0].key,
-          EV1: maestroResponse.data.columns[1].key,
-          EV2: maestroResponse.data.columns[2].key,
-        };
-
-        // Convert the maestro response to Activity[] per EV
-        const ev1Activity: Activity[] = activityFromMaestroResponse(
-          crew.EV1,
-          maestroResponse.data.activities
-        );
-        const ev2Activity: Activity[] = activityFromMaestroResponse(
-          crew.EV2,
-          maestroResponse.data.activities
-        );
-        setMaestroAsPerformedEv1(ev1Activity);
-        setMaestroAsPerformedEv2(ev2Activity);
-        setSeqSourceName("Maestro");
-
-        console.log("test");
-        // debugger;
-      }
-    })();
-  }, [seq, seqSourceName]);
+    const newSeqSourceName = maestro?.processedActivitiesData ? "Maestro" : "Wiki";
+    setSeqSourceName(newSeqSourceName);
+  }, [maestro]);
 
   function asExecutedTable(evNum: string) {
     const asPerformed = { EV1: [], EV2: [] } as { EV1: Activity[]; EV2: Activity[] };
     const activityStartUTCMilliseconds = getSequenceStartMilliseconds(seq);
+
     if (seqSourceName == "Wiki") {
       for (const evName in seq.asPerformed) {
         if (evName.includes("EV1"))
@@ -154,8 +78,8 @@ export default function EventInfo(props: { frameID: number }) {
           );
       }
     } else {
-      asPerformed.EV1 = maestroAsPerformedEv1;
-      asPerformed.EV2 = maestroAsPerformedEv2;
+      asPerformed.EV1 = maestro?.processedActivitiesData.EV1;
+      asPerformed.EV2 = maestro?.processedActivitiesData.EV2;
     }
     const response = [];
     for (let i = 0; i < asPerformed[evNum].length; i++) {

@@ -121,3 +121,14 @@ type GraphsState = {
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };
+
+/**
+ * Maestro Store
+ */
+type MaestroState = {
+  crewAssignment: Crew;
+  processedActivitiesData: { [key: string]: Activity[] };
+  evaStartSec: number;
+  cacheMetadata: CacheMetadata;
+  loadingStatus: LoadingStatusEnum;
+};

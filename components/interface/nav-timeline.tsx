@@ -3,8 +3,7 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { changeTime } from "store/playhead";
-import { isSameDate } from "utils/date";
+import { changeTime, isSameDate } from "store/playhead";
 import { changeHoverTime } from "store/playheadHover";
 import {
   getAsPerformedMissionTime,

@@ -9,16 +9,22 @@ type MaestroActorTimelineStatus = {
 type MaestroActivityTimelineStatus = {
   title: string;
   color: string;
-  actors: Record<string, ActorTimelineStatus>;
+  actors: { [key: string]: MaestroActorTimelineStatus };
 };
 
-type MaestroActor = { key: string; display: string };
+type MaestroColumns = { key: string; display: string };
 
 type MaestroTimelineStatusApiResponse = {
-  activities: Record<string, MaestroActivityTimelineStatus>;
+  activities: { [key: string]: MaestroActivityTimelineStatus };
   timeOfZeroPET: number | false;
   timeOfEndPET: number | false;
   title: string;
   duration: number;
-  columns: MaestroActor[];
+  columns: MaestroColumns[];
+};
+
+type MaestroInternalAPIData = {
+  crew: Crew;
+  evaStartSec: number;
+  processedActivitiesData: { [key: string]: Activity[] };
 };

@@ -1,0 +1,254 @@
+{
+  "title": "69-0254B US EVA IROSA 1A 1B INSTALL - EVA 1 DRAFT ",
+  "columns": [
+    {
+      "key": "IV",
+      "display": "IV/SSRMS/MCC"
+    },
+    {
+      "key": "Woody",
+      "display": "Woody"
+    },
+    {
+      "key": "Steve",
+      "display": "Steve"
+    }
+  ],
+  "duration": 24300000,
+  "activities": {
+    "001b803d-79a3-49d3-9b63-1becb360fd95": {
+      "title": "Egress ",
+      "color": "#4a90e2",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684792653744,
+          "plannedEndTime": 1684794453744,
+          "startTime": 1684792656240,
+          "endTime": false,
+          "percentComplete": 64.28571428571429
+        },
+        "Steve": {
+          "plannedStartTime": 1684792653744,
+          "plannedEndTime": 1684794453744,
+          "startTime": 1684792656240,
+          "endTime": false,
+          "percentComplete": 70.58823529411765
+        }
+      }
+    },
+    "a38666c9-233a-491d-afb8-b58b2a23baad": {
+      "title": "FSE Prep",
+      "color": "#50e3c2",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684794453744,
+          "plannedEndTime": 1684795953744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684794453744,
+          "plannedEndTime": 1684796553744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "0d89ccc4-41e7-4a3c-8559-0f81a51d6e0e": {
+      "title": "SSRMS Setup",
+      "color": "#417505",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684795953744,
+          "plannedEndTime": 1684798053744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "077769d3-021b-418e-9cf6-b5c8a5299ece": {
+      "title": "Release ARDs",
+      "color": "#50e3c2",
+      "actors": {
+        "Steve": {
+          "plannedStartTime": 1684796553744,
+          "plannedEndTime": 1684798953744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "68d34c07-a368-4947-a885-23dfd3c07ec7": {
+      "title": "Release R Bolts",
+      "color": "#50e3c2",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684798053744,
+          "plannedEndTime": 1684800453744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "f691a2e8-c6e1-485d-8212-d628c090d5cc": {
+      "title": "Release C bolts",
+      "color": "#50e3c2",
+      "actors": {
+        "Steve": {
+          "plannedStartTime": 1684798953744,
+          "plannedEndTime": 1684800753744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "e4907c2b-f6b2-43b6-9f4b-bb61775638bc": {
+      "title": "IROSA Release from FSE ",
+      "color": "#f8e71c",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684800753744,
+          "plannedEndTime": 1684802553744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684800753744,
+          "plannedEndTime": 1684802553744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "6a0d10ce-257e-417e-8a63-16eac6ed448e": {
+      "title": "IROSA Relocate from FSE to Mod Kit",
+      "color": "#f8e71c",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684802553744,
+          "plannedEndTime": 1684803753744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684802553744,
+          "plannedEndTime": 1684803753744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "c8b14ad1-85fb-49d7-a18a-ea356064b9ed": {
+      "title": "IROSA Install",
+      "color": "#f8e71c",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684803753744,
+          "plannedEndTime": 1684808553744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684803753744,
+          "plannedEndTime": 1684808553744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "fd24905d-a8e0-49dc-bcd2-69570e77fb93": {
+      "title": "Cable Mate ",
+      "color": "#A22522",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684808553744,
+          "plannedEndTime": 1684810353744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684808553744,
+          "plannedEndTime": 1684810353744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "cac9adb3-9882-4a2e-9a52-01fba00bbb3a": {
+      "title": "IROSA Deploy / Worksite Cleanup",
+      "color": "#9013fe",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684810353744,
+          "plannedEndTime": 1684813353744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684810353744,
+          "plannedEndTime": 1684811253744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "a23d7760-96dd-4e32-b5bb-9344531c6756": {
+      "title": "FSE Beam Release",
+      "color": "#50e3c2",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684813353744,
+          "plannedEndTime": 1684815753744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684811253744,
+          "plannedEndTime": 1684815753744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    },
+    "f10edc20-e0bc-4974-bb68-c519c52ab76e": {
+      "title": "Ingress",
+      "color": "#4a90e2",
+      "actors": {
+        "Woody": {
+          "plannedStartTime": 1684815753744,
+          "plannedEndTime": 1684816953744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        },
+        "Steve": {
+          "plannedStartTime": 1684815753744,
+          "plannedEndTime": 1684816953744,
+          "startTime": false,
+          "endTime": false,
+          "percentComplete": 0
+        }
+      }
+    }
+  },
+  "timeOfZeroPET": 1684792653744,
+  "timeOfEndPET": false
+}

@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { diff, isSameDate } from "utils/date";
+import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";

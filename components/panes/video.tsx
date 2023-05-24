@@ -6,7 +6,7 @@ import { faExpandAlt, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
 import type { RootState } from "store/index";
-import { isSameDate, midnightZulu } from "utils/date";
+import { isSameDate, midnightZulu } from "store/playhead";
 import { visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";

@@ -1,5 +1,5 @@
 import { isNaN } from "lodash";
-import { add } from "./date";
+import { add } from "store/playhead";
 
 /**
  * Return a zero padded string of a number
