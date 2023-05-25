@@ -75,11 +75,12 @@ export const { tick, changeDate, changeTime, start, stop, run, halt } = playhead
  * @returns date with cleared 0:0:0:0 time
  */
 export const midnightZulu = (d: Date): Date => {
-  d.setUTCHours(0);
-  d.setUTCMinutes(0);
-  d.setUTCSeconds(0);
-  d.setUTCMilliseconds(0);
-  return d;
+  const ret = new Date(d);
+  ret.setUTCHours(0);
+  ret.setUTCMinutes(0);
+  ret.setUTCSeconds(0);
+  ret.setUTCMilliseconds(0);
+  return ret;
 };
 
 /**
