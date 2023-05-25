@@ -17,7 +17,7 @@ import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
-import { add } from "store/playhead";
+import { addMs } from "store/playhead";
 import { inRange, isNil } from "lodash";
 import { Collection, IOFetchType } from "utils/enums";
 import { CacheFolder } from "utils/enums";
@@ -124,7 +124,7 @@ export async function fetchData(
     parser = parseIOVideoResponse;
     // If we're looking for today's video then definitely pull new data becuase there's a chance it's been updated
     preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
-    dateQuery = formatDateQuery(add(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
+    dateQuery = formatDateQuery(addMs(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
   } else {
     //  this will error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
