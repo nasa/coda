@@ -39,9 +39,8 @@ export const fetchMaestroExecuteTimelineStatus = async (
 
   try {
     console.log(executeEventUuid);
-    //TODO: remove fake response files when this is the prod URL
     const res = await fetchWithTimeout(
-      "https://maestro-alpha.fit.nasa.gov/api/v1/event/exetimelinestatus/7e741a09-a500-4beb-a6dd-dc0c0915e102"
+      `https://maestro.fit.nasa.gov/api/v1/event/exetimelinestatus/${executeEventUuid}`
     );
     const resJson = await res.json();
 
