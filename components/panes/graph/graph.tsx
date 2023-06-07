@@ -20,6 +20,7 @@ const DynPlotlyChart = dynamic(import("./plotly"), {
 import styles from "./graph.module.css";
 import { appSecondsFromDateString } from "utils/formatting";
 import fetchWithTimeout from "utils/fetch-with-timeout";
+import { hasProp } from "utils/type-guards";
 
 export function GraphControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
@@ -204,7 +205,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
     if (!Array.isArray(graphData)) {
       const badData = graphData as unknown;
-      if (typeof badData === "object" && "authorized" in badData && badData.authorized === false) {
+      if (hasProp(badData, "authorized") && badData.authorized === false) {
         console.error("Unauthorized graph data:", { graphData });
         setGraphDataIsBad("unauthorized");
       } else {
