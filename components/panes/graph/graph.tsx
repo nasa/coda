@@ -126,6 +126,10 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   );
   const graphs: GraphsState = useSelector((state: RootState) => state.graphs, shallowEqual);
 
+  const [graphDataIsBad, setGraphDataIsBad] = useState<false | "unauthorized" | "invalid-data">(
+    false
+  );
+
   // get graph data where id matches selectedGraphId
   const selectedGraph = graphs.graphsManifest?.graphs.find(
     (graph) => graph.id === paneStateData.selectedGraphId
@@ -198,6 +202,18 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
       return;
     }
 
+    if (!Array.isArray(graphData)) {
+      const badData = graphData as unknown;
+      if ("authorized" in badData && badData.authorized === false) {
+        console.error("Unauthorized graph data:", { graphData });
+        setGraphDataIsBad("unauthorized");
+      } else {
+        console.error("graphData not an array. Received:", { graphData });
+        setGraphDataIsBad("invalid-data");
+      }
+      return;
+    }
+
     const chartTrace: PlotlyChartTrace = {
       x: graphData.map((a) => a.timestamp),
       y: graphData.map((a) => a.value),
@@ -243,6 +259,12 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
     setChartProps({ ...chartProps, plotIndexToHighlight });
   }, [playhead, playheadHover]);
+
+  if (graphDataIsBad === "unauthorized") {
+    return <div>Unauthorized</div>;
+  } else if (graphDataIsBad === "invalid-data") {
+    return <div>Invalid graph data</div>;
+  }
 
   return (
     <div className={styles.main}>
