@@ -148,3 +148,5 @@ interface QueryParams {
   /** ID of the non-D/L video the user wants to view in player 2 */
   nonDLvideo2: string;
 }
+
+type FetchOptionsCredentials = "include" | "same-origin" | "omit";
