@@ -204,7 +204,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
     if (!Array.isArray(graphData)) {
       const badData = graphData as unknown;
-      if ("authorized" in badData && badData.authorized === false) {
+      if (typeof badData === "object" && "authorized" in badData && badData.authorized === false) {
         console.error("Unauthorized graph data:", { graphData });
         setGraphDataIsBad("unauthorized");
       } else {
