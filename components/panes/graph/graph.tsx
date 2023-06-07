@@ -155,10 +155,10 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // Fetch the data for the selected graphId from the graph dataURL
   const localAsyncFetchData = async () => {
-    // const response = await fetchWithTimeout(
-    //   graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL
-    // );
-    const response = await fetch(graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL, {mode : 'cors', credentials: 'include'});
+    const response = await fetchWithTimeout(
+      graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL
+    );
+    // const response = await fetch(graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL, {mode : 'cors', credentials: 'include'});
     const data = await response.json();
 
     // Store the data in the graph manifest in the store
