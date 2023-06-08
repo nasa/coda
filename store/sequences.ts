@@ -64,7 +64,7 @@ export const getAsPerformedMissionTime = (
   SequenceDate: string,
   activityStartUTCMilliseconds: number
 ) => {
-  const res = [] as Activity[];
+  const res: Activity[] = [];
 
   // get activity times in the mission timeframe
   let thisStartTimeSeconds =

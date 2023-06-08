@@ -1,6 +1,5 @@
 import memoize from "lodash/memoize";
 import { createSlice } from "@reduxjs/toolkit";
-import { isSameDate } from "./playhead";
 import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: VideosState = {
@@ -38,19 +37,6 @@ export const videoSlice = createSlice({
 });
 
 export const { addVideos, clearVideos, fetchError, setVideoLoadingStatus } = videoSlice.actions;
-
-/** Quick check to see if we have _any_ videos from a given UTC date in our store */
-export const haveVideosFromDate = (videos: VideoFile[], date: Date): boolean => {
-  for (let v in videos) {
-    if (isSameDate(new Date(videos[v].start), date)) {
-      return true;
-    }
-    if (isSameDate(new Date(videos[v].end), date)) {
-      return true;
-    }
-  }
-  return false;
-};
 
 /** Map seconds and downlinks to videos */
 const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {

@@ -75,6 +75,8 @@ import {
 } from "store/graphs";
 import { pulseEvent, pulseLogInfo } from "public/pulseAnalytics";
 import { generateShareURL } from "utils/share-state";
+import { getMaestroExecuteTimelineStatus } from "http-client/maestro";
+import { maestroFetchError, setMaestroData, setMaestroLoadingStatus } from "store/maestro";
 
 /** Dynamically import the nav timeline because paper doesn't like Node  */
 const Timeline = dynamic(import("components/interface/nav-timeline"), {
@@ -195,6 +197,22 @@ export function V2(props: { urlState }) {
           collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
         if (updatedEVAsResponse.cacheMetadata.error === undefined) {
           dispatch(addSequences(updatedEVAsResponse));
+
+          // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
+          const seq = updatedEVAsResponse.data.find((seq) =>
+            isSameDate(new Date(seq.startDate), new Date(playhead.date))
+          );
+          if (seq && seq.maestroEventUuid) {
+            const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
+            if (!maestroResponse.cacheMetadata.error) {
+              dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
+            } else {
+              dispatch(maestroFetchError(maestroResponse.cacheMetadata.error));
+            }
+            dispatch(setMaestroLoadingStatus(LoadingStatusEnum.LOADED));
+          } else {
+            dispatch(setMaestroLoadingStatus(LoadingStatusEnum.UNNEEDED));
+          }
         } else {
           dispatch(sequencesFetchError(updatedEVAsResponse.cacheMetadata.error));
         }

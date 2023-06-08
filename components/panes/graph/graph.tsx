@@ -20,6 +20,7 @@ const DynPlotlyChart = dynamic(import("./plotly"), {
 import styles from "./graph.module.css";
 import { appSecondsFromDateString } from "utils/formatting";
 import fetchWithTimeout from "utils/fetch-with-timeout";
+import { hasProp } from "utils/type-guards";
 
 export function GraphControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
@@ -126,6 +127,10 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   );
   const graphs: GraphsState = useSelector((state: RootState) => state.graphs, shallowEqual);
 
+  const [graphDataIsBad, setGraphDataIsBad] = useState<false | "unauthorized" | "invalid-data">(
+    false
+  );
+
   // get graph data where id matches selectedGraphId
   const selectedGraph = graphs.graphsManifest?.graphs.find(
     (graph) => graph.id === paneStateData.selectedGraphId
@@ -155,18 +160,29 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // Fetch the data for the selected graphId from the graph dataURL
   const localAsyncFetchData = async () => {
-    const response = await fetchWithTimeout(
-      graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL
-    );
-    const data = await response.json();
+    try {
+      const fetchOptions = graphs.graphsManifest.fetchOptions?.credentials
+        ? {
+            credentials: graphs.graphsManifest.fetchOptions?.credentials,
+          }
+        : {};
 
-    // Store the data in the graph manifest in the store
-    dispatch(
-      setGraphsData({
-        graphId: paneStateData.selectedGraphId,
-        graphData: data,
-      })
-    );
+      const response = await fetchWithTimeout(
+        graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL,
+        fetchOptions
+      );
+      const data = await response.json();
+
+      // Store the data in the graph manifest in the store
+      dispatch(
+        setGraphsData({
+          graphId: paneStateData.selectedGraphId,
+          graphData: data,
+        })
+      );
+    } catch (error) {
+      console.log("Error fetching graph data", error);
+    }
   };
 
   // Trigger loading of graph data when selectedGraphId changes
@@ -184,6 +200,18 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   // Trigger updating of chart data when graph data changes
   useEffect(() => {
     if (!graphData) {
+      return;
+    }
+
+    if (!Array.isArray(graphData)) {
+      const badData = graphData as unknown;
+      if (hasProp(badData, "authorized") && badData.authorized === false) {
+        console.error("Unauthorized graph data:", { graphData });
+        setGraphDataIsBad("unauthorized");
+      } else {
+        console.error("graphData not an array. Received:", { graphData });
+        setGraphDataIsBad("invalid-data");
+      }
       return;
     }
 
@@ -232,6 +260,12 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
     setChartProps({ ...chartProps, plotIndexToHighlight });
   }, [playhead, playheadHover]);
+
+  if (graphDataIsBad === "unauthorized") {
+    return <div>Unauthorized</div>;
+  } else if (graphDataIsBad === "invalid-data") {
+    return <div>Invalid graph data</div>;
+  }
 
   return (
     <div className={styles.main}>

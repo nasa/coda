@@ -6,11 +6,19 @@ import type { Response } from "node-fetch";
 import https from "https";
 
 /**
+ * node-fetch does not appear to have `credentials` but browser-based fetch does.
+ * This may be clarified as fetch is now experimentally native to Node. For now,
+ * this type bolts `credentials` on, which may do nothing if actually using node-fetch
+ * but will work in browser.
+ */
+type BrowserRequestInit = RequestInit & { credentials?: FetchOptionsCredentials };
+
+/**
  * Perform a fetch request that throws if it takes too much time. Timeout defaults to 8 seconds. Usage:
  */
 export default async function fetchWithTimeout(
   url: string,
-  requestInit?: RequestInit,
+  requestInit?: BrowserRequestInit,
   timeout: number = 8000 /** Milliseconds to timeout */
 ): Promise<Response> {
   const controller = new AbortController();
