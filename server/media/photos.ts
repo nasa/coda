@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import * as OverrideService from "server/services/media_override";
-import { add, isSameDate } from "store/playhead";
+import { addMs, isSameDate } from "store/playhead";
 import { Collection, IOFetchType } from "utils/enums";
 import { appSecondsFromDateString } from "utils/formatting";
 
@@ -116,7 +116,7 @@ export default async function getPhotoData(
     const data: PhotoFile[] = results.data.map((result) => {
       const res = clone(result);
       // shift the date
-      res.datetimeTaken = add(new Date(res.datetimeTaken), -milliseconds).toISOString();
+      res.datetimeTaken = addMs(new Date(res.datetimeTaken), -milliseconds).toISOString();
       res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
       return res;
     });

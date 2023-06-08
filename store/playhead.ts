@@ -75,36 +75,25 @@ export const { tick, changeDate, changeTime, start, stop, run, halt } = playhead
  * @returns date with cleared 0:0:0:0 time
  */
 export const midnightZulu = (d: Date): Date => {
-  d.setUTCHours(0);
-  d.setUTCMinutes(0);
-  d.setUTCSeconds(0);
-  d.setUTCMilliseconds(0);
-  return d;
-};
-
-const getMS = (d: Date): number => {
-  // TODO: isn't this just Date.prototype.getTime()?
-  const Y = d.getUTCFullYear();
-  const M = d.getUTCMonth();
-  const D = d.getUTCDate();
-  const h = d.getUTCHours();
-  const m = d.getUTCMinutes();
-  const s = d.getUTCSeconds();
-  const ms = d.getUTCMilliseconds();
-  return Date.UTC(Y, M, D, h, m, s, ms);
+  const ret = new Date(d);
+  ret.setUTCHours(0);
+  ret.setUTCMinutes(0);
+  ret.setUTCSeconds(0);
+  ret.setUTCMilliseconds(0);
+  return ret;
 };
 
 /**
  * Get the number of milliseconds between two dates, equivalent to `a - b`
  */
 export const diff = (a: Date, b: Date): number => {
-  return getMS(a) - getMS(b);
+  return a.getTime() - b.getTime();
 };
 
 /**
  * Advance a Date by some number of milliseconds
  */
-export const add = (d: Date, ms: number): Date => {
+export const addMs = (d: Date, ms: number): Date => {
   const ret = new Date(d);
   const currentMS = ret.getUTCMilliseconds();
   ret.setUTCMilliseconds(currentMS + ms);

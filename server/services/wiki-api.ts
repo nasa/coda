@@ -173,6 +173,7 @@ async function getAllEVAs(): Promise<WikibotResponse<EVASummaryResponse>> {
     [[~*S EVA*]]
     [[EVA Classification::Scheduled or Historical]]
     |? EVA title
+    |? Maestro event uuid
     |? Start date
     |? Start time
     |? Duration
@@ -371,6 +372,7 @@ export async function getAllEVAData(
       return {
         /** EVA name upper-cased with spaces, eg. `US EVA 55`  */
         name: evaName,
+        maestroEventUuid: allEVAs[evaName].printouts["Maestro event uuid"][0] || false,
         location: Collection.ISS,
         type: SequenceType.EVA,
         dataURL: allEVAs[evaName].fullurl,

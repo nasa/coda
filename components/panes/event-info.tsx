@@ -4,11 +4,13 @@ import { isNil } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { changeTime, isSameDate } from "store/playhead";
+import { changeTime } from "store/playhead";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
 import { SequenceType } from "utils/enums";
-import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
+import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
+import { isSameDate } from "store/playhead";
+import { useEffect, useState } from "react";
 
 export function EventInfoControls(props: { frameID: number }) {
   const frameID = props.frameID;
@@ -46,25 +48,38 @@ export default function EventInfo(props: { frameID: number }) {
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
+  const maestro = useSelector((state: RootState) => state.maestro);
   const frameID = props.frameID;
   const dispatch = useDispatch();
+  const [seqSourceName, setSeqSourceName] = useState<"Maestro" | "Wiki">("Wiki");
+
+  useEffect(() => {
+    const newSeqSourceName = maestro?.processedActivitiesData ? "Maestro" : "Wiki";
+    setSeqSourceName(newSeqSourceName);
+  }, [maestro]);
 
   function asExecutedTable(evNum: string) {
-    const asPerformed = { EV1: [], EV2: [] };
+    const asPerformed = { EV1: [], EV2: [] } as { EV1: Activity[]; EV2: Activity[] };
     const activityStartUTCMilliseconds = getSequenceStartMilliseconds(seq);
-    for (const evName in seq.asPerformed) {
-      if (evName.includes("EV1"))
-        asPerformed.EV1 = getAsPerformedMissionTime(
-          seq.asPerformed[evName],
-          seq.startDate,
-          activityStartUTCMilliseconds
-        );
-      if (evName.includes("EV2"))
-        asPerformed.EV2 = getAsPerformedMissionTime(
-          seq.asPerformed[evName],
-          seq.startDate,
-          activityStartUTCMilliseconds
-        );
+
+    if (seqSourceName == "Wiki") {
+      for (const evName in seq.asPerformed) {
+        if (evName.includes("EV1"))
+          asPerformed.EV1 = getAsPerformedMissionTime(
+            seq.asPerformed[evName],
+            seq.startDate,
+            activityStartUTCMilliseconds
+          );
+        if (evName.includes("EV2"))
+          asPerformed.EV2 = getAsPerformedMissionTime(
+            seq.asPerformed[evName],
+            seq.startDate,
+            activityStartUTCMilliseconds
+          );
+      }
+    } else {
+      asPerformed.EV1 = maestro?.processedActivitiesData.EV1;
+      asPerformed.EV2 = maestro?.processedActivitiesData.EV2;
     }
     const response = [];
     for (let i = 0; i < asPerformed[evNum].length; i++) {
@@ -80,7 +95,7 @@ export default function EventInfo(props: { frameID: number }) {
             }}
           >
             <div className={styles.taskTime}>
-              {hhmmssFromSeconds(asPerformed[evNum][i].startTimeSeconds)}:
+              {hhmmFromSeconds(asPerformed[evNum][i].startTimeSeconds)}{" "}
             </div>
             <div className={styles.taskName} style={{ color: color }}>
               {asPerformed[evNum][i].content}
@@ -101,7 +116,7 @@ export default function EventInfo(props: { frameID: number }) {
               <tr>
                 <td>Event:</td>
                 <td className={styles.labelValue} colSpan={2}>
-                  {seq.displayTitle}
+                  {seqSourceName === "Wiki" ? seq.displayTitle : maestro.title}
                 </td>
               </tr>
               <tr>
@@ -116,13 +131,18 @@ export default function EventInfo(props: { frameID: number }) {
                       );
                     }}
                   >
-                    {seq.startTime}Z
+                    {seqSourceName === "Wiki"
+                      ? seq.startTime
+                      : hhmmFromSeconds(maestro.evaStartSec)}
+                    Z
                   </span>
                 </td>
                 <td>
                   <span>Duration:</span>
                   <span className={`${styles.labelValue} ${styles.leftPadded}`}>
-                    {hhmmssFromSeconds(seq.duration)}
+                    {seqSourceName === "Wiki"
+                      ? hhmmFromSeconds(seq.duration)
+                      : hhmmFromSeconds(maestro.evaDurationSec)}
                   </span>
                 </td>
               </tr>
@@ -132,17 +152,29 @@ export default function EventInfo(props: { frameID: number }) {
             <tbody>
               <tr>
                 <th colSpan={2} style={{ textAlign: "center" }}>
-                  Timeline
+                  {seqSourceName} Timeline
                 </th>
               </tr>
               <tr>
                 <th>
-                  <span style={{ fontWeight: 300 }}>EV1: </span>
-                  <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                  {seqSourceName === "Wiki" ? (
+                    <>
+                      <span style={{ fontWeight: 300 }}>EV1: </span>
+                      <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                    </>
+                  ) : (
+                    <span className={styles.labelValue}>{maestro.crewAssignment.EV1}</span>
+                  )}
                 </th>
                 <th>
-                  <span style={{ fontWeight: 300 }}>EV2: </span>
-                  <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                  {seqSourceName === "Wiki" ? (
+                    <>
+                      <span style={{ fontWeight: 300 }}>EV2: </span>
+                      <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                    </>
+                  ) : (
+                    <span className={styles.labelValue}>{maestro.crewAssignment.EV2}</span>
+                  )}
                 </th>
               </tr>
               <tr>

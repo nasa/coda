@@ -128,3 +128,8 @@
 .rightButtons > *:not(:last-of-type) {
   margin-right: 5px;
 }
+
+.seqSourceName {
+  font-size: 0.8em;
+  float: right;
+}

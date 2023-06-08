@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { run, halt, tick, changeDate, add, changeTime } from "store/playhead";
+import { run, halt, tick, changeDate, addMs, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 
@@ -43,7 +43,7 @@ function PlayheadMonitor() {
     // check if the date has rolled over into the next UTC day
     if (playheadSeconds >= 60 * 60 * 24) {
       const today = new Date(playheadDate);
-      const tomorrow = add(today, 1000 * 60 * 60 * 24);
+      const tomorrow = addMs(today, 1000 * 60 * 60 * 24);
       dispatch(changeDate(tomorrow.toISOString()));
       dispatch(changeTime(0));
     }

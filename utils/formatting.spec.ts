@@ -1,4 +1,209 @@
-import { formatEVADisplayTitle, getYearDayNumber } from "utils/formatting";
+import {
+  appSecondsFromDateString,
+  formatEVADisplayTitle,
+  getYearDayNumber,
+  hhmmFromSeconds,
+  hhmmssFromDateString,
+  hhmmssFromSeconds,
+  hhmmssmmmFromSeconds,
+  isoStringFromAnyDateString,
+  lightColor,
+  padZeros,
+} from "utils/formatting";
+
+describe("padZeros", () => {
+  test("returns a zero-padded string for single-digit numbers", () => {
+    const num = 5;
+    const size = 2;
+    const expectedString = "05";
+
+    const result = padZeros(num, size);
+
+    expect(result).toBe(expectedString);
+  });
+
+  test("returns the original string for numbers with more digits than the specified size", () => {
+    const num = 123;
+    const size = 2;
+    const expectedString = "123";
+
+    const result = padZeros(num, size);
+
+    expect(result).toBe(expectedString);
+  });
+
+  test("returns the original string for zero size", () => {
+    const num = 10;
+    const size = 0;
+    const expectedString = "10";
+
+    const result = padZeros(num, size);
+
+    expect(result).toBe(expectedString);
+  });
+});
+
+describe("appSecondsFromDateString", () => {
+  test("calculates the appSeconds for a valid ISO date string", () => {
+    const dateString = "2023-05-24T12:34:56Z";
+    const expectedAppSeconds = 45296;
+
+    const result = appSecondsFromDateString(dateString);
+
+    expect(result).toBe(expectedAppSeconds);
+  });
+
+  test("throws an error for an invalid date string", () => {
+    const invalidDateString = "Invalid Date String";
+
+    expect(() => {
+      appSecondsFromDateString(invalidDateString);
+    }).toThrowError("The date string couldn't be converted into a Date");
+  });
+});
+
+describe("hhmmssFromDateString", () => {
+  test("returns the formatted time string for a valid ISO date string", () => {
+    const dateString = "2023-05-24T12:34:56Z";
+    const expectedTimeString = "12:34:56";
+
+    const result = hhmmssFromDateString(dateString);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns an empty string for an empty date string", () => {
+    const dateString = "";
+    const expectedTimeString = "";
+
+    const result = hhmmssFromDateString(dateString);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("throws an error for an invalid date string", () => {
+    const invalidDateString = "Invalid Date String";
+
+    expect(() => {
+      hhmmssFromDateString(invalidDateString);
+    }).toThrowError("The date string couldn't be converted into a Date");
+  });
+});
+
+describe("hhmmFromSeconds", () => {
+  test("returns the formatted time string for positive seconds", () => {
+    const seconds = 3665;
+    const expectedTimeString = "01:01";
+
+    const result = hhmmFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns the formatted time string for negative seconds", () => {
+    const seconds = -3665;
+    const expectedTimeString = "-01:01";
+
+    const result = hhmmFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns the formatted time string for fractional seconds", () => {
+    const seconds = 123.456;
+    const expectedTimeString = "00:02";
+
+    const result = hhmmFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+});
+
+describe("hhmmssFromSeconds", () => {
+  test("returns the formatted time string for positive seconds", () => {
+    const seconds = 3665;
+    const expectedTimeString = "01:01:05";
+
+    const result = hhmmssFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns the formatted time string for negative seconds", () => {
+    const seconds = -3665;
+    const expectedTimeString = "-01:01:05";
+
+    const result = hhmmssFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns the formatted time string for fractional seconds", () => {
+    const seconds = 123.456;
+    const expectedTimeString = "00:02:03";
+
+    const result = hhmmssFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+});
+
+describe("hhmmssmmmFromSeconds", () => {
+  test("returns the formatted time string for positive seconds", () => {
+    const seconds = 3665;
+    const expectedTimeString = "01:01:05.000";
+
+    const result = hhmmssmmmFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns the formatted time string for negative seconds", () => {
+    const seconds = -3665;
+    const expectedTimeString = "-01:01:05.000";
+
+    const result = hhmmssmmmFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+
+  test("returns the formatted time string for fractional seconds", () => {
+    const seconds = 123.456;
+    const expectedTimeString = "00:02:03.456";
+
+    const result = hhmmssmmmFromSeconds(seconds);
+
+    expect(result).toBe(expectedTimeString);
+  });
+});
+
+describe("isoStringFromAnyDateString", () => {
+  test("returns the ISO string representation for a valid ISO date string", () => {
+    const isoDateString = "2023-05-24T12:00:00Z";
+    const expectedISOString = "2023-05-24T12:00:00.000Z";
+
+    const result = isoStringFromAnyDateString(isoDateString);
+
+    expect(result).toBe(expectedISOString);
+  });
+
+  test("returns the ISO string representation for a valid UTC date string", () => {
+    const utcDateString = "Wed, 24 May 2023 12:00:00 GMT";
+    const expectedISOString = "2023-05-24T12:00:00.000Z";
+
+    const result = isoStringFromAnyDateString(utcDateString);
+
+    expect(result).toBe(expectedISOString);
+  });
+
+  test("throws an error for an invalid date string", () => {
+    const invalidDateString = "Invalid Date String";
+
+    expect(() => {
+      isoStringFromAnyDateString(invalidDateString);
+    }).toThrowError("The date string couldn't be converted into a Date");
+  });
+});
 
 /**
  * Shortcut for making a UTC Date
@@ -281,4 +486,42 @@ describe("cleansEVATitleFromWiki", () => {
       expect(result).toBe(testCase.output);
     });
   }
+});
+
+describe("lightColor", () => {
+  test("returns true for light colors", () => {
+    const lightColorHex = "#FFFFFF";
+    const lightColorRGB = "rgb(255, 255, 255)";
+    const lightColorRGBA = "rgba(255, 255, 255, 1)";
+
+    const resultHex = lightColor(lightColorHex);
+    const resultRGB = lightColor(lightColorRGB);
+    const resultRGBA = lightColor(lightColorRGBA);
+
+    expect(resultHex).toBe(true);
+    expect(resultRGB).toBe(true);
+    expect(resultRGBA).toBe(true);
+  });
+
+  test("returns false for dark colors", () => {
+    const darkColorHex = "#000000";
+    const darkColorRGB = "rgb(0, 0, 0)";
+    const darkColorRGBA = "rgba(0, 0, 0, 1)";
+
+    const resultHex = lightColor(darkColorHex);
+    const resultRGB = lightColor(darkColorRGB);
+    const resultRGBA = lightColor(darkColorRGBA);
+
+    expect(resultHex).toBe(false);
+    expect(resultRGB).toBe(false);
+    expect(resultRGBA).toBe(false);
+  });
+
+  test("returns false for invalid color formats", () => {
+    const invalidColor = "invalid-color";
+
+    const result = lightColor(invalidColor);
+
+    expect(result).toBe(false);
+  });
 });
