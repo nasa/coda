@@ -53,6 +53,7 @@ export default function NavTimeline(props: { collection: Collection }) {
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
   const canvas: MutableRefObject<HTMLCanvasElement> = useRef(null);
+  const canvasContainer: MutableRefObject<HTMLDivElement> = useRef(null);
   const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
   const navReady: MutableRefObject<boolean> = useRef(false);
 
@@ -120,41 +121,48 @@ export default function NavTimeline(props: { collection: Collection }) {
     drawNav.current.drawTier1();
     drawNav.current.drawNavBox(time.current);
     drawNav.current.drawTier2();
-    // drawNav.current.drawTier1Future();
     drawNav.current.drawCursor(time.current);
 
     paper.view.onResize = function () {
       drawNav.current.setDynamicWidthVariables();
       drawNav.current.drawTier1();
-      // drawNav.current.drawTier1Future();
       drawNav.current.drawNavBox(time.current);
       drawNav.current.drawTier2();
     };
 
+    const mouseMoveCb = (thisHoverSeconds) => {
+      if (!mouseOnNavigator.current) {
+        mouseOnNavigator.current = true;
+        // Make the canvas receive click events
+        canvasContainer.current.style.pointerEvents = "auto";
+      }
+      if (playheadHover.seconds !== thisHoverSeconds) {
+        dispatch(changeHoverTime(thisHoverSeconds));
+      }
+    };
+    const mouseUpCb = (hh: number, mm: number, ss: number) => {
+      const secondsIntoDate = ss + 60 * mm + 3600 * hh;
+      dispatch(changeTime(secondsIntoDate));
+    };
+    const mouseLeaveCb = () => {
+      mouseOnNavigator.current = false;
+      drawNav.current.drawNavBox(time.current);
+      drawNav.current.drawTier2();
+      drawNav.current.drawCursor(time.current);
+      dispatch(changeHoverTime(0));
+      // Make the canvas ignore click events (but still receive mousemove events--somehow).
+      // Hover events still work for Paper reason which is super handy for us)
+      canvasContainer.current.style.pointerEvents = "none";
+    };
+
     paper.view.onMouseMove = (event) => {
-      drawNav.current.handleMouseMove(event, time.current, (thisHoverSeconds) => {
-        if (!mouseOnNavigator.current) {
-          mouseOnNavigator.current = true;
-        }
-        if (playheadHover.seconds !== thisHoverSeconds) {
-          dispatch(changeHoverTime(thisHoverSeconds));
-        }
-      });
+      drawNav.current.handleMouseMove(event, time.current, mouseMoveCb, mouseLeaveCb);
     };
     paper.view.onMouseUp = (event) => {
-      drawNav.current.handleMouseUp(event, (hh: number, mm: number, ss: number) => {
-        const secondsIntoDate = ss + 60 * mm + 3600 * hh;
-        dispatch(changeTime(secondsIntoDate));
-      });
+      drawNav.current.handleMouseUp(event, mouseUpCb);
     };
     paper.view.onMouseLeave = (event) => {
-      drawNav.current?.handleMouseLeave(event, () => {
-        mouseOnNavigator.current = false;
-        drawNav.current.drawNavBox(time.current);
-        drawNav.current.drawTier2();
-        drawNav.current.drawCursor(time.current);
-        dispatch(changeHoverTime(0));
-      });
+      drawNav.current?.handleMouseLeave(event, mouseLeaveCb);
     };
 
     if (!navReady.current) {
@@ -163,19 +171,11 @@ export default function NavTimeline(props: { collection: Collection }) {
   };
 
   useEffect(() => {
-    // only setup the canvas once
-    if (isNil(paper.project) && typeof window !== "undefined") {
-      installTimeline();
-    }
-    return () => paper.project.remove();
-  }, [playhead.date]);
-
-  useEffect(() => {
     if (paper.project) {
       paper.project.remove();
     }
     installTimeline();
-  }, [sequence, maestroDataAvailable, videoFiles, photoFiles, dayNight, photos]);
+  }, [sequence, maestroDataAvailable, videoFiles, photoFiles, dayNight, photos, playhead.date]);
 
   useEffect(() => {
     time.current = playhead.seconds;
@@ -188,7 +188,6 @@ export default function NavTimeline(props: { collection: Collection }) {
     if (!mouseOnNavigator.current) {
       drawNav.current.drawTier1();
       drawNav.current.drawNavBox(time.current);
-      // drawNav.current.drawTier1Future();
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
@@ -199,7 +198,7 @@ export default function NavTimeline(props: { collection: Collection }) {
       {/* {!mouseOnNavigator.current && <div className={styles.collapsedBackground}></div>}
       {mouseOnNavigator.current && <div className={styles.expandedBackground}></div>} */}
       <div className={styles.expandedBackground}></div>
-      <div className={styles.canvasContainer}>
+      <div ref={canvasContainer} className={styles.canvasContainer}>
         <canvas ref={canvas} data-paper-resize />
       </div>
     </>
