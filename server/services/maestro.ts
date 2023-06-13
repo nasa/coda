@@ -38,7 +38,6 @@ export const fetchMaestroExecuteTimelineStatus = async (
   }
 
   try {
-    console.log(executeEventUuid);
     const res = await fetchWithTimeout(
       `https://maestro.fit.nasa.gov/api/v1/event/exetimelinestatus/${executeEventUuid}`
     );
