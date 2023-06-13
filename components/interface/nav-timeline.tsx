@@ -162,7 +162,7 @@ export default function NavTimeline(props: { collection: Collection }) {
       drawNav.current.handleMouseUp(event, mouseUpCb);
     };
     paper.view.onMouseLeave = (event) => {
-      drawNav.current?.handleMouseLeave(event, mouseLeaveCb);
+      drawNav.current.handleMouseLeave(event, mouseLeaveCb);
     };
 
     if (!navReady.current) {

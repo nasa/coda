@@ -146,9 +146,9 @@ export default class DrawNav {
     this.gNavCursorGroup.removeChildren();
   };
 
-  handleMouseLeave = (_event, cb) => {
+  handleMouseLeave = (_event, mouseLeaveCb) => {
     this.mouseLeaveActions();
-    cb();
+    mouseLeaveCb();
   };
 
   setDynamicWidthVariables = () => {
