@@ -81,9 +81,15 @@ export default class DrawNav {
     }
   }
 
-  handleMouseMove = (event, missionTimeSeconds, cb) => {
-    // scram if hovering over play pause controls area
-    if (event.point.y > this.gTier1Top && event.point.x < this.gTier1Left) {
+  handleMouseMove = (event, missionTimeSeconds, mouseMoveCb, mouseLeaveCb) => {
+    // scram if hovering over play pause controls area or on the nav cursor area
+    if (
+      (event.point.y > this.gTier1Top && event.point.x < this.gTier1Left) ||
+      event.point.y < this.gTier2Top
+    ) {
+      // trigger a mouse leave event
+      this.mouseLeaveActions();
+      mouseLeaveCb();
       return;
     }
     let mouseXSeconds;
@@ -105,10 +111,15 @@ export default class DrawNav {
     this.drawCursor(missionTimeSeconds);
     this.drawNavCursor(mouseXSeconds);
     this.drawTier2();
-    cb(mouseXSeconds);
+    mouseMoveCb(mouseXSeconds);
   };
 
   handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {
+    // ignore clicks in the nav cursor area
+    if (event.point.y < this.gTier2Top) {
+      return;
+    }
+
     let seconds = 0;
     if (event.point.y > this.gTier1Top) {
       seconds = Math.round((event.point.x - this.gTier1Left) * this.gTier1SecondsPerPixel);
@@ -128,13 +139,16 @@ export default class DrawNav {
     cb(hh, mm, ss);
   };
 
-  handleMouseLeave = (_event, cb) => {
-    // this.navigatorCollapsed = true;
+  mouseLeaveActions = () => {
     this.setDynamicWidthVariables();
     this.drawTier1();
     this.drawTier2();
     this.gNavCursorGroup.removeChildren();
-    cb();
+  };
+
+  handleMouseLeave = (_event, mouseLeaveCb) => {
+    this.mouseLeaveActions();
+    mouseLeaveCb();
   };
 
   setDynamicWidthVariables = () => {
@@ -724,6 +738,72 @@ export default class DrawNav {
     return group;
   };
 
+  drawNavBox = (seconds) => {
+    this.gTier1NavGroup.removeChildren();
+
+    let locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
+    let navBoxWidth = (this.gNavigatorWidth - this.gTier1Left) / this.gNavZoomFactor;
+    this.gNavBoxLocX = locX - navBoxWidth / 2;
+    if (this.gNavBoxLocX < this.gTier1Left) {
+      this.gNavBoxLocX = this.gTier1Left;
+    } else if (this.gNavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
+      this.gNavBoxLocX = this.gNavigatorWidth - navBoxWidth;
+    }
+    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * (this.gNavBoxLocX - this.gTier1Left);
+
+    const navBoxTop = this.gTier1Top;
+    const navBoxHeight = this.gTier1Height;
+    let navBoxRect = new paper.Rectangle(this.gNavBoxLocX, navBoxTop, navBoxWidth, navBoxHeight);
+    const cornerSize = new paper.Size(3, 3);
+    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
+    navBoxRectPath.strokeColor = this.gColorNavBox;
+    navBoxRectPath.strokeWidth = 2;
+    this.gTier1NavGroup.addChild(navBoxRectPath);
+
+    //left navBoxEffect
+    const effectHeight = 20;
+    let startPoint = new paper.Point(this.gNavBoxLocX, this.gTier1Top + effectHeight);
+    const effectSideWidth = 20;
+    let navBoxEffectLeft = new paper.Path({
+      strokeColor: this.gColorNavBox,
+      closed: false,
+      fillColor: "#efefef",
+      strokeWidth: 2,
+    });
+    navBoxEffectLeft.add(startPoint);
+    navBoxEffectLeft.arcTo(
+      new paper.Point(startPoint.x - effectSideWidth / 1.2, startPoint.y - effectHeight),
+      new paper.Point(startPoint.x - effectSideWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffectLeft.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
+    this.gTier1NavGroup.addChild(navBoxEffectLeft);
+
+    //right navBoxEffect
+    startPoint = new paper.Point(this.gNavBoxLocX + navBoxWidth, this.gTier1Top + effectHeight);
+    let navBoxEffectRight = new paper.Path({
+      strokeColor: this.gColorNavBox,
+      closed: false,
+      fillColor: this.gColorNavBox,
+      strokeWidth: 2,
+    });
+    navBoxEffectRight.add(startPoint);
+    navBoxEffectRight.arcTo(
+      new paper.Point(startPoint.x + effectSideWidth / 1.2, startPoint.y - effectHeight),
+      new paper.Point(startPoint.x + effectSideWidth, startPoint.y - effectHeight)
+    );
+    navBoxEffectRight.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
+    this.gTier1NavGroup.addChild(navBoxEffectRight);
+
+    //Timeline separator bar full width
+    const navBoxEffectBar = new paper.Path.Line({
+      from: [0, this.gTier1Top],
+      to: [this.gNavigatorWidth, this.gTier1Top],
+      strokeColor: this.gColorVideoLOS,
+      strokeWidth: this.gTierSpacing,
+    });
+    this.gTier1NavGroup.addChild(navBoxEffectBar);
+  };
+
   drawTier1() {
     this.gTier1Group.removeChildren();
 
@@ -949,70 +1029,4 @@ export default class DrawNav {
       })
     );
   }
-
-  drawNavBox = (seconds) => {
-    this.gTier1NavGroup.removeChildren();
-
-    let locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
-    let navBoxWidth = (this.gNavigatorWidth - this.gTier1Left) / this.gNavZoomFactor;
-    this.gNavBoxLocX = locX - navBoxWidth / 2;
-    if (this.gNavBoxLocX < this.gTier1Left) {
-      this.gNavBoxLocX = this.gTier1Left;
-    } else if (this.gNavBoxLocX + navBoxWidth > this.gNavigatorWidth) {
-      this.gNavBoxLocX = this.gNavigatorWidth - navBoxWidth;
-    }
-    this.gTier2StartSeconds = this.gTier1SecondsPerPixel * (this.gNavBoxLocX - this.gTier1Left);
-
-    const navBoxTop = this.gTier1Top;
-    const navBoxHeight = this.gTier1Height;
-    let navBoxRect = new paper.Rectangle(this.gNavBoxLocX, navBoxTop, navBoxWidth, navBoxHeight);
-    const cornerSize = new paper.Size(3, 3);
-    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
-    navBoxRectPath.strokeColor = this.gColorNavBox;
-    navBoxRectPath.strokeWidth = 2;
-    this.gTier1NavGroup.addChild(navBoxRectPath);
-
-    //left navBoxEffect
-    const effectHeight = 20;
-    let startPoint = new paper.Point(this.gNavBoxLocX, this.gTier1Top + effectHeight);
-    const effectSideWidth = 20;
-    let navBoxEffectLeft = new paper.Path({
-      strokeColor: this.gColorNavBox,
-      closed: false,
-      fillColor: "#efefef",
-      strokeWidth: 2,
-    });
-    navBoxEffectLeft.add(startPoint);
-    navBoxEffectLeft.arcTo(
-      new paper.Point(startPoint.x - effectSideWidth / 1.2, startPoint.y - effectHeight),
-      new paper.Point(startPoint.x - effectSideWidth, startPoint.y - effectHeight)
-    );
-    navBoxEffectLeft.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
-    this.gTier1NavGroup.addChild(navBoxEffectLeft);
-
-    //right navBoxEffect
-    startPoint = new paper.Point(this.gNavBoxLocX + navBoxWidth, this.gTier1Top + effectHeight);
-    let navBoxEffectRight = new paper.Path({
-      strokeColor: this.gColorNavBox,
-      closed: false,
-      fillColor: this.gColorNavBox,
-      strokeWidth: 2,
-    });
-    navBoxEffectRight.add(startPoint);
-    navBoxEffectRight.arcTo(
-      new paper.Point(startPoint.x + effectSideWidth / 1.2, startPoint.y - effectHeight),
-      new paper.Point(startPoint.x + effectSideWidth, startPoint.y - effectHeight)
-    );
-    navBoxEffectRight.lineTo(new paper.Point(startPoint.x, startPoint.y - effectHeight));
-    this.gTier1NavGroup.addChild(navBoxEffectRight);
-
-    //Timeline separator bar full width
-    const navBoxEffectBar = new paper.Path.Line({
-      from: [0, this.gTier1Top],
-      to: [this.gNavigatorWidth, this.gTier1Top],
-      strokeColor: this.gColorVideoLOS,
-      strokeWidth: this.gTierSpacing,
-    });
-    this.gTier1NavGroup.addChild(navBoxEffectBar);
-  };
 }
