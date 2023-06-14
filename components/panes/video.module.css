@@ -32,6 +32,10 @@
   margin-right: 1px;
 }
 
+.rightButtonsContainer {
+  align-items: baseline;
+}
+
 .rightButtons {
   display: flex;
 }
@@ -309,5 +313,16 @@
   justify-content: space-around;
 }
 
-.chDropdownModal {
+.chDropdownLabel {
+  padding-left: 7px;
+}
+
+.active_selected {
+  background: var(--lightest-grey);
+  color: white;
+}
+
+.disabled_selected {
+  background: var(--lightest-grey);
+  color: var(--extremely-grey);
 }

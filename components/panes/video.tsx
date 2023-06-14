@@ -96,30 +96,32 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
 
   const frameID = props.frameID;
   return (
-    <div className={styles.rightButtons}>
-      <div className={styles.verticalCenter}>
-        <MuteButton
-          clickHandler={() => {
-            handleMuteButtonClick();
-          }}
-          muted={props.paneStateData.muted}
-        />
-      </div>
-      <div className={styles.verticalCenter}>
-        <IOInfoButton
-          clickHandler={() => {
-            setPaneStateValue(dispatch, frameID, "showInfo", !props.paneStateData.showInfo);
-          }}
-          selected={props.paneStateData.showInfo}
-        />
-      </div>
-      <div className={styles.verticalCenter}>
-        <HelpButton
-          clickHandler={() => {
-            setPaneStateValue(dispatch, frameID, "showHelp", !props.paneStateData.showHelp);
-          }}
-          selected={props.paneStateData.showHelp}
-        />
+    <div className={styles.rightButtonsContainer}>
+      <div className={styles.rightButtons}>
+        <div className={styles.verticalCenter}>
+          <MuteButton
+            clickHandler={() => {
+              handleMuteButtonClick();
+            }}
+            muted={props.paneStateData.muted}
+          />
+        </div>
+        <div className={styles.verticalCenter}>
+          <IOInfoButton
+            clickHandler={() => {
+              setPaneStateValue(dispatch, frameID, "showInfo", !props.paneStateData.showInfo);
+            }}
+            selected={props.paneStateData.showInfo}
+          />
+        </div>
+        <div className={styles.verticalCenter}>
+          <HelpButton
+            clickHandler={() => {
+              setPaneStateValue(dispatch, frameID, "showHelp", !props.paneStateData.showHelp);
+            }}
+            selected={props.paneStateData.showHelp}
+          />
+        </div>
       </div>
     </div>
   );
@@ -187,28 +189,12 @@ export function ChannelSelectorSmall({
 }) {
   return (
     <div className={styles.controls}>
-      {/* <div className={`${styles.selectContainer} ${styles.selectContainerNarrow}`}> */}
-      {/* <select
-          value={paneStateData.channel}
-          onChange={(e) => {
-            setPaneStateValue(dispatch, frameID, "channel", e.target.value);
-          }}
-        >
-          <option value="">DL</option>
-          {channels.map((v) => {
-            return (
-              <option value={v} key={v}>
-                {v + 1}
-              </option>
-            );
-          })}
-        </select> */}
       <div className={styles.dropdown}>
         <ModalDropdown
           color="grey"
           size="skinny"
           modal={ChannelDropdownModal}
-          modalOptions={{ frameID, channelAvailability }}
+          modalOptions={{ frameID, channelAvailability, channelSelected: paneStateData?.channel }}
         >
           {!_.isNil(channelAvailability) ? (
             <ChannelDropdownLabel
@@ -220,7 +206,6 @@ export function ChannelSelectorSmall({
           )}
         </ModalDropdown>
       </div>
-      {/* </div> */}
       <RightButtons frameID={frameID} paneStateData={paneStateData} />
     </div>
   );
@@ -233,11 +218,11 @@ function ChannelDropdownLabel({
   dlNumber: number;
   isAvailable: boolean;
 }) {
-  let color = isAvailable ? "active" : "disabled";
+  let color = isAvailable ? "active_selected" : "disabled_selected";
 
   return (
-    <div className={`${styles.item} ${color}`}>
-      <div className={styles.verticalCenter}>{dlNumber}</div>
+    <div className={`${styles.chDropdownLabel} ${styles[color]}`}>
+      <div className={styles.verticalCenter}>{dlNumber + 1}</div>
     </div>
   );
 }
@@ -245,10 +230,10 @@ function ChannelDropdownLabel({
 /** Renders a modal with a list of frame types to choose from */
 function ChannelDropdownModal({
   closeClick,
-  options: { frameID, channelAvailability },
+  options: { frameID, channelAvailability, channelSelected },
 }: {
   closeClick: () => void;
-  options: { frameID: number; channelAvailability: boolean[] };
+  options: { frameID: number; channelAvailability: boolean[]; channelSelected: number };
 }) {
   const dispatch = useDispatch();
 
@@ -266,11 +251,17 @@ function ChannelDropdownModal({
             if (channelAvailability[c]) {
               color = "active";
             }
+            if (channelSelected === c) {
+              if (channelAvailability[c]) {
+                color = "active_selected";
+              } else {
+                color = "disabled_selected";
+              }
+            }
             return (
               <div
-                className={styles.option}
                 onClick={() => {
-                  handleSelectChannel(c + 1);
+                  handleSelectChannel(c);
                 }}
                 key={`CHANNEL__PICKER__${frameID}__${c}`}
               >
