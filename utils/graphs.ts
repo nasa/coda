@@ -8,7 +8,7 @@ export function getPlotlyChartLayout(height) {
     paper_bgcolor: "#19181b",
     margin: {
       t: 10, //top margin
-      l: 25, //left margin
+      l: 40, //left margin
       r: 0, //right margin
       b: 60, //bottom margin
     },
