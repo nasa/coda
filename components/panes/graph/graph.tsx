@@ -197,6 +197,27 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     localAsyncFetchData();
   }, [paneStateData.selectedGraphId, graphs.loadingStatus]);
 
+  // Peroiodically update the graph data depending on the graphs.graphManifest.updateFrequency value. If not value, default to 10 seconds. If -1 don't refresh.
+  useEffect(() => {
+    if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) {
+      return;
+    }
+
+    // don't refrech if updateFrequency is < 1
+    if (graphs.graphsManifest?.updateFrequency < 1) {
+      return;
+    }
+
+    // default to 10 seconds if no updateFrequency value in manifest
+    const updateFrequency = graphs.graphsManifest?.updateFrequency || 10;
+
+    const interval = setInterval(() => {
+      localAsyncFetchData();
+    }, updateFrequency * 1000);
+
+    return () => clearInterval(interval);
+  }, [graphs.loadingStatus, paneStateData.selectedGraphId]);
+
   // Trigger updating of chart data when graph data changes
   useEffect(() => {
     if (!graphData) {
