@@ -8,6 +8,7 @@
   opacity: 0.5; */
   /* background-color: #2e2b34; */
   z-index: 30;
+  pointer-events: auto;
 }
 
 .canvasContainer canvas {

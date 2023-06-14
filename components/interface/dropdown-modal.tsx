@@ -48,7 +48,7 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
   const [display, setDisplay] = useState(false);
 
   const modalRef = useRef(null) as MutableRefObject<HTMLInputElement>;
-  const labelRef = useRef(null) as MutableRefObject<HTMLInputElement>;
+  const labelRef = useRef(null) as MutableRefObject<HTMLButtonElement>;
 
   // TODO: it would be nice to grab the width when it first renders and use that to fix the width
   //       when the modal is expanded. right now you have to fix the width in the containing element
