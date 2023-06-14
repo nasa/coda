@@ -247,6 +247,13 @@ function ChannelDropdownModal({
       {channelAvailability && (
         <>
           {channels.map((c) => {
+            let rounded = "none";
+            if (c === 0) {
+              rounded = "top";
+            } else if (c === 7) {
+              rounded = "bottom";
+            }
+
             let color = "disabled";
             if (channelAvailability[c]) {
               color = "active";
@@ -265,7 +272,7 @@ function ChannelDropdownModal({
                 }}
                 key={`CHANNEL__PICKER__${frameID}__${c}`}
               >
-                <Button color={color} size="small" rounded="none">
+                <Button color={color} size="small" rounded={rounded}>
                   <div className={styles.dlLabel}>{c + 1}</div>
                 </Button>
               </div>
