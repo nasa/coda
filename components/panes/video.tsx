@@ -13,6 +13,8 @@ import styles from "./video.module.css";
 import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
+import { ModalDropdown } from "components/interface/dropdown-modal";
+import _ from "lodash";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 
@@ -68,6 +70,7 @@ export function ExpandButton() {
 }
 
 function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateData }) {
+  const dispatch = useDispatch();
   const frames = useSelector((state: RootState) => state.framework.frames);
 
   /**
@@ -91,7 +94,6 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
     }
   }
 
-  const dispatch = useDispatch();
   const frameID = props.frameID;
   return (
     <div className={styles.rightButtons}>
@@ -125,9 +127,167 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
 
 const channels = [0, 1, 2, 3, 4, 5, 6, 7];
 
+export function ChannelSelectorLarge(props: {
+  frameID: number;
+  channelAvailability: any;
+  paneStateData: VideoPaneStateData;
+}) {
+  const dispatch = useDispatch();
+  return (
+    <div className={styles.controls}>
+      <div className={styles.selections}>
+        {channels.map((c) => {
+          let rounded = "none";
+          if (c === 0) {
+            rounded = "left";
+          } else if (c === 7) {
+            rounded = "right";
+          }
+
+          let color = "disabled";
+          if (props.channelAvailability[c]) {
+            color = "active";
+          }
+          if (props.paneStateData.channel === c) {
+            if (props.channelAvailability[c]) {
+              color = "active_selected";
+            } else {
+              color = "disabled_selected";
+            }
+          }
+
+          return (
+            <Button
+              key={"DLBUTTON_" + c + "_" + props.frameID}
+              color={color}
+              size="small"
+              rounded={rounded}
+              callback={() => {
+                setPaneStateValue(dispatch, props.frameID, "channel", c);
+              }}
+            >
+              <div className={styles.dlLabel}>{c + 1}</div>
+            </Button>
+          );
+        })}
+      </div>
+      <RightButtons frameID={props.frameID} paneStateData={props.paneStateData} />
+    </div>
+  );
+}
+
+export function ChannelSelectorSmall({
+  frameID,
+  channelAvailability,
+  paneStateData,
+}: {
+  frameID: number;
+  channelAvailability: boolean[];
+  paneStateData: VideoPaneStateData;
+}) {
+  return (
+    <div className={styles.controls}>
+      {/* <div className={`${styles.selectContainer} ${styles.selectContainerNarrow}`}> */}
+      {/* <select
+          value={paneStateData.channel}
+          onChange={(e) => {
+            setPaneStateValue(dispatch, frameID, "channel", e.target.value);
+          }}
+        >
+          <option value="">DL</option>
+          {channels.map((v) => {
+            return (
+              <option value={v} key={v}>
+                {v + 1}
+              </option>
+            );
+          })}
+        </select> */}
+      <div className={styles.dropdown}>
+        <ModalDropdown
+          color="grey"
+          size="skinny"
+          modal={ChannelDropdownModal}
+          modalOptions={{ frameID, channelAvailability }}
+        >
+          {!_.isNil(channelAvailability) ? (
+            <ChannelDropdownLabel
+              dlNumber={paneStateData.channel}
+              isAvailable={channelAvailability[paneStateData.channel]}
+            />
+          ) : (
+            <>&nbsp;DL</>
+          )}
+        </ModalDropdown>
+      </div>
+      {/* </div> */}
+      <RightButtons frameID={frameID} paneStateData={paneStateData} />
+    </div>
+  );
+}
+
+function ChannelDropdownLabel({
+  dlNumber,
+  isAvailable,
+}: {
+  dlNumber: number;
+  isAvailable: boolean;
+}) {
+  let color = isAvailable ? "active" : "disabled";
+
+  return (
+    <div className={`${styles.item} ${color}`}>
+      <div className={styles.verticalCenter}>{dlNumber}</div>
+    </div>
+  );
+}
+
+/** Renders a modal with a list of frame types to choose from */
+function ChannelDropdownModal({
+  closeClick,
+  options: { frameID, channelAvailability },
+}: {
+  closeClick: () => void;
+  options: { frameID: number; channelAvailability: boolean[] };
+}) {
+  const dispatch = useDispatch();
+
+  const handleSelectChannel = (dlChannel: number) => {
+    setPaneStateValue(dispatch, frameID, "channel", dlChannel);
+    closeClick();
+  };
+
+  return (
+    <div className={styles.chDropdownModal}>
+      {channelAvailability && (
+        <>
+          {channels.map((c) => {
+            let color = "disabled";
+            if (channelAvailability[c]) {
+              color = "active";
+            }
+            return (
+              <div
+                className={styles.option}
+                onClick={() => {
+                  handleSelectChannel(c + 1);
+                }}
+                key={`CHANNEL__PICKER__${frameID}__${c}`}
+              >
+                <Button color={color} size="small" rounded="none">
+                  <div className={styles.dlLabel}>{c + 1}</div>
+                </Button>
+              </div>
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function VideoDLPaneControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
-  const dispatch = useDispatch();
 
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
@@ -141,7 +301,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
-  const [channelAvailability, setChannelAvailability] = useState([]);
+  const [channelAvailability, setChannelAvailability] = useState<boolean[]>([]);
 
   useEffect(() => {
     if (visibleVideos.size === 0) {
@@ -157,71 +317,19 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
 
   if (props.frameDimensions[0] > minWidth) {
     return (
-      <div className={styles.controls}>
-        <div className={styles.selections}>
-          {channels.map((c) => {
-            let rounded = "none";
-            if (c === 0) {
-              rounded = "left";
-            } else if (c === 7) {
-              rounded = "right";
-            }
-
-            let color = "disabled";
-            if (channelAvailability[c]) {
-              color = "active";
-            }
-            if (paneStateData.channel === c) {
-              if (channelAvailability[c]) {
-                color = "active_selected";
-              } else {
-                color = "disabled_selected";
-              }
-            }
-
-            return (
-              <Button
-                key={"DLBUTTON_" + c + "_" + frameID}
-                color={color}
-                size="small"
-                rounded={rounded}
-                callback={() => {
-                  setPaneStateValue(dispatch, frameID, "channel", c);
-                }}
-              >
-                <div className={styles.dlLabel}>{c + 1}</div>
-              </Button>
-            );
-          })}
-        </div>
-        <RightButtons frameID={frameID} paneStateData={paneStateData} />
-      </div>
+      <ChannelSelectorLarge
+        frameID={frameID}
+        channelAvailability={channelAvailability}
+        paneStateData={paneStateData}
+      />
     );
   } else {
     return (
-      <div className={styles.controls}>
-        <div className={`${styles.selectContainer} ${styles.selectContainerNarrow}`}>
-          <select
-            value={paneStateData.channel}
-            onChange={(e) => {
-              setPaneStateValue(dispatch, frameID, "channel", e.target.value);
-            }}
-          >
-            <option value="">DL</option>
-            {channels.map((v) => {
-              return (
-                <option value={v} key={v}>
-                  {v + 1}
-                </option>
-              );
-            })}
-          </select>
-          <div className={styles.nonDlSelect_arrow}>
-            <FontAwesomeIcon icon="chevron-down" size="sm" />
-          </div>
-        </div>
-        <RightButtons frameID={frameID} paneStateData={paneStateData} />
-      </div>
+      <ChannelSelectorSmall
+        frameID={frameID}
+        channelAvailability={channelAvailability}
+        paneStateData={paneStateData}
+      />
     );
   }
 }
