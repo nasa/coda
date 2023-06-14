@@ -1,6 +1,10 @@
 type GraphsManifest = {
   sourceUrl: string;
-
+  /**
+   * In seconds. Default: 10. < 1 means don't refresh.
+   * If the fetch() call takes longer than this, it will be aborted.
+   */
+  updateFrequency?: number;
   /**
    * Options required to be added to the fetch() call that retrieves this graph data.
    * Ref: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
