@@ -49,5 +49,5 @@
 .controls {
   width: 100%;
   margin-left: 3px;
-  overflow-x: hidden;
+  overflow-x: clip;
 }

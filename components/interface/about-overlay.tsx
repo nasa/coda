@@ -1,7 +1,6 @@
 import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
@@ -24,9 +23,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
   const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
 
   const [isLoaded, setIsLoaded] = useState(false);
-  const [closeAutomatically, setCloseAutomatically] = useState(false);
-
-  const [cookies, setCookie] = useCookies(["CODA_CloseAutomatically"]);
 
   useEffect(() => {
     if (
@@ -47,26 +43,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
     gps.loadingStatus,
     ephemera.loadingStatus,
   ]);
-
-  useEffect(() => {
-    if (cookies["CODA_CloseAutomatically"] === "true") {
-      setCloseAutomatically(true);
-    } else {
-      setCloseAutomatically(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLoaded && closeAutomatically) {
-      props.setModalIsOpen(false);
-    }
-  }, [isLoaded, closeAutomatically]);
-
-  const checkCloseAutomatically = () => {
-    const newVal = !closeAutomatically;
-    setCloseAutomatically(newVal);
-    setCookie("CODA_CloseAutomatically", newVal.toString(), { path: "/" });
-  };
 
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
   const titleShowGoButtonStyle = isLoaded
@@ -226,18 +202,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                       >
                         START CODA
                       </button>
-                      <div className={styles.checkboxArea}>
-                        <input
-                          id="autostart"
-                          className={styles.checkbox}
-                          type="checkbox"
-                          checked={closeAutomatically}
-                          onChange={checkCloseAutomatically}
-                        />
-                        <label htmlFor="autostart">
-                          Start CODA automatically when loading complete
-                        </label>
-                      </div>
                     </div>
                   </div>
                 </div>

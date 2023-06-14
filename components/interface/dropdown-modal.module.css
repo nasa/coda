@@ -70,7 +70,7 @@
 
 .modal {
   position: relative;
-  top: 10px;
+  top: 1px;
   z-index: 40; /* prevents dropdown carets from showing up on top of the modal */
 }
 
