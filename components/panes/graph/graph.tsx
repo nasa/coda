@@ -21,12 +21,13 @@ import styles from "./graph.module.css";
 import { appSecondsFromDateString } from "utils/formatting";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { hasProp } from "utils/type-guards";
+import Button from "components/interface/button";
 
 export function GraphControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
-  const minWidth = 527; // minimum width of the graph pane before shortening the dropdown
+  const minWidth = 500; // minimum width of the graph pane before shortening the dropdown
 
   const paneStateData: GraphPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData,
@@ -49,13 +50,14 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
     <div className={styles.controls}>
       <div className={styles.controlsLeft}>
         {graphs && (
-          <div>
+          <>
             <GraphSelectorDropdown
               frameID={props.frameID}
               frameDimensions={props.frameDimensions}
               minWidth={minWidth}
             />
-          </div>
+            <GraphDurationSelector frameID={props.frameID} paneStateData={paneStateData} />
+          </>
         )}
       </div>
       <div className={styles.rightButtons}>
@@ -120,6 +122,60 @@ function GraphSelectorDropdown(props: {
   );
 }
 
+const GraphDurationSelector = ({
+  frameID,
+  paneStateData,
+}: {
+  frameID: number;
+  paneStateData: GraphPaneStateData;
+}): JSX.Element => {
+  const dispatch = useDispatch();
+  interface GraphDurationSelectItem {
+    value: number;
+    label: string;
+  }
+  const durationItems: GraphDurationSelectItem[] = [
+    { value: -1, label: "All" },
+    { value: 3600, label: "1h" },
+    { value: 600, label: "10m" },
+    { value: 300, label: "5m" },
+  ];
+
+  const durationSelection = paneStateData?.durationSelection || -1;
+
+  return (
+    <div className={styles.durationItemsContainer}>
+      {durationItems.map((item, index) => {
+        let rounded = "none";
+        if (index === 0) {
+          rounded = "left";
+        } else if (index === durationItems.length - 1) {
+          rounded = "right";
+        }
+
+        let color = "active";
+        if (durationSelection === item.value) {
+          color = "active_selected";
+        }
+
+        return (
+          <Button
+            key={"DLBUTTON_" + item.label + "_" + frameID}
+            color={color}
+            size="medium"
+            rounded={rounded}
+            callback={() => {
+              setPaneStateValue(dispatch, frameID, "durationSelection", item.value);
+            }}
+          >
+            <div className={styles.dlLabel}>{item.label}</div>
+          </Button>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function Graph(props: { frameID: number; frameDimensions: number[] }) {
   const paneStateData: GraphPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData,
@@ -154,6 +210,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   };
 
   const [chartProps, setChartProps] = useState(initialChartProps);
+  const [graphDataTimestampsInSeconds, setGraphDataTimestampsInSeconds] = useState<number[]>([]);
 
   const frameID = props.frameID;
   const dispatch = useDispatch();
@@ -172,6 +229,11 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
         fetchOptions
       );
       const data = await response.json();
+
+      const timestampsInSeconds = data.map((item: GraphData) =>
+        appSecondsFromDateString(item.timestamp)
+      );
+      setGraphDataTimestampsInSeconds(timestampsInSeconds);
 
       // Store the data in the graph manifest in the store
       dispatch(
@@ -218,7 +280,30 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     return () => clearInterval(interval);
   }, [graphs.loadingStatus, paneStateData.selectedGraphId]);
 
-  // Trigger updating of chart data when graph data changes
+  const findPlotIndexToHighlight = (
+    seconds: number,
+    startIndex: number,
+    endIndex: number
+  ): number => {
+    // get the subset of graphDataTimestampsSeconds between start and end indexes
+    const graphDataTimestampsSecondsSubset = graphDataTimestampsInSeconds.slice(
+      startIndex,
+      endIndex
+    );
+
+    let plotIndexToHighlight = 0;
+    //find the telemetry index in graphDataTimestampsSecondsSubset closest to the current playhead time
+    for (let i = 0; i < graphDataTimestampsSecondsSubset.length; i++) {
+      if (graphDataTimestampsSecondsSubset[i] >= seconds) {
+        break;
+      }
+      plotIndexToHighlight = i;
+    }
+
+    return plotIndexToHighlight;
+  };
+
+  // Trigger updating of chart data when graph data changes or coda time changes
   useEffect(() => {
     if (!graphData) {
       return;
@@ -236,51 +321,75 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
       return;
     }
 
-    const chartTrace: PlotlyChartTrace = {
-      x: graphData.map((a) => a.timestamp),
-      y: graphData.map((a) => a.value),
-      type: "scatter",
-      mode: "lines",
-      line: {
-        color: "#B7AC0B",
-      },
-      name: "test",
-    };
+    // calculate the start and end indexes of the graph data to plot based on the playhead time and the duration selection
+    let startIndex = 0;
+    let endIndex = graphData.length - 1;
+    if (paneStateData.durationSelection !== -1) {
+      const duration = paneStateData.durationSelection;
+      const halfDuration = duration / 2;
 
-    let plotIndexToHighlight = 0;
-
-    setChartProps({
-      frameID,
-      plotIndexToHighlight,
-      chartData: {
-        plotlyChartTraces: [chartTrace],
-        plotlyChartLayout: getPlotlyChartLayout(graphHeight),
-      },
-    });
-  }, [graphData, props.frameDimensions]);
-
-  // Set the playhead position on the graph
-  useEffect(() => {
-    if (!graphData) {
-      return;
-    }
-
-    let plotIndexToHighlight = 0;
-    //find the telemetry plotpoint closest to the current playhead time by comparing against the plot timestamps
-    for (let i = 0; i < graphData.length; i++) {
-      const indexAppSeconds = appSecondsFromDateString(graphData[i].timestamp);
-      const secondsToHighlight =
-        playheadHover.seconds !== 0 ? playheadHover.seconds : playhead.seconds;
-      if (indexAppSeconds > secondsToHighlight) {
-        break;
+      for (let i = 0; i < graphData.length; i++) {
+        const seconds = graphDataTimestampsInSeconds[i];
+        if (seconds >= playhead.seconds - halfDuration) {
+          startIndex = i;
+          break;
+        }
       }
-      plotIndexToHighlight = i;
+
+      for (let i = graphData.length - 1; i >= 0; i--) {
+        const seconds = graphDataTimestampsInSeconds[i];
+        if (seconds <= playhead.seconds + halfDuration) {
+          endIndex = i;
+          break;
+        }
+      }
     }
 
-    console.log("highlighting plot index: " + plotIndexToHighlight);
+    // if not hovering, redraw the chart once per second
+    if (playheadHover.seconds === 0) {
+      // get the graph data to plot
+      let x: string[] = [];
+      let y: number[] = [];
 
-    setChartProps({ ...chartProps, plotIndexToHighlight });
-  }, [playhead, playheadHover]);
+      // get the subset of graphData between start and end indexes
+      const graphDataSubset = graphData.slice(startIndex, endIndex);
+
+      x = graphDataSubset.map((a) => a.timestamp);
+      y = graphDataSubset.map((a) => a.value);
+
+      const chartTrace: PlotlyChartTrace = {
+        x,
+        y,
+        type: "scatter",
+        mode: "lines",
+        line: {
+          color: "#B7AC0B",
+        },
+        name: "test",
+      };
+
+      const plotIndexToHighlight = findPlotIndexToHighlight(playhead.seconds, startIndex, endIndex);
+
+      setChartProps({
+        frameID,
+        plotIndexToHighlight,
+        chartData: {
+          plotlyChartTraces: [chartTrace],
+          plotlyChartLayout: getPlotlyChartLayout(graphHeight),
+        },
+      });
+
+      // if hovering, don't redraw the chart, just highlight the plot
+    } else if (playheadHover.seconds !== 0) {
+      const plotIndexToHighlight = findPlotIndexToHighlight(
+        playheadHover.seconds,
+        startIndex,
+        endIndex
+      );
+
+      setChartProps({ ...chartProps, plotIndexToHighlight });
+    }
+  }, [graphData, props.frameDimensions, paneStateData.durationSelection, playhead, playheadHover]);
 
   if (graphDataIsBad === "unauthorized") {
     return <div>Unauthorized</div>;

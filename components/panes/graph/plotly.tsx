@@ -33,7 +33,7 @@ function PlotlyComponent(props) {
       // ignore errors caused by graph data being unavailable for a given point
       try {
         const dateStr = data.points[0].x.replace(" " + "T") + "Z";
-        dispatch(changeTime(appSecondsFromDateString(dateStr)));
+        dispatch(changeTime(Math.round(appSecondsFromDateString(dateStr))));
       } catch {
         //do nothing
       }
