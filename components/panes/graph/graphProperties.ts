@@ -1,6 +1,53 @@
+interface ChartLayout {
+  autosize: boolean;
+  height: number;
+  showlegend: boolean;
+  plot_bgcolor: string;
+  paper_bgcolor: string;
+  margin: {
+    t: number;
+    l: number;
+    r: number;
+    b: number;
+  };
+  xaxis: {
+    autorange: boolean;
+    range?: string[];
+    showgrid: boolean;
+    zeroline: boolean;
+    showline: boolean;
+    autotick: boolean;
+    linecolor: string;
+    linewidth: number;
+    showticklabels: boolean;
+    nticks: number;
+    ticks: string;
+    tickfont: {
+      size: number;
+      color: string;
+    };
+    tickformat: string;
+    automargin: boolean;
+    hoverinfo: string;
+    type: string;
+  };
+  yaxis: {
+    autorange: boolean;
+    range?: string[];
+    linecolor: string;
+    linewidth: number;
+    showticklabels: boolean;
+    ticks: string;
+    tickfont: {
+      size: number;
+      color: string;
+    };
+  };
+}
+
 export function getPlotlyChartLayout(height) {
   const labelcolor = "#999999";
-  const chartLayout = {
+  const chartLayout: ChartLayout = {
     autosize: true,
     height,
     showlegend: false,

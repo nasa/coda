@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { getPlotlyChartLayout } from "utils/graphs";
+import { getPlotlyChartLayout } from "./graphProperties";
 import { setGraphsData, clearGraphsData } from "store/graphs";
 import dynamic from "next/dynamic";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -18,7 +18,7 @@ const DynPlotlyChart = dynamic(import("./plotly"), {
 });
 
 import styles from "./graph.module.css";
-import { appSecondsFromDateString } from "utils/formatting";
+import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { hasProp } from "utils/type-guards";
 import Button from "components/interface/button";
@@ -280,21 +280,11 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     return () => clearInterval(interval);
   }, [graphs.loadingStatus, paneStateData.selectedGraphId]);
 
-  const findPlotIndexToHighlight = (
-    seconds: number,
-    startIndex: number,
-    endIndex: number
-  ): number => {
-    // get the subset of graphDataTimestampsSeconds between start and end indexes
-    const graphDataTimestampsSecondsSubset = graphDataTimestampsInSeconds.slice(
-      startIndex,
-      endIndex
-    );
-
+  const findPlotIndexToHighlight = (seconds: number): number => {
     let plotIndexToHighlight = 0;
     //find the telemetry index in graphDataTimestampsSecondsSubset closest to the current playhead time
-    for (let i = 0; i < graphDataTimestampsSecondsSubset.length; i++) {
-      if (graphDataTimestampsSecondsSubset[i] >= seconds) {
+    for (let i = 0; i < graphDataTimestampsInSeconds.length; i++) {
+      if (graphDataTimestampsInSeconds[i] >= seconds) {
         break;
       }
       plotIndexToHighlight = i;
@@ -303,7 +293,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
     return plotIndexToHighlight;
   };
 
-  // Trigger updating of chart data when graph data changes or coda time changes
+  // Trigger updating of chart data when graph data changes
   useEffect(() => {
     if (!graphData) {
       return;
@@ -321,75 +311,94 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
       return;
     }
 
-    // calculate the start and end indexes of the graph data to plot based on the playhead time and the duration selection
-    let startIndex = 0;
-    let endIndex = graphData.length - 1;
-    if (paneStateData.durationSelection !== -1) {
+    const chartTrace: PlotlyChartTrace = {
+      x: graphData.map((a) => a.timestamp),
+      y: graphData.map((a) => a.value),
+      type: "scatter",
+      mode: "lines",
+      line: {
+        color: "#B7AC0B",
+      },
+      name: "test",
+    };
+
+    const plotIndexToHighlight = findPlotIndexToHighlight(playhead.seconds);
+
+    const chartLayout = getPlotlyChartLayout(graphHeight);
+
+    setChartProps({
+      frameID,
+      plotIndexToHighlight,
+      chartData: {
+        plotlyChartTraces: [chartTrace],
+        plotlyChartLayout: chartLayout,
+      },
+    });
+  }, [graphData, props.frameDimensions]);
+
+  // update the graph ranges and hover when the time changes
+  useEffect(() => {
+    if (!graphData) {
+      return;
+    }
+
+    // create isoDate strings for the start and end times of the desired graph range
+    let startDateString: string = null;
+    let endDateString: string = null;
+    if (paneStateData.durationSelection && paneStateData.durationSelection !== -1) {
       const duration = paneStateData.durationSelection;
       const halfDuration = duration / 2;
 
-      for (let i = 0; i < graphData.length; i++) {
-        const seconds = graphDataTimestampsInSeconds[i];
-        if (seconds >= playhead.seconds - halfDuration) {
-          startIndex = i;
-          break;
-        }
-      }
+      const startSeconds = playhead.seconds - halfDuration;
+      const endSeconds = playhead.seconds + halfDuration;
 
-      for (let i = graphData.length - 1; i >= 0; i--) {
-        const seconds = graphDataTimestampsInSeconds[i];
-        if (seconds <= playhead.seconds + halfDuration) {
-          endIndex = i;
-          break;
-        }
-      }
+      startDateString = dateFromAppSeconds(startSeconds, playhead.date).toISOString();
+      endDateString = dateFromAppSeconds(endSeconds, playhead.date).toISOString();
     }
 
-    // if not hovering, redraw the chart once per second
-    if (playheadHover.seconds === 0) {
-      // get the graph data to plot
-      let x: string[] = [];
-      let y: number[] = [];
+    const chartLayout = getPlotlyChartLayout(graphHeight);
 
-      // get the subset of graphData between start and end indexes
-      const graphDataSubset = graphData.slice(startIndex, endIndex);
-
-      x = graphDataSubset.map((a) => a.timestamp);
-      y = graphDataSubset.map((a) => a.value);
-
-      const chartTrace: PlotlyChartTrace = {
-        x,
-        y,
-        type: "scatter",
-        mode: "lines",
-        line: {
-          color: "#B7AC0B",
-        },
-        name: "test",
-      };
-
-      const plotIndexToHighlight = findPlotIndexToHighlight(playhead.seconds, startIndex, endIndex);
-
-      setChartProps({
-        frameID,
-        plotIndexToHighlight,
-        chartData: {
-          plotlyChartTraces: [chartTrace],
-          plotlyChartLayout: getPlotlyChartLayout(graphHeight),
-        },
-      });
-
-      // if hovering, don't redraw the chart, just highlight the plot
-    } else if (playheadHover.seconds !== 0) {
-      const plotIndexToHighlight = findPlotIndexToHighlight(
-        playheadHover.seconds,
-        startIndex,
-        endIndex
-      );
-
-      setChartProps({ ...chartProps, plotIndexToHighlight });
+    if (startDateString && endDateString) {
+      chartLayout.xaxis.autorange = false;
+      chartLayout.xaxis.range = [startDateString, endDateString];
+    } else {
+      chartLayout.xaxis.autorange = true;
+      chartLayout.xaxis.range = null;
     }
-  }, [graphData, props.frameDimensions, paneStateData.durationSelection, playhead, playheadHover]);
+
+    const plotIndexToHighlight = findPlotIndexToHighlight(
+      playheadHover.seconds || playhead.seconds
+    );
+
+    const updatedChartProps = {
+      ...chartProps,
+      plotIndexToHighlight,
+      chartData: {
+        ...chartProps.chartData,
+        plotlyChartLayout: chartLayout,
+      },
+    };
+
+    setChartProps(updatedChartProps);
+  }, [graphData, paneStateData.durationSelection, playhead]);
+
+  // handle hover over graph
+  useEffect(() => {
+    if (!graphData) {
+      return;
+    }
+
+    const plotIndexToHighlight = findPlotIndexToHighlight(
+      playheadHover.seconds || playhead.seconds
+    );
+
+    const updatedChartProps = {
+      ...chartProps,
+      plotIndexToHighlight,
+    };
+
+    setChartProps(updatedChartProps);
+  }, [graphData, playheadHover]);
 
   if (graphDataIsBad === "unauthorized") {
     return <div>Unauthorized</div>;

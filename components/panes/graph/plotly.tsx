@@ -38,7 +38,7 @@ function PlotlyComponent(props) {
         //do nothing
       }
     });
-  }, [plotlyChartRef, props.chartData.plotlyChartTraces]);
+  }, [plotlyChartRef, props.chartData]);
 
   useEffect(() => {
     plotlyClass.current.hoverPoint(plotlyChartRef, props.plotIndexToHighlight);

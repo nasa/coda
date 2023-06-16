@@ -20,6 +20,17 @@ export function appSecondsFromDateString(dateStringParam: string): number {
 }
 
 /**
+ * Date from appSeconds
+ * @param dateStringParam D
+ * @returns
+ */
+
+export function dateFromAppSeconds(appSeconds: number, isoDate: string): Date {
+  const startOfDay = new Date(`${isoDate.split("T")[0]}T00:00:00Z`);
+  return addMs(startOfDay, appSeconds * 1000);
+}
+
+/**
  * Formats any isoString timestamp into hh:mm:ss
  */
 export function hhmmssFromDateString(dateStringParam: string): string {
