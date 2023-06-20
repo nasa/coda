@@ -125,4 +125,5 @@ type GraphPaneStateData = {
   lockScroll: boolean;
   showHelp: boolean;
   selectedGraphId: string;
+  durationSelection?: number; // seconds
 };

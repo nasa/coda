@@ -19,6 +19,11 @@
   display: flex;
 }
 
+.durationItemsContainer {
+  display: flex;
+  margin-left: 3px;
+}
+
 .verticalCenter {
   display: flex;
   flex-direction: column;
@@ -41,7 +46,7 @@
 }
 
 .selectContainerWide {
-  width: 14em;
+  width: 150px;
 }
 .selectContainerNarrow {
   width: 70px;

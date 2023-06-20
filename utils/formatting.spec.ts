@@ -1,5 +1,6 @@
 import {
   appSecondsFromDateString,
+  dateFromAppSeconds,
   formatEVADisplayTitle,
   getYearDayNumber,
   hhmmFromSeconds,
@@ -59,6 +60,18 @@ describe("appSecondsFromDateString", () => {
     expect(() => {
       appSecondsFromDateString(invalidDateString);
     }).toThrowError("The date string couldn't be converted into a Date");
+  });
+});
+
+describe("dateFromAppSeconds", () => {
+  it("should return the correct date", () => {
+    const appSeconds = 3600; // 1 hour
+    const isoDate = "2022-01-01T00:00:00Z";
+    const expectedDate = new Date("2022-01-01T01:00:00Z");
+
+    const result = dateFromAppSeconds(appSeconds, isoDate);
+
+    expect(result).toEqual(expectedDate);
   });
 });
 
