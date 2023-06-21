@@ -4,7 +4,7 @@ import styles from "./button.module.css";
 export interface Options {
   /** `grey`, `lightest-grey` */
   color?: string;
-  /** `default`, `small` */
+  /** `default`, `medium`, `small` */
   size?: string;
   /** `all`, `left`, `right`, `none` */
   rounded?: string;
