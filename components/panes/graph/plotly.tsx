@@ -19,9 +19,8 @@ function PlotlyComponent(props) {
   }, []);
 
   useEffect(() => {
-    if (!plotlyChartRef.current) {
-      return;
-    }
+    if (!plotlyChartRef.current) return;
+
     plotlyClass.current.drawChart(
       `plotlyChart${props.frameID}`,
       props.chartData.plotlyChartTraces,
