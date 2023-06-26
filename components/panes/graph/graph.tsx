@@ -94,14 +94,15 @@ function GraphSelectorDropdown(props: {
       ? styles.selectContainerWide
       : styles.selectContainerNarrow;
 
+  const selectedGraphId = paneStateData.selectedGraphId || "";
+
   return (
     <div className={styles.controls}>
       <div className={`${styles.selectContainer} ${dropDownWidthClass}`} title="Select a graph">
         <select
           className={styles.selectActive}
-          value={paneStateData.selectedGraphId}
+          value={selectedGraphId}
           onChange={(event) => {
-            console.log("Graph dropdown changed");
             setPaneStateValue(dispatch, props.frameID, "selectedGraphId", event.target.value);
           }}
         >
@@ -249,9 +250,8 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // Trigger loading of graph data when selectedGraphId changes
   useEffect(() => {
-    if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) {
-      return;
-    }
+    if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) return;
+
     setPaneStateValue(dispatch, frameID, "showHelp", false);
 
     dispatch(clearGraphsData());
@@ -261,14 +261,13 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // Peroiodically update the graph data depending on the graphs.graphManifest.updateFrequency value. If not value, default to 10 seconds. If -1 don't refresh.
   useEffect(() => {
-    if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) {
-      return;
-    }
-
     // don't refrech if updateFrequency is < 1
-    if (graphs.graphsManifest?.updateFrequency < 1) {
+    if (
+      graphs.loadingStatus !== "loaded" ||
+      !paneStateData.selectedGraphId ||
+      graphs.graphsManifest?.updateFrequency < 1
+    )
       return;
-    }
 
     // default to 10 seconds if no updateFrequency value in manifest
     const updateFrequency = graphs.graphsManifest?.updateFrequency || 10;
@@ -295,9 +294,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // Trigger updating of chart data when graph data changes
   useEffect(() => {
-    if (!graphData) {
-      return;
-    }
+    if (!graphData) return;
 
     if (!Array.isArray(graphData)) {
       const badData = graphData as unknown;
@@ -326,21 +323,22 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
     const chartLayout = getPlotlyChartLayout(graphHeight);
 
-    setChartProps({
-      frameID,
-      plotIndexToHighlight,
-      chartData: {
-        plotlyChartTraces: [chartTrace],
-        plotlyChartLayout: chartLayout,
-      },
-    });
+    setTimeout(() => {
+      // delay 500ms before updating chart to allow for the chart to be rendered
+      setChartProps({
+        frameID,
+        plotIndexToHighlight,
+        chartData: {
+          plotlyChartTraces: [chartTrace],
+          plotlyChartLayout: chartLayout,
+        },
+      });
+    }, 500);
   }, [graphData, props.frameDimensions]);
 
   // update the graph ranges and hover when the time changes
   useEffect(() => {
-    if (!graphData) {
-      return;
-    }
+    if (!graphData) return;
 
     // create isoDate strings for the start and end times of the desired graph range
     let startDateString: string = null;
@@ -384,9 +382,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
 
   // handle hover over graph
   useEffect(() => {
-    if (!graphData) {
-      return;
-    }
+    if (!graphData) return;
 
     const plotIndexToHighlight = findPlotIndexToHighlight(
       playheadHover.seconds || playhead.seconds
