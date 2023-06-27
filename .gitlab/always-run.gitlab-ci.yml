@@ -8,13 +8,13 @@ include:
 
   # Docker-in-Docker template for building docker images using docker runners
   - project: "developer-ecosystem/ci-job-templates"
-    ref: 101-update-dind-extend-to-docker-20
+    ref: 5.1.0
     file: "/extends/dind.gitlab-ci.yml"
 
 stages:
   - stageless
 
-# Overrride some properties on FIT jobs. Unfortunately using a template for these
+# Override some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
 project-check:
   stage: stageless
