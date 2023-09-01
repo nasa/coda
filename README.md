@@ -74,7 +74,7 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 3. Create a `.env.secret` file by running `bash ./scripts/make-dotenv.sh local`. This will create a file with blank variables. Ask [someone listed as a maintainer or owner of the CODA repo](https://eegitlab.fit.nasa.gov/emss/coda/-/project_members) for the values if you don't have them.
 4. Re-run `bash ./scripts/make-dotenv.sh local` to generate a `.env` file for your local setup based on the `.env.secret` you populated.
 5. Get the required CA Cert:
-   1. Go to https://cset.nasa.gov/application/nasa-trust-anchor-management-ntam-for-linux/
+   1. Go to https://cset.nasa.gov/ascs/application/trust-anchor-management-ntam-for-linux/
    2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
