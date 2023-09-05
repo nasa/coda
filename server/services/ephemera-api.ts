@@ -92,7 +92,8 @@ export async function fetchISSLocation(
   year: number,
   month: number,
   date: number,
-  forceNew?: boolean
+  forceNew?: boolean,
+  source?: string
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
   const dateObj = new Date(Date.UTC(year, month - 1, date));
@@ -148,6 +149,45 @@ export async function fetchISSLocation(
   let celestrakRes: WrappedResponse<EphemerisStore> = null;
 
   const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
+
+  if (source === "spacetrack") {
+    const spacetrackRes = await retrieverSpacetrack();
+    return {
+      cacheMetadata: null,
+      data: spacetrackRes,
+      source: "spacetrack",
+    };
+  } else if (source === "celestrak") {
+    if (isToday) {
+      const celestrackRes = await retrieverCelestrak();
+      return {
+        cacheMetadata: null,
+        data: celestrackRes,
+        source: "celestrak",
+      };
+    } else {
+      return {
+        data: null,
+        cacheMetadata: {
+          error: "Celestrak can only be queried for today's date",
+          fromCache: false,
+          timestamp: null,
+          expiration: null,
+        },
+      };
+    }
+  } else if (source) {
+    return {
+      data: null,
+      cacheMetadata: {
+        error: "Unrecognized source",
+        fromCache: false,
+        timestamp: null,
+        expiration: null,
+      },
+    };
+  }
+
   if (isToday) {
     // if today, first try to get TLE data from celestrak, cache only for 5 minutes
     celestrakRes = await fetchWithCache<EphemerisStore>(
