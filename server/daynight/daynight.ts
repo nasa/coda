@@ -4,7 +4,8 @@ export default async function getDayNight(
   year: number,
   month: number,
   date: number,
-  forceNew: boolean
+  forceNew: boolean,
+  source: string
 ): Promise<WrappedResponse<DayNightStore>> {
-  return await DayNightService.fetchDayNight(year, month, date, forceNew);
+  return await DayNightService.fetchDayNight(year, month, date, forceNew, source);
 }

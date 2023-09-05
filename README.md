@@ -22,7 +22,7 @@ We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged wh
 | any        | development2     | https://coda-dev2.fit.nasa.gov       |
 | `pages`    | redirect to prod | https://coda.pages.fit.nasa.gov/coda |
 
-You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
+You can track the status of each environment [here on GitLab](https://eegitlab.fit.nasa.gov/coda/coda/-/environments).
 
 The rules for deployments are as follows:
 
@@ -142,7 +142,7 @@ We use [Jest](https://jestjs.io/en/) to run tests.
 
 - [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
 
-Do you want to test times? Here's an [example with mock timers](https://gitlab.fit.nasa.gov/coda/coda/-/blob/dccecad058c9edfa54f79771c1ad1dd35551e3c9/store/clock.spec.ts#L220).
+Do you want to test times? Here's an [example with mock timers](https://eegitlab.fit.nasa.gov/coda/coda/-/blob/dccecad058c9edfa54f79771c1ad1dd35551e3c9/store/clock.spec.ts#L220).
 
 ### How to Work with this Repo
 
