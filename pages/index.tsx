@@ -6,7 +6,7 @@ export default function Index() {
   return (
     <div className={styles.main}>
       <Head>
-        <title>{process.env.TITLE}</title>
+        <title>CODA</title>
       </Head>
       <div className={styles.container}>
         <div className={styles.verticalCenter}>

@@ -61,7 +61,7 @@ export default class DrawNav {
     readonly evaRendered: string,
     readonly evaStartSec: number,
     readonly isToday: boolean,
-    readonly sgAudioActivityRanges: SgActivityRangeRecord[][]
+    readonly sgActivityRangeRecords: SgActivityRangeRecord[][]
   ) {}
 
   initGroups() {
@@ -473,11 +473,11 @@ export default class DrawNav {
     compress: boolean;
   }): paper.Group {
     const group = new paper.Group();
-    if (this.sgAudioActivityRanges.length < 4) {
+    if (!this.sgActivityRangeRecords || this.sgActivityRangeRecords?.length < 4) {
       return;
     }
     for (let sgChannel = 0; sgChannel <= 3; sgChannel++) {
-      const activityRanges = this.sgAudioActivityRanges[sgChannel];
+      const activityRanges = this.sgActivityRangeRecords[sgChannel];
 
       for (let i = 0; i < activityRanges.length; i++) {
         const range = activityRanges[i];

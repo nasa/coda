@@ -2,7 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: SgAudioState = {
-  sgActivityRanges: [], // indexed by S/G channel number - 1
+  sgActivityRecord: {
+    overrideBaseUrl: null,
+    sgActivityRangeRecords: [[], [], [], []] as SgActivityRangeRecord[][], // indexed by S/G channel number - 1
+  },
   cacheMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
@@ -12,16 +15,13 @@ export const sgAudioSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    setSgAudioActivity: (
-      state,
-      action: { payload: WrappedResponse<SgActivityRangeRecord[][]> }
-    ) => {
-      state.sgActivityRanges = action.payload.data;
+    setSgAudioActivity: (state, action: { payload: WrappedResponse<SgActivityRecord> }) => {
+      state.sgActivityRecord = action.payload.data;
       state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
       state.loadingStatus = LoadingStatusEnum.LOADED;
     },
     clearSgAudioActivity: (state) => {
-      state.sgActivityRanges = [];
+      state.sgActivityRecord = null;
       state.cacheMetadata = null;
       state.loadingStatus = LoadingStatusEnum.LOADING;
     },

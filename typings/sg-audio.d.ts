@@ -17,3 +17,8 @@ type SgVideoRecord = {
   cue_end_seconds: number;
   sgChannels: SgChannelRecord[];
 };
+
+type SgActivityRecord = {
+  overrideBaseUrl: string;
+  sgActivityRangeRecords: SgActivityRangeRecord[][]; // 4 channels
+};
