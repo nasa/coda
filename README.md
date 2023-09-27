@@ -22,7 +22,7 @@ We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged wh
 | any        | development2     | https://coda-dev2.fit.nasa.gov       |
 | `pages`    | redirect to prod | https://coda.pages.fit.nasa.gov/coda |
 
-You can track the status of each environment [here on GitLab](https://gitlab.fit.nasa.gov/coda/coda/-/environments).
+You can track the status of each environment [here on GitLab](https://eegitlab.fit.nasa.gov/coda/coda/-/environments).
 
 The rules for deployments are as follows:
 
@@ -74,7 +74,7 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 3. Create a `.env.secret` file by running `bash ./scripts/make-dotenv.sh local`. This will create a file with blank variables. Ask [someone listed as a maintainer or owner of the CODA repo](https://eegitlab.fit.nasa.gov/emss/coda/-/project_members) for the values if you don't have them.
 4. Re-run `bash ./scripts/make-dotenv.sh local` to generate a `.env` file for your local setup based on the `.env.secret` you populated.
 5. Get the required CA Cert:
-   1. Go to https://cset.nasa.gov/application/nasa-trust-anchor-management-ntam-for-linux/
+   1. Go to https://cset.nasa.gov/ascs/application/trust-anchor-management-ntam-for-linux/
    2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
@@ -142,7 +142,7 @@ We use [Jest](https://jestjs.io/en/) to run tests.
 
 - [Documentation on Jest matchers](https://jestjs.io/docs/en/using-matchers), eg. the syntax of `expect(foo).toEqual(bar)`
 
-Do you want to test times? Here's an [example with mock timers](https://gitlab.fit.nasa.gov/coda/coda/-/blob/dccecad058c9edfa54f79771c1ad1dd35551e3c9/store/clock.spec.ts#L220).
+Do you want to test times? Here's an [example with mock timers](https://eegitlab.fit.nasa.gov/coda/coda/-/blob/dccecad058c9edfa54f79771c1ad1dd35551e3c9/store/clock.spec.ts#L220).
 
 ### How to Work with this Repo
 
