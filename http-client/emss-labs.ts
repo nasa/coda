@@ -19,12 +19,13 @@ export async function getSgAudio(
   source: Source,
   year: number,
   month: number,
-  date: number
-): Promise<WrappedResponse<SgActivityRangeRecord[][]>> {
+  date: number,
+  collection: Collection
+): Promise<WrappedResponse<SgActivityRecord>> {
   const res = await fetch(
-    `/api/emss-labs/sgAudio?source=${source}&year=${year}&month=${month}&date=${date}`
+    `/api/emss-labs/sgAudio?source=${source}&year=${year}&month=${month}&date=${date}&collection=${collection}`
   );
-  const sgAudio: WrappedResponse<SgActivityRangeRecord[][]> = await res.json();
+  const sgAudio: WrappedResponse<SgActivityRecord> = await res.json();
 
   return sgAudio;
 }

@@ -2,7 +2,7 @@ import get from "lodash/get";
 import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { changeTime, isSameDate } from "store/playhead";
 import { changeHoverTime } from "store/playheadHover";
 import {
@@ -27,8 +27,9 @@ export default function NavTimeline(props: { collection: Collection }) {
   const videos: VideosState = useSelector((state: RootState) => state.videos);
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const sgAudioActivityRanges: SgActivityRangeRecord[][] = useSelector(
-    (state: RootState) => state.sgAudio.sgActivityRanges
+  const sgActivityRangeRecords: SgActivityRangeRecord[][] = useSelector(
+    (state: RootState) => state.sgAudio.sgActivityRecord?.sgActivityRangeRecords,
+    shallowEqual
   );
   const maestro: MaestroState = useSelector((state: RootState) => state.maestro);
 
@@ -113,7 +114,7 @@ export default function NavTimeline(props: { collection: Collection }) {
       evaName,
       evaStartSec,
       isToday,
-      sgAudioActivityRanges
+      sgActivityRangeRecords
     );
 
     drawNav.current.initGroups();
@@ -175,7 +176,16 @@ export default function NavTimeline(props: { collection: Collection }) {
       paper.project.remove();
     }
     installTimeline();
-  }, [sequence, maestroDataAvailable, videoFiles, photoFiles, dayNight, photos, playhead.date]);
+  }, [
+    sequence,
+    maestroDataAvailable,
+    videoFiles,
+    photoFiles,
+    dayNight,
+    photos,
+    playhead.date,
+    sgActivityRangeRecords,
+  ]);
 
   useEffect(() => {
     time.current = playhead.seconds;

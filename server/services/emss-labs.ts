@@ -24,10 +24,11 @@ export async function fetchLabsTranscripts(
   filter.loadDictionary();
 
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
+  const urlBase = overrideBaseUrl
+    ? overrideBaseUrl
+    : `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}`;
+
   for (let i = 1; i <= 4; i++) {
-    const urlBase = overrideBaseUrl
-      ? overrideBaseUrl
-      : `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}`;
     const url = `${urlBase}/transcript-SG${i}.json`;
     const unprocessedTranscript: UnprocessedTranscript = {
       sgNum: i,
@@ -56,19 +57,25 @@ export async function fetchLabsTranscripts(
 
 export async function fetchSGActivity(
   source: Source,
-  dateWanted: string
-): Promise<WrappedResponse<SgActivityRangeRecord[][]>> {
-  if (source !== Source.ISS) {
+  dateWanted: string,
+  overrideBaseUrl?: string
+): Promise<WrappedResponse<SgActivityRecord>> {
+  if (source !== Source.ISS && !overrideBaseUrl) {
     return {
       cacheMetadata: {
         fromCache: false,
         timestamp: new Date(),
         expiration: null,
       },
-      data: [[], [], [], []],
+      data: {
+        overrideBaseUrl: null,
+        sgActivityRangeRecords: [[], [], [], []],
+      } as SgActivityRecord,
     };
   }
-  const url = `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}/day-activity.json`;
+  const url = overrideBaseUrl
+    ? `${overrideBaseUrl}/audioManifest.json`
+    : `https://emss-labs.fit.nasa.gov/transcriptions/${dateWanted}/day-activity.json`;
 
   let dayActivities: SgVideoRecord[] = [];
   try {
@@ -99,9 +106,12 @@ export async function fetchSGActivity(
     sgChannelsActivityRanges.push(sgChannelActivityRanges);
   }
 
-  const returnVal: WrappedResponse<SgActivityRangeRecord[][]> = {
+  const returnVal: WrappedResponse<SgActivityRecord> = {
     cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
-    data: sgChannelsActivityRanges,
+    data: {
+      overrideBaseUrl: overrideBaseUrl ? overrideBaseUrl : null,
+      sgActivityRangeRecords: sgChannelsActivityRanges,
+    } as SgActivityRecord,
   };
   return returnVal;
 }

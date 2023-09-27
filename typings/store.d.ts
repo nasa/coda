@@ -108,7 +108,7 @@ type TranscriptState = {
  * SG Audio Store
  */
 type SgAudioState = {
-  sgActivityRanges: SgActivityRangeRecord[][];
+  sgActivityRecord: SgActivityRecord;
   cacheMetadata: CacheMetadata;
   loadingStatus: LoadingStatusEnum;
 };

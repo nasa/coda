@@ -353,15 +353,11 @@ export function V2(props: { urlState }) {
     })();
   };
 
-  const populateSgAudioStore = (source, year, month, day) => {
+  const populateSgAudioStore = (source, year, month, day, collection) => {
     (async () => {
-      if (source !== Source.ISS) {
-        dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.UNNEEDED));
-        return;
-      }
       dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const sgAudioResponse = await getSgAudio(source, year, month, day);
+        const sgAudioResponse = await getSgAudio(source, year, month, day, collection);
         if (sgAudioResponse.cacheMetadata.error === undefined) {
           dispatch(setSgAudioActivity(sgAudioResponse));
         } else {
@@ -441,7 +437,7 @@ export function V2(props: { urlState }) {
     populateTranscriptStore(source, year, month, day, Collection[source]);
 
     // populate S/G audio store
-    populateSgAudioStore(source, year, month, day);
+    populateSgAudioStore(source, year, month, day, Collection[source]);
 
     // populate graph store
     populateGraphStore(year, month, day);
