@@ -205,7 +205,7 @@ test:
 # test against next version of node that CODA may use, but allow to fail
 test-node-next:
   stage: stageless
-  image: "$CI_REGISTRY/emss/docker-images:node-16-alpine"
+  image: "$FUTURE_NODE_VERSION_IMAGE"
   needs:
     - install_dependencies
     - make-test-dotenv
