@@ -3,9 +3,6 @@
 # To check the validity of this file, try the live editor:
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
-# Use EMSS' version of node:18-alpine
-image: "$CI_REGISTRY/emss/docker-images:node-18-alpine"
-
 default:
   artifacts:
     # Aggressively expire artifacts. The latest for any branch never expires
@@ -15,6 +12,11 @@ default:
 variables:
   HOME: "/tmp" # required for openshift for now
   a11y_urls: "https://coda-int.fit.nasa.gov/view?date=2021-03-13&gmt=14:49:46&v=2.0&l=n&s=0&f1=01001iss064m010721435&f2=01011iss064m020721435&f3=0300&f4=0701&f5=051&f6=04&f7=080"
+  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:18-alpine"
+  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:20-alpine"
+
+# Use EMSS' version of node:18-alpine
+image: "$CURRENT_NODE_VERSION_IMAGE"
 
 # This folder is cached between builds
 # http://docs.gitlab.com/ee/ci/yaml/README.html#cache
@@ -22,7 +24,6 @@ cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .next/cache/
-
 
 # These includes do not define the order of the pipeline. That is determined by
 # the `needs` value for each job
