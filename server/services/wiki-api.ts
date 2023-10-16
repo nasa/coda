@@ -14,9 +14,9 @@ import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
 import fetchWithCache from "./cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
-import gpxParser from "gpxparser";
 import { Collection, SequenceType } from "utils/enums";
 import { CacheFolder } from "utils/enums";
+import { XMLParser } from "fast-xml-parser";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.NEXT_PUBLIC_APP_ENV}.json`;
@@ -638,24 +638,33 @@ async function fetchWikiGPSTrack(
     });
 
     // parse the gpx XML retreived from the wiki
-    var gpx = new gpxParser();
-    gpx.parse(res.data.parse.wikitext["*"]);
 
-    //replace any slope null values with 0
-    for (let i = 0; i < gpx.tracks[0].slopes.length; i++) {
-      if (gpx.tracks[0].slopes[i] === null) {
-        gpx.tracks[0].slopes[i] = 0;
-      }
-    }
+    const gpxXml = res.data.parse.wikitext["*"];
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: "",
+      allowBooleanAttributes: true,
+    });
 
-    //store only the GPS data portions we want
-    const track: GPSTrack = {
-      name: name,
-      points: gpx.tracks[0].points,
-      slopes: gpx.tracks[0].slopes,
+    const parsed = parser.parse(gpxXml);
+
+    // create GPSTrack object from parsed XML
+    const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map((point) => {
+      const newGpsPoint: GPSPoint = {
+        lat: parseFloat(point.lat),
+        lon: parseFloat(point.lon),
+        ele: point.ele,
+        time: new Date(point.time),
+      };
+      return newGpsPoint;
+    });
+
+    const gpsTrack: GPSTrack = {
+      name,
+      points: gpsPoints,
     };
 
-    return track;
+    return gpsTrack;
   };
 
   return await fetchWithCache<GPSTrack>(pageName, CacheFolder.Wiki_gps, retriever, {
