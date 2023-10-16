@@ -24,7 +24,7 @@ export const fetchGraphsManifest = async (
     let graphManifest: GraphsManifest = null;
     try {
       const res = await fetchWithTimeout(ancillaryDataSource.url);
-      graphManifest = await res.json();
+      graphManifest = await res.json() as GraphsManifest;
     } catch (e) {
       return {
         cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null, error: null },

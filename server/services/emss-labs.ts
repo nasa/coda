@@ -1,5 +1,6 @@
 import { Source } from "utils/enums";
 import fetchWithTimeout from "utils/fetch-with-timeout";
+import * as filter from "leo-profanity";
 
 export async function fetchLabsTranscripts(
   source: Source,
@@ -20,7 +21,6 @@ export async function fetchLabsTranscripts(
 
   const transcripts: UnprocessedTranscript[] = [];
 
-  const filter = require("leo-profanity");
   filter.loadDictionary();
 
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
@@ -36,7 +36,7 @@ export async function fetchLabsTranscripts(
     };
     try {
       const res = await fetchWithTimeout(url);
-      unprocessedTranscript.unprocessedUtterances = await res.json();
+      unprocessedTranscript.unprocessedUtterances = await res.json() as UnprocessedUtterance[];
     } catch (e) {
       unprocessedTranscript.unprocessedUtterances = [];
     }
@@ -80,7 +80,7 @@ export async function fetchSGActivity(
   let dayActivities: SgVideoRecord[] = [];
   try {
     const res = await fetchWithTimeout(url);
-    dayActivities = await res.json();
+    dayActivities = await res.json() as SgVideoRecord[];
   } catch (e) {
     dayActivities = [];
   }

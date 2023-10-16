@@ -40,7 +40,7 @@ async function fetchSpacetrack(
       body,
     });
 
-    return await res.json();
+    return await res.json() as EphemerisFile[];
   } catch (e) {
     console.error(e);
   }

@@ -41,7 +41,7 @@ export const fetchMaestroExecuteTimelineStatus = async (
     const res = await fetchWithTimeout(
       `https://maestro.fit.nasa.gov/api/v1/event/exetimelinestatus/${executeEventUuid}`
     );
-    const resJson = await res.json();
+    const resJson = await res.json() as MaestroTimelineStatusApiResponse;
 
     // set the crew using the maestro response
     const crew: Crew = {

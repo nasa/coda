@@ -2,7 +2,7 @@ import styles from "./index.module.css";
 import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
@@ -78,14 +78,7 @@ import { generateShareURL } from "utils/share-state";
 import { getMaestroExecuteTimelineStatus } from "http-client/maestro";
 import { maestroFetchError, setMaestroData, setMaestroLoadingStatus } from "store/maestro";
 
-/** Dynamically import the nav timeline because paper doesn't like Node  */
-const Timeline = dynamic(import("components/interface/nav-timeline"), {
-  ssr: false,
-});
-/** Dynamically import the whole framework because nothing likes NextJS */
-const Viewer = dynamic(import("components/framework/frames"), {
-  ssr: false,
-});
+
 const PlaybackControls = dynamic(import("components/interface/playback-controls"), {
   ssr: false,
 });
@@ -109,6 +102,23 @@ export function V2(props: { urlState }) {
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
 
   const dispatch = useDispatch();
+
+  const Timeline = useMemo(
+    () =>
+      dynamic(() => import("components/interface/nav-timeline"), {
+        ssr: false,
+      }),
+    []
+  );
+
+  const Viewer = useMemo(
+    () =>
+      dynamic(() => import("components/framework/frames"), {
+        ssr: false,
+      }),
+    []
+  );
+
 
   // make sure the application is running on the correct date
   let userDate = null;
