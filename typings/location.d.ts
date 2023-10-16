@@ -13,24 +13,23 @@ type MapMarkers = {
   Staff?: MapMarker;
 };
 
-type mapInfoDisplayItems = {
+type MapInfoDisplayItems = {
   lat: string;
   lng: string;
   ele: string;
   hdg: string;
-  slope: string;
   date: string;
   time: string;
 };
 
 type MapInfoDisplay = {
-  EV1?: mapInfoDisplayItems;
-  EV2?: mapInfoDisplayItems;
-  EV3?: mapInfoDisplayItems;
-  EV4?: mapInfoDisplayItems;
-  Cart?: mapInfoDisplayItems;
-  LightCart?: mapInfoDisplayItems;
-  Staff?: mapInfoDisplayItems;
+  EV1?: MapInfoDisplayItems;
+  EV2?: MapInfoDisplayItems;
+  EV3?: MapInfoDisplayItems;
+  EV4?: MapInfoDisplayItems;
+  Cart?: MapInfoDisplayItems;
+  LightCart?: MapInfoDisplayItems;
+  Staff?: MapInfoDisplayItems;
 };
 
 type TrackFeatures = {

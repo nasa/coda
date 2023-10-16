@@ -14,7 +14,6 @@ import mapboxgl, { LngLatLike, Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection } from "geojson";
-import type { Point } from "gpxparser";
 import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
@@ -163,12 +162,11 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   const [zoomLevel, setZoomLevel] = useState(1);
   const [sortedEnabledTracks, setSortedEnabledTracks] = useState<string[]>([]);
 
-  const infoItemsDefaultValue = {
+  const infoItemsDefaultValue: MapInfoDisplayItems = {
     lat: "",
     lng: "",
     ele: "",
     hdg: "",
-    slope: "",
     date: "",
     time: "",
   };
@@ -232,7 +230,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
 
     //loop through the gps track objects
     for (let track = 0; track < gpsTracks.length; track++) {
-      let markerGPSPoint: Point = null;
+      let markerGPSPoint: GPSPoint = null;
 
       // make visible the marker for the current track
       if (paneStateData.gpsTrackToggles[gpsTracks[track].name]) {
@@ -274,13 +272,10 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       ).split("T");
 
       try {
-        const items: mapInfoDisplayItems = {
+        const items: MapInfoDisplayItems = {
           lat: markerGPSPoint.lat.toFixed(6),
           lng: markerGPSPoint.lon.toFixed(6),
           ele: markerGPSPoint.ele.toFixed(2).toString(),
-          slope: !_.isNil(gpsTracks[track].slopes[markerIndex])
-            ? gpsTracks[track].slopes[markerIndex].toFixed(3).toString()
-            : "",
           date: timestampArr[0],
           time: timestampArr[1],
           hdg: "",
