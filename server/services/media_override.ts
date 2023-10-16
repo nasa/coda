@@ -15,5 +15,5 @@ export async function getManifest(
   } catch (e) {
     throw e;
   }
-  return res.json();
+  return res.json() as Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]>;
 }

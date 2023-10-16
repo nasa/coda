@@ -1,6 +1,6 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
@@ -13,9 +13,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 library.add(faExpandAlt);
 
-const DynPlotlyChart = dynamic(import("./plotly"), {
-  ssr: false,
-});
 
 import styles from "./graph.module.css";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
@@ -184,6 +181,15 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   );
   const graphs: GraphsState = useSelector((state: RootState) => state.graphs, shallowEqual);
 
+  // changed this implementation to use useMemo with the dynamic import because Next 13 decided to compile plotly even though ssr: false was set
+  const DynPlotlyChart = useMemo(
+    () =>
+      dynamic(() => import("./plotly"), {
+        ssr: false,
+      }),
+    []
+  );
+
   const [graphDataIsBad, setGraphDataIsBad] = useState<false | "unauthorized" | "invalid-data">(
     false
   );
@@ -229,7 +235,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
         graphs.graphsManifest?.sourceUrl + selectedGraph?.dataURL,
         fetchOptions
       );
-      const data = await response.json();
+      const data = await response.json() as GraphData[];
 
       const timestampsInSeconds = data.map((item: GraphData) =>
         appSecondsFromDateString(item.timestamp)
