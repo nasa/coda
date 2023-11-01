@@ -215,3 +215,65 @@ test-node-next:
     - npm run lint
     - npm run tsc
     - npm t
+
+.container-logs-template:
+  when: manual
+  needs: []
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # Start with a trivial sudo command to record the sudo password session
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+
+    # OS info and partition usage
+    - cat /etc/os-release
+    - df -h
+
+    # Setup artifact directories
+    - LOG_ARTIFACTS=$(pwd)/log_artifacts
+    - mkdir -p "${LOG_ARTIFACTS}"
+
+    - cd /opt/coda
+
+    # Print the last 100 lines of logs to the GitLab job log
+    - sudo docker compose logs nextjs --tail 100
+    - sudo docker compose logs nginx --tail 100
+
+    # Put the full logs into artifacts. Full logs may hit the job log length
+    # limit, and generally make the job log unreadably long
+    - sudo docker compose logs nextjs > "${LOG_ARTIFACTS}/nextjs"
+    - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
+  artifacts:
+    when: always
+    paths:
+      - ./log_artifacts
+
+z-logs:dev1:
+  extends: .container-logs-template
+  tags: ["coda-dev1-runner"]
+  needs: []
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
+
+z-logs:dev2:
+  extends: .container-logs-template
+  tags: ["coda-dev2-runner"]
+  needs: []
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
+
+z-logs:int:
+  extends: .container-logs-template
+  tags: ["coda-int-runner"]
+  needs: []
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+
+z-logs:prod:
+  extends: .container-logs-template
+  tags: ["coda-prod-runner"]
+  needs: []
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
