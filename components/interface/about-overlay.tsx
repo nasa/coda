@@ -1,6 +1,7 @@
 import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
+import React from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
