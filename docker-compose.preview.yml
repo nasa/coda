@@ -28,3 +28,22 @@ services:
         - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
         - IMAGE_VERSION=${IMAGE_VERSION}
         - NEXTJS_BASE_IMAGE=${NEXTJS_BASE_IMAGE}
+
+    # Uncomment these lines to enable profiling using 0x, https://www.npmjs.com/package/0x#0x
+    # You'll need to run `./appcompose preview up`, then open a terminal on the apiv1 container and
+    # determine what processes are running with `ps aux`, then send "SIGINT"  to the 0x process
+    # with `kill -INT 31` (assuming the 0x process is ID 31). Doing so might interupt the container,
+    # but this is the weird way 0x cuts new profiling sets. When you do this, a directory should be
+    # created in `./.local/profiler` like `SOMETIMESTAMP-31`. Create flamegraph.html with command
+    # `0x --visualize-only ./.local/profiler/$theDirectory` (you need to `npm i -g 0x` first), then
+    # open the HTML file in chrome to see your flamegraph.
+    #
+    # These lines below create the volume to store the profiler data, so you can easily retrieve it
+    # on your machine, and alter the Docker CMD line to not just do `node api.js`, but instead wrap
+    # that command in the 0x profiler command.
+    #
+    # environment:
+    #   NODE_ENV: production
+    # volumes:
+    #   - './.local/profiler:/app/profiler'
+    # command: '/bin/sh -c "npm i -g 0x; npm i express; 0x --collect-only --output-dir profiler/{timestamp}-{pid} server.js"'
