@@ -18,29 +18,29 @@ if [ -f "${DOTENV_SECRET}" ]; then
 fi
 
 if [ "${1}" = "local" ]; then
-    DOCKER_HOST_SSL_CERTS_DIR=./.local/certs
-    DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
-    DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
-    IMAGE_VERSION="local"
-    CACHE_ROOT=./.cache/dev
+    export DOCKER_HOST_SSL_CERTS_DIR=./.local/certs
+    export DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
+    export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
+    export IMAGE_VERSION="local"
+    export CACHE_ROOT=./.cache/dev
 
-    NGINX_BASE_IMAGE=nginx:1.23.0-alpine
-    NEXTJS_BASE_IMAGE=node:18-alpine
+    export NGINX_BASE_IMAGE=nginx:1.23.0-alpine
+    export NEXTJS_BASE_IMAGE=node:18-alpine
 else
-    DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
-    DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
-    DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
-    IMAGE_VERSION="${IMAGE_VERSION}"
-    CACHE_ROOT=/d1/coda/cache
+    export DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
+    export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
+    export DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
+    export IMAGE_VERSION="${IMAGE_VERSION}"
+    export CACHE_ROOT=/d1/coda/cache
 
-    NGINX_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
-    NEXTJS_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
+    export NGINX_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
+    export NEXTJS_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
 fi
 
 # Actual FIT environments deployed by GitLab CI have different requirement for CACHE_ROOT
 # than tests run in GitLab CI.
 if [ "${1}" = "test" ]; then
-    CACHE_ROOT=./.cache/test
+    export  CACHE_ROOT=./.cache/test
 fi
 
 # Allow unset variables below, so it can create a blank .env.secret
@@ -60,17 +60,9 @@ set -u
 
 echo "${RELATIVE_DOTENV_SECRET} saved"
 
-# Variables set above will not be picked up by envsubst if not exported
-export DOCKER_HOST_SSL_CERTS_DIR \
-    DOCKER_HOST_SSL_PRIVATE_DIR \
-    DOCKER_HOST_HTTP_STATIC_DIR \
-    IMAGE_VERSION \
-    NGINX_BASE_IMAGE \
-    NEXTJS_BASE_IMAGE \
-    CACHE_ROOT
-
 # envsubst must be installed. Installed by default in Git Bash for Windows.
 # Do `apk add --update --no-cache gettext` on Alpine.
+# Variables set above will not be picked up by envsubst if not exported
 cat "${SCRIPT_DIR}/../.env.template" | envsubst > "${SCRIPT_DIR}/../.env"
 
 echo ".env successfully created"
