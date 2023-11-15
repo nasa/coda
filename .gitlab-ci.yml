@@ -33,8 +33,3 @@ include:
   # Scheduled pipelines are used to do regular reporting on things like vulnerabilities and test
   # coverage. We don't want them to build new Electron packages and Docker images or do deploys
   - local: .gitlab/always-run.gitlab-ci.yml
-
-  # Jobs that run on commits only, not scheduled pipelines
-  - local: .gitlab/run-on-commits.gitlab-ci.yml
-    rules:
-      - if: '$CI_PIPELINE_SOURCE != "schedule"'
