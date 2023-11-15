@@ -20,7 +20,7 @@ stages:
     - LOG_ARTIFACTS=$(pwd)/log_artifacts
     - mkdir -p "${LOG_ARTIFACTS}"
 
-    - ps aux > "${LOG_ARTIFACTS}/ps.txt"
+    - ps aux | head -1000
 
     - cd /opt/coda
 
