@@ -20,7 +20,9 @@ stages:
     - LOG_ARTIFACTS=$(pwd)/log_artifacts
     - mkdir -p "${LOG_ARTIFACTS}"
 
-    - ps aux | head -1000
+    - ps aux | head -500
+    - pkill -f 'grep'
+    - ps aux | head -500
 
     - cd /opt/coda
 
