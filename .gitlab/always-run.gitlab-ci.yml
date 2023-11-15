@@ -19,7 +19,6 @@ stages:
     - LOG_ARTIFACTS=$(pwd)/log_artifacts
     - mkdir -p "${LOG_ARTIFACTS}"
 
-    - sudo kill -9 30340
     - ps -ef
   artifacts:
     when: always
