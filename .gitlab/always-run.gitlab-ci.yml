@@ -264,6 +264,13 @@ z-logs:dev2:
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
 
+z-logs:emss-shared-vm2:
+  extends: .container-logs-template
+  tags: ["emss-shared-vm2-runner"]
+  needs: []
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_EMSS_SHARED_VM2
+
 z-logs:int:
   extends: .container-logs-template
   tags: ["coda-int-runner"]
