@@ -15,12 +15,12 @@ stages:
     # OS info and partition usage
     - cat /etc/os-release
     - df -h
-    - ps aux
-    - top -n 1
 
     # Setup artifact directories
     - LOG_ARTIFACTS=$(pwd)/log_artifacts
     - mkdir -p "${LOG_ARTIFACTS}"
+
+    - ps aux > "${LOG_ARTIFACTS}/ps.txt"
 
     - cd /opt/coda
 
