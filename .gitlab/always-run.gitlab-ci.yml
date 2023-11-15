@@ -21,7 +21,7 @@ stages:
     - mkdir -p "${LOG_ARTIFACTS}"
 
     - ps aux | head -500
-    - pkill -f 'grep'
+    - sudo pkill -f 'grep'
     - ps aux | head -500
 
     - cd /opt/coda
