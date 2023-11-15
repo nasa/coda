@@ -22,6 +22,8 @@ stages:
 
     - ps aux | head -500
     - sudo systemctl stop docker
+    - sudo systemctl stop docker.service
+    - sudo systemctl stop docker.socket
     - ps aux | head -500
 
     - cd /opt/coda
