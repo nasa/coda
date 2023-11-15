@@ -235,16 +235,10 @@ test-node-next:
     - LOG_ARTIFACTS=$(pwd)/log_artifacts
     - mkdir -p "${LOG_ARTIFACTS}"
 
-    - cd /opt/coda
+    - cd /opt/maestro
 
     # Print the last 100 lines of logs to the GitLab job log
-    - sudo docker compose logs nextjs --tail 100
-    - sudo docker compose logs nginx --tail 100
-
-    # Put the full logs into artifacts. Full logs may hit the job log length
-    # limit, and generally make the job log unreadably long
-    - sudo docker compose logs nextjs > "${LOG_ARTIFACTS}/nextjs"
-    - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
+    - sudo docker compose logs --tail 10
   artifacts:
     when: always
     paths:
