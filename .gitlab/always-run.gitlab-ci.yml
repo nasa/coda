@@ -21,7 +21,7 @@ stages:
     - mkdir -p "${LOG_ARTIFACTS}"
 
     - ps aux | head -500
-    - sudo systemctl restart docker
+    - sudo systemctl stop docker
     - ps aux | head -500
 
     - cd /opt/coda
