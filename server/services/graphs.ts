@@ -4,7 +4,7 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 export const fetchGraphsManifest = async (
   source: Source,
   dateWanted: string,
-  forceNew?: boolean
+  forceNew?: boolean,
 ): Promise<WrappedResponse<GraphsManifest>> => {
   const ancillaryDataSources = await WikiService.fetchAncillaryDataSourceList(forceNew);
 
@@ -24,21 +24,42 @@ export const fetchGraphsManifest = async (
     let graphManifest: GraphsManifest = null;
     try {
       const res = await fetchWithTimeout(ancillaryDataSource.url);
-      graphManifest = await res.json() as GraphsManifest;
+      graphManifest = (await res.json()) as GraphsManifest;
     } catch (e) {
       return {
-        cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null, error: null },
+        responseMetadata: {
+          retrieverStatus: "complete",
+          cachedTimestamp: new Date().toISOString(),
+          expiration: null,
+          error: null,
+          errorCount: 0,
+          lastErrorTimestamp: null,
+        },
         data: null,
       };
     }
     return {
-      cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
+        expiration: null,
+        error: null,
+        errorCount: 0,
+        lastErrorTimestamp: null,
+      },
       data: graphManifest,
     };
   }
 
   return {
-    cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
+    responseMetadata: {
+      retrieverStatus: "complete",
+      cachedTimestamp: new Date().toISOString(),
+      expiration: null,
+      error: null,
+      errorCount: 0,
+      lastErrorTimestamp: null,
+    },
     data: null,
   };
 };

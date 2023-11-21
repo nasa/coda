@@ -16,7 +16,7 @@ const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";
 async function fetchSpacetrack(
   year: number,
   month: number,
-  date: number
+  date: number,
 ): Promise<EphemerisFile[]> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
@@ -40,7 +40,7 @@ async function fetchSpacetrack(
       body,
     });
 
-    return await res.json() as EphemerisFile[];
+    return (await res.json()) as EphemerisFile[];
   } catch (e) {
     console.error(e);
   }
@@ -93,7 +93,7 @@ export async function fetchISSLocation(
   month: number,
   date: number,
   forceNew?: boolean,
-  source?: string
+  source?: string,
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
   const dateObj = new Date(Date.UTC(year, month - 1, date));
@@ -118,7 +118,7 @@ export async function fetchISSLocation(
       spacetrackResults = await fetchSpacetrack(
         dateToGet.getFullYear(),
         dateToGet.getUTCMonth() + 1,
-        dateToGet.getDate()
+        dateToGet.getDate(),
       );
 
       numResults = spacetrackResults.length;
@@ -143,8 +143,6 @@ export async function fetchISSLocation(
     return { ephemera: ephemera };
   };
 
-  const tryFetchNewFirst = forceNew ? forceNew : false;
-
   let spacetrackRes: WrappedResponse<EphemerisStore> = null;
   let celestrakRes: WrappedResponse<EphemerisStore> = null;
 
@@ -153,7 +151,7 @@ export async function fetchISSLocation(
   if (source === "spacetrack") {
     const spacetrackRes = await retrieverSpacetrack();
     return {
-      cacheMetadata: null,
+      responseMetadata: null,
       data: spacetrackRes,
       source: "spacetrack",
     };
@@ -161,66 +159,64 @@ export async function fetchISSLocation(
     if (isToday) {
       const celestrackRes = await retrieverCelestrak();
       return {
-        cacheMetadata: null,
+        responseMetadata: null,
         data: celestrackRes,
         source: "celestrak",
       };
     } else {
       return {
         data: null,
-        cacheMetadata: {
+        responseMetadata: {
+          retrieverStatus: "complete",
           error: "Celestrak can only be queried for today's date",
-          fromCache: false,
-          timestamp: null,
+          cachedTimestamp: null,
           expiration: null,
+          errorCount: 0,
+          lastErrorTimestamp: null,
         },
       };
     }
   } else if (source) {
     return {
       data: null,
-      cacheMetadata: {
+      responseMetadata: {
+        retrieverStatus: "complete",
         error: "Unrecognized source",
-        fromCache: false,
-        timestamp: null,
+        cachedTimestamp: null,
         expiration: null,
+        errorCount: 0,
+        lastErrorTimestamp: null,
       },
     };
   }
 
   if (isToday) {
     // if today, first try to get TLE data from celestrak, cache only for 5 minutes
-    celestrakRes = await fetchWithCache<EphemerisStore>(
+
+    celestrakRes = await fetchWithCache<EphemerisStore>({
       identifier,
-      CacheFolder.Celestrak,
-      retrieverCelestrak,
-      {
-        tryFetchNewFirst,
-        cacheAge: 300,
-        returnExpiredCacheIfFetchFails: true,
-      }
-    );
+      cacheFolder: CacheFolder.Celestrak,
+      retriever: retrieverCelestrak,
+      cacheAge: 300,
+    });
     celestrakRes = { ...celestrakRes, source: "celestrak" };
 
     //check response from celestrak
-    if (celestrakRes.cacheMetadata.error) {
-      console.error(celestrakRes.cacheMetadata.error);
+    if (celestrakRes.responseMetadata.error) {
+      console.error(celestrakRes.responseMetadata.error);
     } else if (celestrakRes.data?.ephemera.length > 0) {
       return celestrakRes; //got data from celestrak!
     }
   }
 
   // if celestrak didn't work, or if it's not today, try to get data from spacetrack
-  spacetrackRes = await fetchWithCache<EphemerisStore>(
+  spacetrackRes = await fetchWithCache<EphemerisStore>({
     identifier,
-    CacheFolder.Spacetrack,
-    retrieverSpacetrack,
-    {
-      tryFetchNewFirst,
-      cacheAge: isToday ? 300 : oneYearInSeconds,
-      returnExpiredCacheIfFetchFails: true,
-    }
-  );
+    cacheFolder: CacheFolder.Spacetrack,
+    retriever: retrieverSpacetrack,
+    cacheAge: isToday ? 300 : oneYearInSeconds,
+    forceRetriever: forceNew,
+  });
   spacetrackRes = { ...spacetrackRes, source: "spacetrack" };
 
   return spacetrackRes;

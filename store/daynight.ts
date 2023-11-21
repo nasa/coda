@@ -3,7 +3,7 @@ import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: DayNightState = {
   dayNight: [],
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
   source: null,
 };
@@ -14,18 +14,18 @@ export const dayNightSlice = createSlice({
   reducers: {
     /** Add new day night to the store */
     addDayNight: (state, action: { payload: WrappedResponse<DayNightStore> }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
       state.dayNight = action.payload.data.dayNight;
       state.source = action.payload.source;
     },
     clearDayNight: (state) => {
       state.dayNight = [];
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
       state.loadingStatus = LoadingStatusEnum.LOADING;
       state.source = null;
     },
     fetchError: (state, action: { payload: string }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
+      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
     setDayNightLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

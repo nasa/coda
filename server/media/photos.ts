@@ -15,7 +15,7 @@ export default async function getPhotoData(
   month: number,
   date: number,
   collection: Collection,
-  forceNew: boolean
+  forceNew: boolean,
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
@@ -38,9 +38,9 @@ export default async function getPhotoData(
       const photos = (await OverrideService.getManifest(mediaOverride)) as PhotoFile[];
 
       return {
-        cacheMetadata: {
-          fromCache: false,
-          timestamp: new Date(),
+        responseMetadata: {
+          retrieverStatus: "complete",
+          cachedTimestamp: null,
           expiration: null,
         },
         data: photos,
@@ -80,7 +80,7 @@ export default async function getPhotoData(
   }
 
   const seqs = sequences.data.filter(
-    (seq) => isSameDate(new Date(seq.startDate), requestedDate) //||
+    (seq) => isSameDate(new Date(seq.startDate), requestedDate), //||
     // isSameDate(new Date(seq.startDate), previousDate) ||
     // isSameDate(new Date(seq.startDate), nextDate)
   );

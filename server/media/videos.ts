@@ -12,7 +12,7 @@ export default async function getVideoData(
   month: number,
   date: number,
   collection: Collection,
-  forceNew: boolean
+  forceNew: boolean,
 ): Promise<WrappedResponse<VideoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
@@ -34,9 +34,9 @@ export default async function getVideoData(
     if (mediaOverride) {
       const videos = (await OverrideService.getManifest(mediaOverride)) as VideoFile[];
       return {
-        cacheMetadata: {
-          fromCache: false,
-          timestamp: new Date(),
+        responseMetadata: {
+          retrieverStatus: "complete",
+          cachedTimestamp: null,
           expiration: null,
         },
         data: videos,

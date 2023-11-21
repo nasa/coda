@@ -339,7 +339,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
  * */
 export async function getAllEVAData(
   agency: AgencyQuery,
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
 
@@ -397,13 +397,15 @@ export async function getAllEVAData(
     return evas.filter(matchAgency);
   };
 
-  const response = await fetchWithCache<Sequence[]>(agency, CacheFolder.Wiki_all, retriever, {
-    cacheAge: 60,
-    returnExpiredCacheIfFetchFails: true,
-    tryFetchNewFirst: forceNew ? forceNew : false,
+  const response = await fetchWithCache<Sequence[]>({
+    identifier: agency,
+    cacheFolder: CacheFolder.Wiki,
+    retriever,
+    cacheAge: 3600, // 1 hour
+    forceRetriever: forceNew,
   });
   if (mocked) {
-    response.cacheMetadata.mocked = true;
+    response.responseMetadata.mocked = true;
   }
   return response;
 }
@@ -481,7 +483,7 @@ export async function getTestEventCrews(): Promise<WikibotResponse<AllCrews>> {
 
 /** Fetch as-planned and as-executed EVA data and standardize the format */
 export async function getAllTestEventsData(
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WikibotResponse<Sequence[]>> {
   let mocked = false;
   const retriever = async () => {
@@ -495,12 +497,12 @@ export async function getAllTestEventsData(
       const testEnvironment = get(
         allTestEvents[testEvent].printouts["Test environment"],
         "[0].fulltext",
-        "Unknown environment"
+        "Unknown environment",
       );
       const flightEnvironment = get(
         allTestEvents[testEvent].printouts["Flight environment"],
         "[0].fulltext",
-        "Unknown flight sim"
+        "Unknown flight sim",
       );
       let duration = -1;
 
@@ -516,7 +518,7 @@ export async function getAllTestEventsData(
       const rawStartTime = get(
         allTestEvents[testEvent].printouts["UTC Start Date Time"],
         "[0]",
-        " 00:00"
+        " 00:00",
       );
       const startTime = rawStartTime.split(" ")[1];
 
@@ -537,20 +539,22 @@ export async function getAllTestEventsData(
     });
   };
 
-  const response = await fetchWithCache<Sequence[]>("test-events", CacheFolder.Wiki, retriever, {
-    cacheAge: 60,
-    returnExpiredCacheIfFetchFails: true,
-    tryFetchNewFirst: forceNew ? forceNew : false,
+  const response = await fetchWithCache<Sequence[]>({
+    identifier: "test-events",
+    cacheFolder: CacheFolder.Wiki,
+    retriever,
+    cacheAge: 3600, // 1 hour
+    forceRetriever: forceNew,
   });
   if (mocked) {
-    response.cacheMetadata.mocked = true;
+    response.responseMetadata.mocked = true;
   }
   return response;
 }
 
 export async function fetchSequences(
   collection: Collection,
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WikibotResponse<Sequence[]>> {
   if (collection === Collection.ISS) {
     return getAllEVAData("us", forceNew);
@@ -561,7 +565,9 @@ export async function fetchSequences(
 
 /** Get list of external data products from the wiki */
 
-async function fetchWikiExternalData(forceNew?: boolean): Promise<WrappedResponse<string[]>> {
+async function fetchWikiExternalData(
+  forceNew: boolean = false,
+): Promise<WrappedResponse<string[]>> {
   const parseQuery = {
     page: "CODA/External Data",
     prop: "links",
@@ -581,16 +587,18 @@ async function fetchWikiExternalData(forceNew?: boolean): Promise<WrappedRespons
     return links;
   };
 
-  return await fetchWithCache<string[]>("gps-list", CacheFolder.Wiki, retriever, {
-    cacheAge: 60, // 60 seconds
-    returnExpiredCacheIfFetchFails: true,
-    tryFetchNewFirst: forceNew ? forceNew : false,
+  return await fetchWithCache<string[]>({
+    identifier: "gps-list",
+    cacheFolder: CacheFolder.Wiki,
+    retriever,
+    cacheAge: 604800, //1 week
+    forceRetriever: forceNew,
   });
 }
 
 export async function fetchWikiGPSTracks(
   dateWanted: string,
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WrappedResponse<GPSTrack[]>> {
   const gpsList = await fetchWikiExternalData(forceNew);
   let error = null;
@@ -610,20 +618,20 @@ export async function fetchWikiGPSTracks(
         match[1] === "Staff"
       ) {
         const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1], forceNew);
-        if (gpsTrackRes.cacheMetadata.error !== undefined) {
-          error = gpsTrackRes.cacheMetadata.error;
+        if (gpsTrackRes.responseMetadata.error !== undefined) {
+          error = gpsTrackRes.responseMetadata.error;
         }
         gpsTracks.push(gpsTrackRes.data);
       }
     }
   }
-  return { cacheMetadata: { ...gpsList.cacheMetadata, ...error }, data: gpsTracks };
+  return { responseMetadata: { ...gpsList.responseMetadata, ...error }, data: gpsTracks };
 }
 
 async function fetchWikiGPSTrack(
   pageName: string,
   name: string,
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WrappedResponse<GPSTrack>> {
   const parseQuery = {
     page: pageName,
@@ -667,10 +675,12 @@ async function fetchWikiGPSTrack(
     return gpsTrack;
   };
 
-  return await fetchWithCache<GPSTrack>(pageName, CacheFolder.Wiki_gps, retriever, {
-    cacheAge: 604800, // 604800 seconds = 1 week
-    returnExpiredCacheIfFetchFails: true,
-    tryFetchNewFirst: forceNew ? forceNew : false,
+  return await fetchWithCache<GPSTrack>({
+    identifier: pageName,
+    cacheFolder: CacheFolder.Wiki_gps,
+    retriever,
+    cacheAge: 604800, //1 week
+    forceRetriever: forceNew,
   });
 }
 
@@ -679,7 +689,7 @@ async function fetchWikiGPSTrack(
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Datetime_Shifts
  */
 export async function fetchDatetimeOverrides(
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WrappedResponse<DatetimeOverrides>> {
   const parseQuery = {
     page: "CODA/Datetime_Shifts",
@@ -695,16 +705,13 @@ export async function fetchDatetimeOverrides(
     return parseWikitextTableIntoDatetimeOverrides(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<DatetimeOverrides>(
-    "datetime-overrides",
-    CacheFolder.Wiki,
+  return await fetchWithCache<DatetimeOverrides>({
+    identifier: "datetime-overrides",
+    cacheFolder: CacheFolder.Wiki,
     retriever,
-    {
-      cacheAge: 60,
-      returnExpiredCacheIfFetchFails: true,
-      tryFetchNewFirst: forceNew ? forceNew : false,
-    }
-  );
+    cacheAge: 604800, //1 week
+    forceRetriever: forceNew,
+  });
 }
 
 /** Get all the manually set media source overrides.
@@ -712,7 +719,7 @@ export async function fetchDatetimeOverrides(
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Media_Source_Overrides
  */
 export async function fetchMediaOverrides(
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WrappedResponse<MediaSourceOverride[]>> {
   const parseQuery = {
     page: "CODA/Media_Source_Overrides",
@@ -728,16 +735,13 @@ export async function fetchMediaOverrides(
     return parseWikitextTableIntoMediaSourceOverrides(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<MediaSourceOverride[]>(
-    "media-overrides",
-    CacheFolder.Wiki,
+  return await fetchWithCache<MediaSourceOverride[]>({
+    identifier: "media-overrides",
+    cacheFolder: CacheFolder.Wiki,
     retriever,
-    {
-      cacheAge: 60,
-      returnExpiredCacheIfFetchFails: true,
-      tryFetchNewFirst: forceNew ? forceNew : false,
-    }
-  );
+    cacheAge: 604800, //1 week
+    forceRetriever: forceNew,
+  });
 }
 
 /** Get the list of ancillary data sources from the wiki
@@ -745,7 +749,7 @@ export async function fetchMediaOverrides(
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Ancillary_Data_Sources
  */
 export async function fetchAncillaryDataSourceList(
-  forceNew?: boolean
+  forceNew: boolean = false,
 ): Promise<WrappedResponse<AncillaryDataSource[]>> {
   const parseQuery = {
     page: "CODA/Ancillary_Data_Sources",
@@ -761,16 +765,13 @@ export async function fetchAncillaryDataSourceList(
     return parseWikitextTableIntoAncillaryDataSources(res.data.parse.wikitext["*"]);
   };
 
-  return await fetchWithCache<AncillaryDataSource[]>(
-    "ancillary-data-sources",
-    CacheFolder.Wiki,
+  return await fetchWithCache<AncillaryDataSource[]>({
+    identifier: "ancillary-data-sources",
+    cacheFolder: CacheFolder.Wiki,
     retriever,
-    {
-      cacheAge: 60,
-      returnExpiredCacheIfFetchFails: true,
-      tryFetchNewFirst: forceNew ? forceNew : false,
-    }
-  );
+    cacheAge: 604800, //1 week
+    forceRetriever: forceNew,
+  });
 }
 
 /** Given wikitext that includes one or more tables, parse the tables into objects. Exported for testing
@@ -817,7 +818,7 @@ export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): Datet
         .split("||")
         .map((s) => s.trim());
       row.forEach(
-        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, "")),
       );
     }
 
@@ -839,7 +840,7 @@ export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): Datet
 }
 
 export function parseWikitextTableIntoMediaSourceOverrides(
-  wikitext: string
+  wikitext: string,
 ): MediaSourceOverride[] {
   const data = [];
   const lines = wikitext.split("|-");
@@ -869,7 +870,7 @@ export function parseWikitextTableIntoMediaSourceOverrides(
         .split("||")
         .map((s) => s.trim());
       row.forEach(
-        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, "")),
       );
     }
 
@@ -886,7 +887,7 @@ export function parseWikitextTableIntoMediaSourceOverrides(
 }
 
 export function parseWikitextTableIntoAncillaryDataSources(
-  wikitext: string
+  wikitext: string,
 ): AncillaryDataSource[] {
   const data = [];
   const lines = wikitext.split("|-");
@@ -916,7 +917,7 @@ export function parseWikitextTableIntoAncillaryDataSources(
         .split("||")
         .map((s) => s.trim());
       row.forEach(
-        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
+        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, "")),
       );
     }
 

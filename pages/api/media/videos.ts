@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       +month,
       +date,
       Collection[collection as string],
-      forceNew === "1"
+      forceNew === "1",
     );
     res.status(200).json(videos);
   } catch (e) {
