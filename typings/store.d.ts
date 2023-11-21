@@ -1,11 +1,3 @@
-interface CacheMetadata {
-  fromCache: boolean;
-  timestamp: Date;
-  expiration: Date;
-  error?: string;
-  mocked?: boolean;
-}
-
 /**
  * Playhead stores
  */
@@ -31,7 +23,7 @@ interface PlayheadHoverState {
 
 type EphemeraState = {
   ephemerisFiles: EphemerisFile[];
-  cacheMetadata: ResMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -40,7 +32,7 @@ type EphemeraState = {
  */
 type DayNightState = {
   dayNight: DayNightObj[];
-  cacheMetadata: ResMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum.LOADING;
   source?: string;
 };
@@ -51,7 +43,7 @@ type DayNightState = {
 
 type SequencesState = {
   allSequences: Sequence[];
-  cacheMetadata: ResMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -63,7 +55,7 @@ type PhotosState = {
   photoFiles: PhotoFile[];
   activePhoto: PhotoFile;
   ready: boolean;
-  cacheMetadata: ResMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
   collectionFilters: PhotoCollectionFilters[];
 };
@@ -81,7 +73,7 @@ interface PhotoCollectionFilters {
 /** Info about videos from IO and the desired high-level state of the video players */
 type VideosState = {
   videoFiles: VideoFile[];
-  cacheMetadata: ResMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -90,7 +82,7 @@ type VideosState = {
  */
 type GPSState = {
   gpsTracks: GPSTrack[];
-  cacheMetadata: CacheMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -99,7 +91,7 @@ type GPSState = {
  */
 type TranscriptState = {
   transcripts: Transcript[];
-  cacheMetadata: CacheMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
   isTranscripts: boolean;
 };
@@ -109,7 +101,7 @@ type TranscriptState = {
  */
 type SgAudioState = {
   sgActivityRecord: SgActivityRecord;
-  cacheMetadata: CacheMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -118,7 +110,7 @@ type SgAudioState = {
  */
 type GraphsState = {
   graphsManifest: GraphsManifest;
-  cacheMetadata: CacheMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };
 
@@ -132,6 +124,6 @@ type MaestroState = {
   evaStartSec: number;
   evaEndSec: number;
   evaDurationSec: number;
-  cacheMetadata: CacheMetadata;
+  responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatusEnum;
 };

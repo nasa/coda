@@ -4,7 +4,7 @@ import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: SequencesState = {
   allSequences: [],
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
 
@@ -15,18 +15,18 @@ export const sequencesSlice = createSlice({
     /** Add one (or more) Sequence(s) to the store */
     addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
       state.allSequences = action.payload.data;
-      state.cacheMetadata = action.payload.cacheMetadata;
+      state.responseMetadata = action.payload.responseMetadata;
     },
 
     /** Clear all Sequences from the store */
     clearSequences: (state) => {
       state.allSequences = [];
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
     },
 
     /** An error occured fetching wiki data */
     fetchError: (state, action: { payload: string }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
+      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
 
     setSequenceLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
@@ -62,7 +62,7 @@ export const getSequenceStartMilliseconds = (Sequence: Sequence): number => {
 export const getAsPerformedMissionTime = (
   asExecuted: Activity[],
   SequenceDate: string,
-  activityStartUTCMilliseconds: number
+  activityStartUTCMilliseconds: number,
 ) => {
   const res: Activity[] = [];
 

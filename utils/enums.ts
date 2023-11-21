@@ -74,4 +74,5 @@ export enum CacheFolder {
   Wiki = "wiki",
   Wiki_all = "wiki/all",
   Wiki_gps = "wiki/gps",
+  test = "test",
 }

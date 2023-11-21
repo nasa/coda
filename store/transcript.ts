@@ -3,7 +3,7 @@ import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: TranscriptState = {
   transcripts: [], // indexed by S/G channel number - 1
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
   isTranscripts: false,
 };
@@ -41,16 +41,16 @@ export const transcriptSlice = createSlice({
         transcripts.push(transcript);
       }
       state.transcripts = transcripts;
-      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
       state.isTranscripts = anyUtterances;
     },
     clearTranscripts: (state) => {
       state.transcripts = [];
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
       state.loadingStatus = LoadingStatusEnum.LOADING;
     },
     transcriptFetchError: (state, action: { payload: string }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
+      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
     setTranscriptLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

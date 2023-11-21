@@ -1,147 +1,170 @@
 import cacache from "cacache";
 import crypto from "crypto";
 import isNull from "lodash/isNull";
-import { diff } from "store/playhead";
 import _ from "lodash";
 import { CacheFolder } from "utils/enums";
 
-/** Caching options for managing how JSON is retrieved and stored */
-interface CacheOptions {
-  /** Default 5 mins (300s). This is the max age allowed for cache entries before retrieving new data. */
-  cacheAge?: number;
-  /** Default true. Whether or not returning expired data (data thats older than cacheAge) is acceptable when the `retriever` fails */
-  returnExpiredCacheIfFetchFails?: boolean;
-  /** Default false. Whether or not to retrieve new data first before returning a valid cache. Only return cached data if the `retriever` fails */
-  tryFetchNewFirst?: boolean;
+interface FetchWithCacheParams<T> {
+  identifier: string; // The cache key. Must be unique for the folder
+  cacheFolder: CacheFolder; // Name of the subdirectory in the cacheRoot for this data
+  retriever: () => Promise<T>; // Async function to perform a request if we can't use the cache. Must return JSON
+  cacheAge?: number; // The max age for cache entries before retrieving new data. When the retriever is run, this value is used to create the expiration value store in the caCache metadata. Note that a random amount of time is added to this value to avoid cache stampedes
+  forceRetriever?: boolean; // Return the cached data, then force the retriever function to get new data regardless of cache age.
+  randomizeCacheAge?: boolean; // An optional boolean that determines whether or not to randomize the cache age. This is useful for testing.
 }
-
-const defaultOptions: CacheOptions = {
-  cacheAge: +process.env.DEFAULT_CACHE_AGE,
-  returnExpiredCacheIfFetchFails: true,
-  tryFetchNewFirst: false,
-};
 
 /**
  * Get data from the cache when it exists and is less than `process.env.CACHE_AGE` old. Otherwise, hit the network and add to the cache
- * @param uniqueIdentifier The cache key. Must be unique for the folder
- * @param cacheFolder name of the subdirectory in the cacheRoot for this data
- * @param retriever Async function to perform a request if we can't use the cache. Must return JSON
- * @param options Cache behavior options
- * @param responseValidator Test function returning bool if the retriever response is valid and should be cached. Default will always cache. This can be used to prevent empty responses being cached
+ * Note that the cache only supports caching of json responses
  */
 export default async function fetchWithCache<T>(
-  uniqueIdentifier: string,
-  cacheFolder: CacheFolder,
-  retriever: () => Promise<T>,
-  options?: CacheOptions,
-  responseValidator?: (data: T) => boolean
+  params: FetchWithCacheParams<T>,
 ): Promise<WrappedResponse<T>> {
-  const opts = { ...defaultOptions, ...options };
-  if (!responseValidator) {
-    responseValidator = () => {
-      return true;
-    };
-  }
+  const {
+    identifier,
+    cacheFolder,
+    retriever,
+    cacheAge = 60 * 60 * 24, // 1 day
+    forceRetriever = false,
+    randomizeCacheAge = true,
+  } = params;
   const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder}`;
-
-  opts.tryFetchNewFirst = process.env.DISABLE_CACHE === "true" ? true : opts.tryFetchNewFirst;
 
   // to be clear, we're not hashing sensitive data, just cache keys
   const hash = crypto.createHash("md5");
-  hash.update(uniqueIdentifier);
+  hash.update(identifier);
   const cacheKey = hash.copy().digest("hex");
 
-  let res = null as T;
-  let cachedRes = null as T;
-  let cachedData = null as string;
+  let cachedData: Buffer = Buffer.from('{"empty": "cache"}'); // default to this value because we can't put null in caCache data
+  let cachedRes: T = null;
 
-  let cacheMetadata = {
-    fromCache: false,
-    timestamp: null,
-    expiration: null,
-  } as CacheMetadata;
+  // make a new expiry date that is cacheAge seconds from now but add a random number of seconds to avoid cache stampedes
+  const newExpiration = randomizeCacheAge
+    ? new Date(Date.now() + cacheAge * 1000 + _.random(0, 100000)) // 100 seconds
+    : new Date(Date.now() + cacheAge * 1000);
 
-  let cacheIsHot = false; //if cache is not expired (has not hit cacheAge yet)
+  const cacheInfo = (await cacache.get.info(cachePath, cacheKey)) || null;
 
-  const cacheInfo = await cacache.get.info(cachePath, cacheKey);
+  // if there is a cache entry for this key
+  if (!isNull(cacheInfo)) {
+    const cacheEntry = await cacache.get(cachePath, cacheKey);
+    const caCacheMetadata: CaCacheMetadata = cacheEntry?.metadata;
+    cachedData = cacheEntry.data;
+    cachedRes = JSON.parse(cachedData.toString());
 
-  try {
-    if (!isNull(cacheInfo)) {
-      // get the cached data now, decide if we want to use it later
-      const cacheEntry = await cacache.get(cachePath, cacheKey);
-      cachedData = cacheEntry.data.toString();
-      cachedRes = JSON.parse(cachedData);
+    let retrieverStatus = caCacheMetadata?.retrieverStatus;
 
-      cacheIsHot = diff(new Date(), new Date(cacheInfo.time)) / 1000 < opts.cacheAge;
-      cacheMetadata = {
-        fromCache: true,
-        timestamp: new Date(cacheInfo.time),
-        expiration: new Date(new Date(cacheInfo.time).getTime() + opts.cacheAge * 1000),
-      };
+    // All the cases where we want to run the retriever function
+    if (forceRetriever) {
+      handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
+    } else if (!retrieverStatus) {
+      // if there is no retriever status, then the cache is from an old version of CODA and we need to run the retriever
+      handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
+    } else if (
+      new Date(caCacheMetadata?.expiration) < new Date() &&
+      retrieverStatus !== "inprogress"
+    ) {
+      // if the cache is expired and the retriever is not already running, then run the retriever
+      handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
+    } else if (retrieverStatus === "error") {
+      // if the retriever has errored use the retryCount and lastRetryTimestamp to determine if we should run the retriever again. Retries should be spaces out gradually based on the retryCount and lastRetryTimestamp starting at immediate and slowing to every 30 seconds
+      const retryInterval =
+        caCacheMetadata.errorCount <= 3 ? 10000 * caCacheMetadata.errorCount : 30000; // max 30 seconds
+      const lastRetryTimestamp = new Date(caCacheMetadata.lastErrorTimestamp);
+      const nextRetryTimestamp = new Date(lastRetryTimestamp.getTime() + retryInterval);
+
+      if (nextRetryTimestamp < new Date()) {
+        handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
+      }
     }
-  } catch (e) {
-    // something went wrong reading or parsing the cache, no problem
-    console.warn(e);
+
+    // return the cached data and the cached status.
+    const responseMetadata: ResponseMetadata = {
+      cachedTimestamp: caCacheMetadata?.cachedTimestamp,
+      expiration: caCacheMetadata.expiration,
+      retrieverStatus,
+      error: caCacheMetadata.retrieverErrorDescription,
+      errorCount: caCacheMetadata.errorCount,
+      lastErrorTimestamp: caCacheMetadata.lastErrorTimestamp,
+    };
+    return {
+      responseMetadata,
+      data: !cachedRes.hasOwnProperty("empty") ? cachedRes : null,
+    };
+  } else {
+    // no record of this cache key
+    const caCacheMetadata: CaCacheMetadata = {
+      retrieverStatus: "inprogress",
+      cachedTimestamp: null,
+      expiration: null,
+      retrieverErrorDescription: null,
+      errorCount: 0,
+      lastErrorTimestamp: null,
+    };
+    // run the retriever function to get fresh data but don't wait for it
+    handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
+
+    // return null data and the inprogress status
+    const responseMetadata: ResponseMetadata = {
+      cachedTimestamp: null,
+      expiration: null,
+      retrieverStatus: "inprogress",
+      error: null,
+      errorCount: 0,
+      lastErrorTimestamp: null,
+    };
+    return { responseMetadata, data: null };
   }
 
-  // cache is within cacheAge and caller does not want to try to retrieve a new copy
-  if (cacheIsHot && !opts.tryFetchNewFirst) {
-    return { cacheMetadata, data: cachedRes };
+  /**
+   * This function will be called when the retriever function is run.
+   * It will update the cache with the retrieved data and a new retrieverStatus of "complete" and the expiration date for the cached data\
+   * @param cachedData The data Buffer that was originally cached
+   * @param caCacheMetadata The metadata object that was originally cached
+   * @param retriever The async function that will retrieve the data
+   * @param expiration The expiration date for the cached data
+   */
+  async function handleRetriever(
+    cachedData: Buffer,
+    caCacheMetadata: CaCacheMetadata,
+    retriever: () => Promise<any>,
+    expiration: Date,
+  ) {
+    // set the cache status to "inprogress" so other requests will know to try again later
+    await cacache.put(cachePath, cacheKey, cachedData, {
+      metadata: { ...caCacheMetadata, retrieverStatus: "inprogress" },
+    });
+
+    // run the retriever function and cache the result
+    retriever()
+      .then(async (res) => {
+        // cache the data retrieved by the retriever function and set the cache metadata
+        const caCacheMetadata: CaCacheMetadata = {
+          retrieverStatus: "complete",
+          cachedTimestamp: new Date().toISOString(),
+          expiration: expiration.toISOString(),
+          retrieverErrorDescription: null,
+          errorCount: 0,
+          lastErrorTimestamp: null,
+        };
+
+        // update the cache with the retrieved data and a new status of "complete" and the expiration date for the cached data
+        await cacache.put(cachePath, cacheKey, Buffer.from(JSON.stringify(res)), {
+          metadata: caCacheMetadata,
+        });
+      })
+      .catch((e) => {
+        console.warn(`Error in retriever for '${cacheFolder}/${identifier}'`);
+        // update the cache preserving any originally cached data and expiration, and set a new retrieverStatus of "complete" and include the error
+        // increment the retry count and set the lastRetryTimestamp
+        caCacheMetadata.retrieverStatus = "error";
+        caCacheMetadata.errorCount += 1;
+        caCacheMetadata.lastErrorTimestamp = new Date().toISOString();
+        cacache.put(cachePath, cacheKey, cachedData, {
+          metadata: { ...caCacheMetadata, retrieverErrorDescription: e.toString() },
+        });
+      });
   }
-
-  //cache is empty or expired, or caller wants to try to retrieve a new copy
-  try {
-    res = await retriever();
-  } catch (e) {
-    //Retriever failed
-    if (!isNull(cachedRes) && opts.returnExpiredCacheIfFetchFails) {
-      // we have expired data in the cache and the caller is ok with expired data
-      console.warn(`Expired data is being returned for '${cacheFolder}/${uniqueIdentifier}'`);
-      console.warn(e);
-      return { cacheMetadata, data: cachedRes };
-    } else {
-      console.warn(`Error in retriver for '${cacheFolder}/${uniqueIdentifier}'`);
-      console.warn(e);
-      cacheMetadata.error = e.toString();
-      cacheMetadata.fromCache = false;
-      cacheMetadata.timestamp = null;
-      cacheMetadata.expiration = null;
-      return { cacheMetadata };
-    }
-  }
-
-  //the retriever returned fresh data. Use caller supplied validator to determine if we should cache it
-  if (!responseValidator(res)) {
-    // data is not valid. Attempt to return expired data or error
-    if (!isNull(cachedRes) && opts.returnExpiredCacheIfFetchFails) {
-      console.warn(
-        `Retriever returned invalid data. Expired data is being returned for '${cacheFolder}/${uniqueIdentifier}'`
-      );
-      return { cacheMetadata, data: cachedRes };
-    } else {
-      console.warn(
-        `Retriever returned invalid data. No data available to return for '${cacheFolder}/${uniqueIdentifier}'`
-      );
-      cacheMetadata.error = "Retriever returned invalid data. No data available to return";
-      cacheMetadata.fromCache = false;
-      cacheMetadata.timestamp = null;
-      return { cacheMetadata };
-    }
-  }
-
-  cacheMetadata.fromCache = false;
-  cacheMetadata.timestamp = null;
-  cacheMetadata.expiration = null;
-
-  // cache the fresh data for later
-  try {
-    await cacache.put(cachePath, cacheKey, Buffer.from(JSON.stringify(res)));
-  } catch (e) {
-    console.warn(`Could not cache: '${uniqueIdentifier}'`);
-    console.warn(e);
-  }
-
-  return { cacheMetadata, data: res };
 }
 
 /** Nuke the cache */

@@ -6,7 +6,7 @@ export const initialState: SgAudioState = {
     overrideBaseUrl: null,
     sgActivityRangeRecords: [[], [], [], []] as SgActivityRangeRecord[][], // indexed by S/G channel number - 1
   },
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
 
@@ -17,16 +17,16 @@ export const sgAudioSlice = createSlice({
     /** Add new photo files to the store */
     setSgAudioActivity: (state, action: { payload: WrappedResponse<SgActivityRecord> }) => {
       state.sgActivityRecord = action.payload.data;
-      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
       state.loadingStatus = LoadingStatusEnum.LOADED;
     },
     clearSgAudioActivity: (state) => {
       state.sgActivityRecord = null;
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
       state.loadingStatus = LoadingStatusEnum.LOADING;
     },
     sgAudioFetchError: (state, action: { payload: string }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
+      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
     setSgAudioLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;
