@@ -318,6 +318,34 @@ export async function fetchDayNight(
     });
     res.source = "topo";
 
+    // if topo is inprogress, pause 5 seconds and try again
+    if (res.responseMetadata.retrieverStatus === "inprogress") {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      //try again
+      res = await fetchWithCache<DayNightStore>({
+        identifier,
+        cacheFolder: CacheFolder.Daynight_topoDay,
+        retriever: retrieverTopoDay,
+        cacheAge: cacheAge_topo,
+      });
+
+      //if still inprogress, return blank
+      if (res.responseMetadata.retrieverStatus === "inprogress") {
+        return {
+          responseMetadata: {
+            retrieverStatus: null,
+            error: "TOPO data is currently being retrieved. Please try again later.",
+            cachedTimestamp: null,
+            expiration: null,
+            errorCount: 0,
+            lastErrorTimestamp: null,
+          },
+          data: { dayNight: [] },
+        };
+      }
+    }
+
     //check topo response.
     if (res.responseMetadata.error) {
       console.error("TOPO fetch with cache returned an error: " + res.responseMetadata.error);
@@ -354,6 +382,34 @@ export async function fetchDayNight(
     cacheAge: isHistoric ? oneYearInSeconds : 300,
   });
 
+  if (res_issLocation.responseMetadata.retrieverStatus === "inprogress") {
+    // pause 5 seconds and try again
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    //try again
+    res_issLocation = await fetchWithCache<WrappedResponse<DayNightStore>>({
+      identifier,
+      cacheFolder: CacheFolder.Daynight_issLocation,
+      retriever: retrieverIssLocation,
+      cacheAge: isHistoric ? oneYearInSeconds : 300,
+    });
+
+    //if still inprogress, return blank
+    if (res_issLocation.responseMetadata.retrieverStatus === "inprogress") {
+      return {
+        responseMetadata: {
+          retrieverStatus: null,
+          error: "ISS Location data is currently being retrieved. Please try again later.",
+          cachedTimestamp: null,
+          expiration: null,
+          errorCount: 0,
+          lastErrorTimestamp: null,
+        },
+        data: { dayNight: [] },
+      };
+    }
+  }
+
   //fetchwithcache returned an error for some reason
   if (res_issLocation.responseMetadata.error) {
     console.error(res_issLocation.responseMetadata.error);
@@ -364,7 +420,7 @@ export async function fetchDayNight(
   }
   //unwrap and set response
   res.responseMetadata = res_issLocation.responseMetadata; //return cache status of the outer wrap (our calculated day/night from the ephemera)
-  res.data = res_issLocation.data.data;
+  res.data = res.data ? res_issLocation.data.data : { dayNight: [] }; //return the day/night data from the inner wrap (the ephemera)
   res.source = res_issLocation.data.source;
 
   return res;

@@ -216,26 +216,23 @@ export function V2(props: { urlState }) {
           );
           return;
         }
-        if (updatedEVAsResponse.responseMetadata.error === undefined) {
-          dispatch(addSequences(updatedEVAsResponse));
 
-          // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
-          const seq = updatedEVAsResponse.data.find((seq) =>
-            isSameDate(new Date(seq.startDate), new Date(playhead.date)),
-          );
-          if (seq && seq.maestroEventUuid) {
-            const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
-            if (!maestroResponse.responseMetadata.error) {
-              dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
-            } else {
-              dispatch(maestroFetchError(maestroResponse.responseMetadata.error));
-            }
-            dispatch(setMaestroLoadingStatus(LoadingStatusEnum.LOADED));
+        dispatch(addSequences(updatedEVAsResponse));
+
+        // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
+        const seq = updatedEVAsResponse.data.find((seq) =>
+          isSameDate(new Date(seq.startDate), new Date(playhead.date)),
+        );
+        if (seq && seq.maestroEventUuid) {
+          const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
+          if (!maestroResponse.responseMetadata.error) {
+            dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
           } else {
-            dispatch(setMaestroLoadingStatus(LoadingStatusEnum.UNNEEDED));
+            dispatch(maestroFetchError(maestroResponse.responseMetadata.error));
           }
+          dispatch(setMaestroLoadingStatus(LoadingStatusEnum.LOADED));
         } else {
-          dispatch(sequencesFetchError(updatedEVAsResponse.responseMetadata.error));
+          dispatch(setMaestroLoadingStatus(LoadingStatusEnum.UNNEEDED));
         }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
