@@ -74,19 +74,19 @@ export default async function getPhotoData(
     })(),
   ]);
 
-  if (isNil(allOverrides) || isNil(sequences)) {
+  if (isNil(allOverrides?.data) || isNil(sequences)) {
     // we don't have the info required to apply fudge factors. just return the photos
     return results;
   }
 
-  const seqs = sequences.data.filter(
+  const seqs = sequences.data?.filter(
     (seq) => isSameDate(new Date(seq.startDate), requestedDate), //||
     // isSameDate(new Date(seq.startDate), previousDate) ||
     // isSameDate(new Date(seq.startDate), nextDate)
   );
 
   // no sequence corresponds with this date so there won't be any overrides
-  if (seqs.length === 0) {
+  if (!seqs || seqs?.length === 0) {
     return results;
   }
 
