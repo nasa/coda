@@ -28,7 +28,7 @@ export async function fetchDayNight(
   month: number,
   date: number,
   forceNew?: boolean,
-  source?: string,
+  source?: string
 ): Promise<WrappedResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
@@ -49,8 +49,8 @@ export async function fetchDayNight(
           Date.UTC(
             requestDate.getUTCFullYear(),
             requestDate.getUTCMonth(),
-            requestDate.getUTCDate() + i * 7,
-          ),
+            requestDate.getUTCDate() + i * 7
+          )
         );
 
         //topo raw data is cached using a week number identifier
@@ -130,9 +130,9 @@ export async function fetchDayNight(
                   return reject(err);
                 }
                 resolve(res);
-              },
+              }
             );
-          },
+          }
         );
 
         //server will auth first before checking if data exists
@@ -158,7 +158,7 @@ export async function fetchDayNight(
               "Something went wrong fetching TOPO data. Response status " +
                 response.statusCode +
                 " for URL " +
-                topoURL.url,
+                topoURL.url
             );
           }
         }
@@ -186,8 +186,15 @@ export async function fetchDayNight(
         month,
         date,
         forceNew,
-        source,
+        source
       );
+      // if fetchISSLocation is inprogress, pause 5 seconds and try again
+      if (issLocation.responseMetadata.retrieverStatus === "inprogress") {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        //try again
+        issLocation = await fetchISSLocation(year, month, date, forceNew, source);
+      }
       if (issLocation.responseMetadata?.error) {
         throw new Error(issLocation.responseMetadata.error);
       }
@@ -329,21 +336,6 @@ export async function fetchDayNight(
         retriever: retrieverTopoDay,
         cacheAge: cacheAge_topo,
       });
-
-      //if still inprogress, return blank
-      if (res.responseMetadata.retrieverStatus === "inprogress") {
-        return {
-          responseMetadata: {
-            retrieverStatus: null,
-            error: "TOPO data is currently being retrieved. Please try again later.",
-            cachedTimestamp: null,
-            expiration: null,
-            errorCount: 0,
-            lastErrorTimestamp: null,
-          },
-          data: { dayNight: [] },
-        };
-      }
     }
 
     //check topo response.
@@ -632,7 +624,7 @@ function calcDayNight(
   ephemera: EphemerisFile[],
   year: number,
   month: number,
-  date: number,
+  date: number
 ): DayNightObj[] {
   const secondsIn24Hours = 86400;
   const startDate = new Date(Date.UTC(year, month - 1, date));
