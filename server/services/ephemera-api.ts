@@ -16,7 +16,7 @@ const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";
 async function fetchSpacetrack(
   year: number,
   month: number,
-  date: number,
+  date: number
 ): Promise<EphemerisFile[]> {
   const isLocal = process.env.NEXT_PUBLIC_APP_ENV === "local";
 
@@ -87,13 +87,15 @@ async function fetchCelestrakToday() {
  * @param year yyyy
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
+ * @param forceRetriever Return the cached data, then force the retriever function to get new data regardless of cache age.
+ * @param source manually specify the source for this fetch. Will not cache
  */
 export async function fetchISSLocation(
   year: number,
   month: number,
   date: number,
-  forceNew?: boolean,
-  source?: string,
+  forceRetriever?: boolean,
+  source?: string
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
   const dateObj = new Date(Date.UTC(year, month - 1, date));
@@ -118,7 +120,7 @@ export async function fetchISSLocation(
       spacetrackResults = await fetchSpacetrack(
         dateToGet.getFullYear(),
         dateToGet.getUTCMonth() + 1,
-        dateToGet.getDate(),
+        dateToGet.getDate()
       );
 
       numResults = spacetrackResults.length;
@@ -148,6 +150,7 @@ export async function fetchISSLocation(
 
   const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
+  // check if request wanted a custom source. Do not cache. Also used in fetchDayNight's retrieverIssLocation in order to bypass cache
   if (source === "spacetrack") {
     const spacetrackRes = await retrieverSpacetrack();
     return {
@@ -198,6 +201,7 @@ export async function fetchISSLocation(
       cacheFolder: CacheFolder.Celestrak,
       retriever: retrieverCelestrak,
       cacheAge: 300,
+      forceRetriever,
     });
     celestrakRes = { ...celestrakRes, source: "celestrak" };
 
@@ -215,7 +219,7 @@ export async function fetchISSLocation(
     cacheFolder: CacheFolder.Spacetrack,
     retriever: retrieverSpacetrack,
     cacheAge: isToday ? 300 : oneYearInSeconds,
-    forceRetriever: forceNew,
+    forceRetriever,
   });
   spacetrackRes = { ...spacetrackRes, source: "spacetrack" };
 
