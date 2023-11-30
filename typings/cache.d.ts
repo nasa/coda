@@ -1,5 +1,7 @@
+type RetrieverStatus = "inprogress" | "complete" | "error";
+
 interface ResponseMetadata {
-  retrieverStatus: "inprogress" | "complete" | "error";
+  retrieverStatus: RetrieverStatus;
   cachedTimestamp: string;
   expiration: string;
   error: string;
@@ -10,7 +12,7 @@ interface ResponseMetadata {
 
 /** This is the structure of the metadata object that we save within each caCache entry */
 interface CaCacheMetadata {
-  retrieverStatus: "inprogress" | "complete" | "error";
+  retrieverStatus: RetrieverStatus;
   cachedTimestamp: string; // ISO string
   expiration: string; // ISO string
   retrieverErrorDescription: string;

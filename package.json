@@ -58,8 +58,7 @@
     "tough-cookie-file-store": "^2.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
-    "uuid": "^9.0.1",
-    "weeknumber": "^1.2.1"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.5.5",

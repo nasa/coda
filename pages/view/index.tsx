@@ -214,6 +214,8 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (updatedEVAsResponse.data) dispatch(addSequences(updatedEVAsResponse));
+
           return;
         }
 
@@ -259,6 +261,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
           return;
         }
         dispatch(addVideos(videoStoreResponse));
@@ -284,6 +287,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
           return;
         }
         dispatch(addPhotos(photoStoreResponse));
@@ -314,6 +318,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (ephemerisStoreResponse.data) dispatch(addEphemera(ephemerisStoreResponse));
           return;
         }
         dispatch(addEphemera(ephemerisStoreResponse));
@@ -342,6 +347,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (daynightStoreResponse.data) dispatch(addDayNight(daynightStoreResponse));
           return;
         }
         dispatch(addDayNight(daynightStoreResponse));
@@ -370,6 +376,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (gpsTracksResponse.data) dispatch(setGPSTracks(gpsTracksResponse));
           return;
         }
         dispatch(setGPSTracks(gpsTracksResponse));
@@ -397,6 +404,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (transcriptResponse.data) dispatch(setTranscripts(transcriptResponse));
           return;
         }
         dispatch(setTranscripts(transcriptResponse));
@@ -420,6 +428,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (sgAudioResponse.data) dispatch(setSgAudioActivity(sgAudioResponse));
           return;
         }
         dispatch(setSgAudioActivity(sgAudioResponse));
@@ -443,6 +452,7 @@ export function V2(props: { urlState }) {
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (graphResponse.data) dispatch(setGraphsManifest(graphResponse));
           return;
         }
         dispatch(setGraphsManifest(graphResponse));
