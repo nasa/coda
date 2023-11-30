@@ -16,8 +16,8 @@ interface IOResponse {
 
 /** The base type for all responses from the CODA API */
 interface WrappedResponse<T> {
-  data?: T;
-  cacheMetadata: CacheMetadata;
+  data: T;
+  responseMetadata: ResponseMetadata;
   source?: string;
 }
 

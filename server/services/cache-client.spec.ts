@@ -1,156 +1,101 @@
 import cacache from "cacache";
-import fetchWithCache from "server/services/cache-client";
+import fetchWithCache from "./cache-client";
 import { CacheFolder } from "utils/enums";
 
 describe("services/cache-client", () => {
-  it("should execute a retriever async function when nothing is in the cache", async () => {
-    // trick for getting the name of the test, which is always unique. perfect for using as a cache key
-    // https://stackoverflow.com/a/62781554
-    const identifier = expect.getState().currentTestName;
-
-    let ran = false;
-    const retriever = async () => {
-      ran = true;
-      return {};
-    };
-
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-    expect(ran).toBeTruthy();
-  });
-
-  it("should return data", async () => {
-    const identifier = expect.getState().currentTestName;
+  it("forcedNew should return inprogress", async () => {
+    const identifier = `${expect.getState().currentTestName} test1`;
 
     const data = { message: "executed" };
     const retriever = async () => {
       return data;
     };
 
-    const res = await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-    expect(res.data.message).toEqual("executed");
+    const res = await fetchWithCache({
+      identifier,
+      cacheFolder: CacheFolder.test,
+      retriever,
+      cacheAge: 1,
+      forceRetriever: true,
+    });
+    expect(res.responseMetadata.retrieverStatus).toEqual("inprogress");
   });
 
-  it("should not execute a retriever async function when the cache is hot", async () => {
-    const identifier = expect.getState().currentTestName;
-
+  it("should return a 'complete' response when cache is populated and data is not expired", async () => {
+    const identifier = `${expect.getState().currentTestName} test2`;
     let runs = 0;
     const retriever = async () => {
       runs += 1;
       return {};
     };
 
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
+    // force a new run
+    await fetchWithCache({
+      identifier,
+      cacheFolder: CacheFolder.test,
+      retriever,
+      cacheAge: 100,
+      forceRetriever: true,
+      randomizeCacheAge: false,
+    });
+
+    // wait
+    await (async () => {
+      return new Promise((resolve) => {
+        setTimeout(resolve, 250);
+      });
+    })();
+
+    // run again but this time we should get a "complete" response
+    const res = await fetchWithCache({
+      identifier,
+      cacheFolder: CacheFolder.test,
+      retriever,
+    });
+
+    expect(res.responseMetadata.retrieverStatus).toEqual("complete");
+    // retriever should only have run once
     expect(runs).toEqual(1);
   });
 
-  it("should not cache when the retriever throws an error", async () => {
-    const identifier = expect.getState().currentTestName;
+  it("should return cached data when the cache is expired with a 'inprogress' response", async () => {
+    const identifier = `${expect.getState().currentTestName} test3`;
 
-    let runs = 0;
     const retriever = async () => {
-      runs += 1;
-      throw new Error("💥");
+      // long running retriever
+      await (async () => {
+        return new Promise((resolve) => {
+          setTimeout(resolve, 250);
+        });
+      })();
+      return { ran: true };
     };
 
-    let unhandledErrors = 0;
-    try {
-      await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-    } catch (_e) {
-      unhandledErrors += 1;
-    }
-    try {
-      await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-    } catch (_e) {
-      unhandledErrors += 1;
-    }
-
-    expect(runs).toEqual(2);
-    expect(unhandledErrors).toEqual(0);
-  });
-
-  it("should run the retriever again if the cache is expired", async () => {
-    const identifier = expect.getState().currentTestName;
-
-    let runs = 0;
-    const retriever = async () => {
-      runs += 1;
-      return {};
-    };
-
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-
-    // wait 10 ms
-    await (async () => {
-      return new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-    })();
-
-    // only accept cache entries younger than 10 ms. the cache entry must be older than 10 ms given the above wait, so the retriever runs again
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever, { cacheAge: 0.01 });
-
-    expect(runs).toEqual(2);
-  });
-
-  it("should run the retriever again when opts.preferNew", async () => {
-    const identifier = expect.getState().currentTestName;
-
-    let runs = 0;
-    const retriever = async () => {
-      runs += 1;
-      return {};
-    };
-
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever, { tryFetchNewFirst: true });
-
-    expect(runs).toEqual(2);
-  });
-
-  it("should return cached data when the cache is expired, an error occurs, and opts.expiredCacheOkIfFetchFails", async () => {
-    const identifier = expect.getState().currentTestName;
-
-    // turn off warning messages about expired data for this test
-    const old = console.warn;
-    console.warn = () => {};
-
-    let ran = 0;
-    const retriever = async () => {
-      ran += 1;
-      if (ran === 1) {
-        // works the first time
-        return { message: "Worked!" };
-      }
-      // fails the second time
-      throw new Error("Something went wrong");
-    };
-
-    await fetchWithCache(identifier, CacheFolder.Wiki, retriever);
-
-    // wait 10 ms
-    await (async () => {
-      return new Promise((resolve) => {
-        setTimeout(resolve, 10);
-      });
-    })();
-
-    const res = await fetchWithCache(identifier, CacheFolder.Wiki, retriever, {
-      cacheAge: 0.01,
-      returnExpiredCacheIfFetchFails: true,
+    // force a new run with a short expiration
+    await fetchWithCache({
+      identifier,
+      cacheFolder: CacheFolder.test,
+      retriever,
+      cacheAge: 100,
+      forceRetriever: true,
+      randomizeCacheAge: false,
     });
 
-    expect(ran).toEqual(2);
-    expect(res.data.message).toEqual("Worked!");
-    // reset console.warn
-    console.warn = old;
+    // run again but this time we should get a "inprogress" response
+    const res = await fetchWithCache({
+      identifier,
+      cacheFolder: CacheFolder.test,
+      retriever,
+    });
+    expect(res.responseMetadata.retrieverStatus).toEqual("inprogress");
+    expect(res.data).toEqual(null);
   });
 
   // ensure we're starting with a clean cache and cleaning up after ourselves
-  beforeAll(() => {
-    cacache.rm.all(process.env.CACHE_ROOT);
+  beforeEach(async () => {
+    await cacache.rm.all(`${process.env.CACHE_ROOT}/${CacheFolder.test}`);
   });
-  afterAll(() => {
-    cacache.rm.all(process.env.CACHE_ROOT);
+  afterAll(async () => {
+    // await cacache.rm.all(`${process.env.CACHE_ROOT}/${CacheFolder.test}`);
   });
 });

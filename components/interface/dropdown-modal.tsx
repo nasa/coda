@@ -1,5 +1,5 @@
 import _ from "lodash";
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, { MutableRefObject, useRef, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -53,26 +53,10 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
   // TODO: it would be nice to grab the width when it first renders and use that to fix the width
   //       when the modal is expanded. right now you have to fix the width in the containing element
 
-  const toggleDisplay = (e) => {
-    let t = e.target;
-    if (!_.isNil(t) && (!modalRef.current.contains(t) || labelRef.current.contains(t))) {
-      setDisplay(!display);
-    }
-  };
-
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setDisplay(!display);
   };
-
-  useEffect(() => {
-    if (display) {
-      window.addEventListener("click", toggleDisplay);
-    }
-    return () => {
-      window.removeEventListener("click", toggleDisplay);
-    };
-  }, [display]);
 
   let caretStyle = styles[opts.caret];
   if (display) {

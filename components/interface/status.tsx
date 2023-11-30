@@ -39,39 +39,39 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   useEffect(() => {
     setVideoStatus(
-      createStatus(videos.loadingStatus, videos.cacheMetadata, videos.videoFiles?.length > 0)
+      createStatus(videos.loadingStatus, videos.responseMetadata, videos.videoFiles?.length > 0),
     );
-  }, [videos.loadingStatus, videos.cacheMetadata]);
+  }, [videos.loadingStatus, videos.responseMetadata]);
 
   useEffect(() => {
     setPhotoStatus(
-      createStatus(photos.loadingStatus, photos.cacheMetadata, photos.photoFiles?.length > 0)
+      createStatus(photos.loadingStatus, photos.responseMetadata, photos.photoFiles?.length > 0),
     );
-  }, [photos.loadingStatus, photos.cacheMetadata]);
+  }, [photos.loadingStatus, photos.responseMetadata]);
 
   useEffect(() => {
     setSequenceStatus(
       createStatus(
         sequences.loadingStatus,
-        sequences.cacheMetadata,
-        sequences.allSequences?.length > 0
-      )
+        sequences.responseMetadata,
+        sequences.allSequences?.length > 0,
+      ),
     );
-  }, [sequences.loadingStatus, sequences.cacheMetadata]);
+  }, [sequences.loadingStatus, sequences.responseMetadata]);
 
   useEffect(() => {
-    setGpsStatus(createStatus(gps.loadingStatus, gps.cacheMetadata, gps.gpsTracks.length > 0));
-  }, [gps.loadingStatus, gps.cacheMetadata]);
+    setGpsStatus(createStatus(gps.loadingStatus, gps.responseMetadata, gps.gpsTracks.length > 0));
+  }, [gps.loadingStatus, gps.responseMetadata]);
 
   useEffect(() => {
     setEphemeraStatus(
       createStatus(
         ephemera.loadingStatus,
-        ephemera.cacheMetadata,
-        ephemera.ephemerisFiles?.length > 0
-      )
+        ephemera.responseMetadata,
+        ephemera.ephemerisFiles?.length > 0,
+      ),
     );
-  }, [ephemera.loadingStatus, ephemera.cacheMetadata]);
+  }, [ephemera.loadingStatus, ephemera.responseMetadata]);
   useEffect(() => {
     let isTranscript = false;
     transcript.transcripts.forEach((transcript) => {
@@ -81,9 +81,9 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     });
 
     setTranscriptStatus(
-      createStatus(transcript.loadingStatus, transcript.cacheMetadata, isTranscript)
+      createStatus(transcript.loadingStatus, transcript.responseMetadata, isTranscript),
     );
-  }, [transcript.loadingStatus, transcript.cacheMetadata]);
+  }, [transcript.loadingStatus, transcript.responseMetadata]);
 
   if (!props.largeDisplay) {
     return (
@@ -173,9 +173,12 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   function createStatus(
     loadingStatus: LoadingStatusEnum,
-    cacheMetadata: CacheMetadata,
-    resultsReturned: boolean
+    responseMetadata: ResponseMetadata,
+    resultsReturned: boolean,
   ): { message: string; classname: string } {
+    const cacheTime = responseMetadata?.cachedTimestamp
+      ? new Date(responseMetadata.cachedTimestamp).toLocaleString()
+      : null;
     let message: string;
     let classname: string;
     if (loadingStatus === LoadingStatusEnum.LOADING) {
@@ -190,26 +193,20 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
         classname = styles.unneeded;
         return { message, classname };
       }
-
-      if (cacheMetadata?.error) {
-        message = "Error: " + cacheMetadata.error;
+      if (responseMetadata?.error) {
+        message = "Error: " + responseMetadata.error;
         classname = styles.error;
         return { message, classname };
       }
-
       //have data and no error
-      if (cacheMetadata?.fromCache) {
-        message = `data from cache (${new Date(cacheMetadata.timestamp).toLocaleString()})`;
-        classname = styles.noError;
-        if (cacheMetadata?.expiration < new Date()) {
-          message = `data from cache but expired on: ${new Date(
-            cacheMetadata.expiration
-          ).toLocaleString()}`;
-          classname = styles.stale;
-        }
-      } else {
-        message = "data is fresh!";
-        classname = styles.noError;
+
+      message = `data originally retrieved on ${cacheTime}`;
+      classname = styles.noError;
+      if (responseMetadata?.expiration < new Date().toISOString()) {
+        message = `data from cache but expired on: ${new Date(
+          responseMetadata.expiration,
+        ).toLocaleString()}`;
+        classname = styles.stale;
       }
     }
     return { message, classname };

@@ -2,12 +2,12 @@ import { midnightZulu } from "store/playhead";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 
 export const fetchMaestroExecuteTimelineStatus = async (
-  executeEventUuid: string
+  executeEventUuid: string,
 ): Promise<WrappedResponse<MaestroInternalAPIData>> => {
   function activityFromMaestroResponse(
     crewName: string,
     activities: Record<string, MaestroActivityTimelineStatus>,
-    midnightUnix: number
+    midnightUnix: number,
   ): Activity[] {
     const resActivities: Activity[] = [];
     for (const activityUuid in activities) {
@@ -39,9 +39,9 @@ export const fetchMaestroExecuteTimelineStatus = async (
 
   try {
     const res = await fetchWithTimeout(
-      `https://maestro.fit.nasa.gov/api/v1/event/exetimelinestatus/${executeEventUuid}`
+      `https://maestro.fit.nasa.gov/api/v1/event/exetimelinestatus/${executeEventUuid}`,
     );
-    const resJson = await res.json();
+    const resJson = (await res.json()) as MaestroTimelineStatusApiResponse;
 
     // set the crew using the maestro response
     const crew: Crew = {
@@ -67,12 +67,12 @@ export const fetchMaestroExecuteTimelineStatus = async (
     const ev1Activity: Activity[] = activityFromMaestroResponse(
       resJson.columns[1].key,
       resJson.activities,
-      midnightUnix
+      midnightUnix,
     );
     const ev2Activity: Activity[] = activityFromMaestroResponse(
       resJson.columns[2].key,
       resJson.activities,
-      midnightUnix
+      midnightUnix,
     );
 
     const maestroInternalAPIData: MaestroInternalAPIData = {
@@ -89,17 +89,26 @@ export const fetchMaestroExecuteTimelineStatus = async (
 
     return {
       data: maestroInternalAPIData,
-      cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null, error: null },
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
+        expiration: null,
+        error: null,
+        errorCount: 0,
+        lastErrorTimestamp: null,
+      },
     };
   } catch (e) {
     console.error(e);
     return {
       data: null,
-      cacheMetadata: {
-        fromCache: false,
-        timestamp: new Date(),
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
         expiration: null,
         error: e.toString(),
+        errorCount: 0,
+        lastErrorTimestamp: null,
       },
     };
   }

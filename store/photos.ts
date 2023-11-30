@@ -19,7 +19,7 @@ export const initialState: PhotosState = {
   photoFiles: [],
   activePhoto: initialPhotoFileState,
   ready: false,
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
   collectionFilters: [],
 };
@@ -31,13 +31,13 @@ export const photoSlice = createSlice({
     /** Add new photo files to the store */
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
       state.photoFiles = action.payload.data;
-      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
       state.ready = true;
     },
 
     clearPhotos: (state) => {
       state.photoFiles = [];
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
       state.ready = false;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {
@@ -46,7 +46,7 @@ export const photoSlice = createSlice({
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
-      state.cacheMetadata = { ...state.cacheMetadata, error };
+      state.responseMetadata = { ...state.responseMetadata, error };
     },
     setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

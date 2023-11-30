@@ -15,7 +15,7 @@ export default async function getPhotoData(
   month: number,
   date: number,
   collection: Collection,
-  forceNew: boolean
+  forceNew: boolean,
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
@@ -38,9 +38,9 @@ export default async function getPhotoData(
       const photos = (await OverrideService.getManifest(mediaOverride)) as PhotoFile[];
 
       return {
-        cacheMetadata: {
-          fromCache: false,
-          timestamp: new Date(),
+        responseMetadata: {
+          retrieverStatus: "complete",
+          cachedTimestamp: null,
           expiration: null,
         },
         data: photos,
@@ -74,19 +74,19 @@ export default async function getPhotoData(
     })(),
   ]);
 
-  if (isNil(allOverrides) || isNil(sequences)) {
+  if (isNil(allOverrides?.data) || isNil(sequences)) {
     // we don't have the info required to apply fudge factors. just return the photos
     return results;
   }
 
-  const seqs = sequences.data.filter(
-    (seq) => isSameDate(new Date(seq.startDate), requestedDate) //||
+  const seqs = sequences.data?.filter(
+    (seq) => isSameDate(new Date(seq.startDate), requestedDate), //||
     // isSameDate(new Date(seq.startDate), previousDate) ||
     // isSameDate(new Date(seq.startDate), nextDate)
   );
 
   // no sequence corresponds with this date so there won't be any overrides
-  if (seqs.length === 0) {
+  if (!seqs || seqs?.length === 0) {
     return results;
   }
 

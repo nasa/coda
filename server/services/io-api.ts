@@ -18,7 +18,7 @@ import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
 import { addMs } from "store/playhead";
-import { inRange, isNil } from "lodash";
+import { isNil } from "lodash";
 import { Collection, IOFetchType } from "utils/enums";
 import { CacheFolder } from "utils/enums";
 
@@ -110,20 +110,18 @@ export async function fetchData(
   forceNew?: boolean
 ) {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
-  let preferNew: boolean;
   let dateQuery: string;
   let queryParams: string;
+  let cacheAge: number = 43200; // 12 hours
 
   if (fetchType === IOFetchType.PHOTOS) {
     parser = parseIOPhotoResponse;
-    preferNew = false;
     dateQuery = formatDateQuery(requestDate);
     queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
   } else if (fetchType === IOFetchType.VIDEOS) {
-    const today = new Date().setHours(0, 0, 0, 0);
     parser = parseIOVideoResponse;
-    // If we're looking for today's video then definitely pull new data becuase there's a chance it's been updated
-    preferNew = inRange(requestDate.getTime(), today, today + 86400000) ? true : false; //86400000 = 24 hours in ms
+    // If we're looking for today's videos then set the cacheAge to 30 minutes. Otherwise use the 12 hour default.
+    cacheAge = requestDate.toDateString() === new Date().toDateString() ? 1800 : 43200;
     dateQuery = formatDateQuery(addMs(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
   } else {
@@ -171,16 +169,13 @@ export async function fetchData(
     return allData;
   };
 
-  return fetchWithCache<PhotoFile[] | VideoFile[]>(
-    `${fetchType}/${collection}/${dateQuery}`,
-    CacheFolder.Io,
+  return fetchWithCache<PhotoFile[] | VideoFile[]>({
+    identifier: `${fetchType}-${collection}-${requestDate.toISOString()}`,
+    cacheFolder: CacheFolder.Io,
     retriever,
-    {
-      cacheAge: 3600,
-      returnExpiredCacheIfFetchFails: true,
-      tryFetchNewFirst: forceNew ? forceNew : preferNew,
-    }
-  );
+    cacheAge,
+    forceRetriever: forceNew,
+  });
 }
 
 /**

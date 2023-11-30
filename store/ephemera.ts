@@ -4,7 +4,7 @@ import { diff } from "./playhead";
 
 export const initialState: EphemeraState = {
   ephemerisFiles: [],
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
 
@@ -15,15 +15,15 @@ export const ephemeraSlice = createSlice({
     /** Add new photo files to the store */
     addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
       state.ephemerisFiles = action.payload.data.ephemera;
-      state.cacheMetadata = { ...state.cacheMetadata, ...action.payload.cacheMetadata };
+      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
     },
     clearEphemera: (state) => {
       state.ephemerisFiles = [];
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
     },
 
     fetchError: (state, action: { payload: string }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
+      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
     setEphemeraLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

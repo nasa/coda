@@ -1,18 +1,22 @@
 import { Source } from "utils/enums";
 import fetchWithTimeout from "utils/fetch-with-timeout";
+import * as filter from "leo-profanity";
 
 export async function fetchLabsTranscripts(
   source: Source,
   dateWanted: string,
-  overrideBaseUrl?: string
+  overrideBaseUrl?: string,
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   // if not ISS return nothing unless an override URL has been send, then use the override URL
   if (source !== Source.ISS && !overrideBaseUrl) {
     return {
-      cacheMetadata: {
-        fromCache: false,
-        timestamp: new Date(),
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
         expiration: null,
+        error: null,
+        errorCount: 0,
+        lastErrorTimestamp: null,
       },
       data: returnEmptyUnprocessedTranscriptArray(),
     };
@@ -20,7 +24,6 @@ export async function fetchLabsTranscripts(
 
   const transcripts: UnprocessedTranscript[] = [];
 
-  const filter = require("leo-profanity");
   filter.loadDictionary();
 
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
@@ -36,7 +39,7 @@ export async function fetchLabsTranscripts(
     };
     try {
       const res = await fetchWithTimeout(url);
-      unprocessedTranscript.unprocessedUtterances = await res.json();
+      unprocessedTranscript.unprocessedUtterances = (await res.json()) as UnprocessedUtterance[];
     } catch (e) {
       unprocessedTranscript.unprocessedUtterances = [];
     }
@@ -48,7 +51,14 @@ export async function fetchLabsTranscripts(
   }
 
   const returnVal: WrappedResponse<UnprocessedTranscript[]> = {
-    cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
+    responseMetadata: {
+      retrieverStatus: "complete",
+      cachedTimestamp: new Date().toISOString(),
+      expiration: null,
+      error: null,
+      errorCount: 0,
+      lastErrorTimestamp: null,
+    },
     data: transcripts,
   };
 
@@ -58,14 +68,17 @@ export async function fetchLabsTranscripts(
 export async function fetchSGActivity(
   source: Source,
   dateWanted: string,
-  overrideBaseUrl?: string
+  overrideBaseUrl?: string,
 ): Promise<WrappedResponse<SgActivityRecord>> {
   if (source !== Source.ISS && !overrideBaseUrl) {
     return {
-      cacheMetadata: {
-        fromCache: false,
-        timestamp: new Date(),
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
         expiration: null,
+        error: null,
+        errorCount: 0,
+        lastErrorTimestamp: null,
       },
       data: {
         overrideBaseUrl: null,
@@ -80,7 +93,7 @@ export async function fetchSGActivity(
   let dayActivities: SgVideoRecord[] = [];
   try {
     const res = await fetchWithTimeout(url);
-    dayActivities = await res.json();
+    dayActivities = (await res.json()) as SgVideoRecord[];
   } catch (e) {
     dayActivities = [];
   }
@@ -101,13 +114,24 @@ export async function fetchSGActivity(
       sgChannelActivityRanges.push(...reducedActivityRanges);
     }
     sgChannelActivityRanges.sort((a, b) =>
-      a.sound_start_secs > b.sound_start_secs ? 1 : b.sound_start_secs > a.sound_start_secs ? -1 : 0
+      a.sound_start_secs > b.sound_start_secs
+        ? 1
+        : b.sound_start_secs > a.sound_start_secs
+        ? -1
+        : 0,
     );
     sgChannelsActivityRanges.push(sgChannelActivityRanges);
   }
 
   const returnVal: WrappedResponse<SgActivityRecord> = {
-    cacheMetadata: { fromCache: false, timestamp: new Date(), expiration: null },
+    responseMetadata: {
+      retrieverStatus: "complete",
+      cachedTimestamp: new Date().toISOString(),
+      expiration: null,
+      error: null,
+      errorCount: 0,
+      lastErrorTimestamp: null,
+    },
     data: {
       overrideBaseUrl: overrideBaseUrl ? overrideBaseUrl : null,
       sgActivityRangeRecords: sgChannelsActivityRanges,

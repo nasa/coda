@@ -67,11 +67,11 @@ export enum PaneTypeShortVal {
 export enum CacheFolder {
   Celestrak = "celestrak",
   Spacetrack = "spacetrack",
-  Daynight_topoDay = "daynight/topoDay",
-  Daynight_topoRawWeek = "daynight/topoRawWeek",
+  Daynight_topo = "daynight/topo",
   Daynight_issLocation = "daynight/issLocation",
   Io = "io",
   Wiki = "wiki",
   Wiki_all = "wiki/all",
   Wiki_gps = "wiki/gps",
+  test = "test",
 }

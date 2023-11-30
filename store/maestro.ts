@@ -8,7 +8,7 @@ export const initialState: MaestroState = {
   evaEndSec: null,
   evaDurationSec: null,
   processedActivitiesData: null,
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
 
@@ -18,7 +18,7 @@ export const maestroSlice = createSlice({
   reducers: {
     setMaestroData: (
       state,
-      action: { payload: { maestroInternalAPIData: MaestroInternalAPIData } }
+      action: { payload: { maestroInternalAPIData: MaestroInternalAPIData } },
     ) => {
       state.title = action.payload.maestroInternalAPIData.title;
       state.processedActivitiesData = action.payload.maestroInternalAPIData.processedActivitiesData;
@@ -28,7 +28,7 @@ export const maestroSlice = createSlice({
       state.evaDurationSec = action.payload.maestroInternalAPIData.evaDurationSec;
     },
     maestroFetchError: (state, action: { payload: string }) => {
-      state.cacheMetadata = { ...state.cacheMetadata, error: action.payload };
+      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
     setMaestroLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
       state.loadingStatus = action.payload;

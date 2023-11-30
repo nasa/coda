@@ -2,7 +2,7 @@ import styles from "./index.module.css";
 import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
@@ -78,14 +78,6 @@ import { generateShareURL } from "utils/share-state";
 import { getMaestroExecuteTimelineStatus } from "http-client/maestro";
 import { maestroFetchError, setMaestroData, setMaestroLoadingStatus } from "store/maestro";
 
-/** Dynamically import the nav timeline because paper doesn't like Node  */
-const Timeline = dynamic(import("components/interface/nav-timeline"), {
-  ssr: false,
-});
-/** Dynamically import the whole framework because nothing likes NextJS */
-const Viewer = dynamic(import("components/framework/frames"), {
-  ssr: false,
-});
 const PlaybackControls = dynamic(import("components/interface/playback-controls"), {
   ssr: false,
 });
@@ -109,6 +101,24 @@ export function V2(props: { urlState }) {
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
 
   const dispatch = useDispatch();
+
+  const retrieverRetryRange = [3000, 8000]; // in milliseconds
+
+  const Timeline = useMemo(
+    () =>
+      dynamic(() => import("components/interface/nav-timeline"), {
+        ssr: false,
+      }),
+    []
+  );
+
+  const Viewer = useMemo(
+    () =>
+      dynamic(() => import("components/framework/frames"), {
+        ssr: false,
+      }),
+    []
+  );
 
   // make sure the application is running on the correct date
   let userDate = null;
@@ -195,26 +205,36 @@ export function V2(props: { urlState }) {
 
         const updatedEVAsResponse =
           collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
-        if (updatedEVAsResponse.cacheMetadata.error === undefined) {
-          dispatch(addSequences(updatedEVAsResponse));
 
-          // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
-          const seq = updatedEVAsResponse.data.find((seq) =>
-            isSameDate(new Date(seq.startDate), new Date(playhead.date))
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (updatedEVAsResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateSequenceStore(collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
-          if (seq && seq.maestroEventUuid) {
-            const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
-            if (!maestroResponse.cacheMetadata.error) {
-              dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
-            } else {
-              dispatch(maestroFetchError(maestroResponse.cacheMetadata.error));
-            }
-            dispatch(setMaestroLoadingStatus(LoadingStatusEnum.LOADED));
+          if (updatedEVAsResponse.data) dispatch(addSequences(updatedEVAsResponse));
+
+          return;
+        }
+
+        dispatch(addSequences(updatedEVAsResponse));
+
+        // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
+        const seq = updatedEVAsResponse.data.find((seq) =>
+          isSameDate(new Date(seq.startDate), new Date(playhead.date))
+        );
+        if (seq && seq.maestroEventUuid) {
+          const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
+          if (!maestroResponse.responseMetadata.error) {
+            dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
           } else {
-            dispatch(setMaestroLoadingStatus(LoadingStatusEnum.UNNEEDED));
+            dispatch(maestroFetchError(maestroResponse.responseMetadata.error));
           }
+          dispatch(setMaestroLoadingStatus(LoadingStatusEnum.LOADED));
         } else {
-          dispatch(sequencesFetchError(updatedEVAsResponse.cacheMetadata.error));
+          dispatch(setMaestroLoadingStatus(LoadingStatusEnum.UNNEEDED));
         }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
@@ -233,11 +253,18 @@ export function V2(props: { urlState }) {
       try {
         // video data for this EVA
         const videoStoreResponse = await buildVideoStore(year, month, day, collection);
-        if (videoStoreResponse.cacheMetadata.error === undefined) {
-          dispatch(addVideos(videoStoreResponse));
-        } else {
-          dispatch(videosFetchError(videoStoreResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (videoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateVideoStore(year, month, day, collection, incremental);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
+          return;
         }
+        dispatch(addVideos(videoStoreResponse));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
       }
@@ -252,13 +279,20 @@ export function V2(props: { urlState }) {
       try {
         // photos data for today
         const photoStoreResponse = await buildPhotoStore(year, month, day, collection);
-        if (photoStoreResponse.cacheMetadata.error === undefined) {
-          dispatch(addPhotos(photoStoreResponse));
-          const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
-          dispatch(setCollectionFilters(photoCollectionsFilter));
-        } else {
-          dispatch(photosFetchError(photoStoreResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (photoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populatePhotoStore(year, month, day, collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
+          return;
         }
+        dispatch(addPhotos(photoStoreResponse));
+        const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
+        dispatch(setCollectionFilters(photoCollectionsFilter));
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
       }
@@ -276,11 +310,18 @@ export function V2(props: { urlState }) {
       dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
-        if (ephemerisStoreResponse.cacheMetadata.error === undefined) {
-          dispatch(addEphemera(ephemerisStoreResponse));
-        } else {
-          dispatch(ephemeraFetchError(ephemerisStoreResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (ephemerisStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateEphemerisStore(year, month, day, collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (ephemerisStoreResponse.data) dispatch(addEphemera(ephemerisStoreResponse));
+          return;
         }
+        dispatch(addEphemera(ephemerisStoreResponse));
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
       }
@@ -298,11 +339,18 @@ export function V2(props: { urlState }) {
       dispatch(setDayNightLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const daynightStoreResponse = await buildDayNightStore(year, month, day);
-        if (daynightStoreResponse.cacheMetadata.error === undefined) {
-          dispatch(addDayNight(daynightStoreResponse));
-        } else {
-          dispatch(daynightFetchError(daynightStoreResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (daynightStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateDayNightStore(year, month, day, collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (daynightStoreResponse.data) dispatch(addDayNight(daynightStoreResponse));
+          return;
         }
+        dispatch(addDayNight(daynightStoreResponse));
       } catch (e) {
         dispatch(daynightFetchError(e.toString()));
       }
@@ -320,11 +368,18 @@ export function V2(props: { urlState }) {
       dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const gpsTracksResponse = await getGPSTracks(year, month, day);
-        if (gpsTracksResponse.cacheMetadata.error === undefined) {
-          dispatch(setGPSTracks(gpsTracksResponse));
-        } else {
-          dispatch(gpsFetchError(gpsTracksResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (gpsTracksResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateGPSStore(year, month, day, collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (gpsTracksResponse.data) dispatch(setGPSTracks(gpsTracksResponse));
+          return;
         }
+        dispatch(setGPSTracks(gpsTracksResponse));
       } catch (e) {
         dispatch(gpsFetchError(e.toString()));
       }
@@ -341,11 +396,18 @@ export function V2(props: { urlState }) {
       dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const transcriptResponse = await getTranscripts(source, year, month, day, collection);
-        if (transcriptResponse.cacheMetadata.error === undefined) {
-          dispatch(setTranscripts(transcriptResponse));
-        } else {
-          dispatch(transcriptFetchError(transcriptResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (transcriptResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateTranscriptStore(source, year, month, day, collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (transcriptResponse.data) dispatch(setTranscripts(transcriptResponse));
+          return;
         }
+        dispatch(setTranscripts(transcriptResponse));
       } catch (e) {
         dispatch(transcriptFetchError(e.toString()));
       }
@@ -358,11 +420,18 @@ export function V2(props: { urlState }) {
       dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const sgAudioResponse = await getSgAudio(source, year, month, day, collection);
-        if (sgAudioResponse.cacheMetadata.error === undefined) {
-          dispatch(setSgAudioActivity(sgAudioResponse));
-        } else {
-          dispatch(sgAudioFetchError(sgAudioResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (sgAudioResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateSgAudioStore(source, year, month, day, collection);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (sgAudioResponse.data) dispatch(setSgAudioActivity(sgAudioResponse));
+          return;
         }
+        dispatch(setSgAudioActivity(sgAudioResponse));
       } catch (e) {
         dispatch(sgAudioFetchError(e.toString()));
       }
@@ -375,11 +444,18 @@ export function V2(props: { urlState }) {
       dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADING));
       try {
         const graphResponse = await getGraphsManifest(source, year, month, day);
-        if (graphResponse.cacheMetadata.error === undefined) {
-          dispatch(setGraphsManifest(graphResponse));
-        } else {
-          dispatch(graphsFetchError(graphResponse.cacheMetadata.error));
+        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        if (graphResponse.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            () => {
+              populateGraphStore(year, month, day);
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (graphResponse.data) dispatch(setGraphsManifest(graphResponse));
+          return;
         }
+        dispatch(setGraphsManifest(graphResponse));
       } catch (e) {
         dispatch(graphsFetchError(e.toString()));
       }
@@ -554,30 +630,28 @@ export async function getServerSideProps({ query }) {
 }
 
 function setNonDLVideoFrame(fState, frameNum, nonDLVideo) {
-  const muted = frameNum === "1" ? false : true;
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "video_non_downlink",
     paneStateData: {
       ...allPanes["video_non_downlink"].defaultPaneStateData,
-      downlink: -1,
+      channel: -1,
       activeVideoFileID: nonDLVideo,
-      muted,
-    },
+      muted: true,
+    } as VideoPaneStateData,
   };
   return { ...fState.frames, [frameNum]: frameStateData };
 }
 
 function setDLVideoFrame(fState, frameNum, downlink) {
-  const muted = frameNum === "1" ? false : true;
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "video_downlink",
     paneStateData: {
       ...allPanes["video_downlink"].defaultPaneStateData,
-      downlink: parseInt(downlink) - 1,
-      muted,
-    },
+      channel: parseInt(downlink) - 1,
+      muted: true,
+    } as VideoPaneStateData,
   };
   return { ...fState.frames, [frameNum]: frameStateData };
 }

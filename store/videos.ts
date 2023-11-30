@@ -4,7 +4,7 @@ import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: VideosState = {
   videoFiles: [],
-  cacheMetadata: null,
+  responseMetadata: null,
   loadingStatus: LoadingStatusEnum.LOADING,
 };
 
@@ -15,19 +15,19 @@ export const videoSlice = createSlice({
     /** Add new video files to the store */
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
       state.videoFiles = action.payload.data;
-      state.cacheMetadata = action.payload.cacheMetadata;
+      state.responseMetadata = action.payload.responseMetadata;
     },
 
     /** Clear all videos from the store */
     clearVideos: (state) => {
       state.videoFiles = [];
-      state.cacheMetadata = null;
+      state.responseMetadata = null;
     },
 
     /** An error occured fetching video metadata */
     fetchError: (state, action: { payload: string }) => {
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
-      state.cacheMetadata = { ...state.cacheMetadata, error };
+      state.responseMetadata = { ...state.responseMetadata, error };
     },
 
     setVideoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
@@ -60,7 +60,7 @@ const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, st
  */
 export const visibleVideosBySecond = memoize(
   _visibleVideosBySecond,
-  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`
+  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`,
 );
 
 /** Filters videos for start and end dates that overlap a given day */
@@ -75,5 +75,5 @@ const _filterVisibleVideos = (videos: VideoFile[], date: Date): VideoFile[] => {
 /** Return a list of all videos that cover some part of the day */
 export const filterVisibleVideos = memoize(
   _filterVisibleVideos,
-  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`
+  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`,
 );

@@ -22,7 +22,7 @@ export default async function fetchWithTimeout(
   timeout: number = 8000 /** Milliseconds to timeout */
 ): Promise<Response> {
   const controller = new AbortController();
-  const signal = controller.signal;
+  const signal = controller.signal as NonNullable<RequestInit["signal"]>;
   const id = setTimeout(() => controller.abort(), timeout);
 
   // To avoid invalid cert errors in development environments, don't reject unauthorized certs when in development
