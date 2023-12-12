@@ -5,12 +5,18 @@ import _ from "lodash";
 import { CacheFolder } from "utils/enums";
 
 interface FetchWithCacheParams<T> {
-  identifier: string; // The cache key. Must be unique for the folder
-  cacheFolder: CacheFolder; // Name of the subdirectory in the cacheRoot for this data
-  retriever: () => Promise<T>; // Async function to perform a request if we can't use the cache. Must return JSON
-  cacheAge?: number; // The max age for cache entries before retrieving new data. When the retriever is run, this value is used to create the expiration value store in the caCache metadata. Note that a random amount of time is added to this value to avoid cache stampedes
-  forceRetriever?: boolean; // Return the cached data, then force the retriever function to get new data regardless of cache age.
-  randomizeCacheAge?: boolean; // An optional boolean that determines whether or not to randomize the cache age. This is useful for testing.
+  /** The cache key. Must be unique for the folder */
+  identifier: string;
+  /** Name of the subdirectory in the cacheRoot for this data */
+  cacheFolder: CacheFolder;
+  /** Async function to perform a request if we can't use the cache. Must return JSON */
+  retriever: () => Promise<T>;
+  /** The max age for cache entries before retrieving new data. When the retriever is run, this value is used to create the expiration value store in the caCache metadata. Note that a random amount of time is added to this value to avoid cache stampedes */
+  cacheAge?: number;
+  /**Return the cached data, then force the retriever function to get new data regardless of cache age. */
+  forceRetriever?: boolean;
+  /** An optional boolean that determines whether or not to randomize the cache age. This is useful for testing. */
+  randomizeCacheAge?: boolean;
 }
 
 /**
