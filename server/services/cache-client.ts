@@ -76,7 +76,7 @@ export default async function fetchWithCache<T>(
       handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
       currentRetrieverStatus = "inprogress";
     } else if (caCacheMetadata?.retrieverStatus === "error") {
-      // if the retriever has errored, space out retries by `errorRetryCoefficient` ms each time, with a max wait of 30 seconds
+      // if the retriever has errored, space out retries by an additional `errorRetryCoefficient` ms each time, with a max wait of 30 seconds
       const retryInterval = Math.min(30000, errorRetryCoefficient * caCacheMetadata.errorCount);
       const lastRetryTimestamp = new Date(caCacheMetadata.lastErrorTimestamp);
       const nextRetryTimestamp = new Date(lastRetryTimestamp.getTime() + retryInterval);
