@@ -17,6 +17,8 @@ interface FetchWithCacheParams<T> {
   forceRetriever?: boolean;
   /** An optional boolean that determines whether or not to randomize the cache age. This is useful for testing. */
   randomizeCacheAge?: boolean;
+  /** The number of milliseconds to grow the cooldown between retries for errors. The retriever will only be allowed to run `min(30000, errorRetryCoefficient * errorCount)` ms after an error */
+  errorRetryCoefficient?: number;
 }
 
 /**
@@ -33,6 +35,7 @@ export default async function fetchWithCache<T>(
     cacheAge = 60 * 60 * 24, // 1 day
     forceRetriever = false,
     randomizeCacheAge = true,
+    errorRetryCoefficient = 10000,
   } = params;
   const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder}`;
 
@@ -73,10 +76,8 @@ export default async function fetchWithCache<T>(
       handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
       currentRetrieverStatus = "inprogress";
     } else if (caCacheMetadata?.retrieverStatus === "error") {
-      // if the retriever has errored. Use the retryCount and lastRetryTimestamp to determine if we should run the retriever again.
-      // Retries should be spaced out gradually based on the retryCount and lastRetryTimestamp starting at immediate and slowing to every 30 seconds
-      const retryInterval =
-        caCacheMetadata.errorCount <= 3 ? 10000 * caCacheMetadata.errorCount : 30000; // max 30 seconds
+      // if the retriever has errored, space out retries by `errorRetryCoefficient` ms each time, with a max wait of 30 seconds
+      const retryInterval = Math.min(30000, errorRetryCoefficient * caCacheMetadata.errorCount);
       const lastRetryTimestamp = new Date(caCacheMetadata.lastErrorTimestamp);
       const nextRetryTimestamp = new Date(lastRetryTimestamp.getTime() + retryInterval);
 
