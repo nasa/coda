@@ -81,6 +81,7 @@ export default async function fetchWithCache<T>(
       const nextRetryTimestamp = new Date(lastRetryTimestamp.getTime() + retryInterval);
 
       if (nextRetryTimestamp < new Date()) {
+        currentRetrieverStatus = "inprogress";
         handleRetriever(cachedData, caCacheMetadata, retriever, newExpiration);
       }
     }
