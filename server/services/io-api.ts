@@ -107,7 +107,7 @@ export async function fetchData(
   collection: Collection,
   fetchType: IOFetchType,
   requestDate: Date,
-  forceNew?: boolean,
+  forceNew?: boolean
 ) {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let dateQuery: string;
@@ -119,10 +119,9 @@ export async function fetchData(
     dateQuery = formatDateQuery(requestDate);
     queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
   } else if (fetchType === IOFetchType.VIDEOS) {
-    const today = new Date().setHours(0, 0, 0, 0);
     parser = parseIOVideoResponse;
     // If we're looking for today's videos then set the cacheAge to 30 minutes. Otherwise use the 12 hour default.
-    cacheAge = requestDate.setHours(0, 0, 0, 0) === today ? 1800 : 86400;
+    cacheAge = requestDate.toDateString() === new Date().toDateString() ? 1800 : 43200;
     dateQuery = formatDateQuery(addMs(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
   } else {
@@ -190,7 +189,7 @@ export async function fetchData(
 export function buildQueryArray(
   queryParams: string,
   callsRequired: number,
-  limit: number,
+  limit: number
 ): string[] {
   let queryParamsArray: string[] = [];
   for (let i = 1; i < callsRequired; i++) {
@@ -292,7 +291,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     dateArr[2],
     dateArr[3],
     dateArr[4],
-    dateArr[5],
+    dateArr[5]
   );
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);

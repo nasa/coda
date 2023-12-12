@@ -109,7 +109,7 @@ export function V2(props: { urlState }) {
       dynamic(() => import("components/interface/nav-timeline"), {
         ssr: false,
       }),
-    [],
+    []
   );
 
   const Viewer = useMemo(
@@ -117,7 +117,7 @@ export function V2(props: { urlState }) {
       dynamic(() => import("components/framework/frames"), {
         ssr: false,
       }),
-    [],
+    []
   );
 
   // make sure the application is running on the correct date
@@ -212,8 +212,10 @@ export function V2(props: { urlState }) {
             () => {
               populateSequenceStore(collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (updatedEVAsResponse.data) dispatch(addSequences(updatedEVAsResponse));
+
           return;
         }
 
@@ -221,7 +223,7 @@ export function V2(props: { urlState }) {
 
         // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
         const seq = updatedEVAsResponse.data.find((seq) =>
-          isSameDate(new Date(seq.startDate), new Date(playhead.date)),
+          isSameDate(new Date(seq.startDate), new Date(playhead.date))
         );
         if (seq && seq.maestroEventUuid) {
           const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
@@ -257,8 +259,9 @@ export function V2(props: { urlState }) {
             () => {
               populateVideoStore(year, month, day, collection, incremental);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
           return;
         }
         dispatch(addVideos(videoStoreResponse));
@@ -282,8 +285,9 @@ export function V2(props: { urlState }) {
             () => {
               populatePhotoStore(year, month, day, collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
           return;
         }
         dispatch(addPhotos(photoStoreResponse));
@@ -312,8 +316,9 @@ export function V2(props: { urlState }) {
             () => {
               populateEphemerisStore(year, month, day, collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (ephemerisStoreResponse.data) dispatch(addEphemera(ephemerisStoreResponse));
           return;
         }
         dispatch(addEphemera(ephemerisStoreResponse));
@@ -340,8 +345,9 @@ export function V2(props: { urlState }) {
             () => {
               populateDayNightStore(year, month, day, collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (daynightStoreResponse.data) dispatch(addDayNight(daynightStoreResponse));
           return;
         }
         dispatch(addDayNight(daynightStoreResponse));
@@ -368,8 +374,9 @@ export function V2(props: { urlState }) {
             () => {
               populateGPSStore(year, month, day, collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (gpsTracksResponse.data) dispatch(setGPSTracks(gpsTracksResponse));
           return;
         }
         dispatch(setGPSTracks(gpsTracksResponse));
@@ -395,8 +402,9 @@ export function V2(props: { urlState }) {
             () => {
               populateTranscriptStore(source, year, month, day, collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (transcriptResponse.data) dispatch(setTranscripts(transcriptResponse));
           return;
         }
         dispatch(setTranscripts(transcriptResponse));
@@ -418,8 +426,9 @@ export function V2(props: { urlState }) {
             () => {
               populateSgAudioStore(source, year, month, day, collection);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (sgAudioResponse.data) dispatch(setSgAudioActivity(sgAudioResponse));
           return;
         }
         dispatch(setSgAudioActivity(sgAudioResponse));
@@ -441,8 +450,9 @@ export function V2(props: { urlState }) {
             () => {
               populateGraphStore(year, month, day);
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1]),
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
+          if (graphResponse.data) dispatch(setGraphsManifest(graphResponse));
           return;
         }
         dispatch(setGraphsManifest(graphResponse));
@@ -620,30 +630,28 @@ export async function getServerSideProps({ query }) {
 }
 
 function setNonDLVideoFrame(fState, frameNum, nonDLVideo) {
-  const muted = frameNum === "1" ? false : true;
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "video_non_downlink",
     paneStateData: {
       ...allPanes["video_non_downlink"].defaultPaneStateData,
-      downlink: -1,
+      channel: -1,
       activeVideoFileID: nonDLVideo,
-      muted,
-    },
+      muted: true,
+    } as VideoPaneStateData,
   };
   return { ...fState.frames, [frameNum]: frameStateData };
 }
 
 function setDLVideoFrame(fState, frameNum, downlink) {
-  const muted = frameNum === "1" ? false : true;
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "video_downlink",
     paneStateData: {
       ...allPanes["video_downlink"].defaultPaneStateData,
-      downlink: parseInt(downlink) - 1,
-      muted,
-    },
+      channel: parseInt(downlink) - 1,
+      muted: true,
+    } as VideoPaneStateData,
   };
   return { ...fState.frames, [frameNum]: frameStateData };
 }

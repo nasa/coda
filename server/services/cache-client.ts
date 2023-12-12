@@ -26,7 +26,7 @@ interface FetchWithCacheParams<T> {
  * Note that the cache only supports caching of json responses
  */
 export default async function fetchWithCache<T>(
-  params: FetchWithCacheParams<T>,
+  params: FetchWithCacheParams<T>
 ): Promise<WrappedResponse<T>> {
   const {
     identifier,
@@ -138,7 +138,7 @@ export default async function fetchWithCache<T>(
     cachedData: Buffer,
     caCacheMetadata: CaCacheMetadata,
     retriever: () => Promise<any>,
-    expiration: Date,
+    expiration: Date
   ) {
     // set the cache status to "inprogress" so other requests will know to try again later
     await cacache.put(cachePath, cacheKey, cachedData, {
