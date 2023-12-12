@@ -1,5 +1,5 @@
 import cacache from "cacache";
-import fetchWithCache, { goRetrieve } from "./cache-client";
+import fetchWithCache from "./cache-client";
 import { CacheFolder } from "utils/enums";
 
 describe("services/cache-client", () => {
@@ -29,42 +29,20 @@ describe("services/cache-client", () => {
       return {};
     };
 
-    // fetch and block until the retriever runs
+    // force a new run
+    await fetchWithCache({
+      identifier,
+      cacheFolder: CacheFolder.test,
+      retriever,
+      cacheAge: 100,
+      forceRetriever: true,
+      randomizeCacheAge: false,
+    });
+
+    // wait
     await (async () => {
       return new Promise((resolve) => {
-        const handleRetriever = async <T>(
-          cachePath: string,
-          cacheKey: string,
-          identifier: string,
-          cachedData: Buffer,
-          caCacheMetadata: CaCacheMetadata,
-          retriever: () => Promise<T>,
-          expiration: Date,
-        ) => {
-          await goRetrieve(
-            cachePath,
-            cacheKey,
-            identifier,
-            cachedData,
-            caCacheMetadata,
-            retriever,
-            expiration,
-          );
-          resolve(null);
-        };
-
-        // force a new run
-        fetchWithCache(
-          {
-            identifier,
-            cacheFolder: CacheFolder.test,
-            retriever,
-            cacheAge: 100,
-            forceRetriever: true,
-            randomizeCacheAge: false,
-          },
-          handleRetriever,
-        );
+        setTimeout(resolve, 250);
       });
     })();
 
