@@ -11,13 +11,13 @@ interface FetchWithCacheParams<T> {
   cacheFolder: CacheFolder;
   /** Async function to perform a request if we can't use the cache. Must return JSON */
   retriever: () => Promise<T>;
-  /** The max age for cache entries before retrieving new data. When the retriever is run, this value is used to create the expiration value store in the caCache metadata. Note that a random amount of time is added to this value to avoid cache stampedes */
+  /** The max age in seconds for cache entries before retrieving new data. When the retriever is run, this value is used to create the expiration value store in the caCache metadata. Note that a random amount of time is added to this value to avoid cache stampedes */
   cacheAge?: number;
   /**Return the cached data, then force the retriever function to get new data regardless of cache age. */
   forceRetriever?: boolean;
   /** An optional boolean that determines whether or not to randomize the cache age. This is useful for testing. */
   randomizeCacheAge?: boolean;
-  /** The number of milliseconds to grow the cooldown between retries for errors. The retriever will only be allowed to run `min(30000, errorRetryCoefficient * errorCount)` ms after an error */
+  /** The number of seconds to grow the cooldown between retries for errors. The retriever will only be allowed to run `min(30, errorRetryCoefficient * errorCount)` seconds after an error */
   errorRetryCoefficient?: number;
 }
 
@@ -35,7 +35,7 @@ export default async function fetchWithCache<T>(
     cacheAge = 60 * 60 * 24, // 1 day
     forceRetriever = false,
     randomizeCacheAge = true,
-    errorRetryCoefficient = 10000,
+    errorRetryCoefficient = 10, // 10 seconds
   } = params;
   const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder}`;
 
@@ -77,7 +77,10 @@ export default async function fetchWithCache<T>(
       currentRetrieverStatus = "inprogress";
     } else if (caCacheMetadata?.retrieverStatus === "error") {
       // if the retriever has errored, space out retries by an additional `errorRetryCoefficient` ms each time, with a max wait of 30 seconds
-      const retryInterval = Math.min(30000, errorRetryCoefficient * caCacheMetadata.errorCount);
+      const retryInterval = Math.min(
+        30000,
+        errorRetryCoefficient * 1000 * caCacheMetadata.errorCount
+      );
       const lastRetryTimestamp = new Date(caCacheMetadata.lastErrorTimestamp);
       const nextRetryTimestamp = new Date(lastRetryTimestamp.getTime() + retryInterval);
 

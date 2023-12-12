@@ -173,12 +173,12 @@ describe("services/cache-client", () => {
       cacheFolder: CacheFolder.test,
       retriever,
       cacheAge: 1,
-      // we will cooldown 50ms * errorCount after each failed retriever
-      errorRetryCoefficient: 50,
+      // we will cooldown 0.05 seconds (or 50ms) x errorCount after each failed retriever
+      errorRetryCoefficient: 0.05,
     });
     expect(res1.responseMetadata.retrieverStatus).toEqual("inprogress");
 
-    // wait 10 ms < errorRetryCoefficient * errorCount, so we should be within the initial cooldown period after the first error
+    // wait 0.1 seconds < errorRetryCoefficient * errorCount, so we should be within the initial cooldown period after the first error
     await waitFor(0.01);
     expect(runs).toBe(1);
 
@@ -188,7 +188,7 @@ describe("services/cache-client", () => {
       cacheFolder: CacheFolder.test,
       retriever,
       cacheAge: 1,
-      errorRetryCoefficient: 50,
+      errorRetryCoefficient: 0.05,
     });
     expect(res2.responseMetadata.retrieverStatus).toEqual("error");
     expect(res2.responseMetadata.errorCount).toBe(1);
@@ -204,7 +204,7 @@ describe("services/cache-client", () => {
       cacheFolder: CacheFolder.test,
       retriever,
       cacheAge: 1,
-      errorRetryCoefficient: 50,
+      errorRetryCoefficient: 0.05,
     });
     // even though last time was an error, it's retrying the retriever, hence 'inprogress'
     expect(res3.responseMetadata.retrieverStatus).toEqual("inprogress");
@@ -228,7 +228,7 @@ describe("services/cache-client", () => {
         return { statusMessage: goodStatusMessage };
       },
       cacheAge: 1,
-      errorRetryCoefficient: 50,
+      errorRetryCoefficient: 0.05,
     });
     expect(res4.responseMetadata.retrieverStatus).toEqual("inprogress");
     // last time we ran, we saw a second error
@@ -245,7 +245,7 @@ describe("services/cache-client", () => {
         return { statusMessage: "some other status message we should never see" };
       },
       cacheAge: 1,
-      errorRetryCoefficient: 50,
+      errorRetryCoefficient: 0.05,
     });
     expect(res5.responseMetadata.retrieverStatus).toEqual("complete");
     expect(res5.responseMetadata.errorCount).toBe(0);
