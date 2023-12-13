@@ -212,7 +212,7 @@ describe("services/cache-client", () => {
     expect(res3.responseMetadata.errorCount).toBe(1);
 
     // internally, the errorCount is 2. we need to wait at least 2 x errorRetryCoefficient = 0.1 seconds after the last error to retry the retriever
-    await waitFor(0.1);
+    await waitFor(0.2);
 
     // we should see the retriever ran again last time after we waited long enough
     expect(runs).toBe(2);
