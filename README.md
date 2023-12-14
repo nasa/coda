@@ -8,6 +8,10 @@ Consolidating the context of missions, training, and testing into an easy to use
 
 **The clocksync app**: https://coda.fit.nasa.gov/clocksync/index.html
 
+![XKCD #2867](public/images/datetime_2x.png){width=480px}
+
+_[XKCD](https://xkcd.com/2867/) understands our pain..._
+
 ## Deployment
 
 This section is only necessary if you're working with the CODA codebase.
