@@ -140,7 +140,7 @@ export default async function fetchWithCache<T>(
   async function handleRetriever(
     cachedData: Buffer,
     caCacheMetadata: CaCacheMetadata,
-    retriever: () => Promise<any>,
+    retriever: () => Promise<T>,
     expiration: Date
   ) {
     // set the cache status to "inprogress" so other requests will know to try again later
