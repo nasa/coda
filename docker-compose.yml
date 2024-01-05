@@ -25,14 +25,6 @@ services:
       # This happens after `env_file` above. It overrides the value of CACHE_ROOT that is set in
       # .env, such that it's always /cache in the container.
       - CACHE_ROOT=/cache
-    ports:
-      # nextjs is hard-coded to run on 3000 in docker, and nginx proxies 3000. Hard-coding this and
-      # not making it configurable keeps docker config simpler.
-      - "3000:3000"
-
-      # VS Code debug port. This isn't needed in production, and won't be exposed by FIT servers,
-      # but is simpler config-wise to put here versus in the overrides file
-      - "9229:9229"
     volumes:
       # Here CACHE_ROOT is whatever is specified in the .env file, because creating the volume
       # happens on the host before the container is fully running. In contrast, the `env_file` and
