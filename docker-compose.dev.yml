@@ -25,6 +25,14 @@ services:
       context: .
       dockerfile: ./docker/nextjs/Dockerfile
       target: dev
+    ports:
+      # nextjs is hard-coded to run on 3000 in docker, and nginx proxies 3000. Hard-coding this and
+      # not making it configurable keeps docker config simpler.
+      - "3000:3000"
+
+      # VS Code debug port. This isn't needed in production, and won't be exposed by FIT servers,
+      # but is simpler config-wise to put here versus in the overrides file
+      - "9229:9229"
     volumes:
       # In dev we want the host's code to be present on the container
       - ./:/app
