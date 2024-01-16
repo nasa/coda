@@ -5,9 +5,9 @@ interface ResponseMetadata {
   cachedTimestamp: string;
   expiration: string;
   error: string;
-  mocked?: boolean;
-  errorCount: number;
+  retrieverErrorCount: number;
   lastErrorTimestamp: string;
+  mocked?: boolean;
 }
 
 /** This is the structure of the metadata object that we save within each caCache entry */
@@ -16,6 +16,6 @@ interface CaCacheMetadata {
   cachedTimestamp: string; // ISO string
   expiration: string; // ISO string
   retrieverErrorDescription: string;
-  errorCount: number; // number of times the retriever has been run and failed
+  retrieverErrorCount: number; // number of times the retriever has been run and failed
   lastErrorTimestamp: string; // ISO string
 }
