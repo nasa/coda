@@ -5,7 +5,7 @@ import * as filter from "leo-profanity";
 export async function fetchLabsTranscripts(
   source: Source,
   dateWanted: string,
-  overrideBaseUrl?: string,
+  overrideBaseUrl?: string
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   // if not ISS return nothing unless an override URL has been send, then use the override URL
   if (source !== Source.ISS && !overrideBaseUrl) {
@@ -15,7 +15,7 @@ export async function fetchLabsTranscripts(
         cachedTimestamp: new Date().toISOString(),
         expiration: null,
         error: null,
-        errorCount: 0,
+        retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },
       data: returnEmptyUnprocessedTranscriptArray(),
@@ -56,7 +56,7 @@ export async function fetchLabsTranscripts(
       cachedTimestamp: new Date().toISOString(),
       expiration: null,
       error: null,
-      errorCount: 0,
+      retrieverErrorCount: 0,
       lastErrorTimestamp: null,
     },
     data: transcripts,
@@ -68,7 +68,7 @@ export async function fetchLabsTranscripts(
 export async function fetchSGActivity(
   source: Source,
   dateWanted: string,
-  overrideBaseUrl?: string,
+  overrideBaseUrl?: string
 ): Promise<WrappedResponse<SgActivityRecord>> {
   if (source !== Source.ISS && !overrideBaseUrl) {
     return {
@@ -77,7 +77,7 @@ export async function fetchSGActivity(
         cachedTimestamp: new Date().toISOString(),
         expiration: null,
         error: null,
-        errorCount: 0,
+        retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },
       data: {
@@ -114,11 +114,7 @@ export async function fetchSGActivity(
       sgChannelActivityRanges.push(...reducedActivityRanges);
     }
     sgChannelActivityRanges.sort((a, b) =>
-      a.sound_start_secs > b.sound_start_secs
-        ? 1
-        : b.sound_start_secs > a.sound_start_secs
-        ? -1
-        : 0,
+      a.sound_start_secs > b.sound_start_secs ? 1 : b.sound_start_secs > a.sound_start_secs ? -1 : 0
     );
     sgChannelsActivityRanges.push(sgChannelActivityRanges);
   }
@@ -129,7 +125,7 @@ export async function fetchSGActivity(
       cachedTimestamp: new Date().toISOString(),
       expiration: null,
       error: null,
-      errorCount: 0,
+      retrieverErrorCount: 0,
       lastErrorTimestamp: null,
     },
     data: {

@@ -188,7 +188,7 @@ export async function fetchDayNight(
         error: "Requested date is too far in the future",
         cachedTimestamp: null,
         expiration: null,
-        errorCount: 0,
+        retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },
     };
@@ -204,7 +204,7 @@ export async function fetchDayNight(
           error: "Requested date is too far in the past for this data source",
           cachedTimestamp: null,
           expiration: null,
-          errorCount: 0,
+          retrieverErrorCount: 0,
           lastErrorTimestamp: null,
         },
       };
@@ -223,7 +223,7 @@ export async function fetchDayNight(
           error: "Requested date is too far in the future for this data source.",
           cachedTimestamp: null,
           expiration: null,
-          errorCount: 0,
+          retrieverErrorCount: 0,
           lastErrorTimestamp: null,
         },
         data: { dayNight: [] },
@@ -244,7 +244,7 @@ export async function fetchDayNight(
         error: "Unrecognized source",
         cachedTimestamp: null,
         expiration: null,
-        errorCount: 0,
+        retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },
     };

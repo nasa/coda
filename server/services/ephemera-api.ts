@@ -174,7 +174,7 @@ export async function fetchISSLocation(
           error: "Celestrak can only be queried for today's date",
           cachedTimestamp: null,
           expiration: null,
-          errorCount: 0,
+          retrieverErrorCount: 0,
           lastErrorTimestamp: null,
         },
       };
@@ -187,7 +187,7 @@ export async function fetchISSLocation(
         error: "Unrecognized source",
         cachedTimestamp: null,
         expiration: null,
-        errorCount: 0,
+        retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },
     };

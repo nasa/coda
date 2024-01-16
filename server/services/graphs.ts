@@ -4,7 +4,7 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 export const fetchGraphsManifest = async (
   source: Source,
   dateWanted: string,
-  forceNew?: boolean,
+  forceNew?: boolean
 ): Promise<WrappedResponse<GraphsManifest>> => {
   const ancillaryDataSources = await WikiService.fetchAncillaryDataSourceList(forceNew);
 
@@ -32,7 +32,7 @@ export const fetchGraphsManifest = async (
           cachedTimestamp: new Date().toISOString(),
           expiration: null,
           error: null,
-          errorCount: 0,
+          retrieverErrorCount: 0,
           lastErrorTimestamp: null,
         },
         data: null,
@@ -44,7 +44,7 @@ export const fetchGraphsManifest = async (
         cachedTimestamp: new Date().toISOString(),
         expiration: null,
         error: null,
-        errorCount: 0,
+        retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },
       data: graphManifest,
@@ -57,7 +57,7 @@ export const fetchGraphsManifest = async (
       cachedTimestamp: new Date().toISOString(),
       expiration: null,
       error: null,
-      errorCount: 0,
+      retrieverErrorCount: 0,
       lastErrorTimestamp: null,
     },
     data: null,
