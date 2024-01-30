@@ -94,7 +94,7 @@ docker:build:nextjs:
     SERVICE_NAME: nextjs
     MULTISTAGE_TARGET: prod
     BASE_IMAGE_VAR: NEXTJS_BASE_IMAGE
-    BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
+    BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/node:20.11.0-alpine
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       NEXT_PUBLIC_MAPBOX_KEY
       NEXT_PUBLIC_APP_ENV

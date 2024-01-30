@@ -25,7 +25,7 @@ if [ "${1}" = "local" ]; then
     export CACHE_ROOT=./.cache/dev
 
     export NGINX_BASE_IMAGE=nginx:1.23.0-alpine
-    export NEXTJS_BASE_IMAGE=node:18-alpine
+    export NEXTJS_BASE_IMAGE=node:20.11.0-alpine
 else
     export DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
     export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
@@ -34,7 +34,7 @@ else
     export CACHE_ROOT=/d1/coda/cache
 
     export NGINX_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
-    export NEXTJS_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
+    export NEXTJS_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/node:20.11.0-alpine
 fi
 
 # Actual FIT environments deployed by GitLab CI have different requirement for CACHE_ROOT
