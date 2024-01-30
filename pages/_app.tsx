@@ -4,7 +4,7 @@ import type { AppProps } from "next/app";
 import { wrapper } from "../store";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { Provider } from "react-redux";
-import PulseAnyatics from "components/pulse";
+import PulseAnalytics from "components/pulse";
 
 function App({ Component, ...rest }: AppProps): JSX.Element {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -13,7 +13,7 @@ function App({ Component, ...rest }: AppProps): JSX.Element {
   return (
     <Provider store={store}>
       <Component {...pageProps} />
-      <PulseAnyatics />
+      <PulseAnalytics />
     </Provider>
   );
 }
