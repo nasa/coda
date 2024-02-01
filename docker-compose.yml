@@ -1,7 +1,9 @@
 version: "3.9"
 services:
   nginx:
-    image: ${REGISTRY_IMAGE}/nginx:${IMAGE_VERSION}
+    container_name: coda-nginx-1
+    # we can use ${IMAGE_VERSION} here since it's defined in the .env file
+    image: eegitlabregistry.fit.nasa.gov/emss/coda/nginx:${IMAGE_VERSION}
     restart: unless-stopped
     depends_on:
       - nextjs
@@ -10,12 +12,13 @@ services:
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
     ports:
-      # AEGIS requires launchpad, so must be over HTTPS and not have a port specified in the URL
+      # launchpad must be over HTTPS and not have a port specified in the URL
       # e.g. https://aegis.fit.nasa.gov not https://aegis.fit.nasa.gov:8000
       - "443:443"
 
   nextjs:
-    image: ${REGISTRY_IMAGE}/nextjs:${IMAGE_VERSION}
+    container_name: coda-nextjs-1
+    image: eegitlabregistry.fit.nasa.gov/emss/coda/nextjs:${IMAGE_VERSION}
     restart: unless-stopped
     env_file:
       # First the .env file is used to SET environment variables on the container. The .env file is
