@@ -175,7 +175,6 @@ export default async function fetchWithCache<T>(
       console.error(`cache client failed to write to cache path ${cachePath}`, e);
       return noCacheRunRetriever();
     }
-
     retriever()
       .then(async (res) => {
         // the cache should be updated with the new data

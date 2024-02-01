@@ -2,45 +2,15 @@
 #
 # Creates .env file from .env.template and .env.secret
 
-if [ -z "${1}" ]; then
-    echo "Specify either 'fit', 'local', or 'test' as first param of this script"
-    exit 1
-fi
-
 set -eu
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 RELATIVE_DOTENV_SECRET=".env.secret"
 DOTENV_SECRET="${SCRIPT_DIR}/../${RELATIVE_DOTENV_SECRET}";
+# Get values from .env.secret (if exists)
 if [ -f "${DOTENV_SECRET}" ]; then
     source "${DOTENV_SECRET}"
-fi
-
-if [ "${1}" = "local" ]; then
-    export DOCKER_HOST_SSL_CERTS_DIR=./.local/certs
-    export DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
-    export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
-    export IMAGE_VERSION="local"
-    export CACHE_ROOT=./.cache/dev
-
-    export NGINX_BASE_IMAGE=nginx:1.23.0-alpine
-    export NEXTJS_BASE_IMAGE=node:20.11.0-alpine
-else
-    export DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
-    export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
-    export DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
-    export IMAGE_VERSION="${IMAGE_VERSION}"
-    export CACHE_ROOT=/d1/coda/cache
-
-    export NGINX_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
-    export NEXTJS_BASE_IMAGE=eegitlabregistry.fit.nasa.gov/emss/docker-images/node:20.11.0-alpine
-fi
-
-# Actual FIT environments deployed by GitLab CI have different requirement for CACHE_ROOT
-# than tests run in GitLab CI.
-if [ "${1}" = "test" ]; then
-    export  CACHE_ROOT=./.cache/test
 fi
 
 # Allow unset variables below, so it can create a blank .env.secret
@@ -60,6 +30,31 @@ set -u
 
 echo "${RELATIVE_DOTENV_SECRET} saved"
 
+# Set all the other variables for the .env file
+if [ -z "${CI+set}" ]; then # if not in CI (aka local)
+    export DOCKER_HOST_SSL_CERTS_DIR=./.local/certs
+    export DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
+    export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
+    export IMAGE_VERSION=local
+    export CACHE_ROOT=./.cache/dev
+else
+    export DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
+    export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
+    export DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
+    # ${IMAGE_VERSION} is prod, int, or dev as defined/exported in the make-dotenv job in pipeline
+    export IMAGE_VERSION=${IMAGE_VERSION}
+    export CACHE_ROOT=/d1/coda/cache
+fi
+
+# Actual FIT environments deployed by GitLab CI the CACHE_ROOT needs to be relative
+# for tests run in GitLab CI.
+set +u
+if [ "${1}" == "test" ]; then
+    export  CACHE_ROOT=./.cache/test
+fi
+set -u
+
+# Fill in all the variables into the .env file
 # envsubst must be installed. Installed by default in Git Bash for Windows.
 # Do `apk add --update --no-cache gettext` on Alpine.
 # Variables set above will not be picked up by envsubst if not exported

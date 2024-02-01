@@ -16,10 +16,12 @@
     "lint": "eslint . --color --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --color --fix --ext .js,.jsx,.ts,.tsx",
     "postinstall": "rimraf node_modules/paper/dist/docs",
-    "docker:dev": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
-    "docker:dev:rebuild": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --no-cache",
-    "docker:preview": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.preview.yml up --build -d",
-    "docker:preview:rebuild": "cross-env DOCKER_SCAN_SUGGEST=false docker-compose -f docker-compose.yml -f docker-compose.preview.yml build --no-cache"
+    "docker:dev": "bash ./appcompose.sh dev up -d",
+    "docker:dev:rebuild": "bash ./appcompose.sh dev up --build -d",
+    "docker:dev:rebuild:nocache": "bash ./appcompose.sh dev build --no-cache",
+    "docker:preview": "bash ./appcompose.sh preview up -d",
+    "docker:preview:rebuild": "bash ./appcompose.sh preview up --build -d",
+    "docker:preview:rebuild:nocache": "bash ./appcompose.sh preview build --no-cache"
   },
   "repository": {
     "type": "git",

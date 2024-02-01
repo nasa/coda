@@ -5,19 +5,18 @@
 # SUMMARY:
 # Do the exact same thing as the production `docker-compose.yml`, just build locally as a way to
 # quickly preview what a production build would do.
+# Don't pull an image from container registry: build it locally from a Dockerfile.
 #
 version: '3.9'
 services:
   nginx:
-    image: ${REGISTRY_IMAGE}/nginx:preview-${IMAGE_VERSION}
+    image: coda-preview-nginx:latest
     build:
       context: .
       dockerfile: ./docker/nginx/Dockerfile
-      args:
-        - NGINX_BASE_IMAGE=${NGINX_BASE_IMAGE}
 
   nextjs:
-    image: ${REGISTRY_IMAGE}/nextjs:preview-${IMAGE_VERSION}
+    image: coda-preview-nextjs:latest
     build:
       context: .
       dockerfile: ./docker/nextjs/Dockerfile
@@ -27,4 +26,3 @@ services:
         - NEXT_PUBLIC_MAPBOX_KEY=${NEXT_PUBLIC_MAPBOX_KEY}
         - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
         - IMAGE_VERSION=${IMAGE_VERSION}
-        - NEXTJS_BASE_IMAGE=${NEXTJS_BASE_IMAGE}

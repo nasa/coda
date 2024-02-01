@@ -75,15 +75,15 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 - `nvm-windows` does not recognize `.nvmrc` files, so if you're using Git Bash you can do `nvm install $(cat .nvmrc) && nvm use $(cat .nvmrc)`
 
 2. Install JavaScript dependencies: `npm i`
-3. Create a `.env.secret` file by running `bash ./scripts/make-dotenv.sh local`. This will create a file with blank variables. Ask [someone listed as a maintainer or owner of the CODA repo](https://eegitlab.fit.nasa.gov/emss/coda/-/project_members) for the values if you don't have them.
-4. Re-run `bash ./scripts/make-dotenv.sh local` to generate a `.env` file for your local setup based on the `.env.secret` you populated.
+3. Create a `.env.secret` file by running `bash ./scripts/make-dotenv.sh`. This will create a file with blank variables. Ask [someone listed as a maintainer or owner of the CODA repo](https://eegitlab.fit.nasa.gov/emss/coda/-/project_members) for the values if you don't have them.
+4. Re-run `bash ./scripts/make-dotenv.sh` to generate a `.env` file for your local setup based on the `.env.secret` you populated.
 5. Get the required CA Cert:
    1. Go to https://cset.nasa.gov/ascs/application/trust-anchor-management-ntam-for-linux/
    2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 6. (Optional generally, required if you're going to make a lot of map requests) Get a Mapbox API key https://account.mapbox.com/
-7. Change your hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
+7. **Elevated privileges required:** Change your hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
 8. (Required for Docker) Create a self-signed SSL certificate by doing `bash ./scripts/make-dev-ssl-cert.sh`
 
 ### Local Dev Environment (Docker)
@@ -139,7 +139,7 @@ Like with `docker:dev`, if you want to fully rebuild images you can do `npm run 
 ### Run Tests
 
 ```sh
-npm t
+npm run test
 ```
 
 We use [Jest](https://jestjs.io/en/) to run tests.
