@@ -18,13 +18,12 @@ This section is only necessary if you're working with the CODA codebase.
 
 We deploy using GitLab CI/CD and FIT-provisioned VMs. Deployments are trigged when new code is merged into the following branches:
 
-| **Branch** | **Environment**  | **URL**                              |
-| ---------- | ---------------- | ------------------------------------ |
-| `prod`     | production       | https://coda.fit.nasa.gov            |
-| `int`      | integration      | https://coda-int.fit.nasa.gov        |
-| any        | development      | https://coda-dev.fit.nasa.gov        |
-| any        | development2     | https://coda-dev2.fit.nasa.gov       |
-| `pages`    | redirect to prod | https://coda.pages.fit.nasa.gov/coda |
+| **Branch** | **Environment** | **URL**                        |
+| ---------- | --------------- | ------------------------------ |
+| `prod`     | production      | https://coda.fit.nasa.gov      |
+| `int`      | integration     | https://coda-int.fit.nasa.gov  |
+| any        | development     | https://coda-dev.fit.nasa.gov  |
+| any        | development2    | https://coda-dev2.fit.nasa.gov |
 
 You can track the status of each environment [here on GitLab](https://eegitlab.fit.nasa.gov/coda/coda/-/environments).
 
@@ -35,8 +34,6 @@ The rules for deployments are as follows:
 - MRs to production:
   - Are only allowed from integration. This means the merge request will have a "Target branch" of `prod` and "Source branch" of `int`.
   - Include a manual action within the CI pipeline that prevents deploy to production until the integration environment looks good.
-
-The `pages` branch only exists to redirect old GitLab Pages URLs to the production site.
 
 ### Server Strategy
 
@@ -66,7 +63,7 @@ You probably want to use [VS Code](https://code.visualstudio.com/). It provides 
 
 ### Software Dependencies
 
-- [NodeJS](https://nodejs.dev/) v18. Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (Mac/Linux) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) (Windows)
+- [NodeJS](https://nodejs.dev/) (see the [Dockerfile](./docker/nextjs/Dockerfile) for the version we're using). Install manually or use [`nvm`](https://github.com/nvm-sh/nvm) (Mac/Linux) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) (Windows)
 
 ### First Time Installation
 
