@@ -7,22 +7,22 @@
 # quickly preview what a production build would do.
 # Don't pull an image from container registry: build it locally from a Dockerfile.
 #
-version: '3.9'
+version: "3.9"
 services:
   nginx:
     image: coda-preview-nginx:latest
     build:
       context: .
       dockerfile: ./docker/nginx/Dockerfile
-
-  nextjs:
-    image: coda-preview-nextjs:latest
-    build:
-      context: .
-      dockerfile: ./docker/nextjs/Dockerfile
       target: prod
       args:
         # Build args needed in context during build (see note in Dockerfile)
-        - NEXT_PUBLIC_MAPBOX_KEY=${NEXT_PUBLIC_MAPBOX_KEY}
-        - NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
-        - IMAGE_VERSION=${IMAGE_VERSION}
+        - VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY}
+        - VITE_PUBLIC_APP_ENV=${VITE_PUBLIC_APP_ENV}
+  
+  apiv1:
+    image: coda-preview-apiv1:latest
+    build:
+      context: .
+      dockerfile: ./docker/apiv1/Dockerfile
+      target: prod

@@ -151,15 +151,20 @@ node-sbom:
     - echo "${DOTENV_SECRET}" > ./.env.secret
 
     # Determine which docker image type (dev, int, or prod) to deploy based on branch
+    # Append the commit sha in order to ensure the correct build is being deployed in the case
+    # multiple devs are building images simutaneously
     - >
       if [ "${CI_COMMIT_REF_SLUG}" == "prod" ]; then
-        IMAGE_VERSION="prod"
+          IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
       elif [ "${CI_COMMIT_REF_SLUG}" == "int" ]; then
-        IMAGE_VERSION="int"
+          IMAGE_VERSION="int-${CI_COMMIT_SHORT_SHA}"
       else
-        IMAGE_VERSION="dev"
+          IMAGE_VERSION="dev-${CI_COMMIT_SHORT_SHA}"
       fi
 
+    # Save image version into a an artifact to be read later in other jobs
+    - echo "IMAGE_VERSION=${IMAGE_VERSION}" >> pipelineVariables.env
+    # Export the variable so it can be read inside the make-dotenv.sh script
     - export IMAGE_VERSION
 
     # make-dotenv.sh should detect the script directory to read .env.template and write .env
@@ -169,6 +174,8 @@ node-sbom:
     # Ref: [1] https://stackoverflow.com/a/49794678/2782380
     - cd ./scripts
   artifacts:
+    reports:
+      dotenv: pipelineVariables.env
     paths:
       - .env
 
@@ -239,12 +246,12 @@ test-node-next:
     - cd /opt/coda
 
     # Print the last 100 lines of logs to the GitLab job log
-    - sudo docker compose logs nextjs --tail 100
+    - sudo docker compose logs apiv1 --tail 100
     - sudo docker compose logs nginx --tail 100
 
     # Put the full logs into artifacts. Full logs may hit the job log length
     # limit, and generally make the job log unreadably long
-    - sudo docker compose logs nextjs > "${LOG_ARTIFACTS}/nextjs"
+    - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
     - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
   artifacts:
     when: always

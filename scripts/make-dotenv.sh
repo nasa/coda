@@ -22,7 +22,7 @@ export WIKI_USER=${WIKI_USER@Q}
 export WIKI_PASSWORD=${WIKI_PASSWORD@Q}
 export SPACETRACK_USER=${SPACETRACK_USER@Q}
 export SPACETRACK_PASSWORD=${SPACETRACK_PASSWORD@Q}
-export NEXT_PUBLIC_MAPBOX_KEY=${NEXT_PUBLIC_MAPBOX_KEY@Q}
+export VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY@Q}
 export TOPO_USER=${TOPO_USER@Q}
 export TOPO_PASSWORD=${TOPO_PASSWORD@Q}" > "${DOTENV_SECRET}"
 
@@ -35,15 +35,21 @@ if [ -z "${CI+set}" ]; then # if not in CI (aka local)
     export DOCKER_HOST_SSL_CERTS_DIR=./.local/certs
     export DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
     export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
-    export IMAGE_VERSION=local
     export CACHE_ROOT=./.cache/dev
+
+    # These values are not used locally since the docker-compose is overriden by
+    #   the docker-compose.prevew files. Those files build the images directly from the Dockerfiles
+    export DOCKER_IMAGE_NGINX=NOT_USED_LOCALLY
+    export DOCKER_IMAGE_APIV1=NOT_USED_LOCALLY
 else
     export DOCKER_HOST_SSL_CERTS_DIR=/etc/pki/tls/certs
     export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
     export DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
-    # ${IMAGE_VERSION} is prod, int, or dev as defined/exported in the make-dotenv job in pipeline
-    export IMAGE_VERSION=${IMAGE_VERSION}
     export CACHE_ROOT=/d1/coda/cache
+
+    # IMAGE_VERSION is defined in the pipeline job
+    export DOCKER_IMAGE_NGINX="eegitlabregistry.fit.nasa.gov/emss/coda/nginx:${IMAGE_VERSION}";
+    export DOCKER_IMAGE_APIV1="eegitlabregistry.fit.nasa.gov/emss/coda/apiv1:${IMAGE_VERSION}";
 fi
 
 # Actual FIT environments deployed by GitLab CI the CACHE_ROOT needs to be relative
