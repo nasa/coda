@@ -2,11 +2,10 @@ version: "3.9"
 services:
   nginx:
     container_name: coda-nginx-1
-    # we can use ${IMAGE_VERSION} here since it's defined in the .env file
-    image: eegitlabregistry.fit.nasa.gov/emss/coda/nginx:${IMAGE_VERSION}
+    image: ${DOCKER_IMAGE_NGINX}
     restart: unless-stopped
     depends_on:
-      - nextjs
+      - apiv1
     volumes:
       - ${DOCKER_HOST_HTTP_STATIC_DIR}:/usr/share/nginx/static:ro
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
@@ -16,11 +15,13 @@ services:
       # e.g. https://aegis.fit.nasa.gov not https://aegis.fit.nasa.gov:8000
       - "443:443"
 
-  nextjs:
-    container_name: coda-nextjs-1
-    image: eegitlabregistry.fit.nasa.gov/emss/coda/nextjs:${IMAGE_VERSION}
+  apiv1:
+    container_name: coda-apiv1-1
+    image: ${DOCKER_IMAGE_APIV1}
     restart: unless-stopped
     env_file:
+      # Any .env variables needed at runtime must be specified here or listed out in the `environment` property
+      #
       # First the .env file is used to SET environment variables on the container. The .env file is
       # NOT actually moved over onto the container, just the variables are set.
       - ./.env
@@ -37,4 +38,3 @@ services:
       # the CACHE_ROOT variable in your .env file is for setting the location of the cache ONLY on
       # the host. The container's cache location is hard-coded here as `/cache`.
       - ${CACHE_ROOT}:/cache
-      - ${DOCKER_HOST_HTTP_STATIC_DIR}:/static

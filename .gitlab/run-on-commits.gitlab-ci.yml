@@ -15,36 +15,34 @@ include:
   needs:
     - make-dotenv
   before_script:
-    # required for nextjs to have NASA CA cert
+    # required for containers to have NASA CA cert
     - echo "${ENV_LOCAL_CERT_PEM}" > ./.env.local.cert.pem
 
 #
-# Build docker images immediately (needs: [], meaning it has not prerequisites)
-# so longer jobs get started soon. Don't push them until the docker:push:* jobs
-# below, which wait for validation (unit testing, etc)
-#
+# Build docker images immediately
 # SERVICE_NAME = name of service from docker-compose.yml (key in services object)
 #
 docker:build:nginx:
   extends: .kaniko-build-template
   variables:
     SERVICE_NAME: nginx
-    MULTISTAGE_TARGET: base
+    MULTISTAGE_TARGET: prod
     NGINX_BASE_IMAGE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
+    NODE_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       NGINX_BASE_IMAGE
+      NODE_BASE_IMAGE
+      VITE_PUBLIC_MAPBOX_KEY
+      VITE_PUBLIC_APP_ENV
 
-docker:build:nextjs:
+docker:build:apiv1:
   extends: .kaniko-build-template
   variables:
-    SERVICE_NAME: nextjs
+    SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
-    NEXTJS_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
+    APIV1_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     MAP_ENV_VARS_TO_BUILD_ARGS: |
-      NEXT_PUBLIC_MAPBOX_KEY
-      NEXT_PUBLIC_APP_ENV
-      IMAGE_VERSION
-      NEXTJS_BASE_IMAGE
+      APIV1_BASE_IMAGE
 
 #
 # Retag docker images after necessary jobs pass (e.g. unit testing passes)
@@ -61,7 +59,7 @@ docker:retag:
       artifacts: false
     - job: docker:build:nginx
       artifacts: false
-    - job: docker:build:nextjs
+    - job: docker:build:apiv1
       artifacts: false
   script:
     # Login to registry
@@ -76,7 +74,7 @@ docker:retag:
     - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
     - skopeo copy "docker://${TEMP_IMAGE}" "docker://${FINAL_IMAGE}"
 
-    - SERVICE=nextjs
+    - SERVICE=apiv1
     - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
     - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
     - skopeo copy docker://$TEMP_IMAGE docker://$FINAL_IMAGE
