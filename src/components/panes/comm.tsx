@@ -122,7 +122,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
                 setPaneStateValue(dispatch, frameID, "sgChannel", parseInt(e.target.value));
               }}
             >
-              <option value="">DL</option>
+              <option value="" disabled={true}>DL</option>
               {sgChannels.map((v) => {
                 return (
                   <option value={v} key={v}>
