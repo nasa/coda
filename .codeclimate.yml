@@ -1,0 +1,58 @@
+version: "2" # required to adjust maintainability checks
+checks:
+  argument-count:
+    config:
+      threshold: 4
+  complex-logic:
+    config:
+      threshold: 4
+  file-lines:
+    config:
+      threshold: 2048
+  method-complexity:
+    config:
+      threshold: 8
+  method-count:
+    config:
+      threshold: 32
+  method-lines:
+    config:
+      threshold: 128
+  nested-control-flow:
+    config:
+      threshold: 4
+  return-statements:
+    config:
+      threshold: 8
+
+  # use defaults
+  # similar-code:
+  #   config:
+  #     threshold: # language-specific defaults. an override will affect all languages.
+  # identical-code:
+  #   config:
+  #     threshold: # language-specific defaults. an override will affect all languages.
+
+plugins:
+  # https://docs.codeclimate.com/docs/nodesecurity
+  nodesecurity:
+    enabled: true
+
+exclude_patterns:
+  - "config/"
+  - "db/"
+  - "dist/"
+  - "features/"
+  - "**/node_modules/"
+  - "script/"
+  - "**/spec/"
+  - "**/test/"
+  - "**/tests/"
+  - "Tests/"
+  - "**/vendor/"
+  - "**/*_test.go"
+  - "**/*.d.ts"
+  - "**/coverage"
+  - "**/docs"
+  - "**/*.spec.js"
+  - "**/*.spec.ts"

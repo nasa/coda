@@ -11,6 +11,11 @@ include:
     ref: 5.1.0
     file: "/extends/dind.gitlab-ci.yml"
 
+  # Code quality checks
+  - project: "emss/gitlab-templates"
+    ref: main
+    file: "/jobs/code-quality.gitlab-ci.yml"
+
 stages:
   - stageless
 
@@ -134,14 +139,33 @@ node-sbom:
       - "./bom.json"
       - "./new-bom.md"
 
-.make-dotenv:
+.make-dotenv-template:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
   stage: stageless
   needs: []
   tags: ["openshift"]
   before_script:
     - mkdir -p ./.local
+
+    # Copy contents of DOTENV_SECRET from CI/CD variables to a new .env.secret file
     - echo "${DOTENV_SECRET}" > ./.env.secret
+
+    # Determine which docker image type (dev, int, or prod) to deploy based on branch
+    # Append the commit sha in order to ensure the correct build is being deployed in the case
+    # multiple devs are building images simutaneously
+    - >
+      if [ "${CI_COMMIT_REF_SLUG}" == "prod" ]; then
+          IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
+      elif [ "${CI_COMMIT_REF_SLUG}" == "int" ]; then
+          IMAGE_VERSION="int-${CI_COMMIT_SHORT_SHA}"
+      else
+          IMAGE_VERSION="dev-${CI_COMMIT_SHORT_SHA}"
+      fi
+
+    # Save image version into a an artifact to be read later in other jobs
+    - echo "IMAGE_VERSION=${IMAGE_VERSION}" >> pipelineVariables.env
+    # Export the variable so it can be read inside the make-dotenv.sh script
+    - export IMAGE_VERSION
 
     # make-dotenv.sh should detect the script directory to read .env.template and write .env
     # relatively, but Alpine Linux uses standard POSIX sh, not Bash, which cannot do this [1]. So
@@ -149,37 +173,21 @@ node-sbom:
     #
     # Ref: [1] https://stackoverflow.com/a/49794678/2782380
     - cd ./scripts
+  artifacts:
+    reports:
+      dotenv: pipelineVariables.env
+    paths:
+      - .env
 
-    - >
-      if [ "${CI_COMMIT_REF_SLUG}" == "prod" ]; then
-        IMAGE_VERSION="prod"
-      elif [ "${CI_COMMIT_REF_SLUG}" == "int" ]; then
-        IMAGE_VERSION="int"
-      else
-        IMAGE_VERSION="dev"
-      fi
-
-    - export IMAGE_VERSION
+make-dotenv:
+  extends: .make-dotenv-template
+  script:
+    - bash ./make-dotenv.sh
 
 make-test-dotenv:
-  extends: .make-dotenv
+  extends: .make-dotenv-template
   script:
     - bash ./make-dotenv.sh test
-  artifacts:
-    paths:
-      - .env
-
-make-fit-dotenv:
-  extends: .make-dotenv
-  script:
-    - bash ./make-dotenv.sh fit
-    - cd ..
-  artifacts:
-    paths:
-      - .env
-      # Also export these for easy use by deployer
-      - .fitdock.yml
-      - docker-compose.yml
 
 test:
   stage: stageless
@@ -208,7 +216,7 @@ test-node-next:
   image: "$FUTURE_NODE_VERSION_IMAGE"
   needs:
     - install_dependencies
-    - make-test-dotenv
+    - make-dotenv
   tags: ["openshift"]
   allow_failure: true
   script:
@@ -238,12 +246,12 @@ test-node-next:
     - cd /opt/coda
 
     # Print the last 100 lines of logs to the GitLab job log
-    - sudo docker compose logs nextjs --tail 100
+    - sudo docker compose logs apiv1 --tail 100
     - sudo docker compose logs nginx --tail 100
 
     # Put the full logs into artifacts. Full logs may hit the job log length
     # limit, and generally make the job log unreadably long
-    - sudo docker compose logs nextjs > "${LOG_ARTIFACTS}/nextjs"
+    - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
     - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
   artifacts:
     when: always

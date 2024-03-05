@@ -1,128 +1,72 @@
+include:
+  # Fitdock deploy template
+  - project: "emss/gitlab-templates"
+    ref: main
+    file: "/jobs/fitdock-deploy.gitlab-ci.yml"
+
+  # Kaniko build template
+  - project: "emss/gitlab-templates"
+    ref: main
+    file: "/jobs/kaniko-build.gitlab-ci.yml"
+
 .kaniko-build-template:
+  extends: .emss-kaniko-build # use job template from gitlab-templates repo
   stage: stageless
-  image:
-    # Specify the Docker image to be used for the job, which is the latest
-    # official kaniko executor debug image, as the debug image includes the
-    # shell needed for GitLab CI to function
-    name: gcr.io/kaniko-project/executor:debug
-    # Entrypoint is overridden to allow a script to be run
-    entrypoint: [""]
   needs:
-    - make-fit-dotenv
-  script:
-    # Make the directory where the config file created in the following setup
-    # will reside
-    - mkdir -p /kaniko/.docker
-
-    # Add the GitLab container registry and the registry user credentials to
-    # JSON config file for use by the executor
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
-
-    # required for nextjs to have NASA CA cert
+    - make-dotenv
+  before_script:
+    # required for containers to have NASA CA cert
     - echo "${ENV_LOCAL_CERT_PEM}" > ./.env.local.cert.pem
 
-    # Set shell to export all variable definitions, then source .env, then turn off allexport
-    - set -o allexport && source ./.env && set +o allexport
-
-    - TEMP_IMAGE_NAME="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:preview-${IMAGE_VERSION}"
-    - echo "Temp image name = ${TEMP_IMAGE_NAME}"
-
-    - MORE_BUILD_ARGS=""
-
-    # If present, turn $MAP_ENV_VARS_TO_BUILD_ARGS into a string like:
-    # --build-arg VARNAME=VALUE --build-arg VAR2=VAL2 --build-arg VAR3=VAL3
-    - |
-      if [ -z "${MAP_ENV_VARS_TO_BUILD_ARGS}" ]; then
-        echo 'No env vars to map to build args'
-      else
-        echo "${MAP_ENV_VARS_TO_BUILD_ARGS}" > args.txt
-        while read VARNAME; do
-          if [ -z "${VARNAME}" ]; then
-            echo "empty varname"
-          else
-            VALUE=$(eval "echo \${${VARNAME}}")
-            NEW_BUILD_ARG="--build-arg ${VARNAME}=${VALUE}"
-            MORE_BUILD_ARGS="${MORE_BUILD_ARGS} ${NEW_BUILD_ARG}"
-            echo "Added new build arg: ${NEW_BUILD_ARG}"
-          fi
-        done <args.txt
-      fi
-
-    - echo "${MORE_BUILD_ARGS}"
-
-    # Run the kaniko executor with the following arguments:
-    # --context $CI_PROJECT_DIR               Set the path the repo is cloned
-    #                                         to as the build context (default
-    #                                         location for the Dockerfile and
-    #                                         other referenced files). For more
-    #                                         info see
-    #                                         https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#understand-build-context
-    # --dockerfile $CI_PROJECT_DIR/Dockerfile Path to the Dockerfile to be
-    #                                         built
-    # --destination $TARGET_IMAGE             Where to push the built image
-    #                                         with the targeted container repo,
-    #                                         name, and tag selected based upon
-    #                                         the rules logic above
-    - >
-      /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --target "${MULTISTAGE_TARGET}"
-      --build-arg "${BASE_IMAGE_VAR}=${BASE_IMAGE_VALUE}"
-      $(echo ${MORE_BUILD_ARGS})
-      --skip-unused-stages
-      --dockerfile "${CI_PROJECT_DIR}/docker/${SERVICE_NAME}/Dockerfile"
-      --destination "${TEMP_IMAGE_NAME}"
-
 #
-# Build docker images immediately (needs: [], meaning it has not prerequisites)
-# so longer jobs get started soon. Don't push them until the docker:push:* jobs
-# below, which wait for validation (unit testing, etc)
-#
+# Build docker images immediately
 # SERVICE_NAME = name of service from docker-compose.yml (key in services object)
 #
 docker:build:nginx:
   extends: .kaniko-build-template
   variables:
     SERVICE_NAME: nginx
-    MULTISTAGE_TARGET: base
-    BASE_IMAGE_VAR: NGINX_BASE_IMAGE
-    BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
+    MULTISTAGE_TARGET: prod
+    NGINX_BASE_IMAGE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
+    NODE_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
+    MAP_ENV_VARS_TO_BUILD_ARGS: |
+      NGINX_BASE_IMAGE
+      NODE_BASE_IMAGE
+      VITE_PUBLIC_MAPBOX_KEY
+      VITE_PUBLIC_APP_ENV
 
-docker:build:nextjs:
+docker:build:apiv1:
   extends: .kaniko-build-template
   variables:
-    SERVICE_NAME: nextjs
+    SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
-    BASE_IMAGE_VAR: NEXTJS_BASE_IMAGE
-    BASE_IMAGE_VALUE: eegitlabregistry.fit.nasa.gov/emss/docker-images/node:18-alpine
+    APIV1_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     MAP_ENV_VARS_TO_BUILD_ARGS: |
-      NEXT_PUBLIC_MAPBOX_KEY
-      NEXT_PUBLIC_APP_ENV
-      IMAGE_VERSION
+      APIV1_BASE_IMAGE
 
 #
-# Push docker images after necessary jobs pass (e.g. unit testing passes)
+# Retag docker images after necessary jobs pass (e.g. unit testing passes)
 #
-docker:push:
+docker:retag:
   stage: stageless
   image: "$CI_REGISTRY/emss/docker-images:skopeo"
   variables:
     GIT_STRATEGY: none # Don't checkout the repo, just get artifacts
   tags: ["docker", "linux"]
   needs:
-    - make-fit-dotenv
+    - make-dotenv
     - job: test
       artifacts: false
     - job: docker:build:nginx
       artifacts: false
-    - job: docker:build:nextjs
+    - job: docker:build:apiv1
       artifacts: false
   script:
     # Login to registry
     - echo $CI_JOB_TOKEN | skopeo login -u gitlab-ci-token --password-stdin $CI_REGISTRY
 
-    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env. See
-    # make-dotenv job/template.
+    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env.
+    # See make-dotenv job/template.
     - set -o allexport && source ./.env && set +o allexport
 
     - SERVICE=nginx
@@ -130,82 +74,33 @@ docker:push:
     - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
     - skopeo copy "docker://${TEMP_IMAGE}" "docker://${FINAL_IMAGE}"
 
-    - SERVICE=nextjs
+    - SERVICE=apiv1
     - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
     - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
     - skopeo copy docker://$TEMP_IMAGE docker://$FINAL_IMAGE
 
-.docker-deploy-template:
+deploy:artifactize-committed-files:
+  image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
   stage: stageless
-  timeout: 10 minutes
-  variables:
-    GIT_STRATEGY: none # Don't checkout the repo, just get artifacts
+  needs: []
+  tags: ["openshift"]
   script:
-    # Ultimately it'd be good to have as much of the following wrapped up in a job template
-    # that multiple projects could share. One problem may be getting the sudo password session
-    # to be transferrable between before_script (in a template) and script. Then again, the docs
-    # say: "Scripts you specify in before_script are concatenated with any scripts you specify
-    # in the main script. The combined scripts execute together in a single shell."
+    - echo "This job runs no commands, just turns .fitdock.yml and docker-compose.yml into artifacts"
+  artifacts:
+    paths:
+      - .fitdock.yml
+      - docker-compose.yml
 
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-
-    # Ultimately get this from .fitdock.yml, but need to write a method to do that
-    - export INSTALL_DIR=/opt/coda
-
-    #
-    # TEMPORARY: Remove FITBox services. Don't error if services/packages no longer exist. Remove
-    #            this code after it's run at least once.
-    #
-    - sudo systemctl stop coda || true
-    - sudo systemctl stop nginx || true
-    - sudo yum remove nginx nodejs *nodesource* -y || true
-    #
-    # ^^ TEMPORARY: Remove FITBox services
-    #
-
-    - >
-      if ! sudo fitdock --version; then
-        sudo git clone -b fitdock https://gitlab.fit.nasa.gov/fitbox/fitbox.git /opt/fitdock
-        sudo bash /opt/fitdock/src/scripts/setup-fitdock.sh
-      fi
-
-    - >
-      if [[ "${CI_COMMIT_TITLE}" =~ \[fitdock\] ]] || ! cmp --silent ./.fitdock.yml "${INSTALL_DIR}/.fitdock.yml"; then
-        echo "do deploy";
-        sudo mkdir -p "${INSTALL_DIR}"
-        sudo chown gitlab-runner:gitlab-runner "${INSTALL_DIR}"
-        /bin/cp -f ./.fitdock.yml "${INSTALL_DIR}/.fitdock.yml"
-        sudo fitdock "${INSTALL_DIR}/.fitdock.yml"
-      fi
-
-    # Move into place
-    # /bin/cp to avoid aliased version of `cp` which doesn't allow forcing with -f
-    - /bin/cp -f ./.env "${INSTALL_DIR}/.env"
-    - /bin/cp -f ./docker-compose.yml "${INSTALL_DIR}/docker-compose.yml"
-    - rm -f .env
-    - rm -f .fitdock.yml
-    - rm -f docker-compose.yml
-
-    # Take docker-compose down, pull latest, bring it back up
-    - cd "${INSTALL_DIR}"
-    - echo $CI_JOB_TOKEN | sudo /usr/bin/docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-
-    # Get the latest of each image
-    - sudo /usr/bin/docker compose pull
-
-    # Using the new images, re-up Compose. Also remove anything no longer defined in
-    # docker-compose.yml via --remove-orphans
-    - sudo /usr/bin/docker compose up -d --remove-orphans
-
-    # remove any images no longer in use
-    - sudo /usr/bin/docker image prune -af
+.docker-deploy-template:
+  extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
 
 deploy:dev1:
   extends: .docker-deploy-template
   tags: ["coda-dev1-runner"]
   needs:
-    - make-fit-dotenv
-    - docker:push
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
   environment:
     name: development1
     url: https://coda-dev.fit.nasa.gov
@@ -217,8 +112,9 @@ deploy:dev2:
   extends: .docker-deploy-template
   tags: ["coda-dev2-runner"]
   needs:
-    - make-fit-dotenv
-    - docker:push
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
   environment:
     name: development2
     url: https://coda-dev2.fit.nasa.gov
@@ -230,8 +126,9 @@ deploy:int:
   extends: .docker-deploy-template
   tags: ["coda-int-runner"]
   needs:
-    - make-fit-dotenv
-    - docker:push
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
   environment:
     name: integration
     url: https://coda-int.fit.nasa.gov
@@ -244,8 +141,9 @@ deploy:prod:
   extends: .docker-deploy-template
   tags: ["coda-prod-runner"]
   needs:
-    - make-fit-dotenv
-    - docker:push
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
     - { job: "test", artifacts: false }
     - { job: "project-check", artifacts: false }
     - { job: "phpcs-security-audit-sast", artifacts: false }

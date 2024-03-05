@@ -1,29 +1,7 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": ".",
-    "skipLibCheck": true,
-    "strict": false,
-    "esModuleInterop": true,
-    "noImplicitAny": false,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "paths": {
-      "http-client/*": ["http-client/*"],
-      "components/*": ["./components/*"],
-      "pages/*": ["pages/*"],
-      "public/*": ["./public/*"],
-      "server/*": ["server/*"],
-      "store/*": ["./store/*"],
-      "typings/*": ["./typings/*",],
-      "utils/*": ["./utils/*"],
-    },
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "sourceMap": true,
-    "jsx": "react"
+    "jsx": "react-jsx",
+    "types": ["jest", "node", "react", "react-dom", "react-test-renderer"]
   }
 }

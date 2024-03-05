@@ -1,0 +1,41 @@
+.ev1Marker {
+  background: url("/images/marker_ev1.png") no-repeat center;
+  background-size: 30px 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.ev2Marker {
+  background: url("/images/marker_ev2.png") no-repeat center;
+  background-size: 30px 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.ev3Marker {
+  background: url("/images/marker_ev3.png") no-repeat center;
+  background-size: 30px 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.ev4Marker {
+  background: url("/images/marker_ev4.png") no-repeat center;
+  background-size: 30px 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.cartMarker {
+  background: url("/images/marker_cart2.png") no-repeat center;
+  background-size: 20px 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.lightCartMarker {
+  background: url("/images/marker_lightCart.png") no-repeat center;
+  background-size: 20px 20px;
+  width: 20px;
+  height: 20px;
+}
