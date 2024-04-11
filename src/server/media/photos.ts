@@ -6,6 +6,7 @@ import * as OverrideService from "server/services/media_override";
 import { addMs, isSameDate } from "store/playhead";
 import { Collection, IOFetchType } from "utils/enums";
 import { appSecondsFromDateString } from "utils/formatting";
+import _ from "lodash";
 
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
@@ -15,7 +16,7 @@ export default async function getPhotoData(
   month: number,
   date: number,
   collection: Collection,
-  forceNew: boolean,
+  forceNew: boolean
 ): Promise<WrappedResponse<PhotoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
@@ -35,7 +36,10 @@ export default async function getPhotoData(
 
     // if there are media overrides, use those instead of IO
     if (mediaOverride) {
-      const photos = (await OverrideService.getManifest(mediaOverride)) as PhotoFile[];
+      const photos = _.sortBy(
+        (await OverrideService.getManifest(mediaOverride)) as PhotoFile[],
+        "datetimeTaken"
+      );
 
       return {
         responseMetadata: {
@@ -80,7 +84,7 @@ export default async function getPhotoData(
   }
 
   const seqs = sequences.data?.filter(
-    (seq) => isSameDate(new Date(seq.startDate), requestedDate), //||
+    (seq) => isSameDate(new Date(seq.startDate), requestedDate) //||
     // isSameDate(new Date(seq.startDate), previousDate) ||
     // isSameDate(new Date(seq.startDate), nextDate)
   );
