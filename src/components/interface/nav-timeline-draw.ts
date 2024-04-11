@@ -251,7 +251,7 @@ export default class DrawNav {
       fillColor: "white",
     });
     timeText.content = " " + hhmmssFromSeconds(seconds) + "Z";
-    timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2, timeTextYPos);
+    timeText.point = new paper.Point(cursorLocX - timeText.bounds.width / 2 - 3, timeTextYPos);
     const cornerSize = new paper.Size(4, 4);
     timeTextGroup.addChild(timeText);
 
@@ -265,7 +265,7 @@ export default class DrawNav {
     } else if (timeTextGroup.position.x > this.gNavigatorWidth - timeTextGroup.bounds.width / 2) {
       timeTextGroup.position.x = this.gNavigatorWidth - timeTextGroup.bounds.width / 2;
     }
-    timeTextRect.left = timeTextGroup.position.x - timeTextRectWidth / 2;
+    timeTextRect.left = timeTextGroup.position.x - timeTextRectWidth / 2 + 3;
     let timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
     timeTextRectPath.fillColor = color;
     timeTextRectPath.opacity = 0.7;
