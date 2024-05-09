@@ -10,9 +10,7 @@ export async function fetchLabsTranscripts(
   overrideBaseUrl?: string
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   // if not ISS return nothing unless an override URL has been send, then use the override URL
-  // FIXME
-  // if (source !== Source.ISS && !overrideBaseUrl) {
-  if (source !== Source.ISS && source !== Source.TEST_EVENTS && !overrideBaseUrl) {
+  if (source !== Source.ISS && !overrideBaseUrl) {
     return {
       responseMetadata: {
         retrieverStatus: "complete",
@@ -77,7 +75,7 @@ export async function fetchSGAudio(
   dateWanted: string,
   overrideBaseUrl?: string
 ): Promise<WrappedResponse<SgActivityRecord>> {
-  if (source !== Source.ISS && source !== Source.TEST_EVENTS && !overrideBaseUrl) {
+  if (source !== Source.ISS && !overrideBaseUrl) {
     return {
       responseMetadata: {
         retrieverStatus: "complete",
