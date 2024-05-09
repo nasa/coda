@@ -119,14 +119,17 @@ export function V2() {
   // we will ignore the datetime if it is invalid
   const isMalformedDate = isNaN(userDate.valueOf());
 
-  const d = new Date();
+  const d = new Date(playheadDate);
   const year = d.getUTCFullYear();
   const month = d.getUTCMonth() + 1;
   const day = d.getUTCDate();
 
   if (isFutureDate || isMalformedDate) {
     // set the date today
-    userDate = new Date(Date.UTC(year, month, day));
+    const today = new Date();
+    userDate = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, today.getUTCDate())
+    );
   }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
@@ -479,7 +482,7 @@ export function V2() {
     populateGraphStore(year, month, day);
   }, [playheadDate, source]);
 
-  // if UTC yyyymmdd matches today
+  // if UTC yyyymmdd playhead date matches UTC today
   const isToday = d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0];
 
   // re-poll endpoints every minute
