@@ -485,7 +485,10 @@ export function V2() {
   // re-poll endpoints every minute
   useInterval(() => {
     if (isToday) {
-      //populateVideoStore(year, month, day, Collection[source], true); //TODO figure out for Trey's videos
+      // if this is a test event, poll video more often
+      if (Collection[source] === Collection.TEST_EVENTS) {
+        populateVideoStore(year, month, day, Collection[source], true);
+      }
       populateTranscriptStore(source, year, month, day);
       populateSgAudioStore(source, year, month, day);
     }
@@ -495,7 +498,10 @@ export function V2() {
   useInterval(
     () => {
       if (isToday) {
-        populateVideoStore(year, month, day, Collection[source], true);
+        // not a test event, so poll video less often (for Io's sake)
+        if (Collection[source] !== Collection.TEST_EVENTS) {
+          populateVideoStore(year, month, day, Collection[source], true);
+        }
         populatePhotoStore(year, month, day, Collection[source]);
       }
     },
