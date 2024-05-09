@@ -87,7 +87,6 @@ export function V2() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
-  const FIVE_MINS_MS = 5 * 60 * 1000;
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
   const playheadDate = playhead.date;
@@ -120,12 +119,13 @@ export function V2() {
   // we will ignore the datetime if it is invalid
   const isMalformedDate = isNaN(userDate.valueOf());
 
+  const d = new Date();
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
+
   if (isFutureDate || isMalformedDate) {
     // set the date today
-    const d = new Date();
-    const year = d.getUTCFullYear();
-    const month = d.getUTCMonth() + 1;
-    const day = d.getUTCDate();
     userDate = new Date(Date.UTC(year, month, day));
   }
   useEffect(() => {
@@ -368,7 +368,7 @@ export function V2() {
     })();
   };
 
-  const populateTranscriptStore = (source, year, month, day, collection) => {
+  const populateTranscriptStore = (source, year, month, day) => {
     (async () => {
       if (source === Source.NBL) {
         dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.UNNEEDED));
@@ -376,12 +376,12 @@ export function V2() {
       }
       dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const transcriptResponse = await getTranscripts(source, year, month, day, collection);
+        const transcriptResponse = await getTranscripts(source, year, month, day);
         // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
         if (transcriptResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateTranscriptStore(source, year, month, day, collection);
+              populateTranscriptStore(source, year, month, day);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -396,16 +396,16 @@ export function V2() {
     })();
   };
 
-  const populateSgAudioStore = (source, year, month, day, collection) => {
+  const populateSgAudioStore = (source, year, month, day) => {
     (async () => {
       dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
       try {
-        const sgAudioResponse = await getSgAudio(source, year, month, day, collection);
+        const sgAudioResponse = await getSgAudio(source, year, month, day);
         // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
         if (sgAudioResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateSgAudioStore(source, year, month, day, collection);
+              populateSgAudioStore(source, year, month, day);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -453,11 +453,6 @@ export function V2() {
     pulseEvent(source);
     pulseLogInfo(generateShareURL(framework, playhead));
 
-    const d = new Date(playheadDate);
-    const year = d.getUTCFullYear();
-    const month = d.getUTCMonth() + 1;
-    const day = d.getUTCDate();
-
     // open the about modal to show data loading
     setHelpLoaderOpen(true);
 
@@ -472,43 +467,40 @@ export function V2() {
     dispatch(clearSgAudioActivity());
     dispatch(clearGraphsManifest());
 
-    // populate the sequence store
+    // populate stores
     populateSequenceStore(Collection[source]);
-
-    // populate the video store
     populateVideoStore(year, month, day, Collection[source], false);
-
-    // populage the photo store
     populatePhotoStore(year, month, day, Collection[source]);
-
-    // populate the ephemeris store
     populateEphemerisStore(year, month, day, Collection[source]);
-
-    // populate the day night store
     populateDayNightStore(year, month, day, Collection[source]);
-
-    // populate GPS store
     populateGPSStore(year, month, day, Collection[source]);
-
-    // populate transcript store
-    populateTranscriptStore(source, year, month, day, Collection[source]);
-
-    // populate S/G audio store
-    populateSgAudioStore(source, year, month, day, Collection[source]);
-
-    // populate graph store
+    populateTranscriptStore(source, year, month, day);
+    populateSgAudioStore(source, year, month, day);
     populateGraphStore(year, month, day);
   }, [playheadDate, source]);
 
-  // look for new videos every 5 minutes if the user is looking at today's date
-  useInterval(() => {
-    const d = new Date(playheadDate);
-    const year = d.getUTCFullYear();
-    const month = d.getUTCMonth() + 1;
-    const day = d.getUTCDate();
+  // if UTC yyyymmdd matches today
+  const isToday = d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0];
 
-    populateVideoStore(year, month, day, Collection[source], true);
-  }, FIVE_MINS_MS);
+  // re-poll endpoints every minute
+  useInterval(() => {
+    if (isToday) {
+      //populateVideoStore(year, month, day, Collection[source], true); //TODO figure out for Trey's videos
+      populateTranscriptStore(source, year, month, day);
+      populateSgAudioStore(source, year, month, day);
+    }
+  }, 60 * 1000);
+
+  // re-poll endpoints every 5 minutes
+  useInterval(
+    () => {
+      if (isToday) {
+        populateVideoStore(year, month, day, Collection[source], true);
+        populatePhotoStore(year, month, day, Collection[source]);
+      }
+    },
+    5 * 60 * 1000
+  );
 
   return (
     <div className={styles.main}>

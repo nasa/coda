@@ -91,7 +91,7 @@ CODA is written in JavaScript and [TypeScript](https://www.typescriptlang.org/) 
 - All times are stored internally in UTC
 - All durations are stored internally in seconds
 
-![XKCD #2867](public/images/datetime_2x.png){width=480px}
+![XKCD #2867](src/public/images/datetime_2x.png){width=480px}
 
 _[XKCD](https://xkcd.com/2867/) understands our pain..._
 

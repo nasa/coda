@@ -177,13 +177,20 @@ export default async function fetchWithCache<T>(
     }
     retriever()
       .then(async (res) => {
-        // the cache should be updated with the new data
-
+        //update the cache
         const newData = Buffer.from(JSON.stringify(res));
+
+        let expiration = new Date(Date.now() + cacheAge * 1000);
         // make a new expiry date that is cacheAge seconds from now but add a random number of seconds to avoid cache stampedes
-        const expiration = randomizeCacheAge
-          ? new Date(Date.now() + cacheAge * 1000 + _.random(0, 100000)) // 100 seconds
-          : new Date(Date.now() + cacheAge * 1000);
+        if (randomizeCacheAge) {
+          if (cacheAge === 0) {
+            // live mode randomized cache age. Range is selcted based on client's polling interval in the populate store
+            expiration = new Date(Date.now() + _.random(15000, 45000)); // 15 to 45 seconds
+          } else {
+            // normal randomized cache age
+            expiration = new Date(Date.now() + cacheAge * 1000 + _.random(0, 100000)); // 100 seconds
+          }
+        }
 
         const newMetadata: CaCacheMetadata = {
           retrieverStatus: "complete",
@@ -193,6 +200,7 @@ export default async function fetchWithCache<T>(
           retrieverErrorCount: 0,
           lastErrorTimestamp: null,
         };
+
         return cacache.put(cachePath, cacheKey, newData, {
           metadata: newMetadata,
         });

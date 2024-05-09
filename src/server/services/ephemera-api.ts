@@ -88,14 +88,14 @@ async function fetchCelestrakToday() {
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
  * @param forceRetriever Return the cached data, then force the retriever function to get new data regardless of cache age.
- * @param source manually specify the source for this fetch. Will not cache
+ * @param ephemerisSource manually specify the source for this fetch. Will not cache
  */
 export async function fetchISSLocation(
   year: number,
   month: number,
   date: number,
   forceRetriever?: boolean,
-  source?: string
+  ephemerisSource?: string
 ): Promise<WrappedResponse<EphemerisStore>> {
   const now = new Date();
   const dateObj = new Date(Date.UTC(year, month - 1, date));
@@ -151,14 +151,14 @@ export async function fetchISSLocation(
   const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
 
   // check if request wanted a custom source. Do not cache. Also used in fetchDayNight's retrieverIssLocation in order to bypass cache
-  if (source === "spacetrack") {
+  if (ephemerisSource === "spacetrack") {
     const spacetrackRes = await retrieverSpacetrack();
     return {
       responseMetadata: null,
       data: spacetrackRes,
       source: "spacetrack",
     };
-  } else if (source === "celestrak") {
+  } else if (ephemerisSource === "celestrak") {
     if (isToday) {
       const celestrackRes = await retrieverCelestrak();
       return {
@@ -179,7 +179,7 @@ export async function fetchISSLocation(
         },
       };
     }
-  } else if (source) {
+  } else if (ephemerisSource) {
     return {
       data: null,
       responseMetadata: {

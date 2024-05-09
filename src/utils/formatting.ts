@@ -1,5 +1,6 @@
 import { isNaN } from "lodash";
 import { addMs } from "store/playhead";
+import { Source } from "utils/enums";
 
 /**
  * Return a zero padded string of a number
@@ -234,4 +235,17 @@ export function lightColor(color): boolean {
   } catch (e) {
     return false;
   }
+}
+
+/**
+ * Determine if we don't want to cache. This is for when we're near real-time
+ * This definition may change, so make it a shared function.
+ * @param ms
+ * @returns
+ */
+export function isNearRealTime(ms: number, source: Source): boolean {
+  return (
+    ms > Date.now() - 24 * 60 * 60 * 1000 &&
+    (source === Source.TEST_EVENTS || source === Source.ISS)
+  );
 }

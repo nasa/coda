@@ -70,6 +70,8 @@ export enum CacheFolder {
   Daynight_topo = "daynight/topo",
   Daynight_issLocation = "daynight/issLocation",
   Io = "io",
+  Transcripts = "labs/transcripts",
+  Audio = "labs/audio",
   Wiki = "wiki",
   Wiki_all = "wiki/all",
   Wiki_gps = "wiki/gps",
