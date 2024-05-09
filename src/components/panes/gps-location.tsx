@@ -50,7 +50,7 @@ export function GPSLocationControls(props: { frameID: number }) {
               rounded = "right";
             }
 
-            const color = paneStateData.gpsTrackToggles[track.name]
+            const color = paneStateData.gpsTrackToggles[track?.name]
               ? "active_selected"
               : "disabled";
 

@@ -13,13 +13,13 @@ Known query parameters:
 
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
-import { padZeros, appSecondsFromDateString } from "utils/formatting";
+import { padZeros, appSecondsFromDateString, isNearRealTime } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
 import { addMs } from "store/playhead";
 import { isNil } from "lodash";
-import { Collection, IOFetchType } from "utils/enums";
+import { Collection, IOFetchType, Source } from "utils/enums";
 import { CacheFolder } from "utils/enums";
 
 /** Perform a request against IO with the given parameters */
@@ -112,7 +112,10 @@ export async function fetchData(
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let dateQuery: string;
   let queryParams: string;
-  let cacheAge: number = 43200; // 12 hours
+  let cacheAge: number = 43200; // 12 hours default
+  if (isNearRealTime(requestDate.getTime(), Source[collection])) {
+    cacheAge = 0;
+  }
 
   if (fetchType === IOFetchType.PHOTOS) {
     parser = parseIOPhotoResponse;
@@ -120,8 +123,6 @@ export async function fetchData(
     queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
   } else if (fetchType === IOFetchType.VIDEOS) {
     parser = parseIOVideoResponse;
-    // If we're looking for today's videos then set the cacheAge to 30 minutes. Otherwise use the 12 hour default.
-    cacheAge = requestDate.toDateString() === new Date().toDateString() ? 1800 : 43200;
     dateQuery = formatDateQuery(addMs(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
   } else {

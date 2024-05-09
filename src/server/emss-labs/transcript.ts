@@ -1,12 +1,10 @@
 import * as LabsService from "server/services/emss-labs";
 import * as WikiService from "server/services/wiki-api";
 import { Source } from "utils/enums";
-import { Collection } from "utils/enums";
 
 export default async function getLabsTranscripts(
   source: Source,
-  dateWanted: string,
-  collection: Collection,
+  dateWanted: string, //yy-mm-dd
   forceNew: boolean
 ): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   const requestedDate = new Date(dateWanted);
@@ -20,7 +18,7 @@ export default async function getLabsTranscripts(
       const overrideDate = new Date(vo.date);
       return (
         overrideDate.getTime() === requestedDate.getTime() &&
-        vo.source === collection &&
+        vo.source === source &&
         vo.type === "transcript"
       );
     });
