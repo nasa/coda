@@ -11,7 +11,17 @@ export default async function getLabsTranscripts(
 
   // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online
   try {
-    const mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
+
+    if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
+      // try once per second for up to 10 seconds
+      let tries = 0;
+      while (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        mediaOverrides = await WikiService.fetchMediaOverrides();
+        tries++;
+      }
+    }
 
     // Check if there is a transcript override for this date and Source
     const mediaOverride = mediaOverrides?.data?.find((vo) => {

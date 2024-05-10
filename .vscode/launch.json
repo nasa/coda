@@ -6,7 +6,7 @@
       "request": "attach",
       "name": "Attach to Node",
       "skipFiles": ["<node_internals>/**"],
-      "port": 9229
+      "port": 8229
     },
     {
       "type": "chrome",
