@@ -3,6 +3,7 @@ import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import * as OverrideService from "server/services/media_override";
 import { Collection, IOFetchType } from "utils/enums";
+import _ from "lodash";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
@@ -12,27 +13,40 @@ export default async function getVideoData(
   month: number,
   date: number,
   collection: Collection,
-  forceNew: boolean,
+  forceNew: boolean
 ): Promise<WrappedResponse<VideoFile[]>> {
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
   // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
   try {
-    const mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
+
+    if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
+      // try once per second for up to 10 seconds
+      let tries = 0;
+      while (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        mediaOverrides = await WikiService.fetchMediaOverrides();
+        tries++;
+      }
+    }
 
     // Check if there is a video override for this date and Source
-    const mediaOverride = mediaOverrides?.data?.find((vo) => {
-      const overrideDate = new Date(vo.date);
+    const relevantMediaOverrides: MediaSourceOverride[] = mediaOverrides?.data?.filter((vo) => {
       return (
-        overrideDate.getTime() === requestedDate.getTime() &&
+        new Date(vo.date).getTime() === requestedDate.getTime() &&
         vo.source === collection &&
         vo.type === "video"
       );
     });
 
-    // if there are media overrides, use those instead of IO
-    if (mediaOverride) {
-      const videos = (await OverrideService.getManifest(mediaOverride)) as VideoFile[];
+    // if there are media overrides, use those instead of IO. Multiple overrides for the same date and source are merged into one here
+    if (relevantMediaOverrides.length > 0) {
+      const allVideoManifests = await Promise.all(
+        relevantMediaOverrides.map((mediaOverride) => OverrideService.getManifest(mediaOverride))
+      );
+      const videos = _.sortBy(allVideoManifests.flat() as VideoFile[], "startDateTime");
+
       return {
         responseMetadata: {
           retrieverStatus: "complete",
