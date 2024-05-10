@@ -21,7 +21,7 @@ type TopoURL = {
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
  * @param forceRetriever Return the cached data, then force the retriever function to get new data regardless of cache age.
- * @param source manually specify the source for this fetch. Will not cache
+ * @param dayNightSource manually specify the data source for this fetch. Will not cache
  * @returns wrapped response of daynight objects
  */
 export async function fetchDayNight(
@@ -29,7 +29,7 @@ export async function fetchDayNight(
   month: number,
   date: number,
   forceRetriever?: boolean,
-  source?: string
+  dayNightSource?: string
 ): Promise<WrappedResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
@@ -194,7 +194,7 @@ export async function fetchDayNight(
   } //date requested is too far in the future. No data available
 
   //check if request wanted a custom source. Do not cache.
-  if (source === "topo") {
+  if (dayNightSource === "topo") {
     if (topoState === "outOfRange_historic") {
       return {
         ...res,
@@ -214,7 +214,7 @@ export async function fetchDayNight(
       data: dayNight,
       source: "topo",
     };
-  } else if (source === "spacetrack" || source === "celestrak") {
+  } else if (dayNightSource === "spacetrack" || dayNightSource === "celestrak") {
     if (requestDate.getTime() > tomorrowMidnight) {
       return {
         responseMetadata: {
@@ -234,7 +234,7 @@ export async function fetchDayNight(
       data: issLocDayNight,
       source: "spacetrack_celestrak",
     };
-  } else if (source) {
+  } else if (dayNightSource) {
     //unrecognized source
     return {
       ...res,

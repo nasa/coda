@@ -741,7 +741,9 @@ export async function fetchMediaOverrides(
     identifier: "media-overrides",
     cacheFolder: CacheFolder.Wiki,
     retriever,
-    cacheAge: 604800, //1 week
+    // cacheAge: 604800, //1 week
+    // cacheAge: 31536000, // 1 year
+    cacheAge: 86400, // 1 day
     forceRetriever: forceNew,
   });
 }

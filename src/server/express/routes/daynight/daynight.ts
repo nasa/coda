@@ -10,13 +10,13 @@ import { Query } from "express-serve-static-core";
 const router = express.Router();
 
 const parseQuery = (query: Query) => {
-  const { year, month, date, forceNew, source } = query;
+  const { year, month, date, forceNew, dayNightSource } = query;
   const queryObj = {
     year: year ? parseInt(year as string) : undefined,
     month: month ? parseInt(month as string) : undefined,
     date: date ? parseInt(date as string) : undefined,
     forceNew: forceNew === "1",
-    source: source ? (source as string) : undefined,
+    dayNightSource: dayNightSource ? (dayNightSource as string) : undefined,
   };
   return queryObj;
 };
@@ -30,7 +30,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       queryObj.month,
       queryObj.date,
       queryObj.forceNew,
-      queryObj.source
+      queryObj.dayNightSource
     );
     res.status(200).json(data);
     return;

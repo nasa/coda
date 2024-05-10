@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 /**
  * Create an interval hook
  */
-export default function useInterval(callback: () => void, delay: number) {
+export default function useInterval(callback: () => void, delay_ms: number) {
   if (typeof window === "undefined") {
     return;
   }
@@ -24,9 +24,9 @@ export default function useInterval(callback: () => void, delay: number) {
     function tick() {
       savedCallback.current();
     }
-    if (delay !== null) {
-      let id = setInterval(tick, delay);
+    if (delay_ms !== null) {
+      let id = setInterval(tick, delay_ms);
       return () => clearInterval(id);
     }
-  }, [delay]);
+  }, [delay_ms]);
 }

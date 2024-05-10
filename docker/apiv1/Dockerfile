@@ -29,7 +29,7 @@ RUN mkdir /serverbuild
 WORKDIR /serverbuild
 
 COPY package*.json .
-RUN npm install
+RUN npm ci
 
 COPY . /serverbuild
 RUN npm run api:build

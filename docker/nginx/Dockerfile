@@ -26,8 +26,8 @@ WORKDIR /clientsrc
 
 # Prepare for build
 RUN pwd
-COPY package.json ./
-RUN npm install
+COPY package*.json ./
+RUN npm ci
 
 # copy the rest of the files.
 # Will not copy the .env file due to .dockerignore. This is desirable becuase we technically want to
