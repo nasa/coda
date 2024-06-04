@@ -13,17 +13,24 @@
     "lint": "eslint . --color --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --color --fix --ext .js,.jsx,.ts,.tsx",
     "postinstall": "rimraf node_modules/paper/dist/docs",
-    "docker:preview": "bash ./appcompose.sh preview up -d",
-    "docker:preview:rebuild": "bash ./appcompose.sh preview up --build -d",
-    "docker:preview:rebuild:nocache": "bash ./appcompose.sh preview build --no-cache",
+    "docker:preview": "bash ./appcompose preview up -d",
+    "docker:preview:rebuild": "bash ./appcompose preview up --build -d",
+    "docker:preview:rebuild:nocache": "bash ./appcompose preview build --no-cache",
+    "docker:services": "bash ./appcompose services up -d database",
+    "docker:services:rebuild": "bash ./appcompose services build database",
+    "docker:services:rebuild:nocache": "bash ./appcompose services build --no-cache database",
     "vite:build": "vite build --emptyOutDir",
     "vite:dev": "vite",
     "vite:dev:debug": "vite dev --debug",
     "vite:dev:wait": "wait-on http://localhost:2000/api/v1/health && vite",
-    "api:build": "rimraf ./.local/express/dist && esbuild --sourcemap ./src/server/express/server.ts --bundle --format=cjs --platform=node --outfile=./.local/express/dist/api.js",
+    "api:build": "rimraf ./.local/express/dist && esbuild --sourcemap ./src/server/express/server.ts --bundle --format=cjs --platform=node --external:@mikro-orm/mongodb --external:@mikro-orm/mysql --external:@mikro-orm/mariadb --external:@mikro-orm/sqlite --external:@mikro-orm/better-sqlite --external:@mikro-orm/entity-generator --external:sqlite3 --external:mysql --external:mysql2 --external:better-sqlite3 --external:oracledb --external:pg-query-stream --external:mariadb --external:libsql --external:tedious --outfile=./.local/express/dist/api.js",
     "api:build:watch": "npm run api:build -- --watch",
     "api:dev": "concurrently -n build,serve \"npm run api:build:watch\" \"wait-on ./.local/express/dist/api.js && cross-env NODE_EXTRA_CA_CERTS=./.env.local.cert.pem nodemon --enable-source-maps --inspect=8229 --legacy-watch --watch ./.local/express/dist ./.local/express/dist/api.js ./src/server\"",
-    "api:prod": "cross-env NODE_ENV=production node ./.local/express/dist/api.js"
+    "api:prod": "cross-env NODE_ENV=production node ./.local/express/dist/api.js",
+    "migrate:up": "npx mikro-orm migration:up",
+    "migrate:down": "npx mikro-orm migration:down",
+    "migrate:create": "npx mikro-orm migration:create",
+    "migrate:fresh": "npx mikro-orm migration:fresh"
   },
   "repository": {
     "type": "git",
@@ -37,6 +44,11 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@mikro-orm/cli": "6.2.5",
+    "@mikro-orm/core": "6.2.5",
+    "@mikro-orm/migrations": "6.2.5",
+    "@mikro-orm/postgresql": "6.2.5",
+    "@mikro-orm/seeder": "6.2.5",
     "@reduxjs/toolkit": "^2.2.3",
     "@vitejs/plugin-react-swc": "^3.6.0",
     "abort-controller": "^3.0.0",
@@ -74,6 +86,8 @@
     "vite": "^5.2.11"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@testing-library/jest-dom": "^6.4.5",
     "@types/cacache": "^17.0.2",
     "@types/express": "^4.17.21",
     "@types/geojson": "^7946.0.14",
@@ -99,11 +113,19 @@
     "nodemon": "^3.1.0",
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
+    "typescript": "^5.4.5",
     "vite-plugin-progress": "^0.0.7",
     "vite-tsconfig-paths": "^4.3.2",
     "wait-on": "^7.2.0"
   },
   "browser": {
     "services/iss-wiki-server": false
+  },
+  "mikro-orm": {
+    "useTsNode": true,
+    "tsConfigPath": "./tsconfig.orm.json",
+    "configPaths": [
+      "mikro-orm.config.ts"
+    ]
   }
 }

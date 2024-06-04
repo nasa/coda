@@ -23,18 +23,19 @@
     //"strictBindCallApply": true,
     //"noImplicitThis": true,
     //"useUnknownInCatchVariables": true,
-    //"strictFunctionTypes": false, 
+    //"strictFunctionTypes": false,
     //"strictNullChecks": false,
-    //"strictPropertyInitialization": false, 
+    //"strictPropertyInitialization": false,
     "noEmit": true,
     "isolatedModules": true,
     "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "declaration": false,
     "typeRoots": ["./node_modules/@types", "./typings", "./node_modules"],
-    "types": ["vite/client", "jest"],
-    "preserveConstEnums": true,
-
+    "types": ["vite/client", "node", "jest", "@testing-library/jest-dom"],
+    "preserveConstEnums": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", ".local", "public", "static"],
+  "exclude": ["node_modules", ".local", "public", "static"]
 }
-

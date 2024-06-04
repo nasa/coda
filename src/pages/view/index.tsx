@@ -3,7 +3,7 @@ import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
-import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
+import { fetchEVAs, fetchTestEvents, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
 import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
@@ -30,7 +30,7 @@ import {
   clearPhotos,
 } from "store/photos";
 import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
-import { clearGPSTracks, gpsFetchError, setGpsLoadingStatus, setGPSTracks } from "store/gps";
+import { clearGPSTracks, setGpsLoadingStatus, setGPSTracks } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
 import {
   setTranscriptLoadingStatus,
@@ -81,6 +81,7 @@ import Timeline from "components/interface/nav-timeline";
 import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router-dom";
 import { URLSearchParams } from "url";
+import { getGPSTracks } from "http-client/db";
 
 export function V2() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -348,25 +349,8 @@ export function V2() {
         dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
         return;
       }
-
-      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        const gpsTracksResponse = await getGPSTracks(year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
-        if (gpsTracksResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateGPSStore(year, month, day, collection);
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (gpsTracksResponse.data) dispatch(setGPSTracks(gpsTracksResponse));
-          return;
-        }
-        dispatch(setGPSTracks(gpsTracksResponse));
-      } catch (e) {
-        dispatch(gpsFetchError(e.toString()));
-      }
+      const gpsTracksResponse = await getGPSTracks(year, month, day);
+      dispatch(setGPSTracks(gpsTracksResponse));
       dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
     })();
   };

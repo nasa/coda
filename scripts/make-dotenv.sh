@@ -13,6 +13,11 @@ if [ -f "${DOTENV_SECRET}" ]; then
     source "${DOTENV_SECRET}"
 fi
 
+# Generate passwords if there wern't any sourced from the .env.secret
+if [ -z "${DB_PASS+set}" ]; then
+    export DB_PASS=$(tr -c -d '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' </dev/urandom | dd bs=32 count=1 2>/dev/null;echo)
+fi
+
 # Allow unset variables below, so it can create a blank .env.secret
 set +u
 
@@ -24,7 +29,9 @@ export SPACETRACK_USER=${SPACETRACK_USER@Q}
 export SPACETRACK_PASSWORD=${SPACETRACK_PASSWORD@Q}
 export VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY@Q}
 export TOPO_USER=${TOPO_USER@Q}
-export TOPO_PASSWORD=${TOPO_PASSWORD@Q}" > "${DOTENV_SECRET}"
+export TOPO_PASSWORD=${TOPO_PASSWORD@Q}
+export DB_PASS=${DB_PASS@Q}
+" > "${DOTENV_SECRET}"
 
 set -u
 
@@ -37,8 +44,12 @@ if [ -z "${CI+set}" ]; then # if not in CI (aka local)
     export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
     export CACHE_ROOT=./.cache/dev
 
+    export DOCKER_DB_DATA_DIR=./.local/database
+    export DOCKER_DB_INIT_DIR=./.local/db-init
+    export DB_PORT=5431 # We use 5431 for local development to avoid conflicts with AEGIS database
+
     # These values are not used locally since the docker-compose is overriden by
-    #   the docker-compose.prevew files. Those files build the images directly from the Dockerfiles
+    #   the docker-compose.preview files. Those files build the images directly from the Dockerfiles
     export DOCKER_IMAGE_NGINX=NOT_USED_LOCALLY
     export DOCKER_IMAGE_APIV1=NOT_USED_LOCALLY
 else
@@ -46,6 +57,10 @@ else
     export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
     export DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
     export CACHE_ROOT=/d1/coda/cache
+
+    export DOCKER_DB_DATA_DIR=/d1/postgres
+    export DOCKER_DB_INIT_DIR=/d1/db-init
+    export DB_PORT=5432
 
     # IMAGE_VERSION is defined in the pipeline job
     export DOCKER_IMAGE_NGINX="eegitlabregistry.fit.nasa.gov/emss/coda/nginx:${IMAGE_VERSION}";

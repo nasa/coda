@@ -12,7 +12,7 @@ services:
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
     ports:
       # launchpad must be over HTTPS and not have a port specified in the URL
-      # e.g. https://aegis.fit.nasa.gov not https://aegis.fit.nasa.gov:8000
+      # e.g. https://coda.fit.nasa.gov not https://coda.fit.nasa.gov:8000
       - "443:443"
 
   apiv1:
@@ -29,6 +29,7 @@ services:
       # This happens after `env_file` above. It overrides the value of CACHE_ROOT that is set in
       # .env, such that it's always /cache in the container.
       - CACHE_ROOT=/cache
+      - DB_HOST=database
     volumes:
       # Here CACHE_ROOT is whatever is specified in the .env file, because creating the volume
       # happens on the host before the container is fully running. In contrast, the `env_file` and
@@ -38,3 +39,23 @@ services:
       # the CACHE_ROOT variable in your .env file is for setting the location of the cache ONLY on
       # the host. The container's cache location is hard-coded here as `/cache`.
       - ${CACHE_ROOT}:/cache
+
+  database:
+    container_name: coda-database-1
+    image: postgis/postgis:14-3.2-alpine
+    restart: unless-stopped
+    environment:
+      # Used for setting up a DB for the first time. These are not stored in the container
+      # but rather in the db data itself
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT * FROM gpxtracks_db'"
+      interval: 30s # how often to check health
+      timeout: 5s # fail if it takes longer than this
+      retries: 6 # max consecutive failures
+      start_period: 15s # db takes about 20 seconds to come up
+    volumes:
+      # map the DB data to be stored outside the container
+      - ${DOCKER_DB_DATA_DIR}:/var/lib/postgresql/data
+      - ${DOCKER_DB_INIT_DIR}:/docker-entrypoint-initdb.d
