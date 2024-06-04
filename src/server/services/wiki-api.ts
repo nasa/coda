@@ -16,7 +16,6 @@ import fetchWithCache from "./cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import { Collection, SequenceType } from "utils/enums";
 import { CacheFolder } from "utils/enums";
-import { XMLParser } from "fast-xml-parser";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.VITE_PUBLIC_APP_ENV}.json`;
@@ -561,129 +560,6 @@ export async function fetchSequences(
   } else {
     return getAllTestEventsData(forceNew);
   }
-}
-
-/** Get list of external data products from the wiki */
-
-async function fetchWikiExternalData(
-  forceNew: boolean = false
-): Promise<WrappedResponse<string[]>> {
-  const parseQuery = {
-    page: "CODA/External Data",
-    prop: "links",
-  };
-
-  const retriever = async () => {
-    const res = await fetchWiki({
-      parseQuery,
-      wiki: "exploration",
-      action: "parse",
-    });
-    const links = [];
-    for (let i = 0; i < res.data.parse.links.length; i++) {
-      const link = res.data.parse.links[i]["*"];
-      links.push(link);
-    }
-    return links;
-  };
-
-  return await fetchWithCache<string[]>({
-    identifier: "gps-list",
-    cacheFolder: CacheFolder.Wiki,
-    retriever,
-    cacheAge: 604800, //1 week
-    forceRetriever: forceNew,
-  });
-}
-
-export async function fetchWikiGPSTracks(
-  dateWanted: string,
-  forceNew: boolean = false
-): Promise<WrappedResponse<GPSTrack[]>> {
-  const gpsList = await fetchWikiExternalData(forceNew);
-  let error = null;
-  // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
-  const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
-  const gpsTracks: GPSTrack[] = [];
-  if (gpsList.data) {
-    for (let i = 0; i < gpsList.data.length; i++) {
-      const match = gpsList.data[i].match(regexStr);
-      if (match) {
-        if (
-          match[1] === "EV1" ||
-          match[1] === "EV2" ||
-          match[1] === "EV3" ||
-          match[1] === "EV4" ||
-          match[1] === "Cart" ||
-          match[1] === "LightCart" ||
-          match[1] === "Staff"
-        ) {
-          const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1], forceNew);
-          if (gpsTrackRes.responseMetadata.error !== undefined) {
-            error = gpsTrackRes.responseMetadata.error;
-          }
-          gpsTracks.push(gpsTrackRes.data);
-        }
-      }
-    }
-  }
-  return { responseMetadata: { ...gpsList.responseMetadata, ...error }, data: gpsTracks };
-}
-
-async function fetchWikiGPSTrack(
-  pageName: string,
-  name: string,
-  forceNew: boolean = false
-): Promise<WrappedResponse<GPSTrack>> {
-  const parseQuery = {
-    page: pageName,
-    prop: "wikitext",
-  };
-
-  const retriever = async () => {
-    const res = await fetchWiki({
-      parseQuery,
-      wiki: "exploration",
-      action: "parse",
-    });
-
-    // parse the gpx XML retreived from the wiki
-
-    const gpxXml = res.data.parse.wikitext["*"];
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: "",
-      allowBooleanAttributes: true,
-    });
-
-    const parsed = parser.parse(gpxXml);
-
-    // create GPSTrack object from parsed XML
-    const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map((point) => {
-      const newGpsPoint: GPSPoint = {
-        lat: parseFloat(point.lat),
-        lon: parseFloat(point.lon),
-        ele: point.ele,
-        time: new Date(point.time),
-      };
-      return newGpsPoint;
-    });
-
-    const gpsTrack: GPSTrack = {
-      name,
-      points: gpsPoints,
-    };
-
-    return gpsTrack;
-  };
-
-  return await fetchWithCache<GPSTrack>({
-    identifier: pageName,
-    cacheFolder: CacheFolder.Wiki_gps,
-    retriever,
-    cacheAge: 604800, //1 week
-    forceRetriever: forceNew,
-  });
 }
 
 /** Get all the manually set shifts for fixing datetimes.

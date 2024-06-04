@@ -191,11 +191,26 @@ make-test-dotenv:
 
 test:
   stage: stageless
+  variables:
+    # define variables used by Node app
+    DB_HOST: postgres-test-container
+    DB_PASS: test-only-password
+    DB_PORT: 5432
+    DB_NAME: aegis
+
+    # plug those same variables into the Postgres container we're spinning up
+    POSTGRES_PASSWORD: test-only-password
+    POSTGRES_DB: aegis
+  services:
+    # image should match database used in docker-compose.yml
+    - name: $CI_REGISTRY/emss/docker-images/postgres:postgis-14-alpine
+      alias: postgres-test-container
   needs:
     - install_dependencies
     - make-test-dotenv
-  tags: ["openshift"]
+  tags: ["docker", "linux"]
   script:
+    - npm run migrate:up
     - npm run lint
     - npm run tsc
     - npm run test:coverage

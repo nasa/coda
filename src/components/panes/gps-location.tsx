@@ -253,7 +253,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
 
       //Look for the point in each GPS track closest to the playheadTime
       for (let i = 0; i < gpsTracks[track].points.length; i++) {
-        if (gpsTracks[track].points[i].time.toString() > isoDate) {
+        if (gpsTracks[track].points[i].time > isoDate) {
           if (i > 0) {
             markerIndex = i - 1;
           }

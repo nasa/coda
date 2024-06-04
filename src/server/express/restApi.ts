@@ -9,9 +9,11 @@ import executeTimelineStatusRoute from "./routes/maestro/executeTimelineStatus";
 import photosRoute from "./routes/media/photos";
 import videosRoute from "./routes/media/videos";
 import evasRoute from "./routes/sequences/evas";
-import gpsRoute from "./routes/sequences/gps";
+import gpsRoute from "./routes/db/gps";
 import graphsRoute from "./routes/sequences/graphs";
 import testEventsRoute from "./routes/sequences/test-events";
+import clearRoute from "./routes/cache/clear";
+import clearAllRoute from "./routes/cache/clearAll";
 
 const app: Application = express();
 
@@ -35,7 +37,9 @@ app.use("/api/v1/maestro/executeTimelineStatus", executeTimelineStatusRoute);
 app.use("/api/v1/media/photos", photosRoute);
 app.use("/api/v1/media/videos", videosRoute);
 app.use("/api/v1/sequences/evas", evasRoute);
-app.use("/api/v1/sequences/gps", gpsRoute);
 app.use("/api/v1/sequences/graphs", graphsRoute);
 app.use("/api/v1/sequences/test-events", testEventsRoute);
+app.use("/api/v1/cache/clear", clearRoute);
+app.use("/api/v1/cache/clearAll", clearAllRoute);
+app.use("/api/v1/db/gps", gpsRoute);
 export default app;

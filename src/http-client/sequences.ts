@@ -16,17 +16,6 @@ export async function fetchTestEvents(): Promise<WrappedResponse<Sequence[]>> {
   return wrappedResponse;
 }
 
-export async function getGPSTracks(
-  year: number,
-  month: number,
-  date: number
-): Promise<WrappedResponse<GPSTrack[]>> {
-  const res = await fetch(`/api/v1/sequences/gps?year=${year}&month=${month}&date=${date}`);
-  const gpsTracks: WrappedResponse<GPSTrack[]> = await res.json();
-
-  return gpsTracks;
-}
-
 export async function getGraphsManifest(
   source: Source,
   year: number,

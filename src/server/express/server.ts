@@ -2,6 +2,10 @@ import dotenv from "dotenv";
 dotenv.config();
 import { createServer, Server as NetServer } from "http";
 import app from "./restApi";
+import { getORM } from "utils/mikro";
+
+// start the database connection
+getORM();
 
 // parent http server
 const server: NetServer = createServer();
