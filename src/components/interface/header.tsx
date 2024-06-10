@@ -16,7 +16,7 @@ import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
 
-import { allLayouts } from "store/framework";
+import { allLayouts, setEmssVideoEnabled } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
@@ -258,6 +258,8 @@ export function Clock() {
 
 export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
   const source = useSelector((state: RootState) => state.framework.source);
+  const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
+  const dispatch = useDispatch();
   return (
     <div className={styles.main}>
       <div className={styles.left}>
@@ -312,11 +314,14 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
           </div>
           <div
             className={styles.logoEmssWrapper}
+            // onClick={() => {
+            //   window.open(
+            //     "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
+            //     "_blank"
+            //   );
+            // }}
             onClick={() => {
-              window.open(
-                "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
-                "_blank"
-              );
+              dispatch(setEmssVideoEnabled(!emssVideoEnabled));
             }}
             title="More info about EVA Mission System Software (EMSS)"
           >

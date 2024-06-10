@@ -6,4 +6,5 @@ export const globalValues: GlobalValues = {
   },
   ormCache: null,
   socketInterval: null,
+  emssVideoEnabled: true,
 };
