@@ -256,6 +256,7 @@ export const initialState: FrameworkState = {
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: Source.ISS,
+  emssVideoEnabled: false,
 };
 
 export const frameworkSlice = createSlice({
@@ -310,6 +311,9 @@ export const frameworkSlice = createSlice({
       state.frames = defaultFrames;
       allPanes["event_info"].title = getEventInfoTitleBySource(action.payload);
     },
+    setEmssVideoEnabled: (state, action: { payload: boolean }) => {
+      state.emssVideoEnabled = action.payload;
+    },
   },
 });
 
@@ -319,6 +323,7 @@ export const {
   setAllFrameworkState,
   setPaneStateDataValue,
   changeSource,
+  setEmssVideoEnabled,
 } = frameworkSlice.actions;
 
 function getEventInfoTitleBySource(source: Source): string {

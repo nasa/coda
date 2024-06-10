@@ -8,12 +8,14 @@ import transcriptsRoute from "./routes/emss-labs/transcripts";
 import executeTimelineStatusRoute from "./routes/maestro/executeTimelineStatus";
 import photosRoute from "./routes/media/photos";
 import videosRoute from "./routes/media/videos";
+import emssVideosRoute from "./routes/media/emssVideos";
 import evasRoute from "./routes/sequences/evas";
 import gpsRoute from "./routes/db/gps";
 import graphsRoute from "./routes/sequences/graphs";
 import testEventsRoute from "./routes/sequences/test-events";
 import clearRoute from "./routes/cache/clear";
 import clearAllRoute from "./routes/cache/clearAll";
+import enableDisableEmssVideoRoute from "./routes/media/enableDisableEmssVideo";
 
 const app: Application = express();
 
@@ -36,6 +38,8 @@ app.use("/api/v1/location/iss", locationIssRoute);
 app.use("/api/v1/maestro/executeTimelineStatus", executeTimelineStatusRoute);
 app.use("/api/v1/media/photos", photosRoute);
 app.use("/api/v1/media/videos", videosRoute);
+app.use("/api/v1/media/emssVideos", emssVideosRoute);
+app.use("/api/v1/media/enableDisableEmssVideo", enableDisableEmssVideoRoute);
 app.use("/api/v1/sequences/evas", evasRoute);
 app.use("/api/v1/sequences/graphs", graphsRoute);
 app.use("/api/v1/sequences/test-events", testEventsRoute);

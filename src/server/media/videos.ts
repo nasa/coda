@@ -62,7 +62,7 @@ export default async function getVideoData(
   }
 
   // fetch video info and fudge factors in parallel
-  const [results, timeOverrides] = await Promise.all([
+  const [ioResults, timeOverrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after
     IoService.fetchData(collection, IOFetchType.VIDEOS, requestedDate, forceNew) as Promise<
       WrappedResponse<VideoFile[]>
@@ -70,7 +70,20 @@ export default async function getVideoData(
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        return await WikiService.fetchDatetimeOverrides(forceNew);
+        let dateTimeOverrides = await WikiService.fetchDatetimeOverrides(forceNew);
+        if (dateTimeOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
+          // try once per second for up to 10 seconds
+          let tries = 0;
+          while (
+            dateTimeOverrides?.responseMetadata?.retrieverStatus === "inprogress" &&
+            tries < 10
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            dateTimeOverrides = await WikiService.fetchDatetimeOverrides();
+            tries++;
+          }
+        }
+        return dateTimeOverrides;
       } catch (e) {
         // don't block video results if we can't find overrides
         console.error(e);
@@ -79,13 +92,13 @@ export default async function getVideoData(
   ]);
 
   if (!timeOverrides) {
-    return results;
+    return ioResults;
   }
 
-  // If we got data (as opposed to an error), we can apply the overrides
-  if (results.data) {
+  // If we got data (as opposed to an error), apply the overrides
+  if (ioResults.data) {
     // if we got overrides from the wiki, apply them
-    const data: VideoFile[] = results.data.map((result) => {
+    const data: VideoFile[] = ioResults.data.map((result) => {
       const res = clone(result);
       for (let fix of timeOverrides.data.videoFixes) {
         if (fix.videoID === result.id) {
@@ -100,10 +113,10 @@ export default async function getVideoData(
     });
 
     return {
-      ...results,
+      ...ioResults,
       data,
     };
   } else {
-    return results;
+    return ioResults;
   }
 }

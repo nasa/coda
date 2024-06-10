@@ -89,6 +89,7 @@ export function V2() {
   const urlState: QueryParams = getURLParams(searchParams);
 
   const framework = useSelector((state: RootState) => state.framework);
+  const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
   const playhead = useSelector((state: RootState) => state.playhead);
   const playheadDate = playhead.date;
   const source = useSelector((state: RootState) => state.framework.source);
@@ -237,7 +238,13 @@ export function V2() {
       }
       try {
         // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month, day, collection);
+        const videoStoreResponse = await buildVideoStore(
+          year,
+          month,
+          day,
+          collection,
+          emssVideoEnabled
+        );
         // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
         if (videoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
@@ -466,34 +473,27 @@ export function V2() {
     populateGraphStore(year, month, day);
   }, [playheadDate, source]);
 
+  // re-populate the video store when emssVideoEnabled changes
+  useEffect(() => {
+    if (_.isNull(playheadDate) || _.isNull(source)) {
+      return;
+    }
+    // populate stores
+    populateVideoStore(year, month, day, Collection[source], true);
+  }, [emssVideoEnabled]);
+
   // if UTC yyyymmdd playhead date matches UTC today
   const isToday = d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0];
 
   // re-poll endpoints every minute
   useInterval(() => {
     if (isToday) {
-      // if this is a test event, poll video more often
-      if (Collection[source] === Collection.TEST_EVENTS) {
-        populateVideoStore(year, month, day, Collection[source], true);
-      }
+      populateVideoStore(year, month, day, Collection[source], true);
+      populatePhotoStore(year, month, day, Collection[source]);
       populateTranscriptStore(source, year, month, day);
       populateSgAudioStore(source, year, month, day);
     }
   }, 60 * 1000);
-
-  // re-poll endpoints every 5 minutes
-  useInterval(
-    () => {
-      if (isToday) {
-        // not a test event, so poll video less often (for Io's sake)
-        if (Collection[source] !== Collection.TEST_EVENTS) {
-          populateVideoStore(year, month, day, Collection[source], true);
-        }
-        populatePhotoStore(year, month, day, Collection[source]);
-      }
-    },
-    5 * 60 * 1000
-  );
 
   return (
     <div className={styles.main}>

@@ -11,13 +11,35 @@ export async function buildVideoStore(
   year: number,
   month: number,
   date: number,
-  collection: Collection
+  collection: Collection,
+  emssVideoEnabled: boolean
 ): Promise<WrappedResponse<VideoFile[]>> {
-  const res = await fetch(
+  // fetch IO videos
+  const ioRes = await fetch(
     `/api/v1/media/videos?year=${year}&month=${month}&date=${date}&collection=${collection}`
   );
-  const wrappedResponse: WrappedResponse<VideoFile[]> = await res.json();
-  return wrappedResponse;
+  const ioResponse: WrappedResponse<VideoFile[]> = await ioRes.json();
+
+  // If user hasn't enabled EMSS videos, return IO videos only
+  if (!emssVideoEnabled) {
+    return ioResponse;
+  }
+
+  // fetch EMSS videos as well. The server returns [] if there was nothing found
+  const emssRes = await fetch(
+    `/api/v1/media/emssVideos?year=${year}&month=${month}&date=${date}&collection=${collection}`
+  );
+  const emssResponse: WrappedResponse<VideoFile[]> = await emssRes.json();
+
+  // merge the two video sources but use the responseMetadata from the io response in case it's "inprogress"
+  const allVideos = ioResponse.data.concat(emssResponse.data);
+  allVideos.sort((a, b) => a.start - b.start);
+  const allVideosWrappedResponse: WrappedResponse<VideoFile[]> = {
+    responseMetadata: ioResponse.responseMetadata,
+    data: allVideos,
+  };
+
+  return allVideosWrappedResponse;
 }
 
 /**
