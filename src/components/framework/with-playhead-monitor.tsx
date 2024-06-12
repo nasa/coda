@@ -1,9 +1,10 @@
 import _ from "lodash";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { run, halt, tick, changeDate, addMs, changeTime } from "store/playhead";
+import { run, halt, tick, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
+import { addMs } from "../../utils/date";
 
 function PlayheadMonitor() {
   const playheadReady = useSelector((state: RootState) => state.playhead.ready);

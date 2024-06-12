@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { changeTime, isSameDate } from "store/playhead";
+import { changeTime,  } from "store/playhead";
 import { changeHoverTime } from "store/playheadHover";
 import {
   getAsPerformedMissionTime,
@@ -16,6 +16,7 @@ import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 import { Collection } from "utils/enums";
 import styles from "./nav-timeline-draw.module.css";
+import { isSameDate } from "../../utils/date";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window

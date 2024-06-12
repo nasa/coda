@@ -3,10 +3,10 @@ import isNil from "lodash/isNil";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import * as OverrideService from "server/services/media_override";
-import { addMs, isSameDate } from "store/playhead";
 import { Collection, IOFetchType } from "utils/enums";
 import { appSecondsFromDateString } from "utils/formatting";
 import _ from "lodash";
+import { addMs, isSameDate } from "../../utils/date";
 
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well

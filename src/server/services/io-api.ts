@@ -17,10 +17,10 @@ import { padZeros, appSecondsFromDateString, isNearRealTime } from "utils/format
 import fetchWithCache from "./cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
-import { addMs } from "store/playhead";
 import { isNil } from "lodash";
 import { Collection, IOFetchType, Source } from "utils/enums";
 import { CacheFolder } from "utils/enums";
+import { addMs } from "../../utils/date";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {

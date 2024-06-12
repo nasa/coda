@@ -1,6 +1,5 @@
 import { isNaN } from "lodash";
-import { addMs } from "store/playhead";
-import { Source } from "utils/enums";
+import { addMs } from "./date";
 
 /**
  * Return a zero padded string of a number
