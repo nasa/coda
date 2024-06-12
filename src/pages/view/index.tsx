@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss-labs";
 import { RootState } from "store/index";
-import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
+import { changeDate, changeTime } from "store/playhead";
 import {
   addSequences,
   clearSequences,
@@ -82,6 +82,7 @@ import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router-dom";
 import { URLSearchParams } from "url";
 import { getGPSTracks } from "http-client/db";
+import { diff, isSameDate } from "../../utils/date";
 
 export function V2() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

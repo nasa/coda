@@ -6,7 +6,6 @@ import { faExpandAlt, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
 import type { RootState } from "store/index";
-import { isSameDate, midnightZulu } from "store/playhead";
 import { visibleVideosBySecond } from "store/videos";
 import { cleanCollectionsString, hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video.module.css";
@@ -15,6 +14,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import _ from "lodash";
+import { isSameDate, midnightZulu } from "../../utils/date";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 

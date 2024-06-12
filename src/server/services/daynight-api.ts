@@ -1,4 +1,3 @@
-import { isSameDate, midnightZulu, mmddyy } from "store/playhead";
 import fetchWithCache from "./cache-client";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
@@ -7,6 +6,7 @@ import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { get as ntlmGET } from "@evamss/ntlm";
 import { CacheFolder } from "utils/enums";
+import { isSameDate, midnightZulu, mmddyy } from "../../utils/date";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 

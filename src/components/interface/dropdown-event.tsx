@@ -3,12 +3,12 @@ import isNil from "lodash/isNil";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { diff, isSameDate } from "store/playhead";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
 import { Collection } from "utils/enums";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { generateShareURL } from "utils/share-state";
+import { diff, isSameDate } from "../../utils/date";
 
 export default function EventDropdown(props: {
   collection: Collection;

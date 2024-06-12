@@ -2,12 +2,12 @@
  * Use space-track.org to find the location of ISS at any point in time
  * See https://www.space-track.org/documentation
  */
-import { isSameDate } from "store/playhead";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { padZeros } from "utils/formatting";
 import fetchWithCache from "./cache-client";
 import { getEpochTimestamp } from "tle.js";
 import { CacheFolder } from "utils/enums";
+import { isSameDate } from "../../utils/date";
 
 const oneYearInSeconds = 31536000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;

@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { LoadingStatusEnum } from "utils/enums";
-import { diff } from "./playhead";
+import { diff } from "../utils/date";
 
 export const initialState: EphemeraState = {
   ephemerisFiles: [],

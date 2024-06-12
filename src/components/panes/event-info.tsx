@@ -9,8 +9,8 @@ import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/s
 import { SequenceType } from "utils/enums";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
-import { isSameDate } from "store/playhead";
 import { useEffect, useState } from "react";
+import { isSameDate } from "../../utils/date";
 
 export function EventInfoControls(props: { frameID: number }) {
   const frameID = props.frameID;
