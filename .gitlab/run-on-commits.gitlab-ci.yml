@@ -107,20 +107,34 @@ deploy:dev1:
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
   when: manual
+  before_script:
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
 
-deploy:dev2:
-  extends: .docker-deploy-template
-  tags: ["coda-dev2-runner"]
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
-  environment:
-    name: development2
-    url: https://coda-dev2.fit.nasa.gov
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
-  when: manual
+    # Since this runner is shared between all EMSS repos, we need to ensure all containers are
+    # stopped before proceeding with deploy. Except if docker not installed, which means this is
+    # the first run of deploy and the VM hasn't even bootstrapped itself yet, thus no containers
+    # could exist yet
+
+    # Realtime transcription taking over CODA-Dev2 through JETT5. Don't need to do this check.
+    - >
+      if docker --version; then
+        sudo docker stop $(sudo docker ps -a -q)
+      fi
+
+# CODA-Dev2 currently functioning as Talky Bot prod
+# deploy:dev2:
+#   extends: .docker-deploy-template
+#   tags: ["coda-dev2-runner"]
+#   needs:
+#     - make-dotenv
+#     - docker:retag
+#     - deploy:artifactize-committed-files
+#   environment:
+#     name: development2
+#     url: https://coda-dev2.fit.nasa.gov
+#   variables:
+#     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
+#   when: manual
 
 deploy:int:
   extends: .docker-deploy-template
