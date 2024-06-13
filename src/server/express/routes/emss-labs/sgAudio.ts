@@ -1,4 +1,4 @@
-import getLabsSgAudio from "server/emss-labs/sgAudio";
+import getLabsSgAudio from "server/processing/emss-labs/sgAudio";
 import { Source } from "utils/enums";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";

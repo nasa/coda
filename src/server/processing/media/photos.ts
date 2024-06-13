@@ -6,7 +6,7 @@ import * as OverrideService from "server/services/media_override";
 import { Collection, IOFetchType } from "utils/enums";
 import { appSecondsFromDateString } from "utils/formatting";
 import _ from "lodash";
-import { addMs, isSameDate } from "../../utils/date";
+import { addMs, isSameDate } from "../../../utils/date";
 
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well

@@ -4,7 +4,7 @@
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { padZeros } from "utils/formatting";
-import fetchWithCache from "./cache-client";
+import fetchWithCache from "../processing/cache-client";
 import { getEpochTimestamp } from "tle.js";
 import { CacheFolder } from "utils/enums";
 import { isSameDate } from "../../utils/date";

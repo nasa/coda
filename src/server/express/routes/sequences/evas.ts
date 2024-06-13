@@ -1,4 +1,4 @@
-import getEVAData from "server/sequences/evas";
+import getEVAData from "server/processing/sequences/evas";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 

@@ -1,4 +1,4 @@
-import getVideoData from "server/media/videos";
+import getVideoData from "server/processing/media/videos";
 import { Collection } from "utils/enums";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";

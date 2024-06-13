@@ -12,7 +12,7 @@ import isNil from "lodash/isNil";
 import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
-import fetchWithCache from "./cache-client";
+import fetchWithCache from "../processing/cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import { Collection, SequenceType } from "utils/enums";
 import { CacheFolder } from "utils/enums";

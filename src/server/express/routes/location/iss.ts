@@ -1,4 +1,4 @@
-import getISSLocation from "server/location/iss";
+import getISSLocation from "server/processing/location/iss";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 

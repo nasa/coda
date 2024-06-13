@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import getEMSSVideoData from "server/media/emssVideos";
+import getEMSSVideoData from "server/processing/media/emssVideos";
 
 /**
  * `/api/media/videos`

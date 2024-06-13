@@ -1,4 +1,4 @@
-import { clearCacheByIdentifer, clearCacheByFolder } from "server/services/cache-client";
+import { clearCacheByIdentifer, clearCacheByFolder } from "server/processing/cache-client";
 import { CacheFolder } from "utils/enums";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";

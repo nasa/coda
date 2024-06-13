@@ -1,4 +1,4 @@
-import { clearAll } from "server/services/cache-client";
+import { clearAll } from "server/processing/cache-client";
 import express, { Request, Response } from "express";
 
 /**

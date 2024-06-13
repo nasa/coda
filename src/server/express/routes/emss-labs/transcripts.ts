@@ -1,4 +1,4 @@
-import getLabsTranscripts from "server/emss-labs/transcript";
+import getLabsTranscripts from "server/processing/emss-labs/transcript";
 import { Source } from "utils/enums";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
