@@ -161,12 +161,17 @@ export default async function fetchWithCache<T>(
         new Date(caCacheMetadata?.expiration) < new Date()) ||
       // ...something went wrong with the retriever last time (and we've waited long enough to try again)
       (caCacheMetadata?.retrieverStatus === "error" &&
-        waitedLongEnough(caCacheMetadata, errorRetryCoefficient));
+        waitedLongEnough(caCacheMetadata, errorRetryCoefficient)) ||
+      // ...the retriever is still in progress but it has been taking longer than the caCacheMetadata.expiration that we set when we started it, so retry
+      (caCacheMetadata?.retrieverStatus === "inprogress" &&
+        new Date(caCacheMetadata?.expiration) < new Date());
   }
 
   if (shouldRunRetriever) {
     responseMetadata.retrieverStatus = "inprogress";
     caCacheMetadata.retrieverStatus = "inprogress";
+    // use caCacheMetadata.expiration to store the expiration date that in this case means how long to wait for "inprogress" before trying again
+    caCacheMetadata.expiration = new Date(Date.now() + 60000).toISOString(); // 60 seconds
     try {
       await cacache.put(cachePath, cacheKey, cachedData, {
         metadata: caCacheMetadata,
