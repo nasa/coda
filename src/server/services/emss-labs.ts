@@ -1,7 +1,7 @@
 import { CacheFolder, Source } from "utils/enums";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import * as filter from "leo-profanity";
-import fetchWithCache from "./cache-client";
+import fetchWithCache from "../processing/cache-client";
 import { isNearRealTime } from "utils/formatting";
 
 export async function fetchLabsTranscripts(

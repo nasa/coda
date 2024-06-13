@@ -1,7 +1,7 @@
 import * as EphemeraService from "server/services/ephemera-api";
-import fetchWithCache from "server/services/cache-client";
+import fetchWithCache from "server/processing/cache-client";
 
-jest.mock("server/services/cache-client");
+jest.mock("server/processing/cache-client");
 const fetchMock = fetchWithCache as jest.MockedFunction<typeof fetchWithCache>;
 
 describe("server/services/ephemera-api", () => {

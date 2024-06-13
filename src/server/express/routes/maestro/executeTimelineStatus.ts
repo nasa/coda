@@ -1,4 +1,4 @@
-import getMaestroExecuteTimelineStatus from "server/maestro/maestro";
+import getMaestroExecuteTimelineStatus from "server/processing/maestro/maestro";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 

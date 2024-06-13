@@ -1,4 +1,4 @@
-import getGraphManifest from "server/sequences/graph";
+import getGraphManifest from "server/processing/sequences/graph";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 

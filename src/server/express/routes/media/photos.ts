@@ -1,4 +1,4 @@
-import getPhotoData from "server/media/photos";
+import getPhotoData from "server/processing/media/photos";
 import { Collection } from "utils/enums";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";

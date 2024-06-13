@@ -1,4 +1,4 @@
-import getTestEventsData from "server/sequences/test-events";
+import getTestEventsData from "server/processing/sequences/test-events";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 /**

@@ -1,4 +1,4 @@
-import getDayNight from "server/daynight/daynight";
+import getDayNight from "server/processing/daynight/daynight";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
