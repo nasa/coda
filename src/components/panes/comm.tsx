@@ -15,10 +15,11 @@ import {
   faVolumeMute,
   faLock,
   faLockOpen,
+  faFilter,
 } from "@fortawesome/free-solid-svg-icons";
 import { MuteButton } from "components/panes/video";
 
-library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen);
+library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen, faFilter);
 
 const sgChannels = [0, 1, 2, 3];
 
@@ -122,7 +123,9 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
                 setPaneStateValue(dispatch, frameID, "sgChannel", parseInt(e.target.value));
               }}
             >
-              <option value="" disabled={true}>DL</option>
+              <option value="" disabled={true}>
+                DL
+              </option>
               {sgChannels.map((v) => {
                 return (
                   <option value={v} key={v}>
@@ -154,25 +157,30 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
         </div>
         <div className={styles.verticalCenter}>
           <button
-            className={`${styles.filterButton} ${filterButtonSelected}`}
+            className={`${props.frameDimensions[0] > minWidth ? styles.filterButton : styles.filterButtonShort} ${filterButtonSelected}`}
             title={`Filter utterances by words`}
             onClick={() => {
               setPaneStateValue(dispatch, frameID, "filterActive", !paneStateData.filterActive);
             }}
           >
-            <span>Filter</span>
+            <span className={styles.buttonLabel}>
+              <div>{props.frameDimensions[0] > minWidth ? "Filter" : ""}</div>
+              <div>
+                <FontAwesomeIcon icon={faFilter} size="sm" />
+              </div>
+            </span>
           </button>
         </div>
         <div className={styles.verticalCenter}>
           <button
-            className={`${styles.lockButton} ${lockButtonSelected}`}
+            className={`${props.frameDimensions[0] > minWidth ? styles.lockButton : styles.lockButtonShort} ${lockButtonSelected}`}
             title={`Scroll automatically to the last spoken utterance`}
             onClick={() => {
               setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>Scroll</div>
+              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
               </div>
