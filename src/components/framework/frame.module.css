@@ -34,6 +34,7 @@
   height: 35px;
   background-color: var(--nearly-black);
   padding: 4px 6px 4px 0px;
+  overflow-x: hidden;
 }
 
 .verticalCenter {
