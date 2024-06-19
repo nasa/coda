@@ -117,9 +117,35 @@
   cursor: pointer;
 }
 
+.lockButtonShort {
+  display: block;
+  width: 20px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .filterButton {
   display: block;
-  width: 40px;
+  width: 50px;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterButtonShort {
+  display: block;
+  width: 20px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -161,7 +187,7 @@
 }
 
 .selectContainerNarrow {
-  width: 60px;
+  width: 40px;
 }
 
 .selectContainer select {
@@ -169,7 +195,7 @@
   font-weight: 400;
   font-size: 15px;
   cursor: pointer;
-  padding-left: 15px;
+  padding-left: 8px;
   padding-right: 15px;
   height: 27px;
   border: none;
