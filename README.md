@@ -48,6 +48,7 @@ CODA is deployed using GitLab CI/CD and FIT-provisioned VMs.
 To start CODA locally for development, run the following
 
 ```sh
+npm run docker:services
 npm run dev
 ```
 
