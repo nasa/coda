@@ -174,6 +174,14 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                   </div>
                   <div className={styles.teamTitle}>EMSS Lead</div>
                 </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:luke.a.mcsherry@nasa.gov"}>
+                      Luke McSherry
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>Software Engineering</div>
+                </li>
               </ul>
             </div>
           </div>
