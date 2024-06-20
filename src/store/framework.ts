@@ -97,7 +97,7 @@ export const allPanes: Panes = {
   video_non_downlink: {
     title: "Video Other",
     shortTitle: "Video",
-    icon: "Video",
+    icon: "video",
     color: "teal",
     defaultPaneStateData: {
       ready: true,

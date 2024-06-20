@@ -45,11 +45,11 @@ export function PaneLabel({
 }) {
   const { title, shortTitle, icon, color } = allPanes[paneType];
 
-  let displayTitle = "";
+  let displayTitle = title;
   if (labelSize === "M") {
     displayTitle = shortTitle;
-  } else if (labelSize === "L") {
-    displayTitle = title;
+  } else if (labelSize === "S") {
+    displayTitle = "";
   }
 
   return (
