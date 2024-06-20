@@ -46,6 +46,14 @@
   width: 200px;
 }
 
+.dropdownSmall {
+  width: 125px;
+}
+
+.dropdownSmallest {
+  width: 60px;
+}
+
 .controls {
   width: 100%;
   margin-left: 3px;

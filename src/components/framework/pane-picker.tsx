@@ -37,11 +37,20 @@ library.add(
  */
 export function PaneLabel({
   paneType,
+  labelSize,
 }: {
   /** ID of the type of frame */
   paneType: string;
+  labelSize?: "S" | "M" | "L";
 }) {
-  const { title, icon, color } = allPanes[paneType];
+  const { title, shortTitle, icon, color } = allPanes[paneType];
+
+  let displayTitle = "";
+  if (labelSize === "M") {
+    displayTitle = shortTitle;
+  } else if (labelSize === "L") {
+    displayTitle = title;
+  }
 
   return (
     <div className={styles.item}>
@@ -52,7 +61,7 @@ export function PaneLabel({
       ) : (
         <div className={styles.noneIcon}></div>
       )}
-      <div className={styles.verticalCenter}>{title}</div>
+      <div className={styles.verticalCenter}>{displayTitle}</div>
     </div>
   );
 }

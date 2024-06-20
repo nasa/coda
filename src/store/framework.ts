@@ -73,6 +73,7 @@ export const allLayouts: Layouts = {
 export const allPanes: Panes = {
   empty: {
     title: "Select display type",
+    shortTitle: "None",
     icon: "none",
     color: "none",
     defaultPaneStateData: {
@@ -81,6 +82,7 @@ export const allPanes: Panes = {
   },
   video_downlink: {
     title: "Video Channels",
+    shortTitle: "Live",
     icon: "video",
     color: "teal",
     defaultPaneStateData: {
@@ -94,7 +96,8 @@ export const allPanes: Panes = {
   },
   video_non_downlink: {
     title: "Video Other",
-    icon: "video",
+    shortTitle: "Video",
+    icon: "Video",
     color: "teal",
     defaultPaneStateData: {
       ready: true,
@@ -107,6 +110,7 @@ export const allPanes: Panes = {
   },
   photo: {
     title: "Current Photo",
+    shortTitle: "Current",
     icon: "camera",
     color: "mustardGreen",
     defaultPaneStateData: {
@@ -118,6 +122,7 @@ export const allPanes: Panes = {
   },
   photo_all: {
     title: "All Photos",
+    shortTitle: "Photos",
     icon: "camera",
     color: "mustardGreen",
     defaultPaneStateData: {
@@ -129,6 +134,7 @@ export const allPanes: Panes = {
   },
   iss_location: {
     title: "ISS Position",
+    shortTitle: "Orbit",
     icon: "globe-americas",
     color: "purple",
     defaultPaneStateData: {
@@ -139,6 +145,7 @@ export const allPanes: Panes = {
   },
   gps_location: {
     title: "GPS Position",
+    shortTitle: "GPS",
     icon: "globe-americas",
     color: "purple",
     defaultPaneStateData: {
@@ -150,6 +157,7 @@ export const allPanes: Panes = {
   },
   event_info: {
     title: "EVA Info",
+    shortTitle: "Info",
     icon: "info",
     color: "ruby",
     defaultPaneStateData: {
@@ -159,6 +167,7 @@ export const allPanes: Panes = {
   },
   comm: {
     title: "Communications",
+    shortTitle: "Comms",
     icon: "satellite",
     color: "burntOrange",
     defaultPaneStateData: {
@@ -172,6 +181,7 @@ export const allPanes: Panes = {
   },
   graph: {
     title: "Graph",
+    shortTitle: "Graph",
     icon: "chart-line",
     color: "burntUmber",
     defaultPaneStateData: {
