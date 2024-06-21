@@ -18,11 +18,18 @@ import { isSameDate, midnightZulu } from "../../utils/date";
 
 library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
 
-export function IOInfoButton(props: { clickHandler: Function; selected?: boolean }) {
+export function IOInfoButton(props: {
+  clickHandler: Function;
+  selected?: boolean;
+  frameDimensions: number[];
+}) {
+  const buttonLength = props.frameDimensions[0] > 470 ? styles.ioButtonLong : styles.ioButtonShort;
+  const iconAdjustment =
+    props.frameDimensions[0] > 470 ? styles.iconAdjustmentLong : styles.iconAdjustmentShort;
   const selectedStyle = props.selected ? styles.selected : "";
   return (
     <button
-      className={`${styles.ioButton} ${selectedStyle}`}
+      className={`${styles.ioButton} ${buttonLength} ${selectedStyle}`}
       onClick={() => {
         if (props.clickHandler) {
           props.clickHandler();
@@ -30,8 +37,8 @@ export function IOInfoButton(props: { clickHandler: Function; selected?: boolean
       }}
     >
       <span className={styles.ioLabel}>
-        IO{" "}
-        <span style={{ fontSize: "9px", position: "relative", top: "-1px" }}>
+        {props.frameDimensions[0] > 470 ? "IO " : ""}
+        <span className={iconAdjustment}>
           <FontAwesomeIcon icon="info" />
         </span>
       </span>
@@ -69,7 +76,11 @@ export function ExpandButton() {
   );
 }
 
-function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateData }) {
+function RightButtons(props: {
+  frameID: number;
+  paneStateData: VideoPaneStateData;
+  frameDimensions: number[];
+}) {
   const dispatch = useDispatch();
   const frames = useSelector((state: RootState) => state.framework.frames);
 
@@ -112,6 +123,7 @@ function RightButtons(props: { frameID: number; paneStateData: VideoPaneStateDat
               setPaneStateValue(dispatch, frameID, "showInfo", !props.paneStateData.showInfo);
             }}
             selected={props.paneStateData.showInfo}
+            frameDimensions={props.frameDimensions}
           />
         </div>
         <div className={styles.verticalCenter}>
@@ -133,6 +145,7 @@ export function ChannelSelectorLarge(props: {
   frameID: number;
   channelAvailability: any;
   paneStateData: VideoPaneStateData;
+  frameDimensions: number[];
 }) {
   const dispatch = useDispatch();
   return (
@@ -173,7 +186,11 @@ export function ChannelSelectorLarge(props: {
           );
         })}
       </div>
-      <RightButtons frameID={props.frameID} paneStateData={props.paneStateData} />
+      <RightButtons
+        frameID={props.frameID}
+        paneStateData={props.paneStateData}
+        frameDimensions={props.frameDimensions}
+      />
     </div>
   );
 }
@@ -182,10 +199,12 @@ export function ChannelSelectorSmall({
   frameID,
   channelAvailability,
   paneStateData,
+  frameDimensions,
 }: {
   frameID: number;
   channelAvailability: boolean[];
   paneStateData: VideoPaneStateData;
+  frameDimensions: number[];
 }) {
   return (
     <div className={styles.controls}>
@@ -206,7 +225,11 @@ export function ChannelSelectorSmall({
           )}
         </ModalDropdown>
       </div>
-      <RightButtons frameID={frameID} paneStateData={paneStateData} />
+      <RightButtons
+        frameID={frameID}
+        paneStateData={paneStateData}
+        frameDimensions={frameDimensions}
+      />
     </div>
   );
 }
@@ -319,6 +342,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
         frameID={frameID}
         channelAvailability={channelAvailability}
         paneStateData={paneStateData}
+        frameDimensions={props.frameDimensions}
       />
     );
   } else {
@@ -327,6 +351,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
         frameID={frameID}
         channelAvailability={channelAvailability}
         paneStateData={paneStateData}
+        frameDimensions={props.frameDimensions}
       />
     );
   }
@@ -411,7 +436,11 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
             <FontAwesomeIcon icon="chevron-down" size="sm" />
           </div>
         </div>
-        <RightButtons frameID={frameID} paneStateData={paneStateData} />
+        <RightButtons
+          frameID={frameID}
+          paneStateData={paneStateData}
+          frameDimensions={props.frameDimensions}
+        />
       </div>
     </>
   );
