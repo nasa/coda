@@ -33,7 +33,7 @@ export function FrameHeader(props: {
   if (props.frameDimensions[0] > 470) {
     labelSize = "L";
     dropdownStyle = styles.dropdown;
-  } else if (props.frameDimensions[0] > 250) {
+  } else if (props.frameDimensions[0] > 260) {
     labelSize = "M";
     dropdownStyle = styles.dropdownSmall;
   }
