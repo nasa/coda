@@ -9,6 +9,8 @@ import { setPaneStateValue } from "store/framework";
 import { IOInfoButton } from "./video";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilter } from "@fortawesome/free-solid-svg-icons";
 
 export function FilterButton(props: { clickHandler; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
@@ -19,7 +21,12 @@ export function FilterButton(props: { clickHandler; selected?: boolean }) {
         props.clickHandler();
       }}
     >
-      <span className={styles.filterLabel}>Filter</span>
+      <span className={styles.filterLabel}>
+        <div>Filter</div>
+        <div>
+          <FontAwesomeIcon icon={faFilter} size="sm" />
+        </div>
+      </span>
     </button>
   );
 }

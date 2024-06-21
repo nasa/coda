@@ -27,7 +27,7 @@
 
 .filterButton {
   display: inline-block;
-  width: 40px;
+  width: 55px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -49,6 +49,9 @@
 }
 
 .filterLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: relative;
 }
 

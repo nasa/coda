@@ -117,22 +117,8 @@
   cursor: pointer;
 }
 
-.lockButtonShort {
-  display: block;
-  width: 20px;
-  height: 18px;
-  background-color: var(--even-greyer);
-  color: var(--lighter-grey);
-  border: none;
-  border-radius: var(--radius);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
 .filterButton {
   display: block;
-  width: 50px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -143,17 +129,12 @@
   cursor: pointer;
 }
 
-.filterButtonShort {
-  display: block;
+.buttonLong {
+  width: 55px;
+}
+
+.buttonShort {
   width: 20px;
-  height: 18px;
-  background-color: var(--even-greyer);
-  color: var(--lighter-grey);
-  border: none;
-  border-radius: var(--radius);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .buttonSelected {
