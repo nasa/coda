@@ -110,7 +110,7 @@ export const allPanes: Panes = {
   },
   photo: {
     title: "Current Photo",
-    shortTitle: "Current",
+    shortTitle: "Photo",
     icon: "camera",
     color: "mustardGreen",
     defaultPaneStateData: {
