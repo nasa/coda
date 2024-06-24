@@ -1,10 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: TranscriptState = {
   transcripts: [], // indexed by S/G channel number - 1
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
   isTranscripts: false,
 };
 
@@ -47,12 +46,12 @@ export const transcriptSlice = createSlice({
     clearTranscripts: (state) => {
       state.transcripts = [];
       state.responseMetadata = null;
-      state.loadingStatus = LoadingStatusEnum.LOADING;
+      state.loadingStatus = "loading";
     },
     transcriptFetchError: (state, action: { payload: string }) => {
       state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
-    setTranscriptLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setTranscriptLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },

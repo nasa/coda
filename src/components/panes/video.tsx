@@ -449,7 +449,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
  */
-const isAutoplayError = (e: Error): boolean => {
+const isAutoplayError = (e: unknown): boolean => {
   // every browser displays a different error message
   const chrome_autoplay_error =
     /play\(\) failed because the user didn't interact with the document first/i;
@@ -576,7 +576,7 @@ export default function VideoPane(props: { frameID: number }) {
           // make sure the video is paused when the playhead isn't running
           await videoElement.current.pause();
         }
-      } catch (e) {
+      } catch (e: unknown) {
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
           setPaneStateValue(dispatch, frameID, "muted", true);

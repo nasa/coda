@@ -1,10 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: GPSState = {
   gpsTracks: [],
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
 };
 
 export const gpsSlice = createSlice({
@@ -19,12 +18,12 @@ export const gpsSlice = createSlice({
     clearGPSTracks: (state) => {
       state.gpsTracks = [];
       state.responseMetadata = null;
-      state.loadingStatus = LoadingStatusEnum.LOADING;
+      state.loadingStatus = "loading";
     },
     gpsFetchError: (state, action: { payload: string }) => {
       state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
-    setGpsLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setGpsLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },

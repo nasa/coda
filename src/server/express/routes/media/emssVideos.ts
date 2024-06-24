@@ -10,13 +10,11 @@ import getEMSSVideoData from "server/processing/media/emssVideos";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
-  const { year, month, date, collection } = query;
-  const queryObj = {
-    year: year ? parseInt(year as string) : undefined,
-    month: month ? parseInt(month as string) : undefined,
-    date: date ? parseInt(date as string) : undefined,
-    collection: collection ? (collection as string) : undefined,
+const parseQuery = (query: Query): GetVideosQueryParams => {
+  const { dateWanted, source } = query;
+  const queryObj: GetVideosQueryParams = {
+    dateWanted: dateWanted as string,
+    source: source ? (source as Source) : undefined,
   };
   return queryObj;
 };
@@ -24,14 +22,15 @@ const parseQuery = (query: Query) => {
 // get
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
+  const [year, month, date] = queryObj.dateWanted.split("-").map((x) => parseInt(x, 10));
 
   try {
-    const videos = await getEMSSVideoData(
-      queryObj.year,
-      queryObj.month,
-      queryObj.date,
-      parseInt(queryObj.collection)
-    );
+    const videos = await getEMSSVideoData({
+      year,
+      month,
+      date,
+      source: queryObj.source,
+    });
     res.status(200).json(videos);
     return;
   } catch (e) {

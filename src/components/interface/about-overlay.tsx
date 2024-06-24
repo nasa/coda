@@ -5,7 +5,6 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
-import { LoadingStatusEnum } from "utils/enums";
 import Modal from "react-modal";
 
 library.add(faTimesCircle);
@@ -21,11 +20,11 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
 
   useEffect(() => {
     if (
-      videos.loadingStatus === LoadingStatusEnum.LOADING ||
-      photos.loadingStatus === LoadingStatusEnum.LOADING ||
-      sequences.loadingStatus === LoadingStatusEnum.LOADING ||
-      gps.loadingStatus === LoadingStatusEnum.LOADING ||
-      ephemera.loadingStatus === LoadingStatusEnum.LOADING
+      videos.loadingStatus === "loading" ||
+      photos.loadingStatus === "loading" ||
+      sequences.loadingStatus === "loading" ||
+      gps.loadingStatus === "loading" ||
+      ephemera.loadingStatus === "loading"
     ) {
       setIsLoaded(false);
     } else {

@@ -1,9 +1,13 @@
+import { queryStringFromObject } from "utils/formatting";
+
 export async function buildDayNightStore(
-  year: number,
-  month: number,
-  date: number
+  dateWanted: string
 ): Promise<WrappedResponse<DayNightStore>> {
-  const res = await fetch(`/api/v1/daynight/daynight?year=${year}&month=${month}&date=${date}`);
+  const queryParams: DayNightQueryParams = {
+    dateWanted,
+  };
+  const queryString = queryStringFromObject(queryParams);
+  const res = await fetch(`/api/v1/daynight/daynight?${queryString}`);
   const wrappedResponse: WrappedResponse<DayNightStore> = await res.json();
   return wrappedResponse;
 }

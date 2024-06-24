@@ -120,6 +120,9 @@ interface VideoFile extends MediaFile {
   startDateTime: string;
 }
 
+type VideoCoverageTimeRange = [number, number];
+type VideoCoverageTimeRanges = VideoCoverageTimeRange[];
+
 /** Parsed metadata from an IO photo file result */
 interface PhotoFile extends MediaFile {
   dateAdded: string;

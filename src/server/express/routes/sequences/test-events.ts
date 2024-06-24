@@ -9,10 +9,10 @@ import { Query } from "express-serve-static-core";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
+const parseQuery = (query: Query): GetSequencesTestEventsQueryParams => {
   const { forceNew } = query;
-  const queryObj = {
-    forceNew: forceNew === "1",
+  const queryObj: GetSequencesTestEventsQueryParams = {
+    forceNew: forceNew === "true",
   };
   return queryObj;
 };

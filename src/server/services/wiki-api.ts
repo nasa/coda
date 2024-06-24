@@ -14,8 +14,7 @@ import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
 import fetchWithCache from "../processing/cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
-import { Collection, SequenceType } from "utils/enums";
-import { CacheFolder } from "utils/enums";
+import { collection, sequenceType } from "utils/consts";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.VITE_PUBLIC_APP_ENV}.json`;
@@ -372,8 +371,8 @@ export async function getAllEVAData(
         /** EVA name upper-cased with spaces, eg. `US EVA 55`  */
         name: evaName,
         maestroEventUuid: allEVAs[evaName].printouts["Maestro event uuid"][0] || false,
-        location: Collection.ISS,
-        type: SequenceType.EVA,
+        location: collection.ISS,
+        type: sequenceType.EVA,
         dataURL: allEVAs[evaName].fullurl,
         displayTitle,
         startDate,
@@ -398,7 +397,7 @@ export async function getAllEVAData(
 
   const response = await fetchWithCache<Sequence[]>({
     identifier: agency,
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 3600, // 1 hour
     forceRetriever: forceNew,
@@ -525,8 +524,8 @@ export async function getAllTestEventsData(
 
       return {
         name: testEvent,
-        location: Collection[Collection[testEnvironment]],
-        type: SequenceType.testing,
+        location: collection[testEnvironment],
+        type: sequenceType.testing,
         dataURL: allTestEvents[testEvent].fullurl,
         displayTitle,
         startDate,
@@ -540,7 +539,7 @@ export async function getAllTestEventsData(
 
   const response = await fetchWithCache<Sequence[]>({
     identifier: "test-events",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 3600, // 1 hour
     forceRetriever: forceNew,
@@ -552,10 +551,10 @@ export async function getAllTestEventsData(
 }
 
 export async function fetchSequences(
-  collection: Collection,
+  source: Source,
   forceNew: boolean = false
 ): Promise<WikibotResponse<Sequence[]>> {
-  if (collection === Collection.ISS) {
+  if (source === "ISS") {
     return getAllEVAData("us", forceNew);
   } else {
     return getAllTestEventsData(forceNew);
@@ -585,7 +584,7 @@ export async function fetchDatetimeOverrides(
 
   return await fetchWithCache<DatetimeOverrides>({
     identifier: "datetime-overrides",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 604800, //1 week
     forceRetriever: forceNew,
@@ -615,7 +614,7 @@ export async function fetchMediaOverrides(
 
   return await fetchWithCache<MediaSourceOverride[]>({
     identifier: "media-overrides",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     // cacheAge: 604800, //1 week
     // cacheAge: 31536000, // 1 year
@@ -647,7 +646,7 @@ export async function fetchAncillaryDataSourceList(
 
   return await fetchWithCache<AncillaryDataSource[]>({
     identifier: "ancillary-data-sources",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 604800, //1 week
     forceRetriever: forceNew,

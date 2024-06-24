@@ -1,4 +1,3 @@
-import { Collection } from "utils/enums";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { globalValues } from "server/express/global";
 
@@ -6,16 +5,17 @@ import { globalValues } from "server/express/global";
  * Fetch video data from EMSS labs where live video is being captured and stored.
  * This labs endpoint contains a videoManifest that mimics the VideoFile type.
  */
-export default async function getEMSSVideoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: number
-): Promise<WrappedResponse<VideoFile[]>> {
+export default async function getEMSSVideoData(params: {
+  year: number;
+  month: number;
+  date: number;
+  source: Source;
+}): Promise<WrappedResponse<VideoFile[]>> {
+  const { year, month, date, source } = params;
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
   // If not Source = ISS return an empty array
-  if (collection !== Collection.ISS) {
+  if (source !== "ISS") {
     return {
       responseMetadata: {
         retrieverStatus: "complete",

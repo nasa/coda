@@ -5,7 +5,6 @@ import { getTimes } from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { get as ntlmGET } from "@evamss/ntlm";
-import { CacheFolder } from "utils/enums";
 import { isSameDate, midnightZulu, mmddyy } from "../../utils/date";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
@@ -267,7 +266,7 @@ export async function fetchDayNight(
   if (topoState !== "outOfRange_historic") {
     res = await fetchWithCache<DayNightStore>({
       identifier,
-      cacheFolder: CacheFolder.Daynight_topo,
+      cacheFolder: "daynight/topo",
       retriever: retrieverTopo,
       cacheAge: cacheAge_topo,
       forceRetriever,
@@ -310,7 +309,7 @@ export async function fetchDayNight(
 
   res = await fetchWithCache<DayNightStore>({
     identifier,
-    cacheFolder: CacheFolder.Daynight_issLocation,
+    cacheFolder: "daynight/issLocation",
     retriever: retrieverIssLocationDayNight,
     cacheAge: cacheAge_spacetrack,
     forceRetriever,

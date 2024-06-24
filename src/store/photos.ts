@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialPhotoFileState: PhotoFile = {
   id: "",
@@ -20,7 +19,7 @@ export const initialState: PhotosState = {
   activePhoto: initialPhotoFileState,
   ready: false,
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
   collectionFilters: [],
 };
 
@@ -48,7 +47,7 @@ export const photoSlice = createSlice({
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
       state.responseMetadata = { ...state.responseMetadata, error };
     },
-    setPhotoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setPhotoLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
     setCollectionFilters: (state, action: { payload: PhotoCollectionFilters[] }) => {

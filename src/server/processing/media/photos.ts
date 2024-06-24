@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import * as OverrideService from "server/services/media_override";
-import { Collection, IOFetchType } from "utils/enums";
+import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
 import _ from "lodash";
 import { addMs, isSameDate } from "../../../utils/date";
@@ -11,13 +11,13 @@ import { addMs, isSameDate } from "../../../utils/date";
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
  */
-export default async function getPhotoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection,
-  forceNew: boolean
-): Promise<WrappedResponse<PhotoFile[]>> {
+export default async function getPhotoData(params: {
+  dateWanted: string;
+  source: Source;
+  forceNew: boolean;
+}): Promise<WrappedResponse<PhotoFile[]>> {
+  const { dateWanted, source, forceNew } = params;
+  const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
   // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
@@ -39,7 +39,7 @@ export default async function getPhotoData(
       const overrideDate = new Date(vo.date);
       return (
         overrideDate.getTime() === requestedDate.getTime() &&
-        vo.source === collection &&
+        vo.source === source &&
         vo.type === "photo"
       );
     });
@@ -65,14 +65,18 @@ export default async function getPhotoData(
     console.error(e);
   }
 
+  const col = collection[source];
   const [results, sequences, allOverrides] = await Promise.all([
-    IoService.fetchData(collection, IOFetchType.PHOTOS, requestedDate, forceNew) as Promise<
-      WrappedResponse<PhotoFile[]>
-    >,
+    IoService.fetchData({
+      collection: col,
+      fetchType: "photos",
+      requestedDate,
+      forceNew,
+    }) as Promise<WrappedResponse<PhotoFile[]>>,
     // fetch sequence data, but don't throw if the request fails
     await (async () => {
       try {
-        return await WikiService.fetchSequences(collection, forceNew);
+        return await WikiService.fetchSequences(source, forceNew);
       } catch (e) {
         console.error(e);
       }
