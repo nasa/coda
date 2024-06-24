@@ -64,6 +64,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
     setChannelAvailability(cAvailability);
   }, [sgActivityRecord, playhead.seconds]);
 
+  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (paneStateData?.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
@@ -157,7 +158,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
         </div>
         <div className={styles.verticalCenter}>
           <button
-            className={`${props.frameDimensions[0] > minWidth ? styles.filterButton : styles.filterButtonShort} ${filterButtonSelected}`}
+            className={`${styles.filterButton} ${buttonLength} ${filterButtonSelected}`}
             title={`Filter utterances by words`}
             onClick={() => {
               setPaneStateValue(dispatch, frameID, "filterActive", !paneStateData.filterActive);
@@ -173,7 +174,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
         </div>
         <div className={styles.verticalCenter}>
           <button
-            className={`${props.frameDimensions[0] > minWidth ? styles.lockButton : styles.lockButtonShort} ${lockButtonSelected}`}
+            className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Scroll automatically to the last spoken utterance`}
             onClick={() => {
               setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);

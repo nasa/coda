@@ -34,6 +34,7 @@
   height: 35px;
   background-color: var(--nearly-black);
   padding: 4px 6px 4px 0px;
+  overflow-x: clip;
 }
 
 .verticalCenter {
@@ -44,6 +45,14 @@
 
 .dropdown {
   width: 200px;
+}
+
+.dropdownSmall {
+  width: 125px;
+}
+
+.dropdownSmallest {
+  width: 60px;
 }
 
 .controls {

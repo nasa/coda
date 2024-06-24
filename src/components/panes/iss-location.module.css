@@ -58,6 +58,14 @@
   color: var(--lighter-grey);
 }
 
+.buttonLong {
+  width: 55px;
+}
+
+.buttonShort {
+  width: 20px;
+}
+
 .buttonLabel {
   display: flex;
   justify-content: space-between;

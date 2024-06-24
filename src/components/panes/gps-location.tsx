@@ -23,9 +23,11 @@ import Button from "components/interface/button";
 import { createRoot } from "react-dom/client";
 library.add(faLock, faLockOpen);
 
-export function GPSLocationControls(props: { frameID: number }) {
+export function GPSLocationControls(props: { frameID: number; frameDimensions: number[] }) {
   const frameID = props.frameID;
   const dispatch = useDispatch();
+
+  const minWidth = 470;
 
   const paneStateData: GpsTrackPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
@@ -33,6 +35,7 @@ export function GPSLocationControls(props: { frameID: number }) {
 
   const gpsTracks = useSelector((state: RootState) => state.gps.gpsTracks);
 
+  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -77,14 +80,14 @@ export function GPSLocationControls(props: { frameID: number }) {
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
           <button
-            className={`${styles.lockButton} ${lockButtonSelected}`}
+            className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
             onClick={() => {
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>Scroll</div>
+              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
               </div>

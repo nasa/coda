@@ -22,17 +22,32 @@ export interface Options {
 }
 
 /** Renders the header for a frame */
-export function FrameHeader(props: { frameID: number; paneType: string; children?: any }) {
+export function FrameHeader(props: {
+  frameID: number;
+  paneType: string;
+  children?: any;
+  frameDimensions?: number[];
+}) {
+  let labelSize: "S" | "M" | "L" = "S";
+  let dropdownStyle = styles.dropdownSmallest;
+  if (props.frameDimensions[0] > 470) {
+    labelSize = "L";
+    dropdownStyle = styles.dropdown;
+  } else if (props.frameDimensions[0] > 260) {
+    labelSize = "M";
+    dropdownStyle = styles.dropdownSmall;
+  }
+
   let label = <>&nbsp;Select display type</>;
 
   if (!_.isNil(props.paneType)) {
-    label = <PaneLabel paneType={props.paneType} />;
+    label = <PaneLabel paneType={props.paneType} labelSize={labelSize} />;
   }
 
   return (
     <div className={styles.header}>
       <div>
-        <div className={styles.dropdown}>
+        <div className={dropdownStyle}>
           <ModalDropdown
             color="grey"
             size="skinny"
@@ -148,7 +163,7 @@ export default function Frame(options) {
   return (
     <div className={styles.main} ref={frameRef}>
       <div className={styles.headerContainer}>
-        <FrameHeader frameID={options.id} paneType={paneType}>
+        <FrameHeader frameID={options.id} paneType={paneType} frameDimensions={frameDimensions}>
           {!_.isNil(FrameControls) ? (
             <FrameControls frameID={options.id} frameDimensions={frameDimensions} />
           ) : (

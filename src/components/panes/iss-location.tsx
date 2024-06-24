@@ -34,10 +34,13 @@ export function ISSLocationControls(props: { frameID: number; frameDimensions: n
   const frameID = props.frameID;
   const dispatch = useDispatch();
 
+  const minWidth = 470;
+
   const paneStateData: LocationPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
 
+  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -48,14 +51,14 @@ export function ISSLocationControls(props: { frameID: number; frameDimensions: n
       <div className={styles.rightButtons}>
         <div className={styles.verticalCenter}>
           <button
-            className={`${styles.lockButton} ${lockButtonSelected}`}
+            className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to ISS position`}
             onClick={() => {
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>Scroll</div>
+              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
               </div>

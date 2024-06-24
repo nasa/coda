@@ -22,6 +22,7 @@ enum Source {
 
 interface Pane {
   title: string;
+  shortTitle: string;
   icon: IconProp;
   color: string;
   defaultPaneStateData:
