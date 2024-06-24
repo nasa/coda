@@ -1,8 +1,6 @@
 /** The state of the application viewer */
 
-import _ from "lodash";
 import { Dispatch, UnknownAction, createSlice } from "@reduxjs/toolkit";
-import { Source } from "utils/enums";
 
 /**
  * Supporting information about each layout defined in components/layouts.modules.css.
@@ -265,7 +263,7 @@ export const initialState: FrameworkState = {
   layout: "n",
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
-  source: Source.ISS,
+  source: "ISS",
   emssVideoEnabled: false,
 };
 
@@ -337,17 +335,16 @@ export const {
 } = frameworkSlice.actions;
 
 function getEventInfoTitleBySource(source: Source): string {
-  if (source === Source.ISS) {
+  if (source === "ISS") {
     return "EVA Info";
-  } else if (source === Source.NBL) {
+  } else if (source === "NBL") {
     return "NBL Event Info";
-  } else if (source === Source.TEST_EVENTS) {
+  } else if (source === "TEST_EVENTS") {
     return "Test Event Info";
-  } else if (source === Source.ARTEMIS) {
+  } else if (source === "ARTEMIS") {
     return "Mission Info";
   } else {
-    const exhaustiveCheck: never = source;
-    throw new Error(exhaustiveCheck);
+    throw new Error(source);
   }
 }
 

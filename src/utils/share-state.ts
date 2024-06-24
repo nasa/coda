@@ -1,5 +1,5 @@
 import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
-import { PaneTypeShortVal, SourceShortVal } from "utils/enums";
+import { paneTypeShortVal, sourceShortVal } from "utils/consts";
 
 /**
  * Generates a URL string that represents the state of the application.
@@ -12,7 +12,7 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
   const missionTime = hhmmssFromSeconds(playhead.seconds);
 
   const layout = framework.layout;
-  const shortSource = SourceShortVal[framework.source];
+  const shortSource = sourceShortVal[framework.source];
 
   let i = 1;
   let stateUrlParams = "";
@@ -22,13 +22,13 @@ export function generateShareURL(framework: FrameworkState, playhead: PlayheadSt
       case "video_downlink":
         paneStateString = getStateStringForVideo(
           element.paneStateData,
-          PaneTypeShortVal.video_downlink
+          paneTypeShortVal.video_downlink
         );
         break;
       case "video_non_downlink":
         paneStateString = getStateStringForVideo(
           element.paneStateData,
-          PaneTypeShortVal.video_non_downlink
+          paneTypeShortVal.video_non_downlink
         );
         break;
       case "photo":
@@ -90,7 +90,7 @@ function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeSho
  * Char 3: 0 if showFilter is false, 1 if showFilter is true
  */
 function getStateStringForPhoto(state: PhotoPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.photo;
+  const paneTypeString = "0" + paneTypeShortVal.photo;
   const showInfo = state.showInfo ? "1" : "0";
   const showFilter = state.showFilter ? "1" : "0";
   return `${paneTypeString}${showInfo}${showFilter}`;
@@ -103,7 +103,7 @@ function getStateStringForPhoto(state: PhotoPaneStateData) {
  * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
  */
 function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.photo_all;
+  const paneTypeString = "0" + paneTypeShortVal.photo_all;
   const showFilter = state.showFilter ? "1" : "0";
   const lockScroll = state.lockScroll ? "1" : "0";
   return `${paneTypeString}${showFilter}${lockScroll}`;
@@ -114,7 +114,7 @@ function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
  * Chars 0,1 digits: pane type
  */
 function getStateStringForEventInfo() {
-  const paneTypeString = "0" + PaneTypeShortVal.event_info;
+  const paneTypeString = "0" + paneTypeShortVal.event_info;
   return `${paneTypeString}`;
 }
 
@@ -124,7 +124,7 @@ function getStateStringForEventInfo() {
  * Char 2: 0 if lockToggle is false, 1 if lockToggle is true
  */
 function getStateStringforISSLocation(state: LocationPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.iss_location;
+  const paneTypeString = "0" + paneTypeShortVal.iss_location;
   const lockToggle = state.lockMap ? "1" : "0";
   return `${paneTypeString}${lockToggle}`;
 }
@@ -136,7 +136,7 @@ function getStateStringforISSLocation(state: LocationPaneStateData) {
  * Chars 3+: Comma delimited list of GPS track names that have been enabled
  */
 function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.gps_location;
+  const paneTypeString = "0" + paneTypeShortVal.gps_location;
   const lockToggle = state.lockMap ? "1" : "0";
   const enabledTracks = [];
   for (const [key, value] of Object.entries(state.gpsTrackToggles)) {
@@ -154,7 +154,7 @@ function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
  * Char 2: S/G channel number - 1
  */
 function getStateStringForComm(state: CommPaneStateData) {
-  const paneTypeString = "0" + PaneTypeShortVal.transcript;
+  const paneTypeString = "0" + paneTypeShortVal.transcript;
   const sgChannel = state.sgChannel.toString();
   return `${paneTypeString}${sgChannel}`;
 }
@@ -165,7 +165,7 @@ function getStateStringForComm(state: CommPaneStateData) {
  * Char 2: S/G channel number - 1
  */
 function getStateStringForGraph(state: GraphPaneStateData) {
-  const paneTypeString = PaneTypeShortVal.graph;
+  const paneTypeString = paneTypeShortVal.graph;
   const lockToggle = state.lockScroll ? "1" : "0";
   const selectedGraphId = state.selectedGraphId;
   return `${paneTypeString}${lockToggle}${selectedGraphId}`;
@@ -202,7 +202,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
   const paneType = parseInt(frameString.substring(0, 2));
 
   switch (paneType) {
-    case PaneTypeShortVal.video_downlink:
+    case paneTypeShortVal.video_downlink:
       /* Chars 2,3 digits: downlink number. -1 if not downlink
        * Char 4: 0 if muted, 1 if unmuted
        * Chars 5+: String of activeVideoFileID (used for non-downlink video selection)
@@ -219,7 +219,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return videoDLReturnVal;
-    case PaneTypeShortVal.video_non_downlink:
+    case paneTypeShortVal.video_non_downlink:
       const videoNonDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
         paneType: "video_non_downlink",
         paneStateData: {
@@ -231,7 +231,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         } as VideoPaneStateData,
       };
       return videoNonDLReturnVal;
-    case PaneTypeShortVal.photo:
+    case paneTypeShortVal.photo:
       /* Char 2: 0 if showInfo is false, 1 if showInfo is true
        * Char 3: 0 if showFilter is false, 1 if showFilter is true
        */
@@ -245,7 +245,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return photoReturnVal;
-    case PaneTypeShortVal.photo_all:
+    case paneTypeShortVal.photo_all:
       /* Char 2: 0 if showFilter is false, 1 if showInfo is true
        * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
        */
@@ -259,7 +259,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return photoAllReturnVal;
-    case PaneTypeShortVal.event_info:
+    case paneTypeShortVal.event_info:
       const eventInfoReturnVal: { paneType: string; paneStateData: EventPaneStateData } = {
         paneType: "event_info",
         paneStateData: {
@@ -268,7 +268,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return eventInfoReturnVal;
-    case PaneTypeShortVal.iss_location:
+    case paneTypeShortVal.iss_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
       const issLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
@@ -280,7 +280,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return issLocationReturnVal;
-    case PaneTypeShortVal.gps_location:
+    case paneTypeShortVal.gps_location:
       /* Char 2: 0 if lockScroll is false, 1 if lockToggle is true
        * Char 3+: Comma delimited list of GPS track names that have been enabled
        */
@@ -308,7 +308,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return gpsLocationReturnVal;
-    case PaneTypeShortVal.transcript:
+    case paneTypeShortVal.transcript:
       /* Char 2: sgChannel number
        */
       const commReturnVal: { paneType: string; paneStateData: CommPaneStateData } = {
@@ -323,7 +323,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return commReturnVal;
-    case PaneTypeShortVal.graph:
+    case paneTypeShortVal.graph:
       /** Char 2: 0 if lockScroll is false, 1 if lockToggle is true
        * Char 3+4 graph id:
        */

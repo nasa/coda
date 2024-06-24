@@ -1,11 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { padZeros } from "utils/formatting";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: SequencesState = {
   allSequences: [],
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
 };
 
 export const sequencesSlice = createSlice({
@@ -29,7 +28,7 @@ export const sequencesSlice = createSlice({
       state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
 
-    setSequenceLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setSequenceLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },
@@ -62,7 +61,7 @@ export const getSequenceStartMilliseconds = (Sequence: Sequence): number => {
 export const getAsPerformedMissionTime = (
   asExecuted: Activity[],
   SequenceDate: string,
-  activityStartUTCMilliseconds: number,
+  activityStartUTCMilliseconds: number
 ) => {
   const res: Activity[] = [];
 

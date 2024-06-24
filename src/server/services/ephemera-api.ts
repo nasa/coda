@@ -6,7 +6,6 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 import { padZeros } from "utils/formatting";
 import fetchWithCache from "../processing/cache-client";
 import { getEpochTimestamp } from "tle.js";
-import { CacheFolder } from "utils/enums";
 import { isSameDate } from "../../utils/date";
 
 const oneYearInSeconds = 31536000;
@@ -198,7 +197,7 @@ export async function fetchISSLocation(
 
     celestrakRes = await fetchWithCache<EphemerisStore>({
       identifier,
-      cacheFolder: CacheFolder.Celestrak,
+      cacheFolder: "celestrak",
       retriever: retrieverCelestrak,
       cacheAge: 300,
       forceRetriever,
@@ -216,7 +215,7 @@ export async function fetchISSLocation(
   // if celestrak didn't work, or if it's not today, try to get data from spacetrack
   spacetrackRes = await fetchWithCache<EphemerisStore>({
     identifier,
-    cacheFolder: CacheFolder.Spacetrack,
+    cacheFolder: "spacetrack",
     retriever: retrieverSpacetrack,
     cacheAge: isToday ? 300 : oneYearInSeconds,
     forceRetriever,

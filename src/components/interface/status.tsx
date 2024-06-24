@@ -2,7 +2,6 @@ import { useSelector } from "react-redux";
 import styles from "./status.module.css";
 import { RootState } from "store/index";
 import { useEffect, useState } from "react";
-import { LoadingStatusEnum } from "utils/enums";
 
 export default function StatusArea(props: { largeDisplay: boolean }) {
   const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
@@ -39,13 +38,13 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
 
   useEffect(() => {
     setVideoStatus(
-      createStatus(videos.loadingStatus, videos.responseMetadata, videos.videoFiles?.length > 0),
+      createStatus(videos.loadingStatus, videos.responseMetadata, videos.videoFiles?.length > 0)
     );
   }, [videos.loadingStatus, videos.responseMetadata]);
 
   useEffect(() => {
     setPhotoStatus(
-      createStatus(photos.loadingStatus, photos.responseMetadata, photos.photoFiles?.length > 0),
+      createStatus(photos.loadingStatus, photos.responseMetadata, photos.photoFiles?.length > 0)
     );
   }, [photos.loadingStatus, photos.responseMetadata]);
 
@@ -54,8 +53,8 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
       createStatus(
         sequences.loadingStatus,
         sequences.responseMetadata,
-        sequences.allSequences?.length > 0,
-      ),
+        sequences.allSequences?.length > 0
+      )
     );
   }, [sequences.loadingStatus, sequences.responseMetadata]);
 
@@ -68,8 +67,8 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
       createStatus(
         ephemera.loadingStatus,
         ephemera.responseMetadata,
-        ephemera.ephemerisFiles?.length > 0,
-      ),
+        ephemera.ephemerisFiles?.length > 0
+      )
     );
   }, [ephemera.loadingStatus, ephemera.responseMetadata]);
   useEffect(() => {
@@ -81,7 +80,7 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     });
 
     setTranscriptStatus(
-      createStatus(transcript.loadingStatus, transcript.responseMetadata, isTranscript),
+      createStatus(transcript.loadingStatus, transcript.responseMetadata, isTranscript)
     );
   }, [transcript.loadingStatus, transcript.responseMetadata]);
 
@@ -172,19 +171,19 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
   }
 
   function createStatus(
-    loadingStatus: LoadingStatusEnum,
+    loadingStatus: LoadingStatus,
     responseMetadata: ResponseMetadata,
-    resultsReturned: boolean,
+    resultsReturned: boolean
   ): { message: string; classname: string } {
     const cacheTime = responseMetadata?.cachedTimestamp
       ? new Date(responseMetadata.cachedTimestamp).toLocaleString()
       : null;
     let message: string;
     let classname: string;
-    if (loadingStatus === LoadingStatusEnum.LOADING) {
+    if (loadingStatus === "loading") {
       message = "data loading...";
       classname = styles.loading;
-    } else if (loadingStatus === LoadingStatusEnum.UNNEEDED) {
+    } else if (loadingStatus === "unneeded") {
       message = "data not applicable";
       classname = styles.unneeded;
     } else {
@@ -204,7 +203,7 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
       classname = styles.noError;
       if (responseMetadata?.expiration < new Date().toISOString()) {
         message = `data from cache but expired on: ${new Date(
-          responseMetadata.expiration,
+          responseMetadata.expiration
         ).toLocaleString()}`;
         classname = styles.stale;
       }

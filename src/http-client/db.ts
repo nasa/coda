@@ -1,12 +1,13 @@
 import { XMLParser } from "fast-xml-parser";
+import { queryStringFromObject } from "utils/formatting";
 
-export async function getGPSTracks(
-  year: number,
-  month: number,
-  day: number
-): Promise<WrappedResponse<GPSTrack[]>> {
+export async function getGPSTracks(dateWanted: string): Promise<WrappedResponse<GPSTrack[]>> {
   try {
-    const res = await fetch(`/api/v1/db/gps?year=${year}&month=${month}&day=${day}`);
+    const queryParams: GPSTracksQueryParams = {
+      dateWanted,
+    };
+    const queryString = queryStringFromObject(queryParams);
+    const res = await fetch(`/api/v1/db/gps?${queryString}`);
     const rawDbData: WrappedResponse<GPXTrackRecord[]> = await res.json();
     const gpsTracks: GPSTrack[] = rawDbData.data.map((GPXTrackRecord) => {
       // parse the gpx XML retreived from the wiki
@@ -55,7 +56,7 @@ export async function getGPSTracks(
         retrieverStatus: "complete",
         cachedTimestamp: null,
         expiration: null,
-        error: e,
+        error: e.toString(),
         retrieverErrorCount: 0,
         lastErrorTimestamp: null,
       },

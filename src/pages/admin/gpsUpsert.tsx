@@ -28,7 +28,7 @@ export const EditGPSRecord: FunctionComponent = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data: GpsUpsertRequest = {
+    const data: GPSUpsertRequest = {
       id: id ? parseInt(id) : undefined,
       date: date,
       name: name,

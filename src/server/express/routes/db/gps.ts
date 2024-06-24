@@ -10,12 +10,10 @@ import { GPXTracks_db } from "server/database/models/_allModels";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
-  const { year, month, day } = query;
-  const queryObj = {
-    year: year ? (year as string) : undefined,
-    month: month ? (month as string) : undefined,
-    day: day ? (day as string) : undefined,
+const parseQuery = (query: Query): GPSTracksQueryParams => {
+  const { dateWanted } = query;
+  const queryObj: GPSTracksQueryParams = {
+    dateWanted: dateWanted as string,
   };
   return queryObj;
 };
@@ -25,18 +23,16 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
 
   try {
-    if (queryObj.year && queryObj.month && queryObj.day) {
+    if (queryObj.dateWanted) {
       if (
-        isNaN(Number(queryObj.year)) ||
-        isNaN(Number(queryObj.month)) ||
-        isNaN(Number(queryObj.day))
+        !queryObj.dateWanted.match(
+          /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/
+        )
       ) {
         res.status(400).json({ status: "error", message: "Invalid date format" });
         return;
       }
-      const records: GPXTrackRecord[] = await getGpxTrackRecordsByDate(
-        `${queryObj.year}-${queryObj.month.padStart(2, "0")}-${queryObj.day.padStart(2, "0")}`
-      );
+      const records: GPXTrackRecord[] = await getGpxTrackRecordsByDate(queryObj.dateWanted);
       const wrappedResponse: WrappedResponse<GPXTrackRecord[]> = {
         responseMetadata: {
           retrieverStatus: "complete",
@@ -115,7 +111,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
         retrieverStatus: "error",
         cachedTimestamp: null,
         expiration: null,
-        error: e,
+        error: e.toString(),
         retrieverErrorCount: 1,
         lastErrorTimestamp: null,
       },
@@ -128,7 +124,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
-  const { id, date, name, gpxData } = req.body as GpsUpsertRequest;
+  const { id, date, name, gpxData } = req.body as GPSUpsertRequest;
 
   try {
     const em = getEM();

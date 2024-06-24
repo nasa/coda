@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./iss-location-marker.module.css";
 
 const Marker = (props) => {

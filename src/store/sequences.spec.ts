@@ -3,12 +3,12 @@ import {
   getSequenceStartMilliseconds,
   getAsPerformedMissionTime,
 } from "store/sequences";
-import { SequenceType } from "utils/enums";
+import { sequenceType, collection } from "utils/consts";
 
 describe("store/sequences", () => {
   const seq: Sequence = {
-    location: "testLoc",
-    type: SequenceType.testing,
+    location: collection.ISS,
+    type: sequenceType.EVA,
     name: "testName",
     displayTitle: "",
     dataURL: "",

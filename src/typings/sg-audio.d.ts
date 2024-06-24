@@ -1,3 +1,4 @@
+// These 3 types are what labs returns
 type SgActivityRangeRecord = {
   sound_start_secs: number;
   sound_stop_secs: number;
@@ -18,7 +19,20 @@ type SgVideoRecord = {
   sgChannels: SgChannelRecord[];
 };
 
+// used by CODA to allow for each audio clip to come from a different source (when mixing labs audio and talkybot audio)
+type SgActivityRangeFullUrlRecord = {
+  sound_start_secs: number;
+  sound_stop_secs: number;
+  aacSegmentFullUrl: string;
+};
+
+type SgActivityFullUrlRecord = {
+  override: boolean;
+  sgActivityRangeFullUrlRecords: SgActivityRangeFullUrlRecord[][]; // 4 channels
+};
+
 type SgActivityRecord = {
-  overrideBaseUrl: string;
-  sgActivityRangeRecords: SgActivityRangeRecord[][]; // 4 channels
+  baseUrl: string;
+  override: boolean;
+  sgActivityRecord: SgActivityRecord[][];
 };

@@ -108,12 +108,12 @@ interface EVACrewResults {
       "Has full name": [
         {
           fulltext: string;
-        }
+        },
       ];
       "Has role": [
         {
           fulltext: string;
-        }
+        },
       ];
     };
   };
@@ -126,12 +126,12 @@ interface JSCRockYardResults {
       "Has full name": [
         {
           fulltext: string;
-        }
+        },
       ];
       "Has role": [
         {
           fulltext: string;
-        }
+        },
       ];
     };
   };
@@ -191,7 +191,7 @@ interface TestEventOffsets {
  */
 interface MediaSourceOverride {
   date: string;
-  source: Source | Collection;
+  source: Source;
   type: "video" | "photo" | "transcript" | "audio";
   url: string;
 }
@@ -201,7 +201,7 @@ interface MediaSourceOverride {
  */
 interface AncillaryDataSource {
   date: string;
-  source: Source | Collection;
+  source: Source;
   type: "graphs";
   url: string;
 }

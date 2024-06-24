@@ -2,7 +2,6 @@ import cacache from "cacache";
 import crypto from "crypto";
 import isNil from "lodash/isNil";
 import _ from "lodash";
-import { CacheFolder } from "utils/enums";
 
 interface FetchWithCacheParams<T> {
   /** The cache key. Must be unique for the folder */
@@ -252,9 +251,23 @@ function waitedLongEnough(caCacheMetadata: CaCacheMetadata, errorRetryCoefficien
 
 /** Nuke the cache */
 export async function clearAll() {
+  const cacheFolder = {
+    Celestrak: "celestrak" as CacheFolder,
+    Spacetrack: "spacetrack" as CacheFolder,
+    Daynight_topo: "daynight/topo" as CacheFolder,
+    Daynight_issLocation: "daynight/issLocation" as CacheFolder,
+    Io: "io" as CacheFolder,
+    Transcripts: "labs/transcripts" as CacheFolder,
+    Audio: "labs/audio" as CacheFolder,
+    Wiki: "wiki" as CacheFolder,
+    Wiki_all: "wiki/all" as CacheFolder,
+    Wiki_gps: "wiki/gps" as CacheFolder,
+    test: "test" as CacheFolder,
+  };
+
   try {
-    for (const folder in CacheFolder) {
-      const cachePath = `${process.env.CACHE_ROOT}/${CacheFolder[folder]}`;
+    for (const folder in cacheFolder) {
+      const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder[folder]}`;
       await cacache.rm.all(cachePath);
     }
   } catch (e) {

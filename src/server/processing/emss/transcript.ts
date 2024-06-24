@@ -1,12 +1,12 @@
-import * as LabsService from "server/services/emss-labs";
+import * as LabsService from "server/services/emss";
 import * as WikiService from "server/services/wiki-api";
-import { Source } from "utils/enums";
 
-export default async function getLabsSgAudio(
-  source: Source,
-  dateWanted: string, //yy-mm-dd
-  forceNew: boolean
-): Promise<WrappedResponse<SgActivityRecord>> {
+export default async function getTranscripts(params: {
+  source: Source;
+  dateWanted: string; //yy-mm-dd
+  forceNew: boolean;
+}): Promise<WrappedResponse<UnprocessedTranscript[]>> {
+  const { source, dateWanted, forceNew } = params;
   const requestedDate = new Date(dateWanted);
 
   // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online
@@ -23,24 +23,24 @@ export default async function getLabsSgAudio(
       }
     }
 
-    // Check if there is a media override for this date and Source
+    // Check if there is a transcript override for this date and Source
     const mediaOverride = mediaOverrides?.data?.find((vo) => {
       const overrideDate = new Date(vo.date);
       return (
         overrideDate.getTime() === requestedDate.getTime() &&
         vo.source === source &&
-        vo.type === "audio"
+        vo.type === "transcript"
       );
     });
 
     // if there are media overrides, use those instead of labs
     if (mediaOverride) {
-      return LabsService.fetchSGAudio(source, dateWanted, mediaOverride.url);
+      return LabsService.fetchLabsTranscripts(source, dateWanted, mediaOverride.url);
     }
   } catch (e) {
     // don't block results if media overrides call fails
     console.error(e);
   }
 
-  return LabsService.fetchSGAudio(source, dateWanted);
+  return LabsService.fetchLabsAndTalkybotTranscripts(source, dateWanted);
 }
