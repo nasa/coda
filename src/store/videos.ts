@@ -1,11 +1,10 @@
 import memoize from "lodash/memoize";
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: VideosState = {
   videoFiles: [],
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
 };
 
 export const videoSlice = createSlice({
@@ -30,7 +29,7 @@ export const videoSlice = createSlice({
       state.responseMetadata = { ...state.responseMetadata, error };
     },
 
-    setVideoLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setVideoLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },
@@ -60,7 +59,7 @@ const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, st
  */
 export const visibleVideosBySecond = memoize(
   _visibleVideosBySecond,
-  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`,
+  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`
 );
 
 /** Filters videos for start and end dates that overlap a given day */
@@ -75,5 +74,5 @@ const _filterVisibleVideos = (videos: VideoFile[], date: Date): VideoFile[] => {
 /** Return a list of all videos that cover some part of the day */
 export const filterVisibleVideos = memoize(
   _filterVisibleVideos,
-  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`,
+  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`
 );

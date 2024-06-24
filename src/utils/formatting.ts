@@ -1,6 +1,6 @@
 import { isNaN } from "lodash";
-import { addMs } from "store/playhead";
-import { Source } from "utils/enums";
+import { collection } from "utils/consts";
+import { addMs } from "./date";
 
 /**
  * Return a zero padded string of a number
@@ -243,9 +243,17 @@ export function lightColor(color): boolean {
  * @param ms
  * @returns
  */
-export function isNearRealTime(ms: number, source: Source): boolean {
+export function isNearRealTime(ms: number, col: Collection): boolean {
   return (
     ms > Date.now() - 24 * 60 * 60 * 1000 &&
-    (source === Source.TEST_EVENTS || source === Source.ISS)
+    (col === collection.TEST_EVENTS || col === collection.ISS)
   );
 }
+
+/**
+ *
+ */
+export const queryStringFromObject = (queryParams: Record<string, any>): string => {
+  const str = new URLSearchParams(queryParams).toString();
+  return str;
+};

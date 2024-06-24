@@ -3,11 +3,10 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
-import { diff, isSameDate } from "store/playhead";
 import { getYearDayNumber, padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
-import { Source } from "utils/enums";
 import { generateShareURL } from "utils/share-state";
+import { diff, isSameDate } from "../../utils/date";
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -224,13 +223,13 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
   const source = useSelector((state: RootState) => state.framework.source);
 
   let allSequences = sequences.allSequences;
-  if (source === Source.NBL) {
+  if (source === "NBL") {
     // Show only NBL sequences
     allSequences = allSequences.filter((eva) => eva.displayTitle.includes("NBL"));
-  } else if (source === Source.TEST_EVENTS) {
+  } else if (source === "TEST_EVENTS") {
     // Filter out all NBL sequences
     allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
-  } else if (source === Source.ARTEMIS) {
+  } else if (source === "ARTEMIS") {
     // Filter out all sequences because there's nothing to show in the dropdown for Artemis (currently)
     allSequences = [];
   }
@@ -329,11 +328,9 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       <div className={styles.events}>
         <div className={styles.labels}>
           <div className={`${styles.dotdiv} ${styles.orangeBkg}`}></div>
-          <span style={{ margin: "5px" }}>
-            {framework.source === Source.ISS ? "EVA (US)" : "Event"}
-          </span>
+          <span style={{ margin: "5px" }}>{framework.source === "ISS" ? "EVA (US)" : "Event"}</span>
           &nbsp;&nbsp;
-          {framework.source === Source.ISS && (
+          {framework.source === "ISS" && (
             <>
               <div className={`${styles.dotdiv} ${styles.aquaBkg}`}></div>
               <span style={{ margin: "5px" }}>EVA (RS)</span>

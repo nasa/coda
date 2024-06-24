@@ -1,12 +1,12 @@
-import getMaestroExecuteTimelineStatus from "server/maestro/maestro";
+import getMaestroExecuteTimelineStatus from "server/processing/maestro/maestro";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
+const parseQuery = (query: Query): GetMaestroExecuteTimelineStatusQueryParams => {
   const { uuid } = query;
-  const queryObj = {
+  const queryObj: GetMaestroExecuteTimelineStatusQueryParams = {
     uuid: uuid ? (uuid as string) : undefined,
   };
   return queryObj;

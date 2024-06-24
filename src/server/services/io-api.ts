@@ -14,13 +14,12 @@ Known query parameters:
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
 import { padZeros, appSecondsFromDateString, isNearRealTime } from "utils/formatting";
-import fetchWithCache from "./cache-client";
+import fetchWithCache from "../processing/cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import type { Response } from "node-fetch";
-import { addMs } from "store/playhead";
 import { isNil } from "lodash";
-import { Collection, IOFetchType, Source } from "utils/enums";
-import { CacheFolder } from "utils/enums";
+import { collection } from "utils/consts";
+import { addMs } from "../../utils/date";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
@@ -28,21 +27,20 @@ async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse
 
   if (isLocal) {
     // we're in the local environment. mock the request
-    if (action === IOFetchType.VIDEOS) {
+    if (action === "videos") {
       console.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("../../../mocks/fakedata/io_videos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
-    } else if (action === IOFetchType.PHOTOS) {
+    } else if (action === "photos") {
       console.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("../../../mocks/fakedata/io_photos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
     } else {
-      const exhaustiveCheck: never = action;
-      throw new Error(exhaustiveCheck);
+      throw new Error(action);
     }
   }
 
@@ -103,33 +101,33 @@ export function formatDateQuery(start: Date, end?: Date): string {
  * @param requestDate The date to fetch data for
  * @returns PhotoFile[] | VideoFile[]
  */
-export async function fetchData(
-  collection: Collection,
-  fetchType: IOFetchType,
-  requestDate: Date,
-  forceNew?: boolean
-) {
+export async function fetchData(params: {
+  collection: Collection;
+  fetchType: IOFetchType;
+  requestedDate: Date;
+  forceNew?: boolean;
+}) {
+  const { collection, fetchType, requestedDate: requestDate, forceNew } = params;
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let dateQuery: string;
   let queryParams: string;
   let cacheAge: number = 43200; // 12 hours default
-  if (isNearRealTime(requestDate.getTime(), Source[collection])) {
+  if (isNearRealTime(requestDate.getTime(), collection)) {
     cacheAge = 0;
   }
 
-  if (fetchType === IOFetchType.PHOTOS) {
+  if (fetchType === "photos") {
     parser = parseIOPhotoResponse;
     dateQuery = formatDateQuery(requestDate);
-    queryParams = `${dateQuery}&as=1&so=7&cols=${Collection[collection]}`;
-  } else if (fetchType === IOFetchType.VIDEOS) {
+    queryParams = `${dateQuery}&as=1&so=7&cols=${collection}`;
+  } else if (fetchType === "videos") {
     parser = parseIOVideoResponse;
     dateQuery = formatDateQuery(addMs(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
-    queryParams = `${dateQuery}&cols=${Collection[collection]}&as=2`;
+    queryParams = `${dateQuery}&cols=${collection}&as=2`;
   } else {
     //  this will error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
     // Ref: https://www.typescriptlang.org/docs/handbook/2/functions.html#never
-    const exhaustiveCheck: never = fetchType;
-    throw new Error(exhaustiveCheck);
+    throw new Error(fetchType);
   }
 
   const retriever = async () => {
@@ -172,7 +170,7 @@ export async function fetchData(
 
   return fetchWithCache<PhotoFile[] | VideoFile[]>({
     identifier: `${fetchType}-${collection}-${requestDate.toISOString()}`,
-    cacheFolder: CacheFolder.Io,
+    cacheFolder: "io",
     retriever,
     cacheAge,
     forceRetriever: forceNew,
@@ -226,17 +224,17 @@ export const videoSorter = (a: VideoFile, b: VideoFile) => {
 };
 
 /** Parse the video result for relevant information */
-function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
+function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   let downlink = -1;
   let LOS = false;
 
-  if (+Collection[collection] === +Collection.ISS) {
+  if (col === collection.ISS) {
     const channel = getISSChannel(doc.collections_string);
 
     if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
       downlink = parseInt(channel) - 1;
     }
-  } else if (+Collection[collection] === +Collection.TEST_EVENTS) {
+  } else if (col === +collection.TEST_EVENTS) {
     //modify downlink numbers for test events based on strings in video title on IO
     if (doc.md_title) {
       if (doc.md_title.includes("EV1")) {
@@ -247,7 +245,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
         downlink = 2;
       }
     }
-  } else if (+Collection[collection] === +Collection.NBL) {
+  } else if (col === collection.NBL) {
     // Modify downlink numbers for nbl collection results based on strings in collections list
     // Look through every collection string in the collection_string array. This covers when NBL runs have been added to multiple collections
     for (let i = 0; i < doc.collections_string.length; i++) {
@@ -260,7 +258,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
         downlink = 2;
       }
     }
-  } else if (+Collection[collection] === +Collection.ARTEMIS) {
+  } else if (col === collection.ARTEMIS) {
     // Modify downlink numbers for artemis collection results based on strings in collections list
     const channel = getArtemisChannel(doc.collections_string);
 
@@ -319,7 +317,7 @@ function parseVideoResultMetadata(doc: Doc, collection: Collection): VideoFile {
     priority: LOS ? 0 : 1,
     startDateTime: "",
     downlink,
-    collection,
+    collection: col,
     // last and longest string in the array
     collections: doc.collections_string[doc.collections_string.length - 1],
   };

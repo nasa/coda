@@ -1,5 +1,4 @@
-import { clearCacheByIdentifer, clearCacheByFolder } from "server/services/cache-client";
-import { CacheFolder } from "utils/enums";
+import { clearCacheByIdentifer, clearCacheByFolder } from "server/processing/cache-client";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
@@ -14,7 +13,7 @@ const router = express.Router();
 const parseQuery = (query: Query) => {
   const { folder, identifier } = query;
   const queryObj = {
-    folder: folder ? (folder as string) : undefined,
+    folder: folder ? (folder as CacheFolder) : undefined,
     identifier: identifier ? (identifier as string) : undefined,
   };
   return queryObj;
@@ -24,16 +23,16 @@ const parseQuery = (query: Query) => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    if (typeof CacheFolder[queryObj.folder] === "undefined") {
+    if (typeof queryObj.folder === "undefined") {
       res.status(200).json({ success: false, error: "invalid folder specified" });
       return;
     } else {
       if (queryObj.identifier) {
-        await clearCacheByIdentifer(queryObj.identifier, CacheFolder[queryObj.folder]);
+        await clearCacheByIdentifer(queryObj.identifier, queryObj.folder);
         res.status(200).json({ success: true });
         return;
       } else {
-        await clearCacheByFolder(CacheFolder[queryObj.folder]);
+        await clearCacheByFolder(queryObj.folder);
         res.status(200).json({ success: true });
         return;
       }

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+export DOCKER_SCAN_SUGGEST=false
+
+if [ "${1}" = 'services' ]; then
+    docker compose -f docker-compose.yml -f docker-compose.services.yml "${@:2}"
+elif [ "${1}" = "preview" ]; then # override the default compose file with preview
+    docker compose -f docker-compose.yml -f docker-compose.preview.yml "${@:2}"
+else
+    echo "Must specify 'services' or 'preview'"
+fi

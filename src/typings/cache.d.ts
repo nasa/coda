@@ -19,3 +19,20 @@ interface CaCacheMetadata {
   retrieverErrorCount: number; // number of times the retriever has been run and failed
   lastErrorTimestamp: string; // ISO string
 }
+
+/**
+ * Contains all the possible subfolders for the cache.
+ * This type is iterated through when clearing the entire cache
+ */
+type CacheFolder =
+  | "celestrak"
+  | "spacetrack"
+  | "daynight/topo"
+  | "daynight/issLocation"
+  | "io"
+  | "labs/transcripts"
+  | "labs/audio"
+  | "wiki"
+  | "wiki/all"
+  | "wiki/gps"
+  | "test";

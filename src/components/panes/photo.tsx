@@ -9,17 +9,29 @@ import { setPaneStateValue } from "store/framework";
 import { IOInfoButton } from "./video";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilter } from "@fortawesome/free-solid-svg-icons";
 
-export function FilterButton(props: { clickHandler; selected?: boolean }) {
+export function FilterButton(props: {
+  clickHandler;
+  selected?: boolean;
+  frameDimensions: number[];
+}) {
+  const buttonLength = props.frameDimensions[0] > 470 ? styles.buttonLong : styles.buttonShort;
   const selectedStyle = props.selected ? styles.selected : "";
   return (
     <button
-      className={`${styles.filterButton} ${selectedStyle}`}
+      className={`${styles.filterButton} ${buttonLength} ${selectedStyle}`}
       onClick={() => {
         props.clickHandler();
       }}
     >
-      <span className={styles.filterLabel}>Filter</span>
+      <span className={styles.filterLabel}>
+        <div>{props.frameDimensions[0] > 470 ? "Filter" : ""}</div>
+        <div>
+          <FontAwesomeIcon icon={faFilter} size="sm" />
+        </div>
+      </span>
     </button>
   );
 }
@@ -64,6 +76,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
                 setPaneStateValue(dispatch, frameID, "showInfo", !paneStateData.showInfo);
               }}
               selected={paneStateData.showInfo}
+              frameDimensions={props.frameDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -72,6 +85,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
                 setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
               }}
               selected={paneStateData.showFilter}
+              frameDimensions={props.frameDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>

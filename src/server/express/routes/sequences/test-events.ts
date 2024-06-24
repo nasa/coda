@@ -1,4 +1,4 @@
-import getTestEventsData from "server/sequences/test-events";
+import getTestEventsData from "server/processing/sequences/test-events";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 /**
@@ -9,10 +9,10 @@ import { Query } from "express-serve-static-core";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
+const parseQuery = (query: Query): GetSequencesTestEventsQueryParams => {
   const { forceNew } = query;
-  const queryObj = {
-    forceNew: forceNew === "1",
+  const queryObj: GetSequencesTestEventsQueryParams = {
+    forceNew: forceNew === "true",
   };
   return queryObj;
 };

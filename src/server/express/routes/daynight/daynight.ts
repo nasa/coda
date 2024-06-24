@@ -1,4 +1,4 @@
-import getDayNight from "server/daynight/daynight";
+import getDayNight from "server/processing/daynight/daynight";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
@@ -9,13 +9,11 @@ import { Query } from "express-serve-static-core";
  */
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
-  const { year, month, date, forceNew, dayNightSource } = query;
-  const queryObj = {
-    year: year ? parseInt(year as string) : undefined,
-    month: month ? parseInt(month as string) : undefined,
-    date: date ? parseInt(date as string) : undefined,
-    forceNew: forceNew === "1",
+const parseQuery = (query: Query): DayNightQueryParams => {
+  const { dateWanted, forceNew, dayNightSource } = query;
+  const queryObj: DayNightQueryParams = {
+    dateWanted: dateWanted as string,
+    forceNew: forceNew === "true",
     dayNightSource: dayNightSource ? (dayNightSource as string) : undefined,
   };
   return queryObj;
@@ -25,13 +23,11 @@ const parseQuery = (query: Query) => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    const data = await getDayNight(
-      queryObj.year,
-      queryObj.month,
-      queryObj.date,
-      queryObj.forceNew,
-      queryObj.dayNightSource
-    );
+    const data = await getDayNight({
+      dateWanted: queryObj.dateWanted,
+      forceNew: queryObj.forceNew,
+      dayNightSource: queryObj.dayNightSource,
+    });
     res.status(200).json(data);
     return;
   } catch (e) {

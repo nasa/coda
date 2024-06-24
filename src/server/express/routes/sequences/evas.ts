@@ -1,4 +1,4 @@
-import getEVAData from "server/sequences/evas";
+import getEVAData from "server/processing/sequences/evas";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
@@ -14,11 +14,11 @@ import { Query } from "express-serve-static-core";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
-  const { agency = "us", forceNew } = query;
-  const queryObj = {
-    agency: agency ? (agency as string) : undefined,
-    forceNew: forceNew === "1",
+const parseQuery = (query: Query): GetSequencesAllEvasQueryParams => {
+  const { agency, forceNew } = query;
+  const queryObj: GetSequencesAllEvasQueryParams = {
+    agency: agency ? (agency as AgencyQuery) : undefined,
+    forceNew: forceNew === "true",
   };
   return queryObj;
 };
@@ -27,7 +27,7 @@ const parseQuery = (query: Query) => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    const evas = await getEVAData(queryObj.agency as AgencyQuery, queryObj.forceNew);
+    const evas = await getEVAData(queryObj.agency, queryObj.forceNew);
     res.status(200).json(evas);
     return;
   } catch (e) {

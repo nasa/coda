@@ -1,10 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: GraphsState = {
   graphsManifest: null,
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
 };
 
 export const graphSlice = createSlice({
@@ -19,7 +18,7 @@ export const graphSlice = createSlice({
     clearGraphsManifest: (state) => {
       state.graphsManifest = null;
       state.responseMetadata = null;
-      state.loadingStatus = LoadingStatusEnum.LOADING;
+      state.loadingStatus = "loading";
     },
     setGraphsData: (state, action: { payload: { graphId: string; graphData: GraphData[] } }) => {
       const graph = state.graphsManifest?.graphs.find((g) => g.id === action.payload.graphId);
@@ -41,7 +40,7 @@ export const graphSlice = createSlice({
     graphsFetchError: (state, action: { payload: string }) => {
       state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
-    setGraphsLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setGraphsLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },

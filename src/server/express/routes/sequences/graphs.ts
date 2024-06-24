@@ -1,4 +1,4 @@
-import getGraphManifest from "server/sequences/graph";
+import getGraphManifest from "server/processing/sequences/graph";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
@@ -8,14 +8,12 @@ import { Query } from "express-serve-static-core";
 
 const router = express.Router();
 
-const parseQuery = (query: Query) => {
-  const { source, year, month, date, forceNew } = query;
-  const queryObj = {
-    source: source ? (source as string) : undefined,
-    year: year ? (year as string) : undefined,
-    month: month ? (month as string) : undefined,
-    date: date ? (date as string) : undefined,
-    forceNew: forceNew === "1",
+const parseQuery = (query: Query): GetGraphsManifestQueryParams => {
+  const { dateWanted, source, forceNew } = query;
+  const queryObj: GetGraphsManifestQueryParams = {
+    dateWanted: dateWanted as string,
+    source: source ? (source as Source) : undefined,
+    forceNew: forceNew === "true",
   };
   return queryObj;
 };
@@ -24,11 +22,11 @@ const parseQuery = (query: Query) => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    const data = await getGraphManifest(
-      queryObj.source as Source,
-      `${queryObj.year}-${queryObj.month.padStart(2, "0")}-${queryObj.date.padStart(2, "0")}`,
-      queryObj.forceNew
-    );
+    const data = await getGraphManifest({
+      dateWanted: queryObj.dateWanted,
+      source: queryObj.source,
+      forceNew: queryObj.forceNew,
+    });
     res.status(200).json(data);
     return;
   } catch (e) {

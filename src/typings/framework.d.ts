@@ -13,15 +13,9 @@ interface Preset {
   frames: FrameState;
 }
 
-enum Source {
-  ISS = "ISS",
-  TEST_EVENTS = "TEST_EVENTS",
-  NBL = "NBL",
-  ARTEMIS = "ARTEMIS",
-}
-
 interface Pane {
   title: string;
+  shortTitle: string;
   icon: IconProp;
   color: string;
   defaultPaneStateData:
@@ -55,6 +49,7 @@ interface FrameworkState {
   layoutLastChanged: number; // milliseconds since epoch
   /** Current mapping of visible frames to Frame types */
   frames: FrameState;
+  emssVideoEnabled: boolean;
 }
 
 interface FrameState {

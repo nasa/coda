@@ -25,12 +25,12 @@ export const config: UserConfig = {
     // neither of these proxies are hit when running under docker:dev because nginx intercepts them
     proxy: {
       "/api/v1": {
-        target: "http://localhost:2000/",
+        target: "http://localhost:3001/",
         changeOrigin: true,
         ws: true,
       },
       "/static": {
-        target: "http://localhost:2000/",
+        target: "http://localhost:3001/",
         changeOrigin: true,
       },
     },

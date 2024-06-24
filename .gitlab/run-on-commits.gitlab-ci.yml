@@ -107,20 +107,34 @@ deploy:dev1:
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
   when: manual
+  before_script:
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
 
-deploy:dev2:
-  extends: .docker-deploy-template
-  tags: ["coda-dev2-runner"]
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
-  environment:
-    name: development2
-    url: https://coda-dev2.fit.nasa.gov
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
-  when: manual
+    # Since this runner is shared between all EMSS repos, we need to ensure all containers are
+    # stopped before proceeding with deploy. Except if docker not installed, which means this is
+    # the first run of deploy and the VM hasn't even bootstrapped itself yet, thus no containers
+    # could exist yet
+
+    # Realtime transcription taking over CODA-Dev2 through JETT5. Don't need to do this check.
+    - >
+      if docker --version; then
+        sudo docker stop $(sudo docker ps -a -q)
+      fi
+
+# CODA-Dev2 currently functioning as Talky Bot prod
+# deploy:dev2:
+#   extends: .docker-deploy-template
+#   tags: ["coda-dev2-runner"]
+#   needs:
+#     - make-dotenv
+#     - docker:retag
+#     - deploy:artifactize-committed-files
+#   environment:
+#     name: development2
+#     url: https://coda-dev2.fit.nasa.gov
+#   variables:
+#     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
+#   when: manual
 
 deploy:int:
   extends: .docker-deploy-template
@@ -158,3 +172,95 @@ deploy:prod:
   when: manual
   only:
     - prod
+
+.db-export-template:
+  needs: []
+  # I don't think we want to do this, because I don't think we want GitLab to consider this a
+  # deployment. It's just grabbing some data off of Production.
+  # environment:
+  #   name: production
+  #   url: https://coda.fit.nasa.gov
+  when: manual
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - PROJECT_DIR=$(pwd)
+    - cd /opt/coda
+    - sudo docker compose exec database pg_dump -U postgres coda > "${PROJECT_DIR}/coda.sql"
+  artifacts:
+    paths:
+      - coda.sql
+
+z:db-export:prod:
+  extends: .db-export-template
+  # when: always
+  tags: ["coda-prod-runner"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
+
+z:db-export:int:
+  extends: .db-export-template
+  tags: ["coda-int-runner"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+
+z:db-export:dev1:
+  extends: .db-export-template
+  tags: ["coda-dev1-runner"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
+
+z:db-export:dev2:
+  extends: .db-export-template
+  tags: ["coda-dev2-runner"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2 #CI/CD Variable
+
+.db-import-template:
+  when: manual
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - PROJECT_DIR=$(pwd)
+    - cd /opt/coda
+    - cp "${PROJECT_DIR}/coda.sql" /d1/db-init/coda.sql
+
+    # Stop docker compose, then remove database files
+    - sudo /usr/bin/docker compose down --remove-orphans
+    - sudo rm -rf /d1/postgres
+
+    # Bring docker compose back up, which will use the file at /d1/db-init/coda.sql, then remove it
+    - sudo /usr/bin/docker compose up -d
+    - sudo rm -f /d1/db-init/coda.sql
+
+    # Migrations will be run when the apiv1 container restarts
+
+z:db-import:dev1:
+  extends: .db-import-template
+  tags: ["coda-dev1-runner"]
+  needs: ["z:db-export:prod"]
+  environment:
+    name: development1
+    url: $URL
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
+    URL: https://coda-dev1.fit.nasa.gov
+
+z:db-import:int:
+  extends: .db-import-template
+  tags: ["coda-int-runner"]
+  needs: ["z:db-export:prod"]
+  environment:
+    name: integration
+    url: $URL
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+    URL: https://coda-int.fit.nasa.gov

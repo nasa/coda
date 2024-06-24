@@ -24,7 +24,7 @@ interface PlayheadHoverState {
 type EphemeraState = {
   ephemerisFiles: EphemerisFile[];
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };
 
 /**
@@ -33,7 +33,7 @@ type EphemeraState = {
 type DayNightState = {
   dayNight: DayNightObj[];
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum.LOADING;
+  loadingStatus: LoadingStatus;
   source?: string;
 };
 
@@ -44,7 +44,7 @@ type DayNightState = {
 type SequencesState = {
   allSequences: Sequence[];
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };
 
 /**
@@ -56,7 +56,7 @@ type PhotosState = {
   activePhoto: PhotoFile;
   ready: boolean;
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
   collectionFilters: PhotoCollectionFilters[];
 };
 
@@ -74,7 +74,7 @@ interface PhotoCollectionFilters {
 type VideosState = {
   videoFiles: VideoFile[];
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };
 
 /**
@@ -83,7 +83,7 @@ type VideosState = {
 type GPSState = {
   gpsTracks: GPSTrack[];
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };
 
 /**
@@ -92,7 +92,7 @@ type GPSState = {
 type TranscriptState = {
   transcripts: Transcript[];
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
   isTranscripts: boolean;
 };
 
@@ -100,9 +100,9 @@ type TranscriptState = {
  * SG Audio Store
  */
 type SgAudioState = {
-  sgActivityRecord: SgActivityRecord;
+  sgActivityFullUrlRecord: SgActivityFullUrlRecord;
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };
 
 /**
@@ -111,7 +111,7 @@ type SgAudioState = {
 type GraphsState = {
   graphsManifest: GraphsManifest;
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };
 
 /**
@@ -125,5 +125,5 @@ type MaestroState = {
   evaEndSec: number;
   evaDurationSec: number;
   responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatusEnum;
+  loadingStatus: LoadingStatus;
 };

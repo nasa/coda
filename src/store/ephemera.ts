@@ -1,11 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
-import { diff } from "./playhead";
+import { diff } from "../utils/date";
 
 export const initialState: EphemeraState = {
   ephemerisFiles: [],
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
 };
 
 export const ephemeraSlice = createSlice({
@@ -25,7 +24,7 @@ export const ephemeraSlice = createSlice({
     fetchError: (state, action: { payload: string }) => {
       state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
-    setEphemeraLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setEphemeraLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },

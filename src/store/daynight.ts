@@ -1,10 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LoadingStatusEnum } from "utils/enums";
 
 export const initialState: DayNightState = {
   dayNight: [],
   responseMetadata: null,
-  loadingStatus: LoadingStatusEnum.LOADING,
+  loadingStatus: "loading",
   source: null,
 };
 
@@ -21,13 +20,13 @@ export const dayNightSlice = createSlice({
     clearDayNight: (state) => {
       state.dayNight = [];
       state.responseMetadata = null;
-      state.loadingStatus = LoadingStatusEnum.LOADING;
+      state.loadingStatus = "loading";
       state.source = null;
     },
     fetchError: (state, action: { payload: string }) => {
       state.responseMetadata = { ...state.responseMetadata, error: action.payload };
     },
-    setDayNightLoadingStatus: (state, action: { payload: LoadingStatusEnum }) => {
+    setDayNightLoadingStatus: (state, action: { payload: LoadingStatus }) => {
       state.loadingStatus = action.payload;
     },
   },

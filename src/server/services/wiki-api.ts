@@ -12,11 +12,9 @@ import isNil from "lodash/isNil";
 import MWBot from "mwbot";
 import { FileCookieStore } from "tough-cookie-file-store";
 import request from "request";
-import fetchWithCache from "./cache-client";
+import fetchWithCache from "../processing/cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
-import { Collection, SequenceType } from "utils/enums";
-import { CacheFolder } from "utils/enums";
-import { XMLParser } from "fast-xml-parser";
+import { collection, sequenceType } from "utils/consts";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.VITE_PUBLIC_APP_ENV}.json`;
@@ -373,8 +371,8 @@ export async function getAllEVAData(
         /** EVA name upper-cased with spaces, eg. `US EVA 55`  */
         name: evaName,
         maestroEventUuid: allEVAs[evaName].printouts["Maestro event uuid"][0] || false,
-        location: Collection.ISS,
-        type: SequenceType.EVA,
+        location: collection.ISS,
+        type: sequenceType.EVA,
         dataURL: allEVAs[evaName].fullurl,
         displayTitle,
         startDate,
@@ -399,7 +397,7 @@ export async function getAllEVAData(
 
   const response = await fetchWithCache<Sequence[]>({
     identifier: agency,
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 3600, // 1 hour
     forceRetriever: forceNew,
@@ -526,8 +524,8 @@ export async function getAllTestEventsData(
 
       return {
         name: testEvent,
-        location: Collection[Collection[testEnvironment]],
-        type: SequenceType.testing,
+        location: collection[testEnvironment],
+        type: sequenceType.testing,
         dataURL: allTestEvents[testEvent].fullurl,
         displayTitle,
         startDate,
@@ -541,7 +539,7 @@ export async function getAllTestEventsData(
 
   const response = await fetchWithCache<Sequence[]>({
     identifier: "test-events",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 3600, // 1 hour
     forceRetriever: forceNew,
@@ -553,137 +551,14 @@ export async function getAllTestEventsData(
 }
 
 export async function fetchSequences(
-  collection: Collection,
+  source: Source,
   forceNew: boolean = false
 ): Promise<WikibotResponse<Sequence[]>> {
-  if (collection === Collection.ISS) {
+  if (source === "ISS") {
     return getAllEVAData("us", forceNew);
   } else {
     return getAllTestEventsData(forceNew);
   }
-}
-
-/** Get list of external data products from the wiki */
-
-async function fetchWikiExternalData(
-  forceNew: boolean = false
-): Promise<WrappedResponse<string[]>> {
-  const parseQuery = {
-    page: "CODA/External Data",
-    prop: "links",
-  };
-
-  const retriever = async () => {
-    const res = await fetchWiki({
-      parseQuery,
-      wiki: "exploration",
-      action: "parse",
-    });
-    const links = [];
-    for (let i = 0; i < res.data.parse.links.length; i++) {
-      const link = res.data.parse.links[i]["*"];
-      links.push(link);
-    }
-    return links;
-  };
-
-  return await fetchWithCache<string[]>({
-    identifier: "gps-list",
-    cacheFolder: CacheFolder.Wiki,
-    retriever,
-    cacheAge: 604800, //1 week
-    forceRetriever: forceNew,
-  });
-}
-
-export async function fetchWikiGPSTracks(
-  dateWanted: string,
-  forceNew: boolean = false
-): Promise<WrappedResponse<GPSTrack[]>> {
-  const gpsList = await fetchWikiExternalData(forceNew);
-  let error = null;
-  // Find all of the GPS wiki pages that match the date and get the GPX out of each of them
-  const regexStr = `.*${dateWanted}\/GPS\/(.*)`;
-  const gpsTracks: GPSTrack[] = [];
-  if (gpsList.data) {
-    for (let i = 0; i < gpsList.data.length; i++) {
-      const match = gpsList.data[i].match(regexStr);
-      if (match) {
-        if (
-          match[1] === "EV1" ||
-          match[1] === "EV2" ||
-          match[1] === "EV3" ||
-          match[1] === "EV4" ||
-          match[1] === "Cart" ||
-          match[1] === "LightCart" ||
-          match[1] === "Staff"
-        ) {
-          const gpsTrackRes = await fetchWikiGPSTrack(gpsList.data[i], match[1], forceNew);
-          if (gpsTrackRes.responseMetadata.error !== undefined) {
-            error = gpsTrackRes.responseMetadata.error;
-          }
-          gpsTracks.push(gpsTrackRes.data);
-        }
-      }
-    }
-  }
-  return { responseMetadata: { ...gpsList.responseMetadata, ...error }, data: gpsTracks };
-}
-
-async function fetchWikiGPSTrack(
-  pageName: string,
-  name: string,
-  forceNew: boolean = false
-): Promise<WrappedResponse<GPSTrack>> {
-  const parseQuery = {
-    page: pageName,
-    prop: "wikitext",
-  };
-
-  const retriever = async () => {
-    const res = await fetchWiki({
-      parseQuery,
-      wiki: "exploration",
-      action: "parse",
-    });
-
-    // parse the gpx XML retreived from the wiki
-
-    const gpxXml = res.data.parse.wikitext["*"];
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: "",
-      allowBooleanAttributes: true,
-    });
-
-    const parsed = parser.parse(gpxXml);
-
-    // create GPSTrack object from parsed XML
-    const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map((point) => {
-      const newGpsPoint: GPSPoint = {
-        lat: parseFloat(point.lat),
-        lon: parseFloat(point.lon),
-        ele: point.ele,
-        time: new Date(point.time),
-      };
-      return newGpsPoint;
-    });
-
-    const gpsTrack: GPSTrack = {
-      name,
-      points: gpsPoints,
-    };
-
-    return gpsTrack;
-  };
-
-  return await fetchWithCache<GPSTrack>({
-    identifier: pageName,
-    cacheFolder: CacheFolder.Wiki_gps,
-    retriever,
-    cacheAge: 604800, //1 week
-    forceRetriever: forceNew,
-  });
 }
 
 /** Get all the manually set shifts for fixing datetimes.
@@ -709,7 +584,7 @@ export async function fetchDatetimeOverrides(
 
   return await fetchWithCache<DatetimeOverrides>({
     identifier: "datetime-overrides",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 604800, //1 week
     forceRetriever: forceNew,
@@ -739,7 +614,7 @@ export async function fetchMediaOverrides(
 
   return await fetchWithCache<MediaSourceOverride[]>({
     identifier: "media-overrides",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     // cacheAge: 604800, //1 week
     // cacheAge: 31536000, // 1 year
@@ -771,7 +646,7 @@ export async function fetchAncillaryDataSourceList(
 
   return await fetchWithCache<AncillaryDataSource[]>({
     identifier: "ancillary-data-sources",
-    cacheFolder: CacheFolder.Wiki,
+    cacheFolder: "wiki",
     retriever,
     cacheAge: 604800, //1 week
     forceRetriever: forceNew,

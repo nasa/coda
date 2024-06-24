@@ -25,7 +25,7 @@
 }
 
 .dropdown {
-  width: 50px;
+  width: 40px;
 }
 
 .dlButton:not(:last-of-type) {
@@ -46,7 +46,6 @@
 
 .ioButton {
   display: block;
-  width: 30px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -61,6 +60,27 @@
   background-color: #eeeeee;
 }
 
+.ioButtonLong {
+  width: 30px;
+}
+
+.ioButtonShort {
+  width: 20px;
+}
+
+.iconAdjustmentLong {
+  position: relative;
+  top: "-2px";
+  font-size: 9px;
+}
+
+.iconAdjustmentShort {
+  left: 4px;
+  position: relative;
+  top: "-0.5px";
+  font-size: 10px;
+}
+
 .selected {
   border: none;
   background-color: #eeeeee;
@@ -68,7 +88,9 @@
 }
 
 .ioLabel {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: relative;
   width: 20px;
   left: -2px;

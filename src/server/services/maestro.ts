@@ -1,5 +1,5 @@
-import { midnightZulu } from "store/playhead";
 import fetchWithTimeout from "utils/fetch-with-timeout";
+import { midnightZulu } from "../../utils/date";
 
 export const fetchMaestroExecuteTimelineStatus = async (
   executeEventUuid: string

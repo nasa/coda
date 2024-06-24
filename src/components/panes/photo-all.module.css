@@ -66,7 +66,6 @@
 
 .lockButton {
   display: block;
-  width: 55px;
   height: 18px;
   background-color: var(--even-greyer);
   color: var(--lighter-grey);
@@ -81,6 +80,14 @@
   border: none;
   background-color: #eeeeee;
   color: var(--lighter-grey);
+}
+
+.buttonLong {
+  width: 55px;
+}
+
+.buttonShort {
+  width: 20px;
 }
 
 .buttonLabel {

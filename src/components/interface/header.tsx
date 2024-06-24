@@ -11,12 +11,12 @@ import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { Collection, Source, SourceShortVal } from "utils/enums";
+import { collection, sourceShortVal } from "utils/consts";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
 
-import { allLayouts } from "store/framework";
+import { allLayouts, setEmssVideoEnabled } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
@@ -119,7 +119,7 @@ export function SourcesDropdown() {
     // dispatch(changeSource(e.target.value as Source));
 
     let URL = generateShareURL(framework, playhead);
-    const sourceParam = SourceShortVal[e.target.value];
+    const sourceParam = sourceShortVal[e.target.value];
     // replace the source in URL with selected source
     URL = URL.replace(/s=([^&]*)/, `s=${sourceParam}`);
 
@@ -134,10 +134,10 @@ export function SourcesDropdown() {
           handleSourceChange(e);
         }}
       >
-        <option value={Source.ARTEMIS}>ARTEMIS</option>
-        <option value={Source.ISS}>ISS</option>
-        <option value={Source.NBL}>NBL</option>
-        <option value={Source.TEST_EVENTS}>Test Events</option>
+        <option value={"ARTEMIS"}>ARTEMIS</option>
+        <option value={"ISS"}>ISS</option>
+        <option value={"NBL"}>NBL</option>
+        <option value={"TEST_EVENTS"}>Test Events</option>
       </select>
       <div className={styles.select_arrow}>
         <FontAwesomeIcon icon="chevron-down" />
@@ -258,6 +258,8 @@ export function Clock() {
 
 export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
   const source = useSelector((state: RootState) => state.framework.source);
+  const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
+  const dispatch = useDispatch();
   return (
     <div className={styles.main}>
       <div className={styles.left}>
@@ -278,7 +280,7 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
         </div>
         <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
           <EventDropdown
-            collection={Collection[source]}
+            collection={collection[source]}
             setHelpLoaderOpen={props.setHelpLoaderOpen}
           />
         </div>
@@ -312,11 +314,14 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
           </div>
           <div
             className={styles.logoEmssWrapper}
+            // onClick={() => {
+            //   window.open(
+            //     "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
+            //     "_blank"
+            //   );
+            // }}
             onClick={() => {
-              window.open(
-                "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
-                "_blank"
-              );
+              dispatch(setEmssVideoEnabled(!emssVideoEnabled));
             }}
             title="More info about EVA Mission System Software (EMSS)"
           >

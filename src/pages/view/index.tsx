@@ -3,10 +3,10 @@ import _ from "lodash";
 import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
-import { fetchEVAs, fetchTestEvents, getGPSTracks, getGraphsManifest } from "http-client/sequences";
-import { getSgAudio, getTranscripts } from "http-client/emss-labs";
+import { fetchEVAs, fetchTestEvents, getGraphsManifest } from "http-client/sequences";
+import { getSgAudio, getTranscripts } from "http-client/emss";
 import { RootState } from "store/index";
-import { changeDate, changeTime, diff, isSameDate } from "store/playhead";
+import { changeDate, changeTime } from "store/playhead";
 import {
   addSequences,
   clearSequences,
@@ -15,7 +15,7 @@ import {
   setSequenceLoadingStatus,
 } from "store/sequences";
 import useInterval from "utils/useInterval";
-import { Collection, LoadingStatusEnum, SourceShortVal } from "utils/enums";
+import { sourceShortVal } from "utils/consts";
 import {
   addVideos,
   setVideoLoadingStatus,
@@ -30,7 +30,7 @@ import {
   clearPhotos,
 } from "store/photos";
 import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
-import { clearGPSTracks, gpsFetchError, setGpsLoadingStatus, setGPSTracks } from "store/gps";
+import { clearGPSTracks, setGpsLoadingStatus, setGPSTracks } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
 import {
   setTranscriptLoadingStatus,
@@ -57,7 +57,6 @@ import {
   setAllFrameworkState,
 } from "store/framework";
 import { interpretFramestateQueryString } from "utils/share-state";
-import { Source } from "utils/enums";
 import {
   setDayNightLoadingStatus,
   fetchError as daynightFetchError,
@@ -81,13 +80,15 @@ import Timeline from "components/interface/nav-timeline";
 import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router-dom";
 import { URLSearchParams } from "url";
+import { getGPSTracks } from "http-client/db";
+import { diff, isSameDate } from "../../utils/date";
 
 export function V2() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, _setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
   const framework = useSelector((state: RootState) => state.framework);
+  const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
   const playhead = useSelector((state: RootState) => state.playhead);
   const playheadDate = playhead.date;
   const source = useSelector((state: RootState) => state.framework.source);
@@ -120,9 +121,7 @@ export function V2() {
   const isMalformedDate = isNaN(userDate.valueOf());
 
   const d = new Date(playheadDate);
-  const year = d.getUTCFullYear();
-  const month = d.getUTCMonth() + 1;
-  const day = d.getUTCDate();
+  const dateWanted = d.toISOString().split("T")[0];
 
   if (isFutureDate || isMalformedDate) {
     // set the date today
@@ -149,10 +148,10 @@ export function V2() {
       userTime = hh * 3600 + mm * 60 + ss;
     } else {
       // change the time if the sequence has a PET start time
-      if (urlState.frameworkState.source === Source.NBL) {
+      if (urlState.frameworkState.source === "NBL") {
         // Show only NBL sequences
         allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
-      } else if (urlState.frameworkState.source === Source.TEST_EVENTS) {
+      } else if (urlState.frameworkState.source === "TEST_EVENTS") {
         // Filter out all NBL sequences
         allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
       }
@@ -177,24 +176,24 @@ export function V2() {
   }, []);
 
   /** Update the EVA store */
-  const populateSequenceStore = (collection) => {
+  const populateSequenceStore = (params: { source: Source }) => {
+    const { source } = params;
     (async () => {
-      if (collection === Collection.ARTEMIS) {
-        dispatch(setSequenceLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      if (source === "ARTEMIS") {
+        dispatch(setSequenceLoadingStatus("unneeded"));
         return;
       }
-      dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setSequenceLoadingStatus("loading"));
       try {
         // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
 
-        const updatedEVAsResponse =
-          collection === Collection.ISS ? await fetchEVAs() : await fetchTestEvents();
+        const updatedEVAsResponse = source === "ISS" ? await fetchEVAs() : await fetchTestEvents();
 
         // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
         if (updatedEVAsResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateSequenceStore(collection);
+              populateSequenceStore({ source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -216,32 +215,32 @@ export function V2() {
           } else {
             dispatch(maestroFetchError(maestroResponse.responseMetadata.error));
           }
-          dispatch(setMaestroLoadingStatus(LoadingStatusEnum.LOADED));
+          dispatch(setMaestroLoadingStatus("loaded"));
         } else {
-          dispatch(setMaestroLoadingStatus(LoadingStatusEnum.UNNEEDED));
+          dispatch(setMaestroLoadingStatus("unneeded"));
         }
       } catch (e) {
         dispatch(sequencesFetchError(e.toString()));
       }
-      dispatch(setSequenceLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setSequenceLoadingStatus("loaded"));
     })();
   };
-
-  /** Update the video store */
-  const populateVideoStore = (year, month, day, collection, incremental: boolean) => {
+  const populateVideoStore = (params: {
+    dateWanted: string;
+    source: Source;
+    incremental: boolean;
+  }) => {
+    const { dateWanted, source, incremental } = params;
     (async () => {
       if (!incremental) {
-        // Don't cause the app to show the loader if we're just updating the videos list
-        dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADING));
+        dispatch(setVideoLoadingStatus("loading"));
       }
       try {
-        // video data for this EVA
-        const videoStoreResponse = await buildVideoStore(year, month, day, collection);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const videoStoreResponse = await buildVideoStore(dateWanted, source, emssVideoEnabled);
         if (videoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateVideoStore(year, month, day, collection, incremental);
+              populateVideoStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -252,22 +251,20 @@ export function V2() {
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
       }
-      dispatch(setVideoLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setVideoLoadingStatus("loaded"));
     })();
   };
 
-  /** Update the photo store */
-  const populatePhotoStore = (year, month, day, collection) => {
+  const populatePhotoStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted, source } = params;
     (async () => {
-      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setPhotoLoadingStatus("loading"));
       try {
-        // photos data for today
-        const photoStoreResponse = await buildPhotoStore(year, month, day, collection);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const photoStoreResponse = await buildPhotoStore(dateWanted, source);
         if (photoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populatePhotoStore(year, month, day, collection);
+              populatePhotoStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -280,25 +277,24 @@ export function V2() {
       } catch (e) {
         dispatch(photosFetchError(e.toString()));
       }
-      dispatch(setPhotoLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setPhotoLoadingStatus("loaded"));
     })();
   };
 
-  /** Update the ephemeris store */
-  const populateEphemerisStore = (year, month, day, collection) => {
+  const populateEphemerisStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted, source } = params;
     (async () => {
-      if (collection !== Collection.ISS) {
-        dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      if (source !== "ISS") {
+        dispatch(setEphemeraLoadingStatus("unneeded"));
         return;
       }
-      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setEphemeraLoadingStatus("loading"));
       try {
-        const ephemerisStoreResponse = await buildEphemerisStore(year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const ephemerisStoreResponse = await buildEphemerisStore(dateWanted);
         if (ephemerisStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateEphemerisStore(year, month, day, collection);
+              populateEphemerisStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -309,25 +305,24 @@ export function V2() {
       } catch (e) {
         dispatch(ephemeraFetchError(e.toString()));
       }
-      dispatch(setEphemeraLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setEphemeraLoadingStatus("loaded"));
     })();
   };
 
-  /** Update the day night store */
-  const populateDayNightStore = (year, month, day, collection) => {
+  const populateDayNightStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted, source } = params;
     (async () => {
-      if (collection !== Collection.ISS) {
-        dispatch(setDayNightLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      if (source !== "ISS") {
+        dispatch(setDayNightLoadingStatus("unneeded"));
         return;
       }
-      dispatch(setDayNightLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setDayNightLoadingStatus("loading"));
       try {
-        const daynightStoreResponse = await buildDayNightStore(year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const daynightStoreResponse = await buildDayNightStore(dateWanted);
         if (daynightStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateDayNightStore(year, month, day, collection);
+              populateDayNightStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -338,53 +333,37 @@ export function V2() {
       } catch (e) {
         dispatch(daynightFetchError(e.toString()));
       }
-      dispatch(setDayNightLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setDayNightLoadingStatus("loaded"));
     })();
   };
 
-  const populateGPSStore = (year, month, day, collection) => {
+  const populateGPSStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted, source } = params;
     (async () => {
-      if (collection !== Collection.TEST_EVENTS) {
-        dispatch(setGpsLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      if (source !== "TEST_EVENTS") {
+        dispatch(setGpsLoadingStatus("unneeded"));
         return;
       }
-
-      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADING));
-      try {
-        const gpsTracksResponse = await getGPSTracks(year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
-        if (gpsTracksResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateGPSStore(year, month, day, collection);
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (gpsTracksResponse.data) dispatch(setGPSTracks(gpsTracksResponse));
-          return;
-        }
-        dispatch(setGPSTracks(gpsTracksResponse));
-      } catch (e) {
-        dispatch(gpsFetchError(e.toString()));
-      }
-      dispatch(setGpsLoadingStatus(LoadingStatusEnum.LOADED));
+      const gpsTracksResponse = await getGPSTracks(dateWanted);
+      dispatch(setGPSTracks(gpsTracksResponse));
+      dispatch(setGpsLoadingStatus("loaded"));
     })();
   };
 
-  const populateTranscriptStore = (source, year, month, day) => {
+  const populateTranscriptStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted, source } = params;
     (async () => {
-      if (source === Source.NBL) {
-        dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.UNNEEDED));
+      if (source === "NBL") {
+        dispatch(setTranscriptLoadingStatus("unneeded"));
         return;
       }
-      dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setTranscriptLoadingStatus("loading"));
       try {
-        const transcriptResponse = await getTranscripts(source, year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const transcriptResponse = await getTranscripts(dateWanted, source);
         if (transcriptResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateTranscriptStore(source, year, month, day);
+              populateTranscriptStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -395,20 +374,20 @@ export function V2() {
       } catch (e) {
         dispatch(transcriptFetchError(e.toString()));
       }
-      dispatch(setTranscriptLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setTranscriptLoadingStatus("loaded"));
     })();
   };
 
-  const populateSgAudioStore = (source, year, month, day) => {
+  const populateSgAudioStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted, source } = params;
     (async () => {
-      dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setSgAudioLoadingStatus("loading"));
       try {
-        const sgAudioResponse = await getSgAudio(source, year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const sgAudioResponse = await getSgAudio(dateWanted, source);
         if (sgAudioResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateSgAudioStore(source, year, month, day);
+              populateSgAudioStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -419,20 +398,20 @@ export function V2() {
       } catch (e) {
         dispatch(sgAudioFetchError(e.toString()));
       }
-      dispatch(setSgAudioLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setSgAudioLoadingStatus("loaded"));
     })();
   };
 
-  const populateGraphStore = (year, month, day) => {
+  const populateGraphStore = (params: { dateWanted: string; source: Source }) => {
+    const { dateWanted } = params;
     (async () => {
-      dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADING));
+      dispatch(setGraphsLoadingStatus("loading"));
       try {
-        const graphResponse = await getGraphsManifest(source, year, month, day);
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+        const graphResponse = await getGraphsManifest(dateWanted, source);
         if (graphResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateGraphStore(year, month, day);
+              populateGraphStore(params);
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -443,7 +422,7 @@ export function V2() {
       } catch (e) {
         dispatch(graphsFetchError(e.toString()));
       }
-      dispatch(setGraphsLoadingStatus(LoadingStatusEnum.LOADED));
+      dispatch(setGraphsLoadingStatus("loaded"));
     })();
   };
 
@@ -471,16 +450,25 @@ export function V2() {
     dispatch(clearGraphsManifest());
 
     // populate stores
-    populateSequenceStore(Collection[source]);
-    populateVideoStore(year, month, day, Collection[source], false);
-    populatePhotoStore(year, month, day, Collection[source]);
-    populateEphemerisStore(year, month, day, Collection[source]);
-    populateDayNightStore(year, month, day, Collection[source]);
-    populateGPSStore(year, month, day, Collection[source]);
-    populateTranscriptStore(source, year, month, day);
-    populateSgAudioStore(source, year, month, day);
-    populateGraphStore(year, month, day);
+    populateSequenceStore({ source });
+    populateVideoStore({ dateWanted, source, incremental: false });
+    populatePhotoStore({ dateWanted, source });
+    populateEphemerisStore({ dateWanted, source });
+    populateDayNightStore({ dateWanted, source });
+    populateGPSStore({ dateWanted, source });
+    populateTranscriptStore({ dateWanted, source });
+    populateSgAudioStore({ dateWanted, source });
+    populateGraphStore({ dateWanted, source });
   }, [playheadDate, source]);
+
+  // re-populate the video store when emssVideoEnabled changes
+  useEffect(() => {
+    if (_.isNull(playheadDate) || _.isNull(source)) {
+      return;
+    }
+    // populate stores
+    populateVideoStore({ dateWanted, source, incremental: true });
+  }, [emssVideoEnabled]);
 
   // if UTC yyyymmdd playhead date matches UTC today
   const isToday = d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0];
@@ -488,28 +476,12 @@ export function V2() {
   // re-poll endpoints every minute
   useInterval(() => {
     if (isToday) {
-      // if this is a test event, poll video more often
-      if (Collection[source] === Collection.TEST_EVENTS) {
-        populateVideoStore(year, month, day, Collection[source], true);
-      }
-      populateTranscriptStore(source, year, month, day);
-      populateSgAudioStore(source, year, month, day);
+      populateVideoStore({ dateWanted, source, incremental: false });
+      populatePhotoStore({ dateWanted, source });
+      populateTranscriptStore({ dateWanted, source });
+      populateSgAudioStore({ dateWanted, source });
     }
   }, 60 * 1000);
-
-  // re-poll endpoints every 5 minutes
-  useInterval(
-    () => {
-      if (isToday) {
-        // not a test event, so poll video less often (for Io's sake)
-        if (Collection[source] !== Collection.TEST_EVENTS) {
-          populateVideoStore(year, month, day, Collection[source], true);
-        }
-        populatePhotoStore(year, month, day, Collection[source]);
-      }
-    },
-    5 * 60 * 1000
-  );
 
   return (
     <div className={styles.main}>
@@ -518,7 +490,7 @@ export function V2() {
       <div className={styles.body}>
         <Viewer />
       </div>
-      <Timeline collection={Collection[source]} />
+      <Timeline source={source} />
       <PlaybackControls />
     </div>
   );
@@ -535,11 +507,11 @@ function getURLParams(query: URLSearchParams): QueryParams {
 
   let fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
-    if (source === SourceShortVal.ISS) {
-      fState.source = Source.ISS;
+    if (source === sourceShortVal.ISS) {
+      fState.source = "ISS";
       fState.layout = "c";
-    } else if (source === SourceShortVal.TEST_EVENTS) {
-      fState.source = Source.TEST_EVENTS;
+    } else if (source === sourceShortVal.TEST_EVENTS) {
+      fState.source = "TEST_EVENTS";
       // if we're looking at the test events, we need to change the ISS location frame to GPS location pane
       fState.frames = setGPSLocationFrame(fState, "5");
       // set the default layout to the standard without Event Info
@@ -548,16 +520,16 @@ function getURLParams(query: URLSearchParams): QueryParams {
         // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
         date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
       }
-    } else if (source === SourceShortVal.NBL) {
-      fState.source = Source.NBL;
+    } else if (source === sourceShortVal.NBL) {
+      fState.source = "NBL";
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
       if (_.isNil(date)) {
         // 2021-10-28 is a good representation of NBL events
         date = new Date(2021, 9, 28).toISOString().split("T")[0]; // 9 = October
       }
-    } else if (source === SourceShortVal.ARTEMIS) {
-      fState.source = Source.ARTEMIS;
+    } else if (source === sourceShortVal.ARTEMIS) {
+      fState.source = "ARTEMIS";
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
       if (_.isNil(date)) {

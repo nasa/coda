@@ -1,37 +1,57 @@
 /*
 Client-side methods for fetching from Imagery Online (IO)
 */
-import { Collection } from "utils/enums";
-import { cleanCollectionsString } from "utils/formatting";
-
+import { cleanCollectionsString, queryStringFromObject } from "utils/formatting";
 /**
  * Fetch and format all videos for passing to the redux store
  */
 export async function buildVideoStore(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection
+  dateWanted: string,
+  source: Source,
+  emssVideoEnabled: boolean
 ): Promise<WrappedResponse<VideoFile[]>> {
-  const res = await fetch(
-    `/api/v1/media/videos?year=${year}&month=${month}&date=${date}&collection=${collection}`
-  );
-  const wrappedResponse: WrappedResponse<VideoFile[]> = await res.json();
-  return wrappedResponse;
+  const queryParams: GetVideosQueryParams = {
+    dateWanted,
+    source,
+  };
+  const queryString = queryStringFromObject(queryParams);
+  // fetch IO videos
+  const ioRes = await fetch(`/api/v1/media/videos?${queryString}`);
+  const ioResponse: WrappedResponse<VideoFile[]> = await ioRes.json();
+
+  // If user hasn't enabled EMSS videos, return IO videos only
+  if (!emssVideoEnabled) {
+    return ioResponse;
+  }
+
+  // fetch EMSS videos as well. The server returns [] if there was nothing found
+  const emssRes = await fetch(`/api/v1/media/emssVideos?${queryString}`);
+  const emssResponse: WrappedResponse<VideoFile[]> = await emssRes.json();
+
+  // merge the two video sources but use the responseMetadata from the io response in case it's "inprogress"
+  const allVideos = ioResponse.data.concat(emssResponse.data);
+  allVideos.sort((a, b) => a.start - b.start);
+  const allVideosWrappedResponse: WrappedResponse<VideoFile[]> = {
+    responseMetadata: ioResponse.responseMetadata,
+    data: allVideos,
+  };
+
+  return allVideosWrappedResponse;
 }
 
 /**
  * Fetch and format all photos for passing to the redux store
  */
 export async function buildPhotoStore(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection
+  dateWanted: string,
+  source: Source
 ): Promise<WrappedResponse<PhotoFile[]>> {
-  const res = await fetch(
-    `/api/v1/media/photos?year=${year}&month=${month}&date=${date}&collection=${collection}`
-  );
+  const queryParams: GetPhotosQueryParams = {
+    dateWanted,
+    source,
+  };
+  const queryString = queryStringFromObject(queryParams);
+  const res = await fetch(`/api/v1/media/photos?${queryString}`);
   const wrappedResponse: WrappedResponse<PhotoFile[]> = await res.json();
   return wrappedResponse;
 }
