@@ -148,6 +148,10 @@ export const getVideoCoverageTimeRanges = async (params: {
   const dateWantedMidnightUnix = dateWantedMidnight / 1000;
   const videoCoverageTimeRanges: VideoCoverageTimeRanges = [];
   videoData.data.forEach((video) => {
+    // don't include non-downlink videos
+    if (video.downlink === -1) {
+      return;
+    }
     const videoCoverageTimeRange: VideoCoverageTimeRange = [
       video.start - dateWantedMidnightUnix,
       video.end - dateWantedMidnightUnix,
