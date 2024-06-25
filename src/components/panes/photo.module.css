@@ -145,10 +145,24 @@
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.photoPoster::before {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
   background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
   background-size: 50%;
-  /* filter: grayscale(100%) contrast(0.75); */
   opacity: 0.4;
+}
+
+.photoPosterFilter {
+  width: 100%;
+  height: 100%;
+  position: absolute;
 }
 
 .photo {
