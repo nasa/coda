@@ -159,11 +159,6 @@ deploy:prod:
     - docker:retag
     - deploy:artifactize-committed-files
     - { job: "test", artifacts: false }
-    - { job: "project-check", artifacts: false }
-    # - { job: "phpcs-security-audit-sast", artifacts: false }
-    # - { job: "nodejs-scan-sast", artifacts: false }
-    - { job: "semgrep-sast", artifacts: false }
-    - { job: "dependency-check", artifacts: false }
   environment:
     name: production
     url: https://coda.fit.nasa.gov

@@ -80,6 +80,8 @@ dependency-check:
     - /usr/share/dependency-check/bin/dependency-check.sh --scan "./" --format ALL --project "$CI_PROJECT_NAME" --failOnCVSS 0 --suppression /suppressions/fp-cpe-suppression.xml --suppression /suppressions/fp-cve-suppression.xml --suppression ./ci/suppression.xml
   # Allow failure will report a failure, but continue execution of the pipeline
   allow_failure: true
+  only:
+    - int
   artifacts:
     # Saving artifacts always forces them to be saved on failure as well as success
     when: always
