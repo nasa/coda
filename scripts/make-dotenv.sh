@@ -43,7 +43,7 @@ if [ -z "${CI+set}" ]; then # if not in CI (aka local)
     export DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
     export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
     export CACHE_ROOT=./.cache/dev
-    export TALKYBOT_URL=https://coda-dev2.fit.nasa.gov
+    export TALKYBOT_URL=https://emss-labs-local.fit.nasa.gov
 
     export DOCKER_DB_DATA_DIR=./.local/database
     export DOCKER_DB_INIT_DIR=./.local/db-init
@@ -58,7 +58,7 @@ else
     export DOCKER_HOST_SSL_PRIVATE_DIR=/etc/pki/tls/private
     export DOCKER_HOST_HTTP_STATIC_DIR=/d1/coda/static
     export CACHE_ROOT=/d1/coda/cache
-    export TALKYBOT_URL=https://emss-labs-local.fit.nasa.gov
+    export TALKYBOT_URL=https://coda-dev2.fit.nasa.gov
 
     export DOCKER_DB_DATA_DIR=/d1/postgres
     export DOCKER_DB_INIT_DIR=/d1/db-init
