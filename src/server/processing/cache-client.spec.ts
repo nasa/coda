@@ -1,6 +1,5 @@
 import cacache from "cacache";
 import fetchWithCache, { clearCacheByFolder } from "./cache-client";
-import { CacheFolder } from "utils/enums";
 
 /** Pause the main thread for `seconds` seconds */
 async function waitFor(seconds: number) {
@@ -18,13 +17,13 @@ describe("services/cache-client", () => {
     // testing retrievers that throw will lead to a bunch of unnecessary console.warn'ing and console.error'ing
     errorMock = jest.spyOn(console, "error").mockImplementation(() => {});
     warnMock = jest.spyOn(console, "warn").mockImplementation(() => {});
-    await clearCacheByFolder(CacheFolder.test);
+    await clearCacheByFolder("test");
   });
 
   afterAll(async () => {
     errorMock.mockReset();
     warnMock.mockReset();
-    await clearCacheByFolder(CacheFolder.test);
+    await clearCacheByFolder("test");
   });
 
   it("new calls should return inprogress", async () => {
@@ -38,7 +37,7 @@ describe("services/cache-client", () => {
 
     const res = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 1,
     });
@@ -54,7 +53,7 @@ describe("services/cache-client", () => {
 
     const res1 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 100,
       forceRetriever: true,
@@ -71,7 +70,7 @@ describe("services/cache-client", () => {
 
     const res2 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
     });
 
@@ -94,7 +93,7 @@ describe("services/cache-client", () => {
 
     const res1 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 100,
       forceRetriever: true,
@@ -108,7 +107,7 @@ describe("services/cache-client", () => {
     // not enough time has passed for the retriever
     const res2 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
     });
     expect(res2.responseMetadata.retrieverStatus).toEqual("inprogress");
@@ -120,7 +119,7 @@ describe("services/cache-client", () => {
 
     const res3 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
     });
     expect(res3.responseMetadata.retrieverStatus).toEqual("complete");
@@ -142,7 +141,7 @@ describe("services/cache-client", () => {
 
     const res1 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge,
       forceRetriever: true,
@@ -154,7 +153,7 @@ describe("services/cache-client", () => {
     // run again and we should still get an "inprogress" response
     const res2 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge,
     });
@@ -166,7 +165,7 @@ describe("services/cache-client", () => {
     // cache should definitely be expired
     const res3 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge,
     });
@@ -177,7 +176,7 @@ describe("services/cache-client", () => {
 
     const res4 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge,
     });
@@ -200,7 +199,7 @@ describe("services/cache-client", () => {
 
     const res1 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 1,
       // we will cooldown retryCoefficient x errorCount after each failed retriever
@@ -215,7 +214,7 @@ describe("services/cache-client", () => {
     await waitFor(retryCoefficient / 2);
     const res2 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 1,
       errorRetryCoefficient: retryCoefficient,
@@ -228,7 +227,7 @@ describe("services/cache-client", () => {
     // we've waited more than `errorRetryCoefficient x errorCount` time after the last error. the retriever should run again
     const res3 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 1,
       errorRetryCoefficient: retryCoefficient,
@@ -245,7 +244,7 @@ describe("services/cache-client", () => {
     shouldError = false;
     const res4 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 1,
       errorRetryCoefficient: retryCoefficient,
@@ -259,7 +258,7 @@ describe("services/cache-client", () => {
     // back to good responses. we should see the cached response from last time
     const res5 = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
       cacheAge: 1,
       errorRetryCoefficient: retryCoefficient,
@@ -286,7 +285,7 @@ describe("services/cache-client", () => {
 
     const res = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
     });
 
@@ -317,7 +316,7 @@ describe("services/cache-client", () => {
 
     const res = await fetchWithCache({
       identifier,
-      cacheFolder: CacheFolder.test,
+      cacheFolder: "test",
       retriever,
     });
 

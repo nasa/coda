@@ -6,7 +6,7 @@ import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { changeTime } from "store/playhead";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
-import { SequenceType } from "utils/enums";
+import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
 import { useEffect, useState } from "react";
@@ -109,7 +109,7 @@ export default function EventInfo(props: { frameID: number }) {
 
   return (
     <div className={styles.main}>
-      {!isNil(seq) && seq.type === SequenceType.EVA ? (
+      {!isNil(seq) && seq.type === sequenceType.EVA ? (
         <>
           <table className={styles.dataTable}>
             <tbody>

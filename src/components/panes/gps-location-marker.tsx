@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./gps-location-marker.module.css";
 
 const GPSMarker = (props) => {

@@ -61,7 +61,7 @@ export default class DrawNav {
     readonly evaRendered: string,
     readonly evaStartSec: number,
     readonly isToday: boolean,
-    readonly sgActivityRangeRecords: SgActivityRangeRecord[][]
+    readonly sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][]
   ) {}
 
   initGroups() {
@@ -473,11 +473,11 @@ export default class DrawNav {
     compress: boolean;
   }): paper.Group {
     const group = new paper.Group();
-    if (!this.sgActivityRangeRecords || this.sgActivityRangeRecords?.length < 4) {
+    if (!this.sgActivityFullPathRangeRecords || this.sgActivityFullPathRangeRecords?.length < 4) {
       return;
     }
     for (let sgChannel = 0; sgChannel <= 3; sgChannel++) {
-      const activityRanges = this.sgActivityRangeRecords[sgChannel];
+      const activityRanges = this.sgActivityFullPathRangeRecords[sgChannel];
 
       for (let i = 0; i < activityRanges.length; i++) {
         const range = activityRanges[i];

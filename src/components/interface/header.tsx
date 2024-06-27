@@ -11,7 +11,7 @@ import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
-import { Collection, Source, SourceShortVal } from "utils/enums";
+import { collection, sourceShortVal } from "utils/consts";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
@@ -119,7 +119,7 @@ export function SourcesDropdown() {
     // dispatch(changeSource(e.target.value as Source));
 
     let URL = generateShareURL(framework, playhead);
-    const sourceParam = SourceShortVal[e.target.value];
+    const sourceParam = sourceShortVal[e.target.value];
     // replace the source in URL with selected source
     URL = URL.replace(/s=([^&]*)/, `s=${sourceParam}`);
 
@@ -134,10 +134,10 @@ export function SourcesDropdown() {
           handleSourceChange(e);
         }}
       >
-        <option value={Source.ARTEMIS}>ARTEMIS</option>
-        <option value={Source.ISS}>ISS</option>
-        <option value={Source.NBL}>NBL</option>
-        <option value={Source.TEST_EVENTS}>Test Events</option>
+        <option value={"ARTEMIS"}>ARTEMIS</option>
+        <option value={"ISS"}>ISS</option>
+        <option value={"NBL"}>NBL</option>
+        <option value={"TEST_EVENTS"}>Test Events</option>
       </select>
       <div className={styles.select_arrow}>
         <FontAwesomeIcon icon="chevron-down" />
@@ -280,7 +280,7 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
         </div>
         <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
           <EventDropdown
-            collection={Collection[source]}
+            collection={collection[source]}
             setHelpLoaderOpen={props.setHelpLoaderOpen}
           />
         </div>

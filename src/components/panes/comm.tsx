@@ -32,22 +32,24 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
   const paneStateData: CommPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
-  const sgActivityRecord = useSelector((state: RootState) => state.sgAudio.sgActivityRecord);
+  const sgActivityFullUrlRecord = useSelector(
+    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord
+  );
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const [channelAvailability, setChannelAvailability] = useState([]);
 
   useEffect(() => {
     if (
-      !sgActivityRecord?.sgActivityRangeRecords ||
-      (sgActivityRecord?.sgActivityRangeRecords &&
-        sgActivityRecord?.sgActivityRangeRecords?.length === 0)
+      !sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords ||
+      (sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords &&
+        sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.length === 0)
     ) {
       return;
     }
     const cAvailability = [];
     for (const channel in sgChannels) {
-      const activityRanges = sgActivityRecord?.sgActivityRangeRecords[channel];
+      const activityRanges = sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords[channel];
       let activeRange = false;
       for (let i = 0; i < activityRanges.length; i++) {
         const range = activityRanges[i];
@@ -62,7 +64,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
       cAvailability.push(activeRange);
     }
     setChannelAvailability(cAvailability);
-  }, [sgActivityRecord, playhead.seconds]);
+  }, [sgActivityFullUrlRecord, playhead.seconds]);
 
   const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
@@ -202,7 +204,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
 }
 
 type SgAudioObj = {
-  range: SgActivityRangeRecord;
+  range: SgActivityRangeFullUrlRecord;
   playOffset: number;
 };
 
@@ -210,7 +212,9 @@ export default function CommPane(props: { frameID: number }) {
   const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
   const isTranscripts = useSelector((state: RootState) => state.transcript.isTranscripts);
   const playhead = useSelector((state: RootState) => state.playhead);
-  const sgActivityRecord = useSelector((state: RootState) => state.sgAudio.sgActivityRecord);
+  const sgActivityFullUrlRecord = useSelector(
+    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord
+  );
   const paneStateData: CommPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[props.frameID].paneStateData
   );
@@ -239,14 +243,18 @@ export default function CommPane(props: { frameID: number }) {
   // Set the activeSgAudioObj for this second and update the srcUrl if audio unmuted, otherwise no need to load the audio file
   useEffect(() => {
     if (
-      !sgActivityRecord?.sgActivityRangeRecords ||
-      (sgActivityRecord?.sgActivityRangeRecords &&
-        sgActivityRecord?.sgActivityRangeRecords?.length === 0)
+      !sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords ||
+      (sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords &&
+        sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.length === 0)
     ) {
       return;
     }
-    if (sgActivityRecord.sgActivityRangeRecords.length > 0 && !paneStateData.isMuted) {
-      const activityRanges = sgActivityRecord.sgActivityRangeRecords[paneStateData.sgChannel];
+    if (
+      sgActivityFullUrlRecord.sgActivityRangeFullUrlRecords.length > 0 &&
+      !paneStateData.isMuted
+    ) {
+      const activityRanges =
+        sgActivityFullUrlRecord.sgActivityRangeFullUrlRecords[paneStateData.sgChannel];
       let activeRange = false;
       for (let i = 0; i < activityRanges.length; i++) {
         const range = activityRanges[i];
@@ -254,11 +262,7 @@ export default function CommPane(props: { frameID: number }) {
           playhead.seconds >= range.sound_start_secs &&
           playhead.seconds <= range.sound_stop_secs
         ) {
-          const newSrcUrl = sgActivityRecord.overrideBaseUrl
-            ? `${sgActivityRecord.overrideBaseUrl}/audio/${range.aacSegmentFilename}`
-            : `https://emss-labs.fit.nasa.gov/transcriptions/${
-                playhead.date.split("T")[0]
-              }/audio_files/SG${paneStateData.sgChannel + 1}/${range.aacSegmentFilename}`;
+          const newSrcUrl = range.aacSegmentFullUrl;
 
           if (srcUrl !== newSrcUrl) {
             setSrcUrl(newSrcUrl);
@@ -283,7 +287,7 @@ export default function CommPane(props: { frameID: number }) {
         setSrcUrl("");
       }
     }
-  }, [sgActivityRecord, playhead.seconds, paneStateData.isMuted]);
+  }, [sgActivityFullUrlRecord, playhead.seconds, paneStateData.isMuted]);
 
   // Cue the audio and figure out whether to play or pause the audio
   useEffect(() => {

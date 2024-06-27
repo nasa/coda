@@ -2,19 +2,19 @@ import clone from "lodash/cloneDeep";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import * as OverrideService from "server/services/media_override";
-import { Collection, IOFetchType } from "utils/enums";
+import { collection } from "utils/consts";
 import _ from "lodash";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
  */
-export default async function getVideoData(
-  year: number,
-  month: number,
-  date: number,
-  collection: Collection,
-  forceNew: boolean
-): Promise<WrappedResponse<VideoFile[]>> {
+export default async function getVideoData(params: {
+  dateWanted: string;
+  source: Source;
+  forceNew: boolean;
+}): Promise<WrappedResponse<VideoFile[]>> {
+  const { dateWanted, source, forceNew } = params;
+  const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
   // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
@@ -35,7 +35,7 @@ export default async function getVideoData(
     const relevantMediaOverrides: MediaSourceOverride[] = mediaOverrides?.data?.filter((vo) => {
       return (
         new Date(vo.date).getTime() === requestedDate.getTime() &&
-        vo.source === collection &&
+        vo.source === source &&
         vo.type === "video"
       );
     });
@@ -62,11 +62,16 @@ export default async function getVideoData(
   }
 
   // fetch video info and fudge factors in parallel
+  const col = collection[source];
+
   const [ioResults, timeOverrides] = await Promise.all([
     // fetch and parse videos for the requested day, the day before, and the day after
-    IoService.fetchData(collection, IOFetchType.VIDEOS, requestedDate, forceNew) as Promise<
-      WrappedResponse<VideoFile[]>
-    >,
+    IoService.fetchData({
+      collection: col,
+      fetchType: "videos",
+      requestedDate,
+      forceNew,
+    }) as Promise<WrappedResponse<VideoFile[]>>,
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
@@ -120,3 +125,39 @@ export default async function getVideoData(
     return ioResults;
   }
 }
+
+export const getVideoCoverageTimeRanges = async (params: {
+  dateWanted: string;
+  source: Source;
+  forceNew: boolean;
+}): Promise<VideoCoverageTimeRanges> => {
+  const { dateWanted, source, forceNew } = params;
+  let videoData = await getVideoData({ dateWanted, source, forceNew });
+  if (videoData?.responseMetadata?.retrieverStatus === "inprogress") {
+    // try once per second for up to 10 seconds
+    let tries = 0;
+    while (videoData?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      videoData = await getVideoData({ dateWanted, source, forceNew: false });
+      tries++;
+    }
+  }
+
+  //create an array of video coverage time ranges. Times are in seconds since midnight of the dateWanted to match the transcript time values
+  const dateWantedMidnight = new Date(dateWanted).setUTCHours(0, 0, 0, 0);
+  const dateWantedMidnightUnix = dateWantedMidnight / 1000;
+  const videoCoverageTimeRanges: VideoCoverageTimeRanges = [];
+  videoData.data.forEach((video) => {
+    // don't include non-downlink videos
+    if (video.downlink === -1) {
+      return;
+    }
+    const videoCoverageTimeRange: VideoCoverageTimeRange = [
+      video.start - dateWantedMidnightUnix,
+      video.end - dateWantedMidnightUnix,
+    ];
+    videoCoverageTimeRanges.push(videoCoverageTimeRange);
+  });
+
+  return videoCoverageTimeRanges;
+};

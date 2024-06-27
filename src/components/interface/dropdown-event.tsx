@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
-import { Collection } from "utils/enums";
+import { collection } from "utils/consts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
@@ -20,13 +20,13 @@ export default function EventDropdown(props: {
   const playhead = useSelector((state: RootState) => state.playhead);
 
   let allSequences = sequences.allSequences;
-  if (props.collection === Collection.NBL) {
+  if (props.collection === collection.NBL) {
     // Show only NBL sequences
     allSequences = allSequences.filter((eva) => eva.displayTitle.includes("NBL"));
-  } else if (props.collection === Collection.TEST_EVENTS) {
+  } else if (props.collection === collection.TEST_EVENTS) {
     // Filter out all NBL sequences
     allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
-  } else if (props.collection === Collection.ARTEMIS) {
+  } else if (props.collection === collection.ARTEMIS) {
     // Filter out all sequences because there's nothing to show in the dropdown for Artemis (currently)
     allSequences = [];
   }
@@ -61,17 +61,17 @@ export default function EventDropdown(props: {
   const earliestCutoff = new Date("2013-03-30");
 
   let selectText = "";
-  if (props.collection === Collection.ISS) {
+  if (props.collection === collection.ISS) {
     selectText = "Select EVA";
-  } else if (props.collection === Collection.NBL) {
+  } else if (props.collection === collection.NBL) {
     selectText = "Select NBL Run";
-  } else if (props.collection === Collection.TEST_EVENTS) {
+  } else if (props.collection === collection.TEST_EVENTS) {
     selectText = "Select Test Event";
-  } else if (props.collection === Collection.ARTEMIS) {
+  } else if (props.collection === collection.ARTEMIS) {
     selectText = "Select Mission Date";
   }
 
-  if (props.collection === Collection.ARTEMIS) {
+  if (props.collection === collection.ARTEMIS) {
     // Create a dropdown of just dates for Artemis 1. There's no Wiki source for this.
     return (
       <div className={styles.select}>

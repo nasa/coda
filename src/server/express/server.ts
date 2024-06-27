@@ -4,6 +4,8 @@ import { createServer, Server as NetServer } from "http";
 import app from "./restApi";
 import { getORM } from "utils/mikro";
 
+const port = 3001;
+
 // start the database connection
 getORM();
 
@@ -13,7 +15,6 @@ const server: NetServer = createServer();
 // express request handler
 server.on("request", app);
 
-// hard-coded port to 2000 for simplicity until more flexibility needed
-server.listen(2000, () => {
-  console.log(`http server (re)started`);
+server.listen(port, () => {
+  console.log(`http server (re)started on ${port}`);
 });

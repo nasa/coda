@@ -316,7 +316,9 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
             {paneStateData.showInfo ? renderPhotoOverlay() : renderPhotoFilter()}
           </>
         ) : (
-          <div className={styles.photoPoster}></div>
+          <div className={styles.photoPoster}>
+            <div className={styles.photoPosterFilter}>{renderPhotoFilter()}</div>
+          </div>
         )}
       </div>
       <HelpOverlay

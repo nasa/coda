@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { changeTime,  } from "store/playhead";
+import { changeTime } from "store/playhead";
 import { changeHoverTime } from "store/playheadHover";
 import {
   getAsPerformedMissionTime,
@@ -14,22 +14,21 @@ import { filterVisibleVideos } from "store/videos";
 
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
-import { Collection } from "utils/enums";
 import styles from "./nav-timeline-draw.module.css";
 import { isSameDate } from "../../utils/date";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
-export default function NavTimeline(props: { collection: Collection }) {
+export default function NavTimeline(props: { source: Source }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const dayNights: DayNightState = useSelector((state: RootState) => state.dayNight);
   const videos: VideosState = useSelector((state: RootState) => state.videos);
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const sgActivityRangeRecords: SgActivityRangeRecord[][] = useSelector(
-    (state: RootState) => state.sgAudio.sgActivityRecord?.sgActivityRangeRecords,
+  const sgActivityRangeFullUrlRecord: SgActivityRangeFullUrlRecord[][] = useSelector(
+    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords,
     shallowEqual
   );
   const maestro: MaestroState = useSelector((state: RootState) => state.maestro);
@@ -41,10 +40,10 @@ export default function NavTimeline(props: { collection: Collection }) {
   const photoFiles = photos.photoFiles;
 
   let allEVAs = sequences.allSequences;
-  if (props.collection === Collection.NBL) {
+  if (props.source === "NBL") {
     // Show only NBL sequences
     allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
-  } else if (props.collection === Collection.TEST_EVENTS) {
+  } else if (props.source === "TEST_EVENTS") {
     // Filter out all NBL sequences
     allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
@@ -115,7 +114,7 @@ export default function NavTimeline(props: { collection: Collection }) {
       evaName,
       evaStartSec,
       isToday,
-      sgActivityRangeRecords
+      sgActivityRangeFullUrlRecord
     );
 
     drawNav.current.initGroups();
@@ -185,7 +184,7 @@ export default function NavTimeline(props: { collection: Collection }) {
     dayNight,
     photos,
     playhead.date,
-    sgActivityRangeRecords,
+    sgActivityRangeFullUrlRecord,
   ]);
 
   useEffect(() => {
