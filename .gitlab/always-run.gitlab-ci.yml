@@ -87,6 +87,8 @@ dependency-check:
     paths:
       - "./dependency-check-report.html"
       - "./dependency-check-report.json"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
 
 npm-audit:
   stage: stageless
