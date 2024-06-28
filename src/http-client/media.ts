@@ -74,8 +74,8 @@ export function buildPhotoCollections(photos: PhotoFile[]) {
   }
   //sort collections alphabetically.
   collections.sort(function (a, b) {
-    var valA = a.display.toUpperCase(); // ignore upper and lowercase
-    var valB = b.display.toUpperCase(); // ignore upper and lowercase
+    const valA = a.display.toUpperCase(); // ignore upper and lowercase
+    const valB = b.display.toUpperCase(); // ignore upper and lowercase
     if (valA < valB) {
       return -1;
     }

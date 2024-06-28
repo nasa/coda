@@ -63,11 +63,10 @@ export function hhmmFromSeconds(secondsParam: number): string {
  * Formats any appSeconds value into hh:mm:ss equivalent
  */
 export function hhmmssFromSeconds(secondsParam: number): string {
-  var hours = Math.abs(Math.trunc(secondsParam / 3600));
-  var minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
-  var seconds = Math.abs(Math.trunc(secondsParam)) % 60;
-  seconds = Math.floor(seconds);
-  var timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
+  const hours = Math.abs(Math.trunc(secondsParam / 3600));
+  const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
+  const seconds = Math.floor(Math.abs(Math.trunc(secondsParam)) % 60);
+  let timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
   if (secondsParam < 0) {
     timeStr = "-" + timeStr;
   }
@@ -82,7 +81,7 @@ export function hhmmssmmmFromSeconds(secondsParam: number): string {
   const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
   let seconds = Math.abs(Math.trunc(secondsParam)) % 60;
   const milliseconds = (secondsParam - Math.trunc(secondsParam)).toFixed(3);
-  var timeStr =
+  let timeStr =
     padZeros(hours, 2) +
     ":" +
     padZeros(minutes, 2) +

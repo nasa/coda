@@ -609,7 +609,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   };
 
   const toggleFullScreen = () => {
-    var el = videoElement.current;
+    const el = videoElement.current;
     if (el.requestFullscreen) {
       el.requestFullscreen();
     }
