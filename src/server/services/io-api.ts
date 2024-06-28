@@ -295,7 +295,7 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
-  var dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then stream a mock video file in place of all video files
   // this allows dev to continue with VPN off
@@ -377,7 +377,7 @@ function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFil
 
 /** Parse the photo result for relevant information */
 function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
-  var dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
   // if we are using mock data, then use a mock photo that is not export restricted
   // this allows dev to continue with VPN off
