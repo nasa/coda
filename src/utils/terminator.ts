@@ -1,13 +1,13 @@
 import type { FeatureCollection, Geometry } from "geojson";
 
-function julian(date): number {
+function julian(date: Date): number {
   /* Calculate the present UTC Julian Date. Function is valid after
    * the beginning of the UNIX epoch 1970-01-01 and ignores leap
    * seconds. */
-  return date / 86400000 + 2440587.5;
+  return date.getTime() / 86400000 + 2440587.5;
 }
 
-function GMST(julianDay): number {
+function GMST(julianDay: number): number {
   /* Calculate Greenwich Mean Sidereal Time according to 
      http://aa.usno.navy.mil/faq/docs/GAST.php */
   var d = julianDay - 2451545.0;
@@ -46,13 +46,13 @@ export default class Terminator {
     return this._toGeoJSON(latLngs);
   }
 
-  setTime(date) {
+  setTime(date: Date) {
     this.options.time = date;
-    var latLngs = this._compute();
+    const latLngs = this._compute();
     return this._toGeoJSON(latLngs);
   }
 
-  _toGeoJSON(latLngs): FeatureCollection<Geometry> {
+  _toGeoJSON(latLngs: number[][]): FeatureCollection<Geometry> {
     /* Return 'pseudo' GeoJSON representation of the coordinates
       Why 'pseudo'?
       Coordinates longitude range go from -360 to 360
@@ -87,7 +87,7 @@ export default class Terminator {
     };
   }
 
-  _sunEclipticPosition(julianDay): Ecliptic {
+  _sunEclipticPosition(julianDay: number): Ecliptic {
     /* Compute the position of the Sun in ecliptic coordinates at
        julianDay.  Following
        http://en.wikipedia.org/wiki/Position_of_the_Sun */
@@ -106,7 +106,7 @@ export default class Terminator {
     return { lambda: lambda, R: R };
   }
 
-  _eclipticObliquity(julianDay): number {
+  _eclipticObliquity(julianDay: number): number {
     // Following the short term expression in
     // http://en.wikipedia.org/wiki/Axial_tilt#Obliquity_of_the_ecliptic_.28Earth.27s_axial_tilt.29
     var n = julianDay - 2451545.0;
@@ -122,7 +122,7 @@ export default class Terminator {
     return epsilon;
   }
 
-  _sunEquatorialPosition(sunEclLng, eclObliq): SunPosition {
+  _sunEquatorialPosition(sunEclLng: number, eclObliq: number): SunPosition {
     /* Compute the Sun's equatorial position from its ecliptic
      * position. Inputs are expected in degrees. Outputs are in
      * degrees as well. */
@@ -138,21 +138,21 @@ export default class Terminator {
     return { alpha: alpha, delta: delta };
   }
 
-  _hourAngle(lng, sunPos, gst): number {
+  _hourAngle(lng: number, sunPos: { alpha: number; delta?: number }, gst: number): number {
     /* Compute the hour angle of the sun for a longitude on
      * Earth. Return the hour angle in degrees. */
     var lst = gst + lng / 15;
     return lst * 15 - sunPos.alpha;
   }
 
-  _latitude(ha, sunPos): number {
+  _latitude(ha: number, sunPos: { alpha?: number; delta: number }): number {
     /* For a given hour angle and sun position, compute the
      * latitude of the terminator in degrees. */
     var lat = Math.atan(-Math.cos(ha * this._D2R) / Math.tan(sunPos.delta * this._D2R)) * this._R2D;
     return lat;
   }
 
-  _compute(): number[] {
+  _compute(): number[][] {
     var today = this.options.time ? new Date(this.options.time) : new Date();
     var julianDay = julian(today);
     var gst = GMST(julianDay);

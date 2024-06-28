@@ -1,4 +1,4 @@
-interface ChartLayout {
+export interface ChartLayout {
   autosize: boolean;
   height: number;
   showlegend: boolean;
@@ -45,7 +45,7 @@ interface ChartLayout {
   };
 }
 
-export function getPlotlyChartLayout(height) {
+export function getPlotlyChartLayout(height: number) {
   const labelcolor = "#999999";
   const chartLayout: ChartLayout = {
     autosize: true,

@@ -22,15 +22,17 @@ export async function getGPSTracks(dateWanted: string): Promise<WrappedResponse<
       const parsed = parser.parse(gpxXml);
 
       // create GPSTrack object from parsed XML
-      const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map((point) => {
-        const newGpsPoint: GPSPoint = {
-          lat: parseFloat(point.lat),
-          lon: parseFloat(point.lon),
-          ele: point.ele,
-          time: point.time,
-        };
-        return newGpsPoint;
-      });
+      const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map(
+        (point: { lat: string; lon: string; ele: any; time: any }) => {
+          const newGpsPoint: GPSPoint = {
+            lat: parseFloat(point.lat),
+            lon: parseFloat(point.lon),
+            ele: point.ele,
+            time: point.time,
+          };
+          return newGpsPoint;
+        }
+      );
 
       const gpsTrack: GPSTrack = {
         name: GPXTrackRecord.name,

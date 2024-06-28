@@ -29,11 +29,11 @@ export default function SharePanel({
     setShareURLtextValue(URL);
   }
 
-  function handleCopyToClipboard(e) {
+  function handleCopyToClipboard(e: React.MouseEvent<HTMLButtonElement>) {
     shareURLtextarea.current.select();
     // navigator.clipboard.writeText(shareURLtextarea.current.value);
     document.execCommand("copy");
-    e.target.focus();
+    (e.target as HTMLButtonElement).focus();
     setCopyButtonText("Link Copied");
   }
 

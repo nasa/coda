@@ -33,8 +33,8 @@ interface Panes {
 }
 
 type PaneTypeComponentSet = {
-  controls: Function;
-  pane: Function;
+  controls: React.ComponentType<any>;
+  pane: React.ComponentType<any>;
 };
 
 type PaneTypeComponentSets = {

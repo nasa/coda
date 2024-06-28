@@ -1,5 +1,5 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
-import { useEffect, useRef, useState } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { changeTime } from "store/playhead";
@@ -23,14 +23,16 @@ library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen, faFilte
 
 const sgChannels = [0, 1, 2, 3];
 
-export function CommControls(props: { frameID: number; frameDimensions: [number, number] }) {
-  const frameID = props.frameID;
+export const CommControls: FunctionComponent<{
+  frameID: number;
+  frameDimensions: [number, number];
+}> = ({ frameID, frameDimensions }) => {
   const dispatch = useDispatch();
 
   const minWidth = 470; // minimum width of the transcript pane before breaking into dropdown for downlinks
 
   const paneStateData: CommPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
   const sgActivityFullUrlRecord = useSelector(
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord
@@ -66,7 +68,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
     setChannelAvailability(cAvailability);
   }, [sgActivityFullUrlRecord, playhead.seconds]);
 
-  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (paneStateData?.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
@@ -77,7 +79,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
   }
 
   const controlsLeft = () => {
-    if (props.frameDimensions[0] > minWidth) {
+    if (frameDimensions[0] > minWidth) {
       return (
         <div className={styles.selections}>
           {sgChannels.map((c) => {
@@ -167,7 +169,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>{props.frameDimensions[0] > minWidth ? "Filter" : ""}</div>
+              <div>{frameDimensions[0] > minWidth ? "Filter" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={faFilter} size="sm" />
               </div>
@@ -183,7 +185,7 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
               </div>
@@ -201,14 +203,14 @@ export function CommControls(props: { frameID: number; frameDimensions: [number,
       </div>
     </div>
   );
-}
+};
 
 type SgAudioObj = {
   range: SgActivityRangeFullUrlRecord;
   playOffset: number;
 };
 
-export default function CommPane(props: { frameID: number }) {
+const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
   const isTranscripts = useSelector((state: RootState) => state.transcript.isTranscripts);
   const playhead = useSelector((state: RootState) => state.playhead);
@@ -216,7 +218,7 @@ export default function CommPane(props: { frameID: number }) {
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord
   );
   const paneStateData: CommPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   // SG audio state
@@ -231,7 +233,6 @@ export default function CommPane(props: { frameID: number }) {
   const audioPlayerRef = useRef<HTMLVideoElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
 
-  const frameID = props.frameID;
   const dispatch = useDispatch();
 
   const handleScroll = () => {
@@ -479,4 +480,6 @@ export default function CommPane(props: { frameID: number }) {
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default CommPane;

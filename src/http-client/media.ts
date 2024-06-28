@@ -58,7 +58,7 @@ export async function buildPhotoStore(
 
 export function buildPhotoCollections(photos: PhotoFile[]) {
   const collections: PhotoCollectionFilters[] = [];
-  const uniqueList = [];
+  const uniqueList: string[] = [];
   for (let i = 0; i <= photos.length; i++) {
     if (photos[i] !== undefined) {
       if (!uniqueList.includes(photos[i].collections)) {

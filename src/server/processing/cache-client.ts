@@ -267,7 +267,7 @@ export async function clearAll() {
 
   try {
     for (const folder in cacheFolder) {
-      const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder[folder]}`;
+      const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder[folder as keyof typeof cacheFolder]}`;
       await cacache.rm.all(cachePath);
     }
   } catch (e) {

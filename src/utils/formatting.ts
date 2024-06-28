@@ -201,26 +201,26 @@ export const formatEVADisplayTitle = ({
 
 // check if a color is light or dark so we know whether to use white or black text
 // http://alienryderflex.com/hsp.html
-export function lightColor(color): boolean {
+export function lightColor(color: string): boolean {
   try {
     // Variables for red, green, blue values
-    var r, g, b, hsp;
+    let r: number, g: number, b: number, hsp: number;
 
     // Check the format of the color, HEX or RGB?
     if (color.match(/^rgb/)) {
       // If RGB --> store the red, green, blue values in separate variables
-      color = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
+      const colorReg = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
 
-      r = color[1];
-      g = color[2];
-      b = color[3];
+      r = +colorReg[1];
+      g = +colorReg[2];
+      b = +colorReg[3];
     } else {
       // If hex --> Convert it to RGB: http://gist.github.com/983661
-      color = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
+      const newColor = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
 
-      r = color >> 16;
-      g = (color >> 8) & 255;
-      b = color & 255;
+      r = newColor >> 16;
+      g = (newColor >> 8) & 255;
+      b = newColor & 255;
     }
 
     // HSP (Highly Sensitive Perceived brightness) equation from http://alienryderflex.com/hsp.html

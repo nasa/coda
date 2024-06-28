@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, FunctionComponent } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import deepEqual from "lodash/isEqual";
@@ -23,19 +23,18 @@ import Button from "components/interface/button";
 import { createRoot } from "react-dom/client";
 library.add(faLock, faLockOpen);
 
-export function GPSLocationControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const GPSLocationControls: FunctionComponent<{ frameID: number, frameDimensions: number[] }> = ({ frameID, frameDimensions }) => {
   const dispatch = useDispatch();
 
   const minWidth = 470;
 
   const paneStateData: GpsTrackPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const gpsTracks = useSelector((state: RootState) => state.gps.gpsTracks);
 
-  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -87,7 +86,7 @@ export function GPSLocationControls(props: { frameID: number; frameDimensions: n
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
               </div>
@@ -105,10 +104,12 @@ export function GPSLocationControls(props: { frameID: number; frameDimensions: n
       </div>
     </div>
   );
-}
+};
 
-export default function GPSLocation(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+  frameDimensions,
+}) => {
   const dispatch = useDispatch();
 
   const initialMarker: MapMarker = {
@@ -155,7 +156,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
   const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
   const paneStateData: GpsTrackPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
   const mapContainer = useRef(null);
 
@@ -202,7 +203,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     if (map) {
       map.resize();
     }
-  }, [props.frameDimensions, layoutLastChanged]);
+  }, [frameDimensions, layoutLastChanged]);
 
   useEffect(() => {
     if (!map) return;
@@ -213,10 +214,6 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
   useEffect(() => {
     if (!map || !playhead.date || gpsState.gpsTracks.length === 0) return;
 
-    // if (map.getZoom() === 1) {
-    //   map.setZoom(15);
-    // }
-
     // set eventType to DRATS if EV1 is present, set as GANDALF if Staff is present
     if (gpsState.gpsTracks.filter((track) => track.name === "EV1").length > 0) {
       setEventType("DRATS");
@@ -225,8 +222,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
     }
 
     // hide all markers
-    for (var key in mapMarkers) {
-      const marker = mapMarkers[key];
+    for (let key in mapMarkers) {
+      const marker = mapMarkers[key as keyof MapMarkers];
       marker.markerNode.style.visibility = "hidden";
     }
 
@@ -238,10 +235,12 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
 
       // make visible the marker for the current track
       if (paneStateData.gpsTrackToggles[gpsTracks[track].name]) {
-        mapMarkers[gpsTracks[track].name].markerNode.style.visibility = "visible";
+        mapMarkers[gpsTracks[track].name as keyof MapMarkers].markerNode.style.visibility =
+          "visible";
         map.setLayoutProperty(`track${gpsTracks[track].name}Layer`, "visibility", "visible");
       } else {
-        mapMarkers[gpsTracks[track].name].markerNode.style.visibility = "hidden";
+        mapMarkers[gpsTracks[track].name as keyof MapMarkers].markerNode.style.visibility =
+          "hidden";
         map.setLayoutProperty(`track${gpsTracks[track].name}Layer`, "visibility", "none");
       }
 
@@ -268,7 +267,10 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       markerGPSPoint = gpsTracks[track].points[markerIndex];
 
       //move the marker to the found point
-      mapMarkers[gpsTracks[track].name].marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
+      mapMarkers[gpsTracks[track].name as keyof MapMarkers].marker.setLngLat([
+        markerGPSPoint.lon,
+        markerGPSPoint.lat,
+      ]);
 
       //update infoDisplay
       const timestampArr = (
@@ -285,7 +287,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
           hdg: "",
         };
         const tempInfo = infoDisplay;
-        tempInfo[gpsTracks[track].name] = items;
+        tempInfo[gpsTracks[track].name as keyof MapMarkers] = items;
         setInfoDisplay(tempInfo);
       } catch (error) {
         console.log("Info display error: ", error);
@@ -300,7 +302,7 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
         // if the track is selected
         if (paneStateData.gpsTrackToggles[key]) {
           // pan to the track
-          map.panTo(mapMarkers[key].marker.getLngLat());
+          map.panTo(mapMarkers[key as keyof MapMarkers].marker.getLngLat());
           somethingSelected = true;
           if (zoomLevel === 1) {
             setZoomLevel(15);
@@ -340,7 +342,8 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
         }
 
         const trackName = gpsTrack.name;
-        trackFeatures[trackName].features[0].geometry.coordinates = newCoordinates;
+        trackFeatures[trackName as keyof TrackFeatures].features[0].geometry.coordinates =
+          newCoordinates;
 
         // @ts-ignore: bad mapbox typing
         map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
@@ -588,25 +591,25 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
                   <tr>
                     <td>Latitude:</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key].lat}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].lat}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Longitude:</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key].lng}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].lng}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Elevation (m):</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key].ele}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].ele}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Timestamp:</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key].time}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].time}</td>;
                     })}
                   </tr>
                 </tbody>
@@ -619,4 +622,6 @@ export default function GPSLocation(props: { frameID: number; frameDimensions: n
       return <></>;
     }
   }
-}
+};
+
+export default GPSLocation;

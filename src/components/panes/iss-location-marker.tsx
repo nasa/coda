@@ -1,14 +1,15 @@
+import { FunctionComponent } from "react";
 import styles from "./iss-location-marker.module.css";
 
-const Marker = (props) => {
+const Marker: FunctionComponent<{ type: string; id: string }> = ({ type, id }) => {
   let markerClass = "";
-  if (props.type === "playheadMarker") {
+  if (type === "playheadMarker") {
     markerClass = styles.playheadMarker;
-  } else if (props.type === "hoverMarker") {
+  } else if (type === "hoverMarker") {
     markerClass = styles.hoverMarker;
   }
 
-  return <div id={`marker-${props.id}`} className={markerClass} />;
+  return <div id={`marker-${id}`} className={markerClass} />;
 };
 
 export default Marker;
