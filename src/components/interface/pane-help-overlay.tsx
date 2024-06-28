@@ -6,7 +6,7 @@ import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 library.add(faTimesCircle);
 
 export default function HelpOverlay(props: {
-  children;
+  children: JSX.Element;
   isModalOpen: boolean;
   closeHandler: Function;
 }) {

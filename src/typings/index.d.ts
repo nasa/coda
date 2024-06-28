@@ -50,9 +50,9 @@ interface Sequence {
   /** People responsible for this sequence */
   crew?: Crew;
   /** List of activities performed by crew */
-  asPerformed: { [key: Crew]: Activity[] };
+  asPerformed: { [key: string]: Activity[] };
   /** List of planned activities for the crew */
-  asPlanned?: { [key: Crew]: Activity[] };
+  asPlanned?: { [key: string]: Activity[] };
   /**
    * UUID of event in Maestro, as recorded on wiki page, if there is one.
    * Enables hitting maestro endpoint /api/v1/event/exetimelinestatus/:uuid

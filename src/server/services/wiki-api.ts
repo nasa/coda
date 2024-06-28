@@ -228,7 +228,9 @@ async function getAllAsExecuted(): Promise<WikibotResponse<AllExecution>> {
 }
 
 function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
-  const res = {};
+  const res: {
+    [key: string]: { [key: string]: Activity[] };
+  } = {};
 
   Object.keys(results).forEach((r) => {
     // results are keyed with strings like
@@ -259,7 +261,7 @@ function parseAllAsExecuted(results: EVAAsExecuted): AllExecution {
 
     let colorString = results[r].printouts["Color"][0];
     if (colorString in colorTranslator) {
-      colorString = colorTranslator[colorString];
+      colorString = colorTranslator[colorString as keyof typeof colorTranslator];
     } else {
       console.error("color not found: " + colorString);
     }
@@ -324,7 +326,7 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
     if (!(formattedEVAName in res)) {
       res[formattedEVAName] = { EV1: "", EV2: "", SUIT_IV: "" };
     }
-    res[formattedEVAName][actor] = name;
+    res[formattedEVAName][actor as keyof Crew] = name;
   });
 
   return res;
@@ -380,7 +382,7 @@ export async function getAllEVAData(
         duration,
         asPerformed: get(asExecuted, evaName, { EV1: [], EV2: [] }),
         crew: get(crews, formattedEVAName, { EV1: "Unknown", EV2: "Unknown", SUIT_IV: "Unknown" }),
-      };
+      } as Sequence;
     });
 
     if (agency === "all") {
@@ -495,7 +497,7 @@ export async function getAllTestEventsData(
       const testEnvironment = get(
         allTestEvents[testEvent].printouts["Test environment"],
         "[0].fulltext",
-        "Unknown environment"
+        "TEST_EVENTS"
       );
       const flightEnvironment = get(
         allTestEvents[testEvent].printouts["Flight environment"],
@@ -669,7 +671,7 @@ export async function fetchAncillaryDataSourceList(
  * Inspired by: https://www.mediawiki.org/wiki/API:Parsing_wikitext#Example_1:_Parse_content_of_a_page
  */
 export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): DatetimeOverrides {
-  const data = [];
+  const data: any[][] = [];
   const lines = wikitext.split("|-");
 
   let currentHeader: string[] = [];
@@ -721,7 +723,7 @@ export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): Datet
 export function parseWikitextTableIntoMediaSourceOverrides(
   wikitext: string
 ): MediaSourceOverride[] {
-  const data = [];
+  const data: any[][] = [];
   const lines = wikitext.split("|-");
 
   let currentHeader: string[] = [];
@@ -768,7 +770,7 @@ export function parseWikitextTableIntoMediaSourceOverrides(
 export function parseWikitextTableIntoAncillaryDataSources(
   wikitext: string
 ): AncillaryDataSource[] {
-  const data = [];
+  const data: any[][] = [];
   const lines = wikitext.split("|-");
 
   let currentHeader: string[] = [];

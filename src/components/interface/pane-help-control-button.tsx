@@ -5,7 +5,7 @@ import styles from "./pane-help-control-button.module.css";
 
 library.add(faQuestionCircle);
 
-export function HelpButton(props: { clickHandler; selected?: boolean }) {
+export function HelpButton(props: { clickHandler: () => void; selected?: boolean }) {
   const selectedStyle = props.selected ? styles.selected : "";
   return (
     <div

@@ -11,7 +11,7 @@ async function waitFor(seconds: number) {
 }
 
 describe("services/cache-client", () => {
-  let warnMock, errorMock;
+  let warnMock: jest.SpyInstance, errorMock: jest.SpyInstance;
 
   beforeAll(async () => {
     // testing retrievers that throw will lead to a bunch of unnecessary console.warn'ing and console.error'ing

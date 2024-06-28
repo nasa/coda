@@ -11,7 +11,7 @@ import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "componen
 import PhotoPane, { PhotoControls } from "components/panes/photo";
 import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
-import { useLayoutEffect, useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useEffect, useRef, useState, FunctionComponent } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 import CommPane, { CommControls } from "components/panes/comm";
 import Graph, { GraphControls } from "components/panes/graph/graph";
@@ -65,8 +65,8 @@ export function FrameHeader(props: {
 
 const frameTypeIDsToPanes: PaneTypeComponentSets = {
   empty: {
-    controls: () => null,
-    pane: () => null,
+    controls: null,
+    pane: null,
   },
   video_downlink: {
     controls: VideoDLPaneControls,
@@ -114,10 +114,10 @@ export interface Options {
 const headerContainerHeight = 35;
 
 /** Renders a frame in the viewer */
-export default function Frame(options) {
-  const frameState = useSelector((state: RootState) => state.framework.frames[options.id]);
+const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
+  const frameState = useSelector((state: RootState) => state.framework.frames[frameId]);
 
-  let paneType = null;
+  let paneType: string = null;
   if (frameState) {
     paneType = frameState.paneType;
   }
@@ -163,9 +163,9 @@ export default function Frame(options) {
   return (
     <div className={styles.main} ref={frameRef}>
       <div className={styles.headerContainer}>
-        <FrameHeader frameID={options.id} paneType={paneType} frameDimensions={frameDimensions}>
+        <FrameHeader frameID={frameId} paneType={paneType} frameDimensions={frameDimensions}>
           {!_.isNil(FrameControls) ? (
-            <FrameControls frameID={options.id} frameDimensions={frameDimensions} />
+            <FrameControls frameID={frameId} frameDimensions={frameDimensions} />
           ) : (
             <></>
           )}
@@ -173,7 +173,7 @@ export default function Frame(options) {
       </div>
       <div className={styles.bodyContainer}>
         {!_.isNil(FrameRender) ? (
-          <FrameRender frameID={options.id} frameDimensions={frameDimensions} />
+          <FrameRender frameID={frameId} frameDimensions={frameDimensions} />
         ) : (
           <>
             <div className={styles.photoPoster}></div>
@@ -182,4 +182,6 @@ export default function Frame(options) {
       </div>
     </div>
   );
-}
+};
+
+export default Frame;

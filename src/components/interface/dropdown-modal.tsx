@@ -34,7 +34,7 @@ const modalDefaults: Options = {
   modalOptions: {},
 };
 
-const oppositeCarets = {
+const oppositeCarets: { [key: string]: string } = {
   down: "up",
   up: "down",
   left: "right",

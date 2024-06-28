@@ -8,24 +8,26 @@ import { changeTime } from "store/playhead";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import styles from "./photo-all.module.css";
-import { useEffect, useRef } from "react";
+import { FunctionComponent, useEffect, useRef } from "react";
 import { hhmmssFromSeconds } from "utils/formatting";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 library.add(faLock, faLockOpen);
 
-export function PhotoAllControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const PhotoAllControls: FunctionComponent<{
+  frameID: number;
+  frameDimensions: number[];
+}> = ({ frameID, frameDimensions }) => {
   const dispatch = useDispatch();
 
   const minWidth = 470;
 
   const paneStateData: PhotoAllPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
-  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -44,7 +46,7 @@ export function PhotoAllControls(props: { frameID: number; frameDimensions: numb
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
               </div>
@@ -62,17 +64,16 @@ export function PhotoAllControls(props: { frameID: number; frameDimensions: numb
       </div>
     </div>
   );
-}
+};
 
-export default function PhotoAllPane(props: { frameID: number }) {
+const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const paneStateData: PhotoAllPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const photoFiles = photos.photoFiles;
-  const frameID = props.frameID;
   const dispatch = useDispatch();
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
@@ -161,4 +162,6 @@ export default function PhotoAllPane(props: { frameID: number }) {
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default PhotoAllPane;

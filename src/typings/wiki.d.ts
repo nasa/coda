@@ -90,6 +90,8 @@ interface EVASummaryResponse {
       "Start Time": string[];
       /** In H:MM, eg `[ 6:32 ]`. Defaults to `[ : ]` when no duration is present */
       Duration: string[];
+      "Maestro event uuid"?: string[];
+      "Start time"?: string[];
     };
     /** eg. `US EVA 1` */
     fulltext: string;
@@ -154,6 +156,7 @@ interface AllTestEvents {
       "Flight environment": WikiTextPrintout[];
       /** eg. `[ 11:38 ]` */
       "Start time": string[];
+      "UTC Start Date Time"?: string[];
     };
     /** eg. `Test Event:1` */
     fulltext: string;

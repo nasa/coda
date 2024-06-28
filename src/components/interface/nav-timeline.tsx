@@ -131,7 +131,7 @@ export default function NavTimeline(props: { source: Source }) {
       drawNav.current.drawTier2();
     };
 
-    const mouseMoveCb = (thisHoverSeconds) => {
+    const mouseMoveCb = (thisHoverSeconds: number) => {
       if (!mouseOnNavigator.current) {
         mouseOnNavigator.current = true;
         // Make the canvas receive click events
@@ -156,13 +156,13 @@ export default function NavTimeline(props: { source: Source }) {
       canvasContainer.current.style.pointerEvents = "none";
     };
 
-    paper.view.onMouseMove = (event) => {
+    paper.view.onMouseMove = (event: paper.MouseEvent) => {
       drawNav.current.handleMouseMove(event, time.current, mouseMoveCb, mouseLeaveCb);
     };
-    paper.view.onMouseUp = (event) => {
+    paper.view.onMouseUp = (event: paper.MouseEvent) => {
       drawNav.current.handleMouseUp(event, mouseUpCb);
     };
-    paper.view.onMouseLeave = (event) => {
+    paper.view.onMouseLeave = (event: paper.MouseEvent) => {
       drawNav.current.handleMouseLeave(event, mouseLeaveCb);
     };
 

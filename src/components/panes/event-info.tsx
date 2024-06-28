@@ -9,15 +9,14 @@ import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/s
 import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
-import { useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { isSameDate } from "../../utils/date";
 
-export function EventInfoControls(props: { frameID: number }) {
-  const frameID = props.frameID;
+export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useDispatch();
 
   const paneStateData: EventPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   return (
@@ -35,13 +34,13 @@ export function EventInfoControls(props: { frameID: number }) {
       </div>
     </div>
   );
-}
+};
 
-export default function EventInfo(props: { frameID: number }) {
+const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const paneStateData: EventPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const allSequences = sequences.allSequences;
@@ -49,7 +48,6 @@ export default function EventInfo(props: { frameID: number }) {
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
   const maestro = useSelector((state: RootState) => state.maestro);
-  const frameID = props.frameID;
   const dispatch = useDispatch();
   const [seqSourceName, setSeqSourceName] = useState<"Maestro" | "Wiki">("Wiki");
 
@@ -59,23 +57,25 @@ export default function EventInfo(props: { frameID: number }) {
   }, [maestro]);
 
   function asExecutedTable(evNum: string) {
-    const asPerformed = { EV1: [], EV2: [] } as { EV1: Activity[]; EV2: Activity[] };
+    const asPerformed: { [key: string]: Activity[] } = { EV1: [], EV2: [] };
     const activityStartUTCMilliseconds = getSequenceStartMilliseconds(seq);
 
     if (seqSourceName == "Wiki") {
       for (const evName in seq.asPerformed) {
-        if (evName.includes("EV1"))
+        if (evName.includes("EV1")) {
           asPerformed.EV1 = getAsPerformedMissionTime(
             seq.asPerformed[evName],
             seq.startDate,
             activityStartUTCMilliseconds
           );
-        if (evName.includes("EV2"))
+        }
+        if (evName.includes("EV2")) {
           asPerformed.EV2 = getAsPerformedMissionTime(
             seq.asPerformed[evName],
             seq.startDate,
             activityStartUTCMilliseconds
           );
+        }
       }
     } else {
       asPerformed.EV1 = maestro?.processedActivitiesData.EV1;
@@ -223,4 +223,6 @@ export default function EventInfo(props: { frameID: number }) {
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default EventInfo;
