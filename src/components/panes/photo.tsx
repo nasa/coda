@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { FunctionComponent, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { initialPhotoFileState, setActivePhoto, setCollectionFilters } from "store/photos";
 import styles from "./photo.module.css";
@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
 
 export function FilterButton(props: {
-  clickHandler;
+  clickHandler: () => void;
   selected?: boolean;
   frameDimensions: number[];
 }) {
@@ -36,12 +36,14 @@ export function FilterButton(props: {
   );
 }
 
-export function PhotoControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+  frameDimensions,
+}) => {
   const dispatch = useDispatch();
 
   const paneStateData: PhotoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const photos: PhotosState = useSelector((state: RootState) => state.photos);
@@ -76,7 +78,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
                 setPaneStateValue(dispatch, frameID, "showInfo", !paneStateData.showInfo);
               }}
               selected={paneStateData.showInfo}
-              frameDimensions={props.frameDimensions}
+              frameDimensions={frameDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -85,7 +87,7 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
                 setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
               }}
               selected={paneStateData.showFilter}
-              frameDimensions={props.frameDimensions}
+              frameDimensions={frameDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -100,11 +102,10 @@ export function PhotoControls(props: { frameID: number; frameDimensions: number[
       </div>
     </>
   );
-}
+};
 
-export default function PhotoPane(props: { frameID: number; frameDimensions: number[] }) {
+const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useDispatch();
-  const frameID = props.frameID;
 
   const paneStateData: PhotoPaneStateData = useSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData
@@ -149,13 +150,13 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
     }
   };
 
-  function changeFilter(index, value) {
+  function changeFilter(index: number, value: boolean) {
     let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
     filters[index].selected = value;
     dispatch(setCollectionFilters(filters));
   }
 
-  function changeAllFilters(value) {
+  function changeAllFilters(value: boolean) {
     let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
     for (let i = 0; i < filters.length; i++) {
       filters[i].selected = value;
@@ -316,7 +317,9 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
             {paneStateData.showInfo ? renderPhotoOverlay() : renderPhotoFilter()}
           </>
         ) : (
-          <div className={styles.photoPoster}></div>
+          <div className={styles.photoPoster}>
+            <div className={styles.photoPosterFilter}>{renderPhotoFilter()}</div>
+          </div>
         )}
       </div>
       <HelpOverlay
@@ -345,4 +348,6 @@ export default function PhotoPane(props: { frameID: number; frameDimensions: num
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default PhotoPane;

@@ -18,7 +18,7 @@ import SharePanel from "components/interface/share";
 
 import { allLayouts, setEmssVideoEnabled } from "store/framework";
 import AboutOverlay from "./about-overlay";
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
 import { generateShareURL } from "utils/share-state";
 
@@ -106,24 +106,21 @@ export function ShareDropdown() {
 }
 
 export function SourcesDropdown() {
-  // const dispatch = useDispatch();
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
 
-  const handleSourceChange = (e) => {
-    // dispatch(clearVideos());
-    // dispatch(clearPhotos());
-    // dispatch(clearEphemera());
-    // dispatch(clearGPSTracks());
-    // dispatch(clearSequences());
-    // dispatch(changeSource(e.target.value as Source));
-
+  const handleSourceChange = (e: ChangeEvent<HTMLSelectElement>) => {
     let URL = generateShareURL(framework, playhead);
-    const sourceParam = sourceShortVal[e.target.value];
-    // replace the source in URL with selected source
-    URL = URL.replace(/s=([^&]*)/, `s=${sourceParam}`);
 
-    window.location.assign(URL);
+    const value = e.target.value;
+
+    if (value in sourceShortVal) {
+      const sourceParam = sourceShortVal[value as keyof typeof sourceShortVal];
+      // replace the source in URL with selected source
+      URL = URL.replace(/s=([^&]*)/, `s=${sourceParam}`);
+
+      window.location.assign(URL);
+    }
   };
 
   return (

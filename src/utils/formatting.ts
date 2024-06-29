@@ -63,11 +63,10 @@ export function hhmmFromSeconds(secondsParam: number): string {
  * Formats any appSeconds value into hh:mm:ss equivalent
  */
 export function hhmmssFromSeconds(secondsParam: number): string {
-  var hours = Math.abs(Math.trunc(secondsParam / 3600));
-  var minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
-  var seconds = Math.abs(Math.trunc(secondsParam)) % 60;
-  seconds = Math.floor(seconds);
-  var timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
+  const hours = Math.abs(Math.trunc(secondsParam / 3600));
+  const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
+  const seconds = Math.floor(Math.abs(Math.trunc(secondsParam)) % 60);
+  let timeStr = padZeros(hours, 2) + ":" + padZeros(minutes, 2) + ":" + padZeros(seconds, 2);
   if (secondsParam < 0) {
     timeStr = "-" + timeStr;
   }
@@ -82,7 +81,7 @@ export function hhmmssmmmFromSeconds(secondsParam: number): string {
   const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
   let seconds = Math.abs(Math.trunc(secondsParam)) % 60;
   const milliseconds = (secondsParam - Math.trunc(secondsParam)).toFixed(3);
-  var timeStr =
+  let timeStr =
     padZeros(hours, 2) +
     ":" +
     padZeros(minutes, 2) +
@@ -201,26 +200,26 @@ export const formatEVADisplayTitle = ({
 
 // check if a color is light or dark so we know whether to use white or black text
 // http://alienryderflex.com/hsp.html
-export function lightColor(color): boolean {
+export function lightColor(color: string): boolean {
   try {
     // Variables for red, green, blue values
-    var r, g, b, hsp;
+    let r: number, g: number, b: number, hsp: number;
 
     // Check the format of the color, HEX or RGB?
     if (color.match(/^rgb/)) {
       // If RGB --> store the red, green, blue values in separate variables
-      color = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
+      const colorReg = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
 
-      r = color[1];
-      g = color[2];
-      b = color[3];
+      r = +colorReg[1];
+      g = +colorReg[2];
+      b = +colorReg[3];
     } else {
       // If hex --> Convert it to RGB: http://gist.github.com/983661
-      color = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
+      const newColor = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
 
-      r = color >> 16;
-      g = (color >> 8) & 255;
-      b = color & 255;
+      r = newColor >> 16;
+      g = (newColor >> 8) & 255;
+      b = newColor & 255;
     }
 
     // HSP (Highly Sensitive Perceived brightness) equation from http://alienryderflex.com/hsp.html

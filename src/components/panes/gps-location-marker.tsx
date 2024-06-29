@@ -1,6 +1,6 @@
 import styles from "./gps-location-marker.module.css";
 
-const GPSMarker = (props) => {
+const GPSMarker = (props: { type: string; id: any }) => {
   let markerClass = "";
   if (props.type === "EV1") {
     markerClass = styles.ev1Marker;

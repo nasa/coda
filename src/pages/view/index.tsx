@@ -578,7 +578,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
   return urlState;
 }
 
-function setNonDLVideoFrame(fState, frameNum, nonDLVideo) {
+function setNonDLVideoFrame(fState: FrameworkState, frameNum: string, nonDLVideo: string) {
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "video_non_downlink",
@@ -592,7 +592,7 @@ function setNonDLVideoFrame(fState, frameNum, nonDLVideo) {
   return { ...fState.frames, [frameNum]: frameStateData };
 }
 
-function setDLVideoFrame(fState, frameNum, downlink) {
+function setDLVideoFrame(fState: FrameworkState, frameNum: string, downlink: string) {
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "video_downlink",
@@ -605,7 +605,7 @@ function setDLVideoFrame(fState, frameNum, downlink) {
   return { ...fState.frames, [frameNum]: frameStateData };
 }
 
-function setGPSLocationFrame(fState, frameNum) {
+function setGPSLocationFrame(fState: FrameworkState, frameNum: string) {
   const frameStateData = {
     ...fState.frames[frameNum],
     paneType: "gps_location",

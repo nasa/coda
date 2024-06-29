@@ -157,9 +157,15 @@
     return solarTransitJ(a, M, L);
   }
 
-  // calculates sun times for a given date, latitude/longitude, and, optionally,
-  // the observer height (in meters) relative to the horizon
-
+  /**
+   * calculates sun times for a given date, latitude/longitude, and, optionally,
+   * the observer height (in meters) relative to the horizon
+   * @param {*} date
+   * @param {*} lat
+   * @param {*} lng
+   * @param {*} height
+   * @returns {solarNoon, nadir, sunrise, sunset, sunriseEnd, sunsetStart, dawn, dusk, nauticalDawn, nauticalDusk, nightEnd, night, goldenHourEnd, goldenHour}}
+   */
   SunCalc.getTimes = function (date, lat, lng, height) {
     height = height || 0;
 

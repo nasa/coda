@@ -1,5 +1,5 @@
 import { isNil, isNull } from "lodash";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faExpandAlt, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
@@ -307,9 +307,10 @@ function ChannelDropdownModal({
   );
 }
 
-export function VideoDLPaneControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
-
+export const VideoDLPaneControls: FunctionComponent<{
+  frameID: number;
+  frameDimensions: number[];
+}> = ({ frameID, frameDimensions }) => {
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
   const videos: VideosState = useSelector((state: RootState) => state.videos);
@@ -319,7 +320,7 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const [channelAvailability, setChannelAvailability] = useState<boolean[]>([]);
@@ -336,13 +337,13 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
     setChannelAvailability(cAvailability);
   }, [visibleVideos, playhead.seconds]);
 
-  if (props.frameDimensions[0] > minWidth) {
+  if (frameDimensions[0] > minWidth) {
     return (
       <ChannelSelectorLarge
         frameID={frameID}
         channelAvailability={channelAvailability}
         paneStateData={paneStateData}
-        frameDimensions={props.frameDimensions}
+        frameDimensions={frameDimensions}
       />
     );
   } else {
@@ -351,14 +352,16 @@ export function VideoDLPaneControls(props: { frameID: number; frameDimensions: n
         frameID={frameID}
         channelAvailability={channelAvailability}
         paneStateData={paneStateData}
-        frameDimensions={props.frameDimensions}
+        frameDimensions={frameDimensions}
       />
     );
   }
-}
+};
 
-export function VideoOtherPaneControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const VideoOtherPaneControls: FunctionComponent<{
+  frameID: number;
+  frameDimensions: number[];
+}> = ({ frameID, frameDimensions }) => {
   const dispatch = useDispatch();
 
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
@@ -372,7 +375,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
   const [nonDlVideoIDs, setNonDlVideoIDs] = useState([]);
 
   const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const getPrettyVideoTitle = (videoID: string) => {
@@ -410,7 +413,7 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
   }
 
   const dropDownWidthClass =
-    props.frameDimensions[0] > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
+    frameDimensions[0] > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
 
   return (
     <>
@@ -439,12 +442,12 @@ export function VideoOtherPaneControls(props: { frameID: number; frameDimensions
         <RightButtons
           frameID={frameID}
           paneStateData={paneStateData}
-          frameDimensions={props.frameDimensions}
+          frameDimensions={frameDimensions}
         />
       </div>
     </>
   );
-}
+};
 
 /**
  * Check whether the error is the browser blocking autoplay of unmuted videos. See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
@@ -465,15 +468,14 @@ const isAutoplayError = (e: unknown): boolean => {
   return isChromeError || isFirefoxError || isSafariError;
 };
 
-export default function VideoPane(props: { frameID: number }) {
-  const frameID: number = props.frameID;
+const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useDispatch();
 
   const videos: VideosState = useSelector((state: RootState) => state.videos);
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
 
   const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
   const playheadDate = new Date(playhead.date);
@@ -491,8 +493,8 @@ export default function VideoPane(props: { frameID: number }) {
     if (visibleVideos.size === 0) {
       return;
     }
-    const videoID = paneStateData.activeVideoFileID;
-    const videoStart = videoFiles[videoID]?.start || 0;
+    const videoID = Number(paneStateData.activeVideoFileID);
+    const videoStart: number = videoFiles[videoID]?.start || 0;
     if (videoID || !isSameDate(new Date(playhead.date), new Date(videoStart))) {
       setMetadata(null);
     }
@@ -607,7 +609,7 @@ export default function VideoPane(props: { frameID: number }) {
   };
 
   const toggleFullScreen = () => {
-    var el = videoElement.current;
+    const el = videoElement.current;
     if (el.requestFullscreen) {
       el.requestFullscreen();
     }
@@ -894,4 +896,6 @@ export default function VideoPane(props: { frameID: number }) {
       {renderVideoElement()}
     </div>
   );
-}
+};
+
+export default VideoPane;

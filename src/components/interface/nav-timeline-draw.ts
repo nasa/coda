@@ -81,7 +81,12 @@ export default class DrawNav {
     }
   }
 
-  handleMouseMove = (event, missionTimeSeconds, mouseMoveCb, mouseLeaveCb) => {
+  handleMouseMove = (
+    event: { point: { y: number; x: number } },
+    missionTimeSeconds: number,
+    mouseMoveCb: (thisHoverSeconds: number) => void,
+    mouseLeaveCb: () => void
+  ) => {
     // scram if hovering over play pause controls area or on the nav cursor area
     if (
       (event.point.y > this.gTier1Top && event.point.x < this.gTier1Left) ||
@@ -114,7 +119,10 @@ export default class DrawNav {
     mouseMoveCb(mouseXSeconds);
   };
 
-  handleMouseUp = (event, cb: (hh: number, mm: number, ss: number) => void) => {
+  handleMouseUp = (
+    event: { point: { y: number; x: number } },
+    cb: (hh: number, mm: number, ss: number) => void
+  ) => {
     // ignore clicks in the nav cursor area
     if (event.point.y < this.gTier2Top) {
       return;
@@ -146,7 +154,7 @@ export default class DrawNav {
     this.gNavCursorGroup.removeChildren();
   };
 
-  handleMouseLeave = (_event, mouseLeaveCb) => {
+  handleMouseLeave = (event: paper.MouseEvent, mouseLeaveCb: () => void) => {
     this.mouseLeaveActions();
     mouseLeaveCb();
   };
@@ -181,17 +189,17 @@ export default class DrawNav {
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
   };
 
-  drawCursor = (seconds) => {
+  drawCursor = (seconds: number) => {
     this.gCursorGroup.removeChildren();
     this.gCursorGroup.addChild(this.getCursorElement(seconds, this.gColorCursor));
   };
 
-  drawNavCursor = (seconds) => {
+  drawNavCursor = (seconds: number) => {
     this.gNavCursorGroup.removeChildren();
     this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorNavCursor));
   };
 
-  getCursorElement = (seconds, color) => {
+  getCursorElement = (seconds: number, color: paper.Color) => {
     let cursorElementGroup = new paper.Group();
 
     // tier1
@@ -390,7 +398,7 @@ export default class DrawNav {
         let activityLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
-          fillColor: fillColor,
+          fillColor,
         });
         group.addChild(activityLine);
 
@@ -399,7 +407,7 @@ export default class DrawNav {
             justification: "left",
             fontFamily: this.gNavigatorFontFamilyActivity,
             fontSize: 9,
-            fillColor: lightColor(fillColor) ? "#000000" : "#dddddd",
+            fillColor: lightColor(fillColor as string) ? "#000000" : "#dddddd",
           });
           let textTop = startLocY + 8;
           activityText.point = new paper.Point(startLocX + 2, textTop);
@@ -738,7 +746,7 @@ export default class DrawNav {
     return group;
   };
 
-  drawNavBox = (seconds) => {
+  drawNavBox = (seconds: number) => {
     this.gTier1NavGroup.removeChildren();
 
     let locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;

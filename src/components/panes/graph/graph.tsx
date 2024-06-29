@@ -1,10 +1,10 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { getPlotlyChartLayout } from "./graphProperties";
+import { ChartLayout, getPlotlyChartLayout } from "./graphProperties";
 import { setGraphsData, clearGraphsData } from "store/graphs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faExpandAlt } from "@fortawesome/free-solid-svg-icons";
@@ -18,14 +18,16 @@ import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import { hasProp } from "utils/type-guards";
 import Button from "components/interface/button";
 
-export function GraphControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+  frameDimensions,
+}) => {
   const dispatch = useDispatch();
 
   const minWidth = 500; // minimum width of the graph pane before shortening the dropdown
 
   const paneStateData: GraphPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData,
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
     shallowEqual
   );
   const graphs: Graph[] = useSelector(
@@ -47,11 +49,11 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
         {graphs && (
           <>
             <GraphSelectorDropdown
-              frameID={props.frameID}
-              frameDimensions={props.frameDimensions}
+              frameID={frameID}
+              frameDimensions={frameDimensions}
               minWidth={minWidth}
             />
-            <GraphDurationSelector frameID={props.frameID} paneStateData={paneStateData} />
+            <GraphDurationSelector frameID={frameID} paneStateData={paneStateData} />
           </>
         )}
       </div>
@@ -67,7 +69,7 @@ export function GraphControls(props: { frameID: number; frameDimensions: number[
       </div>
     </div>
   );
-}
+};
 
 function GraphSelectorDropdown(props: {
   frameID: number;
@@ -172,9 +174,12 @@ const GraphDurationSelector = ({
   );
 };
 
-export default function Graph(props: { frameID: number; frameDimensions: number[] }) {
+const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+  frameDimensions,
+}) => {
   const paneStateData: GraphPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData,
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
     shallowEqual
   );
   const graphs: GraphsState = useSelector((state: RootState) => state.graphs, shallowEqual);
@@ -192,15 +197,18 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
 
-  const graphHeight = props.frameDimensions[1] - 40;
+  const graphHeight = frameDimensions[1] - 40;
 
-  const initialChartData = {
+  const initialChartData: {
+    plotlyChartTraces: PlotlyChartTrace[];
+    plotlyChartLayout: ChartLayout;
+  } = {
     plotlyChartTraces: null,
     plotlyChartLayout: getPlotlyChartLayout(graphHeight),
   };
 
   const initialChartProps = {
-    frameID: props.frameID,
+    frameID,
     plotIndexToHighlight: 0,
     chartData: initialChartData,
   };
@@ -208,7 +216,6 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
   const [chartProps, setChartProps] = useState(initialChartProps);
   const [graphDataTimestampsInSeconds, setGraphDataTimestampsInSeconds] = useState<number[]>([]);
 
-  const frameID = props.frameID;
   const dispatch = useDispatch();
 
   // Fetch the data for the selected graphId from the graph dataURL
@@ -329,7 +336,7 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
         },
       });
     }, 500);
-  }, [graphData, props.frameDimensions]);
+  }, [graphData, frameDimensions]);
 
   // update the graph ranges and hover when the time changes
   useEffect(() => {
@@ -418,4 +425,6 @@ export default function Graph(props: { frameID: number; frameDimensions: number[
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default Graph;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { Dispatch, SetStateAction, MutableRefObject } from "react";
+import type { Dispatch, SetStateAction, MutableRefObject, FunctionComponent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "store/index";
 import { getAppropriateTLE } from "store/ephemera";
@@ -30,17 +30,19 @@ type MapMarker = {
   markerNode: any; //the real DOM id of the marker
 };
 
-export function ISSLocationControls(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const ISSLocationControls: FunctionComponent<{
+  frameID: number;
+  frameDimensions: number[];
+}> = ({ frameID, frameDimensions }) => {
   const dispatch = useDispatch();
 
   const minWidth = 470;
 
   const paneStateData: LocationPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
 
-  const buttonLength = props.frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -58,7 +60,7 @@ export function ISSLocationControls(props: { frameID: number; frameDimensions: n
             }}
           >
             <span className={styles.buttonLabel}>
-              <div>{props.frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
               <div>
                 <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
               </div>
@@ -76,10 +78,12 @@ export function ISSLocationControls(props: { frameID: number; frameDimensions: n
       </div>
     </div>
   );
-}
+};
 
-export function ISSLocation(props: { frameID: number; frameDimensions: number[] }) {
-  const frameID = props.frameID;
+export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+  frameDimensions,
+}) => {
   const dispatch = useDispatch();
 
   const initialMarker: MapMarker = {
@@ -92,7 +96,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
   const paneStateData: LocationPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData
+    (state: RootState) => state.framework.frames[frameID].paneStateData
   );
   const todayEphemera = ephemera.ephemerisFiles;
 
@@ -119,7 +123,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
     if (map) {
       map.resize();
     }
-  }, [props.frameDimensions, layoutLastChanged]);
+  }, [frameDimensions, layoutLastChanged]);
 
   //update map based on changes in seconds / hoverSeconds
   useEffect(() => {
@@ -414,7 +418,7 @@ export function ISSLocation(props: { frameID: number; frameDimensions: number[] 
       </div>
     </>
   );
-}
+};
 
 type lngLat = {
   lng: number;

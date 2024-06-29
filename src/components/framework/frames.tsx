@@ -10,13 +10,13 @@ export default function Viewer() {
   const selectedLayout = useSelector((state: RootState) => state.framework.layout);
   const layoutDefinition = allLayouts[selectedLayout];
 
-  const frames = [];
+  const frames: JSX.Element[] = [];
   for (let i = 1; i <= layoutDefinition.frameCount; i++) {
     // CSS Grid definitions
     const gridAreaName = styles[`f${i}`];
     frames.push(
       <div className={`${styles.frameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
-        <Frame id={i} />
+        <Frame frameId={i} />
       </div>
     );
   }

@@ -1,10 +1,20 @@
 import * as Plotly from "plotly.js";
 import { MutableRefObject } from "react";
 
+declare module "plotly.js" {
+  namespace Fx {
+    function hover(element: HTMLElement, eventData: any[], mode?: string): void;
+  }
+}
+
 export default class PlotlyClass {
   constructor() {}
 
-  drawChart(chartID: string, plotlyChartTraces: PlotlyChartTrace[], plotlyChartLayout) {
+  drawChart(
+    chartID: string,
+    plotlyChartTraces: PlotlyChartTrace[],
+    plotlyChartLayout: Partial<Plotly.Layout>
+  ) {
     Plotly.newPlot(chartID, plotlyChartTraces as Plotly.Data[], plotlyChartLayout, {
       displayModeBar: false,
     });
