@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "es2022",
     "jsx": "react-jsx",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "es2022",
+    "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "./.local/vite/dist",
     "rootDir": ".",
