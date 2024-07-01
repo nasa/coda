@@ -365,9 +365,8 @@ export async function fetchTalkybotSGAudio(
   dateWanted: string
 ): Promise<SgActivityFullUrlRecord> {
   const url = `${process.env.TALKYBOT_URL}/api/v1/external/audio/${dateWanted}/audioManifest.json`;
-
   const res = await fetchWithTimeout(url);
-  const resJson = await res.json();
+  const resJson = (await res.json()) as AudioManifestItem[];
   const audioManifestItem: AudioManifestItem = resJson[0];
 
   const sgActivityRangeFullUrlRecords: SgActivityRangeFullUrlRecord[][] = [];

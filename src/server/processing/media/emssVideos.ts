@@ -63,7 +63,7 @@ export default async function getEMSSVideoData(params: {
       data: [],
     };
   }
-  const liveVideo: VideoFile[] = (await liveVideoResults.json()) || [];
+  const liveVideo: VideoFile[] = ((await liveVideoResults.json()) as VideoFile[]) || [];
 
   // sort the videos by start time
   liveVideo.sort((a, b) => a?.start - b?.start);
