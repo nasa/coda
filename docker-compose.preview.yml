@@ -19,7 +19,7 @@ services:
         # Build args needed in context during build (see note in Dockerfile)
         - VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY}
         - VITE_PUBLIC_APP_ENV=${VITE_PUBLIC_APP_ENV}
-  
+
   apiv1:
     image: coda-preview-apiv1:latest
     build:
