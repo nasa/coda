@@ -1,8 +1,8 @@
 /** See https://dmitripavlutin.com/timeout-fetch-request/ */
 
 import AbortController from "abort-controller";
-import fetch, { RequestInit } from "node-fetch";
-import type { Response } from "node-fetch";
+import fetch from "node-fetch";
+import type { Response, RequestInit } from "node-fetch";
 import https from "https";
 
 /**
