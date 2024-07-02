@@ -53,7 +53,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT * FROM gpxtracks_db'"
+      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT id FROM gpxtracks_db LIMIT 1'"
       interval: 30s # how often to check health
       timeout: 5s # fail if it takes longer than this
       retries: 6 # max consecutive failures
