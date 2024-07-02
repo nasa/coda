@@ -247,7 +247,11 @@ export function V2() {
           if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
           return;
         }
-        dispatch(addVideos(videoStoreResponse));
+        if (videoStoreResponse.responseMetadata.retrieverStatus === "error") {
+          dispatch(videosFetchError(videoStoreResponse.responseMetadata.error));
+          return;
+        }
+        if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
       } catch (e) {
         dispatch(videosFetchError(e.toString()));
       }
@@ -271,7 +275,11 @@ export function V2() {
           if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
           return;
         }
-        dispatch(addPhotos(photoStoreResponse));
+        if (photoStoreResponse.responseMetadata.retrieverStatus === "error") {
+          dispatch(photosFetchError(photoStoreResponse.responseMetadata.error));
+          return;
+        }
+        if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
         const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
         dispatch(setCollectionFilters(photoCollectionsFilter));
       } catch (e) {
