@@ -42,7 +42,7 @@ services:
 
   database:
     container_name: coda-database-1
-    image: postgis/postgis:14-3.2-alpine
+    image: 16.3-alpine3.20
     restart: unless-stopped
     environment:
       # Used for setting up a DB for the first time. These are not stored in the container
