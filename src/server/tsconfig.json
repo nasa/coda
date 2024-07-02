@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "extends": "../../tsconfig.json",
     "target": "es2022",
     "jsx": "react-jsx",
     "module": "es2022",
