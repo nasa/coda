@@ -18,6 +18,9 @@ services:
   apiv1:
     container_name: coda-apiv1-1
     image: ${DOCKER_IMAGE_APIV1}
+    depends_on:
+      database:
+        condition: service_healthy
     restart: unless-stopped
     env_file:
       # Any .env variables needed at runtime must be specified here or listed out in the `environment` property
