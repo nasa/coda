@@ -5,6 +5,10 @@ type GPSUpsertRequest = {
   gpxData: string;
 };
 
+interface GPSTracksQueryParams {
+  dateWanted: string;
+}
+
 type MediaOverrideUpsertRequest = {
   id: number;
   date: string;
@@ -13,7 +17,7 @@ type MediaOverrideUpsertRequest = {
   url: string;
 };
 
-interface GPSTracksQueryParams {
+interface MediaOverrideQueryParams {
   dateWanted: string;
 }
 
