@@ -61,7 +61,9 @@
 }
 
 .caret {
+  display: flex;
   padding-right: 6px;
+  align-items: center;
 }
 
 .none {
