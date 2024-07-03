@@ -7,6 +7,8 @@ const AdminIndex: FunctionComponent = () => {
       <h1>Admin</h1>
       <p>
         <Link to="/admin/gps">GPS Data</Link>
+        <br />
+        <Link to="/admin/mediaOverrides">Media Overrides</Link>
       </p>
     </div>
   );
