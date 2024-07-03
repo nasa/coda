@@ -526,7 +526,7 @@ export async function getAllTestEventsData(
 
       return {
         name: testEvent,
-        location: collection[testEnvironment],
+        location: collection.TEST_EVENTS,
         type: sequenceType.testing,
         dataURL: allTestEvents[testEvent].fullurl,
         displayTitle,
