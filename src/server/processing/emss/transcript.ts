@@ -35,12 +35,17 @@ export default async function getTranscripts(params: {
 
     // if there are media overrides, use those instead of labs
     if (mediaOverride) {
-      return LabsService.fetchLabsTranscripts(source, dateWanted, mediaOverride.url);
+      return LabsService.fetchLabsTranscripts({
+        source,
+        dateWanted,
+        overrideBaseUrl: mediaOverride.url,
+        forceNew,
+      });
     }
   } catch (e) {
     // don't block results if media overrides call fails
     console.error(e);
   }
 
-  return LabsService.fetchLabsAndTalkybotTranscripts(source, dateWanted);
+  return LabsService.fetchLabsAndTalkybotTranscripts({ source, dateWanted, forceNew });
 }

@@ -5,21 +5,25 @@ import fetchWithCache from "../processing/cache-client";
 import { isNearRealTime } from "utils/formatting";
 import { getVideoCoverageTimeRanges } from "server/processing/media/videos";
 
-export async function fetchLabsAndTalkybotTranscripts(
-  source: Source,
-  dateWanted: string,
-  overrideBaseUrl?: string
-): Promise<WrappedResponse<UnprocessedTranscript[]>> {
+export async function fetchLabsAndTalkybotTranscripts({
+  source,
+  dateWanted,
+  forceNew = false,
+}: {
+  source: Source;
+  dateWanted: string;
+  forceNew?: boolean;
+}): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   if (source !== "ISS") {
-    return await fetchLabsTranscripts(source, dateWanted, overrideBaseUrl);
+    return await fetchLabsTranscripts({ source, dateWanted, forceNew });
   }
 
   // get both, the labs and talkybot transcripts
-  let labsResponse = await fetchLabsTranscripts(source, dateWanted);
+  let labsResponse = await fetchLabsTranscripts({ source, dateWanted });
   let retries = 0;
   while (labsResponse.responseMetadata.retrieverStatus === "inprogress" && retries < 10) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    labsResponse = await fetchLabsTranscripts(source, dateWanted, overrideBaseUrl);
+    labsResponse = await fetchLabsTranscripts({ source, dateWanted, forceNew });
     retries++;
   }
   const labsTranscripts = labsResponse.data;
@@ -82,11 +86,17 @@ export async function fetchLabsAndTalkybotTranscripts(
   return response;
 }
 
-export async function fetchLabsTranscripts(
-  source: Source,
-  dateWanted: string,
-  overrideBaseUrl?: string
-): Promise<WrappedResponse<UnprocessedTranscript[]>> {
+export async function fetchLabsTranscripts({
+  source,
+  dateWanted,
+  overrideBaseUrl,
+  forceNew = false,
+}: {
+  source: Source;
+  dateWanted: string;
+  overrideBaseUrl?: string;
+  forceNew?: boolean;
+}): Promise<WrappedResponse<UnprocessedTranscript[]>> {
   // if not ISS return nothing unless an override URL has been send, then use the override URL
   if (source !== "ISS" && !overrideBaseUrl) {
     return {
@@ -103,7 +113,7 @@ export async function fetchLabsTranscripts(
   }
 
   const cacheAge = isNearRealTime(new Date(dateWanted).getTime(), collection[source]) ? 0 : 60;
-  const forceNew = false;
+
   leoProfanity.loadDictionary("en");
 
   const retriever = async (): Promise<UnprocessedTranscript[]> => {
