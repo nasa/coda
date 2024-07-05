@@ -688,53 +688,6 @@ export function parseWikitextTableIntoDatetimeOverrides(wikitext: string): Datet
   };
 }
 
-export function parseWikitextTableIntoMediaSourceOverrides(
-  wikitext: string
-): MediaSourceOverride[] {
-  const data: any[][] = [];
-  const lines = wikitext.split("|-");
-
-  let currentHeader: string[] = [];
-
-  // assume more than one table in the wikitext. use this index to increment which result to put table
-  let tableIndex = 0;
-
-  lines.forEach((line) => {
-    let t: any = {};
-
-    const stripped = line.trim();
-
-    if (stripped.match(/^!.*/g)) {
-      // every time we find a new header, create a new list of rows for the response
-      data[tableIndex] = [];
-      currentHeader = stripped
-        .slice(1)
-        .split("!!")
-        .map((s) => s.trim());
-    }
-
-    if (stripped.match(/^\|(?!-|}).*/g)) {
-      const row = stripped
-        .slice(1)
-        .split("||")
-        .map((s) => s.trim());
-      row.forEach(
-        (cell, index) => (t[currentHeader[index]] = cell.split("|}")[0].replace(/\n/g, ""))
-      );
-    }
-
-    if (!deepEquals(t, {})) {
-      data[tableIndex].push(t);
-    }
-
-    if (stripped.match(/\|\}/g)) {
-      tableIndex += 1;
-    }
-  });
-
-  return data[0] as MediaSourceOverride[];
-}
-
 export function parseWikitextTableIntoAncillaryDataSources(
   wikitext: string
 ): AncillaryDataSource[] {
