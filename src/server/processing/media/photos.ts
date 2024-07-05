@@ -2,7 +2,7 @@ import clone from "lodash/clone";
 import isNil from "lodash/isNil";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
-import * as OverrideService from "server/services/media_override";
+import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
 import _ from "lodash";
@@ -22,14 +22,14 @@ export default async function getPhotoData(params: {
 
   // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
   try {
-    let mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await DbService.fetchMediaOverrides(forceNew);
 
     if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
       // try once per second for up to 10 seconds
       let tries = 0;
       while (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        mediaOverrides = await WikiService.fetchMediaOverrides();
+        mediaOverrides = await DbService.fetchMediaOverrides();
         tries++;
       }
     }
@@ -47,7 +47,7 @@ export default async function getPhotoData(params: {
     // if there are media overrides, use those instead of IO
     if (mediaOverride) {
       const photos = _.sortBy(
-        (await OverrideService.getManifest(mediaOverride)) as PhotoFile[],
+        (await DbService.getManifest(mediaOverride)) as PhotoFile[],
         "datetimeTaken"
       );
 

@@ -1,7 +1,7 @@
 import clone from "lodash/cloneDeep";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
-import * as OverrideService from "server/services/media_override";
+import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
 import _ from "lodash";
 
@@ -17,16 +17,16 @@ export default async function getVideoData(params: {
   const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
-  // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
+  // Fetch video source overrides from the db for this date. If there are none, then use Imagery Online
   try {
-    let mediaOverrides = await WikiService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await DbService.fetchMediaOverrides(forceNew);
 
     if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
       // try once per second for up to 10 seconds
       let tries = 0;
       while (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        mediaOverrides = await WikiService.fetchMediaOverrides();
+        mediaOverrides = await DbService.fetchMediaOverrides();
         tries++;
       }
     }
@@ -43,7 +43,7 @@ export default async function getVideoData(params: {
     // if there are media overrides, use those instead of IO. Multiple overrides for the same date and source are merged into one here
     if (relevantMediaOverrides.length > 0) {
       const allVideoManifests = await Promise.all(
-        relevantMediaOverrides.map((mediaOverride) => OverrideService.getManifest(mediaOverride))
+        relevantMediaOverrides.map((mediaOverride) => DbService.getManifest(mediaOverride))
       );
       const videos = _.sortBy(allVideoManifests.flat() as VideoFile[], "startDateTime");
 
