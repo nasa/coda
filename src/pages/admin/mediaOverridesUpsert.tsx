@@ -63,6 +63,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
         <div className={styles.formItem}>
           <label>Source:</label>
           <select
+            value={source}
             onChange={(e) => {
               setSource(e.target.value as "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS");
             }}
@@ -76,6 +77,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
         <div className={styles.formItem}>
           <label>Type:</label>
           <select
+            value={type}
             onChange={(e) => {
               setType(e.target.value as "video" | "photo" | "transcript" | "audio");
             }}
