@@ -1,5 +1,4 @@
 import * as LabsService from "server/services/emss";
-import * as WikiService from "server/services/wiki-api";
 import * as DbService from "server/services/db-api";
 
 export default async function getLabsSgAudio(params: {
