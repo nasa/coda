@@ -593,38 +593,6 @@ export async function fetchDatetimeOverrides(
   });
 }
 
-/** Get all the manually set media source overrides.
- *
- * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Media_Source_Overrides
- */
-export async function fetchMediaOverrides(
-  forceNew: boolean = false
-): Promise<WrappedResponse<MediaSourceOverride[]>> {
-  const parseQuery = {
-    page: "CODA/Media_Source_Overrides",
-    prop: "wikitext",
-  };
-
-  const retriever = async () => {
-    const res = await fetchWiki({
-      parseQuery,
-      wiki: "exploration",
-      action: "parse",
-    });
-    return parseWikitextTableIntoMediaSourceOverrides(res.data.parse.wikitext["*"]);
-  };
-
-  return await fetchWithCache<MediaSourceOverride[]>({
-    identifier: "media-overrides",
-    cacheFolder: "wiki",
-    retriever,
-    // cacheAge: 604800, //1 week
-    // cacheAge: 31536000, // 1 year
-    cacheAge: 86400, // 1 day
-    forceRetriever: forceNew,
-  });
-}
-
 /** Get the list of ancillary data sources from the wiki
  *
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Ancillary_Data_Sources
