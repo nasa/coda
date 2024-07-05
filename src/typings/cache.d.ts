@@ -32,8 +32,8 @@ type CacheFolder =
   | "io"
   | "labs/transcripts"
   | "labs/audio"
+  | "media"
   | "wiki"
   | "wiki/all"
   | "wiki/gps"
-  | "test"
-  | "mediaOverrides";
+  | "test";

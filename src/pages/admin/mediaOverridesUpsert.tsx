@@ -33,8 +33,8 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
     const data: MediaOverrideUpsertRequest = {
       id: id ? parseInt(id) : undefined,
       date: date,
-      source: source,
-      type: type,
+      source: source as "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS",
+      type: type as "video" | "photo" | "transcript" | "audio",
       url: url,
     };
     // upsert
