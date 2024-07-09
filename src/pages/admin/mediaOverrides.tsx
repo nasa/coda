@@ -49,7 +49,7 @@ const ListOverrides: FunctionComponent = () => {
         {records?.map((record) => (
           <li key={record.id} className={styles.listItem}>
             <Link to={`/admin/mediaOverridesUpsert?id=${record.id}`}>
-              {record.date} - {record.type}
+              {record.date} - {record.source} - {record.type}
             </Link>
             <FontAwesomeIcon
               onClick={() => {
