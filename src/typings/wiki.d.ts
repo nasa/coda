@@ -199,15 +199,5 @@ interface MediaSourceOverride {
   url: string;
 }
 
-/**
- * Ancillary data sources listed from the wiki
- */
-interface AncillaryDataSource {
-  date: string;
-  source: Source;
-  type: "graphs";
-  url: string;
-}
-
 /** API query options */
 type AgencyQuery = "us" | "rs" | "all";

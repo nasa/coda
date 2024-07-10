@@ -21,6 +21,18 @@ interface MediaOverrideQueryParams {
   dateWanted: string;
 }
 
+type AncillaryDataUpsertRequest = {
+  id: number;
+  date: string;
+  source: "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS";
+  type: "graphs";
+  url: string;
+};
+
+interface AncillaryDataQueryParams {
+  dateWanted: string;
+}
+
 interface DayNightQueryParams {
   dateWanted: string;
   forceNew?: boolean;
