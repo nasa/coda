@@ -1,4 +1,4 @@
-import * as WikiService from "server/services/wiki-api";
+import * as DbService from "server/services/db-api";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 
 export const fetchGraphsManifest = async (
@@ -6,7 +6,7 @@ export const fetchGraphsManifest = async (
   dateWanted: string,
   forceNew?: boolean
 ): Promise<WrappedResponse<GraphsManifest>> => {
-  const ancillaryDataSources = await WikiService.fetchAncillaryDataSourceList(forceNew);
+  const ancillaryDataSources = await DbService.fetchAncillaryDataSourceList(forceNew);
 
   // Check if there is a video override for this date and Source
   const ancillaryDataSource = ancillaryDataSources?.data?.find((vo) => {
