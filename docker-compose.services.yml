@@ -12,4 +12,5 @@ services:
     ports:
       # For local dev, expose the database outside the docker network in case devs want to use
       # a SQL client on their machine (e.g. HeidiSQL, etc)
+      # 5430 is for TalkyBot. AEGIS uses 5432, CODA, 5431
       - "5431:5432"
