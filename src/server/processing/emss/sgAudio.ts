@@ -4,14 +4,13 @@ import * as DbService from "server/services/db-api";
 export default async function getLabsSgAudio(params: {
   source: Source;
   dateWanted: string; //yy-mm-dd
-  forceNew: boolean;
 }): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
-  const { source, dateWanted, forceNew } = params;
+  const { source, dateWanted } = params;
   const requestedDate = new Date(dateWanted);
 
   // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online
   try {
-    let mediaOverrides = await DbService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await DbService.fetchMediaOverrides();
 
     if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
       // try once per second for up to 10 seconds

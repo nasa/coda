@@ -1,8 +1,8 @@
 type MediaOverride = {
-  id: number;
+  id?: number;
   date: string;
-  source: "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS";
-  type: "video" | "photo" | "transcript" | "audio";
+  source: Source;
+  type: MediaMedium;
   url: string;
 };
 

@@ -9,13 +9,7 @@ interface GPSTracksQueryParams {
   dateWanted: string;
 }
 
-type MediaOverrideUpsertRequest = {
-  id: number;
-  date: string;
-  source: "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS";
-  type: "video" | "photo" | "transcript" | "audio";
-  url: string;
-};
+type MediaOverrideUpsertRequest = MediaOverride;
 
 interface MediaOverrideQueryParams {
   dateWanted: string;

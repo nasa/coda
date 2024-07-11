@@ -22,7 +22,7 @@ export default async function getPhotoData(params: {
 
   // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
   try {
-    let mediaOverrides = await DbService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await DbService.fetchMediaOverrides();
 
     if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
       // try once per second for up to 10 seconds

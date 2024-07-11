@@ -19,7 +19,7 @@ export default async function getVideoData(params: {
 
   // Fetch video source overrides from the db for this date. If there are none, then use Imagery Online
   try {
-    let mediaOverrides = await DbService.fetchMediaOverrides(forceNew);
+    let mediaOverrides = await DbService.fetchMediaOverrides();
 
     if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
       // try once per second for up to 10 seconds
@@ -32,7 +32,7 @@ export default async function getVideoData(params: {
     }
 
     // Check if there is a video override for this date and Source
-    const relevantMediaOverrides: MediaSourceOverride[] = mediaOverrides?.data?.filter((vo) => {
+    const relevantMediaOverrides: MediaOverride[] = mediaOverrides?.data?.filter((vo) => {
       return (
         new Date(vo.date).getTime() === requestedDate.getTime() &&
         vo.source === source &&

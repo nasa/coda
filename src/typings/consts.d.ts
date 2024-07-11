@@ -11,6 +11,8 @@ type LoadingStatus = "loading" | "loaded" | "unneeded";
 
 type Source = "ISS" | "TEST_EVENTS" | "NBL" | "ARTEMIS";
 
+type MediaMedium = "video" | "photo" | "transcript" | "audio";
+
 type SourceShortVal = 0 | 1 | 2 | 3;
 
 type SequenceType = 1 | 2 | "testing" | "analog" | "training";
@@ -32,7 +34,6 @@ type CacheFolder =
   | "io"
   | "labs/transcripts"
   | "labs/audio"
-  | "media"
   | "wiki"
   | "wiki/all"
   | "wiki/gps"

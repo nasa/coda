@@ -9,9 +9,9 @@ export class MediaOverride_db implements MediaOverride_db_type {
   @Property({ type: MikroTypes.text })
   date!: string;
   @Property({ type: MikroTypes.text })
-  source!: "ISS" | "TEST_EVENTS" | "NBL" | "ARTEMIS";
+  source!: Source;
   @Property({ type: MikroTypes.text })
-  type!: "video" | "photo" | "transcript" | "audio";
+  type!: MediaMedium;
   @Property({ type: MikroTypes.text })
   url!: string;
 }

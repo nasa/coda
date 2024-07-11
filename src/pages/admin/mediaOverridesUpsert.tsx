@@ -7,8 +7,8 @@ function useQuery() {
 }
 export const EditMediaOverridesRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
-  const [source, setSource] = useState<"ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS">("ARTEMIS");
-  const [type, setType] = useState<"video" | "photo" | "transcript" | "audio">("video");
+  const [source, setSource] = useState<Source>("ARTEMIS");
+  const [type, setType] = useState<MediaMedium>("video");
   const [url, setURL] = useState<string>("");
   const navigate = useNavigate();
   const query = useQuery();
@@ -33,8 +33,8 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
     const data: MediaOverrideUpsertRequest = {
       id: id ? parseInt(id) : undefined,
       date: date,
-      source: source as "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS",
-      type: type as "video" | "photo" | "transcript" | "audio",
+      source: source as Source,
+      type: type as MediaMedium,
       url: url,
     };
     // upsert
@@ -65,7 +65,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
           <select
             value={source}
             onChange={(e) => {
-              setSource(e.target.value as "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS");
+              setSource(e.target.value as Source);
             }}
           >
             <option>ARTEMIS</option>
@@ -79,7 +79,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
           <select
             value={type}
             onChange={(e) => {
-              setType(e.target.value as "video" | "photo" | "transcript" | "audio");
+              setType(e.target.value as MediaMedium);
             }}
           >
             <option>video</option>
