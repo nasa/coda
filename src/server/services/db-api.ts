@@ -1,6 +1,5 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getMediaOverridesList } from "../express/routes/db/mediaOverrides";
-import type { Response } from "node-fetch";
 
 /**
  * Fetch override video manifest from the override location specified in the db
