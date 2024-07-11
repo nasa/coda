@@ -192,7 +192,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 
 export default router;
 
-async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDataSource[]> {
+export async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDataSource[]> {
   const em = getEM();
 
   let ancillaryDataSource_db: Loaded<AncillaryDataSource_db, never>[];
@@ -214,7 +214,7 @@ async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDat
   }
 }
 
-async function getAncillaryDataSourceList(): Promise<AncillaryDataSourceList[]> {
+export async function getAncillaryDataSourceList(): Promise<AncillaryDataSourceList[]> {
   const em = getEM();
 
   const ancillaryDataSource_db = await em.find(

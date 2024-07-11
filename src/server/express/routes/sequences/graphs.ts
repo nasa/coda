@@ -9,11 +9,10 @@ import { Query } from "express-serve-static-core";
 const router = express.Router();
 
 const parseQuery = (query: Query): GetGraphsManifestQueryParams => {
-  const { dateWanted, source, forceNew } = query;
+  const { dateWanted, source } = query;
   const queryObj: GetGraphsManifestQueryParams = {
     dateWanted: dateWanted as string,
     source: source ? (source as Source) : undefined,
-    forceNew: forceNew === "true",
   };
   return queryObj;
 };
@@ -25,7 +24,6 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     const data = await getGraphManifest({
       dateWanted: queryObj.dateWanted,
       source: queryObj.source,
-      forceNew: queryObj.forceNew,
     });
     res.status(200).json(data);
     return;
