@@ -72,7 +72,7 @@ export const config: UserConfig = {
           paper: ["paper"],
         },
       },
-      external: ["path", "os", "crypto", "assert"],
+      external: ["path", "os", "crypto"],
     },
   },
   define: {

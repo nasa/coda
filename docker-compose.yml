@@ -32,7 +32,6 @@ services:
       # This happens after `env_file` above. It overrides the value of CACHE_ROOT that is set in
       # .env, such that it's always /cache in the container.
       - CACHE_ROOT=/cache
-      - DB_HOST=database
     volumes:
       # Here CACHE_ROOT is whatever is specified in the .env file, because creating the volume
       # happens on the host before the container is fully running. In contrast, the `env_file` and
