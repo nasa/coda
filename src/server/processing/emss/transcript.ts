@@ -13,7 +13,7 @@ export default async function getTranscripts(params: {
     let mediaOverrides = await DbService.fetchMediaOverrides();
 
     // Check if there is a transcript override for this date and Source
-    const mediaOverride = mediaOverrides.find((vo) => {
+    const mediaOverride = mediaOverrides?.find((vo) => {
       const overrideDate = new Date(vo.date);
       return (
         overrideDate.getTime() === requestedDate.getTime() &&
