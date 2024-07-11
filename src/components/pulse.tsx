@@ -16,6 +16,8 @@ const PulseAnyatics: FunctionComponent = () => {
     const hostname = window?.location?.hostname;
     if (hostname === "coda.fit.nasa.gov") {
       script.src = "https://pulse.nasa.gov/track.js";
+    } else if (hostname === "coda-local.fit.nasa.gov") {
+      script.src = "";
     } else {
       script.src = "https://pulse.staging.nasa.gov/track.js";
     }
