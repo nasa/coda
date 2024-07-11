@@ -46,6 +46,7 @@ services:
   database:
     container_name: coda-database-1
     image: postgis/postgis:14-3.2-alpine
+    # image: postgres:14.12-alpine # pending EMSS/docker-images MR !36
     restart: unless-stopped
     environment:
       # Used for setting up a DB for the first time. These are not stored in the container
