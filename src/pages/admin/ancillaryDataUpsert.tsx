@@ -7,7 +7,7 @@ function useQuery() {
 }
 export const EditAncillaryDataRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
-  const [source, setSource] = useState<"ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS">("ARTEMIS");
+  const [source, setSource] = useState<Source>("ARTEMIS");
   const [type, setType] = useState<"graphs">("graphs");
   const [url, setURL] = useState<string>("");
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export const EditAncillaryDataRecord: FunctionComponent = () => {
     const data: AncillaryDataUpsertRequest = {
       id: id ? parseInt(id) : undefined,
       date: date,
-      source: source as "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS",
+      source: source as Source,
       type: type as "graphs",
       url: url,
     };
@@ -65,7 +65,7 @@ export const EditAncillaryDataRecord: FunctionComponent = () => {
           <select
             value={source}
             onChange={(e) => {
-              setSource(e.target.value as "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS");
+              setSource(e.target.value as Source);
             }}
           >
             <option>ARTEMIS</option>

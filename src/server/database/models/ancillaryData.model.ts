@@ -9,7 +9,7 @@ export class AncillaryDataSource_db implements AncillaryDataSource_db_type {
   @Property({ type: MikroTypes.text })
   date!: string;
   @Property({ type: MikroTypes.text })
-  source!: "ISS" | "TEST_EVENTS" | "NBL" | "ARTEMIS";
+  source!: Source;
   @Property({ type: MikroTypes.text })
   type!: "graphs";
   @Property({ type: MikroTypes.text })

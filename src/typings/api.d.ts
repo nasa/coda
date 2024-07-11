@@ -18,7 +18,7 @@ interface MediaOverrideQueryParams {
 type AncillaryDataUpsertRequest = {
   id: number;
   date: string;
-  source: "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS";
+  source: Source;
   type: "graphs";
   url: string;
 };

@@ -38,7 +38,7 @@ type PlotlyChartTrace = Pick<Plotly.Data, "x" | "y" | "type" | "mode" | "line" |
 type AncillaryDataSource = {
   id: number;
   date: string;
-  source: "ARTEMIS" | "ISS" | "NBL" | "TEST_EVENTS";
+  source: Source;
   type: "graphs";
   url: string;
 };
