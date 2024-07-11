@@ -12,18 +12,8 @@ export default async function getTranscripts(params: {
   try {
     let mediaOverrides = await DbService.fetchMediaOverrides();
 
-    if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
-      // try once per second for up to 10 seconds
-      let tries = 0;
-      while (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        mediaOverrides = await DbService.fetchMediaOverrides();
-        tries++;
-      }
-    }
-
     // Check if there is a transcript override for this date and Source
-    const mediaOverride = mediaOverrides?.data?.find((vo) => {
+    const mediaOverride = mediaOverrides.find((vo) => {
       const overrideDate = new Date(vo.date);
       return (
         overrideDate.getTime() === requestedDate.getTime() &&

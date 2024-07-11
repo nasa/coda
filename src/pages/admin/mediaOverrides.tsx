@@ -29,7 +29,7 @@ const ListOverrides: FunctionComponent = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("/api/v1/db/mediaOverrides");
+      const response = await fetch(`/api/v1/db/mediaOverrides`);
       const data: WrappedResponse<MediaOverrideList[]> = await response.json();
       setRecords(data.data);
     };

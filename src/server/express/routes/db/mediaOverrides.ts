@@ -182,7 +182,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 
 export default router;
 
-async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
+export async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
   const em = getEM();
 
   let mediaOverrides_db: Loaded<MediaOverride_db, never>[];
@@ -202,7 +202,7 @@ async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
   }
 }
 
-async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
+export async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
   const em = getEM();
 
   const mediaOverrides_db = await em.find(

@@ -1,5 +1,5 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
-import fetchWithCache from "../processing/cache-client";
+import { getMediaOverridesList } from "../express/routes/db/mediaOverrides";
 import type { Response } from "node-fetch";
 
 /**
@@ -23,15 +23,8 @@ export async function getManifest(
  *
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Media_Source_Overrides
  */
-export async function fetchMediaOverrides(): Promise<WrappedResponse<MediaOverride[]>> {
-  const dataPath = "/api/v1/db/mediaOverrides";
+export async function fetchMediaOverrides(): Promise<MediaOverride[]> {
+  const mediaOverridesList = await getMediaOverridesList();
 
-  let res: Response;
-  try {
-    res = await fetchWithTimeout(dataPath);
-  } catch (e) {
-    throw e;
-  }
-
-  return res.json() as Promise<WrappedResponse<MediaOverride[]>>;
+  return mediaOverridesList as MediaOverride[];
 }

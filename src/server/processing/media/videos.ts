@@ -21,18 +21,8 @@ export default async function getVideoData(params: {
   try {
     let mediaOverrides = await DbService.fetchMediaOverrides();
 
-    if (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
-      // try once per second for up to 10 seconds
-      let tries = 0;
-      while (mediaOverrides?.responseMetadata?.retrieverStatus === "inprogress" && tries < 10) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        mediaOverrides = await DbService.fetchMediaOverrides();
-        tries++;
-      }
-    }
-
     // Check if there is a video override for this date and Source
-    const relevantMediaOverrides: MediaOverride[] = mediaOverrides?.data?.filter((vo) => {
+    const relevantMediaOverrides: MediaOverride[] = mediaOverrides?.filter((vo) => {
       return (
         new Date(vo.date).getTime() === requestedDate.getTime() &&
         vo.source === source &&

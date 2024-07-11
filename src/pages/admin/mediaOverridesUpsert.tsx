@@ -34,7 +34,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
       id: id ? parseInt(id) : undefined,
       date: date,
       source: source as Source,
-      type: type as MediaMedium,
+      type: type as "video" | "photo" | "transcript" | "audio",
       url: url,
     };
     // upsert
@@ -79,7 +79,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
           <select
             value={type}
             onChange={(e) => {
-              setType(e.target.value as MediaMedium);
+              setType(e.target.value as "video" | "photo" | "transcript" | "audio");
             }}
           >
             <option>video</option>
