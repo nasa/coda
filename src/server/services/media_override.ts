@@ -4,7 +4,7 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
  * Fetch override video manifest from the override location specified in the wiki
  */
 export async function getManifest(
-  override: MediaSourceOverride
+  override: MediaOverride
 ): Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]> {
   const dataPath = `${override.url}/${override.type}Manifest.json`;
 
