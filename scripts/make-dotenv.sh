@@ -67,8 +67,8 @@ else
     export CACHE_ROOT=/d1/coda/cache
     export TALKYBOT_URL=https://coda-dev2.fit.nasa.gov
 
-    export DOCKER_DB_DATA_DIR=/d1/postgres
-    export DOCKER_DB_INIT_DIR=/d1/db-init
+    export DOCKER_DB_DATA_DIR=/d1/coda/postgres
+    export DOCKER_DB_INIT_DIR=/d1/coda/db-init
 
     export DB_HOST=database
     export DB_PORT=5432

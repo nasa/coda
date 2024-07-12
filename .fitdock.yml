@@ -22,11 +22,11 @@ directories:
     mode: "0775"
     owner: gitlab-runner
     group: gitlab-runner
-  - path: /d1/postgres
+  - path: /d1/coda/postgres
     mode: "0775"
     owner: gitlab-runner
     group: gitlab-runner
-  - path: /d1/db-init
+  - path: /d1/coda/db-init
     mode: "0775"
     owner: gitlab-runner
     group: gitlab-runner
