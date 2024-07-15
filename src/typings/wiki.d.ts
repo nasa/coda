@@ -190,16 +190,6 @@ interface TestEventOffsets {
 }
 
 /**
- * Manual overrides from the wiki to use a different source for videos
- */
-interface MediaSourceOverride {
-  date: string;
-  source: Source;
-  type: "video" | "photo" | "transcript" | "audio";
-  url: string;
-}
-
-/**
  * Ancillary data sources listed from the wiki
  */
 interface AncillaryDataSource {

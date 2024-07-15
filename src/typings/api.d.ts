@@ -9,6 +9,12 @@ interface GPSTracksQueryParams {
   dateWanted: string;
 }
 
+type MediaOverrideUpsertRequest = MediaOverride;
+
+interface MediaOverrideQueryParams {
+  dateWanted: string;
+}
+
 interface DayNightQueryParams {
   dateWanted: string;
   forceNew?: boolean;
