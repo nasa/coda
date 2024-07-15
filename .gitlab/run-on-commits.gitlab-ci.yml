@@ -110,7 +110,7 @@ deploy:dev1:
   before_script:
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
 
-      # Since this runner is shared between all EMSS repos, we need to check if any containers that
+    # Since this runner is shared between all EMSS repos, we need to check if any containers that
     # are running are this app or something else. Ultimately this code needs to be in the EMSS
     # deploy template, and needs to do the `grep -q "/opt/coda"` part in an app-agnostic way (e.g.
     # needs to grab the INSTALL_PATH from .fitdock.yml), but for now this is hard-coded for CODA.
@@ -135,6 +135,12 @@ deploy:dev1:
     #   else
     #     echo "Same app deploying, not killing containers"
     #   fi
+
+    # Stop all containers. TODO unsure why the above code to selectively stop containers is needed.
+    - >
+      if docker --version; then
+        sudo docker stop $(sudo docker ps -a -q)
+      fi
 
 # CODA-Dev2 currently functioning as Talky Bot prod
 # deploy:dev2:
