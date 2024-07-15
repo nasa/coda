@@ -23,7 +23,10 @@ import Button from "components/interface/button";
 import { createRoot } from "react-dom/client";
 library.add(faLock, faLockOpen);
 
-export const GPSLocationControls: FunctionComponent<{ frameID: number, frameDimensions: number[] }> = ({ frameID, frameDimensions }) => {
+export const GPSLocationControls: FunctionComponent<{
+  frameID: number;
+  frameDimensions: number[];
+}> = ({ frameID, frameDimensions }) => {
   const dispatch = useDispatch();
 
   const minWidth = 470;
@@ -480,6 +483,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
     mapContainer: MutableRefObject<any>
   ) {
+    mapContainer.current.innerHTML = ""; // Clear the container
     const thisMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite

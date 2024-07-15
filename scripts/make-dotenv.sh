@@ -47,7 +47,14 @@ if [ -z "${CI+set}" ]; then # if not in CI (aka local)
 
     export DOCKER_DB_DATA_DIR=./.local/database
     export DOCKER_DB_INIT_DIR=./.local/db-init
-    export DB_PORT=5431 # We use 5431 for local development to avoid conflicts with AEGIS database
+
+    # DB_HOST is "localhost" when doing native/local Node development. When running
+    #   node in docker in docker:preview, this will be overridden in the 
+    #   docker-compose-preview.yml to be "database"
+    export DB_HOST=localhost
+    # Use a different port for local development to avoid conflicts with other apps
+    #   when doing dev in docker:services mode
+    export DB_PORT=5431 
 
     # These values are not used locally since the docker-compose is overriden by
     #   the docker-compose.preview files. Those files build the images directly from the Dockerfiles
@@ -60,8 +67,10 @@ else
     export CACHE_ROOT=/d1/coda/cache
     export TALKYBOT_URL=https://coda-dev2.fit.nasa.gov
 
-    export DOCKER_DB_DATA_DIR=/d1/postgres
-    export DOCKER_DB_INIT_DIR=/d1/db-init
+    export DOCKER_DB_DATA_DIR=/d1/coda/postgres
+    export DOCKER_DB_INIT_DIR=/d1/coda/db-init
+
+    export DB_HOST=database
     export DB_PORT=5432
 
     # IMAGE_VERSION is defined in the pipeline job

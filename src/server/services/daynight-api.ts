@@ -1,7 +1,7 @@
 import fetchWithCache from "../processing/cache-client";
 import { hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
-import { getTimes } from "utils/suncalc";
+import SunCalc from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
 import { fetchISSLocation } from "./ephemera-api";
 import { get as ntlmGET } from "@evamss/ntlm";
@@ -559,7 +559,7 @@ function calcDayNight(
 }
 
 function isSunlit(date: Date, lng: number, lat: number, heightMeters: number) {
-  const sunTimes = getTimes(date, lat, lng, heightMeters);
+  const sunTimes = SunCalc.getTimes(date, lat, lng, heightMeters);
 
   // get time between sunset start and golden hour.
   let sunlightEnd = new Date((sunTimes.sunset.getTime() + sunTimes.goldenHour.getTime()) / 2);

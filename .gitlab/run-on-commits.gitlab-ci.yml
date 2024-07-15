@@ -110,12 +110,33 @@ deploy:dev1:
   before_script:
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
 
-    # Since this runner is shared between all EMSS repos, we need to ensure all containers are
-    # stopped before proceeding with deploy. Except if docker not installed, which means this is
-    # the first run of deploy and the VM hasn't even bootstrapped itself yet, thus no containers
-    # could exist yet
+    # Since this runner is shared between all EMSS repos, we need to check if any containers that
+    # are running are this app or something else. Ultimately this code needs to be in the EMSS
+    # deploy template, and needs to do the `grep -q "/opt/coda"` part in an app-agnostic way (e.g.
+    # needs to grab the INSTALL_PATH from .fitdock.yml), but for now this is hard-coded for CODA.
+    # If-statement below does two checks:
+    # 1. If `sudo docker compose ls` lists more than 2 lines, this means there are more than two
+    #    docker-compose apps running (first line is just the header). Here's an example of AEGIS
+    #    and Labs running simultaneously:
+    #       ejmontal@jsfitdaegis01 / $ sudo docker compose ls
+    #       NAME                STATUS              CONFIG FILES
+    #       aegis               running(3)          /opt/aegis/docker-compose.yml
+    #       emss-labs           running(5)          /opt/emss-labs/docker-compose.yml
+    #    If this is the case, we definitely are in a weird condition and want to nuke all containers
+    #    and let this deploy job bring us back to a normal configuration.
+    # 2. If `sudo docker compose ls` does NOT included this app's install directory (/opt/aegis),
+    #    then some other app was the most recently deployed app. Nuke all containers and let this
+    #    deploy job make AEGIS the running app.
+    # - COMPOSE_LS=$(sudo docker compose ls)
+    # - >
+    #   if [ $(echo "$COMPOSE_LS" | wc -l) -gt 2 ] || ! echo "$COMPOSE_LS" | grep -q "/opt/coda"; then
+    #     echo "Unknown docker-compose apps running, killing all containers."
+    #     sudo docker stop $(sudo docker ps -a -q)
+    #   else
+    #     echo "Same app deploying, not killing containers"
+    #   fi
 
-    # Realtime transcription taking over CODA-Dev2 through JETT5. Don't need to do this check.
+    # Stop all containers. TODO unsure why the above code to selectively stop containers is needed.
     - >
       if docker --version; then
         sudo docker stop $(sudo docker ps -a -q)
@@ -231,15 +252,15 @@ z:db-export:dev2:
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
     - PROJECT_DIR=$(pwd)
     - cd /opt/coda
-    - cp "${PROJECT_DIR}/coda.sql" /d1/db-init/coda.sql
+    - cp "${PROJECT_DIR}/coda.sql" /d1/coda/db-init/coda.sql
 
     # Stop docker compose, then remove database files
     - sudo /usr/bin/docker compose down --remove-orphans
-    - sudo rm -rf /d1/postgres
+    - sudo rm -rf /d1/coda/postgres
 
-    # Bring docker compose back up, which will use the file at /d1/db-init/coda.sql, then remove it
+    # Bring docker compose back up, which will use the file at /d1/coda/db-init/coda.sql, then remove it
     - sudo /usr/bin/docker compose up -d
-    - sudo rm -f /d1/db-init/coda.sql
+    - sudo rm -f /d1/coda/db-init/coda.sql
 
     # Migrations will be run when the apiv1 container restarts
 
@@ -264,3 +285,68 @@ z:db-import:int:
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
     URL: https://coda-int.fit.nasa.gov
+
+.move-db-shim-template:
+  when: manual
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+
+    - APP_NAME="coda"
+
+    - |
+      if [ -e "/d1/$APP_NAME/postgres/PG_VERSION" ]; then
+        echo "Postgres is installed in /d1/$APP_NAME/postgres, shim has already run. No action required."
+        exit 0
+      else
+        echo 'Running shim...';
+      fi
+
+    # stop all containers
+    - sudo docker stop $(sudo docker ps -a -q) || true
+
+    # remove all containers
+    - sudo docker rm $(sudo docker ps -a -q) || true
+
+    # Move directories to new locations
+    - sudo mkdir -p "/d1/$APP_NAME"
+    - sudo mv /d1/db-init "/d1/$APP_NAME/db-init"
+    - sudo mv /d1/postgres "/d1/$APP_NAME/postgres"
+
+    # Ensure good permissions
+    - sudo chown -R gitlab-runner:gitlab-runner "/d1/$APP_NAME"
+    - sudo chmod -R 0775 "/d1/$APP_NAME"
+
+z:move-db-shim:coda-dev1:
+  extends: .move-db-shim-template
+  tags: ["coda-dev1-runner"]
+  environment:
+    name: development1
+    url: $URL
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
+    URL: https://coda-dev.fit.nasa.gov
+
+z:move-db-shim:coda-int:
+  extends: .move-db-shim-template
+  tags: ["coda-int-runner"]
+  environment:
+    name: integration
+    url: $URL
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+    URL: https://coda-int.fit.nasa.gov
+
+x:move-db-shim:coda-prod:
+  extends: .move-db-shim-template
+  tags: ["coda-prod-runner"]
+  environment:
+    name: production
+    url: $URL
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
+    URL: https://coda.fit.nasa.gov

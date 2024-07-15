@@ -2,14 +2,9 @@
 # https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates
 include:
   - project: "developer-ecosystem/ci-job-templates"
-    ref: 3.3.0
+    ref: 5.4.3
     file: "/rollups/all-projects.gitlab-ci.yml"
   - template: "Verify/Accessibility.gitlab-ci.yml"
-
-  # Docker-in-Docker template for building docker images using docker runners
-  - project: "developer-ecosystem/ci-job-templates"
-    ref: 5.1.0
-    file: "/extends/dind.gitlab-ci.yml"
 
   # Code quality checks
   - project: "emss/gitlab-templates"
@@ -24,69 +19,57 @@ stages:
 project-check:
   stage: stageless
   needs: []
-  tags: ["openshift"]
-eslint-sast:
-  stage: stageless
-  needs: []
-  tags: ["openshift"]
 nodejs-scan-sast:
   stage: stageless
   needs: []
-  tags: ["openshift"]
 semgrep-sast:
   stage: stageless
   needs: []
-  tags: ["openshift"]
 sast:
   stage: stageless
   needs: []
-  tags: ["openshift"]
 secret_detection:
   stage: stageless
   needs: []
-  tags: ["openshift"]
 code-count:
   stage: stageless
   needs: []
-  tags: ["openshift"]
+yaml-lint:
+  stage: stageless
+  needs: []
+  script:
+    - CONFIG_FILES=".yamllint .yamllint.yaml .yamllint.yml"
+    - CONFIG_FILE=""
+    - |
+      for filename in $CONFIG_FILES; do
+        if [ -e "$filename" ]; then
+          CONFIG_FILE="$filename"
+          break
+        fi
+      done
+    - |
+      if [ -z "${CONFIG_FILE}" ]; then
+        yamllint -d relaxed .
+      else
+        yamllint -c ${CONFIG_FILE} .
+      fi
+
+job-report-visualization:
+  stage: stageless
+  needs: []
+deprecated-keywords:
+  stage: stageless
+  needs: []
+file-count:
+  stage: stageless
+  needs: []
 a11y:
   stage: stageless
 
-# manually overwrite the dependency-check to add our own suppression.xml
 dependency-check:
   stage: stageless
+  tags: ["docker", "linux"] # can't use openshift (yet?)
   needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
-  tags: ["docker", "linux"] # can't use openshift yet
-  image:
-    # Specify the Docker image to be used for the job, which is a customized image for running OWASP
-    # dependency-check in a GitLab CI job
-    name: $CI_REGISTRY/developer-ecosystem/dependency-check:latest
-    # Entrypoint is overridden to allow a script to be run
-    entrypoint: [""]
-  script:
-    # Run dependency-check from the location installed in the Docker container with the following arguments:
-    # --scan "./"                                         Scans all files and folders within the working folder,
-    #                                                     which contains the repository files as well as any
-    #                                                     artifacts from prior jobs in the pipeline
-    # --format ALL                                        Saves output in all formats so that HTML and JSON
-    #                                                     files are available
-    # --project "$CI_PROJECT_NAME"                        Use the GitLab project name, which is included in
-    #                                                     the report
-    # --failOnCVSS 0                                      Forces job to fail if any vulnerabilities are found
-    # --suppression /suppressions/fp-cpe-suppression.xml  Suppress false positives where the dependency is
-    #                                                     improperly identified
-    # --suppression /suppressions/fp-cve-suppression.xml  Suppress false positives where the dependency is
-    #                                                     properly identified, but the  CVE is a false positive
-    - /usr/share/dependency-check/bin/dependency-check.sh --scan "./" --format ALL --project "$CI_PROJECT_NAME" --failOnCVSS 0 --suppression /suppressions/fp-cpe-suppression.xml --suppression /suppressions/fp-cve-suppression.xml --suppression ./ci/suppression.xml
-  # Allow failure will report a failure, but continue execution of the pipeline
-  allow_failure: true
-  artifacts:
-    # Saving artifacts always forces them to be saved on failure as well as success
-    when: always
-    # Save the HTML and JSON formatted results as artifacts
-    paths:
-      - "./dependency-check-report.html"
-      - "./dependency-check-report.json"
   rules:
     - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
 

@@ -173,6 +173,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
     mapContainer: MutableRefObject<any>
   ) {
+    mapContainer.current.innerHTML = ""; // Clear the container
     const thisMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite

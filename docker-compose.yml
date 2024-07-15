@@ -18,6 +18,9 @@ services:
   apiv1:
     container_name: coda-apiv1-1
     image: ${DOCKER_IMAGE_APIV1}
+    depends_on:
+      database:
+        condition: service_healthy
     restart: unless-stopped
     env_file:
       # Any .env variables needed at runtime must be specified here or listed out in the `environment` property
@@ -29,7 +32,6 @@ services:
       # This happens after `env_file` above. It overrides the value of CACHE_ROOT that is set in
       # .env, such that it's always /cache in the container.
       - CACHE_ROOT=/cache
-      - DB_HOST=database
     volumes:
       # Here CACHE_ROOT is whatever is specified in the .env file, because creating the volume
       # happens on the host before the container is fully running. In contrast, the `env_file` and
@@ -43,6 +45,7 @@ services:
   database:
     container_name: coda-database-1
     image: postgis/postgis:14-3.2-alpine
+    # image: postgres:14.12-alpine # pending EMSS/docker-images MR !36
     restart: unless-stopped
     environment:
       # Used for setting up a DB for the first time. These are not stored in the container
@@ -50,7 +53,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT * FROM gpxtracks_db'"
+      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT id FROM gpxtracks_db LIMIT 1'"
       interval: 30s # how often to check health
       timeout: 5s # fail if it takes longer than this
       retries: 6 # max consecutive failures
