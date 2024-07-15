@@ -9,6 +9,8 @@ const AdminIndex: FunctionComponent = () => {
         <Link to="/admin/gps">GPS Data</Link>
         <br />
         <Link to="/admin/mediaOverrides">Media Overrides</Link>
+        <br />
+        <Link to="/admin/ancillaryData">Ancillary Data Sources</Link>
       </p>
     </div>
   );

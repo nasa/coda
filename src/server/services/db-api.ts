@@ -1,5 +1,6 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getMediaOverridesList } from "../express/routes/db/mediaOverrides";
+import { getAncillaryDataSourceList } from "../express/routes/db/ancillaryDataSources";
 
 /**
  * Fetch override video manifest from the override location specified in the db
@@ -26,4 +27,14 @@ export async function fetchMediaOverrides(): Promise<MediaOverride[]> {
   const mediaOverridesList = await getMediaOverridesList();
 
   return mediaOverridesList as MediaOverride[];
+}
+
+/** Get the list of ancillary data sources from the db
+ *
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Ancillary_Data_Sources
+ */
+export async function fetchAncillaryDataSourceList(): Promise<AncillaryDataSource[]> {
+  const ancillaryDataSourceList = await getAncillaryDataSourceList();
+
+  return ancillaryDataSourceList as AncillaryDataSource[];
 }
