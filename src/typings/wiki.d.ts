@@ -189,25 +189,5 @@ interface TestEventOffsets {
   timeoffset: string;
 }
 
-/**
- * Manual overrides from the wiki to use a different source for videos
- */
-interface MediaSourceOverride {
-  date: string;
-  source: Source;
-  type: "video" | "photo" | "transcript" | "audio";
-  url: string;
-}
-
-/**
- * Ancillary data sources listed from the wiki
- */
-interface AncillaryDataSource {
-  date: string;
-  source: Source;
-  type: "graphs";
-  url: string;
-}
-
 /** API query options */
 type AgencyQuery = "us" | "rs" | "all";

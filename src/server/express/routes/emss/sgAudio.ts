@@ -21,7 +21,6 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     const response = await getLabsSgAudio({
       dateWanted: queryObj.dateWanted,
       source: queryObj.source,
-      forceNew: queryObj.forceNew,
     });
     res.status(200).json(response);
     return;

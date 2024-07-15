@@ -14,5 +14,5 @@
 
 .listItem {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 350px 1fr;
 }

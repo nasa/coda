@@ -9,7 +9,11 @@ global.TextEncoder = TextEncoder;
 import { PostgreSqlDriver, defineConfig } from "@mikro-orm/postgresql";
 import { Migrator } from "@mikro-orm/migrations";
 import { SeedManager } from "@mikro-orm/seeder";
-import { GPXTracks_db } from "./src/server/database/models/_allModels";
+import {
+  AncillaryDataSource_db,
+  GPXTracks_db,
+  MediaOverride_db,
+} from "./src/server/database/models/_allModels";
 import path from "path";
 
 export default defineConfig({
@@ -25,8 +29,8 @@ export default defineConfig({
   seeder: {
     path: path.join(__dirname, "./src/server/database/seeds"), // path to the folder with seed files
   },
-  entitiesTs: [GPXTracks_db],
-  entities: [GPXTracks_db],
+  entitiesTs: [GPXTracks_db, MediaOverride_db, AncillaryDataSource_db],
+  entities: [GPXTracks_db, MediaOverride_db, AncillaryDataSource_db],
   debug: process.env.DEBUG === "true" || process.env.DEBUG?.includes("db"),
   allowGlobalContext: true,
   extensions: [Migrator, SeedManager],

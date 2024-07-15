@@ -34,3 +34,15 @@ type GraphData = {
 };
 
 type PlotlyChartTrace = Pick<Plotly.Data, "x" | "y" | "type" | "mode" | "line" | "name">;
+
+type AncillaryDataSource = {
+  id: number;
+  date: string;
+  source: Source;
+  type: "graphs";
+  url: string;
+};
+
+type AncillaryDataSource_db_type = AncillaryDataSource;
+
+type AncillaryDataSourceList = Omit<AncillaryDataSource, "ancillaryDataSource">;
