@@ -108,6 +108,9 @@ deploy:dev1:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
   when: manual
   before_script:
+    # This is currently our hack to change out a necessary var for Launchpad Auth
+    - sed -i "s/coda.fit/coda-dev.fit/g" .env
+
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
 
     # Since this runner is shared between all EMSS repos, we need to check if any containers that
@@ -156,6 +159,9 @@ deploy:dev1:
 #   variables:
 #     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
 #   when: manual
+#   before_script:
+#     # This is currently our hack to change out a necessary var for Launchpad Auth
+#     - sed -i "s/coda.fit/coda-dev2.fit/g" .env
 
 deploy:int:
   extends: .docker-deploy-template
@@ -171,6 +177,9 @@ deploy:int:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
   only:
     - int
+  before_script:
+    # This is currently our hack to change out a necessary var for Launchpad Auth
+    - sed -i "s/coda.fit/coda-int.fit/g" .env
 
 deploy:prod:
   extends: .docker-deploy-template
