@@ -38,3 +38,19 @@ export async function fetchAncillaryDataSourceList(): Promise<AncillaryDataSourc
 
   return ancillaryDataSourceList as AncillaryDataSource[];
 }
+
+/** Get all the manually set shifts for fixing datetimes.
+ *
+ * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Datetime_Shifts
+ */
+export async function fetchVideoDateTimeOverrides(): Promise<WrappedResponse<VideoRecord[]>> {
+  const res = await fetch("api/v1/db/videos");
+
+  return await res.json();
+}
+
+export async function fetchPhotoDateTimeOverrides(): Promise<WrappedResponse<PhotoRecord[]>> {
+  const res = await fetch("api/v1/db/photos");
+
+  return await res.json();
+}

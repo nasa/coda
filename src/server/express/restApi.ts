@@ -19,6 +19,8 @@ import clearRoute from "./routes/cache/clear";
 import clearAllRoute from "./routes/cache/clearAll";
 import enableDisableEmssVideoRoute from "./routes/media/enableDisableEmssVideo";
 import { getUser } from "packages/getUser";
+import videoRoute from "./routes/db/video";
+import photoRoute from "./routes/db/photos";
 
 const app: Application = express();
 
@@ -51,6 +53,8 @@ app.use("/api/v1/cache/clearAll", clearAllRoute);
 app.use("/api/v1/db/gps", gpsRoute);
 app.use("/api/v1/db/mediaOverrides", mediaOverridesRoute);
 app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
+app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);
+app.use("/api/v1/db/photoTimeShifts", photoRoute);
 export default app;
 
 // TODO: currently unused but could be used to restrict access to API endpoints

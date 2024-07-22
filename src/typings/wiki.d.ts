@@ -168,26 +168,5 @@ interface AllTestEvents {
   };
 }
 
-/** Manual overrides for  */
-
-interface DatetimeOverrides {
-  videoFixes: VideoFix[];
-  testEventTimezones: TestEventOffsets[];
-}
-
-interface VideoFix {
-  /** nasa_id of the video */
-  videoID: string;
-  /** UTC string for the actual start of the video */
-  time: string;
-}
-
-interface TestEventOffsets {
-  /** Match test event to the ID in the wiki */
-  testEventID: string;
-  /** In the form of UTC-05:00 */
-  timeoffset: string;
-}
-
 /** API query options */
 type AgencyQuery = "us" | "rs" | "all";

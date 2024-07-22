@@ -5,6 +5,19 @@ type GPSUpsertRequest = {
   gpxData: string;
 };
 
+type VideoUpsertRequest = {
+  id?: number;
+  videoId: string;
+  startTime: string;
+};
+
+type PhotoUpsertRequest = {
+  id?: number;
+  date: string;
+  source: string;
+  timeOffset: string;
+};
+
 interface GPSTracksQueryParams {
   dateWanted: string;
 }
@@ -79,4 +92,12 @@ interface GetGraphsManifestQueryParams {
   dateWanted: string;
   source: Source;
   forceNew?: boolean;
+}
+
+interface VideoQueryParams {
+  videoId: string;
+}
+
+interface PhotoQueryParams {
+  dateWanted: string;
 }
