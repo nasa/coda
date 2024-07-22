@@ -30,6 +30,10 @@ directories:
     mode: "0775"
     owner: gitlab-runner
     group: gitlab-runner
+  - path: /d1/coda/redis
+    mode: "0775"
+    owner: gitlab-runner
+    group: gitlab-runner
 
 # Ensure SSL key/cert exist at the specified locations. If they do not exist,
 # a self-signed cert will be generated. This SSL is NOT the user-facing SSL

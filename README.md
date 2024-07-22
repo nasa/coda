@@ -42,6 +42,10 @@ CODA is deployed using GitLab CI/CD and FIT-provisioned VMs.
 5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
 6. (Required for Docker) Create a self-signed SSL certificate by doing `bash ./scripts/make-dev-ssl-cert.sh`
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAXBOX_KEY` value in the `.env` file.
+8. Register for the EMSS npm [registry](https://eegitlab.fit.nasa.gov/groups/emss/-/packages) so you can install the `@emss` packages:
+   1. Create a Personal Access Token token in gitlab by going to your profile and selecting "Access Tokens"
+   2. Create a new token, give it a name, and max the expriation at 1 year. Grant the token at least `read_api` access.
+   3. Run `npm config set //eegitlab.fit.nasa.gov/api/v4/projects/685/packages/npm/:_authToken <YOUR AUTH TOKEN>` in the terminal. This will authenicate you to the package registry for the 685 project (aka our [EMSS packages repo](https://eegitlab.fit.nasa.gov/emss/packages/) and allow you to install our packages).
 
 ### Option 1: Local Dev (non-Docker)
 
