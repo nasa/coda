@@ -3,7 +3,11 @@
 import { GPXTracks_db } from "./gpxTracks.model";
 import { MediaOverride_db } from "./mediaOverride.model";
 import { AncillaryDataSource_db } from "./ancillaryData.model";
+import { VideoStartTimeOverrides_db } from "./VideoStartTimeOverrides.model";
+import { PhotoTimeShifts_db } from "./PhotoTimeShifts.model";
 
 export { GPXTracks_db };
 export { MediaOverride_db };
 export { AncillaryDataSource_db };
+export { VideoStartTimeOverrides_db };
+export { PhotoTimeShifts_db };
