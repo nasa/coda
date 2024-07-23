@@ -1,5 +1,4 @@
-import _ from "lodash";
-import React, { useEffect, useState } from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
@@ -7,6 +6,21 @@ import { getYearDayNumber, padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
+import { isNil } from "lodash";
+
+interface DateDescription {
+  date: Date;
+  /** Is the calendar day the same as today */
+  isToday: boolean;
+  /** Is the calendar day the same as the playhead day */
+  isPlayheadDay: boolean;
+  /** In the same month that's visible */
+  inMonth: boolean;
+  /** Is a date in the future */
+  isLater: boolean;
+  /** The EVA happening on a date (when applicable; `undefined` otherwise) */
+  EVA: Sequence;
+}
 
 const monthOnly: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -29,6 +43,21 @@ const allMonths = [
   "NOVEMBER",
   "DECEMBER",
 ];
+
+const handleDateChange = (
+  description: DateDescription,
+  framework: FrameworkState,
+  playhead: PlayheadState
+) => {
+  const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
+    description.date.getUTCMonth() + 1,
+    2
+  )}-${padZeros(description.date.getUTCDate(), 2)}`;
+  let URL = generateShareURL(framework, playhead);
+  // replace the datestring in URL with selected calendar date
+  URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
+  window.location.assign(URL);
+};
 
 export function MonthsModal({
   closeClick,
@@ -115,27 +144,10 @@ export function YearsModal({
   );
 }
 
-interface DateDescription {
-  date: Date;
-  /** Is the calendar day the same as today */
-  isToday: boolean;
-  /** Is the calendar day the same as the playhead day */
-  isPlayheadDay: boolean;
-  /** In the same month that's visible */
-  inMonth: boolean;
-  /** Is a date in the future */
-  isLater: boolean;
-  /** The EVA happening on a date (when applicable; `undefined` otherwise) */
-  EVA: Sequence;
-}
-
-export function CalendarDate({
+const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick: () => void }> = ({
   description,
   closeClick,
-}: {
-  description: DateDescription;
-  closeClick: () => void;
-}) {
+}) => {
   const framework = useSelector((state: RootState) => state.framework);
   const playhead = useSelector((state: RootState) => state.playhead);
 
@@ -174,21 +186,14 @@ export function CalendarDate({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!description.isLater) {
-      const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
-        description.date.getUTCMonth() + 1,
-        2
-      )}-${padZeros(description.date.getUTCDate(), 2)}`;
-      let URL = generateShareURL(framework, playhead);
-      // replace the datestring in URL with selected calendar date
-      URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
-      window.location.assign(URL);
+      handleDateChange(description, framework, playhead);
       closeClick();
     }
   };
 
   return (
     <div onClick={handleClick} title={toolTipText}>
-      {!_.isNil(description.EVA) && (
+      {!isNil(description.EVA) && (
         <div
           title={description.EVA.name}
           className={`${styles.dot} ${
@@ -213,7 +218,111 @@ export function CalendarDate({
       </div>
     </div>
   );
-}
+};
+
+const DayOfYearPicker: FunctionComponent = () => {
+  const framework = useSelector((state: RootState) => state.framework);
+  const playhead = useSelector((state: RootState) => state.playhead);
+  const playheadDate = useSelector((state: RootState) => state.playhead.date);
+  const allSequences = useSelector((state: RootState) => state.sequences.allSequences);
+
+  const today = new Date();
+  const todayYYYY = today.getUTCFullYear();
+  const todayMM = padZeros(today.getUTCMonth() + 1, 2);
+
+  const [visibleYearMonth, setVisibleYearMonth] = useState(`${todayYYYY}-${todayMM}`);
+  const [day, setDay] = useState("");
+  const [isFuture, setIsFuture] = useState(false);
+
+  const buttonClasses = [styles.datePickerButton];
+
+  if (isFuture) {
+    buttonClasses.push(styles.unselectableButton);
+  } else {
+    buttonClasses.push(styles.selectableButton);
+  }
+  return (
+    <>
+      <div style={{ display: "flex" }}>
+        <h1 className={styles.datePickerHeader}>Select a Day</h1>
+        {isFuture ? <h1 className={styles.datePickerError}>Error: Day is in the future</h1> : null}
+      </div>
+      <div className={styles.datePicker}>
+        <div style={{ width: "104px", height: "29px", marginRight: "10px" }}>
+          <ModalDropdown
+            size="medium"
+            color="grey"
+            modal={YearsModal}
+            modalOptions={{ visibleYearMonth, setVisibleYearMonth }}
+          >
+            <>&nbsp;{visibleYearMonth.split("-")[0]}</>
+          </ModalDropdown>
+        </div>
+        <input
+          className={styles.datePickerInput}
+          type="text"
+          inputMode="numeric"
+          pattern="\d*"
+          placeholder="Day"
+          style={{ width: "45px", height: "29px", margin: "0 10px" }}
+          onChange={(e) => {
+            // regex to check if input is a number
+            const re = /^[0-9\b]+$/;
+
+            // only allow 3 characters
+            const val = e.target.value.slice(0, 3);
+
+            if (val === "" || (re.test(val) && parseInt(val) > 0)) {
+              setDay(val);
+            }
+
+            const newDate = new Date(todayYYYY, 0, parseInt(val));
+
+            if (diff(today, newDate) < 0) {
+              setIsFuture(true);
+            } else {
+              setIsFuture(false);
+            }
+          }}
+          value={day}
+        />
+        <button
+          className={buttonClasses.join(" ")}
+          style={{ margin: "0 10px" }}
+          onClick={(e) => {
+            e.preventDefault();
+
+            if (day === "" || isFuture) {
+              return;
+            }
+
+            const date = new Date(todayYYYY, 0, parseInt(day));
+
+            const EVA = allSequences.find((seq) => isSameDate(new Date(seq.startDate), date));
+            const inMonth = date.getUTCMonth() === today.getUTCMonth();
+            const isPlayheadDay = isSameDate(date, new Date(playheadDate));
+            const isToday = isSameDate(date, today);
+
+            handleDateChange(
+              {
+                date,
+                isToday,
+                isPlayheadDay,
+                inMonth,
+                isLater: isFuture,
+                EVA,
+              },
+              framework,
+              playhead
+            );
+          }}
+        >
+          <span>Go</span>
+        </button>
+      </div>
+    </>
+  );
+};
 
 /** Renders a calendar */
 export default function Calendar({ closeClick }: { closeClick?: () => void }) {
@@ -336,9 +445,10 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
               <span style={{ margin: "5px" }}>EVA (RS)</span>
             </>
           )}
-          {/* <span className={`${styles.aqua}`}>•</span> IVA or Other Event */}
         </div>
       </div>
+      <div className={styles.thinLine} />
+      <DayOfYearPicker />
     </div>
   );
 }
