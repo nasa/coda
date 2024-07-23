@@ -28,6 +28,18 @@ app.use(express.json({ limit: "20mb" }));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/api/v1/user/current", (req, res) => {
+  res.setHeader("content-type", "application/json");
+  const user = getUser(req);
+  if (user instanceof Error) {
+    const msg = "Unable to decode JWT";
+    console.error(msg, user);
+    res.status(500).send({ msg });
+    return;
+  }
+  res.send({ user });
+});
+
 // Serve a successful response. For use with wait-on
 app.get("/api/v1/health", (req, res) => {
   res.send({ status: "ok" });
