@@ -195,7 +195,7 @@ async function getVideoRecordByVideoId(videoId: string): Promise<VideoRecord> {
   }
 }
 
-async function getVideoRecordsList(): Promise<VideoRecord[]> {
+export async function getVideoRecordsList(): Promise<VideoRecord[]> {
   const em = getEM();
 
   const videos_db = await em.find(

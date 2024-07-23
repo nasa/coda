@@ -3,6 +3,7 @@ import * as IoService from "server/services/io-api";
 import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
 import _ from "lodash";
+import { getVideoRecordsList } from "server/express/routes/db/video";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
@@ -64,19 +65,7 @@ export default async function getVideoData(params: {
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        let dateTimeOverrides = await DbService.fetchVideoDateTimeOverrides();
-        if (dateTimeOverrides?.responseMetadata?.retrieverStatus === "inprogress") {
-          // try once per second for up to 10 seconds
-          let tries = 0;
-          while (
-            dateTimeOverrides?.responseMetadata?.retrieverStatus === "inprogress" &&
-            tries < 10
-          ) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            dateTimeOverrides = await DbService.fetchVideoDateTimeOverrides();
-            tries++;
-          }
-        }
+        let dateTimeOverrides = await getVideoRecordsList();
         return dateTimeOverrides;
       } catch (e) {
         // don't block video results if we can't find overrides
@@ -94,7 +83,7 @@ export default async function getVideoData(params: {
     // if we got overrides from the wiki, apply them
     const data: VideoFile[] = ioResults.data.map((result) => {
       const res = clone(result);
-      for (let fix of timeOverrides.data) {
+      for (let fix of timeOverrides) {
         if (fix.videoId === result.id) {
           const duration = res.end - res.start;
           const start = new Date(fix.startTime).valueOf() / 1000;
