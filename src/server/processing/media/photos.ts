@@ -82,7 +82,7 @@ export default async function getPhotoData(params: {
     })(),
   ]);
 
-  if (isNil(allOverrides?.data) || isNil(sequences)) {
+  if (isNil(allOverrides) || isNil(sequences)) {
     // we don't have the info required to apply fudge factors. just return the photos
     return results;
   }
@@ -100,7 +100,7 @@ export default async function getPhotoData(params: {
 
   let overrides: PhotoRecord;
 
-  for (let override of allOverrides.data) {
+  for (let override of allOverrides) {
     for (let seq of seqs) {
       if (override.date === seq.startDate) {
         overrides = override;

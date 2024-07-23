@@ -201,7 +201,7 @@ async function getPhotoRecordsByDate(date: string): Promise<PhotoRecord[]> {
   }
 }
 
-async function getPhotoRecordsList(): Promise<PhotoRecord[]> {
+export async function getPhotoRecordsList(): Promise<PhotoRecord[]> {
   const em = getEM();
 
   const photos_db = await em.find(
