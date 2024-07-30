@@ -1,22 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { codaBackgrounds } from "public/images/coda-background-images";
 import styles from "./index.module.css";
 
 export default function Index() {
   const navigate = useNavigate();
-  // ? It technically works,
-  // ? but I dont want to hardcode some images in this file. try might create some sort of list component (/images/background_img_list.tsx)?
+  // ? It technically works, continue to research to see if there is a way to utilize link rather than template
   // ! testing purposes only
-  const images: string[] = [
-    "https://io.jsc.nasa.gov/photos/12558/hires/iss057e106068.jpg",
-    "https://io.jsc.nasa.gov/photos/13524/hires/iss068e059945.jpg",
-    "https://io.jsc.nasa.gov/photos/13476/hires/iss068e008480.jpg",
-    "https://io.jsc.nasa.gov/photos/13257/hires/iss066e146298.jpg",
-    "https://io.jsc.nasa.gov/photos/13260/hires/iss066e152140.jpg",
-    "https://io.jsc.nasa.gov/photos/12558/hires/iss057e106044.jpg",
-    "https://io.jsc.nasa.gov/photos/11891/hires/iss048e010128.jpg",
-  ];
 
-  const randomImage: string = images[Math.floor(Math.random() * images.length)];
+  const randomImage: string = codaBackgrounds[Math.floor(Math.random() * codaBackgrounds.length)];
 
   // ? technically works, is it possible to put this within a css file by passing it a variable?
   return (
