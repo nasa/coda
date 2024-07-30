@@ -1,6 +1,5 @@
 .main {
   background-color: black;
-  background-image: url(/images/earth_moon.jpg);
   background-position: left top;
   background-repeat: no-repeat;
   background-size: cover;
@@ -11,6 +10,8 @@
 }
 
 .container {
+  background-color: var(--grey);
+  border-radius: var(--radius);
   margin-left: auto;
   margin-right: auto;
   display: flex;
@@ -67,7 +68,7 @@
 }
 
 .sourcesPanel {
-  background-color: var(--grey);
+  background-color: var(--light-grey);
   border-radius: var(--radius);
   padding: 16px 5px 5px 5px;
 }
@@ -95,7 +96,7 @@
 }
 
 .li:hover {
-  background-color: var(--light-grey);
+  background-color: var(--grey);
 }
 
 .li > * {
