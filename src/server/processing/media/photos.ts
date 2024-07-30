@@ -74,7 +74,7 @@ export default async function getPhotoData(params: {
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        return await WikiService.fetchDatetimeOverrides(forceNew);
+        return await DbService.fetchPhotoDateTimeOverrides();
       } catch (e) {
         // don't block photo results if we can't find overrides
         console.error(e);
@@ -82,7 +82,7 @@ export default async function getPhotoData(params: {
     })(),
   ]);
 
-  if (isNil(allOverrides?.data) || isNil(sequences)) {
+  if (isNil(allOverrides) || isNil(sequences)) {
     // we don't have the info required to apply fudge factors. just return the photos
     return results;
   }
@@ -98,11 +98,11 @@ export default async function getPhotoData(params: {
     return results;
   }
 
-  let overrides: TestEventOffsets;
+  let overrides: PhotoRecord;
 
-  for (let override of allOverrides.data.testEventTimezones) {
+  for (let override of allOverrides) {
     for (let seq of seqs) {
-      if (`Test Event:${override.testEventID}` === seq.name) {
+      if (override.date === seq.startDate) {
         overrides = override;
         break;
       }
@@ -116,7 +116,7 @@ export default async function getPhotoData(params: {
   }
 
   try {
-    const [_, sign, hh, mm, ss] = overrides.timeoffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
+    const [_, sign, hh, mm, ss] = overrides.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
 
     const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
 

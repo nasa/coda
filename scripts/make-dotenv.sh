@@ -13,29 +13,59 @@ if [ -f "${DOTENV_SECRET}" ]; then
     source "${DOTENV_SECRET}"
 fi
 
+if [ -z "${OAUTH2_PROXY_COOKIE_SECRET+set}" ]; then
+    export OAUTH2_PROXY_COOKIE_SECRET=$(tr -c -d '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-=' </dev/urandom | dd bs=44 count=1 2>/dev/null;echo)
+fi
+
 # Generate passwords if there wern't any sourced from the .env.secret
 if [ -z "${DB_PASS+set}" ]; then
     export DB_PASS=$(tr -c -d '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' </dev/urandom | dd bs=32 count=1 2>/dev/null;echo)
 fi
 
-# Allow unset variables below, so it can create a blank .env.secret
-set +u
 
-# Required values that will get cached, so subsequent runs of make-dotenv.sh can reuse them
-echo "export IO_KEY=${IO_KEY@Q}
-export WIKI_USER=${WIKI_USER@Q}
-export WIKI_PASSWORD=${WIKI_PASSWORD@Q}
-export SPACETRACK_USER=${SPACETRACK_USER@Q}
-export SPACETRACK_PASSWORD=${SPACETRACK_PASSWORD@Q}
-export VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY@Q}
-export TOPO_USER=${TOPO_USER@Q}
-export TOPO_PASSWORD=${TOPO_PASSWORD@Q}
-export DB_PASS=${DB_PASS@Q}
-" > "${DOTENV_SECRET}"
+if [ -z "${IO_KEY+set}" ]; then
+    export IO_KEY="${IO_KEY}"
+fi
 
-set -u
+if [ -z "${WIKI_USER+set}" ]; then
+    export WIKI_USER="${WIKI_USER}"
+fi
 
-echo "${RELATIVE_DOTENV_SECRET} saved"
+if [ -z "${WIKI_PASSWORD+set}" ]; then
+    export WIKI_PASSWORD="${WIKI_PASSWORD}"
+fi
+
+if [ -z "${SPACETRACK_USER+set}" ]; then
+    export SPACETRACK_USER="${SPACETRACK_USER}"
+fi
+
+if [ -z "${SPACETRACK_PASSWORD+set}" ]; then
+    export SPACETRACK_PASSWORD="${SPACETRACK_PASSWORD}"
+fi
+
+if [ -z "${VITE_PUBLIC_MAPBOX_KEY+set}" ]; then
+    export VITE_PUBLIC_MAPBOX_KEY="${VITE_PUBLIC_MAPBOX_KEY}"
+fi
+
+if [ -z "${TOPO_USER+set}" ]; then
+    export TOPO_USER="${TOPO_USER}"
+fi
+
+if [ -z "${TOPO_PASSWORD+set}" ]; then
+    export TOPO_PASSWORD="${TOPO_PASSWORD}"
+fi
+
+
+
+# Sandbox launchpad for everything except prod (including local dev), so
+# initially assume sandbox, then will override below for prod
+export OAUTH2_PROXY_OIDC_ISSUER_URL=https://authfs.launchpad-sbx.nasa.gov/adfs
+export OAUTH2_PROXY_LOGIN_URL=https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/
+export OAUTH2_PROXY_REDEEM_URL=https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/token/
+export OAUTH2_PROXY_OIDC_JWKS_URL=https://authfs.launchpad-sbx.nasa.gov/adfs/discovery/keys
+export OAUTH2_PROXY_WHITELIST_DOMAIN=authfs.launchpad-sbx.nasa.gov
+export OAUTH2_PROXY_CLIENT_ID="${LAUNCHPAD_SANDBOX_CLIENT_ID}"
+export OAUTH2_PROXY_CLIENT_SECRET="${LAUNCHPAD_SANDBOX_CLIENT_SECRET}"
 
 # Set all the other variables for the .env file
 if [ -z "${CI+set}" ]; then # if not in CI (aka local)
@@ -44,6 +74,10 @@ if [ -z "${CI+set}" ]; then # if not in CI (aka local)
     export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
     export CACHE_ROOT=./.cache/dev
     export TALKYBOT_URL=https://emss-labs-local.fit.nasa.gov
+
+    export OAUTH2_PROXY_REDIRECT_URL=https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login
+    export REDIS_CACHE_DIR=./.local/redis
+    export ENABLE_LOGGING="false"
 
     export DOCKER_DB_DATA_DIR=./.local/database
     export DOCKER_DB_INIT_DIR=./.local/db-init
@@ -67,6 +101,13 @@ else
     export CACHE_ROOT=/d1/coda/cache
     export TALKYBOT_URL=https://coda-dev2.fit.nasa.gov
 
+    ## Ultimately need to alter this based on what server we're on (prod/int/dev) and 
+    ## override the launchpad-sandbox values from above when using prod.
+    export OAUTH2_PROXY_REDIRECT_URL=https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login
+
+    export REDIS_CACHE_DIR=/d1/coda/redis
+    export ENABLE_LOGGING="true"
+
     export DOCKER_DB_DATA_DIR=/d1/coda/postgres
     export DOCKER_DB_INIT_DIR=/d1/coda/db-init
 
@@ -84,7 +125,31 @@ set +u
 if [ "${1}" == "test" ]; then
     export  CACHE_ROOT=./.cache/test
 fi
+
+# Required values that will get cached, so subsequent runs of make-dotenv.sh can reuse them
+echo "export IO_KEY=${IO_KEY@Q}
+export WIKI_USER=${WIKI_USER@Q}
+export WIKI_PASSWORD=${WIKI_PASSWORD@Q}
+export SPACETRACK_USER=${SPACETRACK_USER@Q}
+export SPACETRACK_PASSWORD=${SPACETRACK_PASSWORD@Q}
+export VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY@Q}
+export TOPO_USER=${TOPO_USER@Q}
+export TOPO_PASSWORD=${TOPO_PASSWORD@Q}
+export LAUNCHPAD_SANDBOX_CLIENT_ID=${LAUNCHPAD_SANDBOX_CLIENT_ID@Q}
+export LAUNCHPAD_SANDBOX_CLIENT_SECRET=${LAUNCHPAD_SANDBOX_CLIENT_SECRET@Q}
+export LAUNCHPAD_PRODUCTION_CLIENT_ID=${LAUNCHPAD_PRODUCTION_CLIENT_ID@Q}
+export LAUNCHPAD_PRODUCTION_CLIENT_SECRET=${LAUNCHPAD_PRODUCTION_CLIENT_SECRET@Q}
+export OAUTH2_PROXY_COOKIE_SECRET=${OAUTH2_PROXY_COOKIE_SECRET@Q}
+export LOGSTASH_URL=${LOGSTASH_URL}
+export DB_PASS=${DB_PASS@Q}
+" > "${DOTENV_SECRET}"
+
 set -u
+echo "${RELATIVE_DOTENV_SECRET} saved"
+
+DOTENV="${SCRIPT_DIR}/../.env"
+DOTENV_OLD="${SCRIPT_DIR}/../.env.old"
+DOTENV_TEMPLATE="${SCRIPT_DIR}/../.env.template"
 
 # Fill in all the variables into the .env file
 # envsubst must be installed. Installed by default in Git Bash for Windows.
