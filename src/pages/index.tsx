@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { codaBackgrounds } from "../public/images/coda-background-images";
+import { codaBackgrounds } from "public/images/coda-background-images";
 import styles from "./index.module.css";
 
 export default function Index() {
