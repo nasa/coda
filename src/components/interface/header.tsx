@@ -1,6 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import {
+  faCalendarAlt,
+  faClock,
+  faQuestionCircle,
+  faEye,
+} from "@fortawesome/free-regular-svg-icons";
 import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Calendar from "components/interface/calendar";
@@ -249,6 +254,28 @@ export function Clock() {
           <span className={styles.timeButtonLabel}>Go</span>
         </button>
       </div>
+    </div>
+  );
+}
+
+export function SocketStatus(socketStatus: SocketStatus) {
+  return (
+    <div
+      className={styles.userCount}
+      data-tooltip-id="app-tooltip"
+      data-tooltip-html={
+        socketStatus.connectionStatus === "connected"
+          ? `Talky Bot Visitors: ${socketStatus.lastStatusFromServer.viewers || 0}`
+          : "Connection to server lost"
+      }
+      style={
+        socketStatus.connectionStatus === "connected"
+          ? { color: "var(--grey5)" }
+          : { color: "var(--grey3)" }
+      }
+    >
+      <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
+      <div className={styles.userCountText}>{socketStatus.lastStatusFromServer.viewers || 0}</div>
     </div>
   );
 }
