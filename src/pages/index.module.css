@@ -1,4 +1,5 @@
 .main {
+  background-image: var(--background-image);
   background-color: black;
   background-position: left top;
   background-repeat: no-repeat;

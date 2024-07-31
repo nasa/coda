@@ -1,17 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { codaBackgrounds } from "public/images/coda-background-images";
+import { codaBackgrounds } from "../public/images/coda-background-images";
 import styles from "./index.module.css";
 
 export default function Index() {
   const navigate = useNavigate();
-  // ? It technically works, continue to research to see if there is a way to utilize link rather than template
-  // ! testing purposes only
-
   const randomImage: string = codaBackgrounds[Math.floor(Math.random() * codaBackgrounds.length)];
+  document.documentElement.style.setProperty("--background-image", `url(${randomImage})`);
 
-  // ? technically works, is it possible to put this within a css file by passing it a variable?
   return (
-    <div className={styles.main} style={{ backgroundImage: `url(${randomImage})` }}>
+    <div className={styles.main}>
       <title>CODA</title>
       <div className={styles.container}>
         <div className={styles.verticalCenter}>

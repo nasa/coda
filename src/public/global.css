@@ -24,6 +24,8 @@
   --burnt-umber: #6e260e;
 
   --radius: 3px;
+
+  --background-image: "url(https://io.jsc.nasa.gov/photos/12558/hires/iss057e106068.jpg)"; /* default image */
 }
 
 /* ===== Scrollbar CSS ===== */
