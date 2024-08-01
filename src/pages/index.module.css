@@ -12,7 +12,7 @@
 
 .container {
   background-color: var(--grey);
-  border-radius: var(--radius);
+  border-radius: var(--panelRadius);
   margin-left: auto;
   margin-right: auto;
   display: flex;
@@ -70,7 +70,7 @@
 
 .sourcesPanel {
   background-color: var(--light-grey);
-  border-radius: var(--radius);
+  border-radius: var(--panelRadius);
   padding: 16px 5px 5px 5px;
 }
 
@@ -98,6 +98,7 @@
 
 .li:hover {
   background-color: var(--grey);
+  border-radius: var(--panelRadius);
 }
 
 .li > * {

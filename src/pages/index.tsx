@@ -7,6 +7,7 @@ const codaHomeBackgrounds: string[] = [
   "artemis_launch_closeup.jpg",
   "coastal.jpg",
   "earth_moon.jpg",
+  "earth_aurora.jpg",
   "earth_nightlight.jpg",
   "iss_eva.jpg",
   "sun_earth.jpg",

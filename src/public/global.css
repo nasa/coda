@@ -24,6 +24,7 @@
   --burnt-umber: #6e260e;
 
   --radius: 3px;
+  --panelRadius: 6px;
 
   --homepage-background: "url(/images/earth_moon.jpg)"; /* Handled in ./pages/index.tsx */
 }
