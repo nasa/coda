@@ -9,7 +9,7 @@ const codaHomeBackgrounds: string[] = [
   "earth_moon.jpg",
   "earth_aurora.jpg",
   "earth_nightlight.jpg",
-  "iss_eva.jpg",
+  "iss_array_extend.jpg",
   "sun_earth.jpg",
 ];
 
