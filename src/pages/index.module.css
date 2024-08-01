@@ -1,5 +1,5 @@
 .main {
-  background-image: var(--background-image);
+  background-image: var(--homepage-background);
   background-color: black;
   background-position: left top;
   background-repeat: no-repeat;
