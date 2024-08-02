@@ -258,29 +258,35 @@ export function Clock() {
   );
 }
 
-export function SocketStatus(socketStatus: SocketStatus) {
+export function SocketStatus(props: { socketStatus: SocketStatus }) {
   return (
     <div
       className={styles.userCount}
       data-tooltip-id="app-tooltip"
       data-tooltip-html={
-        socketStatus.connectionStatus === "connected"
-          ? `Talky Bot Visitors: ${socketStatus.lastStatusFromServer.viewers || 0}`
+        props.socketStatus.connectionStatus === "connected"
+          ? `CODA Visitors: ${props.socketStatus.lastStatusFromServer.viewers || 0}`
           : "Connection to server lost"
       }
       style={
-        socketStatus.connectionStatus === "connected"
+        props.socketStatus.connectionStatus === "connected"
           ? { color: "var(--grey5)" }
           : { color: "var(--grey3)" }
       }
     >
       <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
-      <div className={styles.userCountText}>{socketStatus.lastStatusFromServer.viewers || 0}</div>
+      <div className={styles.userCountText}>
+        {props.socketStatus.lastStatusFromServer.viewers || 0}
+      </div>
     </div>
   );
 }
 
-export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
+export default function Header(props: {
+  helpLoaderOpen: boolean;
+  setHelpLoaderOpen: Function;
+  socketStatus: SocketStatus;
+}) {
   const source = useSelector((state: RootState) => state.framework.source);
   const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
   const dispatch = useDispatch();
@@ -319,6 +325,9 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
         </div>
       </div>
       <div className={styles.right}>
+        <div>
+          <SocketStatus socketStatus={props.socketStatus} />
+        </div>
         <div className={styles.item}>
           <StatusArea largeDisplay={false} />
         </div>
