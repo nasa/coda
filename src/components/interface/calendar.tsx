@@ -232,7 +232,13 @@ const DayOfYearPicker: FunctionComponent = () => {
 
   const [visibleYearMonth, setVisibleYearMonth] = useState(`${todayYYYY}-${todayMM}`);
   const [day, setDay] = useState("");
-  const [isFuture, setIsFuture] = useState(false);
+
+  const setDate = new Date(+visibleYearMonth.split("-")[0], 0, parseInt(day));
+
+  let isFuture = false;
+  if (diff(today, setDate) < 0) {
+    isFuture = true;
+  }
 
   const buttonClasses = [styles.datePickerButton];
 
@@ -275,14 +281,6 @@ const DayOfYearPicker: FunctionComponent = () => {
             if (val === "" || (re.test(val) && parseInt(val) > 0)) {
               setDay(val);
             }
-
-            const newDate = new Date(todayYYYY, 0, parseInt(val));
-
-            if (diff(today, newDate) < 0) {
-              setIsFuture(true);
-            } else {
-              setIsFuture(false);
-            }
           }}
           value={day}
         />
@@ -296,7 +294,7 @@ const DayOfYearPicker: FunctionComponent = () => {
               return;
             }
 
-            const date = new Date(todayYYYY, 0, parseInt(day));
+            const date = setDate;
 
             const EVA = allSequences.find((seq) => isSameDate(new Date(seq.startDate), date));
             const inMonth = date.getUTCMonth() === today.getUTCMonth();
