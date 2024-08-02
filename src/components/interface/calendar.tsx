@@ -8,6 +8,16 @@ import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 import { isNil } from "lodash";
 
+/////////
+// ! Temporary testing area -- Codebase intimidating
+// Todo: detect change in dates (Calendar, Select Date, URL)
+// ? - Calendar - Disable dates before the date?
+// ? - Select Date - thow error stating that there is no recoridng, but still allow? (done, ggez)
+// ? - URL - Simple check comparing dates
+// Todo: detect when the date is before (2013-03-30), no data
+// Todo: expose a warning message stating there is no eva recording
+/////////
+
 interface DateDescription {
   date: Date;
   /** Is the calendar day the same as today */
@@ -247,11 +257,19 @@ const DayOfYearPicker: FunctionComponent = () => {
   } else {
     buttonClasses.push(styles.selectableButton);
   }
+
+  // Check if the date is before existence of recording
+  const earliestCutoff = new Date("2013-03-30");
+  const isbeforeRecording = diff(setDate, earliestCutoff) < 0 ? true : false;
+
   return (
     <>
       <div style={{ display: "flex" }}>
         <h1 className={styles.datePickerHeader}>Select a Day</h1>
         {isFuture ? <h1 className={styles.datePickerError}>Error: Day is in the future</h1> : null}
+        {isbeforeRecording ? (
+          <h1 className={styles.datePickerWarning}>Warning: No EVA recording avaliable</h1>
+        ) : null}
       </div>
       <div className={styles.datePicker}>
         <div style={{ width: "104px", height: "29px", marginRight: "10px" }}>
