@@ -73,11 +73,12 @@ if [ -z "${CI+set}" ]; then # if not in CI (aka local)
     export DOCKER_HOST_SSL_PRIVATE_DIR=./.local/private
     export DOCKER_HOST_HTTP_STATIC_DIR=./.local/static
     export CACHE_ROOT=./.cache/dev
-    export TALKYBOT_URL=https://emss-labs-local.fit.nasa.gov
+    export TALKYBOT_URL=https://coda-dev2.fit.nasa.gov
 
     export OAUTH2_PROXY_REDIRECT_URL=https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login
     export REDIS_CACHE_DIR=./.local/redis
     export ENABLE_LOGGING="false"
+    export LOGSTASH_URL=https://maestro-alpha.fit.nasa.gov/logstash/
 
     export DOCKER_DB_DATA_DIR=./.local/database
     export DOCKER_DB_INIT_DIR=./.local/db-init
@@ -107,6 +108,7 @@ else
 
     export REDIS_CACHE_DIR=/d1/coda/redis
     export ENABLE_LOGGING="true"
+    export LOGSTASH_URL=https://maestro-alpha.fit.nasa.gov/logstash/
 
     export DOCKER_DB_DATA_DIR=/d1/coda/postgres
     export DOCKER_DB_INIT_DIR=/d1/coda/db-init
@@ -140,7 +142,6 @@ export LAUNCHPAD_SANDBOX_CLIENT_SECRET=${LAUNCHPAD_SANDBOX_CLIENT_SECRET@Q}
 export LAUNCHPAD_PRODUCTION_CLIENT_ID=${LAUNCHPAD_PRODUCTION_CLIENT_ID@Q}
 export LAUNCHPAD_PRODUCTION_CLIENT_SECRET=${LAUNCHPAD_PRODUCTION_CLIENT_SECRET@Q}
 export OAUTH2_PROXY_COOKIE_SECRET=${OAUTH2_PROXY_COOKIE_SECRET@Q}
-export LOGSTASH_URL=${LOGSTASH_URL}
 export DB_PASS=${DB_PASS@Q}
 " > "${DOTENV_SECRET}"
 
