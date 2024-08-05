@@ -1,6 +1,6 @@
 .main {
   width: 364px;
-  height: 465px;
+  height: max-content;
   padding: 14px 20px;
   border-radius: var(--radius);
   background-color: var(--grey);

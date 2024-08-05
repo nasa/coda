@@ -8,16 +8,6 @@ import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 import { isNil } from "lodash";
 
-/////////
-// ! Temporary testing area -- Codebase intimidating
-// Todo: detect change in dates (Calendar, Select Date, URL)
-// ? - Calendar - Disable dates before the date?
-// ? - Select Date - thow error stating that there is no recoridng, but still allow? (done, ggez)
-// ? - URL - Simple check comparing dates
-// Todo: detect when the date is before (2013-03-30), no data
-// Todo: expose a warning message stating there is no eva recording
-/////////
-
 interface DateDescription {
   date: Date;
   /** Is the calendar day the same as today */

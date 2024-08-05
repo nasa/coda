@@ -302,3 +302,8 @@
 .aboutSection a:hover {
   text-decoration: underline;
 }
+
+.noRecordingWarning {
+  font-size: small;
+  color: var(--burnt-orange);
+}
