@@ -202,12 +202,12 @@
   padding-left: 30px;
   font-size: 1rem;
   font-weight: normal;
-  color: #b22b0d;
+  color: var(--sunset-red);
 }
 
 .datePickerWarning {
   padding-left: 30px;
-  font-size: 1rem;
+  font-size: medium;
   font-weight: normal;
-  color: var(--burnt-orange);
+  color: var(--sunset-red);
 }

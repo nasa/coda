@@ -258,7 +258,9 @@ const DayOfYearPicker: FunctionComponent = () => {
         <h1 className={styles.datePickerHeader}>Select a Day</h1>
         {isFuture ? <h1 className={styles.datePickerError}>Error: Day is in the future</h1> : null}
         {isbeforeRecording ? (
-          <h1 className={styles.datePickerWarning}>Warning: No EVA recording avaliable</h1>
+          <h1 className={styles.datePickerWarning}>
+            Error: No video or photos are avaiable before 2013-03-30.
+          </h1>
         ) : null}
       </div>
       <div className={styles.datePicker}>

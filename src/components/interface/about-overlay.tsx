@@ -57,9 +57,8 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
   }, []);
 
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
-  const titleShowGoButtonStyle = isLoaded
-    ? styles.headerGoButtonEnabled
-    : styles.headerGoButtonDisabled;
+  const titleShowGoButtonStyle =
+    isLoaded && !isBeforeRecording ? styles.headerGoButtonEnabled : styles.headerGoButtonDisabled;
 
   return (
     <Modal
@@ -225,7 +224,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                     </div>
                     {isBeforeRecording ? (
                       <p className={styles.noRecordingWarning}>
-                        Warning: No EVA recordings avaliable.
+                        Error: No video or photos are avaiable before 2013-03-30.
                       </p>
                     ) : null}
                   </div>
