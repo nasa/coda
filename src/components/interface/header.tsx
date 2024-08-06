@@ -1,11 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faCalendarAlt,
-  faClock,
-  faQuestionCircle,
-  faEye,
-} from "@fortawesome/free-regular-svg-icons";
+import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Calendar from "components/interface/calendar";
@@ -271,7 +267,7 @@ export function SocketStatus(props: { socketStatus: SocketStatus }) {
       style={
         props.socketStatus.connectionStatus === "connected"
           ? { color: "var(--greyish)" }
-          : { color: "var(--more-light-grey)" }
+          : { color: "var(--even-greyer)" }
       }
     >
       <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
