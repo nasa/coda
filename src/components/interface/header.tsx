@@ -270,8 +270,8 @@ export function SocketStatus(props: { socketStatus: SocketStatus }) {
       }
       style={
         props.socketStatus.connectionStatus === "connected"
-          ? { color: "var(--grey5)" }
-          : { color: "var(--grey3)" }
+          ? { color: "var(--greyish)" }
+          : { color: "var(--more-light-grey)" }
       }
     >
       <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
