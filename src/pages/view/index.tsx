@@ -82,6 +82,8 @@ import { useSearchParams } from "react-router-dom";
 import { URLSearchParams } from "url";
 import { getGPSTracks } from "http-client/db";
 import { diff, isSameDate } from "../../utils/date";
+import SocketClient from "components/framework/SocketClient";
+import { padZeros } from "utils/formatting";
 
 export function V2() {
   const [searchParams, _setSearchParams] = useSearchParams();
@@ -96,6 +98,15 @@ export function V2() {
   let allEVAs = sequences.allSequences;
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
+  const [socketStatus, setSocketStatus] = useState<SocketStatus>({
+    connectionStatus: "disconnected",
+    lastStatusFromServer: {
+      timestamp: 0,
+      viewers: 0,
+      version: "",
+    },
+    clientVersion: "",
+  });
 
   const dispatch = useDispatch();
 
@@ -434,6 +445,14 @@ export function V2() {
     })();
   };
 
+  // make path for socketio room
+  const makeDateSourcePath = () => {
+    const newPlayheadDate = urlState.date !== null ? urlState.date : new Date();
+    const newPlayheadSource = urlState.frameworkState.source;
+    const date = new Date(newPlayheadDate);
+    return `${padZeros(date.getUTCDate(), 2)}-${padZeros(date.getUTCMonth() + 1, 2)}-${date.getUTCFullYear()}/${newPlayheadSource}`;
+  };
+
   // populate store when date or source change
   useEffect(() => {
     if (_.isNull(playheadDate) || _.isNull(source)) {
@@ -494,7 +513,16 @@ export function V2() {
   return (
     <div className={styles.main}>
       <title>CODA - {source}</title>
-      <Header helpLoaderOpen={helpLoaderOpen} setHelpLoaderOpen={setHelpLoaderOpen} />
+      <Header
+        helpLoaderOpen={helpLoaderOpen}
+        setHelpLoaderOpen={setHelpLoaderOpen}
+        socketStatus={socketStatus}
+      />
+      <SocketClient
+        roomName={makeDateSourcePath()}
+        socketStatus={socketStatus}
+        setSocketStatus={setSocketStatus}
+      />
       <div className={styles.body}>
         <Viewer />
       </div>

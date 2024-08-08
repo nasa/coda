@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Calendar from "components/interface/calendar";
@@ -253,7 +254,35 @@ export function Clock() {
   );
 }
 
-export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
+export function SocketStatus(props: { socketStatus: SocketStatus }) {
+  return (
+    <div
+      className={styles.userCount}
+      data-tooltip-id="app-tooltip"
+      data-tooltip-html={
+        props.socketStatus.connectionStatus === "connected"
+          ? `CODA Visitors: ${props.socketStatus.lastStatusFromServer.viewers || 0}`
+          : "Connection to server lost"
+      }
+      style={
+        props.socketStatus.connectionStatus === "connected"
+          ? { color: "var(--greyish)" }
+          : { color: "var(--even-greyer)" }
+      }
+    >
+      <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
+      <div className={styles.userCountText}>
+        {props.socketStatus.lastStatusFromServer.viewers || 0}
+      </div>
+    </div>
+  );
+}
+
+export default function Header(props: {
+  helpLoaderOpen: boolean;
+  setHelpLoaderOpen: Function;
+  socketStatus: SocketStatus;
+}) {
   const source = useSelector((state: RootState) => state.framework.source);
   const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
   const dispatch = useDispatch();
@@ -292,6 +321,9 @@ export default function Header(props: { helpLoaderOpen: boolean; setHelpLoaderOp
         </div>
       </div>
       <div className={styles.right}>
+        <div>
+          <SocketStatus socketStatus={props.socketStatus} />
+        </div>
         <div className={styles.item}>
           <StatusArea largeDisplay={false} />
         </div>

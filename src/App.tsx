@@ -17,6 +17,7 @@ import { EditAncillaryDataRecord } from "pages/admin/ancillaryDataUpsert";
 import { EditVideoRecord } from "pages/admin/videoStartTimeOverrideUpsert";
 import { EditPhotoRecord } from "pages/admin/photoTimeShiftUpsert";
 import { EnsureLogin } from "./packages/EnsureLogin";
+import { Tooltip } from "react-tooltip";
 
 const App = (): React.ReactElement => {
   return (
@@ -40,6 +41,16 @@ const App = (): React.ReactElement => {
         <Route path="/admin/videoStartTimeOverrideUpsert" element={<EditVideoRecord />} />
         <Route path="/admin/photoTimeShiftUpsert" element={<EditPhotoRecord />} />
       </Routes>
+      <Tooltip
+        id="app-tooltip"
+        place="bottom"
+        style={{
+          backgroundColor: "gray",
+          color: "white",
+          fontSize: "smaller",
+          opacity: 1,
+        }}
+      />
     </>
   );
 };
