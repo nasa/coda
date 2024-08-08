@@ -37,7 +37,10 @@ app.get("/api/v1/health", (req, res) => {
 app.get("/api/v1/version", (req, res) => {
   res.send({ version: packageJSON.version });
 });
+// temporary fix for maestro accessing daynight with old URL. This should be removed once maestro is updated to use /external
 app.use("/api/v1/daynight/daynight", dayNightRoute);
+
+app.use("/api/v1/external/daynight/daynight", dayNightRoute);
 app.use("/api/v1/emss/sgAudio", sgAudioRoute);
 app.use("/api/v1/emss/transcripts", transcriptsRoute);
 app.use("/api/v1/location/iss", locationIssRoute);
