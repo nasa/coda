@@ -1,5 +1,5 @@
 import packageJSON from "../../../package.json";
-import express, { Application, Request } from "express";
+import express, { Application } from "express";
 import cors from "cors";
 import locationIssRoute from "./routes/location/iss";
 import dayNightRoute from "./routes/daynight/daynight";
@@ -18,7 +18,8 @@ import testEventsRoute from "./routes/sequences/test-events";
 import clearRoute from "./routes/cache/clear";
 import clearAllRoute from "./routes/cache/clearAll";
 import enableDisableEmssVideoRoute from "./routes/media/enableDisableEmssVideo";
-import { getUser } from "packages/getUser";
+import getCurrentUser from "./routes/user/auth";
+
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
 
@@ -28,18 +29,6 @@ app.use(express.json({ limit: "20mb" }));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/v1/user/current", (req, res) => {
-  res.setHeader("content-type", "application/json");
-  const user = getUser(req);
-  if (user instanceof Error) {
-    const msg = "Unable to decode JWT";
-    console.error(msg, user);
-    res.status(500).send({ msg });
-    return;
-  }
-  res.send({ user });
-});
-
 // Serve a successful response. For use with wait-on
 app.get("/api/v1/health", (req, res) => {
   res.send({ status: "ok" });
@@ -48,7 +37,10 @@ app.get("/api/v1/health", (req, res) => {
 app.get("/api/v1/version", (req, res) => {
   res.send({ version: packageJSON.version });
 });
+// temporary fix for maestro accessing daynight with old URL. This should be removed once maestro is updated to use /external
 app.use("/api/v1/daynight/daynight", dayNightRoute);
+
+app.use("/api/v1/external/daynight/daynight", dayNightRoute);
 app.use("/api/v1/emss/sgAudio", sgAudioRoute);
 app.use("/api/v1/emss/transcripts", transcriptsRoute);
 app.use("/api/v1/location/iss", locationIssRoute);
@@ -67,22 +59,5 @@ app.use("/api/v1/db/mediaOverrides", mediaOverridesRoute);
 app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
 app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);
 app.use("/api/v1/db/photoTimeShifts", photoRoute);
+app.use("/api/v1/user/current", getCurrentUser);
 export default app;
-
-// TODO: currently unused but could be used to restrict access to API endpoints
-export const allowAccess = (req: Request) => {
-  const user = getUser(req);
-  if (user instanceof Error) {
-    const msg = "Unable to decode JWT";
-    console.error(msg, user);
-    return false; // auth error, don't allow
-  }
-  if (!user.usperson) {
-    return false; // not a citizen or legal permanent resident, don't allow
-  }
-  // allow if from JSC in orgs beginning with C or X
-  // return /\(JSC-[CX]/.test(user.display_name);
-
-  // allow all others
-  return true;
-};

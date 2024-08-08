@@ -259,3 +259,23 @@
   margin-left: 0;
   margin-right: 0;
 }
+
+.userCount {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  border: 1px solid var(--greyish);
+  border-radius: var(--radius);
+  padding: 5px 4px 5px 4px;
+  margin: 3px 10px 0 0;
+  cursor: pointer;
+}
+
+.userCountIcon {
+  margin: 1px 2px 0 6px;
+}
+
+.userCountText {
+  font-weight: 400;
+  font-size: 0.95em;
+}

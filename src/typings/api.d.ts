@@ -44,6 +44,11 @@ interface DayNightQueryParams {
   dateWanted: string;
   forceNew?: boolean;
   dayNightSource?: string;
+  // add support for year month date query params for Maestro
+  //    remove when Maestro is updated to use dateWanted
+  year?: number;
+  month?: number;
+  date?: number;
 }
 
 interface GetTranscriptsQueryParams {

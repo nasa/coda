@@ -1,0 +1,87 @@
+import packagejson from "../../../package.json";
+
+import _ from "lodash";
+import { globalValues } from "./global";
+
+export const setupSocketIO = (): void => {
+  // initialize the global object that will store the visitor tracking data and last edit events
+
+  const visitorsData: VisitorData[] = globalValues.serverSocketStatus.visitorsData;
+
+  let socketInterval: NodeJS.Timeout = null;
+
+  const io = globalValues.socketio;
+
+  // Listen for connection events
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  io.on("connection", (socket: any) => {
+    (async () => {
+      const sockets = await io.fetchSockets();
+      console.log(
+        `${new Date().toISOString()} Socket ${socket.id} connected. Count: ${sockets.length}`
+      );
+    })();
+
+    // emit app version to client that just connected
+    socket.emit("version", packagejson.version || "unknown version");
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    socket.on("visitorJoin", (visitorData: VisitorData) => {
+      // join the room for the user's selected date
+      socket.join(visitorData.room);
+
+      // remove this socket from tracking list if it exists
+      _.remove(visitorsData, (item) => {
+        return item.socketId === visitorData.socketId;
+      });
+      visitorsData.push(visitorData);
+
+      const statusFromServer = getStatusFromServer();
+
+      // emit visitor count to all clients
+      io.emit("statusFromServer", statusFromServer);
+
+      console.log(
+        `${new Date().toISOString()} Socket ${socket.id} visitorJoin. Room: ${visitorData.room} Viewers: ${
+          statusFromServer.viewers
+        }.`
+      );
+    });
+
+    socket.on("connect", () => {
+      console.log(`${new Date().toISOString()} Socket ${socket.id} connected.`);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`${new Date().toISOString()} Socket ${socket.id} disconnected.`);
+      const visitorBeingRemoved = _.find(visitorsData, {
+        socketId: socket.id,
+      });
+
+      // remove this socket from the visitor tracking
+      _.remove(visitorsData, (item) => {
+        return item.socketId === visitorBeingRemoved.socketId;
+      });
+      const statusFromServer = getStatusFromServer();
+      // emit visitor count to all clients
+      socket.emit("statusFromServer", statusFromServer);
+    });
+
+    // send visitor counts to all clients every 10 seconds
+    if (!socketInterval) {
+      socketInterval = setInterval(() => {
+        const statusFromServer = getStatusFromServer();
+        io.emit("statusFromServer", statusFromServer);
+      }, 10000);
+    }
+  });
+};
+
+export const getStatusFromServer = (): StatusFromServer => {
+  const viewerCount = globalValues.serverSocketStatus.visitorsData?.length;
+  return {
+    viewers: viewerCount,
+    timestamp: Date.now(),
+    version: packagejson.version || "",
+  };
+};
