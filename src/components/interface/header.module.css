@@ -179,15 +179,13 @@
 }
 
 .timeButtonsItems {
-  margin-left: 3px;
   background-color: var(--even-greyer);
-  width: 90%;
   color: var(--lighter-grey);
   border: none;
   border-radius: var(--radius);
   font-size: 11px;
   font-weight: 600;
-  margin: 3px;
+  margin: 5px;
 }
 
 .timeButtons {
@@ -196,7 +194,6 @@
 }
 
 .timeButtonLive {
-  width: 95%;
   grid-column: 1 / span 2;
   grid-row: 2;
 }
