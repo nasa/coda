@@ -173,7 +173,6 @@ export function Clock() {
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
   const [editingTime, setEditingTime] = useState(false);
-  const [isNotToday, setIsNotToday] = useState(false);
 
   const timeInput = useRef(null);
 
@@ -199,21 +198,6 @@ export function Clock() {
     setEditingTime(false);
   };
 
-  useEffect(() => {
-    const windowURL = window.location;
-    let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
-    if (paramDate) {
-      let [year, month, day] = paramDate[0].split("-");
-      const urlDate = new Date(`${year}-${month}-${day}`);
-      const today = new Date();
-
-      if (!isSameDate(urlDate, today)) {
-        setIsNotToday(true);
-        return;
-      }
-    }
-  }, []);
-
   /** Navigates to most recent time, "live" */
   const handleLive = () => {
     const timeLive = appSecondsFromDateString(new Date().toISOString());
@@ -222,6 +206,14 @@ export function Clock() {
     setUserTimeValue("");
     setEditingTime(false);
   };
+
+  const windowURL = window.location;
+  let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  if (paramDate) {
+    let [year, month, day] = paramDate[0].split("-");
+    var urlDate = new Date(`${year}-${month}-${day}`);
+    var today = new Date();
+  }
 
   let timeButtonsDisplay = editingTime ? "grid" : "none";
 
@@ -274,18 +266,19 @@ export function Clock() {
         >
           <span>Go</span>
         </button>
-        <button
-          className={`${styles.timeButtonsItems} ${styles.timeButtons} ${styles.timeButtonLive}`}
-          disabled={isNotToday}
-          onClick={() => {
-            handleLive();
-          }}
-        >
-          <div className={styles.liveButtonText}>
-            <div className={styles.liveButtonIcon}></div>
-            <span>Live</span>
-          </div>
-        </button>
+        {isSameDate(urlDate, today) ? (
+          <button
+            className={`${styles.timeButtonsItems} ${styles.timeButtons} ${styles.timeButtonLive}`}
+            onClick={() => {
+              handleLive();
+            }}
+          >
+            <div className={styles.liveButtonText}>
+              <div className={styles.liveButtonIcon}></div>
+              <span>Live</span>
+            </div>
+          </button>
+        ) : null}
       </div>
     </div>
   );

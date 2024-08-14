@@ -175,7 +175,7 @@
   width: 100%;
   top: 0px;
   left: 0px;
-  height: 50px;
+  height: max;
   z-index: 5;
 }
 
@@ -189,6 +189,7 @@
   border-radius: var(--radius);
   font-size: 11px;
   font-weight: 600;
+  margin: 3px;
 }
 
 .timeButtons {
@@ -200,15 +201,6 @@
   width: 95%;
   grid-column: 1 / span 2;
   grid-row: 2;
-}
-
-.timeButtonsItems:disabled {
-  background-color: var(--grey);
-  color: var(--even-greyer);
-}
-
-.timeButtonsItems:hover:not(:disabled) {
-  background-color: #eeeeee;
 }
 
 .liveButtonText {
