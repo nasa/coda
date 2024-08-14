@@ -209,10 +209,13 @@ export function Clock() {
 
   const windowURL = window.location;
   let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  var today = new Date();
   if (paramDate) {
     let [year, month, day] = paramDate[0].split("-");
     var urlDate = new Date(`${year}-${month}-${day}`);
-    var today = new Date();
+  } else {
+    // This is a safety parameter, so that isSameDate doesnt have an undefined.
+    urlDate = new Date();
   }
 
   let timeButtonsDisplay = editingTime ? "grid" : "none";
