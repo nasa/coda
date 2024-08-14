@@ -175,7 +175,6 @@
   width: 100%;
   top: 0px;
   left: 0px;
-  height: max;
   z-index: 5;
 }
 
@@ -183,7 +182,6 @@
   margin-left: 3px;
   background-color: var(--even-greyer);
   width: 90%;
-  height: max-content;
   color: var(--lighter-grey);
   border: none;
   border-radius: var(--radius);
