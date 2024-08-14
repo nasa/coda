@@ -89,6 +89,14 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
             </div>
 
             <div className={styles.aboutSection}>
+              <div className={styles.aboutSectionTitle}>Email for help</div>
+              <ul>
+                <li>
+                  <a href={"mailto:JSC-DL-EMSS-CODA@mail.nasa.gov"} target={"_blank"}>
+                    Team Distro List
+                  </a>
+                </li>
+              </ul>
               <div className={styles.aboutSectionTitle}>Useful Links</div>
               <ul>
                 <li>
@@ -121,13 +129,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                       Ben Feist
                     </a>
                   </div>
-                  <div className={styles.teamTitle}>
-                    Concept, Software Engineering
-                    <br />{" "}
-                    <a className={styles.smallText} href={"mailto:benjamin.f.feist@nasa.gov"}>
-                      Email for help
-                    </a>
-                  </div>
+                  <div className={styles.teamTitle}>Concept, Software Engineering</div>
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
