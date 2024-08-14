@@ -166,38 +166,64 @@
 }
 
 .timeButtonsContainer {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(2, 1fr);
   justify-content: space-around;
   position: relative;
   background-color: var(--lightest-grey);
   width: 100%;
   top: 0px;
   left: 0px;
-  height: 30px;
+  height: 50px;
   z-index: 5;
 }
 
-.timeButton {
-  display: block;
-  width: 30px;
-  height: 18px;
+.timeButtonsItems {
+  margin-left: 3px;
   background-color: var(--even-greyer);
+  width: 90%;
+  height: max-content;
   color: var(--lighter-grey);
   border: none;
   border-radius: var(--radius);
   font-size: 11px;
   font-weight: 600;
-  margin-top: 5px;
 }
 
-.timeButton:hover {
+.timeButtons {
+  grid-column: 1 / span 1;
+  grid-row: 1;
+}
+
+.timeButtonLive {
+  width: 95%;
+  grid-column: 1 / span 2;
+  grid-row: 2;
+}
+
+.timeButtonsItems:disabled {
+  background-color: var(--grey);
+  color: var(--even-greyer);
+}
+
+.timeButtonsItems:hover:not(:disabled) {
   background-color: #eeeeee;
 }
 
-.timeButtonLabel {
-  display: inline-block;
-  position: relative;
+.liveButtonText {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.liveButtonIcon {
+  background-color: red;
+  width: 6px;
+  height: 6px;
+  border: none;
+  border-radius: 100%;
+  margin-right: 3px;
 }
 
 .select {
