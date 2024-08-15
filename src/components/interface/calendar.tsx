@@ -7,6 +7,8 @@ import styles from "./calendar.module.css";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 import { isNil } from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 
 interface DateDescription {
   date: Date;
@@ -235,10 +237,7 @@ const DayOfYearPicker: FunctionComponent = () => {
 
   const setDate = new Date(+visibleYearMonth.split("-")[0], 0, parseInt(day));
 
-  let isFuture = false;
-  if (diff(today, setDate) < 0) {
-    isFuture = true;
-  }
+  const isFuture = (diff(today, setDate) < 0) ? true : false;
 
   const buttonClasses = [styles.datePickerButton];
 
@@ -252,15 +251,24 @@ const DayOfYearPicker: FunctionComponent = () => {
   const earliestCutoff = new Date("2013-03-30");
   const isbeforeRecording = diff(setDate, earliestCutoff) < 0 ? true : false;
 
+  let errorDateMessage = "";
+  if (isFuture) {
+    errorDateMessage = "Day is in the future";
+  } else if (isbeforeRecording) {
+    errorDateMessage = "No video or photos are avaiable before 2013-03-30.";
+  }
+
   return (
     <>
       <div style={{ display: "flex" }}>
         <h1 className={styles.datePickerHeader}>Select a Day</h1>
-        {isFuture ? <h1 className={styles.datePickerError}>Error: Day is in the future</h1> : null}
-        {isbeforeRecording ? (
-          <h1 className={styles.datePickerWarning}>
-            Error: No video or photos are avaiable before 2013-03-30.
-          </h1>
+        {isbeforeRecording || isFuture ? (
+          <div className={styles.errorMessageContainer}>
+            <FontAwesomeIcon className={styles.errorIcon} icon={faTriangleExclamation} size={"lg"} />
+            <h1 className={styles.datePickerError}>
+              {errorDateMessage}
+            </h1>
+          </div>
         ) : null}
       </div>
       <div className={styles.datePicker}>

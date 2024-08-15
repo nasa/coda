@@ -193,21 +193,26 @@
 }
 
 .datePickerHeader {
+  width: max-content;
+  white-space: nowrap;
   font-size: 1rem;
   font-weight: normal;
   color: var(--even-greyer);
 }
 
-.datePickerError {
-  padding-left: 30px;
-  font-size: 1rem;
-  font-weight: normal;
-  color: var(--sunset-red);
+.errorMessageContainer {
+  margin-left: 10px;
+  align-items: center;
+  display: flex;
 }
 
-.datePickerWarning {
-  padding-left: 30px;
-  font-size: medium;
+.errorIcon {
+  color: var(--highlight-red);
+}
+
+.datePickerError {
+  padding-left: 6px;
+  font-size: 0.8em;
   font-weight: normal;
-  color: var(--sunset-red);
+  color: var(--highlight-red);
 }
