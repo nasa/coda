@@ -7,7 +7,7 @@ export async function buildDayNightStore(
     dateWanted,
   };
   const queryString = queryStringFromObject(queryParams);
-  const res = await fetch(`/api/v1/daynight/daynight?${queryString}`);
+  const res = await fetch(`/api/v1/external/daynight/daynight?${queryString}`);
   const wrappedResponse: WrappedResponse<DayNightStore> = await res.json();
   return wrappedResponse;
 }

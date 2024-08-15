@@ -3,9 +3,11 @@
 }
 
 :root {
+  --greyish: #e0e0e0;
   --even-greyer: #abaaae;
   --extremely-grey: #898989;
   --lightest-grey: #4a4c57;
+  --more-light-grey: #616574;
   --light-grey: #4c4e5b;
   --lighter-grey: #474955;
   --slightly-lighter-grey: #393641;
@@ -25,6 +27,9 @@
   --sunset-red: #b22b0d;
 
   --radius: 3px;
+  --panelRadius: 6px;
+
+  --homepage-background: "url(/images/earth_moon.jpg)"; /* Handled in ./pages/index.tsx */
 }
 
 /* ===== Scrollbar CSS ===== */

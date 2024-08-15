@@ -1,8 +1,26 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./index.module.css";
 
+// Make sure all images are <=1mb for quick loading time.
+const codaHomeBackgrounds: string[] = [
+  "artemis_launch_center.jpg",
+  "artemis_launch_closeup.jpg",
+  "coastal.jpg",
+  "earth_moon.jpg",
+  "earth_aurora.jpg",
+  "earth_nightlight.jpg",
+  "iss_array_extend.jpg",
+  "sun_earth.jpg",
+];
+
 export default function Index() {
   const navigate = useNavigate();
+  const randomImage: string =
+    codaHomeBackgrounds[Math.floor(Math.random() * codaHomeBackgrounds.length)];
+  document.documentElement.style.setProperty(
+    "--homepage-background",
+    `url(/images/${randomImage})`
+  );
 
   return (
     <div className={styles.main}>
