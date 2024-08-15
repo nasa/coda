@@ -2,11 +2,12 @@ import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faTimesCircle, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff } from "utils/date";
 import Modal from "react-modal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 library.add(faTimesCircle);
 
@@ -18,7 +19,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
   const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
 
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isBeforeRecording, setIsBeforeRecording] = useState(false);
 
   useEffect(() => {
     if (
@@ -40,21 +40,15 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
     ephemera.loadingStatus,
   ]);
 
-  useEffect(() => {
-    // Attempt to find the date=####/##/## param
-    const earliestCutoff = new Date("2013-03-30");
-    const windowURL = window.location;
-    let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
-    if (paramDate) {
-      let [year, month, day] = paramDate[0].split("-");
-      [year, month, day] = [year, month, String(parseInt(day) + 1)];
-      const urlDate = new Date(`${year}-${month}-${day}`);
-
-      if (diff(urlDate, earliestCutoff) < 0) {
-        setIsBeforeRecording(true);
-      }
-    }
-  }, []);
+  const earliestCutoff = new Date("2013-03-30");
+  const windowURL = window.location;
+  let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  if (paramDate) {
+    let [year, month, day] = paramDate[0].split("-");
+    [year, month, day] = [year, month, String(parseInt(day) + 1)];
+    const urlDate = new Date(`${year}-${month}-${day}`);
+    var isBeforeRecording = diff(urlDate, earliestCutoff) < 0 ? true : false;
+  }
 
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
   const titleShowGoButtonStyle =
@@ -223,9 +217,12 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                       </button>
                     </div>
                     {isBeforeRecording ? (
-                      <p className={styles.noRecordingWarning}>
-                        Error: No video or photos are avaiable before 2013-03-30.
-                      </p>
+                      <div className={styles.errorMessageContainer}>
+                        <FontAwesomeIcon icon={faTriangleExclamation} size={"sm"} />
+                        <p className={styles.datePickerError}>
+                          No EVA recording avaiable before 2013-03-30
+                        </p>
+                      </div>
                     ) : null}
                   </div>
                 </div>
