@@ -245,7 +245,7 @@ const DayOfYearPicker: FunctionComponent = () => {
 
   const buttonClasses = [styles.datePickerButton];
 
-  if (isFuture) {
+  if (isFuture || isbeforeRecording) {
     buttonClasses.push(styles.unselectableButton);
   } else {
     buttonClasses.push(styles.selectableButton);
@@ -255,7 +255,7 @@ const DayOfYearPicker: FunctionComponent = () => {
   if (isFuture) {
     errorDateMessage = "Day is in the future";
   } else if (isbeforeRecording) {
-    errorDateMessage = "No video or photos are avaiable before 2013-03-30.";
+    errorDateMessage = "No EVA recording avaiable before 2013-03-30.";
   }
 
   return (
