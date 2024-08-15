@@ -201,18 +201,14 @@
 }
 
 .errorMessageContainer {
+  color: var(--highlight-red);
   margin-left: 10px;
   align-items: center;
   display: flex;
-}
-
-.errorIcon {
-  color: var(--highlight-red);
 }
 
 .datePickerError {
   padding-left: 6px;
   font-size: 0.8em;
   font-weight: normal;
-  color: var(--highlight-red);
 }

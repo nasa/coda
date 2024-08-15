@@ -237,7 +237,11 @@ const DayOfYearPicker: FunctionComponent = () => {
 
   const setDate = new Date(+visibleYearMonth.split("-")[0], 0, parseInt(day));
 
-  const isFuture = (diff(today, setDate) < 0) ? true : false;
+  const isFuture = diff(today, setDate) < 0 ? true : false;
+
+  // Check if the date is before existence of recording
+  const earliestCutoff = new Date("2013-03-30");
+  const isbeforeRecording = diff(setDate, earliestCutoff) < 0 ? true : false;
 
   const buttonClasses = [styles.datePickerButton];
 
@@ -246,10 +250,6 @@ const DayOfYearPicker: FunctionComponent = () => {
   } else {
     buttonClasses.push(styles.selectableButton);
   }
-
-  // Check if the date is before existence of recording
-  const earliestCutoff = new Date("2013-03-30");
-  const isbeforeRecording = diff(setDate, earliestCutoff) < 0 ? true : false;
 
   let errorDateMessage = "";
   if (isFuture) {
@@ -264,10 +264,8 @@ const DayOfYearPicker: FunctionComponent = () => {
         <h1 className={styles.datePickerHeader}>Select a Day</h1>
         {isbeforeRecording || isFuture ? (
           <div className={styles.errorMessageContainer}>
-            <FontAwesomeIcon className={styles.errorIcon} icon={faTriangleExclamation} size={"lg"} />
-            <h1 className={styles.datePickerError}>
-              {errorDateMessage}
-            </h1>
+            <FontAwesomeIcon icon={faTriangleExclamation} size={"lg"} />
+            <h1 className={styles.datePickerError}>{errorDateMessage}</h1>
           </div>
         ) : null}
       </div>
