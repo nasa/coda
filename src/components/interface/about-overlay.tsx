@@ -2,10 +2,12 @@ import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faTimesCircle, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
+import { diff } from "utils/date";
 import Modal from "react-modal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 library.add(faTimesCircle);
 
@@ -38,10 +40,19 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
     ephemera.loadingStatus,
   ]);
 
+  const earliestCutoff = new Date("2013-03-30");
+  const windowURL = window.location;
+  let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  if (paramDate) {
+    let [year, month, day] = paramDate[0].split("-");
+    [year, month, day] = [year, month, String(parseInt(day) + 1)];
+    const urlDate = new Date(`${year}-${month}-${day}`);
+    var isBeforeRecording = diff(urlDate, earliestCutoff) < 0 ? true : false;
+  }
+
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
-  const titleShowGoButtonStyle = isLoaded
-    ? styles.headerGoButtonEnabled
-    : styles.headerGoButtonDisabled;
+  const titleShowGoButtonStyle =
+    isLoaded && !isBeforeRecording ? styles.headerGoButtonEnabled : styles.headerGoButtonDisabled;
 
   return (
     <Modal
@@ -205,6 +216,14 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                         START CODA
                       </button>
                     </div>
+                    {isBeforeRecording ? (
+                      <div className={styles.errorMessageContainer}>
+                        <FontAwesomeIcon icon={faTriangleExclamation} size={"sm"} />
+                        <p className={styles.datePickerError}>
+                          No EVA recording avaiable before 2013-03-30
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>
