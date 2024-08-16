@@ -30,7 +30,6 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
     // add support for year month date query params for Maestro
     //    remove when Maestro is updated to use dateWanted
-    console.log(queryObj);
     if (queryObj.year && queryObj.month && queryObj.date) {
       const data = await getDayNight({
         dateWanted: `${queryObj.year}-${queryObj.month}-${queryObj.date}`,
