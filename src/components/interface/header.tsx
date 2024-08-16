@@ -11,7 +11,7 @@ import PresetPicker from "components/framework/preset-picker";
 import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
-import { hhmmssFromSeconds, padZeros } from "utils/formatting";
+import { appSecondsFromDateString, hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { collection, sourceShortVal } from "utils/consts";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
@@ -22,6 +22,7 @@ import AboutOverlay from "./about-overlay";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
 import { generateShareURL } from "utils/share-state";
+import { isSameDate } from "utils/date";
 
 library.add(faQuestionCircle, faCalendarAlt, faClock, faFloppyDisk);
 
@@ -166,6 +167,7 @@ export function DatetimeDropdown() {
 
 export function Clock() {
   const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
+
   const dispatch = useDispatch();
 
   const [renderTime, setRenderTime] = useState("00:00:00");
@@ -196,7 +198,27 @@ export function Clock() {
     setEditingTime(false);
   };
 
-  const timeButtonsDisplay = editingTime ? "flex" : "none";
+  /** Navigates to most recent time, "live" */
+  const handleLive = () => {
+    const timeLive = appSecondsFromDateString(new Date().toISOString());
+    setRenderTime(hhmmssFromSeconds(timeLive));
+    dispatch(changeTime(timeLive));
+    setUserTimeValue("");
+    setEditingTime(false);
+  };
+
+  const windowURL = window.location;
+  let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  var today = new Date();
+  if (paramDate) {
+    let [year, month, day] = paramDate[0].split("-");
+    var urlDate = new Date(`${year}-${month}-${day}`);
+  } else {
+    // This is a safety parameter, so that isSameDate doesnt have an undefined.
+    urlDate = new Date();
+  }
+
+  let timeButtonsDisplay = editingTime ? "grid" : "none";
 
   return (
     <div className={styles.timeContainer}>
@@ -232,23 +254,34 @@ export function Clock() {
       </div>
       <div className={styles.timeButtonsContainer} style={{ display: timeButtonsDisplay }}>
         <button
-          className={styles.timeButton}
-          style={{ width: "50px" }}
+          className={`${styles.timeButtonsItems} ${styles.timeButtons}`}
           onClick={() => {
             handleCancel();
           }}
         >
-          <span className={styles.timeButtonLabel}>Cancel</span>
+          <span>Cancel</span>
         </button>
         <button
-          className={styles.timeButton}
-          style={{ width: "50px" }}
+          className={`${styles.timeButtonsItems}`}
           onClick={() => {
             handleTimeChange();
           }}
         >
-          <span className={styles.timeButtonLabel}>Go</span>
+          <span>Go</span>
         </button>
+        {isSameDate(urlDate, today) ? (
+          <button
+            className={`${styles.timeButtonsItems} ${styles.timeButtons} ${styles.timeButtonLive}`}
+            onClick={() => {
+              handleLive();
+            }}
+          >
+            <div className={styles.liveButtonText}>
+              <div className={styles.liveButtonIcon}></div>
+              <span>Live</span>
+            </div>
+          </button>
+        ) : null}
       </div>
     </div>
   );

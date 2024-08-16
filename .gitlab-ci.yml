@@ -1,33 +1,15 @@
-# README
-# This defines the pipeline of jobs that runs when you push to gitlab
-# To check the validity of this file, try the live editor:
-# https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
-
-default:
-  artifacts:
-    # Aggressively expire artifacts. The latest for any branch never expires
-    expire_in: 1 day
-  timeout: 10 minutes
-
-variables:
-  HOME: "/tmp" # required for openshift for now
-  a11y_urls: "https://coda-int.fit.nasa.gov/view?date=2021-03-13&gmt=14:49:46&v=2.0&l=n&s=0&f1=01001iss064m010721435&f2=01011iss064m020721435&f3=0300&f4=0701&f5=051&f6=04&f7=080"
-  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:20.11.0-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:21-alpine"
-
-# Default image unless otherwise specified
-image: "$CURRENT_NODE_VERSION_IMAGE"
-
 # These includes do not define the order of the pipeline. That is determined by
 # the `needs` value for each job
 include:
   # Jobs that run on commits and scheduled pipelines.
   #
   # Scheduled pipelines are used to do regular reporting on things like vulnerabilities and test
-  # coverage. We don't want them to build new Electron packages and Docker images or do deploys
-  - local: .gitlab/always-run.gitlab-ci.yml
+  # coverage. We don't want them to build packages and Docker images or do deploys
+  - local: .gitlab/run-on-schedule.gitlab-ci.yml
+    rules:
+      - if: $CI_PIPELINE_SOURCE == "schedule"
 
   # Jobs that run on commits only, not scheduled pipelines
   - local: .gitlab/run-on-commits.gitlab-ci.yml
     rules:
-      - if: '$CI_PIPELINE_SOURCE != "schedule"'
+      - if: $CI_PIPELINE_SOURCE != "schedule"
