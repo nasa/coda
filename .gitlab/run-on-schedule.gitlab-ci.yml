@@ -1,0 +1,34 @@
+stages:
+  - stageless
+
+.db-export-template:
+  needs: []
+  # I don't think we want to do this, because I don't think we want GitLab to consider this a
+  # deployment. It's just grabbing some data off of Production.
+  # environment:
+  #   name: production
+  #   url: https://coda.fit.nasa.gov
+  when: manual
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - PROJECT_DIR=$(pwd)
+    - cd /opt/coda
+    - sudo docker compose exec database pg_dump -U postgres coda > "${PROJECT_DIR}/coda.sql"
+  artifacts:
+    name: "$CI_JOB_STARTED_AT$-coda.sql"
+    paths:
+      - coda.sql
+    # hold on to this artifact longer than default (1 day). . The latest for any branch never expires
+    expire_in: 60 days
+
+z:db-export:prod:
+  extends: .db-export-template
+  when: always
+  tags: ["coda-prod-runner"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
