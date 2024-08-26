@@ -315,3 +315,8 @@
   font-size: 0.8em;
   font-weight: normal;
 }
+
+.emailIconDistro {
+  color: var(--even-greyer);
+  margin-right: 5px;
+}

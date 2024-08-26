@@ -2,7 +2,11 @@ import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faTimesCircle, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEnvelope,
+  faTimesCircle,
+  faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff } from "utils/date";
@@ -104,6 +108,11 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
               <ul>
                 <li>
                   <a href={"mailto:JSC-DL-EMSS-CODA@mail.nasa.gov"} target={"_blank"}>
+                    <FontAwesomeIcon
+                      className={styles.emailIconDistro}
+                      icon={faEnvelope}
+                      size={"xs"}
+                    />
                     Team Distro List
                   </a>
                 </li>
