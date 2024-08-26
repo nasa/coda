@@ -1,6 +1,6 @@
 .main {
   width: 364px;
-  height: 465px;
+  height: max-content;
   padding: 14px 20px;
   border-radius: var(--radius);
   background-color: var(--grey);
@@ -193,14 +193,22 @@
 }
 
 .datePickerHeader {
+  width: max-content;
+  white-space: nowrap;
   font-size: 1rem;
   font-weight: normal;
   color: var(--even-greyer);
 }
 
+.errorMessageContainer {
+  color: var(--highlight-red);
+  margin-left: 10px;
+  align-items: center;
+  display: flex;
+}
+
 .datePickerError {
-  padding-left: 30px;
-  font-size: 1rem;
+  padding-left: 6px;
+  font-size: 0.8em;
   font-weight: normal;
-  color: #b22b0d;
 }

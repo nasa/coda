@@ -162,7 +162,6 @@
 }
 
 .checkboxArea {
-  display: flex;
   flex-direction: row;
   margin-top: 10px;
   font-size: 13px;
@@ -302,4 +301,17 @@
 
 .aboutSection a:hover {
   text-decoration: underline;
+}
+
+.errorMessageContainer {
+  margin-top: 6px;
+  color: var(--highlight-red);
+  display: flex;
+  width: 180px;
+}
+
+.datePickerError {
+  padding-left: 6px;
+  font-size: 0.8em;
+  font-weight: normal;
 }
