@@ -2,7 +2,11 @@ import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faTimesCircle, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEnvelope,
+  faTimesCircle,
+  faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "store/index";
 import { diff } from "utils/date";
@@ -100,6 +104,19 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
             </div>
 
             <div className={styles.aboutSection}>
+              <div className={styles.aboutSectionTitle}>Email for help</div>
+              <ul>
+                <li>
+                  <a href={"mailto:JSC-DL-EMSS-CODA@mail.nasa.gov"} target={"_blank"}>
+                    <FontAwesomeIcon
+                      className={styles.emailIconDistro}
+                      icon={faEnvelope}
+                      size={"xs"}
+                    />
+                    Team Distro List
+                  </a>
+                </li>
+              </ul>
               <div className={styles.aboutSectionTitle}>Useful Links</div>
               <ul>
                 <li>
@@ -132,13 +149,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                       Ben Feist
                     </a>
                   </div>
-                  <div className={styles.teamTitle}>
-                    Concept, Software Engineering
-                    <br />{" "}
-                    <a className={styles.smallText} href={"mailto:benjamin.f.feist@nasa.gov"}>
-                      Email for help
-                    </a>
-                  </div>
+                  <div className={styles.teamTitle}>Concept, Software Engineering</div>
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
