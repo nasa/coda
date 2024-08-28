@@ -7,7 +7,6 @@
 # quickly preview what a production build would do.
 # Don't pull an image from container registry: build it locally from a Dockerfile.
 #
-version: "3.9"
 services:
   nginx:
     image: coda-preview-nginx:latest

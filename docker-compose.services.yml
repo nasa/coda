@@ -6,7 +6,6 @@
 # 1. Rather than pull images from a container registry as done in the main docker-compose.yml,
 #    instead build the images locally
 #
-version: "3.9"
 services:
   database:
     ports:
