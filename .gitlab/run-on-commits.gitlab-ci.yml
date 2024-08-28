@@ -31,18 +31,27 @@ include:
 
   # Code quality checks
   - project: "emss/gitlab-templates"
-    ref: latest
+    ref: 1.2.2
     file: "/jobs/code-quality.gitlab-ci.yml"
+
+  # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
+  - project: "emss/gitlab-templates"
+    ref: 1.2.2
+    file: "/jobs/emss-shared-dev.gitlab-ci.yml"
 
   # Fitdock deploy template
   - project: "emss/gitlab-templates"
-    ref: latest
+    ref: 1.2.2
     file: "/jobs/fitdock-deploy.gitlab-ci.yml"
 
   # Kaniko build template
   - project: "emss/gitlab-templates"
-    ref: latest
+    ref: 1.2.2
     file: "/jobs/kaniko-build.gitlab-ci.yml"
+
+  - project: "emss/gitlab-templates"
+    ref: 1.2.2
+    file: "/jobs/container-retag.gitlab-ci.yml"
 
 # Override some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
@@ -296,11 +305,7 @@ docker:build:apiv1:
 # Retag docker images after necessary jobs pass (e.g. unit testing passes)
 #
 docker:retag:
-  stage: stageless
-  image: "$CI_REGISTRY/emss/docker-images:skopeo"
-  variables:
-    GIT_STRATEGY: none # Don't checkout the repo, just get artifacts
-  tags: ["docker", "linux"]
+  extends: .emss-container-retag
   needs:
     - make-dotenv
     - job: test
@@ -309,23 +314,10 @@ docker:retag:
       artifacts: false
     - job: docker:build:apiv1
       artifacts: false
-  script:
-    # Login to registry
-    - echo $CI_JOB_TOKEN | skopeo login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-
-    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env.
-    # See make-dotenv job/template.
-    - set -o allexport && source ./.env && set +o allexport
-
-    - SERVICE=nginx
-    - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
-    - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
-    - skopeo copy "docker://${TEMP_IMAGE}" "docker://${FINAL_IMAGE}"
-
-    - SERVICE=apiv1
-    - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
-    - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
-    - skopeo copy docker://$TEMP_IMAGE docker://$FINAL_IMAGE
+  variables:
+    RETAG_SERVICE_IMAGES: |
+      nginx
+      apiv1
 
 deploy:artifactize-committed-files:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
@@ -344,6 +336,19 @@ deploy:artifactize-committed-files:
   stage: stageless
   timeout: 10 minutes
 
+deploy:carbon:
+  extends:
+    - .deploy-template
+    - .carbon-deploy
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+  when: manual
+  before_script:
+    # This is currently our hack to change out a necessary var for Launchpad Auth
+    - sed -i "s/coda.fit/carbon-emss-dev.fit/g" .env
+
 deploy:dev1:
   extends: .deploy-template
   tags: ["coda-dev1-runner"]
@@ -360,40 +365,6 @@ deploy:dev1:
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/coda.fit/coda-dev.fit/g" .env
-
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-
-    # Since this runner is shared between all EMSS repos, we need to check if any containers that
-    # are running are this app or something else. Ultimately this code needs to be in the EMSS
-    # deploy template, and needs to do the `grep -q "/opt/coda"` part in an app-agnostic way (e.g.
-    # needs to grab the INSTALL_PATH from .fitdock.yml), but for now this is hard-coded for CODA.
-    # If-statement below does two checks:
-    # 1. If `sudo docker compose ls` lists more than 2 lines, this means there are more than two
-    #    docker-compose apps running (first line is just the header). Here's an example of AEGIS
-    #    and Labs running simultaneously:
-    #       ejmontal@jsfitdaegis01 / $ sudo docker compose ls
-    #       NAME                STATUS              CONFIG FILES
-    #       aegis               running(3)          /opt/aegis/docker-compose.yml
-    #       emss-labs           running(5)          /opt/emss-labs/docker-compose.yml
-    #    If this is the case, we definitely are in a weird condition and want to nuke all containers
-    #    and let this deploy job bring us back to a normal configuration.
-    # 2. If `sudo docker compose ls` does NOT included this app's install directory (/opt/aegis),
-    #    then some other app was the most recently deployed app. Nuke all containers and let this
-    #    deploy job make AEGIS the running app.
-    # - COMPOSE_LS=$(sudo docker compose ls)
-    # - >
-    #   if [ $(echo "$COMPOSE_LS" | wc -l) -gt 2 ] || ! echo "$COMPOSE_LS" | grep -q "/opt/coda"; then
-    #     echo "Unknown docker-compose apps running, killing all containers."
-    #     sudo docker stop $(sudo docker ps -a -q)
-    #   else
-    #     echo "Same app deploying, not killing containers"
-    #   fi
-
-    # Stop all containers. TODO unsure why the above code to selectively stop containers is needed.
-    - >
-      if docker --version; then
-        sudo docker stop $(sudo docker ps -a -q)
-      fi
 
 # CODA-Dev2 currently functioning as Talky Bot prod
 # deploy:dev2:
@@ -488,6 +459,11 @@ z:db-export:int:
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
 
+z:db-export:carbon:
+  extends:
+    - .db-export-template
+    - .carbon-access
+
 z:db-export:dev1:
   extends: .db-export-template
   tags: ["coda-dev1-runner"]
@@ -522,6 +498,12 @@ z:db-export:dev2:
     - sudo rm -f /d1/coda/db-init/coda.sql
 
     # Migrations will be run when the apiv1 container restarts
+
+z:db-import:carbon:
+  extends:
+    - .db-import-template
+    - .carbon-deploy
+  needs: ["z:db-export:prod"]
 
 z:db-import:dev1:
   extends: .db-import-template
@@ -578,6 +560,11 @@ z:db-import:int:
     when: always
     paths:
       - ./log_artifacts
+
+z:logs:carbon:
+  extends:
+    - .container-logs-template
+    - .carbon-access
 
 z-logs:dev1:
   extends: .container-logs-template
