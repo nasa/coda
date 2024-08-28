@@ -446,6 +446,7 @@ deploy:prod:
   artifacts:
     paths:
       - coda.sql
+    expire_in: 1 day
 
 z:db-export:prod:
   extends: .db-export-template
