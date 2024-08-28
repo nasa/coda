@@ -7,9 +7,6 @@ stages:
   - stageless
 
 default:
-  artifacts:
-    # Aggressively expire artifacts. The latest for any branch never expires
-    expire_in: 1 day
   timeout: 10 minutes
 
 variables:
@@ -160,6 +157,7 @@ node-sbom:
     paths:
       - "./bom.json"
       - "./new-bom.md"
+    expire_in: 1 day
 
 .make-dotenv-template:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
@@ -200,6 +198,7 @@ node-sbom:
       dotenv: pipelineVariables.env
     paths:
       - .env
+    expire_in: 1 day
 
 make-dotenv:
   extends: .make-dotenv-template
@@ -246,6 +245,7 @@ test:
         - junit.xml
     paths:
       - ./coverage/*
+    expire_in: 1 day
 
 # test against next version of node that CODA may use, but allow to fail
 test-node-next:
@@ -330,6 +330,7 @@ deploy:artifactize-committed-files:
     paths:
       - .fitdock.yml
       - docker-compose.yml
+    expire_in: 1 day
 
 .deploy-template:
   extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
@@ -560,6 +561,7 @@ z:db-import:int:
     when: always
     paths:
       - ./log_artifacts
+    expire_in: 1 day
 
 z:logs:carbon:
   extends:
