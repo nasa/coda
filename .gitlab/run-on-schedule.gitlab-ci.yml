@@ -29,6 +29,6 @@ stages:
 z:db-export:prod:
   extends: .db-export-template
   when: always
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
