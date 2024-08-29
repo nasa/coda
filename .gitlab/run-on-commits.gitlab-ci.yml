@@ -367,27 +367,9 @@ deploy:dev1:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/coda.fit/coda-dev.fit/g" .env
 
-# CODA-Dev2 currently functioning as Talky Bot prod
-# deploy:dev2:
-#   extends: .deploy-template
-#   tags: ["coda-dev2-runner"]
-#   needs:
-#     - make-dotenv
-#     - docker:retag
-#     - deploy:artifactize-committed-files
-#   environment:
-#     name: development2
-#     url: https://coda-dev2.fit.nasa.gov
-#   variables:
-#     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
-#   when: manual
-#   before_script:
-#     # This is currently our hack to change out a necessary var for Launchpad Auth
-#     - sed -i "s/coda.fit/coda-dev2.fit/g" .env
-
 deploy:int:
   extends: .deploy-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   needs:
     - make-dotenv
     - docker:retag
@@ -405,7 +387,7 @@ deploy:int:
 
 deploy:prod:
   extends: .deploy-template
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   needs:
     - make-dotenv
     - docker:retag
@@ -451,13 +433,13 @@ deploy:prod:
 z:db-export:prod:
   extends: .db-export-template
   # when: always
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
 
 z:db-export:int:
   extends: .db-export-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
 
@@ -520,7 +502,7 @@ z:db-import:dev1:
 
 z:db-import:int:
   extends: .db-import-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   needs: ["z:db-export:prod"]
   environment:
     name: integration
@@ -585,14 +567,14 @@ z-logs:dev2:
 
 z-logs:int:
   extends: .container-logs-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   needs: []
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
 
 z-logs:prod:
   extends: .container-logs-template
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   needs: []
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
