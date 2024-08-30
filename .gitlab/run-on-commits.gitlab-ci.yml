@@ -411,7 +411,7 @@ deploy:prod:
   #   url: https://coda.fit.nasa.gov
   when: manual
   tags: [$RUNNER]
-  needs: ["z-db-export:prod"]
+  needs: []
   stage: stageless
   timeout: 10 minutes
   variables:
@@ -455,7 +455,6 @@ z-db-export:
 
 z-db-export:prod:
   extends: .z-db-export-template
-  needs: [] # otherwise it needs itself...
   variables:
     RUNNER: emss-coda-prod
     PASS: $DEPLOY_SUDO_PASS_PROD
@@ -465,7 +464,7 @@ z-db-export:prod:
 z-db-import:
   when: manual
   tags: [$RUNNER]
-  needs: ["z:db-export:prod"]
+  needs: ["z-db-export:prod"]
   stage: stageless
   timeout: 10 minutes
   variables:
