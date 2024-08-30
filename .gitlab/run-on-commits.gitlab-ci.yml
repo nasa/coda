@@ -434,6 +434,7 @@ deploy:prod:
 
 z-db-export:
   extends: .z-db-export-template
+  needs: []
   parallel:
     matrix:
       - RUNNER: carbon-emss-dev
