@@ -26,29 +26,20 @@ include:
     file: "/rollups/all-projects.gitlab-ci.yml"
   - template: "Verify/Accessibility.gitlab-ci.yml"
 
-  # Code quality checks
-  - project: "emss/gitlab-templates"
-    ref: 1.2.2
-    file: "/jobs/code-quality.gitlab-ci.yml"
-
-  # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
-  - project: "emss/gitlab-templates"
-    ref: 1.2.2
-    file: "/jobs/emss-shared-dev.gitlab-ci.yml"
-
-  # Fitdock deploy template
-  - project: "emss/gitlab-templates"
-    ref: 1.2.2
-    file: "/jobs/fitdock-deploy.gitlab-ci.yml"
-
-  # Kaniko build template
-  - project: "emss/gitlab-templates"
-    ref: 1.2.2
-    file: "/jobs/kaniko-build.gitlab-ci.yml"
+  # provides a job which
+  - project: "emss/configure-host"
+    ref: 1.0.0
+    file:
+      - "/jobs/validate-config.gitlab-ci.yml"
 
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
-    file: "/jobs/container-retag.gitlab-ci.yml"
+    ref: updates-to-configure-host-deploy
+    file:
+      - "/jobs/code-quality.gitlab-ci.yml" # Code quality checks
+      - "/jobs/emss-shared-dev.gitlab-ci.yml" # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
+      - "/jobs/kaniko-build.gitlab-ci.yml" # Build our containers
+      - "/jobs/container-retag.gitlab-ci.yml" # Once checks pass, give our containers their final tags
+      - "/jobs/emss-deploy.gitlab-ci.yml" # Deploy to server
 
 # Override some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
@@ -158,6 +149,13 @@ node-sbom:
       - "./bom.json"
       - "./new-bom.md"
     expire_in: 1 day
+
+validate-host-config-and-artifactize:
+  stage: stageless
+  needs: []
+  extends: .validate-config
+  variables:
+    CONFIGURE_HOST_IMAGE_TAG: 1.0.0
 
 .make-dotenv-template:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
@@ -319,44 +317,40 @@ docker:retag:
       nginx
       apiv1
 
-deploy:artifactize-committed-files:
+deploy:artifactize-docker-compose-yml:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
   stage: stageless
   needs: []
   tags: ["openshift"]
   script:
-    - echo "This job runs no commands, just turns .fitdock.yml and docker-compose.yml into artifacts"
+    - echo "This job runs no commands, just turns docker-compose.yml into artifacts"
   artifacts:
     paths:
-      - .fitdock.yml
       - docker-compose.yml
     expire_in: 1 day
 
-.deploy-template:
-  extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
-  stage: stageless
-  timeout: 10 minutes
-
 deploy:carbon:
   extends:
-    - .deploy-template
+    - .emss-deploy
     - .carbon-deploy
   needs:
+    - validate-host-config-and-artifactize
     - make-dotenv
     - docker:retag
-    - deploy:artifactize-committed-files
+    - deploy:artifactize-docker-compose-yml
   when: manual
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/coda.fit/carbon-emss-dev.fit/g" .env
 
 deploy:dev1:
-  extends: .deploy-template
+  extends: .emss-deploy
   tags: ["coda-dev1-runner"]
   needs:
+    - validate-host-config-and-artifactize
     - make-dotenv
     - docker:retag
-    - deploy:artifactize-committed-files
+    - deploy:artifactize-docker-compose-yml
   environment:
     name: development1
     url: https://coda-dev.fit.nasa.gov
@@ -368,12 +362,13 @@ deploy:dev1:
     - sed -i "s/coda.fit/coda-dev.fit/g" .env
 
 deploy:int:
-  extends: .deploy-template
+  extends: .emss-deploy
   tags: ["emss-coda-int"]
   needs:
+    - validate-host-config-and-artifactize
     - make-dotenv
     - docker:retag
-    - deploy:artifactize-committed-files
+    - deploy:artifactize-docker-compose-yml
   environment:
     name: integration
     url: https://coda-int.fit.nasa.gov
@@ -386,12 +381,13 @@ deploy:int:
     - sed -i "s/coda.fit/coda-int.fit/g" .env
 
 deploy:prod:
-  extends: .deploy-template
+  extends: .emss-deploy
   tags: ["emss-coda-prod"]
   needs:
+    - validate-host-config-and-artifactize
     - make-dotenv
     - docker:retag
-    - deploy:artifactize-committed-files
+    - deploy:artifactize-docker-compose-yml
     - { job: "test", artifacts: false }
     - { job: "project-check", artifacts: false }
     # - { job: "phpcs-security-audit-sast", artifacts: false }

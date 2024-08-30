@@ -1,0 +1,39 @@
+{
+  "install_path": "/opt/coda",
+  "directories": [
+    {
+      "path": "/d1/coda/static",
+      "mode": "0775",
+      "owner": "gitlab-runner",
+      "group": "gitlab-runner"
+    },
+    {
+      "path": "/d1/coda/cache",
+      "mode": "0775",
+      "owner": "gitlab-runner",
+      "group": "gitlab-runner"
+    },
+    {
+      "path": "/d1/coda/postgres",
+      "mode": "0775",
+      "owner": "gitlab-runner",
+      "group": "gitlab-runner"
+    },
+    {
+      "path": "/d1/coda/db-init",
+      "mode": "0775",
+      "owner": "gitlab-runner",
+      "group": "gitlab-runner"
+    },
+    {
+      "path": "/d1/coda/redis",
+      "mode": "0775",
+      "owner": "gitlab-runner",
+      "group": "gitlab-runner"
+    }
+  ],
+  "use_ssl": {
+    "key": "/etc/pki/tls/private/nginx.key",
+    "cert": "/etc/pki/tls/certs/nginx.crt"
+  }
+}
