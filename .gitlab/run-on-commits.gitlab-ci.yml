@@ -411,7 +411,7 @@ deploy:prod:
   #   url: https://coda.fit.nasa.gov
   when: manual
   tags: [$RUNNER]
-  needs: ["z:db-export:prod"]
+  needs: ["z-db-export:prod"]
   stage: stageless
   timeout: 10 minutes
   variables:
