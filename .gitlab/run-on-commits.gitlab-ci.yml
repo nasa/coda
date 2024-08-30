@@ -434,7 +434,6 @@ deploy:prod:
 
 z-db-export:
   extends: .z-db-export-template
-  needs: []
   parallel:
     matrix:
       - RUNNER: carbon-emss-dev
@@ -456,6 +455,7 @@ z-db-export:
 
 z-db-export:prod:
   extends: .z-db-export-template
+  needs: [] # otherwise it needs itself...
   variables:
     RUNNER: emss-coda-prod
     PASS: $DEPLOY_SUDO_PASS_PROD
