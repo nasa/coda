@@ -403,18 +403,24 @@ deploy:prod:
   only:
     - prod
 
-.db-export-template:
-  needs: []
+z-db-export:
   # I don't think we want to do this, because I don't think we want GitLab to consider this a
   # deployment. It's just grabbing some data off of Production.
   # environment:
   #   name: production
   #   url: https://coda.fit.nasa.gov
   when: manual
+  tags: [$RUNNER]
+  needs: ["z:db-export:prod"]
   stage: stageless
   timeout: 10 minutes
   variables:
     GIT_STRATEGY: none
+    DEPLOY_SUDO_PASS: $PASS
+  environment:
+    name: $ENV_NAME
+    url: https://$ENV_SUBDOMAIN.fit.nasa.gov
+    action: access
   script:
     # init sudo ability
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
@@ -425,43 +431,41 @@ deploy:prod:
     paths:
       - coda.sql
     expire_in: 1 day
+  parallel:
+    matrix:
+      - RUNNER: carbon-emss-dev
+        PASS: $DEPLOY_SUDO_PASS_CARBON
+        ENV_NAME: carbon
+        ENV_SUBDOMAIN: carbon-emss-dev
+      - RUNNER: coda-dev1-runner
+        PASS: $DEPLOY_SUDO_PASS_DEV1
+        ENV_NAME: coda-dev1
+        ENV_SUBDOMAIN: coda-dev
+      - RUNNER: coda-dev2-runner
+        PASS: $DEPLOY_SUDO_PASS_DEV2
+        ENV_NAME: coda-dev2
+        ENV_SUBDOMAIN: coda-dev2
+      - RUNNER: emss-coda-int
+        PASS: $DEPLOY_SUDO_PASS_INT
+        ENV_NAME: int
+        ENV_SUBDOMAIN: coda-int
+      - RUNNER: emss-coda-prod
+        PASS: $DEPLOY_SUDO_PASS_PROD
+        ENV_NAME: prod
+        ENV_SUBDOMAIN: coda
 
-z:db-export:prod:
-  extends: .db-export-template
-  # when: always
-  tags: ["emss-coda-prod"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
-
-z:db-export:int:
-  extends: .db-export-template
-  tags: ["emss-coda-int"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
-
-z:db-export:carbon:
-  extends:
-    - .db-export-template
-    - .carbon-access
-
-z:db-export:dev1:
-  extends: .db-export-template
-  tags: ["coda-dev1-runner"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
-
-z:db-export:dev2:
-  extends: .db-export-template
-  tags: ["coda-dev2-runner"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2 #CI/CD Variable
-
-.db-import-template:
+z-db-import:
   when: manual
+  tags: [$RUNNER]
+  needs: ["z:db-export:prod"]
   stage: stageless
   timeout: 10 minutes
   variables:
     GIT_STRATEGY: none
+    DEPLOY_SUDO_PASS: $PASS
+  environment:
+    name: $ENV_NAME
+    url: https://$ENV_SUBDOMAIN.fit.nasa.gov
   script:
     # init sudo ability
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
@@ -478,47 +482,39 @@ z:db-export:dev2:
     - sudo rm -f /d1/coda/db-init/coda.sql
 
     # Migrations will be run when the apiv1 container restarts
+  parallel:
+    matrix:
+      - RUNNER: carbon-emss-dev
+        PASS: $DEPLOY_SUDO_PASS_CARBON
+        ENV_NAME: carbon
+        ENV_SUBDOMAIN: carbon-emss-dev
+      - RUNNER: coda-dev1-runner
+        PASS: $DEPLOY_SUDO_PASS_DEV1
+        ENV_NAME: coda-dev1
+        ENV_SUBDOMAIN: coda-dev
+      - RUNNER: coda-dev2-runner
+        PASS: $DEPLOY_SUDO_PASS_DEV2
+        ENV_NAME: coda-dev2
+        ENV_SUBDOMAIN: coda-dev2
+      - RUNNER: emss-coda-int
+        PASS: $DEPLOY_SUDO_PASS_INT
+        ENV_NAME: int
+        ENV_SUBDOMAIN: coda-int
+      # We do not want `prod` for import!
 
-z:db-import:carbon:
-  extends:
-    - .db-import-template
-    - .carbon-deploy
-  needs: ["z:db-export:prod"]
-
-z:db-import:dev1:
-  extends: .db-import-template
-  tags: ["coda-dev1-runner"]
-  needs: ["z:db-export:prod"]
-  environment:
-    name: development1
-    url: $URL
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
-    URL: https://coda-dev1.fit.nasa.gov
-
-z:db-import:int:
-  extends: .db-import-template
-  tags: ["emss-coda-int"]
-  needs: ["z:db-export:prod"]
-  environment:
-    name: integration
-    url: $URL
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
-    URL: https://coda-int.fit.nasa.gov
-
-logs:
+z-logs:
   when: manual
   needs: []
   stage: stageless
   timeout: 10 minutes
+  tags: [$RUNNER]
   variables:
     GIT_STRATEGY: none
     DEPLOY_SUDO_PASS: $PASS
   environment:
     name: $ENV_NAME
     url: https://$ENV_SUBDOMAIN.fit.nasa.gov
-
+    action: access
   script:
     # Start with a trivial sudo command to record the sudo password session
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
