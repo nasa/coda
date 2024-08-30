@@ -507,13 +507,18 @@ z:db-import:int:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
     URL: https://coda-int.fit.nasa.gov
 
-.container-logs-template:
+logs:
   when: manual
   needs: []
   stage: stageless
   timeout: 10 minutes
   variables:
     GIT_STRATEGY: none
+    DEPLOY_SUDO_PASS: $PASS
+  environment:
+    name: $ENV_NAME
+    url: https://$ENV_SUBDOMAIN.fit.nasa.gov
+
   script:
     # Start with a trivial sudo command to record the sudo password session
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
@@ -541,36 +546,25 @@ z:db-import:int:
     paths:
       - ./log_artifacts
     expire_in: 1 day
-
-z:logs:carbon:
-  extends:
-    - .container-logs-template
-    - .carbon-access
-
-z-logs:dev1:
-  extends: .container-logs-template
-  tags: ["coda-dev1-runner"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
-
-z-logs:dev2:
-  extends: .container-logs-template
-  tags: ["coda-dev2-runner"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
-
-z-logs:int:
-  extends: .container-logs-template
-  tags: ["emss-coda-int"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
-
-z-logs:prod:
-  extends: .container-logs-template
-  tags: ["emss-coda-prod"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+  parallel:
+    matrix:
+      - RUNNER: carbon-emss-dev
+        PASS: $DEPLOY_SUDO_PASS_CARBON
+        ENV_NAME: carbon
+        ENV_SUBDOMAIN: carbon-emss-dev
+      - RUNNER: coda-dev1-runner
+        PASS: $DEPLOY_SUDO_PASS_DEV1
+        ENV_NAME: coda-dev1
+        ENV_SUBDOMAIN: coda-dev
+      - RUNNER: coda-dev2-runner
+        PASS: $DEPLOY_SUDO_PASS_DEV2
+        ENV_NAME: coda-dev2
+        ENV_SUBDOMAIN: coda-dev2
+      - RUNNER: emss-coda-int
+        PASS: $DEPLOY_SUDO_PASS_INT
+        ENV_NAME: int
+        ENV_SUBDOMAIN: coda-int
+      - RUNNER: emss-coda-prod
+        PASS: $DEPLOY_SUDO_PASS_PROD
+        ENV_NAME: prod
+        ENV_SUBDOMAIN: coda
