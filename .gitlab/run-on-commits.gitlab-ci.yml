@@ -403,7 +403,7 @@ deploy:prod:
   only:
     - prod
 
-.z-db-export-template:
+z-db-export:
   # I don't think we want to do this, because I don't think we want GitLab to consider this a
   # deployment. It's just grabbing some data off of Production.
   # environment:
@@ -431,9 +431,6 @@ deploy:prod:
     paths:
       - coda.sql
     expire_in: 1 day
-
-z-db-export:
-  extends: .z-db-export-template
   parallel:
     matrix:
       - RUNNER: carbon-emss-dev
@@ -452,14 +449,10 @@ z-db-export:
         PASS: $DEPLOY_SUDO_PASS_INT
         ENV_NAME: int
         ENV_SUBDOMAIN: coda-int
-
-z-db-export:prod:
-  extends: .z-db-export-template
-  variables:
-    RUNNER: emss-coda-prod
-    PASS: $DEPLOY_SUDO_PASS_PROD
-    ENV_NAME: prod
-    ENV_SUBDOMAIN: coda
+      - RUNNER: emss-coda-prod
+        PASS: $DEPLOY_SUDO_PASS_PROD
+        ENV_NAME: prod
+        ENV_SUBDOMAIN: coda
 
 z-db-import:
   when: manual
