@@ -28,7 +28,7 @@ include:
 
   # provides a job which
   - project: "emss/configure-host"
-    ref: 1.0.1
+    ref: 1.0.2
     file:
       - "/jobs/validate-config.gitlab-ci.yml"
 
@@ -155,7 +155,7 @@ validate-host-config-and-artifactize:
   needs: []
   extends: .validate-config
   variables:
-    CONFIGURE_HOST_IMAGE_TAG: 1.0.1
+    CONFIGURE_HOST_IMAGE_TAG: 1.0.2
 
 .make-dotenv-template:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
