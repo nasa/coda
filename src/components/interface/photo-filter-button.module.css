@@ -1,0 +1,99 @@
+.buttonLong {
+  width: 55px;
+}
+
+.buttonShort {
+  width: 20px;
+}
+
+.buttonLabel {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filterLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.filterButton {
+  display: inline-block;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterButton:hover {
+  background-color: #eeeeee;
+}
+
+.photoOverlay {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 20px;
+  outline: none;
+  overflow-y: auto;
+}
+
+.overlayTable {
+  width: 100%;
+  font-size: 0.9em;
+  background: rgb(15, 15, 15, 0.8);
+  border: 2px solid #eeeeee;
+  border-radius: 10px;
+  border-spacing: 0;
+}
+
+.overlayTable a {
+  text-decoration: underline;
+}
+
+.overlayTable tr {
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable td:first-child {
+  text-align: right;
+  width: 40px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgba(150, 150, 150, 0.5);
+}
+
+.overlayTable td {
+  display: table-cell;
+  border-collapse: collapse;
+  vertical-align: top;
+  font-weight: 200;
+  padding: 5px;
+  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+}
+.overlayTable tr:last-child td {
+  border-bottom: none;
+}
+
+.overlayTable .digiValue {
+  font-family: "Ubuntu Mono";
+  font-size: 1em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.selected {
+  border: none;
+  background-color: #eeeeee;
+  color: var(--lighter-grey);
+}
