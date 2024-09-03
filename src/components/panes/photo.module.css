@@ -41,25 +41,10 @@
   background-color: #eeeeee;
 }
 
-.buttonLong {
-  width: 55px;
-}
-
-.buttonSmall {
-  width: 20px;
-}
-
 .selected {
   border: none;
   background-color: #eeeeee;
   color: var(--lighter-grey);
-}
-
-.filterLabel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
 }
 
 /* v1 styles  */

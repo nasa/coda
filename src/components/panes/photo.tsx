@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { initialPhotoFileState, setActivePhoto, setCollectionFilters } from "store/photos";
+import { initialPhotoFileState, setActivePhoto } from "store/photos";
 import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import type { RootState } from "store/index";
@@ -9,32 +9,7 @@ import { setPaneStateValue } from "store/framework";
 import { IOInfoButton } from "./video";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFilter } from "@fortawesome/free-solid-svg-icons";
-
-export function FilterButton(props: {
-  clickHandler: () => void;
-  selected?: boolean;
-  frameDimensions: number[];
-}) {
-  const buttonLength = props.frameDimensions[0] > 470 ? styles.buttonLong : styles.buttonShort;
-  const selectedStyle = props.selected ? styles.selected : "";
-  return (
-    <button
-      className={`${styles.filterButton} ${buttonLength} ${selectedStyle}`}
-      onClick={() => {
-        props.clickHandler();
-      }}
-    >
-      <span className={styles.filterLabel}>
-        <div>{props.frameDimensions[0] > 470 ? "Filter" : ""}</div>
-        <div>
-          <FontAwesomeIcon icon={faFilter} size="sm" />
-        </div>
-      </span>
-    </button>
-  );
-}
+import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
 
 export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
   frameID,
@@ -150,20 +125,6 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
   };
 
-  function changeFilter(index: number, value: boolean) {
-    let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
-    filters[index].selected = value;
-    dispatch(setCollectionFilters(filters));
-  }
-
-  function changeAllFilters(value: boolean) {
-    let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
-    for (let i = 0; i < filters.length; i++) {
-      filters[i].selected = value;
-    }
-    dispatch(setCollectionFilters(filters));
-  }
-
   useEffect(changePhoto, [playhead.date, playhead.seconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
@@ -201,32 +162,30 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <div className={`${styles.photoOverlay} ${infoDisplayClass}`}>
         <table className={styles.overlayTable}>
           <tbody>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Taken</td>
-              <td className={`${styles.overlayTableCell}`}>{datetimeTaken}</td>
+            <tr>
+              <td>Date Taken</td>
+              <td>{datetimeTaken}</td>
             </tr>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Date Added</td>
-              <td className={`${styles.overlayTableCell}`}>{dateAdded}</td>
+            <tr>
+              <td>Date Added</td>
+              <td>{dateAdded}</td>
             </tr>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>Collection</td>
-              <td className={`${styles.overlayTableCell}`}>
-                {cleanCollectionsString(photos.activePhoto.collections)}
-              </td>
+            <tr>
+              <td>Collection</td>
+              <td>{cleanCollectionsString(photos.activePhoto.collections)}</td>
             </tr>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Asset Name</td>
-              <td className={styles.overlayTableCell}>
+            <tr>
+              <td>IO Asset Name</td>
+              <td>
                 <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
                   {openOnIOMessage}
                 </a>
-                <td className={styles.digiValue}>{photoFilename}</td>
+                <td>{photoFilename}</td>
               </td>
             </tr>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>High Res</td>
-              <td className={styles.overlayTableCell}>
+            <tr>
+              <td>High Res</td>
+              <td>
                 <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
                   {openURLMessage}
                 </a>
@@ -236,66 +195,10 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                 </span>
               </td>
             </tr>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>IO Description</td>
-              <td className={styles.overlayTableCell}>{info}</td>
+            <tr>
+              <td>IO Description</td>
+              <td>{info}</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
-  const renderPhotoFilter = () => {
-    let displayClass = "";
-    if (paneStateData.showFilter && !paneStateData.showInfo) {
-      displayClass = styles.overlayVisible;
-    }
-
-    return (
-      <div className={`${styles.photoOverlay} ${displayClass}`}>
-        <table className={styles.overlayTable}>
-          <tbody>
-            <tr className={styles.overlayTableRow}>
-              <td className={`${styles.overlayTableCell} ${styles.titleRow}`}></td>
-              <td className={`${styles.overlayTableCell}`}>
-                <button
-                  className={styles.filterButton}
-                  style={{ width: "70px" }}
-                  onClick={() => {
-                    changeAllFilters(true);
-                  }}
-                >
-                  Check All
-                </button>
-                <button
-                  className={styles.filterButton}
-                  style={{ marginLeft: "0.5em", width: "80px" }}
-                  onClick={() => {
-                    changeAllFilters(false);
-                  }}
-                >
-                  Check None
-                </button>
-              </td>
-            </tr>
-            {photos.collectionFilters.map((value, index) => {
-              return (
-                <tr key={index} className={styles.overlayTableRow}>
-                  <td className={`${styles.overlayTableCell} ${styles.titleRow}`}>
-                    <input
-                      className={styles.tableInput}
-                      type="checkbox"
-                      checked={value.selected}
-                      onChange={() => {
-                        changeFilter(index, !value.selected);
-                      }}
-                    />
-                  </td>
-                  <td className={`${styles.overlayTableCell}`}>{value.display}</td>
-                </tr>
-              );
-            })}
           </tbody>
         </table>
       </div>
@@ -314,11 +217,14 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             >
               <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
             </a>
-            {paneStateData.showInfo ? renderPhotoOverlay() : renderPhotoFilter()}
+            {paneStateData.showInfo ? renderPhotoOverlay() : null}
+            {paneStateData.showFilter ? <RenderPhotoFilter /> : null}
           </>
         ) : (
           <div className={styles.photoPoster}>
-            <div className={styles.photoPosterFilter}>{renderPhotoFilter()}</div>
+            <div className={styles.photoPosterFilter}>
+              {paneStateData.showFilter ? <RenderPhotoFilter /> : null}
+            </div>
           </div>
         )}
       </div>
