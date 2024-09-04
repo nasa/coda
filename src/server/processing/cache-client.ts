@@ -58,18 +58,15 @@ CODA will slow down because we're skipping the cache, but at least it should kee
  * Get data from the cache when it exists and is less than `process.env.CACHE_AGE` old. Otherwise, hit the network and add to the cache
  * Note that the cache only supports caching of json responses
  */
-export default async function fetchWithCache<T>(
-  params: FetchWithCacheParams<T>
-): Promise<WrappedResponse<T>> {
-  const {
-    identifier,
-    cacheFolder,
-    retriever,
-    cacheAge = 60 * 60 * 24, // 1 day
-    forceRetriever = false,
-    randomizeCacheAge = true,
-    errorRetryCoefficient = 10, // 10 seconds
-  } = params;
+export default async function fetchWithCache<T>({
+  identifier,
+  cacheFolder,
+  retriever,
+  cacheAge = 60 * 60 * 24, // 1 day
+  forceRetriever = false,
+  randomizeCacheAge = true,
+  errorRetryCoefficient = 10, // 10 seconds
+}: FetchWithCacheParams<T>): Promise<WrappedResponse<T>> {
   const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder}`;
 
   // to be clear, we're not hashing sensitive data, just cache keys

@@ -1,12 +1,15 @@
 import * as LabsService from "server/services/emss";
 import * as DbService from "server/services/db-api";
 
-export default async function getTranscripts(params: {
+export default async function getTranscripts({
+  source,
+  dateWanted,
+  forceNew,
+}: {
   source: Source;
   dateWanted: string; //yy-mm-dd
   forceNew: boolean;
 }): Promise<WrappedResponse<UnprocessedTranscript[]>> {
-  const { source, dateWanted, forceNew } = params;
   const requestedDate = new Date(dateWanted);
 
   // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online

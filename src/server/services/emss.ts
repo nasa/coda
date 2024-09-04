@@ -185,21 +185,27 @@ async function fetchTalkybotTranscripts(dateWanted: string): Promise<Unprocessed
   return transcripts;
 }
 
-export async function fetchLabsAndTalkybotSGAudio(
-  source: Source,
-  dateWanted: string,
-  overrideBaseUrl?: string
-): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
+export async function fetchLabsAndTalkybotSGAudio({
+  source,
+  dateWanted,
+  overrideBaseUrl = null,
+  forceNew = false,
+}: {
+  source: Source;
+  dateWanted: string;
+  overrideBaseUrl?: string;
+  forceNew?: boolean;
+}): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
   if (source !== "ISS") {
-    return await fetchLabsSGAudio(source, dateWanted, overrideBaseUrl);
+    return await fetchLabsSGAudio({ source, dateWanted, overrideBaseUrl, forceNew });
   }
 
   // get both, the labs and talkybot sgAudio
-  let labsResponse = await fetchLabsSGAudio(source, dateWanted);
+  let labsResponse = await fetchLabsSGAudio({ source, dateWanted, forceNew });
   let retries = 0;
   while (labsResponse.responseMetadata.retrieverStatus === "inprogress" && retries < 10) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    labsResponse = await fetchLabsSGAudio(source, dateWanted, overrideBaseUrl);
+    labsResponse = await fetchLabsSGAudio({ source, dateWanted, overrideBaseUrl });
     retries++;
   }
   const labsAudio = labsResponse.data;
@@ -265,11 +271,17 @@ export async function fetchLabsAndTalkybotSGAudio(
   };
 }
 
-export async function fetchLabsSGAudio(
-  source: Source,
-  dateWanted: string,
-  overrideBaseUrl?: string
-): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
+export async function fetchLabsSGAudio({
+  source,
+  dateWanted,
+  overrideBaseUrl = null,
+  forceNew = false,
+}: {
+  source: Source;
+  dateWanted: string;
+  overrideBaseUrl?: string;
+  forceNew?: boolean;
+}): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
   if (source !== "ISS" && !overrideBaseUrl) {
     return {
       responseMetadata: {
@@ -288,7 +300,6 @@ export async function fetchLabsSGAudio(
   }
 
   const cacheAge = isNearRealTime(new Date(dateWanted).getTime(), collection[source]) ? 0 : 60;
-  const forceNew = false;
 
   const retriever = async (): Promise<SgActivityFullUrlRecord> => {
     const labsBaseUrl = "https://emss-labs.fit.nasa.gov/transcriptions";

@@ -187,8 +187,7 @@ export function V2() {
   }, []);
 
   /** Update the EVA store */
-  const populateSequenceStore = (params: { source: Source }) => {
-    const { source } = params;
+  const populateSequenceStore = ({ source }: { source: Source }) => {
     (async () => {
       if (source === "ARTEMIS") {
         dispatch(setSequenceLoadingStatus("unneeded"));
@@ -236,12 +235,15 @@ export function V2() {
       dispatch(setSequenceLoadingStatus("loaded"));
     })();
   };
-  const populateVideoStore = (params: {
+  const populateVideoStore = ({
+    dateWanted,
+    source,
+    incremental,
+  }: {
     dateWanted: string;
     source: Source;
     incremental: boolean;
   }) => {
-    const { dateWanted, source, incremental } = params;
     (async () => {
       if (!incremental) {
         dispatch(setVideoLoadingStatus("loading"));
@@ -251,7 +253,11 @@ export function V2() {
         if (videoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateVideoStore(params);
+              populateVideoStore({
+                dateWanted,
+                source,
+                incremental,
+              });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -270,8 +276,7 @@ export function V2() {
     })();
   };
 
-  const populatePhotoStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted, source } = params;
+  const populatePhotoStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
     (async () => {
       dispatch(setPhotoLoadingStatus("loading"));
       try {
@@ -279,7 +284,7 @@ export function V2() {
         if (photoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populatePhotoStore(params);
+              populatePhotoStore({ dateWanted, source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -300,8 +305,13 @@ export function V2() {
     })();
   };
 
-  const populateEphemerisStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted, source } = params;
+  const populateEphemerisStore = ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
     (async () => {
       if (source !== "ISS") {
         dispatch(setEphemeraLoadingStatus("unneeded"));
@@ -313,7 +323,7 @@ export function V2() {
         if (ephemerisStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateEphemerisStore(params);
+              populateEphemerisStore({ dateWanted, source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -328,8 +338,13 @@ export function V2() {
     })();
   };
 
-  const populateDayNightStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted, source } = params;
+  const populateDayNightStore = ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
     (async () => {
       if (source !== "ISS") {
         dispatch(setDayNightLoadingStatus("unneeded"));
@@ -341,7 +356,7 @@ export function V2() {
         if (daynightStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateDayNightStore(params);
+              populateDayNightStore({ dateWanted, source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -356,8 +371,7 @@ export function V2() {
     })();
   };
 
-  const populateGPSStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted, source } = params;
+  const populateGPSStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
     (async () => {
       if (source !== "TEST_EVENTS") {
         dispatch(setGpsLoadingStatus("unneeded"));
@@ -369,8 +383,13 @@ export function V2() {
     })();
   };
 
-  const populateTranscriptStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted, source } = params;
+  const populateTranscriptStore = ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
     (async () => {
       if (source === "NBL") {
         dispatch(setTranscriptLoadingStatus("unneeded"));
@@ -382,7 +401,7 @@ export function V2() {
         if (transcriptResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateTranscriptStore(params);
+              populateTranscriptStore({ dateWanted, source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -397,8 +416,7 @@ export function V2() {
     })();
   };
 
-  const populateSgAudioStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted, source } = params;
+  const populateSgAudioStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
     (async () => {
       dispatch(setSgAudioLoadingStatus("loading"));
       try {
@@ -406,7 +424,7 @@ export function V2() {
         if (sgAudioResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateSgAudioStore(params);
+              populateSgAudioStore({ dateWanted, source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
@@ -421,8 +439,7 @@ export function V2() {
     })();
   };
 
-  const populateGraphStore = (params: { dateWanted: string; source: Source }) => {
-    const { dateWanted } = params;
+  const populateGraphStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
     (async () => {
       dispatch(setGraphsLoadingStatus("loading"));
       try {
@@ -430,7 +447,7 @@ export function V2() {
         if (graphResponse.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             () => {
-              populateGraphStore(params);
+              populateGraphStore({ dateWanted, source });
             },
             _.random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
