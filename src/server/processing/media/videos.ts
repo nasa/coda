@@ -8,12 +8,15 @@ import { getVideoRecordsList } from "server/express/routes/db/video";
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
  */
-export default async function getVideoData(params: {
+export default async function getVideoData({
+  dateWanted,
+  source,
+  forceNew,
+}: {
   dateWanted: string;
   source: Source;
   forceNew: boolean;
 }): Promise<WrappedResponse<VideoFile[]>> {
-  const { dateWanted, source, forceNew } = params;
   const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
@@ -104,12 +107,15 @@ export default async function getVideoData(params: {
   }
 }
 
-export const getVideoCoverageTimeRanges = async (params: {
+export const getVideoCoverageTimeRanges = async ({
+  dateWanted,
+  source,
+  forceNew,
+}: {
   dateWanted: string;
   source: Source;
   forceNew: boolean;
 }): Promise<VideoCoverageTimeRanges> => {
-  const { dateWanted, source, forceNew } = params;
   let videoData = await getVideoData({ dateWanted, source, forceNew });
   if (videoData?.responseMetadata?.retrieverStatus === "inprogress") {
     // try once per second for up to 10 seconds

@@ -11,12 +11,15 @@ import { addMs, isSameDate } from "../../../utils/date";
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
  */
-export default async function getPhotoData(params: {
+export default async function getPhotoData({
+  dateWanted,
+  source,
+  forceNew,
+}: {
   dateWanted: string;
   source: Source;
   forceNew: boolean;
 }): Promise<WrappedResponse<PhotoFile[]>> {
-  const { dateWanted, source, forceNew } = params;
   const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
   const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
