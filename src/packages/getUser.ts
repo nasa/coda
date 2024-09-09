@@ -1,5 +1,5 @@
 import { getUserFromJWT } from "@emss/oauth2-proxy-backend";
-import { EmssUser, EMSSRoles } from "@emss/oauth2-proxy-common";
+import { EmssUser, EMSSRole } from "@emss/oauth2-proxy-common";
 import { Request } from "express";
 
 const getMockUser = (): EmssUser => {
@@ -11,7 +11,7 @@ const getMockUser = (): EmssUser => {
     surname: process.env.MOCK_USER_SURNAME || "Armstrong",
     display_name: process.env.MOCK_USER_DISPLAYNAME || "Armstrong, Neil A. (JSC-CB611)",
     roles: process.env.MOCK_USER_ROLES
-      ? (process.env.MOCK_USER_ROLES.split(",") as EMSSRoles)
+      ? (process.env.MOCK_USER_ROLES.split(",") as EMSSRole[])
       : [
           "AEGIS-Editor",
           "AEGIS-Superuser",
