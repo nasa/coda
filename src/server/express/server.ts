@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ override: true });
 import { createServer, Server as NetServer } from "http";
 import app from "./restApi";
 import { Server as SocketServer } from "socket.io";
