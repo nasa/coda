@@ -160,39 +160,57 @@ node-sbom:
     expire_in: 1 day
 
 .make-dotenv-template:
-  image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
+  image: "$CURRENT_NODE_VERSION_IMAGE"
   stage: stageless
   needs: []
-  tags: ["openshift"]
+  tags: ["docker", "linux"] # needs to do global install, so needs to be root
   before_script:
-    - mkdir -p ./.local
+    # Determine the versions of @emss/make-dotenv and tsx defined in package-lock.json
+    # This allows us to be sure the same versions are used in CI as are used in local dev
+    - MAKE_DOTENV_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@emss/make-dotenv'].version")
+    - TSX_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/tsx'].version")
 
+    # Globally install these packages. This allows us to use them without installing
+    # all packages specified in package.json, which takes 1-4 minutes depending on the
+    # repository.
+    #
+    # Other options:
+    #   1. We could make this job have `needs: ['install_dependencies']`, but that means
+    #      this job would be delayed running 1-4 minutes, which then delays container
+    #      builds 1-4 minutes.
+    #   2. We could have the emss/packages build a make-dotenv docker image tagged by its
+    #      version number, and then this job could run using that image by specifying
+    #      `image: $CI_REGISTRY/emss/packages/make-dotenv:x.y.z`. That would save some
+    #      time since we wouldn't need to install global packages each time, but the job
+    #      as-written runs in about 10 seconds, so we wouldn't be saving much. We would
+    #      be causing ourselves some problems, though, since we'd have a version of
+    #      @emss/make-dotenv specified in package(-lock).json, and then we'd have another
+    #      version specified on the docker image on this job. We'd have to be careful to
+    #      keep the two in sync. The current job as-written seems simpler and good enough.
+    - npm i -g "@emss/make-dotenv@${MAKE_DOTENV_VERSION}" --userconfig ./.npmrc
+    - npm i -g "tsx@${TSX_VERSION}"
+  script:
     # Copy contents of DOTENV_SECRET from CI/CD variables to a new .env.secret file
-    - echo "${DOTENV_SECRET}" > ./.env.secret
+    - echo "${DOTENV_SECRET_TS}" > ./env.secret.ts
 
     # Determine which docker image type (dev, int, or prod) to deploy based on branch
     # Append the commit sha in order to ensure the correct build is being deployed in the case
     # multiple devs are building images simutaneously
     - >
       if [ "${CI_COMMIT_REF_SLUG}" == "prod" ]; then
-          IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
+        IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
       elif [ "${CI_COMMIT_REF_SLUG}" == "int" ]; then
-          IMAGE_VERSION="int-${CI_COMMIT_SHORT_SHA}"
+        IMAGE_VERSION="int-${CI_COMMIT_SHORT_SHA}"
       else
-          IMAGE_VERSION="dev-${CI_COMMIT_SHORT_SHA}"
+        IMAGE_VERSION="dev-${CI_COMMIT_SHORT_SHA}"
       fi
 
     # Save image version into a an artifact to be read later in other jobs
     - echo "IMAGE_VERSION=${IMAGE_VERSION}" >> pipelineVariables.env
-    # Export the variable so it can be read inside the make-dotenv.sh script
+    # Export the variable so it can be read inside the make-dotenv
     - export IMAGE_VERSION
 
-    # make-dotenv.sh should detect the script directory to read .env.template and write .env
-    # relatively, but Alpine Linux uses standard POSIX sh, not Bash, which cannot do this [1]. So
-    # we need to `cd` into the ./scripts directory first when using Alpine.
-    #
-    # Ref: [1] https://stackoverflow.com/a/49794678/2782380
-    - cd ./scripts
+    - make-dotenv $MAKE_DOTENV_ENVIRONMENT
   artifacts:
     reports:
       dotenv: pipelineVariables.env
@@ -202,13 +220,13 @@ node-sbom:
 
 make-dotenv:
   extends: .make-dotenv-template
-  script:
-    - bash ./make-dotenv.sh
+  variables:
+    MAKE_DOTENV_ENVIRONMENT: fit
 
 make-test-dotenv:
   extends: .make-dotenv-template
-  script:
-    - bash ./make-dotenv.sh test
+  variables:
+    MAKE_DOTENV_ENVIRONMENT: test
 
 test:
   stage: stageless
