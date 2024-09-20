@@ -1,11 +1,11 @@
-import { build } from "esbuild";
 import { rmSync } from "fs";
+import * as esbuild from "esbuild";
 
 // Remove the previous build directory
 rmSync("./.local/express/dist", { recursive: true, force: true });
 
 // Run esbuild with the specified options
-build({
+const context = await esbuild.context({
   entryPoints: ["src/server/express/server.ts"],
   bundle: true,
   sourcemap: true,
@@ -32,4 +32,14 @@ build({
   ],
   outfile: "./.local/express/dist/api.js",
   tsconfig: "./tsconfig.json",
-}).catch(() => process.exit(1));
+});
+
+const isWatchMode = process.argv.includes("--watch");
+
+if (isWatchMode) {
+  console.log("watching...");
+  await context.watch();
+} else {
+  await context.rebuild();
+  await context.dispose();
+}
