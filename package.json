@@ -40,8 +40,10 @@
   "author": "jsc-dl-emss-coda@mail.nasa.gov",
   "license": "ISC",
   "dependencies": {
+    "@emss/make-dotenv": "^0.3.1",
     "@emss/oauth2-proxy-backend": "^0.2.4",
     "@emss/oauth2-proxy-frontend": "^0.2.5",
+    "@emss/utils": "^0.4.0",
     "@evamss/ntlm": "^2.0.0",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/free-regular-svg-icons": "^6.6.0",
