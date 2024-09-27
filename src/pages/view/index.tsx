@@ -187,55 +187,53 @@ export function V2() {
   }, []);
 
   /** Update the EVA store */
-  const populateSequenceStore = ({ source }: { source: Source }) => {
-    (async () => {
-      if (source === "ARTEMIS") {
-        dispatch(setSequenceLoadingStatus("unneeded"));
+  const populateSequenceStore = async ({ source }: { source: Source }) => {
+    if (source === "ARTEMIS") {
+      dispatch(setSequenceLoadingStatus("unneeded"));
+      return;
+    }
+    dispatch(setSequenceLoadingStatus("loading"));
+    try {
+      // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
+
+      const updatedEVAsResponse = source === "ISS" ? await fetchEVAs() : await fetchTestEvents();
+
+      // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
+      if (updatedEVAsResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateSequenceStore({ source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
+        if (updatedEVAsResponse.data) dispatch(addSequences(updatedEVAsResponse));
+
         return;
       }
-      dispatch(setSequenceLoadingStatus("loading"));
-      try {
-        // EVA data from the wiki (either actual EVAs, or test events that look like EVAs)
 
-        const updatedEVAsResponse = source === "ISS" ? await fetchEVAs() : await fetchTestEvents();
+      dispatch(addSequences(updatedEVAsResponse));
 
-        // retry in retrieverRetryRange seconds if we get a retrieverStatus of "inprogress"
-        if (updatedEVAsResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateSequenceStore({ source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (updatedEVAsResponse.data) dispatch(addSequences(updatedEVAsResponse));
-
-          return;
-        }
-
-        dispatch(addSequences(updatedEVAsResponse));
-
-        // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
-        const seq = updatedEVAsResponse.data.find((seq) =>
-          isSameDate(new Date(seq.startDate), new Date(playhead.date))
-        );
-        if (seq && seq.maestroEventUuid) {
-          const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
-          if (!maestroResponse.responseMetadata.error) {
-            dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
-          } else {
-            dispatch(maestroFetchError(maestroResponse.responseMetadata.error));
-          }
-          dispatch(setMaestroLoadingStatus("loaded"));
+      // check selected date's sequence for a maestro uuid and attempt to populate the maestro store with the results
+      const seq = updatedEVAsResponse.data.find((seq) =>
+        isSameDate(new Date(seq.startDate), new Date(playhead.date))
+      );
+      if (seq && seq.maestroEventUuid) {
+        const maestroResponse = await getMaestroExecuteTimelineStatus(seq.maestroEventUuid);
+        if (!maestroResponse.responseMetadata.error) {
+          dispatch(setMaestroData({ maestroInternalAPIData: maestroResponse.data }));
         } else {
-          dispatch(setMaestroLoadingStatus("unneeded"));
+          dispatch(maestroFetchError(maestroResponse.responseMetadata.error));
         }
-      } catch (e) {
-        dispatch(sequencesFetchError(e.toString()));
+        dispatch(setMaestroLoadingStatus("loaded"));
+      } else {
+        dispatch(setMaestroLoadingStatus("unneeded"));
       }
-      dispatch(setSequenceLoadingStatus("loaded"));
-    })();
+    } catch (e) {
+      dispatch(sequencesFetchError(e.toString()));
+    }
+    dispatch(setSequenceLoadingStatus("loaded"));
   };
-  const populateVideoStore = ({
+  const populateVideoStore = async ({
     dateWanted,
     source,
     incremental,
@@ -244,222 +242,230 @@ export function V2() {
     source: Source;
     incremental: boolean;
   }) => {
-    (async () => {
-      if (!incremental) {
-        dispatch(setVideoLoadingStatus("loading"));
-      }
-      try {
-        const videoStoreResponse = await buildVideoStore(dateWanted, source, emssVideoEnabled);
-        if (videoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateVideoStore({
-                dateWanted,
-                source,
-                incremental,
-              });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
-          return;
-        }
-        if (videoStoreResponse.responseMetadata.retrieverStatus === "error") {
-          dispatch(videosFetchError(videoStoreResponse.responseMetadata.error));
-          return;
-        }
+    if (!incremental) {
+      dispatch(setVideoLoadingStatus("loading"));
+    }
+    try {
+      const videoStoreResponse = await buildVideoStore(dateWanted, source, emssVideoEnabled);
+      if (videoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateVideoStore({
+              dateWanted,
+              source,
+              incremental,
+            });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
         if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
-      } catch (e) {
-        dispatch(videosFetchError(e.toString()));
+        return;
       }
-      dispatch(setVideoLoadingStatus("loaded"));
-    })();
+      if (videoStoreResponse.responseMetadata.retrieverStatus === "error") {
+        dispatch(videosFetchError(videoStoreResponse.responseMetadata.error));
+        return;
+      }
+      if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
+    } catch (e) {
+      dispatch(videosFetchError(e.toString()));
+    }
+    dispatch(setVideoLoadingStatus("loaded"));
   };
 
-  const populatePhotoStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
-    (async () => {
-      dispatch(setPhotoLoadingStatus("loading"));
-      try {
-        const photoStoreResponse = await buildPhotoStore(dateWanted, source);
-        if (photoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populatePhotoStore({ dateWanted, source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
-          return;
-        }
-        if (photoStoreResponse.responseMetadata.retrieverStatus === "error") {
-          dispatch(photosFetchError(photoStoreResponse.responseMetadata.error));
-          return;
-        }
+  const populatePhotoStore = async ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
+    dispatch(setPhotoLoadingStatus("loading"));
+    try {
+      const photoStoreResponse = await buildPhotoStore(dateWanted, source);
+      if (photoStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populatePhotoStore({ dateWanted, source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
         if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
-        const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
-        dispatch(setCollectionFilters(photoCollectionsFilter));
-      } catch (e) {
-        dispatch(photosFetchError(e.toString()));
+        return;
       }
-      dispatch(setPhotoLoadingStatus("loaded"));
-    })();
+      if (photoStoreResponse.responseMetadata.retrieverStatus === "error") {
+        dispatch(photosFetchError(photoStoreResponse.responseMetadata.error));
+        return;
+      }
+      if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
+      const photoCollectionsFilter = buildPhotoCollections(photoStoreResponse.data);
+      dispatch(setCollectionFilters(photoCollectionsFilter));
+    } catch (e) {
+      dispatch(photosFetchError(e.toString()));
+    }
+    dispatch(setPhotoLoadingStatus("loaded"));
   };
 
-  const populateEphemerisStore = ({
+  const populateEphemerisStore = async ({
     dateWanted,
     source,
   }: {
     dateWanted: string;
     source: Source;
   }) => {
-    (async () => {
-      if (source !== "ISS") {
-        dispatch(setEphemeraLoadingStatus("unneeded"));
+    if (source !== "ISS") {
+      dispatch(setEphemeraLoadingStatus("unneeded"));
+      return;
+    }
+    dispatch(setEphemeraLoadingStatus("loading"));
+    try {
+      const ephemerisStoreResponse = await buildEphemerisStore(dateWanted);
+      if (ephemerisStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateEphemerisStore({ dateWanted, source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
+        if (ephemerisStoreResponse.data) dispatch(addEphemera(ephemerisStoreResponse));
         return;
       }
-      dispatch(setEphemeraLoadingStatus("loading"));
-      try {
-        const ephemerisStoreResponse = await buildEphemerisStore(dateWanted);
-        if (ephemerisStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateEphemerisStore({ dateWanted, source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (ephemerisStoreResponse.data) dispatch(addEphemera(ephemerisStoreResponse));
-          return;
-        }
-        dispatch(addEphemera(ephemerisStoreResponse));
-      } catch (e) {
-        dispatch(ephemeraFetchError(e.toString()));
-      }
-      dispatch(setEphemeraLoadingStatus("loaded"));
-    })();
+      dispatch(addEphemera(ephemerisStoreResponse));
+    } catch (e) {
+      dispatch(ephemeraFetchError(e.toString()));
+    }
+    dispatch(setEphemeraLoadingStatus("loaded"));
   };
 
-  const populateDayNightStore = ({
+  const populateDayNightStore = async ({
     dateWanted,
     source,
   }: {
     dateWanted: string;
     source: Source;
   }) => {
-    (async () => {
-      if (source !== "ISS") {
-        dispatch(setDayNightLoadingStatus("unneeded"));
+    if (source !== "ISS") {
+      dispatch(setDayNightLoadingStatus("unneeded"));
+      return;
+    }
+    dispatch(setDayNightLoadingStatus("loading"));
+    try {
+      const daynightStoreResponse = await buildDayNightStore(dateWanted);
+      if (daynightStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateDayNightStore({ dateWanted, source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
+        if (daynightStoreResponse.data) dispatch(addDayNight(daynightStoreResponse));
         return;
       }
-      dispatch(setDayNightLoadingStatus("loading"));
-      try {
-        const daynightStoreResponse = await buildDayNightStore(dateWanted);
-        if (daynightStoreResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateDayNightStore({ dateWanted, source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (daynightStoreResponse.data) dispatch(addDayNight(daynightStoreResponse));
-          return;
-        }
-        dispatch(addDayNight(daynightStoreResponse));
-      } catch (e) {
-        dispatch(daynightFetchError(e.toString()));
-      }
-      dispatch(setDayNightLoadingStatus("loaded"));
-    })();
+      dispatch(addDayNight(daynightStoreResponse));
+    } catch (e) {
+      dispatch(daynightFetchError(e.toString()));
+    }
+    dispatch(setDayNightLoadingStatus("loaded"));
   };
 
-  const populateGPSStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
-    (async () => {
-      if (source !== "TEST_EVENTS") {
-        dispatch(setGpsLoadingStatus("unneeded"));
-        return;
-      }
-      const gpsTracksResponse = await getGPSTracks(dateWanted);
-      dispatch(setGPSTracks(gpsTracksResponse));
-      dispatch(setGpsLoadingStatus("loaded"));
-    })();
-  };
-
-  const populateTranscriptStore = ({
+  const populateGPSStore = async ({
     dateWanted,
     source,
   }: {
     dateWanted: string;
     source: Source;
   }) => {
-    (async () => {
-      if (source === "NBL") {
-        dispatch(setTranscriptLoadingStatus("unneeded"));
+    if (source !== "TEST_EVENTS") {
+      dispatch(setGpsLoadingStatus("unneeded"));
+      return;
+    }
+    const gpsTracksResponse = await getGPSTracks(dateWanted);
+    dispatch(setGPSTracks(gpsTracksResponse));
+    dispatch(setGpsLoadingStatus("loaded"));
+  };
+
+  const populateTranscriptStore = async ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
+    if (source === "NBL") {
+      dispatch(setTranscriptLoadingStatus("unneeded"));
+      return;
+    }
+    dispatch(setTranscriptLoadingStatus("loading"));
+    try {
+      const transcriptResponse = await getTranscripts(dateWanted, source);
+      if (transcriptResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateTranscriptStore({ dateWanted, source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
+        if (transcriptResponse.data) dispatch(setTranscripts(transcriptResponse));
         return;
       }
-      dispatch(setTranscriptLoadingStatus("loading"));
-      try {
-        const transcriptResponse = await getTranscripts(dateWanted, source);
-        if (transcriptResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateTranscriptStore({ dateWanted, source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (transcriptResponse.data) dispatch(setTranscripts(transcriptResponse));
-          return;
-        }
-        dispatch(setTranscripts(transcriptResponse));
-      } catch (e) {
-        dispatch(transcriptFetchError(e.toString()));
-      }
-      dispatch(setTranscriptLoadingStatus("loaded"));
-    })();
+      dispatch(setTranscripts(transcriptResponse));
+    } catch (e) {
+      dispatch(transcriptFetchError(e.toString()));
+    }
+    dispatch(setTranscriptLoadingStatus("loaded"));
   };
 
-  const populateSgAudioStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
-    (async () => {
-      dispatch(setSgAudioLoadingStatus("loading"));
-      try {
-        const sgAudioResponse = await getSgAudio(dateWanted, source);
-        if (sgAudioResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateSgAudioStore({ dateWanted, source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (sgAudioResponse.data) dispatch(setSgAudioActivity(sgAudioResponse));
-          return;
-        }
-        dispatch(setSgAudioActivity(sgAudioResponse));
-      } catch (e) {
-        dispatch(sgAudioFetchError(e.toString()));
+  const populateSgAudioStore = async ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
+    dispatch(setSgAudioLoadingStatus("loading"));
+    try {
+      const sgAudioResponse = await getSgAudio(dateWanted, source);
+      if (sgAudioResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateSgAudioStore({ dateWanted, source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
+        if (sgAudioResponse.data) dispatch(setSgAudioActivity(sgAudioResponse));
+        return;
       }
-      dispatch(setSgAudioLoadingStatus("loaded"));
-    })();
+      dispatch(setSgAudioActivity(sgAudioResponse));
+    } catch (e) {
+      dispatch(sgAudioFetchError(e.toString()));
+    }
+    dispatch(setSgAudioLoadingStatus("loaded"));
   };
 
-  const populateGraphStore = ({ dateWanted, source }: { dateWanted: string; source: Source }) => {
-    (async () => {
-      dispatch(setGraphsLoadingStatus("loading"));
-      try {
-        const graphResponse = await getGraphsManifest(dateWanted, source);
-        if (graphResponse.responseMetadata.retrieverStatus === "inprogress") {
-          setTimeout(
-            () => {
-              populateGraphStore({ dateWanted, source });
-            },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
-          );
-          if (graphResponse.data) dispatch(setGraphsManifest(graphResponse));
-          return;
-        }
-        dispatch(setGraphsManifest(graphResponse));
-      } catch (e) {
-        dispatch(graphsFetchError(e.toString()));
+  const populateGraphStore = async ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
+    dispatch(setGraphsLoadingStatus("loading"));
+    try {
+      const graphResponse = await getGraphsManifest(dateWanted, source);
+      if (graphResponse.responseMetadata.retrieverStatus === "inprogress") {
+        setTimeout(
+          async () => {
+            await populateGraphStore({ dateWanted, source });
+          },
+          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+        );
+        if (graphResponse.data) dispatch(setGraphsManifest(graphResponse));
+        return;
       }
-      dispatch(setGraphsLoadingStatus("loaded"));
-    })();
+      dispatch(setGraphsManifest(graphResponse));
+    } catch (e) {
+      dispatch(graphsFetchError(e.toString()));
+    }
+    dispatch(setGraphsLoadingStatus("loaded"));
   };
 
   // make path for socketio room
@@ -494,15 +500,17 @@ export function V2() {
     dispatch(clearGraphsManifest());
 
     // populate stores
-    populateSequenceStore({ source });
-    populateVideoStore({ dateWanted, source, incremental: false });
-    populatePhotoStore({ dateWanted, source });
-    populateEphemerisStore({ dateWanted, source });
-    populateDayNightStore({ dateWanted, source });
-    populateGPSStore({ dateWanted, source });
-    populateTranscriptStore({ dateWanted, source });
-    populateSgAudioStore({ dateWanted, source });
-    populateGraphStore({ dateWanted, source });
+    (async () => {
+      populateSequenceStore({ source });
+      populateVideoStore({ dateWanted, source, incremental: false });
+      populatePhotoStore({ dateWanted, source });
+      populateEphemerisStore({ dateWanted, source });
+      populateDayNightStore({ dateWanted, source });
+      populateGPSStore({ dateWanted, source });
+      populateTranscriptStore({ dateWanted, source });
+      populateSgAudioStore({ dateWanted, source });
+      populateGraphStore({ dateWanted, source });
+    })();
   }, [playheadDate, source]);
 
   // re-populate the video store when emssVideoEnabled changes
@@ -518,12 +526,12 @@ export function V2() {
   const isToday = d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0];
 
   // re-poll endpoints every minute
-  useInterval(() => {
+  useInterval(async () => {
     if (isToday) {
-      populateVideoStore({ dateWanted, source, incremental: false });
-      populatePhotoStore({ dateWanted, source });
-      populateTranscriptStore({ dateWanted, source });
-      populateSgAudioStore({ dateWanted, source });
+      await populateVideoStore({ dateWanted, source, incremental: false });
+      await populatePhotoStore({ dateWanted, source });
+      await populateTranscriptStore({ dateWanted, source });
+      await populateSgAudioStore({ dateWanted, source });
     }
   }, 60 * 1000);
 
