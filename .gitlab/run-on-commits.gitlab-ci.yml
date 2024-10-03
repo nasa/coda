@@ -366,7 +366,7 @@ deploy:carbon:
   when: manual
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/coda.fit/carbon-emss-dev.fit/g" .env
+    - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
 
 deploy:dev1:
   extends: .deploy-template
@@ -383,7 +383,7 @@ deploy:dev1:
   when: manual
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/coda.fit/coda-dev.fit/g" .env
+    - sed -i "s/INSERT_SUBDOMAIN/coda-dev/g" .env
 
 deploy:int:
   extends: .deploy-template
@@ -401,7 +401,7 @@ deploy:int:
     - int
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/coda.fit/coda-int.fit/g" .env
+    - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
 
 deploy:prod:
   extends: .deploy-template
@@ -424,6 +424,9 @@ deploy:prod:
   when: manual
   only:
     - prod
+  before_script:
+    # This is currently our hack to change out a necessary var for Launchpad Auth
+    - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
 
 .db-export-template:
   needs: []
