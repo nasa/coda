@@ -13,7 +13,6 @@ export const setupSocketIO = (): void => {
   const io = globalValues.socketio;
 
   // Listen for connection events
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   io.on("connection", (socket: any) => {
     (async () => {
       const sockets = await io.fetchSockets();
@@ -25,7 +24,6 @@ export const setupSocketIO = (): void => {
     // emit app version to client that just connected
     socket.emit("version", packagejson.version || "unknown version");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     socket.on("visitorJoin", (visitorData: VisitorData) => {
       // join the room for the user's selected date
       socket.join(visitorData.room);

@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   nginx:
     container_name: coda-nginx-1
@@ -97,7 +96,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT id FROM gpxtracks_db LIMIT 1'"
+      test: "pg_isready -U postgres && psql --username=postgres --list && psql --username=postgres ${DB_NAME} -c 'SELECT tablename FROM pg_catalog.pg_tables LIMIT 1'"
       interval: 30s # how often to check health
       timeout: 5s # fail if it takes longer than this
       retries: 6 # max consecutive failures

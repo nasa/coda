@@ -13,6 +13,8 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
+import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
+
 library.add(faLock, faLockOpen);
 
 export const PhotoAllControls: FunctionComponent<{
@@ -52,6 +54,15 @@ export const PhotoAllControls: FunctionComponent<{
               </div>
             </span>
           </button>
+        </div>
+        <div className={styles.verticalCenter}>
+          <FilterButton
+            clickHandler={() => {
+              setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
+            }}
+            selected={paneStateData.showFilter}
+            frameDimensions={frameDimensions}
+          />
         </div>
         <div className={styles.verticalCenter}>
           <HelpButton
@@ -95,32 +106,42 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     let photoThumbnails = [];
 
     for (let i = 0; i < photoFiles.length; i++) {
-      const activeRefOnly =
-        photoFiles[i].id === photos.activePhoto.id ? { ref: activePhotoRef } : {};
-      const activePhotoStyle = photoFiles[i].id === photos.activePhoto.id ? styles.activePhoto : "";
-      const photoTime = hhmmssFromSeconds(photoFiles[i].datetimeTakenAppSeconds);
-      const title = typeof photoFiles[i].title !== "undefined" ? " - " + photoFiles[i].title : "";
-      const description = photoFiles[i].description !== "" ? " - " + photoFiles[i].description : "";
-      const photoTitle = `${photoTime} ${photoFiles[i].id}${title}${description}`;
-      photoThumbnails.push(
-        <div
-          className={`${styles.photoThumb} ${activePhotoStyle}`}
-          key={photoFiles[i].id}
-          {...activeRefOnly}
-          onClick={() => {
-            dispatch(changeTime(photoFiles[i].datetimeTakenAppSeconds));
-            dispatch(setActivePhoto(photoFiles[i]));
-          }}
-          title={photoTitle}
-        >
-          <LazyLoadImage
-            alt={photoFiles[i].title}
-            width={80}
-            height={80}
-            src={photoFiles[i].mediaThumbURL}
-          />
-        </div>
-      );
+      for (let j = 0; j < photos.collectionFilters.length; j++) {
+        if (
+          photoFiles[i].collections == photos.collectionFilters[j].fullList &&
+          photos.collectionFilters[j].selected
+        ) {
+          const activeRefOnly =
+            photoFiles[i].id === photos.activePhoto.id ? { ref: activePhotoRef } : {};
+          const activePhotoStyle =
+            photoFiles[i].id === photos.activePhoto.id ? styles.activePhoto : "";
+          const photoTime = hhmmssFromSeconds(photoFiles[i].datetimeTakenAppSeconds);
+          const title =
+            typeof photoFiles[i].title !== "undefined" ? " - " + photoFiles[i].title : "";
+          const description =
+            photoFiles[i].description !== "" ? " - " + photoFiles[i].description : "";
+          const photoTitle = `${photoTime} ${photoFiles[i].id}${title}${description}`;
+          photoThumbnails.push(
+            <div
+              className={`${styles.photoThumb} ${activePhotoStyle}`}
+              key={photoFiles[i].id}
+              {...activeRefOnly}
+              onClick={() => {
+                dispatch(changeTime(photoFiles[i].datetimeTakenAppSeconds));
+                dispatch(setActivePhoto(photoFiles[i]));
+              }}
+              title={photoTitle}
+            >
+              <LazyLoadImage
+                alt={photoFiles[i].title}
+                width={80}
+                height={80}
+                src={photoFiles[i].mediaThumbURL}
+              />
+            </div>
+          );
+        }
+      }
     }
     return photoThumbnails;
   }
@@ -133,7 +154,14 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           handleScroll();
         }}
       >
-        {photoThumbnails()}
+        {photos.collectionFilters.some((el) => el.selected === true) ? (
+          photoThumbnails()
+        ) : (
+          <div className={styles.photoPoster}>
+            <div className={styles.photoPosterFilter}></div>
+          </div>
+        )}
+        {paneStateData.showFilter ? <RenderPhotoFilter /> : null}
       </div>
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}

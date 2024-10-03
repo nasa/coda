@@ -19,7 +19,6 @@ export const getCurrentUser = async (): Promise<EmssUser | Error> => {
     }
     currentUser = json.user;
 
-    // eslint-disable-next-line no-console
     console.log(`Welcome, ${currentUser.display_name || "unknown user"}`);
 
     return currentUser;

@@ -26,6 +26,7 @@ dist/
 .env
 .env.secret
 .env.old
+env.secret.ts
 
 # NOCA cert required to hit wiki and IO. See README.md
 .env.local.cert.pem

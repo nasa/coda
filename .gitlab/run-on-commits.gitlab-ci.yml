@@ -7,9 +7,6 @@ stages:
   - stageless
 
 default:
-  artifacts:
-    # Aggressively expire artifacts. The latest for any branch never expires
-    expire_in: 1 day
   timeout: 10 minutes
 
 variables:
@@ -31,18 +28,27 @@ include:
 
   # Code quality checks
   - project: "emss/gitlab-templates"
-    ref: latest
+    ref: 1.2.2
     file: "/jobs/code-quality.gitlab-ci.yml"
+
+  # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
+  - project: "emss/gitlab-templates"
+    ref: 1.2.2
+    file: "/jobs/emss-shared-dev.gitlab-ci.yml"
 
   # Fitdock deploy template
   - project: "emss/gitlab-templates"
-    ref: latest
+    ref: 1.2.2
     file: "/jobs/fitdock-deploy.gitlab-ci.yml"
 
   # Kaniko build template
   - project: "emss/gitlab-templates"
-    ref: latest
+    ref: 1.2.2
     file: "/jobs/kaniko-build.gitlab-ci.yml"
+
+  - project: "emss/gitlab-templates"
+    ref: 1.2.2
+    file: "/jobs/container-retag.gitlab-ci.yml"
 
 # Override some properties on FIT jobs. Unfortunately using a template for these
 # make GitLab angry, so a lot of repetition
@@ -151,56 +157,76 @@ node-sbom:
     paths:
       - "./bom.json"
       - "./new-bom.md"
+    expire_in: 1 day
 
 .make-dotenv-template:
-  image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
+  image: "$CURRENT_NODE_VERSION_IMAGE"
   stage: stageless
   needs: []
-  tags: ["openshift"]
+  tags: ["docker", "linux"] # needs to do global install, so needs to be root
   before_script:
-    - mkdir -p ./.local
+    # Determine the versions of @emss/make-dotenv and tsx defined in package-lock.json
+    # This allows us to be sure the same versions are used in CI as are used in local dev
+    - MAKE_DOTENV_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@emss/make-dotenv'].version")
+    - TSX_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/tsx'].version")
 
+    # Globally install these packages. This allows us to use them without installing
+    # all packages specified in package.json, which takes 1-4 minutes depending on the
+    # repository.
+    #
+    # Other options:
+    #   1. We could make this job have `needs: ['install_dependencies']`, but that means
+    #      this job would be delayed running 1-4 minutes, which then delays container
+    #      builds 1-4 minutes.
+    #   2. We could have the emss/packages build a make-dotenv docker image tagged by its
+    #      version number, and then this job could run using that image by specifying
+    #      `image: $CI_REGISTRY/emss/packages/make-dotenv:x.y.z`. That would save some
+    #      time since we wouldn't need to install global packages each time, but the job
+    #      as-written runs in about 10 seconds, so we wouldn't be saving much. We would
+    #      be causing ourselves some problems, though, since we'd have a version of
+    #      @emss/make-dotenv specified in package(-lock).json, and then we'd have another
+    #      version specified on the docker image on this job. We'd have to be careful to
+    #      keep the two in sync. The current job as-written seems simpler and good enough.
+    - npm i -g "@emss/make-dotenv@${MAKE_DOTENV_VERSION}" --userconfig ./.npmrc
+    - npm i -g "tsx@${TSX_VERSION}"
+  script:
     # Copy contents of DOTENV_SECRET from CI/CD variables to a new .env.secret file
-    - echo "${DOTENV_SECRET}" > ./.env.secret
+    - echo "${DOTENV_SECRET_TS}" > ./env.secret.ts
 
     # Determine which docker image type (dev, int, or prod) to deploy based on branch
     # Append the commit sha in order to ensure the correct build is being deployed in the case
     # multiple devs are building images simutaneously
     - >
       if [ "${CI_COMMIT_REF_SLUG}" == "prod" ]; then
-          IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
+        IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
       elif [ "${CI_COMMIT_REF_SLUG}" == "int" ]; then
-          IMAGE_VERSION="int-${CI_COMMIT_SHORT_SHA}"
+        IMAGE_VERSION="int-${CI_COMMIT_SHORT_SHA}"
       else
-          IMAGE_VERSION="dev-${CI_COMMIT_SHORT_SHA}"
+        IMAGE_VERSION="dev-${CI_COMMIT_SHORT_SHA}"
       fi
 
     # Save image version into a an artifact to be read later in other jobs
     - echo "IMAGE_VERSION=${IMAGE_VERSION}" >> pipelineVariables.env
-    # Export the variable so it can be read inside the make-dotenv.sh script
+    # Export the variable so it can be read inside the make-dotenv
     - export IMAGE_VERSION
 
-    # make-dotenv.sh should detect the script directory to read .env.template and write .env
-    # relatively, but Alpine Linux uses standard POSIX sh, not Bash, which cannot do this [1]. So
-    # we need to `cd` into the ./scripts directory first when using Alpine.
-    #
-    # Ref: [1] https://stackoverflow.com/a/49794678/2782380
-    - cd ./scripts
+    - make-dotenv $MAKE_DOTENV_ENVIRONMENT
   artifacts:
     reports:
       dotenv: pipelineVariables.env
     paths:
       - .env
+    expire_in: 1 day
 
 make-dotenv:
   extends: .make-dotenv-template
-  script:
-    - bash ./make-dotenv.sh
+  variables:
+    MAKE_DOTENV_ENVIRONMENT: fit
 
 make-test-dotenv:
   extends: .make-dotenv-template
-  script:
-    - bash ./make-dotenv.sh test
+  variables:
+    MAKE_DOTENV_ENVIRONMENT: test
 
 test:
   stage: stageless
@@ -237,6 +263,7 @@ test:
         - junit.xml
     paths:
       - ./coverage/*
+    expire_in: 1 day
 
 # test against next version of node that CODA may use, but allow to fail
 test-node-next:
@@ -296,11 +323,7 @@ docker:build:apiv1:
 # Retag docker images after necessary jobs pass (e.g. unit testing passes)
 #
 docker:retag:
-  stage: stageless
-  image: "$CI_REGISTRY/emss/docker-images:skopeo"
-  variables:
-    GIT_STRATEGY: none # Don't checkout the repo, just get artifacts
-  tags: ["docker", "linux"]
+  extends: .emss-container-retag
   needs:
     - make-dotenv
     - job: test
@@ -309,23 +332,10 @@ docker:retag:
       artifacts: false
     - job: docker:build:apiv1
       artifacts: false
-  script:
-    # Login to registry
-    - echo $CI_JOB_TOKEN | skopeo login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-
-    # Get the same value as IMAGE_VERSION var in .env, but without having to parse .env.
-    # See make-dotenv job/template.
-    - set -o allexport && source ./.env && set +o allexport
-
-    - SERVICE=nginx
-    - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
-    - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
-    - skopeo copy "docker://${TEMP_IMAGE}" "docker://${FINAL_IMAGE}"
-
-    - SERVICE=apiv1
-    - TEMP_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:preview-${IMAGE_VERSION}"
-    - FINAL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE}:${IMAGE_VERSION}"
-    - skopeo copy docker://$TEMP_IMAGE docker://$FINAL_IMAGE
+  variables:
+    RETAG_SERVICE_IMAGES: |
+      nginx
+      apiv1
 
 deploy:artifactize-committed-files:
   image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
@@ -338,11 +348,25 @@ deploy:artifactize-committed-files:
     paths:
       - .fitdock.yml
       - docker-compose.yml
+    expire_in: 1 day
 
 .deploy-template:
   extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
   stage: stageless
   timeout: 10 minutes
+
+deploy:carbon:
+  extends:
+    - .deploy-template
+    - .carbon-deploy
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+  when: manual
+  before_script:
+    # This is currently our hack to change out a necessary var for Launchpad Auth
+    - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
 
 deploy:dev1:
   extends: .deploy-template
@@ -359,63 +383,11 @@ deploy:dev1:
   when: manual
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/coda.fit/coda-dev.fit/g" .env
-
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-
-    # Since this runner is shared between all EMSS repos, we need to check if any containers that
-    # are running are this app or something else. Ultimately this code needs to be in the EMSS
-    # deploy template, and needs to do the `grep -q "/opt/coda"` part in an app-agnostic way (e.g.
-    # needs to grab the INSTALL_PATH from .fitdock.yml), but for now this is hard-coded for CODA.
-    # If-statement below does two checks:
-    # 1. If `sudo docker compose ls` lists more than 2 lines, this means there are more than two
-    #    docker-compose apps running (first line is just the header). Here's an example of AEGIS
-    #    and Labs running simultaneously:
-    #       ejmontal@jsfitdaegis01 / $ sudo docker compose ls
-    #       NAME                STATUS              CONFIG FILES
-    #       aegis               running(3)          /opt/aegis/docker-compose.yml
-    #       emss-labs           running(5)          /opt/emss-labs/docker-compose.yml
-    #    If this is the case, we definitely are in a weird condition and want to nuke all containers
-    #    and let this deploy job bring us back to a normal configuration.
-    # 2. If `sudo docker compose ls` does NOT included this app's install directory (/opt/aegis),
-    #    then some other app was the most recently deployed app. Nuke all containers and let this
-    #    deploy job make AEGIS the running app.
-    # - COMPOSE_LS=$(sudo docker compose ls)
-    # - >
-    #   if [ $(echo "$COMPOSE_LS" | wc -l) -gt 2 ] || ! echo "$COMPOSE_LS" | grep -q "/opt/coda"; then
-    #     echo "Unknown docker-compose apps running, killing all containers."
-    #     sudo docker stop $(sudo docker ps -a -q)
-    #   else
-    #     echo "Same app deploying, not killing containers"
-    #   fi
-
-    # Stop all containers. TODO unsure why the above code to selectively stop containers is needed.
-    - >
-      if docker --version; then
-        sudo docker stop $(sudo docker ps -a -q)
-      fi
-
-# CODA-Dev2 currently functioning as Talky Bot prod
-# deploy:dev2:
-#   extends: .deploy-template
-#   tags: ["coda-dev2-runner"]
-#   needs:
-#     - make-dotenv
-#     - docker:retag
-#     - deploy:artifactize-committed-files
-#   environment:
-#     name: development2
-#     url: https://coda-dev2.fit.nasa.gov
-#   variables:
-#     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
-#   when: manual
-#   before_script:
-#     # This is currently our hack to change out a necessary var for Launchpad Auth
-#     - sed -i "s/coda.fit/coda-dev2.fit/g" .env
+    - sed -i "s/INSERT_SUBDOMAIN/coda-dev/g" .env
 
 deploy:int:
   extends: .deploy-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   needs:
     - make-dotenv
     - docker:retag
@@ -429,11 +401,11 @@ deploy:int:
     - int
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/coda.fit/coda-int.fit/g" .env
+    - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
 
 deploy:prod:
   extends: .deploy-template
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   needs:
     - make-dotenv
     - docker:retag
@@ -452,6 +424,9 @@ deploy:prod:
   when: manual
   only:
     - prod
+  before_script:
+    # This is currently our hack to change out a necessary var for Launchpad Auth
+    - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
 
 .db-export-template:
   needs: []
@@ -474,19 +449,25 @@ deploy:prod:
   artifacts:
     paths:
       - coda.sql
+    expire_in: 1 day
 
 z:db-export:prod:
   extends: .db-export-template
   # when: always
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
 
 z:db-export:int:
   extends: .db-export-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+
+z:db-export:carbon:
+  extends:
+    - .db-export-template
+    - .carbon-access
 
 z:db-export:dev1:
   extends: .db-export-template
@@ -523,6 +504,12 @@ z:db-export:dev2:
 
     # Migrations will be run when the apiv1 container restarts
 
+z:db-import:carbon:
+  extends:
+    - .db-import-template
+    - .carbon-deploy
+  needs: ["z:db-export:prod"]
+
 z:db-import:dev1:
   extends: .db-import-template
   tags: ["coda-dev1-runner"]
@@ -536,7 +523,7 @@ z:db-import:dev1:
 
 z:db-import:int:
   extends: .db-import-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   needs: ["z:db-export:prod"]
   environment:
     name: integration
@@ -578,6 +565,12 @@ z:db-import:int:
     when: always
     paths:
       - ./log_artifacts
+    expire_in: 1 day
+
+z:logs:carbon:
+  extends:
+    - .container-logs-template
+    - .carbon-access
 
 z-logs:dev1:
   extends: .container-logs-template
@@ -595,14 +588,14 @@ z-logs:dev2:
 
 z-logs:int:
   extends: .container-logs-template
-  tags: ["coda-int-runner"]
+  tags: ["emss-coda-int"]
   needs: []
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
 
 z-logs:prod:
   extends: .container-logs-template
-  tags: ["coda-prod-runner"]
+  tags: ["emss-coda-prod"]
   needs: []
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD

@@ -100,13 +100,17 @@ export function formatDateQuery(start: Date, end?: Date): string {
  * @param requestDate The date to fetch data for
  * @returns PhotoFile[] | VideoFile[]
  */
-export async function fetchData(params: {
+export async function fetchData({
+  collection,
+  fetchType,
+  requestedDate: requestDate,
+  forceNew,
+}: {
   collection: Collection;
   fetchType: IOFetchType;
   requestedDate: Date;
   forceNew?: boolean;
 }) {
-  const { collection, fetchType, requestedDate: requestDate, forceNew } = params;
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let dateQuery: string;
   let queryParams: string;
