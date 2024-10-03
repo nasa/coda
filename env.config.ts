@@ -5,15 +5,15 @@ export const environments = ["local", "fit", "test"] as const;
 
 export const config: DotenvConfig<typeof environments> = {
   /**
-   * LaunchPad/OAuth setup
-   * AUTH!
+   * Launchpad
+   * Only our prod URLs are added to launchpad prod. All environments (dev/int/prod) are added to launchpad sandbox.
+   * Ultimately we want to use sandbox launchpad for everything except prod (including local dev)
+   * Currently we don't have a solution to make a prod version of a .env so right now use sandbox for everything
    */
-  // Sandbox launchpad for everything except prod (including local dev), so
-  // initially assume sandbox, then will override below for prod
   OAUTH2_PROXY_COOKIE_SECRET: {
     local: {
       type: "generate-to-secret-if-missing",
-      length: 44,
+      length: 32,
       characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-=",
     },
     default: { type: "required-from-secret" },
@@ -43,8 +43,6 @@ export const config: DotenvConfig<typeof environments> = {
     default: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_SANDBOX_CLIENT_ID" },
   },
   OAUTH2_PROXY_CLIENT_SECRET: {
-    // Ultimately we should be using LaunchPad prod on our prod server, but for now the only environments
-    // we have setup are "local" and "fit", and we're using launchpad sandbox for everything.
     // prod: {
     //   type: "alternate-varname-from-secret-file",
     //   value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
@@ -55,11 +53,15 @@ export const config: DotenvConfig<typeof environments> = {
     },
   },
 
-  // Ultimately need to alter this based on what server we're on (prod/int/dev) and
-  // override the launchpad-sandbox values from above when using prod.
+  // Ultimately need to alter this based on what server we're on (prod/int/dev). Currently this override
+  // happens in the pipeline depoy script. `INSERT_SUBDOMAIN` that gets replaced
+  // with the appropriate subdomain during deploy.
   OAUTH2_PROXY_REDIRECT_URL: {
+    // prod: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
+    // int: "https://coda-int.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
+    // dev: "https://coda-dev.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
     local: "https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    default: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
+    default: "https://INSERT_SUBDOMAIN.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
   },
   REDIS_CACHE_DIR: { local: "./.local/redis", default: "/d1/coda/redis" },
 
@@ -208,7 +210,7 @@ export const config: DotenvConfig<typeof environments> = {
    * Logging
    */
   LOGSTASH_URL: {
-    default: "https://maestro-alpha.fit.nasa.gov/logstash/",
+    default: "https://emss-logging.fit.nasa.gov/logstash/",
   },
   ENABLE_LOGGING: { local: "false", default: "true" },
   LOGSTASH_APP_ID: { default: "coda" },
