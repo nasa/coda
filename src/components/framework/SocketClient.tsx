@@ -30,27 +30,17 @@ const SocketClient: FunctionComponent<{
         room: roomName,
       };
       socket.current.emit("visitorJoin", visitorData);
-
-      console.log(
-        `${new Date().toISOString()} Connected to socket.io server. Joining room: ${roomName} socketId: ${
-          socket.current.id
-        }`
-      );
     });
 
     socket.current.on("disconnect", () => {
-      console.log(`${new Date().toISOString()} Disconnected from socket.io server`);
       setSocketStatus({
         connectionStatus: "disconnected",
         lastStatusFromServer: socketStatus.lastStatusFromServer,
         clientVersion: socketStatus.clientVersion,
       });
     });
-    socket.current.io.on("reconnect_attempt", () => {
-      console.log(`${new Date().toISOString()} Attempting to reconnect to socket.io server`);
-    });
+    socket.current.io.on("reconnect_attempt", () => {});
     socket.current.io.on("reconnect", () => {
-      console.log(`${new Date().toISOString()} Reconnected to socket.io server`);
       setSocketStatus({
         connectionStatus: "connected",
         lastStatusFromServer: socketStatus.lastStatusFromServer,
@@ -60,9 +50,6 @@ const SocketClient: FunctionComponent<{
 
     // Incoming client counts
     socket.current.on("statusFromServer", (statusFromServer: StatusFromServer) => {
-      console.log(
-        `${new Date().toISOString()} Clients connected via sockets: ${statusFromServer?.viewers}`
-      );
       if (statusFromServer.version !== socketStatus.clientVersion && socketStatus.clientVersion) {
         alert("A new version of CODA is available. Please refresh your browser.");
       }

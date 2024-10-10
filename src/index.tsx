@@ -4,7 +4,6 @@ import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import store from "./store";
 import { Provider } from "react-redux";
-import PulseAnalytics from "components/pulse";
 
 import "./styles.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
@@ -17,6 +16,5 @@ root.render(
         <App />
       </BrowserRouter>
     </Provider>
-    <PulseAnalytics />
   </React.StrictMode>
 );

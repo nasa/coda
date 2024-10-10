@@ -14,13 +14,6 @@ export const setupSocketIO = (): void => {
 
   // Listen for connection events
   io.on("connection", (socket: any) => {
-    (async () => {
-      const sockets = await io.fetchSockets();
-      console.log(
-        `${new Date().toISOString()} Socket ${socket.id} connected. Count: ${sockets.length}`
-      );
-    })();
-
     // emit app version to client that just connected
     socket.emit("version", packagejson.version || "unknown version");
 
@@ -38,20 +31,11 @@ export const setupSocketIO = (): void => {
 
       // emit visitor count to all clients
       io.emit("statusFromServer", statusFromServer);
-
-      console.log(
-        `${new Date().toISOString()} Socket ${socket.id} visitorJoin. Room: ${visitorData.room} Viewers: ${
-          statusFromServer.viewers
-        }.`
-      );
     });
 
-    socket.on("connect", () => {
-      console.log(`${new Date().toISOString()} Socket ${socket.id} connected.`);
-    });
+    socket.on("connect", () => {});
 
     socket.on("disconnect", () => {
-      console.log(`${new Date().toISOString()} Socket ${socket.id} disconnected.`);
       const visitorBeingRemoved = _.find(visitorsData, {
         socketId: socket.id,
       });

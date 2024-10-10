@@ -70,8 +70,6 @@ import {
   setGraphsLoadingStatus,
   setGraphsManifest,
 } from "store/graphs";
-import { pulseEvent, pulseLogInfo } from "utils/pulseAnalytics";
-import { generateShareURL } from "utils/share-state";
 import { getMaestroExecuteTimelineStatus } from "http-client/maestro";
 import { maestroFetchError, setMaestroData, setMaestroLoadingStatus } from "store/maestro";
 import PlaybackControls from "components/interface/playback-controls";
@@ -89,7 +87,6 @@ export function V2() {
   const [searchParams, _setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
-  const framework = useSelector((state: RootState) => state.framework);
   const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
   const playhead = useSelector((state: RootState) => state.playhead);
   const playheadDate = playhead.date;
@@ -481,9 +478,6 @@ export function V2() {
     if (_.isNull(playheadDate) || _.isNull(source)) {
       return;
     }
-
-    pulseEvent(source);
-    pulseLogInfo(generateShareURL(framework, playhead));
 
     // open the about modal to show data loading
     setHelpLoaderOpen(true);
