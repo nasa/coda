@@ -7,7 +7,6 @@ let currentUser: undefined | EmssUser;
 
 export const getCurrentUser = async (): Promise<EmssUser | Error> => {
   if (currentUser) {
-    console.log({ currentUser });
     return currentUser;
   }
 
@@ -18,8 +17,6 @@ export const getCurrentUser = async (): Promise<EmssUser | Error> => {
       return;
     }
     currentUser = json.user;
-
-    console.log(`Welcome, ${currentUser.display_name || "unknown user"}`);
 
     return currentUser;
   } catch (err) {
