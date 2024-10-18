@@ -96,8 +96,8 @@ export const config: DotenvConfig<typeof environments> = {
   WIKI_BASE_URL: { default: "https://wiki.jsc.nasa.gov" },
   DEFAULT_CACHE_AGE: { default: 300 },
   TALKYBOT_URL: {
-    local: "https://coda-dev2.fit.nasa.gov",
-    default: "https://coda-dev2.fit.nasa.gov",
+    local: "https://talkybot.fit.nasa.gov",
+    default: "https://talkybot.fit.nasa.gov",
   },
 
   // Actual FIT environments deployed by GitLab CI the CACHE_ROOT needs to be relative
@@ -209,7 +209,7 @@ export const config: DotenvConfig<typeof environments> = {
   /**
    * Logging
    */
-  LOGSTASH_URL: {
+  LOG_SERVER_HTTP_ENDPOINT: {
     default: "https://emss-logging.fit.nasa.gov/logstash/",
   },
   ENABLE_LOGGING: { local: "false", default: "true" },
