@@ -54,28 +54,6 @@ async function getMWBot(wiki: string) {
   return bot;
 }
 
-/**
- * Load mock data from this repo
- */
-async function mockData(_query: string, action: string): Promise<WikiResults> {
-  console.log(`Mocking request for: ${action}...`);
-
-  switch (action) {
-    case "getAllEVAs":
-      const getAllEVAsMockData = require("../../../mocks/fakedata/getAllEVAs.json");
-      return await Promise.resolve(getAllEVAsMockData);
-    case "getAllAsExecuted":
-      const getAllAsExecutedMockData = require("../../../mocks/fakedata/getAllAsExecuted.json");
-      return await Promise.resolve(getAllAsExecutedMockData);
-    case "getAllCrew":
-      const getAllCrewMockData = require("../../../mocks/fakedata/getAllCrew.json");
-      return await Promise.resolve(getAllCrewMockData);
-    default:
-      console.error(`Unknown Wiki request action: '${action}'`);
-      return await Promise.resolve(null);
-  }
-}
-
 /** Checks if the response from the wiki mean we aren't logged in */
 function isLoginError(e: any | WikiResponse): e is WikiResponse {
   return e.errorResponse && e.code === "readapidenied";
@@ -94,8 +72,6 @@ interface FetchWikiOptions {
     page: string;
     prop: string;
   };
-  /** Optional mock type for local development */
-  mock?: string;
 }
 
 const defaultFetchWikiOptions: FetchWikiOptions = {
@@ -109,20 +85,7 @@ const defaultFetchWikiOptions: FetchWikiOptions = {
  */
 async function fetchWiki(options: FetchWikiOptions): Promise<WikibotResponse<WikiResults>> {
   const o = { ...defaultFetchWikiOptions, ...options };
-
-  const isLocal = process.env.VITE_PUBLIC_APP_ENV === "local";
-
-  // we're in the local environment. fake the request
-  if (isLocal) {
-    const data = await mockData(o.askQuery, o.mock);
-    return {
-      data,
-      mocked: true,
-    };
-  }
-
   let res: WikiResults;
-
   const bot = await getMWBot(o.wiki);
 
   // build the JSON payload to send to the wiki based on FetchWikiOptions.action
@@ -149,13 +112,14 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WikibotResponse<Wik
         throw e;
       }
     } else {
+      // console.error("Wiki request error");
       throw e;
     }
     // we are logged in now. retry the request
     try {
       res = await bot.request(payload);
     } catch (e) {
-      console.error("Wiki request error");
+      // console.error("Wiki request error");
       throw e;
     }
   }
@@ -177,11 +141,10 @@ async function getAllEVAs(): Promise<WikibotResponse<EVASummaryResponse>> {
     |sort=Start date
     |limit=10000
   `;
+  const res = await fetchWiki({ askQuery, wiki: "iss" });
+  const results: EVASummaryResponse = res.data.query.results;
 
-  const res = await fetchWiki({ askQuery, wiki: "iss", mock: "getAllEVAs" });
-  const results = res.data.query.results;
   return {
-    mocked: res.mocked,
     data: results,
   };
 }
@@ -217,11 +180,10 @@ async function getAllAsExecuted(): Promise<WikibotResponse<AllExecution>> {
     |sort=Actor, Index
     |limit=1000000
   `;
+  const res = await fetchWiki({ askQuery, wiki: "iss" });
+  const results = parseAllAsExecuted(res.data.query.results);
 
-  const res = await fetchWiki({ askQuery, wiki: "iss", mock: "getAllAsExecuted" });
-  const results: AllExecution = parseAllAsExecuted(res.data.query.results);
   return {
-    mocked: res.mocked,
     data: results,
   };
 }
@@ -296,10 +258,9 @@ async function getAllCrew(): Promise<WikibotResponse<AllCrews>> {
     |limit=10000
   `;
 
-  const res = await fetchWiki({ askQuery, wiki: "iss", mock: "getAllCrew" });
-  const results = parseAllCrew(res.data.query.results);
+  const res = await fetchWiki({ askQuery, wiki: "iss" });
+  const results: AllCrews = parseAllCrew(res.data.query.results);
   return {
-    mocked: res.mocked,
     data: results,
   };
 }
@@ -339,15 +300,11 @@ function parseAllCrew(results: EVACrewResults): AllCrews {
 export async function getAllEVAData(
   agency: AgencyQuery,
   forceNew: boolean = false
-): Promise<WikibotResponse<Sequence[]>> {
-  let mocked = false;
-
+): Promise<WrappedResponse<Sequence[]>> {
   const retriever = async () => {
-    const { data: allEVAs, mocked: allEVAsMocked } = await getAllEVAs();
-    const { data: asExecuted, mocked: asExecutedMocked } = await getAllAsExecuted();
-    const { data: crews, mocked: crewsMocked } = await getAllCrew();
-
-    mocked = allEVAsMocked || asExecutedMocked || crewsMocked;
+    const { data: allEVAs } = await getAllEVAs();
+    const { data: asExecuted } = await getAllAsExecuted();
+    const { data: crews } = await getAllCrew();
 
     const evas = Object.keys(allEVAs).map((evaName) => {
       const formattedEVAName = evaName.replace(/ /g, "_").toLowerCase();
@@ -403,9 +360,6 @@ export async function getAllEVAData(
     cacheAge: 3600, // 1 hour
     forceRetriever: forceNew,
   });
-  if (mocked) {
-    response.responseMetadata.mocked = true;
-  }
   return response;
 }
 
@@ -424,11 +378,11 @@ export async function getAllTestEvents(): Promise<WikibotResponse<AllTestEvents>
   const res = await fetchWiki({
     askQuery,
     wiki: "exploration",
-    mock: "getAllTestEvents",
   });
+  const results: AllTestEvents = res.data.query.results;
+
   return {
-    mocked: res.mocked,
-    data: res.data.query.results,
+    data: results,
   };
 }
 
@@ -447,15 +401,13 @@ export async function getTestEventExecution(): Promise<WikibotResponse<AllExecut
     |sort=Actor, Index
     |limit=1000000
   `;
-
   const res = await fetchWiki({
     askQuery,
     wiki: "exploration",
-    mock: "getAllAsExecuted",
   });
   const results: AllExecution = parseAllAsExecuted(res.data.query.results);
+
   return {
-    mocked: res.mocked,
     data: results,
   };
 }
@@ -467,15 +419,13 @@ export async function getTestEventCrews(): Promise<WikibotResponse<AllCrews>> {
     [[Category:Test_event]]
     |limit=10000
   `;
-
   const res = await fetchWiki({
     askQuery,
     wiki: "exploration",
-    mock: "getAllCrew",
   });
-  const results = parseAllCrew(res.data.query.results);
+  const results: AllCrews = parseAllCrew(res.data.query.results);
+
   return {
-    mocked: res.mocked,
     data: results,
   };
 }
@@ -483,14 +433,11 @@ export async function getTestEventCrews(): Promise<WikibotResponse<AllCrews>> {
 /** Fetch as-planned and as-executed EVA data and standardize the format */
 export async function getAllTestEventsData(
   forceNew: boolean = false
-): Promise<WikibotResponse<Sequence[]>> {
-  let mocked = false;
+): Promise<WrappedResponse<Sequence[]>> {
   const retriever = async () => {
-    const { data: allTestEvents, mocked: allTestEventsMocked } = await getAllTestEvents();
-    const { data: asExecuted, mocked: asExecutedMocked } = await getTestEventExecution();
-    const { data: crews, mocked: crewsMocked } = await getTestEventCrews();
-
-    mocked = allTestEventsMocked || asExecutedMocked || crewsMocked;
+    const { data: allTestEvents } = await getAllTestEvents();
+    const { data: asExecuted } = await getTestEventExecution();
+    const { data: crews } = await getTestEventCrews();
 
     return Object.keys(allTestEvents).map((testEvent) => {
       const testEnvironment = get(
@@ -545,16 +492,13 @@ export async function getAllTestEventsData(
     cacheAge: 3600, // 1 hour
     forceRetriever: forceNew,
   });
-  if (mocked) {
-    response.responseMetadata.mocked = true;
-  }
   return response;
 }
 
 export async function fetchSequences(
   source: Source,
   forceNew: boolean = false
-): Promise<WikibotResponse<Sequence[]>> {
+): Promise<WrappedResponse<Sequence[]>> {
   if (source === "ISS") {
     return getAllEVAData("us", forceNew);
   } else {
