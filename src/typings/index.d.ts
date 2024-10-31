@@ -24,7 +24,6 @@ interface WrappedResponse<T> {
 /** Wikibot responses */
 interface WikibotResponse<T> {
   data?: T;
-  mocked?: boolean;
 }
 
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */
