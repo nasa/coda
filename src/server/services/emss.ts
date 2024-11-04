@@ -27,7 +27,7 @@ export async function fetchLabsAndTalkybotTranscripts({
     retries++;
   }
   const labsTranscripts = labsResponse.data;
-  const tbTranscripts = await fetchTalkybotTranscripts(dateWanted);
+  const tbTranscripts = await fetchTalkybotTranscripts({ dateWanted });
 
   // if no TB response, just return labs
   if (tbTranscripts.length === 0) {
@@ -158,7 +158,11 @@ export async function fetchLabsTranscripts({
   return { ...res, source: "labs" };
 }
 
-async function fetchTalkybotTranscripts(dateWanted: string): Promise<UnprocessedTranscript[]> {
+export async function fetchTalkybotTranscripts({
+  dateWanted,
+}: {
+  dateWanted: string;
+}): Promise<UnprocessedTranscript[]> {
   const transcripts: UnprocessedTranscript[] = [];
   const urlBase = `${process.env.TALKYBOT_URL}/api/v1/external/${dateWanted}`;
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
@@ -209,7 +213,7 @@ export async function fetchLabsAndTalkybotSGAudio({
     retries++;
   }
   const labsAudio = labsResponse.data;
-  const tbAudio = await fetchTalkybotSGAudio(source, dateWanted);
+  const tbAudio = await fetchTalkybotSGAudio({ dateWanted });
 
   // if no TB response, just return labs
   if (
@@ -381,10 +385,11 @@ type AudioManifestItem = {
   sgChannels: AudioManifestsgChannelItem[];
 };
 
-export async function fetchTalkybotSGAudio(
-  source: Source,
-  dateWanted: string
-): Promise<SgActivityFullUrlRecord> {
+export async function fetchTalkybotSGAudio({
+  dateWanted,
+}: {
+  dateWanted: string;
+}): Promise<SgActivityFullUrlRecord> {
   const url = `${process.env.TALKYBOT_URL}/api/v1/external/audio/${dateWanted}/audioManifest.json`;
 
   const res = await fetchWithTimeout(url);

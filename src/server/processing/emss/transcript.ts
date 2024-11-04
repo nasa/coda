@@ -40,5 +40,26 @@ export default async function getTranscripts({
     console.error(e);
   }
 
-  return LabsService.fetchLabsAndTalkybotTranscripts({ source, dateWanted, forceNew });
+  // labs audio and transcription was turned off around late October. Only grab from TB after this date
+  // to avoid messy merging of labs and talkybot  transcripts
+  if (new Date(dateWanted).getTime() < new Date("2024-10-21T00:00:00").getTime()) {
+    return LabsService.fetchLabsAndTalkybotTranscripts({ source, dateWanted, forceNew });
+  } else {
+    const res: UnprocessedTranscript[] = await LabsService.fetchTalkybotTranscripts({
+      dateWanted,
+    });
+    // wrap the response
+    return {
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
+        expiration: null,
+        error: "",
+        retrieverErrorCount: 0,
+        lastErrorTimestamp: null,
+      },
+      data: res,
+      source: "talky-bot",
+    };
+  }
 }
