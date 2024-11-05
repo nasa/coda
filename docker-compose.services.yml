@@ -8,8 +8,15 @@
 #
 services:
   database:
+    logging: !reset null # turn off logging
     ports:
       # For local dev, expose the database outside the docker network in case devs want to use
       # a SQL client on their machine (e.g. HeidiSQL, etc)
       # 5430 is for TalkyBot. AEGIS uses 5432, CODA, 5431
       - "5431:5432"
+
+  # Don't start any of these services
+  nginx: !reset null
+  apiv1: !reset null
+  oauth2-proxy: !reset null
+  redis: !reset null

@@ -1,10 +1,37 @@
+# Prefixing with x- just means this isn't actually used by Docker Compose.
+# Instead, this holds values that are included elsewhere in this file.
+x-wrapper: &send_container_logs_to_syslog
+  # `logging` property to be added to any services below where we want logs.
+  # In FIT, adding this to a service makes the service log to the VM's
+  # Rsyslog service running on the host. In local dev we would need to stand
+  # up an Rsyslog of some type, perhaps in a container, that could forward
+  # logs from a locally-running app to a locally-running logging server.
+  logging:
+    driver: syslog
+    options:
+      syslog-address: "${LOG_INTERNAL_ENDPOINT}"
+      # If syslog-address endpoint goes down, don't freak out
+      mode: "non-blocking"
+      # This tag sends the container name to the logging server, where the
+      # container name is the app ID plus the service name. See the
+      # `container_name` properties for the apps below.
+      # Unfortunately the container name can't just be the service name, i.e.
+      # "nginx", because then in local dev if you want to have both CODA and
+      # AEGIS running simultaneously then the second will fail because there
+      # is already an "nginx" container present. So container names are
+      # prefixed with their LOG_DATA_APP_ID. The log server splits this up
+      # to store the app ID and service name separately. The server name,
+      # e.g. "carbon", is handled entirely by the host's Rsyslog config.
+      tag: "{{.Name}}"
+
 services:
   nginx:
-    container_name: coda-nginx-1
+    container_name: "${LOG_DATA_APP_ID}--nginx"
     image: ${DOCKER_IMAGE_NGINX}
     restart: unless-stopped
     depends_on:
       - apiv1
+    <<: *send_container_logs_to_syslog
     volumes:
       - ${DOCKER_HOST_HTTP_STATIC_DIR}:/usr/share/nginx/static:ro
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
@@ -15,11 +42,12 @@ services:
       - "443:443"
 
   apiv1:
-    container_name: coda-apiv1-1
+    container_name: "${LOG_DATA_APP_ID}--apiv1"
     image: ${DOCKER_IMAGE_APIV1}
     depends_on:
       database:
         condition: service_healthy
+    <<: *send_container_logs_to_syslog
     restart: unless-stopped
     env_file:
       # Any .env variables needed at runtime must be specified here or listed out in the `environment` property
@@ -42,6 +70,7 @@ services:
       - ${CACHE_ROOT}:/cache
 
   oauth2-proxy:
+    container_name: "${LOG_DATA_APP_ID}--oauth2"
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.5.1
     command:
       - --http-address
@@ -81,15 +110,16 @@ services:
       OAUTH2_PROXY_REDIS_CONNECTION_URL: redis://redis
 
   redis:
+    container_name: "${LOG_DATA_APP_ID}--redis"
     image: redis:7.2.4-alpine3.19
     volumes:
       - ${REDIS_CACHE_DIR}:/data
 
   database:
-    container_name: coda-database-1
+    container_name: "${LOG_DATA_APP_ID}--database"
     image: postgis/postgis:14-3.2-alpine
-    # image: postgres:14.12-alpine # pending EMSS/docker-images MR !36
     restart: unless-stopped
+    <<: *send_container_logs_to_syslog
     environment:
       # Used for setting up a DB for the first time. These are not stored in the container
       # but rather in the db data itself

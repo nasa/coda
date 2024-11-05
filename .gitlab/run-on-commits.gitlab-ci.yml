@@ -28,26 +28,26 @@ include:
 
   # Code quality checks
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/code-quality.gitlab-ci.yml"
 
   # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/emss-shared-dev.gitlab-ci.yml"
 
   # Fitdock deploy template
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/fitdock-deploy.gitlab-ci.yml"
 
   # Kaniko build template
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/kaniko-build.gitlab-ci.yml"
 
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/container-retag.gitlab-ci.yml"
 
 # Override some properties on FIT jobs. Unfortunately using a template for these
@@ -367,6 +367,7 @@ deploy:carbon:
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/carbon/g" .env
 
 deploy:dev1:
   extends: .deploy-template
@@ -384,6 +385,7 @@ deploy:dev1:
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/coda-dev/g" .env
 
 deploy:int:
   extends: .deploy-template
@@ -397,11 +399,16 @@ deploy:int:
     url: https://coda-int.fit.nasa.gov
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+
+    # Turn off forwarding logs from VM's Rsyslog to EMSS logging server
+    # Cannot enable in int/prod environments until FIT firewall altered
+    RSYSLOG_DISABLE_FORWARDING: "true"
   only:
     - int
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/int/g" .env
 
 deploy:prod:
   extends: .deploy-template
@@ -421,12 +428,17 @@ deploy:prod:
     url: https://coda.fit.nasa.gov
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+
+    # Turn off forwarding logs from VM's Rsyslog to EMSS logging server
+    # Cannot enable in int/prod environments until FIT firewall altered
+    RSYSLOG_DISABLE_FORWARDING: "true"
   when: manual
   only:
     - prod
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env
 
 .db-export-template:
   needs: []
@@ -561,6 +573,8 @@ z:db-import:int:
     # limit, and generally make the job log unreadably long
     - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
     - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
+
+    - sudo journalctl --unit=rsyslog -n 200 --no-pager
   artifacts:
     when: always
     paths:
