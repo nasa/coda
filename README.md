@@ -62,7 +62,7 @@ Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) 
 
 ### Option 2: Fully docker-compose (not recommended for dev)
 
-To preview a production-like setup with a full docker environment, essentially identical to what would be deployed to one of our servers, run the following:
+To preview a production-like setup with a full docker environment, essentially identical to what would be deployed to one of our servers, run the following
 
 ```sh
 npm run docker:preview

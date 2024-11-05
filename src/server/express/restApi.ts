@@ -19,6 +19,7 @@ import clearRoute from "./routes/cache/clear";
 import clearAllRoute from "./routes/cache/clearAll";
 import enableDisableEmssVideoRoute from "./routes/media/enableDisableEmssVideo";
 import getCurrentUser from "./routes/user/auth";
+import logFromClient from "./routes/user/logFromClient";
 
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
@@ -60,4 +61,5 @@ app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
 app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);
 app.use("/api/v1/db/photoTimeShifts", photoRoute);
 app.use("/api/v1/user/current", getCurrentUser);
+app.use("/api/v1/log/from-client", logFromClient);
 export default app;

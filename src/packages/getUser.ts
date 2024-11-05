@@ -22,6 +22,7 @@ const getMockUser = (): EmssUser => {
     uscitizen: process.env.MOCK_USER_USCITIZEN ? Boolean(process.env.MOCK_USER_USCITIZEN) : true,
     legal_permanent_resident: process.env.MOCK_USER_LPR ? Boolean(process.env.MOCK_USER_LPR) : true,
     usperson: process.env.MOCK_USER_USPERSON ? Boolean(process.env.MOCK_USER_USPERSON) : true,
+    ip_address: "1.2.3.4",
   };
 };
 
