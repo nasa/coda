@@ -15,12 +15,19 @@ Other CODA clock tools
 
 CODA is deployed using GitLab CI/CD and FIT-provisioned VMs.
 
-| **Branch** | **Environment** | **URL**                        |
-| ---------- | --------------- | ------------------------------ |
-| `prod`     | production      | https://coda.fit.nasa.gov      |
-| `int`      | integration     | https://coda-int.fit.nasa.gov  |
-| any        | development     | https://coda-dev.fit.nasa.gov  |
-| any        | development2    | https://coda-dev2.fit.nasa.gov |
+| **Branch** | **Environment** | **URL**                         |
+| ---------- | --------------- | ------------------------------- |
+| `prod`     | production      | https://coda.fit.nasa.gov       |
+| `int`      | integration     | https://coda-int.fit.nasa.gov   |
+| any        | development     | Any EMSS dev server (see below) |
+
+EMSS dev servers all have element names, and are:
+
+- https://carbon-emss-dev.fit.nasa.gov
+- https://gold-emss-dev.fit.nasa.gov
+- https://iron-emss-dev.fit.nasa.gov
+- https://neon-emss-dev.fit.nasa.gov
+- https://oxygen-emss-dev.fit.nasa.gov
 
 ## Development
 

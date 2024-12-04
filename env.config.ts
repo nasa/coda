@@ -59,7 +59,7 @@ export const config: DotenvConfig<typeof environments> = {
   OAUTH2_PROXY_REDIRECT_URL: {
     // prod: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
     // int: "https://coda-int.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    // dev: "https://coda-dev.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
+    // dev: carbon, gold, iron, neon, oxygen...
     local: "https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
     default: "https://INSERT_SUBDOMAIN.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
   },
