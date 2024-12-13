@@ -3,9 +3,9 @@ import { FunctionComponent, MutableRefObject, useEffect, useRef } from "react";
 import PlotlyClass from "components/panes/graph/plotly-class";
 import { appSecondsFromDateString } from "utils/formatting";
 import { changeTime } from "store/playhead";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { ChartLayout } from "./graphProperties";
-import { Layout } from "plotly.js";
+import { Layout } from "plotly.js-basic-dist";
 
 //disgusting hack to make IDE errors go away in the useEffect below
 type HTMLDivElementExtended = HTMLDivElement & { on: Function };
@@ -18,7 +18,7 @@ const PlotlyComponent: FunctionComponent<{
   };
   plotIndexToHighlight: number;
 }> = ({ frameID, chartData, plotIndexToHighlight }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const plotlyClass: MutableRefObject<PlotlyClass> = useRef(null);
   const plotlyChartRef: MutableRefObject<HTMLDivElementExtended> = useRef(null);

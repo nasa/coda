@@ -59,7 +59,7 @@ export const config: DotenvConfig<typeof environments> = {
   OAUTH2_PROXY_REDIRECT_URL: {
     // prod: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
     // int: "https://coda-int.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    // dev: "https://coda-dev.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
+    // dev: carbon, gold, iron, neon, oxygen...
     local: "https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
     default: "https://INSERT_SUBDOMAIN.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
   },
@@ -209,11 +209,70 @@ export const config: DotenvConfig<typeof environments> = {
   /**
    * Logging
    */
-  LOG_SERVER_HTTP_ENDPOINT: {
-    default: "https://emss-logging.fit.nasa.gov/logstash/",
+  // Used by @emss/logger package to determine if application logs should be
+  // send to the logging server.
+  LOG_ENABLE_APP_LOGGING: { local: "false", test: "false", default: "true" },
+
+  // Unique ID for each app, for logging server search/filtering. This should
+  // be as short as possible. It gets put in the syslog "tag" field alongside
+  // other data, and the max length for tags is 32 characters, so keeping this
+  // short lowers the risk of exceeding the tags max length.
+  //
+  // DO NOT include a double dash, e.g. --. This would break the filters in
+  // Logstash.
+  LOG_DATA_APP_ID: { default: "coda" },
+
+  // Identifier for the server, e.g. `prod`, `carbon`, `local-dev`, etc.
+  // Used by Rsyslog to mark container log messages, as well as by @emss/logger
+  LOG_DATA_SERVER_NAME: {
+    local: "local-dev",
+
+    // gets altered at deploy-time depending on what server is being deployed
+    default: "INSERT_LOG_DATA_SERVER_NAME",
   },
-  ENABLE_LOGGING: { local: "false", default: "true" },
-  LOGSTASH_APP_ID: { default: "coda" },
+
+  // Used by @emss/logger package to determine destination for application logs
+  // LOG_SERVER_HTTP_ENDPOINT is for _application logs_, e.g. when in the app
+  // we do something like `clientLogger.info(...)`. It _IS_ possible to log
+  // from local dev to logging servers in FIT, because application logs go
+  // through the FIT proxy.
+  LOG_SERVER_HTTP_ENDPOINT: {
+    // When logging in local dev, you have some options:
+    //
+    // 1. Log to the prod log server:
+    //    local: "https://emss-logging.fit.nasa.gov/applog",
+    // 2. Log to a dev server with emss/logs deployed:
+    //    local: "https://carbon-emss-dev.fit.nasa.gov/applog"
+    // 3. Log to a locally-running log server running on port 9443:
+    //    local: "https://localhost:9443/applog"
+    //    (this may be problematic if we disallow insecure certs in emss/packages,
+    //    "logger" package, as you'll need to setup a trusted cert)
+    local: "https://carbon-emss-dev.fit.nasa.gov/applog",
+
+    // Send this app's logs to a location in FIT. Typically this will be to the
+    // emss-logging server, but could also be to dev servers running emss/logs
+    // app. Examples:
+    //
+    // - "https://emss-logging.fit.nasa.gov/applog" (typical value, emss-logging server)
+    // - "https://carbon-emss-dev.fit.nasa.gov/applog" (logging to carbon-emss-dev if emss/logs is running there)
+    default: "https://emss-logging.fit.nasa.gov/applog",
+  },
+
+  // This is where each container's logging.options.syslog-address points to.
+  // It will pretty much always be a location on the host, which will then
+  // forward the logs on to a remote location.
+  LOG_INTERNAL_ENDPOINT: {
+    // In local dev on Windows, generally we want to keep the same value as FIT
+    // because the UDP address won't care if the log messages fail to reach
+    // their destination. If, however, we want to test against a logging server
+    // running locally, the following can be uncommented, which will send logs
+    // from the containers directly to the logstash-tcp-input of the logging
+    // server, running on port 9602.
+    // local: "tcp://host.docker.internal:9602",
+
+    // For FIT, send to host machine's Rsyslog
+    default: "udp://127.0.0.1:514",
+  },
 
   /**
    * Versioning
@@ -223,5 +282,25 @@ export const config: DotenvConfig<typeof environments> = {
   },
   GIT_COMMIT: {
     default: process.env.CI_COMMIT_SHA || "DEV",
+  },
+
+  /** MTX Live streams */
+  VITE_PUBLIC_LIVE_STREAMS_ENABLED: {
+    local: "true",
+    default: "false",
+  },
+  VITE_PUBLIC_MOCK_LIVE_STREAMS: {
+    local: "true",
+    default: "false",
+  },
+  MEDIAMTX_USERNAME: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
+  MEDIAMTX_PASSWORD: {
+    default: {
+      type: "required-from-secret",
+    },
   },
 };

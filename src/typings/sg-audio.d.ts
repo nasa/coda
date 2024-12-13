@@ -36,3 +36,21 @@ type SgActivityRecord = {
   override: boolean;
   sgActivityRecord: SgActivityRecord[][];
 };
+
+type AudioManifestActivityRange = {
+  sound_start_secs: number;
+  sound_stop_secs: number;
+  aacSegmentFilename: string;
+};
+
+type AudioManifestsgChannelItem = {
+  sgChannel: number;
+  activity_ranges: AudioManifestActivityRange[];
+};
+
+type AudioManifestItem = {
+  start_seconds: number;
+  cue_start_seconds: number;
+  cue_end_seconds: number;
+  sgChannels: AudioManifestsgChannelItem[];
+};

@@ -1,33 +1,17 @@
 import _ from "lodash";
-import React, { MutableRefObject, useRef, useState } from "react";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+  FunctionComponent,
+  MutableRefObject,
+  useRef,
+  useState,
+  MouseEvent,
+  ReactNode,
+} from "react";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-modal.module.css";
 
-library.add(faChevronDown, faChevronRight);
-
-export interface Options {
-  color?: string;
-  /** `default` or `skinny` */
-  size?: string;
-  /** `up`, `down`, `left`, or `right` */
-  modalWidth?: number;
-  caret?: string;
-  callback?: () => void;
-  modal?: ({
-    closeClick,
-    options,
-    display,
-  }: {
-    closeClick?: () => void;
-    options?: any;
-    display?: boolean;
-  }) => JSX.Element;
-  modalOptions?: any;
-}
-
-const modalDefaults: Options = {
+const modalDefaults = {
   color: "white",
   size: "default",
   caret: "down",
@@ -42,18 +26,27 @@ const oppositeCarets: { [key: string]: string } = {
 };
 
 /** A menu with a down caret that opens a modal below */
-export function ModalDropdown(options: React.PropsWithChildren<Options>) {
-  // TODO: Really should be a ModalDropdown
+export const ModalDropdown: FunctionComponent<{
+  children: ReactNode;
+  color?: string;
+  size?: string;
+  modalWidth?: number;
+  caret?: string;
+  callback?: () => void;
+  modal?: FunctionComponent<{
+    closeClick?: () => void;
+    options?: any;
+    display?: boolean;
+  }>;
+  modalOptions?: any;
+}> = ({ children, ...options }) => {
   const opts = { ...modalDefaults, ...options };
   const [display, setDisplay] = useState(false);
 
   const modalRef = useRef(null) as MutableRefObject<HTMLInputElement>;
   const labelRef = useRef(null) as MutableRefObject<HTMLButtonElement>;
 
-  // TODO: it would be nice to grab the width when it first renders and use that to fix the width
-  //       when the modal is expanded. right now you have to fix the width in the containing element
-
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: MouseEvent) => {
     e.preventDefault();
     setDisplay(!display);
   };
@@ -74,12 +67,12 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
     <div>
       <button className={styles.main} ref={labelRef}>
         <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={handleClick}>
-          <div className={styles.verticalCenter}>{opts.children}</div>
+          <div className={styles.verticalCenter}>{children}</div>
           <div className={styles.verticalCenter}>
             <div className={`${caretStyle} ${styles.caret}`}>
               &nbsp;
-              {opts.caret === "down" && <FontAwesomeIcon icon="chevron-down" size={"sm"} />}
-              {opts.caret === "right" && <FontAwesomeIcon icon="chevron-right" size={"sm"} />}
+              {opts.caret === "down" && <FontAwesomeIcon icon={faChevronDown} size={"sm"} />}
+              {opts.caret === "right" && <FontAwesomeIcon icon={faChevronRight} size={"sm"} />}
             </div>
           </div>
         </div>
@@ -93,4 +86,4 @@ export function ModalDropdown(options: React.PropsWithChildren<Options>) {
       </div>
     </div>
   );
-}
+};

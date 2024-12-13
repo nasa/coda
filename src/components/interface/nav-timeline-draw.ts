@@ -1,5 +1,6 @@
 import isNull from "lodash/isNull";
 import paper from "paper";
+import { midnightZulu } from "utils/date";
 import { appSecondsFromDateString, hhmmssFromSeconds, lightColor } from "utils/formatting";
 
 export default class DrawNav {
@@ -47,22 +48,56 @@ export default class DrawNav {
   gColorPhotoTicks = new paper.Color("#28B463");
   gColorPhotoTicksFiltered = new paper.Color("#0c331c");
 
-  constructor(
-    readonly videoFiles: VideoFile[],
-    readonly photoFiles: PhotoFile[],
-    readonly collectionFilters: PhotoCollectionFilters[],
-    readonly dayNight: DayNightObj[],
-    readonly asPerformed: {
-      [x: string]: Activity[];
-    },
+  readonly videoFiles: VideoFile[];
+  readonly mtxPlaybackAvailability: MTXPlaybackAvailability;
+  readonly mtxHlsEndpointNames: MTXHlsEndpointName[];
+  readonly source: Source;
+  readonly photoFiles: PhotoFile[];
+  readonly collectionFilters: PhotoCollectionFilters[];
+  readonly dayNight: DayNightObj[];
+  readonly asPerformed: { [x: string]: Activity[] };
+  readonly dateRendered: Date;
+  readonly evaStartSec: number;
+  readonly sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][];
+
+  constructor({
+    videoFiles,
+    mtxPlaybackAvailability,
+    mtxHlsEndpointNames,
+    source,
+    photoFiles,
+    collectionFilters,
+    dayNight,
+    asPerformed,
+    dateRendered,
+    evaStartSec,
+    sgActivityFullPathRangeRecords,
+  }: {
+    videoFiles: VideoFile[];
+    mtxPlaybackAvailability: MTXPlaybackAvailability;
+    mtxHlsEndpointNames: MTXHlsEndpointName[];
+    source: Source;
+    photoFiles: PhotoFile[];
+    collectionFilters: PhotoCollectionFilters[];
+    dayNight: DayNightObj[];
+    asPerformed: { [x: string]: Activity[] };
     /** Keep track of dates for bookkeeping purposes */
-    readonly dateRendered: Date,
-    /** Keep track of which EVA was rendered for bookkeping purposes */
-    readonly evaRendered: string,
-    readonly evaStartSec: number,
-    readonly isToday: boolean,
-    readonly sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][]
-  ) {}
+    dateRendered: Date;
+    evaStartSec: number;
+    sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][];
+  }) {
+    this.videoFiles = videoFiles;
+    this.mtxPlaybackAvailability = mtxPlaybackAvailability;
+    this.mtxHlsEndpointNames = mtxHlsEndpointNames;
+    this.source = source;
+    this.photoFiles = photoFiles;
+    this.collectionFilters = collectionFilters;
+    this.dayNight = dayNight;
+    this.asPerformed = asPerformed;
+    this.dateRendered = dateRendered;
+    this.evaStartSec = evaStartSec;
+    this.sgActivityFullPathRangeRecords = sgActivityFullPathRangeRecords;
+  }
 
   initGroups() {
     if (typeof this.gTier1Group !== "undefined") {
@@ -467,6 +502,92 @@ export default class DrawNav {
         group.addChild(vidLine);
       }
     }
+
+    // draw the MTX playback availability lines on top of the video segments
+    for (let dl = 1; dl <= 8; dl++) {
+      const mtxPlaybackRecords = this.mtxPlaybackAvailability[dl.toString()];
+      if (!mtxPlaybackRecords) break;
+
+      for (let i = 0; i < mtxPlaybackRecords.length; i++) {
+        const mtxPlaybackRecord = mtxPlaybackRecords[i];
+
+        // start is an ISO time. convert this to a unix timestamp
+        const startUnix = new Date(mtxPlaybackRecord.start).valueOf() / 1000;
+        if (
+          startUnix - startOfDay <= param.secondsEnd &&
+          startUnix + mtxPlaybackRecord.duration - startOfDay >= param.secondsStart
+        ) {
+          let startLocX =
+            param.leftPx +
+            (Math.max(startUnix - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
+          let endLocX =
+            param.leftPx +
+            (Math.min(startUnix + mtxPlaybackRecord.duration - startOfDay, 86399) -
+              param.secondsStart) *
+              param.pixelsPerSecond;
+
+          let startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
+          let endLocY = startLocY + param.vidBarHeight + 1;
+
+          let name = "mtxItem_" + i.toString();
+
+          let mtxLine = new paper.Path.Rectangle({
+            from: [startLocX, startLocY],
+            to: [endLocX, endLocY],
+            strokeWidth: 1,
+            strokeColor: this.gColorBarBorder,
+            name: name,
+          });
+          mtxLine.fillColor = new paper.Color(this.gColorVideo);
+          group.addChild(mtxLine);
+        }
+      }
+    }
+
+    // draw the livestream HLS availability, represented as yellow lines on top of the video segments
+    // use the MTX playback records to determine which HLS streams are available
+    // times are derived. Start time is 15 minutes before the current time, end time is the current time
+    const now = new Date();
+    const nowSeconds = now.valueOf() / 1000;
+    const startSeconds = nowSeconds - 900; // 15 minutes before now
+
+    for (let dl = 1; dl <= 8; dl++) {
+      // search the mtxHlsEndpointNames for the HLS endpoint name for this downlink
+      const sourceAbbr = this.source === "ISS" ? "ISS" : "TE";
+      const streamEndpointName = `DL${dl}_${sourceAbbr}` as MTXHlsEndpointName;
+      const mtxHlsEndpoint = this.mtxHlsEndpointNames?.find(
+        (endpoint) => endpoint === streamEndpointName
+      );
+      if (!mtxHlsEndpoint) continue;
+
+      if (
+        startSeconds - startOfDay <= param.secondsEnd &&
+        nowSeconds - startOfDay >= param.secondsStart
+      ) {
+        let startLocX =
+          param.leftPx +
+          (Math.max(startSeconds - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
+        let endLocX =
+          param.leftPx +
+          (Math.min(nowSeconds - startOfDay, 86399) - param.secondsStart) * param.pixelsPerSecond;
+
+        let startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
+        let endLocY = startLocY + param.vidBarHeight + 1;
+
+        let name = "mtxItem_live_" + dl.toString();
+
+        let mtxLine = new paper.Path.Rectangle({
+          from: [startLocX, startLocY],
+          to: [endLocX, endLocY],
+          strokeWidth: 1,
+          strokeColor: this.gColorBarBorder,
+          name: name,
+        });
+        mtxLine.fillColor = new paper.Color(this.gColorVideo);
+        group.addChild(mtxLine);
+      }
+    }
+
     return group;
   }
 
@@ -706,7 +827,8 @@ export default class DrawNav {
     crosshatchWidth: number;
   }): paper.Group => {
     const group = new paper.Group();
-    if (this.isToday) {
+    const isToday = this.dateRendered.toDateString() === midnightZulu(new Date()).toDateString();
+    if (isToday) {
       const secondsIntoToday =
         appSecondsFromDateString(new Date().toISOString()) - param.secondsStart;
 
@@ -716,28 +838,36 @@ export default class DrawNav {
       if (futureLocY < this.gNavigatorWidth) {
         const futureLeftPoint = new paper.Point(futureLocX, futureLocY);
         const futureRightPoint = new paper.Point(this.gNavigatorWidth, futureLocY);
-        const fLine = new paper.Path.Line(futureLeftPoint, futureRightPoint);
-        fLine.strokeColor = new paper.Color(50, 50, 50, 0.1);
-        fLine.strokeWidth = lineThickness;
-        fLine.dashArray = [param.crosshatchWidth, param.crosshatchWidth];
-        group.addChild(fLine);
+        const fCrosshatching = new paper.Path.Line(futureLeftPoint, futureRightPoint);
+        fCrosshatching.strokeColor = new paper.Color(50, 50, 50, 0.1);
+        fCrosshatching.strokeWidth = lineThickness;
+        fCrosshatching.dashArray = [param.crosshatchWidth, param.crosshatchWidth];
+        group.addChild(fCrosshatching);
       }
+
+      // add a vertical line at the current time
+      const currentTimeTopPoint = new paper.Point(futureLocX, param.top);
+      const currentTimeBottomPoint = new paper.Point(futureLocX, param.bottom);
+      const currentTimeLine = new paper.Path.Line(currentTimeTopPoint, currentTimeBottomPoint);
+      currentTimeLine.strokeColor = new paper.Color("#AAAAAA");
+      currentTimeLine.strokeWidth = 1;
+      group.addChild(currentTimeLine);
 
       // add some explanatory text
       const futureText = new paper.PointText({
         justification: "left",
         fontFamily: this.gNavigatorFontFamilyActivity,
         fillColor: "#AAAAAA",
-        content: "The Future",
+        content: "Live",
       });
       if (param.largeLabel) {
         const textTop = param.bottom - 35;
-        futureText.point = new paper.Point(futureLocX - 43, textTop);
+        futureText.point = new paper.Point(futureLocX - 3, textTop);
         futureText.fontSize = 12;
       } else {
         // add some small explanatory text
         const textTop = param.bottom - 23;
-        futureText.point = new paper.Point(futureLocX - 25, textTop);
+        futureText.point = new paper.Point(futureLocX - 2, textTop);
         futureText.fontSize = 9;
       }
       futureText.rotate(-90);

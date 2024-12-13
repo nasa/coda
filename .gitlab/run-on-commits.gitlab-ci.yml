@@ -28,26 +28,26 @@ include:
 
   # Code quality checks
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/code-quality.gitlab-ci.yml"
 
   # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/emss-shared-dev.gitlab-ci.yml"
 
   # Fitdock deploy template
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/fitdock-deploy.gitlab-ci.yml"
 
   # Kaniko build template
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/kaniko-build.gitlab-ci.yml"
 
   - project: "emss/gitlab-templates"
-    ref: 1.2.2
+    ref: 2.2.0
     file: "/jobs/container-retag.gitlab-ci.yml"
 
 # Override some properties on FIT jobs. Unfortunately using a template for these
@@ -367,23 +367,59 @@ deploy:carbon:
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/carbon/g" .env
 
-deploy:dev1:
-  extends: .deploy-template
-  tags: ["coda-dev1-runner"]
+deploy:gold:
+  extends:
+    - .deploy-template
+    - .gold-deploy
   needs:
     - make-dotenv
     - docker:retag
     - deploy:artifactize-committed-files
-  environment:
-    name: development1
-    url: https://coda-dev.fit.nasa.gov
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
   when: manual
   before_script:
-    # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/INSERT_SUBDOMAIN/coda-dev/g" .env
+    - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
+
+deploy:iron:
+  extends:
+    - .deploy-template
+    - .iron-deploy
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/iron-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/iron/g" .env
+
+deploy:neon:
+  extends:
+    - .deploy-template
+    - .neon-deploy
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/neon-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/neon/g" .env
+
+deploy:oxygen:
+  extends:
+    - .deploy-template
+    - .neon-deploy
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
 
 deploy:int:
   extends: .deploy-template
@@ -397,11 +433,16 @@ deploy:int:
     url: https://coda-int.fit.nasa.gov
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+
+    # Turn off forwarding logs from VM's Rsyslog to EMSS logging server
+    # Cannot enable in int/prod environments until FIT firewall altered
+    RSYSLOG_DISABLE_FORWARDING: "true"
   only:
     - int
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/int/g" .env
 
 deploy:prod:
   extends: .deploy-template
@@ -421,12 +462,17 @@ deploy:prod:
     url: https://coda.fit.nasa.gov
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+
+    # Turn off forwarding logs from VM's Rsyslog to EMSS logging server
+    # Cannot enable in int/prod environments until FIT firewall altered
+    RSYSLOG_DISABLE_FORWARDING: "true"
   when: manual
   only:
     - prod
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env
 
 .db-export-template:
   needs: []
@@ -469,17 +515,25 @@ z:db-export:carbon:
     - .db-export-template
     - .carbon-access
 
-z:db-export:dev1:
-  extends: .db-export-template
-  tags: ["coda-dev1-runner"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
+z:db-export:gold:
+  extends:
+    - .db-export-template
+    - .gold-access
 
-z:db-export:dev2:
-  extends: .db-export-template
-  tags: ["coda-dev2-runner"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2 #CI/CD Variable
+z:db-export:iron:
+  extends:
+    - .db-export-template
+    - .iron-access
+
+z:db-export:neon:
+  extends:
+    - .db-export-template
+    - .neon-access
+
+z:db-export:oxygen:
+  extends:
+    - .db-export-template
+    - .oxygen-access
 
 .db-import-template:
   when: manual
@@ -510,16 +564,29 @@ z:db-import:carbon:
     - .carbon-deploy
   needs: ["z:db-export:prod"]
 
-z:db-import:dev1:
-  extends: .db-import-template
-  tags: ["coda-dev1-runner"]
+z:db-import:gold:
+  extends:
+    - .db-import-template
+    - .gold-deploy
   needs: ["z:db-export:prod"]
-  environment:
-    name: development1
-    url: $URL
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
-    URL: https://coda-dev1.fit.nasa.gov
+
+z:db-import:iron:
+  extends:
+    - .db-import-template
+    - .iron-deploy
+  needs: ["z:db-export:prod"]
+
+z:db-import:neon:
+  extends:
+    - .db-import-template
+    - .neon-deploy
+  needs: ["z:db-export:prod"]
+
+z:db-import:oxygen:
+  extends:
+    - .db-import-template
+    - .oxygen-deploy
+  needs: ["z:db-export:prod"]
 
 z:db-import:int:
   extends: .db-import-template
@@ -561,6 +628,8 @@ z:db-import:int:
     # limit, and generally make the job log unreadably long
     - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
     - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
+
+    - sudo journalctl --unit=rsyslog -n 200 --no-pager
   artifacts:
     when: always
     paths:
@@ -572,19 +641,25 @@ z:logs:carbon:
     - .container-logs-template
     - .carbon-access
 
-z-logs:dev1:
-  extends: .container-logs-template
-  tags: ["coda-dev1-runner"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
+z:logs:gold:
+  extends:
+    - .container-logs-template
+    - .gold-access
 
-z-logs:dev2:
-  extends: .container-logs-template
-  tags: ["coda-dev2-runner"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV2
+z:logs:iron:
+  extends:
+    - .container-logs-template
+    - .iron-access
+
+z:logs:neon:
+  extends:
+    - .container-logs-template
+    - .neon-access
+
+z:logs:oxygen:
+  extends:
+    - .container-logs-template
+    - .oxygen-access
 
 z-logs:int:
   extends: .container-logs-template

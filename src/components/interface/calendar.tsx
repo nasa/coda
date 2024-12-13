@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
 import { getYearDayNumber, padZeros } from "utils/formatting";
@@ -61,16 +61,13 @@ const handleDateChange = (
   window.location.assign(URL);
 };
 
-export function MonthsModal({
-  closeClick,
-  options: { visibleYearMonth, setVisibleYearMonth },
-}: {
+export const MonthsModal: FunctionComponent<{
   closeClick?: () => void;
   options: {
     visibleYearMonth: string;
     setVisibleYearMonth: (ym: string) => void;
   };
-}) {
+}> = ({ closeClick, options: { visibleYearMonth, setVisibleYearMonth } }) => {
   const [yyyy, mm] = visibleYearMonth.split("-");
   const zeroIndexedMonth = +mm - 1;
 
@@ -96,18 +93,15 @@ export function MonthsModal({
       })}
     </div>
   );
-}
+};
 
-export function YearsModal({
-  closeClick,
-  options: { visibleYearMonth, setVisibleYearMonth },
-}: {
+export const YearsModal: FunctionComponent<{
   closeClick?: () => void;
   options: {
     visibleYearMonth: string;
     setVisibleYearMonth: (ym: string) => void;
   };
-}) {
+}> = ({ closeClick, options: { visibleYearMonth, setVisibleYearMonth } }) => {
   const [yyyy, mm] = visibleYearMonth.split("-");
 
   const now = new Date();
@@ -144,14 +138,14 @@ export function YearsModal({
       })}
     </div>
   );
-}
+};
 
 const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick: () => void }> = ({
   description,
   closeClick,
 }) => {
-  const framework = useSelector((state: RootState) => state.framework);
-  const playhead = useSelector((state: RootState) => state.playhead);
+  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   let dayOfYearColor = "var(--even-greyer)";
   let toolTipText = "";
@@ -223,10 +217,13 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
 };
 
 const DayOfYearPicker: FunctionComponent = () => {
-  const framework = useSelector((state: RootState) => state.framework);
-  const playhead = useSelector((state: RootState) => state.playhead);
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
-  const allSequences = useSelector((state: RootState) => state.sequences.allSequences);
+  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const playheadDate = playhead.date;
+  const allSequences = useAppSelector(
+    (state: RootState) => state.sequences.allSequences,
+    deepEqual
+  );
 
   const today = new Date();
   const todayYYYY = today.getUTCFullYear();
@@ -339,11 +336,11 @@ const DayOfYearPicker: FunctionComponent = () => {
 };
 
 /** Renders a calendar */
-export default function Calendar({ closeClick }: { closeClick?: () => void }) {
-  const framework = useSelector((state: RootState) => state.framework);
-  const sequences = useSelector((state: RootState) => state.sequences);
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
-  const source = useSelector((state: RootState) => state.framework.source);
+export const Calendar: FunctionComponent<{ closeClick?: () => void }> = ({ closeClick }) => {
+  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
+  const playheadDate = useAppSelector((state: RootState) => state.playhead.date, refEqual);
+  const source = framework.source;
 
   let allSequences = sequences.allSequences;
   if (source === "NBL") {
@@ -465,4 +462,4 @@ export default function Calendar({ closeClick }: { closeClick?: () => void }) {
       <DayOfYearPicker />
     </div>
   );
-}
+};

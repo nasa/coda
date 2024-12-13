@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { midnightZulu } from "../utils/date";
+import { isSameDate, midnightZulu } from "../utils/date";
+import { appSecondsFromDateString } from "utils/formatting";
 
 export const initialState: PlayheadState = {
   // assume a 08:00:00Z start
@@ -25,13 +26,29 @@ export const playheadSlice = createSlice({
      */
     changeDate: (state, action: { payload: string }) => {
       const date = new Date(action.payload);
-      state.date = midnightZulu(date).toISOString();
+
+      // if the date is not in the future, set it, else set it to today
+      if (date.getTime() < Date.now()) {
+        state.date = midnightZulu(date).toISOString();
+      } else {
+        state.date = midnightZulu(new Date()).toISOString();
+      }
     },
 
     /**
      * Change the date the application is rendering
      */
     changeTime: (state, action: { payload: number }) => {
+      // if it's today, dont allow the time to be set in the future
+      const isToday = isSameDate(new Date(), new Date(state.date));
+      if (isToday) {
+        const currentTimeAppSeconds = appSecondsFromDateString(new Date().toISOString());
+        if (action.payload > currentTimeAppSeconds) {
+          // if the time is in the future, set it to the current time
+          state.seconds = currentTimeAppSeconds;
+          return;
+        }
+      }
       state.seconds = action.payload;
     },
 

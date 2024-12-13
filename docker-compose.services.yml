@@ -8,8 +8,31 @@
 #
 services:
   database:
+    logging: !reset null # turn off logging
     ports:
       # For local dev, expose the database outside the docker network in case devs want to use
       # a SQL client on their machine (e.g. HeidiSQL, etc)
       # 5430 is for TalkyBot. AEGIS uses 5432, CODA, 5431
       - "5431:5432"
+
+  mediamtx-mock:
+    build:
+      context: .
+      dockerfile: ./docker/mediamtx-mock/Dockerfile
+    container_name: mediamtx-mock
+    ports:
+      - "8888:8888" # HLS
+      - "9996:9996" # Playback API
+      - "9997:9997" # Control API
+      - "8554:8554" # RTSP in case we want to manually test
+    volumes:
+      - ./docker/mediamtx-mock/mediamtx.yml:/mediamtx.yml
+      - ./.local/mediamtx/recordings:/recordings
+      - ./.local/mediamtx/hls:/hls
+    restart: unless-stopped
+
+  # Don't start any of these services
+  nginx: !reset null
+  apiv1: !reset null
+  oauth2-proxy: !reset null
+  redis: !reset null

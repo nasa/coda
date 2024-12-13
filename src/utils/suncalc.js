@@ -143,10 +143,7 @@ function hourAngle(h, phi, d) {
   return acos((sin(h) - sin(phi) * sin(d)) / (cos(phi) * cos(d)));
 }
 function observerAngle(height) {
-  // Normally -2.076 on Earth due to atmospheric refraction, but we're in space
-  // Ref: https://en.wikipedia.org/wiki/Sunrise_equation
-  const refractionCorrection = -2.0;
-  return (refractionCorrection * Math.sqrt(height)) / 60;
+  return (-2.076 * Math.sqrt(height)) / 60;
 }
 
 // returns set time for the given sun altitude
@@ -156,15 +153,9 @@ function getSetJ(h, lw, phi, dec, n, M, L) {
   return solarTransitJ(a, M, L);
 }
 
-/**
- * calculates sun times for a given date, latitude/longitude, and, optionally,
- * the observer height (in meters) relative to the horizon
- * @param {*} date
- * @param {*} lat
- * @param {*} lng
- * @param {*} height
- * @returns {solarNoon, nadir, sunrise, sunset, sunriseEnd, sunsetStart, dawn, dusk, nauticalDawn, nauticalDusk, nightEnd, night, goldenHourEnd, goldenHour}}
- */
+// calculates sun times for a given date, latitude/longitude, and, optionally,
+// the observer height (in meters) relative to the horizon
+
 SunCalc.getTimes = function (date, lat, lng, height) {
   height = height || 0;
 
@@ -181,13 +172,20 @@ SunCalc.getTimes = function (date, lat, lng, height) {
     result = {
       solarNoon: fromJulian(Jnoon),
       nadir: fromJulian(Jnoon - 0.5),
+      sunset: null,
+      goldenHour: null,
+      sunrise: null,
+      sunriseEnd: null,
     };
 
+  let time, h0, Jset, Jrise;
+
   for (let i = 0, len = times.length; i < len; i += 1) {
-    const time = times[i],
-      h0 = (time[0] + dh) * rad,
-      Jset = getSetJ(h0, lw, phi, dec, n, M, L),
-      Jrise = Jnoon - (Jset - Jnoon);
+    time = times[i];
+    h0 = (time[0] + dh) * rad;
+
+    Jset = getSetJ(h0, lw, phi, dec, n, M, L);
+    Jrise = Jnoon - (Jset - Jnoon);
 
     result[time[1]] = fromJulian(Jrise);
     result[time[2]] = fromJulian(Jset);
@@ -220,9 +218,13 @@ SunCalc.getMoonPosition = function (date, lat, lng) {
     phi = rad * lat,
     d = toDays(date),
     c = moonCoords(d),
-    H = siderealTime(d, lw) - c.ra,
-    h = altitude(H, phi, c.dec) + astroRefraction(h), // altitude correction for refraction
-    pa = atan(sin(H), tan(phi) * cos(c.dec) - sin(c.dec) * cos(H)); // formula 14.1 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
+    H = siderealTime(d, lw) - c.ra;
+
+  let h = altitude(H, phi, c.dec);
+  // formula 14.1 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
+  const pa = atan(sin(H), tan(phi) * cos(c.dec) - sin(c.dec) * cos(H));
+
+  h = h + astroRefraction(h); // altitude correction for refraction
 
   return {
     azimuth: azimuth(H, phi, c.dec),
@@ -268,7 +270,6 @@ SunCalc.getMoonTimes = function (date, lat, lng, inUTC) {
 
   const hc = 0.133 * rad;
   let h0 = SunCalc.getMoonPosition(t, lat, lng).altitude - hc;
-
   let h1, h2, rise, set, a, b, xe, ye, d, roots, x1, x2, dx;
 
   // go in 2-hour chunks, each time seeing if a 3-point quadratic curve crosses zero (which means rise or set)

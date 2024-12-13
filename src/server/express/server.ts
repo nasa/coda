@@ -6,6 +6,7 @@ import { Server as SocketServer } from "socket.io";
 import { getORM } from "utils/mikro";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
+import serverLogger from "utils/serverLogger";
 
 const port = 3001;
 
@@ -31,5 +32,5 @@ globalValues.socketio = new SocketServer<
 setupSocketIO();
 
 server.listen(port, () => {
-  console.log(`http server (re)started on ${port}`);
+  serverLogger.info({ logId: "api-restart" });
 });

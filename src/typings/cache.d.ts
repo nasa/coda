@@ -35,4 +35,5 @@ type CacheFolder =
   | "wiki"
   | "wiki/all"
   | "wiki/gps"
-  | "test";
+  | "test"
+  | "labs/mtxPlayback";

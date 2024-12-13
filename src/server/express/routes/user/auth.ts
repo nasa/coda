@@ -1,6 +1,6 @@
-import { logUserTraffic } from "@emss/oauth2-proxy-backend";
 import express, { Request, Response } from "express";
 import { getUser } from "packages/getUser";
+import serverLogger from "utils/serverLogger";
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     res.status(500).send({ msg });
     return;
   }
-  logUserTraffic(user);
+  serverLogger.logUserLogin(user);
   res.send({ user });
 });
 

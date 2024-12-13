@@ -1,6 +1,6 @@
 import _ from "lodash";
 import styles from "./frame.module.css";
-import { useSelector } from "react-redux";
+import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { RootState } from "store";
 
 import { ModalDropdown } from "components/interface/dropdown-modal";
@@ -16,32 +16,27 @@ import GPSLocation, { GPSLocationControls } from "components/panes/gps-location"
 import CommPane, { CommControls } from "components/panes/comm";
 import Graph, { GraphControls } from "components/panes/graph/graph";
 
-export interface Options {
-  frameID: number;
-  frameTypeID: number;
-}
-
 /** Renders the header for a frame */
-export function FrameHeader(props: {
+export const FrameHeader: FunctionComponent<{
   frameID: number;
   paneType: string;
   children?: any;
   frameDimensions?: number[];
-}) {
+}> = ({ frameID, paneType, children, frameDimensions = [] }) => {
   let labelSize: "S" | "M" | "L" = "S";
   let dropdownStyle = styles.dropdownSmallest;
-  if (props.frameDimensions[0] > 470) {
+  if (frameDimensions[0] > 470) {
     labelSize = "L";
     dropdownStyle = styles.dropdown;
-  } else if (props.frameDimensions[0] > 260) {
+  } else if (frameDimensions[0] > 260) {
     labelSize = "M";
     dropdownStyle = styles.dropdownSmall;
   }
 
   let label = <>&nbsp;Select display type</>;
 
-  if (!_.isNil(props.paneType)) {
-    label = <PaneLabel paneType={props.paneType} labelSize={labelSize} />;
+  if (!_.isNil(paneType)) {
+    label = <PaneLabel paneType={paneType} labelSize={labelSize} />;
   }
 
   return (
@@ -52,16 +47,16 @@ export function FrameHeader(props: {
             color="grey"
             size="skinny"
             modal={PanePickerModal}
-            modalOptions={{ frameID: props.frameID }}
+            modalOptions={{ frameID }}
           >
             {label}
           </ModalDropdown>
         </div>
       </div>
-      <div className={styles.controls}>{props.children}</div>
+      <div className={styles.controls}>{children}</div>
     </div>
   );
-}
+};
 
 const frameTypeIDsToPanes: PaneTypeComponentSets = {
   empty: {
@@ -106,16 +101,14 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
   },
 };
 
-/** Identify the frame */
-export interface Options {
-  id: number;
-}
-
 const headerContainerHeight = 35;
 
 /** Renders a frame in the viewer */
 const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
-  const frameState = useSelector((state: RootState) => state.framework.frames[frameId]);
+  const frameState = useAppSelector(
+    (state: RootState) => state.framework.frames[frameId],
+    shallowEqual
+  );
 
   let paneType: string = null;
   if (frameState) {

@@ -1,6 +1,7 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import { FunctionComponent, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
 import { changeTime } from "store/playhead";
 import { RootState } from "store/index";
@@ -8,18 +9,14 @@ import styles from "./comm.module.css";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCircleXmark,
-  faVolumeUp,
-  faVolumeMute,
   faLock,
   faLockOpen,
   faFilter,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { MuteButton } from "components/panes/video";
-
-library.add(faCircleXmark, faVolumeUp, faVolumeMute, faLock, faLockOpen, faFilter);
 
 const sgChannels = [0, 1, 2, 3];
 
@@ -27,17 +24,19 @@ export const CommControls: FunctionComponent<{
   frameID: number;
   frameDimensions: [number, number];
 }> = ({ frameID, frameDimensions }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const minWidth = 470; // minimum width of the transcript pane before breaking into dropdown for downlinks
 
-  const paneStateData: CommPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: CommPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
-  const sgActivityFullUrlRecord = useSelector(
-    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord
+  const sgActivityFullUrlRecord = useAppSelector(
+    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord,
+    deepEqual
   );
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   const [channelAvailability, setChannelAvailability] = useState([]);
 
@@ -140,7 +139,7 @@ export const CommControls: FunctionComponent<{
               })}
             </select>
             <div className={styles.nonDlSelect_arrow}>
-              <FontAwesomeIcon icon="chevron-down" size="sm" />
+              <FontAwesomeIcon icon={faChevronDown} size="sm" />
             </div>
           </div>
         </>
@@ -211,14 +210,19 @@ type SgAudioObj = {
 };
 
 const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const transcripts = useSelector((state: RootState) => state.transcript.transcripts);
-  const isTranscripts = useSelector((state: RootState) => state.transcript.isTranscripts);
-  const playhead = useSelector((state: RootState) => state.playhead);
-  const sgActivityFullUrlRecord = useSelector(
-    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord
+  const transcripts = useAppSelector((state: RootState) => state.transcript.transcripts, deepEqual);
+  const isTranscripts = useAppSelector(
+    (state: RootState) => state.transcript.isTranscripts,
+    deepEqual
   );
-  const paneStateData: CommPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const sgActivityFullUrlRecord = useAppSelector(
+    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord,
+    deepEqual
+  );
+  const paneStateData: CommPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   // SG audio state
@@ -233,7 +237,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const audioPlayerRef = useRef<HTMLVideoElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleScroll = () => {
     if (paneStateData.lockScroll) {
@@ -420,7 +424,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                 setPaneStateValue(dispatch, frameID, "filterActive", false);
               }}
             >
-              <FontAwesomeIcon icon="circle-xmark" size="lg" />
+              <FontAwesomeIcon icon={faCircleXmark} size="lg" />
             </div>
           </div>
         </div>

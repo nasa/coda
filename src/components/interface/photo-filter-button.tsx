@@ -1,37 +1,37 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./photo-filter-button.module.css";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
-import { useDispatch, useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store";
 import { setCollectionFilters } from "store/photos";
+import { FunctionComponent } from "react";
 
-export function FilterButton(props: {
+export const FilterButton: FunctionComponent<{
   clickHandler: () => void;
   selected?: boolean;
   frameDimensions: number[];
-}) {
-  const buttonLength = props.frameDimensions[0] > 470 ? styles.buttonLong : styles.buttonShort;
-  const selectedStyle = props.selected ? styles.selected : "";
+}> = ({ clickHandler, selected, frameDimensions }) => {
+  const buttonLength = frameDimensions[0] > 470 ? styles.buttonLong : styles.buttonShort;
+  const selectedStyle = selected ? styles.selected : "";
   return (
     <button
       className={`${styles.filterButton} ${buttonLength} ${selectedStyle}`}
-      onClick={() => {
-        props.clickHandler();
-      }}
+      onClick={clickHandler}
     >
       <span className={styles.filterLabel}>
-        <div>{props.frameDimensions[0] > 470 ? "Filter" : ""}</div>
+        <div>{frameDimensions[0] > 470 ? "Filter" : ""}</div>
         <div>
           <FontAwesomeIcon icon={faFilter} size="sm" />
         </div>
       </span>
     </button>
   );
-}
+};
 
-export const RenderPhotoFilter = () => {
-  const dispatch = useDispatch();
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
+export const RenderPhotoFilter: FunctionComponent = () => {
+  const dispatch = useAppDispatch();
+  const photos = useAppSelector((state: RootState) => state.photos, deepEqual);
 
   const changeFilter = (index: number, value: boolean) => {
     let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
