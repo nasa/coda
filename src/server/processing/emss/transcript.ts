@@ -46,6 +46,7 @@ export default async function getTranscripts({
     return LabsService.fetchLabsAndTalkybotTranscripts({ source, dateWanted, forceNew });
   } else {
     const res: UnprocessedTranscript[] = await LabsService.fetchTalkybotTranscripts({
+      source,
       dateWanted,
     });
     // wrap the response

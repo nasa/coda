@@ -21,6 +21,8 @@ import {
   setVideoLoadingStatus,
   fetchError as videosFetchError,
   clearVideos,
+  setMtxPlaybackAvailability,
+  setMtxHlsEndpointNames,
 } from "store/videos";
 import {
   addPhotos,
@@ -29,7 +31,12 @@ import {
   fetchError as photosFetchError,
   clearPhotos,
 } from "store/photos";
-import { buildPhotoCollections, buildPhotoStore, buildVideoStore } from "http-client/media";
+import {
+  buildMTXPlaybackStore,
+  buildPhotoCollections,
+  buildPhotoStore,
+  buildVideoStore,
+} from "http-client/media";
 import { clearGPSTracks, setGpsLoadingStatus, setGPSTracks } from "store/gps";
 import { buildEphemerisStore } from "http-client/location";
 import {
@@ -93,6 +100,12 @@ export function V2() {
   const source = useSelector((state: RootState) => state.framework.source);
   const sequences = useSelector((state: RootState) => state.sequences);
   let allEVAs = sequences.allSequences;
+  const oldMtxPlaybackAvailability = useSelector(
+    (state: RootState) => state.videos.mtxPlaybackAvailability
+  );
+  const oldMtxHlsEndpointNames = useSelector(
+    (state: RootState) => state.videos.mtxHlsEndpointNames
+  );
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
   const [socketStatus, setSocketStatus] = useState<SocketStatus>({
@@ -107,7 +120,7 @@ export function V2() {
 
   const dispatch = useDispatch();
 
-  const retrieverRetryRange = [3000, 8000]; // in milliseconds
+  const retrieverRetryRange = [2000, 8000]; // in milliseconds
 
   // make sure the application is running on the correct date
   let userDate = null;
@@ -267,6 +280,56 @@ export function V2() {
       dispatch(videosFetchError(e.toString()));
     }
     dispatch(setVideoLoadingStatus("loaded"));
+  };
+
+  const populateMTXVideoStore = async ({
+    dateWanted,
+    source,
+  }: {
+    dateWanted: string;
+    source: Source;
+  }) => {
+    // if dateWanted in the past 24 hours, populate the MTX video store
+    const d = new Date(dateWanted);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    if (diff > 0 && diff < 48 * 60 * 60 * 1000) {
+      try {
+        const response = await buildMTXPlaybackStore({ dateWanted, source });
+        if (response.responseMetadata.retrieverStatus === "inprogress") {
+          setTimeout(
+            async () => {
+              console.log("setting timeout");
+              await populateMTXVideoStore({ dateWanted, source });
+            },
+            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          );
+          if (response.data) {
+            dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
+            dispatch(setMtxHlsEndpointNames(response.data.mtxHlsEndpointNames));
+          }
+          return;
+        }
+        if (response.responseMetadata.retrieverStatus === "error") {
+          dispatch(photosFetchError(response.responseMetadata.error));
+          return;
+        }
+        if (response.data) {
+          // deep diff the response data to see if we need to update the store.
+          // we do this because the API call can sometimes be "inprogress" for a long time and each timeout refresh causes the video panes to reload
+          const diff =
+            _.isEqual(oldMtxPlaybackAvailability, response.data.mtxPlaybackAvailability) &&
+            _.isEqual(oldMtxHlsEndpointNames, response.data.mtxHlsEndpointNames);
+
+          if (!diff) {
+            dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
+            dispatch(setMtxHlsEndpointNames(response.data.mtxHlsEndpointNames));
+          }
+        }
+      } catch (e) {
+        // ignore errors
+      }
+    }
   };
 
   const populatePhotoStore = async ({
@@ -497,6 +560,7 @@ export function V2() {
     (async () => {
       populateSequenceStore({ source });
       populateVideoStore({ dateWanted, source, incremental: false });
+      populateMTXVideoStore({ dateWanted, source });
       populatePhotoStore({ dateWanted, source });
       populateEphemerisStore({ dateWanted, source });
       populateDayNightStore({ dateWanted, source });
@@ -517,12 +581,13 @@ export function V2() {
   }, [emssVideoEnabled]);
 
   // if UTC yyyymmdd playhead date matches UTC today
-  const isToday = d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0];
+  const isToday = isSameDate(new Date(), new Date(playheadDate));
 
   // re-poll endpoints every minute
   useInterval(async () => {
     if (isToday) {
       await populateVideoStore({ dateWanted, source, incremental: false });
+      await populateMTXVideoStore({ dateWanted, source });
       await populatePhotoStore({ dateWanted, source });
       await populateTranscriptStore({ dateWanted, source });
       await populateSgAudioStore({ dateWanted, source });

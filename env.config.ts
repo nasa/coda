@@ -283,4 +283,24 @@ export const config: DotenvConfig<typeof environments> = {
   GIT_COMMIT: {
     default: process.env.CI_COMMIT_SHA || "DEV",
   },
+
+  /** MTX Live streams */
+  VITE_PUBLIC_LIVE_STREAMS_ENABLED: {
+    local: "true",
+    default: "false",
+  },
+  VITE_PUBLIC_MOCK_LIVE_STREAMS: {
+    local: "true",
+    default: "false",
+  },
+  MEDIAMTX_USERNAME: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
+  MEDIAMTX_PASSWORD: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
 };

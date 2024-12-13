@@ -2,7 +2,7 @@
  * Playhead stores
  */
 interface PlayheadState {
-  /** Seconds representing the time into the mission day, eg. `0` is 00:00:00Z, `86399` is 23:59:59Z */
+  /** Seconds representing the time into the mission day| eg. `0` is 00:00:00Z, `86399` is 23:59:59Z */
   seconds: number;
   /** UTC date being viewed */
   date: string;
@@ -73,6 +73,9 @@ interface PhotoCollectionFilters {
 /** Info about videos from IO and the desired high-level state of the video players */
 type VideosState = {
   videoFiles: VideoFile[];
+  mtxPlaybackAvailability: MTXPlaybackAvailability;
+  // string of stream names in the DL1_ISS, DL2_ISS, etc format or DL1_TE (test event), DL2_TE, etc.
+  mtxHlsEndpointNames: MTXHlsEndpointName[];
   responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatus;
 };

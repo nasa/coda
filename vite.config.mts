@@ -61,7 +61,7 @@ export const config: UserConfig = {
             "react-lazy-load-image-component",
             "react-cookie",
           ],
-          plotly: ["plotly.js"],
+          plotly: ["plotly.js-basic-dist"],
           mapbox: ["mapbox-gl"],
           fonts: [
             "@fortawesome/fontawesome-svg-core",

@@ -15,12 +15,11 @@ import { filterVisibleVideos } from "store/videos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 import styles from "./nav-timeline-draw.module.css";
-import { isSameDate } from "../../utils/date";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
-export default function NavTimeline(props: { source: Source }) {
+export default function NavTimeline({ source }: { source: Source }) {
   const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
   const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
   const dayNights: DayNightState = useSelector((state: RootState) => state.dayNight);
@@ -36,21 +35,17 @@ export default function NavTimeline(props: { source: Source }) {
   const dispatch = useDispatch();
   const dayNight = dayNights.dayNight;
 
-  const videoFiles = videos.videoFiles;
-  const photoFiles = photos.photoFiles;
-
   let allEVAs = sequences.allSequences;
-  if (props.source === "NBL") {
+  if (source === "NBL") {
     // Show only NBL sequences
     allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
-  } else if (props.source === "TEST_EVENTS") {
+  } else if (source === "TEST_EVENTS") {
     // Filter out all NBL sequences
     allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
 
   const maestroDataAvailable = !isNil(maestro.processedActivitiesData);
   const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
-  const evaName = !maestroDataAvailable ? get(sequence, "name", "") : maestro.title;
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
   const canvas: MutableRefObject<HTMLCanvasElement> = useRef(null);
@@ -102,20 +97,20 @@ export default function NavTimeline(props: { source: Source }) {
     }
 
     const playheadDate = new Date(playhead.date);
-    const isToday = isSameDate(new Date(), playheadDate);
 
-    drawNav.current = new DrawNav(
-      filterVisibleVideos(videoFiles, playheadDate),
-      photoFiles,
-      photos.collectionFilters,
-      dayNight,
-      asPerformed,
-      playheadDate,
-      evaName,
-      evaStartSec,
-      isToday,
-      sgActivityRangeFullUrlRecord
-    );
+    drawNav.current = new DrawNav({
+      videoFiles: filterVisibleVideos(videos.videoFiles, playheadDate),
+      mtxPlaybackAvailability: videos.mtxPlaybackAvailability,
+      mtxHlsEndpointNames: videos.mtxHlsEndpointNames,
+      source,
+      photoFiles: photos.photoFiles,
+      collectionFilters: photos.collectionFilters,
+      dayNight: dayNight,
+      asPerformed: asPerformed,
+      dateRendered: playheadDate,
+      evaStartSec: evaStartSec,
+      sgActivityFullPathRangeRecords: sgActivityRangeFullUrlRecord,
+    });
 
     drawNav.current.initGroups();
     drawNav.current.setDynamicWidthVariables();
@@ -179,8 +174,8 @@ export default function NavTimeline(props: { source: Source }) {
   }, [
     sequence,
     maestroDataAvailable,
-    videoFiles,
-    photoFiles,
+    videos,
+    photos.photoFiles,
     dayNight,
     photos,
     playhead.date,
