@@ -1,10 +1,9 @@
-import { useDispatch, useSelector } from "react-redux";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
-import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faEye, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Calendar from "components/interface/calendar";
+import { Calendar } from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
 import PresetPicker from "components/framework/preset-picker";
@@ -19,18 +18,19 @@ import SharePanel from "components/interface/share";
 
 import { allLayouts, setEmssVideoEnabled } from "store/framework";
 import AboutOverlay from "./about-overlay";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
 import { changeTime, halt, start } from "store/playhead";
 import { generateShareURL } from "utils/share-state";
 import { isSameDate } from "utils/date";
 
-library.add(faQuestionCircle, faCalendarAlt, faClock, faFloppyDisk);
-
-export function LoaderHelpMenu(props: { helpLoaderOpen: boolean; setHelpLoaderOpen: Function }) {
-  const dispatch = useDispatch();
+export const LoaderHelpMenu: FunctionComponent<{
+  helpLoaderOpen: boolean;
+  setHelpLoaderOpen: (val: boolean) => void;
+}> = ({ helpLoaderOpen, setHelpLoaderOpen }) => {
+  const dispatch = useAppDispatch();
 
   const setModalIsOpen = (val: boolean) => {
-    props.setHelpLoaderOpen(val);
+    setHelpLoaderOpen(val);
     if (val === false) {
       dispatch(start()); // start playback when help menu closes
     } else {
@@ -43,20 +43,20 @@ export function LoaderHelpMenu(props: { helpLoaderOpen: boolean; setHelpLoaderOp
       <div
         className={styles.helpMenuButton}
         onClick={() => {
-          props.setHelpLoaderOpen(!props.helpLoaderOpen);
+          setHelpLoaderOpen(!helpLoaderOpen);
         }}
       >
         <div className={styles.verticalCenter}>
-          <FontAwesomeIcon icon="question-circle" />
+          <FontAwesomeIcon icon={faQuestionCircle} />
         </div>
       </div>
-      <AboutOverlay modalIsOpen={props.helpLoaderOpen} setModalIsOpen={setModalIsOpen} />
+      <AboutOverlay modalIsOpen={helpLoaderOpen} setModalIsOpen={setModalIsOpen} />
     </>
   );
-}
+};
 
-export function LayoutDropdown() {
-  const layout = useSelector((state: RootState) => state.framework.layout);
+export const LayoutDropdown: FunctionComponent = () => {
+  const layout = useAppSelector((state: RootState) => state.framework.layout, refEqual);
 
   const layoutDefinition = allLayouts[layout];
   const mainStyleName =
@@ -79,37 +79,33 @@ export function LayoutDropdown() {
       </div>
     </ModalDropdown>
   );
-}
+};
 
-export function PresetDropdown() {
-  return (
-    <ModalDropdown modal={PresetPicker} modalWidth={350} color="grey" caret="down">
-      <div
-        className={`${styles.verticalCenter} ${styles.preset}`}
-        title="Save and load display presets"
-      >
-        <FontAwesomeIcon icon="floppy-disk" />
-      </div>
-    </ModalDropdown>
-  );
-}
+export const PresetDropdown: FunctionComponent = () => (
+  <ModalDropdown modal={PresetPicker} modalWidth={350} color="grey" caret="down">
+    <div
+      className={`${styles.verticalCenter} ${styles.preset}`}
+      title="Save and load display presets"
+    >
+      <FontAwesomeIcon icon={faFloppyDisk} />
+    </div>
+  </ModalDropdown>
+);
 
-export function ShareDropdown() {
-  return (
-    <ModalDropdown modal={SharePanel} modalWidth={350} color="grey" caret="down">
-      <div
-        className={`${styles.verticalCenter} ${styles.shareButton}`}
-        title="Share this View of Current Playback Time"
-      >
-        <div className={styles.svgShare}></div>
-      </div>
-    </ModalDropdown>
-  );
-}
+export const ShareDropdown: FunctionComponent = () => (
+  <ModalDropdown modal={SharePanel} modalWidth={350} color="grey" caret="down">
+    <div
+      className={`${styles.verticalCenter} ${styles.shareButton}`}
+      title="Share this View of Current Playback Time"
+    >
+      <div className={styles.svgShare}></div>
+    </div>
+  </ModalDropdown>
+);
 
-export function SourcesDropdown() {
-  const framework = useSelector((state: RootState) => state.framework);
-  const playhead = useSelector((state: RootState) => state.playhead);
+export const SourcesDropdown: FunctionComponent = () => {
+  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   const handleSourceChange = (e: ChangeEvent<HTMLSelectElement>) => {
     let URL = generateShareURL(framework, playhead);
@@ -139,14 +135,14 @@ export function SourcesDropdown() {
         <option value={"TEST_EVENTS"}>Test Events</option>
       </select>
       <div className={styles.select_arrow}>
-        <FontAwesomeIcon icon="chevron-down" />
+        <FontAwesomeIcon icon={faChevronDown} />
       </div>
     </div>
   );
-}
+};
 
-export function DatetimeDropdown() {
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
+export const DatetimeDropdown: FunctionComponent = () => {
+  const playheadDate = useAppSelector((state: RootState) => state.playhead.date, refEqual);
 
   const date = new Date(playheadDate);
   const year = date.getUTCFullYear();
@@ -156,19 +152,19 @@ export function DatetimeDropdown() {
   return (
     <ModalDropdown modal={Calendar} color="grey" caret="down">
       <div className={styles.iconWithText}>
-        <FontAwesomeIcon icon={["far", "calendar-alt"]} size={"sm"} />
+        <FontAwesomeIcon icon={faCalendarAlt} size={"sm"} />
         <span className={styles.date}>
           {year}-{month}-{day}
         </span>
       </div>
     </ModalDropdown>
   );
-}
+};
 
-export function Clock() {
-  const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
+export const Clock: FunctionComponent = () => {
+  const playheadSeconds = useAppSelector((state: RootState) => state.playhead.seconds, refEqual);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
@@ -224,7 +220,7 @@ export function Clock() {
     <div className={styles.timeContainer}>
       <div className={styles.timeInputContainer}>
         <div className={`${styles.iconWithText} ${styles.clockIconContainer}`}>
-          <FontAwesomeIcon icon={["far", "clock"]} size={"sm"} />
+          <FontAwesomeIcon icon={faClock} size={"sm"} />
         </div>
         <input
           ref={timeInput}
@@ -285,48 +281,46 @@ export function Clock() {
       </div>
     </div>
   );
-}
+};
 
-export function SocketStatus(props: { socketStatus: SocketStatus }) {
-  return (
-    <div
-      className={styles.userCount}
-      data-tooltip-id="app-tooltip"
-      data-tooltip-html={
-        props.socketStatus.connectionStatus === "connected"
-          ? `CODA Visitors: ${props.socketStatus.lastStatusFromServer.viewers || 0}`
-          : "Connection to server lost"
-      }
-      style={
-        props.socketStatus.connectionStatus === "connected"
-          ? { color: "var(--greyish)" }
-          : { color: "var(--even-greyer)" }
-      }
-    >
-      <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
-      <div className={styles.userCountText}>
-        {props.socketStatus.lastStatusFromServer.viewers || 0}
-      </div>
-    </div>
-  );
-}
+export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = ({
+  socketStatus,
+}) => (
+  <div
+    className={styles.userCount}
+    data-tooltip-id="app-tooltip"
+    data-tooltip-html={
+      socketStatus.connectionStatus === "connected"
+        ? `CODA Visitors: ${socketStatus.lastStatusFromServer.viewers || 0}`
+        : "Connection to server lost"
+    }
+    style={
+      socketStatus.connectionStatus === "connected"
+        ? { color: "var(--greyish)" }
+        : { color: "var(--even-greyer)" }
+    }
+  >
+    <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
+    <div className={styles.userCountText}>{socketStatus.lastStatusFromServer.viewers || 0}</div>
+  </div>
+);
 
-export default function Header(props: {
+const Header: FunctionComponent<{
   helpLoaderOpen: boolean;
-  setHelpLoaderOpen: Function;
+  setHelpLoaderOpen: (val: boolean) => void;
   socketStatus: SocketStatus;
-}) {
-  const source = useSelector((state: RootState) => state.framework.source);
-  const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
-  const dispatch = useDispatch();
+}> = ({ helpLoaderOpen, setHelpLoaderOpen, socketStatus }) => {
+  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
+  const emssVideoEnabled = useAppSelector(
+    (state: RootState) => state.framework.emssVideoEnabled,
+    refEqual
+  );
+  const dispatch = useAppDispatch();
   return (
     <div className={styles.main}>
       <div className={styles.left}>
         <div className={styles.item}>
-          <LoaderHelpMenu
-            helpLoaderOpen={props.helpLoaderOpen}
-            setHelpLoaderOpen={props.setHelpLoaderOpen}
-          />
+          <LoaderHelpMenu helpLoaderOpen={helpLoaderOpen} setHelpLoaderOpen={setHelpLoaderOpen} />
         </div>
         <div className={styles.item} style={{ width: "140px" }}>
           <SourcesDropdown />
@@ -338,10 +332,7 @@ export default function Header(props: {
           <Clock />
         </div>
         <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
-          <EventDropdown
-            collection={collection[source]}
-            setHelpLoaderOpen={props.setHelpLoaderOpen}
-          />
+          <EventDropdown collection={collection[source]} />
         </div>
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
@@ -355,7 +346,7 @@ export default function Header(props: {
       </div>
       <div className={styles.right}>
         <div>
-          <SocketStatus socketStatus={props.socketStatus} />
+          <SocketStatus socketStatus={socketStatus} />
         </div>
         <div className={styles.item}>
           <StatusArea largeDisplay={false} />
@@ -393,4 +384,6 @@ export default function Header(props: {
       </div>
     </div>
   );
-}
+};
+
+export default Header;

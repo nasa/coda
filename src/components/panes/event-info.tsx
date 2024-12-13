@@ -1,7 +1,8 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { isNil } from "lodash";
-import { useDispatch, useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { changeTime } from "store/playhead";
@@ -13,10 +14,11 @@ import { FunctionComponent, useEffect, useState } from "react";
 import { isSameDate } from "../../utils/date";
 
 export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const paneStateData: EventPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: EventPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   return (
@@ -37,18 +39,22 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 };
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const paneStateData: EventPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const sequences: SequencesState = useAppSelector(
+    (state: RootState) => state.sequences,
+    deepEqual
+  );
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const paneStateData: EventPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const allSequences = sequences.allSequences;
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
-  const maestro = useSelector((state: RootState) => state.maestro);
-  const dispatch = useDispatch();
+  const maestro = useAppSelector((state: RootState) => state.maestro, deepEqual);
+  const dispatch = useAppDispatch();
   const [seqSourceName, setSeqSourceName] = useState<"Maestro" | "Wiki">("Wiki");
 
   useEffect(() => {

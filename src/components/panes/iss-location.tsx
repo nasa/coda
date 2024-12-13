@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject, FunctionComponent } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store/index";
 import { getAppropriateTLE } from "store/ephemera";
 import { setPaneStateValue } from "store/framework";
@@ -20,10 +21,8 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { getLatLngObj } from "tle.js";
 import _ from "lodash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { createRoot } from "react-dom/client";
-library.add(faLock, faLockOpen);
 
 type MapMarker = {
   marker: any; //the MapBox marker reference
@@ -34,12 +33,13 @@ export const ISSLocationControls: FunctionComponent<{
   frameID: number;
   frameDimensions: number[];
 }> = ({ frameID, frameDimensions }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
-  const paneStateData: LocationPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: LocationPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
@@ -84,19 +84,26 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   frameID,
   frameDimensions,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const initialMarker: MapMarker = {
     marker: null,
     markerNode: null,
   };
 
-  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
-  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
-  const paneStateData: LocationPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
+  const playheadHover: PlayheadHoverState = useAppSelector(
+    (state: RootState) => state.playheadHover,
+    deepEqual
+  );
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const layoutLastChanged = useAppSelector(
+    (state: RootState) => state.framework.layoutLastChanged,
+    refEqual
+  );
+  const paneStateData: LocationPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
   const todayEphemera = ephemera.ephemerisFiles;
 

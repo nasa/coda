@@ -56,6 +56,35 @@ export default [
 
       "no-import-assign": "error",
       "no-unreachable": "error",
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "lodash",
+              importNames: ["_"],
+              message: "Please import only the functions you need from lodash",
+            },
+            {
+              name: "react-redux",
+              importNames: ["useSelector", "shallowEqual"],
+              message:
+                "Use useAppSelector() instead of useSelector(), and refEqual()/shallowEqual()/deepEqual() from useAppSelector.ts versus other locations. These functions provide better Aegis-specific defaults.",
+            },
+            {
+              name: "assert",
+              importNames: ["deepEqual"],
+              message: "Use 'useAppSelector.ts/deepEqual'.",
+            },
+            {
+              name: "react-redux",
+              importNames: ["useDispatch"],
+              message:
+                "Use utils/useAppDispatch() instead of useDispatch(). This will allow usage of the full store types",
+            },
+          ],
+        },
+      ],
     },
   },
   {

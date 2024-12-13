@@ -1,13 +1,14 @@
+import { FunctionComponent } from "react";
 import _ from "lodash";
-import { useSelector } from "react-redux";
+import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import Frame from "components/framework/frame";
 import { allLayouts } from "store/framework";
 import styles from "./frames.module.css";
 
 import { RootState } from "store/index";
 
-export default function Viewer() {
-  const selectedLayout = useSelector((state: RootState) => state.framework.layout);
+const Viewer: FunctionComponent = () => {
+  const selectedLayout = useAppSelector((state: RootState) => state.framework.layout, shallowEqual);
   const layoutDefinition = allLayouts[selectedLayout];
 
   const frames: JSX.Element[] = [];
@@ -28,4 +29,6 @@ export default function Viewer() {
       <div className={`${mainStyleName} ${styles[`layout_${selectedLayout}`]}`}>{frames}</div>
     </div>
   );
-}
+};
+
+export default Viewer;

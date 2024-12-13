@@ -1,8 +1,14 @@
 import { isNil, isNull } from "lodash";
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faExpandAlt, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
+import {
+  faExpandAlt,
+  faInfo,
+  faVolumeUp,
+  faVolumeMute,
+  faChevronDown,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
 import type { RootState } from "store/index";
@@ -22,83 +28,80 @@ import { isSameDate, midnightZulu } from "../../utils/date";
 import VideoMTXPlaybackPane from "./video-mtx-playback";
 import VideoHlsPane from "./video-hls";
 
-library.add(faExpandAlt, faInfo, faVolumeUp, faVolumeMute);
-
-export function IOInfoButton(props: {
+export const IOInfoButton: FunctionComponent<{
   clickHandler: Function;
   selected?: boolean;
   frameDimensions: number[];
-}) {
-  const buttonLength = props.frameDimensions[0] > 470 ? styles.ioButtonLong : styles.ioButtonShort;
+}> = ({ clickHandler, selected, frameDimensions }) => {
+  const buttonLength = frameDimensions[0] > 470 ? styles.ioButtonLong : styles.ioButtonShort;
   const iconAdjustment =
-    props.frameDimensions[0] > 470 ? styles.iconAdjustmentLong : styles.iconAdjustmentShort;
-  const selectedStyle = props.selected ? styles.selected : "";
+    frameDimensions[0] > 470 ? styles.iconAdjustmentLong : styles.iconAdjustmentShort;
+  const selectedStyle = selected ? styles.selected : "";
   return (
     <button
       className={`${styles.ioButton} ${buttonLength} ${selectedStyle}`}
       onClick={() => {
-        if (props.clickHandler) {
-          props.clickHandler();
+        if (clickHandler) {
+          clickHandler();
         }
       }}
     >
       <span className={styles.ioLabel}>
-        {props.frameDimensions[0] > 470 ? "IO " : ""}
+        {frameDimensions[0] > 470 ? "IO " : ""}
         <span className={iconAdjustment}>
-          <FontAwesomeIcon icon="info" />
+          <FontAwesomeIcon icon={faInfo} />
         </span>
       </span>
     </button>
   );
-}
+};
 
-export function MuteButton(props: { clickHandler: Function; muted: boolean }) {
+export const MuteButton: FunctionComponent<{ clickHandler: Function; muted: boolean }> = ({
+  clickHandler,
+  muted,
+}) => {
   let icon;
-  if (props.muted) {
-    icon = <FontAwesomeIcon icon="volume-mute" />;
+  if (muted) {
+    icon = <FontAwesomeIcon icon={faVolumeMute} />;
   } else {
-    icon = <FontAwesomeIcon icon="volume-up" />;
+    icon = <FontAwesomeIcon icon={faVolumeUp} />;
   }
 
   return (
     <button
       className={styles.clearTextButton}
       onClick={() => {
-        if (props.clickHandler) {
-          props.clickHandler();
+        if (clickHandler) {
+          clickHandler();
         }
       }}
     >
       {icon}
     </button>
   );
-}
+};
 
-export function ExpandButton() {
+export const ExpandButton: FunctionComponent = () => {
   return (
     <button className={styles.clearTextButton}>
-      <FontAwesomeIcon icon="expand-alt" />
+      <FontAwesomeIcon icon={faExpandAlt} />
     </button>
   );
-}
+};
 
-function RightButtons({
-  frameID,
-  paneStateData,
-  frameDimensions,
-}: {
+const RightButtons: FunctionComponent<{
   frameID: number;
   paneStateData: VideoPaneStateData;
   frameDimensions: number[];
-}) {
-  const dispatch = useDispatch();
-  const frames = useSelector((state: RootState) => state.framework.frames);
+}> = ({ frameID, paneStateData, frameDimensions }) => {
+  const dispatch = useAppDispatch();
+  const frames = useAppSelector((state: RootState) => state.framework.frames, deepEqual);
 
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const mtxPlaybackRecordsForDownlink = useSelector((state: RootState) => {
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
     const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
-  });
+  }, deepEqual);
 
   const [videoPlayerType, setVideoPlayerType] = useState<VideoPlayerType>("IO");
 
@@ -187,22 +190,17 @@ function RightButtons({
       </div>
     </div>
   );
-}
+};
 
 const channels = [0, 1, 2, 3, 4, 5, 6, 7];
 
-export function ChannelSelectorLarge({
-  frameID,
-  channelAvailability,
-  paneStateData,
-  frameDimensions,
-}: {
+export const ChannelSelectorLarge: FunctionComponent<{
   frameID: number;
   channelAvailability: any;
   paneStateData: VideoPaneStateData;
   frameDimensions: number[];
-}) {
-  const dispatch = useDispatch();
+}> = ({ frameID, channelAvailability, paneStateData, frameDimensions }) => {
+  const dispatch = useAppDispatch();
   return (
     <div className={styles.controls}>
       <div className={styles.selections}>
@@ -248,19 +246,14 @@ export function ChannelSelectorLarge({
       />
     </div>
   );
-}
+};
 
-export function ChannelSelectorSmall({
-  frameID,
-  channelAvailability,
-  paneStateData,
-  frameDimensions,
-}: {
+export const ChannelSelectorSmall: FunctionComponent<{
   frameID: number;
   channelAvailability: boolean[];
   paneStateData: VideoPaneStateData;
   frameDimensions: number[];
-}) {
+}> = ({ frameID, channelAvailability, paneStateData, frameDimensions }) => {
   return (
     <div className={styles.controls}>
       <div className={styles.dropdown}>
@@ -287,15 +280,12 @@ export function ChannelSelectorSmall({
       />
     </div>
   );
-}
+};
 
-function ChannelDropdownLabel({
-  dlNumber,
-  isAvailable,
-}: {
+const ChannelDropdownLabel: FunctionComponent<{
   dlNumber: number;
   isAvailable: boolean;
-}) {
+}> = ({ dlNumber, isAvailable }) => {
   let color = isAvailable ? "active_selected" : "disabled_selected";
 
   return (
@@ -303,17 +293,14 @@ function ChannelDropdownLabel({
       <div className={styles.verticalCenter}>{dlNumber + 1}</div>
     </div>
   );
-}
+};
 
 /** Renders a modal with a list of frame types to choose from */
-function ChannelDropdownModal({
-  closeClick,
-  options: { frameID, channelAvailability, channelSelected },
-}: {
+const ChannelDropdownModal: FunctionComponent<{
   closeClick: () => void;
   options: { frameID: number; channelAvailability: boolean[]; channelSelected: number };
-}) {
-  const dispatch = useDispatch();
+}> = ({ closeClick, options: { frameID, channelAvailability, channelSelected } }) => {
+  const dispatch = useAppDispatch();
 
   const handleSelectChannel = (dlChannel: number) => {
     setPaneStateValue(dispatch, frameID, "channel", dlChannel);
@@ -360,7 +347,7 @@ function ChannelDropdownModal({
       )}
     </div>
   );
-}
+};
 
 export const VideoDLPaneControls: FunctionComponent<{
   frameID: number;
@@ -368,17 +355,22 @@ export const VideoDLPaneControls: FunctionComponent<{
 }> = ({ frameID, frameDimensions }) => {
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const playheadDate = new Date(playhead.date);
   const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
-  const mtxPlaybackAvailability = useSelector((state: RootState) => {
+  const mtxPlaybackAvailability = useAppSelector((state: RootState) => {
     return state.videos.mtxPlaybackAvailability;
-  });
-  const mtxHlsEndpointNames = useSelector((state: RootState) => state.videos.mtxHlsEndpointNames);
-  const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  }, deepEqual);
+  const mtxHlsEndpointNames = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpointNames,
+    deepEqual
+  );
+
+  const paneStateData: VideoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const [channelAvailability, setChannelAvailability] = useState<boolean[]>([]);
@@ -456,20 +448,21 @@ export const VideoOtherPaneControls: FunctionComponent<{
   frameID: number;
   frameDimensions: number[];
 }> = ({ frameID, frameDimensions }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const playheadDate = new Date(playhead.date);
   const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
   const [nonDlVideoIDs, setNonDlVideoIDs] = useState([]);
 
-  const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: VideoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const getPrettyVideoTitle = (videoID: string) => {
@@ -530,7 +523,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
             {optionList()}
           </select>
           <div className={styles.nonDlSelect_arrow}>
-            <FontAwesomeIcon icon="chevron-down" size="sm" />
+            <FontAwesomeIcon icon={faChevronDown} size="sm" />
           </div>
         </div>
         <RightButtons
@@ -563,13 +556,14 @@ export const isAutoplayError = (e: unknown): boolean => {
 };
 
 const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
-  const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: VideoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const playheadDate = new Date(playhead.date);
@@ -994,16 +988,16 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 };
 
 const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const downlinkNumber = useSelector((state: RootState) => {
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const downlinkNumber = useAppSelector((state: RootState) => {
     return state.framework.frames[frameID].paneStateData.channel;
-  });
+  }, refEqual);
 
-  const mtxPlaybackRecordsForDownlink = useSelector((state: RootState) => {
+  const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
     const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
-  });
+  }, deepEqual);
 
   // if live video system is diabled, always show the IO player
   const liveEnabled = import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "true";

@@ -1,24 +1,25 @@
+import { FunctionComponent } from "react";
 import styles from "./gps-location-marker.module.css";
 
-const GPSMarker = (props: { type: string; id: any }) => {
+const GPSMarker: FunctionComponent<{ type: string; id: any }> = ({ type, id }) => {
   let markerClass = "";
-  if (props.type === "EV1") {
+  if (type === "EV1") {
     markerClass = styles.ev1Marker;
-  } else if (props.type === "EV2") {
+  } else if (type === "EV2") {
     markerClass = styles.ev2Marker;
-  } else if (props.type === "EV3") {
+  } else if (type === "EV3") {
     markerClass = styles.ev3Marker;
-  } else if (props.type === "EV4") {
+  } else if (type === "EV4") {
     markerClass = styles.ev4Marker;
-  } else if (props.type === "Cart") {
+  } else if (type === "Cart") {
     markerClass = styles.cartMarker;
-  } else if (props.type === "LightCart") {
+  } else if (type === "LightCart") {
     markerClass = styles.lightCartMarker;
-  } else if (props.type === "Staff") {
+  } else if (type === "Staff") {
     markerClass = styles.ev1Marker;
   }
 
-  return <div id={`marker-${props.id}`} className={markerClass} />;
+  return <div id={`marker-${id}`} className={markerClass} />;
 };
 
 export default GPSMarker;

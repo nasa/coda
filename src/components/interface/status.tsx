@@ -1,15 +1,21 @@
-import { useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./status.module.css";
 import { RootState } from "store/index";
-import { useEffect, useState } from "react";
+import { useEffect, useState, FunctionComponent } from "react";
 
-export default function StatusArea(props: { largeDisplay: boolean }) {
-  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
-  const gps: GPSState = useSelector((state: RootState) => state.gps);
-  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
-  const transcript: TranscriptState = useSelector((state: RootState) => state.transcript);
+const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay }) => {
+  const sequences: SequencesState = useAppSelector(
+    (state: RootState) => state.sequences,
+    deepEqual
+  );
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const gps: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
+  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
+  const transcript: TranscriptState = useAppSelector(
+    (state: RootState) => state.transcript,
+    deepEqual
+  );
 
   const [videoStatus, setVideoStatus] = useState({
     message: "",
@@ -84,7 +90,7 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     );
   }, [transcript.loadingStatus, transcript.responseMetadata]);
 
-  if (!props.largeDisplay) {
+  if (!largeDisplay) {
     return (
       <div className={`${styles.container}`}>
         <table className={styles.statusTable}>
@@ -210,4 +216,6 @@ export default function StatusArea(props: { largeDisplay: boolean }) {
     }
     return { message, classname };
   }
-}
+};
+
+export default StatusArea;

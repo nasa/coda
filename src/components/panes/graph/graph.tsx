@@ -1,17 +1,15 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FunctionComponent, useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { ChartLayout, getPlotlyChartLayout } from "./graphProperties";
 import { setGraphsData, clearGraphsData } from "store/graphs";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faExpandAlt } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import DynPlotlyChart from "./plotly";
-
-library.add(faExpandAlt);
 
 import styles from "./graph.module.css";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
@@ -22,15 +20,15 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
   frameID,
   frameDimensions,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const minWidth = 500; // minimum width of the graph pane before shortening the dropdown
 
-  const paneStateData: GraphPaneStateData = useSelector(
+  const paneStateData: GraphPaneStateData = useAppSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData,
     shallowEqual
   );
-  const graphs: Graph[] = useSelector(
+  const graphs: Graph[] = useAppSelector(
     (state: RootState) => state.graphs.graphsManifest?.graphs,
     shallowEqual
   );
@@ -71,25 +69,23 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
   );
 };
 
-function GraphSelectorDropdown(props: {
+const GraphSelectorDropdown: FunctionComponent<{
   frameID: number;
   frameDimensions: number[];
   minWidth: number;
-}) {
-  const paneStateData: GraphPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[props.frameID].paneStateData,
+}> = ({ frameID, frameDimensions, minWidth }) => {
+  const paneStateData: GraphPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
     shallowEqual
   );
-  const dispatch = useDispatch();
-  const graphs: Graph[] = useSelector(
+  const dispatch = useAppDispatch();
+  const graphs: Graph[] = useAppSelector(
     (state: RootState) => state.graphs.graphsManifest?.graphs,
     shallowEqual
   );
 
   const dropDownWidthClass =
-    props.frameDimensions[0] > props.minWidth
-      ? styles.selectContainerWide
-      : styles.selectContainerNarrow;
+    frameDimensions[0] > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
 
   const selectedGraphId = paneStateData.selectedGraphId || "";
 
@@ -100,7 +96,7 @@ function GraphSelectorDropdown(props: {
           className={styles.selectActive}
           value={selectedGraphId}
           onChange={(event) => {
-            setPaneStateValue(dispatch, props.frameID, "selectedGraphId", event.target.value);
+            setPaneStateValue(dispatch, frameID, "selectedGraphId", event.target.value);
           }}
         >
           <option value="">Select a graph</option>
@@ -113,21 +109,18 @@ function GraphSelectorDropdown(props: {
           })}
         </select>
         <div className={styles.select_arrow}>
-          <FontAwesomeIcon icon="chevron-down" size="sm" />
+          <FontAwesomeIcon icon={faChevronDown} size="sm" />
         </div>
       </div>
     </div>
   );
-}
+};
 
-const GraphDurationSelector = ({
-  frameID,
-  paneStateData,
-}: {
+const GraphDurationSelector: FunctionComponent<{
   frameID: number;
   paneStateData: GraphPaneStateData;
-}): JSX.Element => {
-  const dispatch = useDispatch();
+}> = ({ frameID, paneStateData }) => {
+  const dispatch = useAppDispatch();
   interface GraphDurationSelectItem {
     value: number;
     label: string;
@@ -178,11 +171,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   frameID,
   frameDimensions,
 }) => {
-  const paneStateData: GraphPaneStateData = useSelector(
+  const paneStateData: GraphPaneStateData = useAppSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData,
     shallowEqual
   );
-  const graphs: GraphsState = useSelector((state: RootState) => state.graphs, shallowEqual);
+  const graphs: GraphsState = useAppSelector((state: RootState) => state.graphs, shallowEqual);
 
   const [graphDataIsBad, setGraphDataIsBad] = useState<false | "unauthorized" | "invalid-data">(
     false
@@ -194,8 +187,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   );
   const graphData = selectedGraph?.data;
 
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const playheadHover: PlayheadHoverState = useAppSelector(
+    (state: RootState) => state.playheadHover,
+    deepEqual
+  );
 
   const graphHeight = frameDimensions[1] - 40;
 
@@ -216,7 +212,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   const [chartProps, setChartProps] = useState(initialChartProps);
   const [graphDataTimestampsInSeconds, setGraphDataTimestampsInSeconds] = useState<number[]>([]);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   // Fetch the data for the selected graphId from the graph dataURL
   const localAsyncFetchData = async () => {

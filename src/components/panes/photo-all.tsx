@@ -1,6 +1,7 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { useDispatch, useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
 import { setActivePhoto } from "store/photos";
@@ -11,22 +12,20 @@ import styles from "./photo-all.module.css";
 import { FunctionComponent, useEffect, useRef } from "react";
 import { hhmmssFromSeconds } from "utils/formatting";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
-
-library.add(faLock, faLockOpen);
 
 export const PhotoAllControls: FunctionComponent<{
   frameID: number;
   frameDimensions: number[];
 }> = ({ frameID, frameDimensions }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
-  const paneStateData: PhotoAllPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: PhotoAllPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
@@ -78,14 +77,15 @@ export const PhotoAllControls: FunctionComponent<{
 };
 
 const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const paneStateData: PhotoAllPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const paneStateData: PhotoAllPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
   const photoFiles = photos.photoFiles;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
 

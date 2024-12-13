@@ -1,5 +1,4 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "store/index";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import styles from "./video.module.css";
@@ -8,18 +7,24 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { isAutoplayError } from "./video";
 import { isSameDate } from "utils/date";
 import _ from "lodash";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 
 const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const dispatch = useDispatch();
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const dispatch = useAppDispatch();
+  const playhead: PlayheadState = useAppSelector(
+    (state: RootState) => state.playhead,
+    shallowEqual
   );
-  const source = useSelector((state: RootState) => state.framework.source);
-  const mtxPlaybackRecordsForDownlink = useSelector((state: RootState) => {
+  const paneStateData: VideoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
+  );
+  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
+  const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
     const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
-  });
+  }, deepEqual);
   const videoRef = useRef() as MutableRefObject<HTMLVideoElement>;
 
   const [status, setStatus] = useState(null);

@@ -1,19 +1,23 @@
 import _ from "lodash";
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { run, halt, tick, changeDate, changeTime } from "store/playhead";
 import useInterval from "utils/useInterval";
 import { RootState } from "store/index";
 import { addMs } from "../../utils/date";
 
 function PlayheadMonitor() {
-  const playheadReady = useSelector((state: RootState) => state.playhead.ready);
-  const playheadIsRunning = useSelector((state: RootState) => state.playhead.isRunning);
-  const playheadDate = useSelector((state: RootState) => state.playhead.date);
-  const playheadSeconds = useSelector((state: RootState) => state.playhead.seconds);
-  const frames = useSelector((state: RootState) => state.framework.frames);
+  const playheadReady = useAppSelector((state: RootState) => state.playhead.ready, refEqual);
+  const playheadIsRunning = useAppSelector(
+    (state: RootState) => state.playhead.isRunning,
+    refEqual
+  );
+  const playheadDate = useAppSelector((state: RootState) => state.playhead.date, refEqual);
+  const playheadSeconds = useAppSelector((state: RootState) => state.playhead.seconds, refEqual);
+  const frames = useAppSelector((state: RootState) => state.framework.frames, shallowEqual);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     // (1) make sure the playhead is running when it should

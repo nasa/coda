@@ -1,32 +1,34 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState, FunctionComponent } from "react";
+import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { RootState } from "store/index";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
-import { collection } from "utils/consts";
+import { collection as collectionEnum } from "utils/consts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 
-export default function EventDropdown(props: {
+const EventDropdown: FunctionComponent<{
   collection: Collection;
-  setHelpLoaderOpen: Function;
-}) {
-  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const date = useSelector((state: RootState) => state.playhead.date);
-  const framework = useSelector((state: RootState) => state.framework);
-  const playhead = useSelector((state: RootState) => state.playhead);
+}> = ({ collection }) => {
+  const sequences: SequencesState = useAppSelector(
+    (state: RootState) => state.sequences,
+    deepEqual
+  );
+  const framework = useAppSelector((state: RootState) => state.framework, shallowEqual);
+  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const date = playhead.date;
 
   let allSequences = sequences.allSequences;
-  if (props.collection === collection.NBL) {
+  if (collection === collectionEnum.NBL) {
     // Show only NBL sequences
     allSequences = allSequences.filter((eva) => eva.displayTitle.includes("NBL"));
-  } else if (props.collection === collection.TEST_EVENTS) {
+  } else if (collection === collectionEnum.TEST_EVENTS) {
     // Filter out all NBL sequences
     allSequences = allSequences.filter((eva) => !eva.displayTitle.includes("NBL"));
-  } else if (props.collection === collection.ARTEMIS) {
+  } else if (collection === collectionEnum.ARTEMIS) {
     // Filter out all sequences because there's nothing to show in the dropdown for Artemis (currently)
     allSequences = [];
   }
@@ -61,17 +63,17 @@ export default function EventDropdown(props: {
   const earliestCutoff = new Date("2013-03-30");
 
   let selectText = "";
-  if (props.collection === collection.ISS) {
+  if (collection === collectionEnum.ISS) {
     selectText = "Select EVA";
-  } else if (props.collection === collection.NBL) {
+  } else if (collection === collectionEnum.NBL) {
     selectText = "Select NBL Run";
-  } else if (props.collection === collection.TEST_EVENTS) {
+  } else if (collection === collectionEnum.TEST_EVENTS) {
     selectText = "Select Test Event";
-  } else if (props.collection === collection.ARTEMIS) {
+  } else if (collection === collectionEnum.ARTEMIS) {
     selectText = "Select Mission Date";
   }
 
-  if (props.collection === collection.ARTEMIS) {
+  if (collection === collectionEnum.ARTEMIS) {
     // Create a dropdown of just dates for Artemis 1. There's no Wiki source for this.
     return (
       <div className={styles.select}>
@@ -141,4 +143,6 @@ export default function EventDropdown(props: {
       </div>
     );
   }
-}
+};
+
+export default EventDropdown;

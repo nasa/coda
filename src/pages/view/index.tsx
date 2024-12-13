@@ -57,7 +57,8 @@ import {
   addEphemera,
   clearEphemera,
 } from "store/ephemera";
-import { useDispatch, useSelector } from "react-redux";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import {
   allPanes,
   initialState as initialFrameworkState,
@@ -94,17 +95,22 @@ export function V2() {
   const [searchParams, _setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
-  const emssVideoEnabled = useSelector((state: RootState) => state.framework.emssVideoEnabled);
-  const playhead = useSelector((state: RootState) => state.playhead);
-  const playheadDate = playhead.date;
-  const source = useSelector((state: RootState) => state.framework.source);
-  const sequences = useSelector((state: RootState) => state.sequences);
-  let allEVAs = sequences.allSequences;
-  const oldMtxPlaybackAvailability = useSelector(
-    (state: RootState) => state.videos.mtxPlaybackAvailability
+  const emssVideoEnabled = useAppSelector(
+    (state: RootState) => state.framework.emssVideoEnabled,
+    refEqual
   );
-  const oldMtxHlsEndpointNames = useSelector(
-    (state: RootState) => state.videos.mtxHlsEndpointNames
+  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const playheadDate = playhead.date;
+  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
+  const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
+  let allEVAs = sequences.allSequences;
+  const oldMtxPlaybackAvailability = useAppSelector(
+    (state: RootState) => state.videos.mtxPlaybackAvailability,
+    deepEqual
+  );
+  const oldMtxHlsEndpointNames = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpointNames,
+    deepEqual
   );
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
@@ -118,7 +124,7 @@ export function V2() {
     clientVersion: "",
   });
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const retrieverRetryRange = [2000, 8000]; // in milliseconds
 
