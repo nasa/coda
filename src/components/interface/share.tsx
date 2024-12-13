@@ -1,20 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 import styles from "./share.module.css";
 import { generateShareURL } from "utils/share-state";
-import { useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { RootState } from "store/index";
 import { HelpButton } from "./pane-help-control-button";
 import HelpOverlay from "./pane-help-overlay";
 
-export default function SharePanel({
+const SharePanel = ({
   closeClick,
   display,
 }: {
   closeClick?: () => void;
   display: boolean;
-}) {
-  const framework = useSelector((state: RootState) => state.framework);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+}): JSX.Element => {
+  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
@@ -108,4 +108,6 @@ export default function SharePanel({
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default SharePanel;

@@ -1,8 +1,7 @@
-import _ from "lodash";
 import { useState, useEffect, useRef, FunctionComponent } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import deepEqual from "lodash/isEqual";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store/index";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
 
@@ -17,25 +16,24 @@ import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import Button from "components/interface/button";
 import { createRoot } from "react-dom/client";
-library.add(faLock, faLockOpen);
 
 export const GPSLocationControls: FunctionComponent<{
   frameID: number;
   frameDimensions: number[];
 }> = ({ frameID, frameDimensions }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
-  const paneStateData: GpsTrackPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: GpsTrackPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
-  const gpsTracks = useSelector((state: RootState) => state.gps.gpsTracks);
+  const gpsTracks = useAppSelector((state: RootState) => state.gps.gpsTracks, deepEqual);
 
   const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
@@ -113,7 +111,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
   frameID,
   frameDimensions,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const initialMarker: MapMarker = {
     marker: null,
@@ -154,12 +152,19 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     Staff: { ...initialTrackFeature },
   };
 
-  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const gpsState: GPSState = useSelector((state: RootState) => state.gps, deepEqual);
-  const layoutLastChanged = useSelector((state: RootState) => state.framework.layoutLastChanged);
-  const paneStateData: GpsTrackPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const playheadHover: PlayheadHoverState = useAppSelector(
+    (state: RootState) => state.playheadHover,
+    deepEqual
+  );
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const gpsState: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
+  const layoutLastChanged = useAppSelector(
+    (state: RootState) => state.framework.layoutLastChanged,
+    deepEqual
+  );
+  const paneStateData: GpsTrackPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
   const mapContainer = useRef(null);
 

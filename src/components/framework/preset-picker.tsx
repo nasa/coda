@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { useDispatch, useSelector } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store/index";
 import styles from "./preset-picker.module.css";
 import { allPresets } from "store/framework-presets";
@@ -8,17 +9,14 @@ import { useCookies } from "react-cookie";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import LZUTF8 from "lzutf8";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
-library.add(faTrash);
-
-export default function PresetPicker({ closeClick }: { closeClick?: () => void }) {
-  const framework = useSelector((state: RootState) => state.framework);
-  const dispatch = useDispatch();
+const PresetPicker = ({ closeClick }: { closeClick?: () => void }) => {
+  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const dispatch = useAppDispatch();
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [userPresetsCookie, setUserPresetsCookie] = useCookies(["CODA_UserPresets"]);
@@ -116,7 +114,7 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
                 <div className={styles.verticalCenter}>{preset.name}</div>
               </div>
               <div className={styles.delete} onClick={deleteUserPreset(preset)}>
-                <FontAwesomeIcon icon="trash" />
+                <FontAwesomeIcon icon={faTrash} />
               </div>
             </div>
           ))
@@ -180,4 +178,6 @@ export default function PresetPicker({ closeClick }: { closeClick?: () => void }
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default PresetPicker;

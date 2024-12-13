@@ -1,26 +1,28 @@
 import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faEnvelope,
-  faTimesCircle,
-  faTriangleExclamation,
-} from "@fortawesome/free-solid-svg-icons";
-import { useSelector } from "react-redux";
+import { faEnvelope, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { RootState } from "store/index";
 import { diff } from "utils/date";
 import Modal from "react-modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-library.add(faTimesCircle);
-
-export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOpen: Function }) {
-  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
-  const gps: GPSState = useSelector((state: RootState) => state.gps);
-  const ephemera: EphemeraState = useSelector((state: RootState) => state.ephemera);
+const AboutOverlay = ({
+  modalIsOpen,
+  setModalIsOpen,
+}: {
+  modalIsOpen: boolean;
+  setModalIsOpen: Function;
+}) => {
+  const sequences: SequencesState = useAppSelector(
+    (state: RootState) => state.sequences,
+    deepEqual
+  );
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const gps: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
+  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -60,7 +62,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
 
   return (
     <Modal
-      isOpen={props.modalIsOpen}
+      isOpen={modalIsOpen}
       className={styles.modalWrapper}
       overlayClassName={styles.modalOverlay}
       contentLabel="Share"
@@ -221,7 +223,7 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
                       <button
                         className={`${styles.headerGoButton} ${titleShowGoButtonStyle}`}
                         onClick={() => {
-                          props.setModalIsOpen(false);
+                          setModalIsOpen(false);
                         }}
                       >
                         START CODA
@@ -250,4 +252,6 @@ export default function AboutOverlay(props: { modalIsOpen: boolean; setModalIsOp
       </div>
     </Modal>
   );
-}
+};
+
+export default AboutOverlay;

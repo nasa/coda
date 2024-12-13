@@ -1,48 +1,18 @@
-import _ from "lodash";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faCamera,
-  faGlobeAmericas,
-  faChartLine,
-  faShareSquare,
-  faInfo,
-  faLayerGroup,
-  faSquare,
-  faVideo,
-  faFileLines,
-  faSatellite,
-} from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useState, FunctionComponent } from "react";
+import { refEqual, useAppSelector } from "utils/useAppSelector";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allPanes, setPaneType } from "store/framework";
 import styles from "./pane-picker.module.css";
 import { RootState } from "store/index";
-
-library.add(
-  faCamera,
-  faChartLine,
-  faGlobeAmericas,
-  faInfo,
-  faLayerGroup,
-  faShareSquare,
-  faSquare,
-  faVideo,
-  faFileLines,
-  faSatellite
-);
+import { useAppDispatch } from "utils/useAppDispatch";
 
 /**
  * Renders the label for a type of frame
  */
-export function PaneLabel({
-  paneType,
-  labelSize,
-}: {
-  /** ID of the type of frame */
+export const PaneLabel: FunctionComponent<{
   paneType: string;
   labelSize?: "S" | "M" | "L";
-}) {
+}> = ({ paneType, labelSize }) => {
   const { title, shortTitle, icon, color } = allPanes[paneType];
 
   let displayTitle = title;
@@ -64,20 +34,17 @@ export function PaneLabel({
       <div className={styles.verticalCenter}>{displayTitle}</div>
     </div>
   );
-}
+};
 
 /** Renders a modal with a list of frame types to choose from */
-export default function PanePickerModal({
-  closeClick,
-  options: { frameID },
-}: {
+export const PanePickerModal: FunctionComponent<{
   closeClick: () => void;
   options: { frameID: number };
-}) {
-  const source = useSelector((state: RootState) => state.framework.source);
+}> = ({ closeClick, options: { frameID } }) => {
+  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
   const [availablePanes, setAvailablePanes] = useState([]);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -108,4 +75,6 @@ export default function PanePickerModal({
       )}
     </div>
   );
-}
+};
+
+export default PanePickerModal;

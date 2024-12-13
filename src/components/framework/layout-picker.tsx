@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppSelector, deepEqual } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store/index";
 import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
@@ -8,10 +9,10 @@ import layoutStyles from "/components/framework/frames.module.css";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
-export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {
-  const frameworkState = useSelector((state: RootState) => state.framework);
+const LayoutPicker = ({ closeClick }: { closeClick?: () => void }) => {
+  const frameworkState = useAppSelector((state: RootState) => state.framework, deepEqual);
   const [helpOpen, setHelpOpen] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   /**
    * Change the layout
@@ -103,4 +104,6 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
       </HelpOverlay>
     </div>
   );
-}
+};
+
+export default LayoutPicker;

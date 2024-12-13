@@ -1,12 +1,14 @@
-import { useDispatch, useSelector } from "react-redux";
+import { FunctionComponent } from "react";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { changeTime, start, stop } from "store/playhead";
 import styles from "./playback-controls.module.css";
 import { RootState } from "store/index";
 
-export default function PlaybackControls() {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+const PlaybackControls: FunctionComponent = () => {
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handlePlayPause = () => {
     if (playhead.isRunning) {
@@ -54,4 +56,6 @@ export default function PlaybackControls() {
       </div>
     </div>
   );
-}
+};
+
+export default PlaybackControls;

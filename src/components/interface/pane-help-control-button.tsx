@@ -1,23 +1,24 @@
+import { FunctionComponent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import styles from "./pane-help-control-button.module.css";
 
-library.add(faQuestionCircle);
-
-export function HelpButton(props: { clickHandler: () => void; selected?: boolean }) {
-  const selectedStyle = props.selected ? styles.selected : "";
+export const HelpButton: FunctionComponent<{ clickHandler: () => void; selected?: boolean }> = ({
+  clickHandler,
+  selected,
+}) => {
+  const selectedStyle = selected ? styles.selected : "";
   return (
     <div
       className={`${styles.helpButton} ${selectedStyle}`}
       title={`More info`}
       onClick={() => {
-        if (props.clickHandler) {
-          props.clickHandler();
+        if (clickHandler) {
+          clickHandler();
         }
       }}
     >
-      <FontAwesomeIcon icon="question-circle" />
+      <FontAwesomeIcon icon={faQuestionCircle} />
     </div>
   );
-}
+};

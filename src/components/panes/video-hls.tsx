@@ -1,5 +1,6 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import type { RootState } from "store/index";
 import styles from "./video.module.css";
 import { setPaneStateValue } from "store/framework";
@@ -8,13 +9,20 @@ import Hls from "hls.js";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const dispatch = useDispatch();
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const source = useSelector((state: RootState) => state.framework.source);
-  const paneStateData: VideoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const dispatch = useAppDispatch();
+  const playhead: PlayheadState = useAppSelector(
+    (state: RootState) => state.playhead,
+    shallowEqual
   );
-  const mtxHlsEndpointNames = useSelector((state: RootState) => state.videos.mtxHlsEndpointNames);
+  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
+  const paneStateData: VideoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
+  );
+  const mtxHlsEndpointNames = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpointNames,
+    deepEqual
+  );
 
   const hlsRef = useRef<Hls | null>(null);
   const videoRef = useRef() as MutableRefObject<HTMLVideoElement>;

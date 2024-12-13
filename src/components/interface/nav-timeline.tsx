@@ -1,8 +1,9 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import paper from "paper";
-import { MutableRefObject, useEffect, useRef } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { MutableRefObject, useEffect, useRef, FunctionComponent } from "react";
+import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { changeTime } from "store/playhead";
 import { changeHoverTime } from "store/playheadHover";
 import {
@@ -19,20 +20,26 @@ import styles from "./nav-timeline-draw.module.css";
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
-export default function NavTimeline({ source }: { source: Source }) {
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const playheadHover: PlayheadHoverState = useSelector((state: RootState) => state.playheadHover);
-  const dayNights: DayNightState = useSelector((state: RootState) => state.dayNight);
-  const videos: VideosState = useSelector((state: RootState) => state.videos);
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
-  const sequences: SequencesState = useSelector((state: RootState) => state.sequences);
-  const sgActivityRangeFullUrlRecord: SgActivityRangeFullUrlRecord[][] = useSelector(
+const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const playheadHover: PlayheadHoverState = useAppSelector(
+    (state: RootState) => state.playheadHover,
+    deepEqual
+  );
+  const dayNights: DayNightState = useAppSelector((state: RootState) => state.dayNight, deepEqual);
+  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const sequences: SequencesState = useAppSelector(
+    (state: RootState) => state.sequences,
+    deepEqual
+  );
+  const sgActivityRangeFullUrlRecord: SgActivityRangeFullUrlRecord[][] = useAppSelector(
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords,
     shallowEqual
   );
-  const maestro: MaestroState = useSelector((state: RootState) => state.maestro);
+  const maestro: MaestroState = useAppSelector((state: RootState) => state.maestro, deepEqual);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const dayNight = dayNights.dayNight;
 
   let allEVAs = sequences.allSequences;
@@ -208,4 +215,6 @@ export default function NavTimeline({ source }: { source: Source }) {
       </div>
     </>
   );
-}
+};
+
+export default NavTimeline;

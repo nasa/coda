@@ -1,5 +1,6 @@
 import { FunctionComponent, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { initialPhotoFileState, setActivePhoto } from "store/photos";
 import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
@@ -15,14 +16,15 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
   frameID,
   frameDimensions,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const paneStateData: PhotoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: PhotoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
+  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   let datetimeTakenLabel = "";
   let datetimeTakenValue = "";
@@ -80,14 +82,15 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
 };
 
 const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const paneStateData: PhotoPaneStateData = useSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData
+  const paneStateData: PhotoPaneStateData = useAppSelector(
+    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    deepEqual
   );
 
-  const playhead: PlayheadState = useSelector((state: RootState) => state.playhead);
-  const photos: PhotosState = useSelector((state: RootState) => state.photos);
+  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
 
   const photoFiles = photos.photoFiles;
 

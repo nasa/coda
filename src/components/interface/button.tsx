@@ -1,35 +1,21 @@
-import React from "react";
+import { FunctionComponent, ReactNode } from "react";
 import styles from "./button.module.css";
 
-export interface Options {
-  /** `grey`, `lightest-grey` */
-  color?: string;
-  /** `default`, `medium`, `small` */
-  size?: string;
-  /** `all`, `left`, `right`, `none` */
+const Button: FunctionComponent<{
+  children: ReactNode;
+  color: string;
+  size: string;
   rounded?: string;
   callback?: () => void;
-}
-
-const defaults: Options = {
-  color: "grey",
-  size: "default",
-  rounded: "all",
-  callback: () => {},
-};
-
-/** Render a styled button to perform an action on a page. It SHOULD NOT be used to change pages. That's what <a /> is for */
-export default function Button(options: React.PropsWithChildren<Options>) {
-  const opts = { ...defaults, ...options };
-
+}> = ({ children, color = "grey", size = "default", rounded = "all", callback = () => {} }) => {
   return (
     <button
-      onClick={opts.callback}
-      className={`${styles.button} ${styles[opts.color]} ${styles[opts.size]} ${
-        styles[opts.rounded]
-      }`}
+      onClick={callback}
+      className={`${styles.button} ${styles[color]} ${styles[size]} ${styles[rounded]}`}
     >
-      {opts.children}
+      {children}
     </button>
   );
-}
+};
+
+export default Button;
