@@ -369,24 +369,6 @@ deploy:carbon:
     - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/carbon/g" .env
 
-deploy:dev1:
-  extends: .deploy-template
-  tags: ["coda-dev1-runner"]
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
-  environment:
-    name: development1
-    url: https://coda-dev.fit.nasa.gov
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
-  when: manual
-  before_script:
-    # This is currently our hack to change out a necessary var for Launchpad Auth
-    - sed -i "s/INSERT_SUBDOMAIN/coda-dev/g" .env
-    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/coda-dev/g" .env
-
 deploy:gold:
   extends:
     - .deploy-template
@@ -533,12 +515,6 @@ z:db-export:carbon:
     - .db-export-template
     - .carbon-access
 
-z:db-export:dev1:
-  extends: .db-export-template
-  tags: ["coda-dev1-runner"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
-
 z:db-export:gold:
   extends:
     - .db-export-template
@@ -587,17 +563,6 @@ z:db-import:carbon:
     - .db-import-template
     - .carbon-deploy
   needs: ["z:db-export:prod"]
-
-z:db-import:dev1:
-  extends: .db-import-template
-  tags: ["coda-dev1-runner"]
-  needs: ["z:db-export:prod"]
-  environment:
-    name: development1
-    url: $URL
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1 #CI/CD Variable
-    URL: https://coda-dev1.fit.nasa.gov
 
 z:db-import:gold:
   extends:
@@ -675,13 +640,6 @@ z:logs:carbon:
   extends:
     - .container-logs-template
     - .carbon-access
-
-z-logs:dev1:
-  extends: .container-logs-template
-  tags: ["coda-dev1-runner"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_DEV1
 
 z:logs:gold:
   extends:
