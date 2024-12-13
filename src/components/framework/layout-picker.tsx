@@ -7,7 +7,6 @@ import styles from "./layout-picker.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import clientLogger from "utils/clientLogger";
 
 export default function LayoutPicker({ closeClick }: { closeClick?: () => void }) {
   const frameworkState = useSelector((state: RootState) => state.framework);
@@ -20,7 +19,7 @@ export default function LayoutPicker({ closeClick }: { closeClick?: () => void }
    */
   const handleSelectLayout = (e: React.MouseEvent, index: string) => {
     e.preventDefault();
-    clientLogger.info({ logId: "user-select-layout", selectedLayout: index });
+    // clientLogger.info({ logId: "user-select-layout", selectedLayout: index });
     dispatch(changeLayout(index));
     closeClick();
   };

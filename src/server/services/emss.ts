@@ -4,6 +4,7 @@ import leoProfanity from "leo-profanity";
 import fetchWithCache from "../processing/cache-client";
 import { isNearRealTime } from "utils/formatting";
 import { getVideoCoverageTimeRanges } from "server/processing/media/videos";
+import { calcMTXRecordingsTimeRanges } from "utils/mtx";
 
 export async function fetchLabsAndTalkybotTranscripts({
   source,
@@ -27,7 +28,7 @@ export async function fetchLabsAndTalkybotTranscripts({
     retries++;
   }
   const labsTranscripts = labsResponse.data;
-  const tbTranscripts = await fetchTalkybotTranscripts({ dateWanted });
+  const tbTranscripts = await fetchTalkybotTranscripts({ source, dateWanted });
 
   // if no TB response, just return labs
   if (tbTranscripts.length === 0) {
@@ -159,10 +160,17 @@ export async function fetchLabsTranscripts({
 }
 
 export async function fetchTalkybotTranscripts({
+  source,
   dateWanted,
 }: {
+  source: Source;
   dateWanted: string;
 }): Promise<UnprocessedTranscript[]> {
+  // if not ISS return nothing
+  if (source !== "ISS") {
+    return returnEmptyUnprocessedTranscriptArray();
+  }
+
   const transcripts: UnprocessedTranscript[] = [];
   const urlBase = `${process.env.TALKYBOT_URL}/api/v1/external/${dateWanted}`;
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
@@ -213,7 +221,7 @@ export async function fetchLabsAndTalkybotSGAudio({
     retries++;
   }
   const labsAudio = labsResponse.data;
-  const tbAudio = await fetchTalkybotSGAudio({ dateWanted });
+  const tbAudio = await fetchTalkybotSGAudio({ source, dateWanted });
 
   // if no TB response, just return labs
   if (
@@ -367,29 +375,21 @@ export async function fetchLabsSGAudio({
   return { ...res, source: "labs" };
 }
 
-type AudioManifestActivityRange = {
-  sound_start_secs: number;
-  sound_stop_secs: number;
-  aacSegmentFilename: string;
-};
-
-type AudioManifestsgChannelItem = {
-  sgChannel: number;
-  activity_ranges: AudioManifestActivityRange[];
-};
-
-type AudioManifestItem = {
-  start_seconds: number;
-  cue_start_seconds: number;
-  cue_end_seconds: number;
-  sgChannels: AudioManifestsgChannelItem[];
-};
-
 export async function fetchTalkybotSGAudio({
+  source,
   dateWanted,
 }: {
+  source: Source;
   dateWanted: string;
 }): Promise<SgActivityFullUrlRecord> {
+  // if not ISS return nothing
+  if (source !== "ISS") {
+    return {
+      override: false,
+      sgActivityRangeFullUrlRecords: [[], [], [], []],
+    } as SgActivityFullUrlRecord;
+  }
+
   const url = `${process.env.TALKYBOT_URL}/api/v1/external/audio/${dateWanted}/audioManifest.json`;
 
   const res = await fetchWithTimeout(url);
@@ -429,3 +429,93 @@ function returnEmptyUnprocessedTranscriptArray(): UnprocessedTranscript[] {
   }
   return emptyReponse;
 }
+
+export const fetchMTXAPIResponses = async ({
+  source,
+  forceNew,
+}: {
+  source: Source;
+  forceNew: boolean;
+}): Promise<WrappedResponse<MTXApiResponses>> => {
+  const retriever = async (): Promise<MTXApiResponses> => {
+    const sourceAbbr = source === "ISS" ? "ISS" : "TE";
+    const mtxStreamEndpointNames: MTXHlsEndpointName[] = [];
+    // we hit this to get a list of current live endpoint names from mediamtx
+    try {
+      const auth = `Basic ${Buffer.from(
+        `${process.env.MEDIAMTX_USERNAME}:${process.env.MEDIAMTX_PASSWORD}`
+      ).toString("base64")}`;
+
+      const mtxApiBaseUrl =
+        process.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
+          ? `http://127.0.0.1:9997/`
+          : `https://emss-labs.fit.nasa.gov/api/`;
+
+      const response = await fetch(`${mtxApiBaseUrl}v3/paths/list`, {
+        headers: {
+          Authorization: auth,
+        },
+      });
+      const mtxResponceJson = await response.json();
+      const itemsArray = mtxResponceJson.items;
+      for (const item of itemsArray) {
+        const streamNameSuffix = item.name.split("_")[1];
+
+        // if the stream is ready, add it to the list of stream endpoint names
+        if (item.ready && sourceAbbr === streamNameSuffix) {
+          mtxStreamEndpointNames.push(item.name);
+        }
+      }
+    } catch (e) {
+      // if the mtxApi is down, return an empty object
+      return {
+        mtxPlaybackAvailability: {},
+        mtxHlsEndpointNames: [],
+      };
+    }
+
+    // use the 9997/v3/recordings/list endpoint to get the recordings list and use the start times of the segments to determine the time ranges ourselves.
+    const mtxPlaybackAvailability: MTXPlaybackAvailability = {};
+
+    const mtxApiBaseUrl =
+      process.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
+        ? `http://127.0.0.1:9997/`
+        : `https://emss-labs.fit.nasa.gov/api/`;
+
+    // hit the API to get the MtxRecordingsListResponse
+    const recordingsResponse = await fetch(`${mtxApiBaseUrl}v3/recordings/list`, {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.MEDIAMTX_USERNAME}:${process.env.MEDIAMTX_PASSWORD}`
+        ).toString("base64")}`,
+      },
+    });
+    const recordingsJson: MtxRecordingsListResponse = await recordingsResponse.json();
+    const recordingsList = recordingsJson.items;
+
+    // for each recording, get the segments and calculate the time ranges
+    for (const recordingsListItem of recordingsList) {
+      const timeRanges = calcMTXRecordingsTimeRanges(recordingsListItem);
+
+      // get channel number from recording name
+      const recordingName = recordingsListItem.name;
+      const channelNumber = recordingName.split("_")[0].split("DL")[1];
+      mtxPlaybackAvailability[channelNumber] = timeRanges;
+    }
+
+    return {
+      mtxPlaybackAvailability,
+      mtxHlsEndpointNames: mtxStreamEndpointNames,
+    };
+  };
+
+  const res: WrappedResponse<MTXApiResponses> = await fetchWithCache<MTXApiResponses>({
+    identifier: `mtxPlaybackAvailability_${source}`,
+    cacheFolder: "labs/mtxPlayback",
+    retriever,
+    cacheAge: 120, // 2 minutes.
+    forceRetriever: forceNew,
+  });
+
+  return { ...res, source: "mtx" };
+};

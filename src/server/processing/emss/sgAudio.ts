@@ -46,6 +46,7 @@ export default async function getLabsSgAudio({
     return LabsService.fetchLabsAndTalkybotSGAudio({ source, dateWanted, forceNew });
   } else {
     const res: SgActivityFullUrlRecord = await LabsService.fetchTalkybotSGAudio({
+      source,
       dateWanted,
     });
     // wrap the response

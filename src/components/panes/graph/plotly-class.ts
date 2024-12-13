@@ -1,4 +1,4 @@
-import * as Plotly from "plotly.js";
+import * as Plotly from "plotly.js-basic-dist";
 import { MutableRefObject } from "react";
 
 declare module "plotly.js" {

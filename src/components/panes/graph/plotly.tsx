@@ -5,7 +5,7 @@ import { appSecondsFromDateString } from "utils/formatting";
 import { changeTime } from "store/playhead";
 import { useDispatch } from "react-redux";
 import { ChartLayout } from "./graphProperties";
-import { Layout } from "plotly.js";
+import { Layout } from "plotly.js-basic-dist";
 
 //disgusting hack to make IDE errors go away in the useEffect below
 type HTMLDivElementExtended = HTMLDivElement & { on: Function };
