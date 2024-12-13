@@ -1,5 +1,13 @@
 /** The state of the application viewer */
 
+import {
+  faCamera,
+  faChartLine,
+  faGlobeAmericas,
+  faInfo,
+  faSatellite,
+  faVideo,
+} from "@fortawesome/free-solid-svg-icons";
 import { Dispatch, UnknownAction, createSlice } from "@reduxjs/toolkit";
 
 /**
@@ -72,7 +80,7 @@ export const allPanes: Panes = {
   empty: {
     title: "Select display type",
     shortTitle: "None",
-    icon: "none",
+    icon: null,
     color: "none",
     defaultPaneStateData: {
       ready: true,
@@ -81,7 +89,7 @@ export const allPanes: Panes = {
   video_downlink: {
     title: "Video Channels",
     shortTitle: "Live",
-    icon: "video",
+    icon: faVideo,
     color: "teal",
     defaultPaneStateData: {
       ready: true,
@@ -95,7 +103,7 @@ export const allPanes: Panes = {
   video_non_downlink: {
     title: "Video Other",
     shortTitle: "Video",
-    icon: "video",
+    icon: faVideo,
     color: "teal",
     defaultPaneStateData: {
       ready: true,
@@ -109,7 +117,7 @@ export const allPanes: Panes = {
   photo: {
     title: "Current Photo",
     shortTitle: "Photo",
-    icon: "camera",
+    icon: faCamera,
     color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
@@ -121,7 +129,7 @@ export const allPanes: Panes = {
   photo_all: {
     title: "All Photos",
     shortTitle: "Photos",
-    icon: "camera",
+    icon: faCamera,
     color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
@@ -133,7 +141,7 @@ export const allPanes: Panes = {
   iss_location: {
     title: "ISS Position",
     shortTitle: "Orbit",
-    icon: "globe-americas",
+    icon: faGlobeAmericas,
     color: "purple",
     defaultPaneStateData: {
       ready: true,
@@ -144,7 +152,7 @@ export const allPanes: Panes = {
   gps_location: {
     title: "GPS Position",
     shortTitle: "GPS",
-    icon: "globe-americas",
+    icon: faGlobeAmericas,
     color: "purple",
     defaultPaneStateData: {
       ready: true,
@@ -156,7 +164,7 @@ export const allPanes: Panes = {
   event_info: {
     title: "EVA Info",
     shortTitle: "Info",
-    icon: "info",
+    icon: faInfo,
     color: "ruby",
     defaultPaneStateData: {
       ready: true,
@@ -166,7 +174,7 @@ export const allPanes: Panes = {
   comm: {
     title: "Communications",
     shortTitle: "Comms",
-    icon: "satellite",
+    icon: faSatellite,
     color: "burntOrange",
     defaultPaneStateData: {
       ready: true,
@@ -180,7 +188,7 @@ export const allPanes: Panes = {
   graph: {
     title: "Graph",
     shortTitle: "Graph",
-    icon: "chart-line",
+    icon: faChartLine,
     color: "burntUmber",
     defaultPaneStateData: {
       ready: true,

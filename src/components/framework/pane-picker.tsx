@@ -24,7 +24,7 @@ export const PaneLabel: FunctionComponent<{
 
   return (
     <div className={styles.item}>
-      {icon !== "none" ? (
+      {icon !== null ? (
         <div className={`${styles.icon} ${styles[color]}`}>
           <FontAwesomeIcon icon={icon} />
         </div>
