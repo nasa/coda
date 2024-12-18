@@ -433,10 +433,6 @@ deploy:int:
     url: https://coda-int.fit.nasa.gov
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
-
-    # Turn off forwarding logs from VM's Rsyslog to EMSS logging server
-    # Cannot enable in int/prod environments until FIT firewall altered
-    RSYSLOG_DISABLE_FORWARDING: "true"
   only:
     - int
   before_script:
@@ -462,10 +458,6 @@ deploy:prod:
     url: https://coda.fit.nasa.gov
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
-
-    # Turn off forwarding logs from VM's Rsyslog to EMSS logging server
-    # Cannot enable in int/prod environments until FIT firewall altered
-    RSYSLOG_DISABLE_FORWARDING: "true"
   when: manual
   only:
     - prod
