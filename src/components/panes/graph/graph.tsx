@@ -1,7 +1,7 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FunctionComponent, useEffect, useState } from "react";
-import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
@@ -15,6 +15,8 @@ import styles from "./graph.module.css";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import { hasProp } from "utils/type-guards";
 import Button from "components/interface/button";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
 
 export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
   frameID,
@@ -187,12 +189,6 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   );
   const graphData = selectedGraph?.data;
 
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
-  const playheadHover: PlayheadHoverState = useAppSelector(
-    (state: RootState) => state.playheadHover,
-    deepEqual
-  );
-
   const graphHeight = frameDimensions[1] - 40;
 
   const initialChartData: {
@@ -211,6 +207,8 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
 
   const [chartProps, setChartProps] = useState(initialChartProps);
   const [graphDataTimestampsInSeconds, setGraphDataTimestampsInSeconds] = useState<number[]>([]);
+  const { playhead } = usePlayheadContext();
+  const { hoverPlayhead } = useHoverPlayheadContext();
 
   const dispatch = useAppDispatch();
 
@@ -317,7 +315,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       name: "test",
     };
 
-    const plotIndexToHighlight = findPlotIndexToHighlight(playhead.seconds);
+    const plotIndexToHighlight = findPlotIndexToHighlight(playhead.appSeconds);
 
     const chartLayout = getPlotlyChartLayout(graphHeight);
 
@@ -345,8 +343,8 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       const duration = paneStateData.durationSelection;
       const halfDuration = duration / 2;
 
-      const startSeconds = playhead.seconds - halfDuration;
-      const endSeconds = playhead.seconds + halfDuration;
+      const startSeconds = playhead.appSeconds - halfDuration;
+      const endSeconds = playhead.appSeconds + halfDuration;
 
       startDateString = dateFromAppSeconds(startSeconds, playhead.date).toISOString();
       endDateString = dateFromAppSeconds(endSeconds, playhead.date).toISOString();
@@ -363,7 +361,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     }
 
     const plotIndexToHighlight = findPlotIndexToHighlight(
-      playheadHover.seconds || playhead.seconds
+      hoverPlayhead.hoverSeconds || playhead.appSeconds
     );
 
     const updatedChartProps = {
@@ -383,7 +381,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     if (!graphData) return;
 
     const plotIndexToHighlight = findPlotIndexToHighlight(
-      playheadHover.seconds || playhead.seconds
+      hoverPlayhead.hoverSeconds || playhead.appSeconds
     );
 
     const updatedChartProps = {
@@ -392,7 +390,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     };
 
     setChartProps(updatedChartProps);
-  }, [graphData, playheadHover]);
+  }, [graphData, playhead, hoverPlayhead]);
 
   if (graphDataIsBad === "unauthorized") {
     return <div>Unauthorized</div>;

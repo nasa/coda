@@ -9,6 +9,8 @@ import { collection as collectionEnum } from "utils/consts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const EventDropdown: FunctionComponent<{
   collection: Collection;
@@ -18,7 +20,8 @@ const EventDropdown: FunctionComponent<{
     deepEqual
   );
   const framework = useAppSelector((state: RootState) => state.framework, shallowEqual);
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+
+  const { playhead } = usePlayheadContext();
   const date = playhead.date;
 
   let allSequences = sequences.allSequences;
@@ -101,7 +104,7 @@ const EventDropdown: FunctionComponent<{
           })}
         </select>
         <div className={styles.select_arrow}>
-          <FontAwesomeIcon icon="chevron-down" />
+          <FontAwesomeIcon icon={faChevronDown} />
         </div>
       </div>
     );
@@ -138,7 +141,7 @@ const EventDropdown: FunctionComponent<{
           )}
         </select>
         <div className={styles.select_arrow}>
-          <FontAwesomeIcon icon="chevron-down" />
+          <FontAwesomeIcon icon={faChevronDown} />
         </div>
       </div>
     );

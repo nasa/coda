@@ -183,7 +183,8 @@ export async function fetchTalkybotTranscripts({
 
     try {
       const res = await fetchWithTimeout(url);
-      unprocessedTranscript.unprocessedUtterances = (await res.json()) as UnprocessedUtterance[];
+      const resJson = await res.json();
+      unprocessedTranscript.unprocessedUtterances = resJson as UnprocessedUtterance[];
     } catch (e) {
       unprocessedTranscript.unprocessedUtterances = [];
     }

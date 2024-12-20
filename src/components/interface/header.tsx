@@ -19,22 +19,28 @@ import SharePanel from "components/interface/share";
 import { allLayouts, setEmssVideoEnabled } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
-import { changeTime, halt, start } from "store/playhead";
 import { generateShareURL } from "utils/share-state";
 import { isSameDate } from "utils/date";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export const LoaderHelpMenu: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen }) => {
-  const dispatch = useAppDispatch();
+  const { setPlayhead } = usePlayheadContext();
 
   const setModalIsOpen = (val: boolean) => {
     setHelpLoaderOpen(val);
     if (val === false) {
-      dispatch(start()); // start playback when help menu closes
+      setPlayhead((prev) => ({
+        ...prev,
+        isRunning: true,
+      })); // start playback when help menu closes
     } else {
-      dispatch(halt()); // stop playback when help menu opens
+      setPlayhead((prev) => ({
+        ...prev,
+        isRunning: false,
+      })); // stop playback when help menu opens
     }
   };
 
@@ -105,7 +111,8 @@ export const ShareDropdown: FunctionComponent = () => (
 
 export const SourcesDropdown: FunctionComponent = () => {
   const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+
+  const { playhead } = usePlayheadContext();
 
   const handleSourceChange = (e: ChangeEvent<HTMLSelectElement>) => {
     let URL = generateShareURL(framework, playhead);
@@ -142,9 +149,9 @@ export const SourcesDropdown: FunctionComponent = () => {
 };
 
 export const DatetimeDropdown: FunctionComponent = () => {
-  const playheadDate = useAppSelector((state: RootState) => state.playhead.date, refEqual);
+  const { playhead } = usePlayheadContext();
 
-  const date = new Date(playheadDate);
+  const date = new Date(playhead.date);
   const year = date.getUTCFullYear();
   const month = padZeros(date.getUTCMonth() + 1, 2);
   const day = padZeros(date.getUTCDate(), 2);
@@ -162,26 +169,27 @@ export const DatetimeDropdown: FunctionComponent = () => {
 };
 
 export const Clock: FunctionComponent = () => {
-  const playheadSeconds = useAppSelector((state: RootState) => state.playhead.seconds, refEqual);
-
-  const dispatch = useAppDispatch();
-
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
   const [editingTime, setEditingTime] = useState(false);
 
+  const { playhead, setPlayhead } = usePlayheadContext();
+
   const timeInput = useRef(null);
 
   useEffect(() => {
-    setRenderTime(hhmmssFromSeconds(playheadSeconds));
-  }, [playheadSeconds]);
+    setRenderTime(hhmmssFromSeconds(playhead.appSeconds));
+  }, [playhead.appSeconds]);
 
   /** Navigates to a new time */
   const handleTimeChange = () => {
     if (userTimeValue !== "") {
       const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
       const newTime = +ss + 60 * +mm + 3600 * +hh;
-      dispatch(changeTime(newTime));
+      setPlayhead((prev) => ({
+        ...prev,
+        appSeconds: newTime,
+      }));
       setRenderTime(userTimeValue);
     }
 
@@ -198,7 +206,10 @@ export const Clock: FunctionComponent = () => {
   const handleLive = () => {
     const timeLive = appSecondsFromDateString(new Date().toISOString());
     setRenderTime(hhmmssFromSeconds(timeLive));
-    dispatch(changeTime(timeLive));
+    setPlayhead((prev) => ({
+      ...prev,
+      appSeconds: timeLive,
+    }));
     setUserTimeValue("");
     setEditingTime(false);
   };

@@ -10,7 +10,6 @@ import { isSameDate } from "../../utils/date";
 
 const oneYearInSeconds = 31536000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const SPACETRACK_LOGIN = "https://www.space-track.org/ajaxauth/login";
 
 async function fetchSpacetrack(
   year: number,
@@ -28,15 +27,37 @@ async function fetchSpacetrack(
     return mockResult;
   }
 
+  // 2024-12-19 space-track.org now requires two step call. first call to login and returns a cookie with a token in it. 2nd call uses that token to make the actual request.
+
+  const loginUrl = "https://www.space-track.org/ajaxauth/login";
+  const loginBody = `identity=${process.env.SPACETRACK_USER}&password=${process.env.SPACETRACK_PASSWORD}`;
+
+  const loginRes = await fetchWithTimeout(loginUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: loginBody,
+  });
+
+  // Extract the cookie from the response headers
+  const cookies = loginRes.headers.get("set-cookie");
+
+  // If login failed, return empty array
+  if (!cookies) {
+    return [];
+  }
+
+  // if login succeeded, make the actual request using the session token
+
   const dateParam = `${padZeros(year, 2)}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
   const queryURL = `https://www.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/>${dateParam}%2000:00:00,<${dateParam}%2023:59:59/orderby/EPOCH%20desc/limit/100/emptyresult/show`;
-  const body = `identity=${process.env.SPACETRACK_USER}&password=${process.env.SPACETRACK_PASSWORD}&query=${queryURL}`;
 
   try {
-    const res = await fetchWithTimeout(SPACETRACK_LOGIN, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
+    const res = await fetchWithTimeout(queryURL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: cookies,
+      },
     });
 
     return (await res.json()) as EphemerisFile[];

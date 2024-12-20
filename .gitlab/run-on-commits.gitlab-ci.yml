@@ -411,7 +411,7 @@ deploy:neon:
 deploy:oxygen:
   extends:
     - .deploy-template
-    - .neon-deploy
+    - .oxygen-deploy
   needs:
     - make-dotenv
     - docker:retag
