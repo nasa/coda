@@ -1,7 +1,7 @@
 import cacache from "cacache";
 import crypto from "crypto";
 import isNil from "lodash/isNil";
-import _ from "lodash";
+import random from "lodash/random";
 
 interface FetchWithCacheParams<T> {
   /** The cache key. Must be unique for the folder */
@@ -186,10 +186,10 @@ export default async function fetchWithCache<T>({
         if (randomizeCacheAge) {
           if (cacheAge === 0) {
             // live mode randomized cache age. Range is selcted based on client's polling interval in the populate store
-            expiration = new Date(Date.now() + _.random(15000, 45000)); // 15 to 45 seconds
+            expiration = new Date(Date.now() + random(15000, 45000)); // 15 to 45 seconds
           } else {
             // normal randomized cache age
-            expiration = new Date(Date.now() + cacheAge * 1000 + _.random(0, 100000)); // 100 seconds
+            expiration = new Date(Date.now() + cacheAge * 1000 + random(0, 100000)); // 100 seconds
           }
         }
 

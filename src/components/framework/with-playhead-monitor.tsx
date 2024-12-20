@@ -1,4 +1,4 @@
-import _ from "lodash";
+import isNil from "lodash/isNil";
 import React, { useEffect } from "react";
 import { shallowEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -24,7 +24,7 @@ function PlayheadMonitor() {
 
     let panesAllReady = true;
     for (const frame in frames) {
-      if (_.isNil(frames[frame].paneStateData.ready) || !frames[frame].paneStateData.ready) {
+      if (isNil(frames[frame].paneStateData.ready) || !frames[frame].paneStateData.ready) {
         panesAllReady = false;
         break;
       }

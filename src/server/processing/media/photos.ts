@@ -1,11 +1,11 @@
 import clone from "lodash/clone";
 import isNil from "lodash/isNil";
+import sortBy from "lodash/sortBy";
 import * as IoService from "server/services/io-api";
 import * as WikiService from "server/services/wiki-api";
 import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
-import _ from "lodash";
 import { addMs, isSameDate } from "../../../utils/date";
 
 /**
@@ -39,7 +39,7 @@ export default async function getPhotoData({
 
     // if there are media overrides, use those instead of IO
     if (mediaOverride) {
-      const photos = _.sortBy(
+      const photos = sortBy(
         (await DbService.getManifest(mediaOverride)) as PhotoFile[],
         "datetimeTaken"
       );

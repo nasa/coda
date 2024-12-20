@@ -6,7 +6,7 @@ import { getYearDayNumber, padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 
