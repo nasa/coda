@@ -19,7 +19,7 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 
 //tlejs not importable as per module docs
 import { getLatLngObj } from "tle.js";
-import _ from "lodash";
+import isNaN from "lodash/isNaN";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { createRoot } from "react-dom/client";
@@ -146,7 +146,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     if (playheadMarker.markerNode.style.visibility === "hidden") {
       playheadMarker.markerNode.style.visibility = "visible";
     }
-    if (!_.isNaN(playheadLatLonObj.lat) && !_.isNaN(playheadLatLonObj.lng)) {
+    if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
       playheadMarker.marker.setLngLat(playheadLatLonObj);
     }
 
@@ -157,7 +157,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       const tle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
-      if (!_.isNaN(hoverLatLonObj.lat) && !_.isNaN(hoverLatLonObj.lng)) {
+      if (!isNaN(hoverLatLonObj.lat) && !isNaN(hoverLatLonObj.lng)) {
         hoverMarker.marker.setLngLat(hoverLatLonObj);
       }
 
@@ -169,7 +169,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       updateTerminator(map, playHeadISODate);
 
       if (paneStateData.lockMap) {
-        if (!_.isNaN(playheadLatLonObj.lat) && !_.isNaN(playheadLatLonObj.lng)) {
+        if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
           map.panTo(playheadLatLonObj);
         }
       }

@@ -1,4 +1,5 @@
-import { isNil, isNull } from "lodash";
+import isNull from "lodash/isNull";
+import isNil from "lodash/isNil";
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -23,7 +24,6 @@ import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { ModalDropdown } from "components/interface/dropdown-modal";
-import _ from "lodash";
 import { isSameDate, midnightZulu } from "../../utils/date";
 import VideoMTXPlaybackPane from "./video-mtx-playback";
 import VideoHlsPane from "./video-hls";
@@ -263,7 +263,7 @@ export const ChannelSelectorSmall: FunctionComponent<{
           modal={ChannelDropdownModal}
           modalOptions={{ frameID, channelAvailability, channelSelected: paneStateData?.channel }}
         >
-          {!_.isNil(channelAvailability) ? (
+          {!isNil(channelAvailability) ? (
             <ChannelDropdownLabel
               dlNumber={paneStateData.channel}
               isAvailable={channelAvailability[paneStateData.channel]}

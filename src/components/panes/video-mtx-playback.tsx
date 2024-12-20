@@ -6,7 +6,7 @@ import { setPaneStateValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { isAutoplayError } from "./video";
 import { isSameDate } from "utils/date";
-import _ from "lodash";
+import isEqual from "lodash/isEqual";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 
@@ -129,7 +129,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     if (Math.abs(playhead.seconds - videoPlaySeconds) < 10) return;
 
     const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(playhead.seconds);
-    if (!_.isEqual(mtxPlaybackRecord, currVidMTXPlaybackRecord)) {
+    if (!isEqual(mtxPlaybackRecord, currVidMTXPlaybackRecord)) {
       setCurrVidMTXPlaybackRecord(mtxPlaybackRecord);
     }
     playVideoAtPlayhead(mtxPlaybackRecord);

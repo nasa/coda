@@ -1,4 +1,4 @@
-import _ from "lodash";
+import isNil from "lodash/isNil";
 import styles from "./frame.module.css";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { RootState } from "store";
@@ -35,7 +35,7 @@ export const FrameHeader: FunctionComponent<{
 
   let label = <>&nbsp;Select display type</>;
 
-  if (!_.isNil(paneType)) {
+  if (!isNil(paneType)) {
     label = <PaneLabel paneType={paneType} labelSize={labelSize} />;
   }
 
@@ -117,7 +117,7 @@ const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
 
   let FrameRender = null;
   let FrameControls = null;
-  if (!_.isNil(paneType)) {
+  if (!isNil(paneType)) {
     FrameRender = frameTypeIDsToPanes[paneType].pane;
     FrameControls = frameTypeIDsToPanes[paneType].controls;
   }
@@ -157,7 +157,7 @@ const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
     <div className={styles.main} ref={frameRef}>
       <div className={styles.headerContainer}>
         <FrameHeader frameID={frameId} paneType={paneType} frameDimensions={frameDimensions}>
-          {!_.isNil(FrameControls) ? (
+          {!isNil(FrameControls) ? (
             <FrameControls frameID={frameId} frameDimensions={frameDimensions} />
           ) : (
             <></>
@@ -165,7 +165,7 @@ const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
         </FrameHeader>
       </div>
       <div className={styles.bodyContainer}>
-        {!_.isNil(FrameRender) ? (
+        {!isNil(FrameRender) ? (
           <FrameRender frameID={frameId} frameDimensions={frameDimensions} />
         ) : (
           <>

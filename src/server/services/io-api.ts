@@ -16,7 +16,7 @@ FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to d
 import { padZeros, appSecondsFromDateString, isNearRealTime } from "utils/formatting";
 import fetchWithCache from "../processing/cache-client";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
 
