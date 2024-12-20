@@ -1,7 +1,4 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-
-import { playheadSlice, initialState as playheadInitialState } from "./playhead";
-import { playheadHoverSlice, initialState as playheadHoverInitialState } from "./playheadHover";
 import { sequencesSlice, initialState as sequencesInitialState } from "./sequences";
 import { videoSlice, initialState as videosInitialState } from "./videos";
 import { frameworkSlice, initialState as viewerInitialState } from "./framework";
@@ -15,8 +12,6 @@ import { graphSlice, initialState as graphInitialState } from "./graphs";
 import { maestroSlice, initialState as maestroInitialState } from "./maestro";
 
 export const initialState = {
-  playhead: playheadInitialState,
-  playheadHover: playheadHoverInitialState,
   sequences: sequencesInitialState,
   videos: videosInitialState,
   photos: photosInitialState,
@@ -31,8 +26,6 @@ export const initialState = {
 };
 
 const sliceReducers = combineReducers({
-  playhead: playheadSlice.reducer,
-  playheadHover: playheadHoverSlice.reducer,
   sequences: sequencesSlice.reducer,
   videos: videoSlice.reducer,
   photos: photoSlice.reducer,
@@ -50,7 +43,9 @@ export type RootState = ReturnType<typeof sliceReducers>;
 export const store: StoreType = configureStore({
   reducer: sliceReducers,
   preloadedState: initialState,
-  devTools: true,
+  devTools: {
+    name: `CODA Tab-${Math.random()}`, // Include git branch name
+  },
 });
 export type StoreType = ReturnType<typeof configureStore<RootState>>;
 export type AppDispatch = typeof store.dispatch;

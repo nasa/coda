@@ -4,13 +4,11 @@ import isNull from "lodash/isNull";
 import isEqual from "lodash/isEqual";
 import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
-import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
 
 import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss";
 import { RootState } from "store/index";
-import { changeDate, changeTime } from "store/playhead";
 import {
   addSequences,
   clearSequences,
@@ -94,6 +92,7 @@ import { getGPSTracks } from "http-client/db";
 import { diff, isSameDate } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
 import { padZeros } from "utils/formatting";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export function V2() {
   const [searchParams, _setSearchParams] = useSearchParams();
@@ -103,8 +102,7 @@ export function V2() {
     (state: RootState) => state.framework.emssVideoEnabled,
     refEqual
   );
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
-  const playheadDate = playhead.date;
+
   const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
   const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
   let allEVAs = sequences.allSequences;
@@ -129,6 +127,10 @@ export function V2() {
   });
 
   const dispatch = useAppDispatch();
+
+  const { playhead, setPlayhead } = usePlayheadContext();
+
+  const playheadDate = playhead.date;
 
   const retrieverRetryRange = [2000, 8000]; // in milliseconds
 
@@ -163,7 +165,10 @@ export function V2() {
   }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      dispatch(changeDate(userDate.toISOString()));
+      setPlayhead((prev) => ({
+        ...prev,
+        date: userDate.toISOString(),
+      }));
     }
   }, []);
 
@@ -196,7 +201,10 @@ export function V2() {
       }
     }
 
-    dispatch(changeTime(userTime));
+    setPlayhead((prev) => ({
+      ...prev,
+      appSeconds: userTime,
+    }));
   }, [sequences]);
 
   useEffect(() => {
@@ -309,7 +317,6 @@ export function V2() {
         if (response.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             async () => {
-              console.log("setting timeout");
               await populateMTXVideoStore({ dateWanted, source });
             },
             random(retrieverRetryRange[0], retrieverRetryRange[1])
@@ -626,7 +633,7 @@ export function V2() {
   );
 }
 
-export default WithPlayheadMonitor(V2);
+export default V2;
 
 function getURLParams(query: URLSearchParams): QueryParams {
   const version = query?.get("v") || "1.0"; //version of share URL being received

@@ -19,10 +19,11 @@ import { EditPhotoRecord } from "pages/admin/photoTimeShiftUpsert";
 import { EnsureLogin } from "./packages/EnsureLogin";
 import { Tooltip } from "react-tooltip";
 import HLSPage from "pages/hls";
+import CombinedProviders from "store/contextProviders/_CombinedProviders";
 
 const App = (): React.ReactElement => {
   return (
-    <>
+    <CombinedProviders>
       <EnsureLogin />
       <Routes>
         <Route path="/" element={<Index />} />
@@ -53,7 +54,7 @@ const App = (): React.ReactElement => {
           opacity: 1,
         }}
       />
-    </>
+    </CombinedProviders>
   );
 };
 

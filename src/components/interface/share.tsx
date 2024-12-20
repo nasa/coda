@@ -5,6 +5,7 @@ import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { RootState } from "store/index";
 import { HelpButton } from "./pane-help-control-button";
 import HelpOverlay from "./pane-help-overlay";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const SharePanel = ({
   closeClick,
@@ -14,11 +15,12 @@ const SharePanel = ({
   display: boolean;
 }): JSX.Element => {
   const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
   const [shareURLtextValue, setShareURLtextValue] = useState("");
+
+  const { playhead } = usePlayheadContext();
 
   const shareURLtextarea = useRef(null);
 

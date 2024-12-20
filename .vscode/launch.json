@@ -13,7 +13,7 @@
       "request": "attach",
       "name": "Chrome Attach",
       "port": 9222,
-      "urlFilter": "http://coda-local.fit.nasa.gov:3000/*",
+      "urlFilter": "http://localhost:3000/*",
       "webRoot": "${workspaceFolder}/src"
     },
     {

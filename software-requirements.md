@@ -17,7 +17,6 @@ https://gitlab.fit.nasa.gov/coda/coda-requirements/-/blob/main/README.md
 
 https://gitlab.fit.nasa.gov/emss/emss-processes/-/blob/main/README.md
 
-
 ## Introduction
 
 ### Purpose of Document
@@ -62,19 +61,17 @@ Ref 3.1.14
 
 1. The system shall ... be a system
 
-
 4.1.2
-      The project manager shall establish, capture, record, approve, and maintain software requirements, including requirements for COTS, GOTS, MOTS, OSS, or reused software components, as part of the technical specification.
+The project manager shall establish, capture, record, approve, and maintain software requirements, including requirements for COTS, GOTS, MOTS, OSS, or reused software components, as part of the technical specification.
 
 4.1.5
-      The project manager shall track and manage changes to the software requirements.
+The project manager shall track and manage changes to the software requirements.
 
 4.1.6
-      The project manager shall identify, initiate corrective actions, and track until closure inconsistencies among requirements, project plans, and software products.
+The project manager shall identify, initiate corrective actions, and track until closure inconsistencies among requirements, project plans, and software products.
 
 4.1.7
-      The project manager shall perform requirements validation to ensure that the software will perform as intended in the customer environment.
-
+The project manager shall perform requirements validation to ensure that the software will perform as intended in the customer environment.
 
 Ref 3.1.14, 3.12.1, 4.1.2, 4.1.5, 4.1.6
 

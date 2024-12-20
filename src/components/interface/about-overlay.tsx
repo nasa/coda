@@ -163,15 +163,27 @@ const AboutOverlay = ({
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:jackie.vu@nasa.gov"}>
+                      Jackie Vu
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>Software Engineering</div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
+                    <a className={styles.teamName} href={"mailto:luke.a.mcsherry@nasa.gov"}>
+                      Luke McSherry
+                    </a>
+                  </div>
+                  <div className={styles.teamTitle}>Software Engineering</div>
+                </li>
+                <li>
+                  <div className={styles.creditHeading}>
                     <a className={styles.teamName} href={"mailto:cameron.w.pittman@nasa.gov"}>
                       Cameron Pittman
                     </a>
                   </div>
-                  <div className={styles.teamTitle}>
-                    Software Architecture Lead,
-                    <br />
-                    Software Engineering
-                  </div>
+                  <div className={styles.teamTitle}>Software Architecture</div>
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
@@ -183,27 +195,11 @@ const AboutOverlay = ({
                 </li>
                 <li>
                   <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:jackie.vu@nasa.gov"}>
-                      Jackie Vu
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Software Engineering</div>
-                </li>
-                <li>
-                  <div className={styles.creditHeading}>
                     <a className={styles.teamName} href={"mailto:edwin.j.montalvo@nasa.gov"}>
                       James Montalvo
                     </a>
                   </div>
                   <div className={styles.teamTitle}>EMSS Lead</div>
-                </li>
-                <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:luke.a.mcsherry@nasa.gov"}>
-                      Luke McSherry
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Software Engineering</div>
                 </li>
               </ul>
             </div>

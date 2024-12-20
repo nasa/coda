@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { ModalDropdown } from "./dropdown-modal";
 import { RootState } from "store/index";
 import { getYearDayNumber, padZeros } from "utils/formatting";
@@ -9,6 +9,7 @@ import { diff, isSameDate } from "../../utils/date";
 import isNil from "lodash/isNil";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 interface DateDescription {
   date: Date;
@@ -49,7 +50,7 @@ const allMonths = [
 const handleDateChange = (
   description: DateDescription,
   framework: FrameworkState,
-  playhead: PlayheadState
+  playhead: Playhead
 ) => {
   const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
     description.date.getUTCMonth() + 1,
@@ -145,7 +146,8 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
   closeClick,
 }) => {
   const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+
+  const { playhead } = usePlayheadContext();
 
   let dayOfYearColor = "var(--even-greyer)";
   let toolTipText = "";
@@ -218,7 +220,9 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
 
 const DayOfYearPicker: FunctionComponent = () => {
   const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
+
+  const { playhead } = usePlayheadContext();
+
   const playheadDate = playhead.date;
   const allSequences = useAppSelector(
     (state: RootState) => state.sequences.allSequences,
@@ -339,7 +343,10 @@ const DayOfYearPicker: FunctionComponent = () => {
 export const Calendar: FunctionComponent<{ closeClick?: () => void }> = ({ closeClick }) => {
   const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
   const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
-  const playheadDate = useAppSelector((state: RootState) => state.playhead.date, refEqual);
+
+  const { playhead } = usePlayheadContext();
+  const playheadDate = playhead.date;
+
   const source = framework.source;
 
   let allSequences = sequences.allSequences;

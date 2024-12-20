@@ -1,25 +1,22 @@
 import { FunctionComponent } from "react";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
-import { useAppDispatch } from "utils/useAppDispatch";
-import { changeTime, start, stop } from "store/playhead";
 import styles from "./playback-controls.module.css";
-import { RootState } from "store/index";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const PlaybackControls: FunctionComponent = () => {
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
-
-  const dispatch = useAppDispatch();
+  const { playhead, setPlayhead } = usePlayheadContext();
 
   const handlePlayPause = () => {
-    if (playhead.isRunning) {
-      dispatch(stop());
-    } else {
-      dispatch(start());
-    }
+    setPlayhead((prev) => ({
+      ...prev,
+      isRunning: !prev.isRunning,
+    }));
   };
 
   const jumpTime = (seconds: number) => {
-    dispatch(changeTime(playhead.seconds + seconds));
+    setPlayhead((prev) => ({
+      ...prev,
+      appSeconds: prev.appSeconds + seconds,
+    }));
   };
 
   let playPauseSvgName;
