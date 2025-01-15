@@ -1,4 +1,4 @@
-import _ from "lodash";
+import map from "lodash/map";
 import { useState } from "react";
 import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -73,7 +73,7 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }) => {
         )}
       </div>
       <div className={styles.layouts}>
-        {_.map(allLayouts, (layout, index) => (
+        {map(allLayouts, (layout, index) => (
           <div
             className={`${styles.layout} ${
               index === frameworkState.layout ? styles.layoutselected : ""

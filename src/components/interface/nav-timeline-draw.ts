@@ -139,14 +139,15 @@ export default class DrawNav {
     this.setDynamicWidthVariables();
     if (event.point.y > this.gTier1Top) {
       //if in tier1
-      mouseXSeconds = (event.point.x - this.gTier1Left) * this.gTier1SecondsPerPixel;
+      mouseXSeconds = Math.round((event.point.x - this.gTier1Left) * this.gTier1SecondsPerPixel);
       if (mouseXSeconds < 0) mouseXSeconds = 0;
       this.drawNavBox(mouseXSeconds);
       this.drawTier2();
     } else {
       //if in tier 2
-      mouseXSeconds =
-        (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds;
+      mouseXSeconds = Math.round(
+        (event.point.x - this.gTier2Left) * this.gTier2SecondsPerPixel + this.gTier2StartSeconds
+      );
     }
     this.drawCursor(missionTimeSeconds);
     this.drawNavCursor(mouseXSeconds);

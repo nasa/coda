@@ -1,12 +1,14 @@
 import styles from "./index.module.css";
-import _ from "lodash";
-import WithPlayheadMonitor from "components/framework/with-playhead-monitor";
+import random from "lodash/random";
+import isNull from "lodash/isNull";
+import isEqual from "lodash/isEqual";
+import isNaN from "lodash/isNaN";
+import isNil from "lodash/isNil";
 
 import { useEffect, useState } from "react";
 import { fetchEVAs, fetchTestEvents, getGraphsManifest } from "http-client/sequences";
 import { getSgAudio, getTranscripts } from "http-client/emss";
 import { RootState } from "store/index";
-import { changeDate, changeTime } from "store/playhead";
 import {
   addSequences,
   clearSequences,
@@ -87,9 +89,10 @@ import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router-dom";
 import { URLSearchParams } from "url";
 import { getGPSTracks } from "http-client/db";
-import { diff, isSameDate } from "../../utils/date";
+import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
-import { padZeros } from "utils/formatting";
+import { appSecondsFromDateString, padZeros } from "utils/formatting";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export function V2() {
   const [searchParams, _setSearchParams] = useSearchParams();
@@ -99,8 +102,7 @@ export function V2() {
     (state: RootState) => state.framework.emssVideoEnabled,
     refEqual
   );
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
-  const playheadDate = playhead.date;
+
   const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
   const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
   let allEVAs = sequences.allSequences;
@@ -126,18 +128,22 @@ export function V2() {
 
   const dispatch = useAppDispatch();
 
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
+
+  const playheadDate = playhead.date;
+
   const retrieverRetryRange = [2000, 8000]; // in milliseconds
 
   // make sure the application is running on the correct date
   let userDate = null;
 
   const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-  if (!_.isNull(urlState.date) && !_.isNull(urlState.date.match(yyyymmdd))) {
+  if (!isNull(urlState.date) && !isNull(urlState.date.match(yyyymmdd))) {
     // change the date if the user set the `date` query param
-    userDate = new Date(urlState.date);
+    userDate = midnightZulu(new Date(urlState.date));
   } else {
     // default the date to today
-    userDate = new Date();
+    userDate = midnightZulu(new Date());
   }
 
   // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
@@ -159,18 +165,20 @@ export function V2() {
   }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      dispatch(changeDate(userDate.toISOString()));
+      dispatchPlayhead({ type: "SET_DATE", payload: userDate.toISOString() });
     }
   }, []);
 
   useEffect(() => {
     // make sure the application is running on the correct time
     // default the time to 10:30:00Z
-    let userTime = 10.5 * 60 * 60;
+    const isToday = isSameDate(new Date(), new Date(playheadDate));
+
+    let userTime = isToday ? appSecondsFromDateString(new Date().toISOString()) : 10.5 * 60 * 60;
 
     const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d:[0-9]\d))$/; // matches valid hh:mm:ss times
     // change the time if the user set the `gmt` query param and it's in a valid format
-    if (!_.isNil(urlState.gmt) && !_.isNil(urlState.gmt.match(reHHMM))) {
+    if (!isNil(urlState.gmt) && !isNil(urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
     } else {
@@ -185,19 +193,19 @@ export function V2() {
       const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
       let evaStartSec = null as number;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-      if (!_.isNil(sequence) && !_.isNil(sequence.startTime.match(reHHMM))) {
+      if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
         const [hh, mm] = sequence.startTime.split(":");
         evaStartSec = 3600 * +hh + 60 * +mm;
         userTime = evaStartSec;
       }
     }
 
-    dispatch(changeTime(userTime));
+    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: userTime });
   }, [sequences]);
 
   useEffect(() => {
     // set the framework state if that object was set in url query params
-    if (!_.isNull(urlState.frameworkState)) {
+    if (!isNull(urlState.frameworkState)) {
       dispatch(setAllFrameworkState(urlState.frameworkState));
     }
   }, []);
@@ -220,7 +228,7 @@ export function V2() {
           async () => {
             await populateSequenceStore({ source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (updatedEVAsResponse.data) dispatch(addSequences(updatedEVAsResponse));
 
@@ -272,7 +280,7 @@ export function V2() {
               incremental,
             });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (videoStoreResponse.data) dispatch(addVideos(videoStoreResponse));
         return;
@@ -305,10 +313,9 @@ export function V2() {
         if (response.responseMetadata.retrieverStatus === "inprogress") {
           setTimeout(
             async () => {
-              console.log("setting timeout");
               await populateMTXVideoStore({ dateWanted, source });
             },
-            _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+            random(retrieverRetryRange[0], retrieverRetryRange[1])
           );
           if (response.data) {
             dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
@@ -324,8 +331,8 @@ export function V2() {
           // deep diff the response data to see if we need to update the store.
           // we do this because the API call can sometimes be "inprogress" for a long time and each timeout refresh causes the video panes to reload
           const diff =
-            _.isEqual(oldMtxPlaybackAvailability, response.data.mtxPlaybackAvailability) &&
-            _.isEqual(oldMtxHlsEndpointNames, response.data.mtxHlsEndpointNames);
+            isEqual(oldMtxPlaybackAvailability, response.data.mtxPlaybackAvailability) &&
+            isEqual(oldMtxHlsEndpointNames, response.data.mtxHlsEndpointNames);
 
           if (!diff) {
             dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
@@ -353,7 +360,7 @@ export function V2() {
           async () => {
             await populatePhotoStore({ dateWanted, source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (photoStoreResponse.data) dispatch(addPhotos(photoStoreResponse));
         return;
@@ -390,7 +397,7 @@ export function V2() {
           async () => {
             await populateEphemerisStore({ dateWanted, source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (ephemerisStoreResponse.data) dispatch(addEphemera(ephemerisStoreResponse));
         return;
@@ -421,7 +428,7 @@ export function V2() {
           async () => {
             await populateDayNightStore({ dateWanted, source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (daynightStoreResponse.data) dispatch(addDayNight(daynightStoreResponse));
         return;
@@ -468,7 +475,7 @@ export function V2() {
           async () => {
             await populateTranscriptStore({ dateWanted, source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (transcriptResponse.data) dispatch(setTranscripts(transcriptResponse));
         return;
@@ -495,7 +502,7 @@ export function V2() {
           async () => {
             await populateSgAudioStore({ dateWanted, source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (sgAudioResponse.data) dispatch(setSgAudioActivity(sgAudioResponse));
         return;
@@ -522,7 +529,7 @@ export function V2() {
           async () => {
             await populateGraphStore({ dateWanted, source });
           },
-          _.random(retrieverRetryRange[0], retrieverRetryRange[1])
+          random(retrieverRetryRange[0], retrieverRetryRange[1])
         );
         if (graphResponse.data) dispatch(setGraphsManifest(graphResponse));
         return;
@@ -544,7 +551,7 @@ export function V2() {
 
   // populate store when date or source change
   useEffect(() => {
-    if (_.isNull(playheadDate) || _.isNull(source)) {
+    if (isNull(playheadDate) || isNull(source)) {
       return;
     }
 
@@ -579,7 +586,7 @@ export function V2() {
 
   // re-populate the video store when emssVideoEnabled changes
   useEffect(() => {
-    if (_.isNull(playheadDate) || _.isNull(source)) {
+    if (isNull(playheadDate) || isNull(source)) {
       return;
     }
     // populate stores
@@ -622,7 +629,7 @@ export function V2() {
   );
 }
 
-export default WithPlayheadMonitor(V2);
+export default V2;
 
 function getURLParams(query: URLSearchParams): QueryParams {
   const version = query?.get("v") || "1.0"; //version of share URL being received
@@ -642,7 +649,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.frames = setGPSLocationFrame(fState, "5");
       // set the default layout to the standard without Event Info
       fState.layout = "c";
-      if (_.isNil(date)) {
+      if (isNil(date)) {
         // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
         date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
       }
@@ -650,7 +657,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.source = "NBL";
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
-      if (_.isNil(date)) {
+      if (isNil(date)) {
         // 2021-10-28 is a good representation of NBL events
         date = new Date(2021, 9, 28).toISOString().split("T")[0]; // 9 = October
       }
@@ -658,11 +665,11 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.source = "ARTEMIS";
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
-      if (_.isNil(date)) {
+      if (isNil(date)) {
         // 2022-12-05 is a good representation of Artemis 1 events
         date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
       }
-      if (_.isNil(gmt)) {
+      if (isNil(gmt)) {
         // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
         gmt = "17:14:44";
       }

@@ -1,19 +1,17 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import type { RootState } from "store/index";
 import styles from "./video.module.css";
 import { setPaneStateValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import Hls from "hls.js";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
-  const playhead: PlayheadState = useAppSelector(
-    (state: RootState) => state.playhead,
-    shallowEqual
-  );
+
   const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
   const paneStateData: VideoPaneStateData = useAppSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData,
@@ -24,10 +22,12 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     deepEqual
   );
 
+  const [hlsAvailable, setHlsAvailable] = useState(false);
+
+  const { playhead } = usePlayheadContext();
+
   const hlsRef = useRef<Hls | null>(null);
   const videoRef = useRef() as MutableRefObject<HTMLVideoElement>;
-
-  const [hlsAvailable, setHlsAvailable] = useState(false);
 
   const downlinkNumber = (paneStateData.channel + 1).toString();
 
@@ -56,16 +56,16 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const syncToPlayhead = () => {
     if (!hlsRef.current) return;
 
-    // if the playhead.seconds is within 10 second of the current time, just go to the live edge of the hls stream
-    if (Math.abs(playhead.seconds - appSecondsFromDateString(new Date().toISOString())) < 5) {
+    // if the appSeconds is within 10 second of the current time, just go to the live edge of the hls stream
+    if (Math.abs(playhead.appSeconds - appSecondsFromDateString(new Date().toISOString())) < 5) {
       if (hlsRef.current.liveSyncPosition - videoRef.current.currentTime < 3) return; // don't sync if we're already close to the live edge
       const liveEdge = hlsRef.current.liveSyncPosition;
       videoRef.current.currentTime = liveEdge;
       return;
     }
 
-    // otherwise, figure out how many seconds to seek to get to the desired appSeconds
-    const playheadDate = dateFromAppSeconds(playhead.seconds, playhead.date);
+    // otherwise, figure out how many seconds to seek to get to the desired playhead.appSeconds
+    const playheadDate = dateFromAppSeconds(playhead.appSeconds, playhead.date);
     const hlsPlayingDate = hlsRef.current.playingDate;
     if (!hlsPlayingDate) return;
 
@@ -90,10 +90,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       return;
     }
 
-    const mtxHlsBaseUrl =
-      import.meta.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
-        ? `http://127.0.0.1:8888/`
-        : `https://emss-labs.fit.nasa.gov/live/`;
+    const mtxHlsBaseUrl = import.meta.env.VITE_PUBLIC_MEDIA_MTX_HLS_URL;
 
     if (Hls.isSupported()) {
       if (!hlsRef.current) {
@@ -153,8 +150,8 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   }, [mtxHlsEndpointNames]);
 
   useEffect(prepareHlsPlayer, [mtxHlsEndpointNames, videoRef.current, paneStateData]);
-  useEffect(syncToPlayhead, [hlsRef.current, playhead.seconds]);
-  useEffect(playOrPause, [playhead.isRunning, playhead.seconds]);
+  useEffect(syncToPlayhead, [hlsRef.current, playhead.appSeconds]);
+  useEffect(playOrPause, [playhead.isRunning, playhead.appSeconds]);
 
   return (
     <div key={`video_element__${frameID}`} className={styles.vidContainer}>

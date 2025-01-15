@@ -1,6 +1,6 @@
 import packagejson from "../../../package.json";
-
-import _ from "lodash";
+import remove from "lodash/remove";
+import find from "lodash/find";
 import { globalValues } from "./global";
 
 export const setupSocketIO = (): void => {
@@ -22,7 +22,7 @@ export const setupSocketIO = (): void => {
       socket.join(visitorData.room);
 
       // remove this socket from tracking list if it exists
-      _.remove(visitorsData, (item) => {
+      remove(visitorsData, (item) => {
         return item.socketId === visitorData.socketId;
       });
       visitorsData.push(visitorData);
@@ -36,12 +36,12 @@ export const setupSocketIO = (): void => {
     socket.on("connect", () => {});
 
     socket.on("disconnect", () => {
-      const visitorBeingRemoved = _.find(visitorsData, {
+      const visitorBeingRemoved = find(visitorsData, {
         socketId: socket.id,
       });
 
       // remove this socket from the visitor tracking
-      _.remove(visitorsData, (item) => {
+      remove(visitorsData, (item) => {
         return item.socketId === visitorBeingRemoved.socketId;
       });
       const statusFromServer = getStatusFromServer();

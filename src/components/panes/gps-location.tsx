@@ -19,6 +19,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import Button from "components/interface/button";
 import { createRoot } from "react-dom/client";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
 
 export const GPSLocationControls: FunctionComponent<{
   frameID: number;
@@ -152,11 +154,6 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     Staff: { ...initialTrackFeature },
   };
 
-  const playheadHover: PlayheadHoverState = useAppSelector(
-    (state: RootState) => state.playheadHover,
-    deepEqual
-  );
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const gpsState: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
   const layoutLastChanged = useAppSelector(
     (state: RootState) => state.framework.layoutLastChanged,
@@ -166,6 +163,10 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     (state: RootState) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
+
+  const { playhead } = usePlayheadContext();
+  const { hoverPlayhead } = useHoverPlayheadContext();
+
   const mapContainer = useRef(null);
 
   const [map, setMap] = useState<Map>(null);
@@ -254,12 +255,9 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
       let markerIndex = 0;
 
-      let isoDate = null;
-      if (playheadHover.seconds === 0) {
-        isoDate = getPlayheadISOString(playhead.date, playhead.seconds);
-      } else {
-        isoDate = getPlayheadISOString(playhead.date, playheadHover.seconds);
-      }
+      let isoDate = hoverPlayhead.hoverSeconds
+        ? getPlayheadISOString(playhead.date, hoverPlayhead.hoverSeconds)
+        : getPlayheadISOString(playhead.date, playhead.appSeconds);
 
       //Look for the point in each GPS track closest to the playheadTime
       for (let i = 0; i < gpsTracks[track].points.length; i++) {
@@ -324,14 +322,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         setZoomLevel(1);
       }
     }
-  }, [
-    map,
-    playhead.date,
-    playhead.seconds,
-    playheadHover.seconds,
-    gpsState.gpsTracks,
-    paneStateData,
-  ]);
+  }, [map, playhead, hoverPlayhead, gpsState.gpsTracks, paneStateData]);
 
   //Display GPS tracks on map
   useEffect(() => {

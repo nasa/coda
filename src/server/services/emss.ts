@@ -183,7 +183,8 @@ export async function fetchTalkybotTranscripts({
 
     try {
       const res = await fetchWithTimeout(url);
-      unprocessedTranscript.unprocessedUtterances = (await res.json()) as UnprocessedUtterance[];
+      const resJson = await res.json();
+      unprocessedTranscript.unprocessedUtterances = resJson as UnprocessedUtterance[];
     } catch (e) {
       unprocessedTranscript.unprocessedUtterances = [];
     }
@@ -446,10 +447,7 @@ export const fetchMTXAPIResponses = async ({
         `${process.env.MEDIAMTX_USERNAME}:${process.env.MEDIAMTX_PASSWORD}`
       ).toString("base64")}`;
 
-      const mtxApiBaseUrl =
-        process.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
-          ? `http://127.0.0.1:9997/`
-          : `https://emss-labs.fit.nasa.gov/api/`;
+      const mtxApiBaseUrl = process.env.VITE_PUBLIC_MEDIA_MTX_CONTROL_URL;
 
       const response = await fetch(`${mtxApiBaseUrl}v3/paths/list`, {
         headers: {
@@ -477,13 +475,10 @@ export const fetchMTXAPIResponses = async ({
     // use the 9997/v3/recordings/list endpoint to get the recordings list and use the start times of the segments to determine the time ranges ourselves.
     const mtxPlaybackAvailability: MTXPlaybackAvailability = {};
 
-    const mtxApiBaseUrl =
-      process.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
-        ? `http://127.0.0.1:9997/`
-        : `https://emss-labs.fit.nasa.gov/api/`;
+    const mtxControlBaseUrl = process.env.VITE_PUBLIC_MEDIA_MTX_CONTROL_URL;
 
     // hit the API to get the MtxRecordingsListResponse
-    const recordingsResponse = await fetch(`${mtxApiBaseUrl}v3/recordings/list`, {
+    const recordingsResponse = await fetch(`${mtxControlBaseUrl}v3/recordings/list`, {
       headers: {
         Authorization: `Basic ${Buffer.from(
           `${process.env.MEDIAMTX_USERNAME}:${process.env.MEDIAMTX_PASSWORD}`

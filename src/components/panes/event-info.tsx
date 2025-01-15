@@ -1,17 +1,17 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
 import { RootState } from "store/index";
-import { changeTime } from "store/playhead";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
 import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
 import { FunctionComponent, useEffect, useState } from "react";
 import { isSameDate } from "../../utils/date";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -39,11 +39,12 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 };
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
+
   const sequences: SequencesState = useAppSelector(
     (state: RootState) => state.sequences,
     deepEqual
   );
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const paneStateData: EventPaneStateData = useAppSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData,
     deepEqual
@@ -97,7 +98,10 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             key={asPerformed[evNum][i].startTimeSeconds}
             className={styles.taskContainer}
             onClick={() => {
-              dispatch(changeTime(asPerformed[evNum][i].startTimeSeconds));
+              dispatchPlayhead({
+                type: "SET_APP_SECONDS",
+                payload: asPerformed[evNum][i].startTimeSeconds,
+              });
             }}
           >
             <div className={styles.taskTime}>
@@ -132,9 +136,10 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                   <span
                     className={`${styles.labelValue} ${styles.leftPadded} ${styles.petValue}`}
                     onClick={() => {
-                      dispatch(
-                        changeTime(appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`))
-                      );
+                      dispatchPlayhead({
+                        type: "SET_APP_SECONDS",
+                        payload: appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`),
+                      });
                     }}
                   >
                     {seqSourceName === "Wiki"

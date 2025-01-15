@@ -62,8 +62,8 @@ export default [
           paths: [
             {
               name: "lodash",
-              importNames: ["_"],
-              message: "Please import only the functions you need from lodash",
+              message:
+                "Please import only the functions you need from lodash, e.g., import sortBy from 'lodash/sortBy'.",
             },
             {
               name: "react-redux",
@@ -85,6 +85,7 @@ export default [
           ],
         },
       ],
+      "linebreak-style": ["error", "unix"], // enforce unix (lf) linebreaks
     },
   },
   {

@@ -1,7 +1,6 @@
 /*
 Client-side methods for fetching from Imagery Online (IO)
 */
-import _ from "lodash";
 import { cleanCollectionsString, queryStringFromObject } from "utils/formatting";
 /**
  * Fetch and format all videos for passing to the redux store

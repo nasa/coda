@@ -5,11 +5,11 @@ import { paneTypeShortVal, sourceShortVal } from "utils/consts";
  * Generates a URL string that represents the state of the application.
  * @returns {string}
  */
-export function generateShareURL(framework: FrameworkState, playhead: PlayheadState): string {
+export function generateShareURL(framework: FrameworkState, playhead: Playhead): string {
   const dt = new Date(playhead.date);
 
   const missionDate = shortdateFromDateString(dt.toISOString());
-  const missionTime = hhmmssFromSeconds(playhead.seconds);
+  const missionTime = hhmmssFromSeconds(playhead.appSeconds);
 
   const layout = framework.layout;
   const shortSource = sourceShortVal[framework.source];

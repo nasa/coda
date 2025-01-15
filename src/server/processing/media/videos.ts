@@ -1,8 +1,8 @@
 import clone from "lodash/cloneDeep";
+import sortBy from "lodash/sortBy";
 import * as IoService from "server/services/io-api";
 import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
-import _ from "lodash";
 import { getVideoRecordsList } from "server/express/routes/db/video";
 
 /**
@@ -38,7 +38,7 @@ export default async function getVideoData({
       const allVideoManifests = await Promise.all(
         relevantMediaOverrides.map((mediaOverride) => DbService.getManifest(mediaOverride))
       );
-      const videos = _.sortBy(allVideoManifests.flat() as VideoFile[], "startDateTime");
+      const videos = sortBy(allVideoManifests.flat() as VideoFile[], "startDateTime");
 
       return {
         responseMetadata: {

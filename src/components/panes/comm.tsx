@@ -3,7 +3,6 @@ import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
-import { changeTime } from "store/playhead";
 import { RootState } from "store/index";
 import styles from "./comm.module.css";
 import HelpOverlay from "components/interface/pane-help-overlay";
@@ -17,6 +16,7 @@ import {
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { MuteButton } from "components/panes/video";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const sgChannels = [0, 1, 2, 3];
 
@@ -36,9 +36,10 @@ export const CommControls: FunctionComponent<{
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord,
     deepEqual
   );
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
 
   const [channelAvailability, setChannelAvailability] = useState([]);
+
+  const { playhead } = usePlayheadContext();
 
   useEffect(() => {
     if (
@@ -55,8 +56,8 @@ export const CommControls: FunctionComponent<{
       for (let i = 0; i < activityRanges.length; i++) {
         const range = activityRanges[i];
         if (
-          playhead.seconds >= range.sound_start_secs &&
-          playhead.seconds <= range.sound_stop_secs
+          playhead.appSeconds >= range.sound_start_secs &&
+          playhead.appSeconds <= range.sound_stop_secs
         ) {
           activeRange = true;
           break;
@@ -65,7 +66,7 @@ export const CommControls: FunctionComponent<{
       cAvailability.push(activeRange);
     }
     setChannelAvailability(cAvailability);
-  }, [sgActivityFullUrlRecord, playhead.seconds]);
+  }, [sgActivityFullUrlRecord, playhead]);
 
   const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
@@ -215,7 +216,6 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     (state: RootState) => state.transcript.isTranscripts,
     deepEqual
   );
-  const playhead = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const sgActivityFullUrlRecord = useAppSelector(
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord,
     deepEqual
@@ -233,6 +233,8 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const [filterText, setFilterText] = useState("");
   const [filteredUtterances, setFiltereredUtterances] = useState([]);
   const [activeUtteranceSecs, setActiveUtteranceSecs] = useState(0);
+
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const audioPlayerRef = useRef<HTMLVideoElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
@@ -264,8 +266,8 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       for (let i = 0; i < activityRanges.length; i++) {
         const range = activityRanges[i];
         if (
-          playhead.seconds >= range.sound_start_secs &&
-          playhead.seconds <= range.sound_stop_secs
+          playhead.appSeconds >= range.sound_start_secs &&
+          playhead.appSeconds <= range.sound_stop_secs
         ) {
           const newSrcUrl = range.aacSegmentFullUrl;
 
@@ -275,8 +277,8 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           setActiveSgAudioObj({
             range,
             playOffset:
-              playhead.seconds - range.sound_start_secs < range.sound_stop_secs
-                ? playhead.seconds - range.sound_start_secs
+              playhead.appSeconds - range.sound_start_secs < range.sound_stop_secs
+                ? playhead.appSeconds - range.sound_start_secs
                 : -1,
           });
 
@@ -292,7 +294,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         setSrcUrl("");
       }
     }
-  }, [sgActivityFullUrlRecord, playhead.seconds, paneStateData.isMuted]);
+  }, [sgActivityFullUrlRecord, playhead, paneStateData.isMuted]);
 
   // Cue the audio and figure out whether to play or pause the audio
   useEffect(() => {
@@ -311,7 +313,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       }
 
       try {
-        if (playhead.ready && playhead.isRunning && paneStateData.ready) {
+        if (playhead.isRunning && paneStateData.ready) {
           if (!isPlaying && srcUrl !== "") {
             audioPlayerRef.current.play();
           }
@@ -324,14 +326,14 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     } else {
       audioPlayerRef.current.pause();
     }
-  }, [srcUrl, audioPlayerRef, playhead.seconds, playhead.isRunning]);
+  }, [srcUrl, audioPlayerRef, playhead]);
 
   // Scroll to the active utterance
   useEffect(() => {
     if (paneStateData.lockScroll && activeUtteranceRef.current !== null) {
       activeUtteranceRef.current.scrollIntoView();
     }
-  }, [activeUtteranceRef, playhead.seconds, paneStateData.lockScroll]);
+  }, [activeUtteranceRef, playhead, paneStateData.lockScroll]);
 
   // Update the filtered utterances
   useEffect(() => {
@@ -354,7 +356,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
     let aUtteranceSecs = 0;
     for (let i = 0; i < transcripts[paneStateData.sgChannel].utterances.length; i++) {
-      if (transcripts[paneStateData.sgChannel].utterances[i].secs > playhead.seconds) {
+      if (transcripts[paneStateData.sgChannel].utterances[i].secs > playhead.appSeconds) {
         aUtteranceSecs = i !== 0 ? transcripts[paneStateData.sgChannel].utterances[i - 1].secs : 0;
         if (activeUtteranceSecs !== aUtteranceSecs) {
           setActiveUtteranceSecs(aUtteranceSecs);
@@ -362,7 +364,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         break;
       }
     }
-  }, [playhead.seconds, isTranscripts, paneStateData.sgChannel]);
+  }, [playhead, isTranscripts, paneStateData.sgChannel]);
 
   // Show the help panel if there are no transcripts
   useEffect(() => {
@@ -391,7 +393,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         key={utterance.id}
         {...activeRefOnly}
         onClick={() => {
-          dispatch(changeTime(Math.round(utterance.secs)));
+          dispatchPlayhead({ type: "SET_APP_SECONDS", payload: utterance.secs });
         }}
       >
         <div className={styles.time}>{utterance.time}</div>

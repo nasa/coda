@@ -3,9 +3,6 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { MutableRefObject, useEffect, useRef, FunctionComponent } from "react";
 import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { useAppDispatch } from "utils/useAppDispatch";
-import { changeTime } from "store/playhead";
-import { changeHoverTime } from "store/playheadHover";
 import {
   getAsPerformedMissionTime,
   getSequenceStartMilliseconds,
@@ -16,16 +13,13 @@ import { filterVisibleVideos } from "store/videos";
 import DrawNav from "./nav-timeline-draw";
 import { RootState } from "store/index";
 import styles from "./nav-timeline-draw.module.css";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
 const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
-  const playheadHover: PlayheadHoverState = useAppSelector(
-    (state: RootState) => state.playheadHover,
-    deepEqual
-  );
   const dayNights: DayNightState = useAppSelector((state: RootState) => state.dayNight, deepEqual);
   const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
   const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
@@ -39,7 +33,9 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   );
   const maestro: MaestroState = useAppSelector((state: RootState) => state.maestro, deepEqual);
 
-  const dispatch = useAppDispatch();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  const { hoverPlayhead, setHoverPlayhead } = useHoverPlayheadContext();
+
   const dayNight = dayNights.dayNight;
 
   let allEVAs = sequences.allSequences;
@@ -139,20 +135,23 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
         // Make the canvas receive click events
         canvasContainer.current.style.pointerEvents = "auto";
       }
-      if (playheadHover.seconds !== thisHoverSeconds) {
-        dispatch(changeHoverTime(thisHoverSeconds));
+      if (hoverPlayhead.hoverSeconds !== thisHoverSeconds) {
+        setHoverPlayhead({ hoverSeconds: thisHoverSeconds });
       }
     };
     const mouseUpCb = (hh: number, mm: number, ss: number) => {
       const secondsIntoDate = ss + 60 * mm + 3600 * hh;
-      dispatch(changeTime(secondsIntoDate));
+      dispatchPlayhead({ type: "SET_APP_SECONDS", payload: secondsIntoDate });
     };
     const mouseLeaveCb = () => {
       mouseOnNavigator.current = false;
       drawNav.current.drawNavBox(time.current);
       drawNav.current.drawTier2();
       drawNav.current.drawCursor(time.current);
-      dispatch(changeHoverTime(0));
+
+      // put null in hoverSeconds to disable them across components
+      setHoverPlayhead({ hoverSeconds: null });
+
       // Make the canvas ignore click events (but still receive mousemove events--somehow).
       // Hover events still work for Paper reason which is super handy for us)
       canvasContainer.current.style.pointerEvents = "none";
@@ -190,7 +189,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   ]);
 
   useEffect(() => {
-    time.current = playhead.seconds;
+    time.current = playhead.appSeconds;
 
     if (!navReady.current) {
       // nothing to update if the paperjs timeline hasn't been instantiated
@@ -203,12 +202,10 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
-  }, [playhead.seconds]);
+  }, [playhead.appSeconds]);
 
   return (
     <>
-      {/* {!mouseOnNavigator.current && <div className={styles.collapsedBackground}></div>}
-      {mouseOnNavigator.current && <div className={styles.expandedBackground}></div>} */}
       <div className={styles.expandedBackground}></div>
       <div ref={canvasContainer} className={styles.canvasContainer}>
         <canvas ref={canvas} data-paper-resize />

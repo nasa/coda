@@ -1,7 +1,6 @@
 import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
-import _ from "lodash";
 
 const SocketClient: FunctionComponent<{
   roomName: string;

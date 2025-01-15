@@ -11,6 +11,7 @@ import { IOInfoButton } from "./video";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
   frameID,
@@ -24,7 +25,8 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
   );
 
   const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
+
+  const { playhead } = usePlayheadContext();
 
   let datetimeTakenLabel = "";
   let datetimeTakenValue = "";
@@ -35,7 +37,7 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
     currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
     if (currentlyActivePhoto) {
       timeSinceTaken = `(${hhmmssFromSeconds(
-        Math.round(playhead.seconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
+        Math.round(playhead.appSeconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
       )} ago)`;
     }
   }, [photos, playhead]);
@@ -89,10 +91,10 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     deepEqual
   );
 
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-
   const photoFiles = photos.photoFiles;
+
+  const { playhead } = usePlayheadContext();
 
   const changePhoto = () => {
     if (!photos.ready) {
@@ -100,13 +102,13 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
 
     /* Loop through all returned photos in order of datetimeTaken
-     * break as soon as we hit a photo that was taken after playhead.seconds leaving the data we gathered
+     * break as soon as we hit a photo that was taken after appSeconds leaving the data we gathered
      * on the previous photo for use.
      */
     let thisPhotoFile = initialPhotoFileState;
     for (let i = 0; i < photoFiles.length; i++) {
       const secondsIntoToday = photoFiles[i].datetimeTakenAppSeconds;
-      if (secondsIntoToday > playhead.seconds) {
+      if (secondsIntoToday > playhead.appSeconds) {
         break;
       }
 
@@ -128,7 +130,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
   };
 
-  useEffect(changePhoto, [playhead.date, playhead.seconds, photoFiles, photos]);
+  useEffect(changePhoto, [playhead, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";

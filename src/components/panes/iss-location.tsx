@@ -19,10 +19,12 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 
 //tlejs not importable as per module docs
 import { getLatLngObj } from "tle.js";
-import _ from "lodash";
+import isNaN from "lodash/isNaN";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { createRoot } from "react-dom/client";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
 
 type MapMarker = {
   marker: any; //the MapBox marker reference
@@ -92,11 +94,6 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   };
 
   const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
-  const playheadHover: PlayheadHoverState = useAppSelector(
-    (state: RootState) => state.playheadHover,
-    deepEqual
-  );
-  const playhead: PlayheadState = useAppSelector((state: RootState) => state.playhead, deepEqual);
   const layoutLastChanged = useAppSelector(
     (state: RootState) => state.framework.layoutLastChanged,
     refEqual
@@ -110,6 +107,9 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   const [map, setMap] = useState<Map>(null);
   const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
   const [hoverMarker, setHoverMarker] = useState(initialMarker);
+
+  const { playhead } = usePlayheadContext();
+  const { hoverPlayhead } = useHoverPlayheadContext();
 
   const mapContainer = useRef(null);
 
@@ -138,7 +138,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       return;
     }
 
-    const playHeadISODate = getPlayheadISOString(playhead.date, playhead.seconds);
+    const playHeadISODate = getPlayheadISOString(playhead.date, playhead.appSeconds);
     const tle = getAppropriateTLE(todayEphemera, playHeadISODate);
 
     //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
@@ -146,18 +146,18 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     if (playheadMarker.markerNode.style.visibility === "hidden") {
       playheadMarker.markerNode.style.visibility = "visible";
     }
-    if (!_.isNaN(playheadLatLonObj.lat) && !_.isNaN(playheadLatLonObj.lng)) {
+    if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
       playheadMarker.marker.setLngLat(playheadLatLonObj);
     }
 
     //position hover marker
-    if (playheadHover.seconds !== 0) {
+    if (hoverPlayhead.hoverSeconds) {
       hoverMarker.markerNode.style.visibility = "visible";
-      const hoverISODate = getPlayheadISOString(playhead.date, playheadHover.seconds);
+      const hoverISODate = getPlayheadISOString(playhead.date, hoverPlayhead.hoverSeconds);
       const tle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
-      if (!_.isNaN(hoverLatLonObj.lat) && !_.isNaN(hoverLatLonObj.lng)) {
+      if (!isNaN(hoverLatLonObj.lat) && !isNaN(hoverLatLonObj.lng)) {
         hoverMarker.marker.setLngLat(hoverLatLonObj);
       }
 
@@ -169,12 +169,12 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       updateTerminator(map, playHeadISODate);
 
       if (paneStateData.lockMap) {
-        if (!_.isNaN(playheadLatLonObj.lat) && !_.isNaN(playheadLatLonObj.lng)) {
+        if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
           map.panTo(playheadLatLonObj);
         }
       }
     }
-  }, [ephemera, playhead.date, playhead.seconds, playheadHover.seconds]);
+  }, [ephemera, playhead, hoverPlayhead]);
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,

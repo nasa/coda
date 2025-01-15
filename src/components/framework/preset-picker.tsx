@@ -1,4 +1,4 @@
-import _ from "lodash";
+import filter from "lodash/filter";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store/index";
@@ -54,7 +54,7 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }) => {
 
   const deleteUserPreset = (preset: Preset) => (e: React.MouseEvent) => {
     e.preventDefault();
-    const newUserPresets = _.filter(userPresets, (p) => p.uuid !== preset.uuid);
+    const newUserPresets = filter(userPresets, (p) => p.uuid !== preset.uuid);
     if (newUserPresets) {
       const compressedUserPresets = LZUTF8.compress(JSON.stringify(newUserPresets), {
         outputEncoding: "Base64",
