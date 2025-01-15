@@ -3,20 +3,14 @@ import styles from "./playback-controls.module.css";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const PlaybackControls: FunctionComponent = () => {
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const handlePlayPause = () => {
-    setPlayhead((prev) => ({
-      ...prev,
-      isRunning: !prev.isRunning,
-    }));
+    dispatchPlayhead({ type: playhead.isRunning ? "STOP" : "START" });
   };
 
   const jumpTime = (seconds: number) => {
-    setPlayhead((prev) => ({
-      ...prev,
-      appSeconds: prev.appSeconds + seconds,
-    }));
+    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: playhead.appSeconds + seconds });
   };
 
   let playPauseSvgName;

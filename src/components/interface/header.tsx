@@ -27,20 +27,14 @@ export const LoaderHelpMenu: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen }) => {
-  const { setPlayhead } = usePlayheadContext();
+  const { dispatchPlayhead } = usePlayheadContext();
 
   const setModalIsOpen = (val: boolean) => {
     setHelpLoaderOpen(val);
     if (val === false) {
-      setPlayhead((prev) => ({
-        ...prev,
-        isRunning: true,
-      })); // start playback when help menu closes
+      dispatchPlayhead({ type: "START" }); // start playback when help menu closes
     } else {
-      setPlayhead((prev) => ({
-        ...prev,
-        isRunning: false,
-      })); // stop playback when help menu opens
+      dispatchPlayhead({ type: "STOP" }); // stop playback when help menu opens
     }
   };
 
@@ -173,7 +167,7 @@ export const Clock: FunctionComponent = () => {
   const [userTimeValue, setUserTimeValue] = useState("");
   const [editingTime, setEditingTime] = useState(false);
 
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const timeInput = useRef(null);
 
@@ -186,10 +180,7 @@ export const Clock: FunctionComponent = () => {
     if (userTimeValue !== "") {
       const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
       const newTime = +ss + 60 * +mm + 3600 * +hh;
-      setPlayhead((prev) => ({
-        ...prev,
-        appSeconds: newTime,
-      }));
+      dispatchPlayhead({ type: "SET_APP_SECONDS", payload: newTime });
       setRenderTime(userTimeValue);
     }
 
@@ -206,10 +197,8 @@ export const Clock: FunctionComponent = () => {
   const handleLive = () => {
     const timeLive = appSecondsFromDateString(new Date().toISOString());
     setRenderTime(hhmmssFromSeconds(timeLive));
-    setPlayhead((prev) => ({
-      ...prev,
-      appSeconds: timeLive,
-    }));
+    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: timeLive });
+
     setUserTimeValue("");
     setEditingTime(false);
   };

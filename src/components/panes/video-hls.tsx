@@ -90,10 +90,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       return;
     }
 
-    const mtxHlsBaseUrl =
-      import.meta.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
-        ? `http://127.0.0.1:8888/`
-        : `https://emss-labs.fit.nasa.gov/live/`;
+    const mtxHlsBaseUrl = import.meta.env.VITE_PUBLIC_MEDIA_MTX_HLS_URL;
 
     if (Hls.isSupported()) {
       if (!hlsRef.current) {

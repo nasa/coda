@@ -234,7 +234,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const [filteredUtterances, setFiltereredUtterances] = useState([]);
   const [activeUtteranceSecs, setActiveUtteranceSecs] = useState(0);
 
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const audioPlayerRef = useRef<HTMLVideoElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
@@ -393,10 +393,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         key={utterance.id}
         {...activeRefOnly}
         onClick={() => {
-          setPlayhead((prev) => ({
-            ...prev,
-            appSeconds: utterance.secs,
-          }));
+          dispatchPlayhead({ type: "SET_APP_SECONDS", payload: utterance.secs });
         }}
       >
         <div className={styles.time}>{utterance.time}</div>

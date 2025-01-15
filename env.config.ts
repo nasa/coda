@@ -88,6 +88,7 @@ export const config: DotenvConfig<typeof environments> = {
   "development" for normal dev work, "local" to mock some services. Code seems to only look for
    whether this is set to "local" or not, so could be "local" or anything else.
   */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
   VITE_PUBLIC_APP_ENV: { default: "development" },
 
   //# Unlikely these ever need to change
@@ -143,6 +144,41 @@ export const config: DotenvConfig<typeof environments> = {
   // Use a different port for local development to avoid conflicts with other apps
   // when doing dev in docker:services mode
   DB_PORT: { local: "5431", default: "5432" },
+
+  /**
+   * MTX Live streams
+   */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  VITE_PUBLIC_LIVE_STREAMS_ENABLED: {
+    local: "true",
+    default: "true",
+  },
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  VITE_PUBLIC_MEDIA_MTX_CONTROL_URL: {
+    local: "http://127.0.0.1:9997/",
+    default: "https://emss-lambda2.fit.nasa.gov/api/",
+  },
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  VITE_PUBLIC_MEDIA_MTX_HLS_URL: {
+    local: "http://127.0.0.1:8888/",
+    default: "https://emss-lambda2.fit.nasa.gov/live/",
+  },
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL: {
+    local: "http://127.0.0.1:9996/",
+    default: "https://emss-lambda2.fit.nasa.gov/recordings/",
+  },
+
+  MEDIAMTX_USERNAME: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
+  MEDIAMTX_PASSWORD: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
 
   /*
   !!!! SENSITIVE DATA !!!!
@@ -220,6 +256,8 @@ export const config: DotenvConfig<typeof environments> = {
   //
   // DO NOT include a double dash, e.g. --. This would break the filters in
   // Logstash.
+  //
+  // Also used by the @emss/logger package
   LOG_DATA_APP_ID: { default: "coda" },
 
   // Identifier for the server, e.g. `prod`, `carbon`, `local-dev`, etc.
@@ -282,25 +320,5 @@ export const config: DotenvConfig<typeof environments> = {
   },
   GIT_COMMIT: {
     default: process.env.CI_COMMIT_SHA || "DEV",
-  },
-
-  /** MTX Live streams */
-  VITE_PUBLIC_LIVE_STREAMS_ENABLED: {
-    local: "true",
-    default: "false",
-  },
-  VITE_PUBLIC_MOCK_LIVE_STREAMS: {
-    local: "true",
-    default: "false",
-  },
-  MEDIAMTX_USERNAME: {
-    default: {
-      type: "required-from-secret",
-    },
-  },
-  MEDIAMTX_PASSWORD: {
-    default: {
-      type: "required-from-secret",
-    },
   },
 };

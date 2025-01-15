@@ -1,5 +1,5 @@
 // general context provider for combining multiple contexts
-type Provider = ({ children }: { children: ReactNode }) => React.ReactElement;
+type Provider = ({ children }: { children: React.ReactNode }) => React.ReactElement;
 
 // Define the Playhead interface
 interface Playhead {
@@ -9,11 +9,17 @@ interface Playhead {
   isRunning: boolean;
 }
 
-// Define the context value type
-interface PlayheadContextType {
+type PlayheadAction =
+  | { type: "SET_DATE"; payload: string | null }
+  | { type: "SET_APP_SECONDS"; payload: number }
+  | { type: "START" }
+  | { type: "STOP" }
+  | { type: "TICK" };
+
+type PlayheadContextType = {
   playhead: Playhead;
-  setPlayhead: React.Dispatch<React.SetStateAction<Playhead>>;
-}
+  dispatchPlayhead: React.Dispatch<PlayheadAction>;
+};
 
 interface HoverPlayhead {
   hoverSeconds: number | null;

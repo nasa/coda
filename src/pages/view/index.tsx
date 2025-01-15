@@ -89,9 +89,9 @@ import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router-dom";
 import { URLSearchParams } from "url";
 import { getGPSTracks } from "http-client/db";
-import { diff, isSameDate } from "../../utils/date";
+import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
-import { padZeros } from "utils/formatting";
+import { appSecondsFromDateString, padZeros } from "utils/formatting";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export function V2() {
@@ -128,7 +128,7 @@ export function V2() {
 
   const dispatch = useAppDispatch();
 
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const playheadDate = playhead.date;
 
@@ -140,10 +140,10 @@ export function V2() {
   const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
   if (!isNull(urlState.date) && !isNull(urlState.date.match(yyyymmdd))) {
     // change the date if the user set the `date` query param
-    userDate = new Date(urlState.date);
+    userDate = midnightZulu(new Date(urlState.date));
   } else {
     // default the date to today
-    userDate = new Date();
+    userDate = midnightZulu(new Date());
   }
 
   // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
@@ -165,17 +165,16 @@ export function V2() {
   }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      setPlayhead((prev) => ({
-        ...prev,
-        date: userDate.toISOString(),
-      }));
+      dispatchPlayhead({ type: "SET_DATE", payload: userDate.toISOString() });
     }
   }, []);
 
   useEffect(() => {
     // make sure the application is running on the correct time
     // default the time to 10:30:00Z
-    let userTime = 10.5 * 60 * 60;
+    const isToday = isSameDate(new Date(), new Date(playheadDate));
+
+    let userTime = isToday ? appSecondsFromDateString(new Date().toISOString()) : 10.5 * 60 * 60;
 
     const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d:[0-9]\d))$/; // matches valid hh:mm:ss times
     // change the time if the user set the `gmt` query param and it's in a valid format
@@ -201,10 +200,7 @@ export function V2() {
       }
     }
 
-    setPlayhead((prev) => ({
-      ...prev,
-      appSeconds: userTime,
-    }));
+    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: userTime });
   }, [sequences]);
 
   useEffect(() => {

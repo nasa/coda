@@ -1,6 +1,6 @@
-# This instance of mediamtx is only used for local stream mocks.
-# When VITE_PUBLIC_MOCK_LIVE_STREAMS is set to "true" in the .env file, CODA will use this instance to generate mock live streams.
-# This instance is not used for any other purpose and is only run in the npm run docker:services command.
+# This instance of mediamtx is only used for local stream mocks
+# and is not used for any other purpose
+# and is only run in the npm run docker:services command.
 
 # Use Debian as the base image for better FFmpeg support
 FROM debian:latest
@@ -21,7 +21,7 @@ RUN fc-list
 
 
 # Copy MediaMTX binary from the original image
-COPY --from=bluenviron/mediamtx:latest /mediamtx /mediamtx
+COPY --from=bluenviron/mediamtx:1.9.3 /mediamtx /mediamtx
 
 # Copy the entrypoint script into the container
 COPY ./docker/mediamtx-mock/entrypoint.sh /entrypoint.sh

@@ -76,15 +76,12 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
       .toISOString()
       .replace(/.000Z/, "Z");
 
-    const mtxPlaybackBaseUrl =
-      import.meta.env.VITE_PUBLIC_MOCK_LIVE_STREAMS === "true"
-        ? `http://127.0.0.1:9996/`
-        : `https://emss-labs.fit.nasa.gov/recordings/`;
+    const mtxRecordingsBaseUrl = import.meta.env.VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL;
     const sourceAbbr = source === "ISS" ? "ISS" : "TE";
     const channel = (paneStateData.channel + 1).toString();
     const path = `DL${channel}_${sourceAbbr}`;
 
-    const url = new URL("get", mtxPlaybackBaseUrl);
+    const url = new URL("get", mtxRecordingsBaseUrl);
     url.searchParams.append("path", path);
     url.searchParams.append("start", playheadStart);
     url.searchParams.append("duration", mtxRecordingTimeRange.duration.toString());

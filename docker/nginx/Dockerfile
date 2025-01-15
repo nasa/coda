@@ -30,7 +30,7 @@ COPY package*.json ./
 RUN npm ci
 
 # copy the rest of the files.
-# Will not copy the .env file due to .dockerignore. This is desirable becuase we technically want to
+# Will not copy the .env file due to .dockerignore. This is desirable because we technically want to
 # keep images enviromentally agnosic as possible
 COPY . /clientsrc
 
@@ -44,6 +44,10 @@ COPY . /clientsrc
 # via docker-compose build:args: property.
 ARG VITE_PUBLIC_MAPBOX_KEY
 ARG VITE_PUBLIC_APP_ENV
+ARG VITE_PUBLIC_LIVE_STREAMS_ENABLED
+ARG VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
+ARG VITE_PUBLIC_MEDIA_MTX_HLS_URL
+ARG VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL
 
 # Build the React client
 RUN npm run vite:build

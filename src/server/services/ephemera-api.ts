@@ -63,6 +63,10 @@ async function fetchSpacetrack(
     return (await res.json()) as EphemerisFile[];
   } catch (e) {
     console.error(e);
+    // serverLogger.error(e as Error, {
+    //   logId: "spacetrack-api-hit",
+    //   message: "Spacetrack API unavailable",
+    // });
   }
   return [];
 }
