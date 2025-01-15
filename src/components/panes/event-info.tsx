@@ -39,7 +39,7 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 };
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const sequences: SequencesState = useAppSelector(
     (state: RootState) => state.sequences,
@@ -98,10 +98,10 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             key={asPerformed[evNum][i].startTimeSeconds}
             className={styles.taskContainer}
             onClick={() => {
-              setPlayhead((prev) => ({
-                ...prev,
-                appSeconds: asPerformed[evNum][i].startTimeSeconds,
-              }));
+              dispatchPlayhead({
+                type: "SET_APP_SECONDS",
+                payload: asPerformed[evNum][i].startTimeSeconds,
+              });
             }}
           >
             <div className={styles.taskTime}>
@@ -136,10 +136,10 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                   <span
                     className={`${styles.labelValue} ${styles.leftPadded} ${styles.petValue}`}
                     onClick={() => {
-                      setPlayhead((prev) => ({
-                        ...prev,
-                        appSeconds: appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`),
-                      }));
+                      dispatchPlayhead({
+                        type: "SET_APP_SECONDS",
+                        payload: appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`),
+                      });
                     }}
                   >
                     {seqSourceName === "Wiki"

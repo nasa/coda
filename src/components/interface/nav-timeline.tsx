@@ -33,7 +33,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   );
   const maestro: MaestroState = useAppSelector((state: RootState) => state.maestro, deepEqual);
 
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
   const { hoverPlayhead, setHoverPlayhead } = useHoverPlayheadContext();
 
   const dayNight = dayNights.dayNight;
@@ -141,10 +141,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     };
     const mouseUpCb = (hh: number, mm: number, ss: number) => {
       const secondsIntoDate = ss + 60 * mm + 3600 * hh;
-      setPlayhead((prev) => ({
-        ...prev,
-        appSeconds: secondsIntoDate,
-      }));
+      dispatchPlayhead({ type: "SET_APP_SECONDS", payload: secondsIntoDate });
     };
     const mouseLeaveCb = () => {
       mouseOnNavigator.current = false;

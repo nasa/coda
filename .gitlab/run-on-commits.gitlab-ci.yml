@@ -309,6 +309,10 @@ docker:build:nginx:
       NODE_BASE_IMAGE
       VITE_PUBLIC_MAPBOX_KEY
       VITE_PUBLIC_APP_ENV
+      VITE_PUBLIC_LIVE_STREAMS_ENABLED
+      VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
+      VITE_PUBLIC_MEDIA_MTX_HLS_URL
+      VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL
 
 docker:build:apiv1:
   extends: .kaniko-build-template

@@ -17,7 +17,7 @@ const PlotlyComponent: FunctionComponent<{
   };
   plotIndexToHighlight: number;
 }> = ({ frameID, chartData, plotIndexToHighlight }) => {
-  const { setPlayhead } = usePlayheadContext();
+  const { dispatchPlayhead } = usePlayheadContext();
 
   const plotlyClass: MutableRefObject<PlotlyClass> = useRef(null);
   const plotlyChartRef: MutableRefObject<HTMLDivElementExtended> = useRef(null);
@@ -42,10 +42,7 @@ const PlotlyComponent: FunctionComponent<{
         // ignore errors caused by graph data being unavailable for a given point
         try {
           const dateStr = data.points[0].x.replace(" " + "T") + "Z";
-          setPlayhead((prev) => ({
-            ...prev,
-            appSeconds: Math.round(appSecondsFromDateString(dateStr)),
-          }));
+          dispatchPlayhead({ type: "SET_APP_SECONDS", payload: appSecondsFromDateString(dateStr) });
         } catch {
           //do nothing
         }

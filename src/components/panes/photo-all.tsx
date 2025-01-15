@@ -88,7 +88,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
 
-  const { playhead, setPlayhead } = usePlayheadContext();
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const handleScroll = () => {
     setPaneStateValue(dispatch, frameID, "lockPhotosScroll", false);
@@ -128,10 +128,10 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               key={photoFiles[i].id}
               {...activeRefOnly}
               onClick={() => {
-                setPlayhead((prev) => ({
-                  ...prev,
-                  appSeconds: photoFiles[i].datetimeTakenAppSeconds,
-                }));
+                dispatchPlayhead({
+                  type: "SET_APP_SECONDS",
+                  payload: photoFiles[i].datetimeTakenAppSeconds,
+                });
                 dispatch(setActivePhoto(photoFiles[i]));
               }}
               title={photoTitle}
