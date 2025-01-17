@@ -7,6 +7,7 @@ const router = express.Router();
 const parseQuery = (query: Query): GetMTXPlaybackQueryParams => {
   const { source, forceNew } = query;
   const queryObj: GetMTXPlaybackQueryParams = {
+    dateWanted: query.dateWanted as string,
     source: source ? (source as Source) : undefined,
     forceNew: forceNew === "true",
   };
@@ -18,6 +19,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
     const response = await fetchMTXAPIResponses({
+      dateWanted: queryObj.dateWanted,
       source: queryObj.source,
       forceNew: queryObj.forceNew,
     });

@@ -50,7 +50,7 @@ export default class DrawNav {
 
   readonly videoFiles: VideoFile[];
   readonly mtxPlaybackAvailability: MTXPlaybackAvailability;
-  readonly mtxHlsEndpointNames: MTXHlsEndpointName[];
+  readonly mtxHlsEndpoints: MTXHlsEndpoint[];
   readonly source: Source;
   readonly photoFiles: PhotoFile[];
   readonly collectionFilters: PhotoCollectionFilters[];
@@ -63,7 +63,7 @@ export default class DrawNav {
   constructor({
     videoFiles,
     mtxPlaybackAvailability,
-    mtxHlsEndpointNames,
+    mtxHlsEndpoints,
     source,
     photoFiles,
     collectionFilters,
@@ -75,7 +75,7 @@ export default class DrawNav {
   }: {
     videoFiles: VideoFile[];
     mtxPlaybackAvailability: MTXPlaybackAvailability;
-    mtxHlsEndpointNames: MTXHlsEndpointName[];
+    mtxHlsEndpoints: MTXHlsEndpoint[];
     source: Source;
     photoFiles: PhotoFile[];
     collectionFilters: PhotoCollectionFilters[];
@@ -88,7 +88,7 @@ export default class DrawNav {
   }) {
     this.videoFiles = videoFiles;
     this.mtxPlaybackAvailability = mtxPlaybackAvailability;
-    this.mtxHlsEndpointNames = mtxHlsEndpointNames;
+    this.mtxHlsEndpoints = mtxHlsEndpoints;
     this.source = source;
     this.photoFiles = photoFiles;
     this.collectionFilters = collectionFilters;
@@ -550,16 +550,17 @@ export default class DrawNav {
     // times are derived. Start time is 15 minutes before the current time, end time is the current time
     const now = new Date();
     const nowSeconds = now.valueOf() / 1000;
-    const startSeconds = nowSeconds - 900; // 15 minutes before now
 
     for (let dl = 1; dl <= 8; dl++) {
       // search the mtxHlsEndpointNames for the HLS endpoint name for this downlink
       const sourceAbbr = this.source === "ISS" ? "ISS" : "TE";
       const streamEndpointName = `DL${dl}_${sourceAbbr}` as MTXHlsEndpointName;
-      const mtxHlsEndpoint = this.mtxHlsEndpointNames?.find(
-        (endpoint) => endpoint === streamEndpointName
+      const mtxHlsEndpoint = this.mtxHlsEndpoints?.find(
+        (endpoint) => endpoint.name === streamEndpointName
       );
       if (!mtxHlsEndpoint) continue;
+
+      const startSeconds = nowSeconds - mtxHlsEndpoint.secondsAvailable;
 
       if (
         startSeconds - startOfDay <= param.secondsEnd &&
@@ -584,7 +585,7 @@ export default class DrawNav {
           strokeColor: this.gColorBarBorder,
           name: name,
         });
-        mtxLine.fillColor = new paper.Color(this.gColorVideo);
+        mtxLine.fillColor = new paper.Color("yellow");
         group.addChild(mtxLine);
       }
     }

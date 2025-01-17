@@ -98,10 +98,19 @@ const RightButtons: FunctionComponent<{
   const dispatch = useAppDispatch();
   const frames = useAppSelector((state: RootState) => state.framework.frames, deepEqual);
 
+  const downlinkNumber = useAppSelector(
+    (state: RootState) => (state.framework.frames[frameID].paneStateData.channel + 1).toString(),
+    deepEqual
+  );
+
   const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
-    const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
   }, deepEqual);
+
+  const mtxHlsEndpoints = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpoints,
+    deepEqual
+  );
 
   const [videoPlayerType, setVideoPlayerType] = useState<VideoPlayerType>("IO");
 
@@ -129,10 +138,16 @@ const RightButtons: FunctionComponent<{
 
     // if it's "today" and the playhead is within 15 minutes of the current time of day, use HLS
     const now = new Date();
-    const nowSeconds = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+    const nowAppSeconds = appSecondsFromDateString(now.toISOString());
+
+    const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
+    const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
+
+    const duration = hlsEndpoint?.secondsAvailable || 0;
+
     if (
       isSameDate(new Date(playhead.date), now) &&
-      Math.abs(playhead.appSeconds - nowSeconds) < 900
+      Math.abs(playhead.appSeconds - nowAppSeconds) < duration
     ) {
       videoPlayerType = "HLS";
     }
@@ -369,8 +384,8 @@ export const VideoDLPaneControls: FunctionComponent<{
   const mtxPlaybackAvailability = useAppSelector((state: RootState) => {
     return state.videos.mtxPlaybackAvailability;
   }, deepEqual);
-  const mtxHlsEndpointNames = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpointNames,
+  const mtxHlsEndpoints = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpoints,
     deepEqual
   );
 
@@ -408,14 +423,23 @@ export const VideoDLPaneControls: FunctionComponent<{
       const videosNextSecond = visibleVideos.get(`${playhead.appSeconds + 1}/${channel}`);
       ioVideoForThisChannel = !isNil(videosNextSecond);
 
-      // are we within 15 minutes of the current time? if so, say there is HLS video available
+      // Is there hls video data available for this time? if so, use HLS player
       let hlsForThisChannel = false;
       const now = new Date();
-      const nowSeconds = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
-      if (isSameDate(playheadDate, now) && Math.abs(playhead.appSeconds - nowSeconds) < 900) {
+      const nowAppSeconds = appSecondsFromDateString(now.toISOString());
+
+      const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
+      const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
+
+      const duration = hlsEndpoint?.secondsAvailable || 0;
+
+      if (
+        isSameDate(playheadDate, now) &&
+        Math.abs(playhead.appSeconds - nowAppSeconds) < duration
+      ) {
         // loop through the hlsEndpointNames and look for this downlink channel
-        for (const mtxHlsEndpointName of mtxHlsEndpointNames) {
-          if (mtxHlsEndpointName.includes(downlinkNumber)) {
+        for (const mtxHlsEndpoint of mtxHlsEndpoints) {
+          if (mtxHlsEndpoint.name.includes(downlinkNumber)) {
             hlsForThisChannel = true;
           }
         }
@@ -424,7 +448,7 @@ export const VideoDLPaneControls: FunctionComponent<{
       cAvailability.push(mtxForThisChannel || ioVideoForThisChannel || hlsForThisChannel);
     }
     setChannelAvailability(cAvailability);
-  }, [visibleVideos, playhead.appSeconds, mtxPlaybackAvailability, mtxHlsEndpointNames]);
+  }, [visibleVideos, playhead.appSeconds, mtxPlaybackAvailability, mtxHlsEndpoints]);
 
   const ChannelSelector =
     minWidth > frameDimensions[0] ? ChannelSelectorSmall : ChannelSelectorLarge;
@@ -976,7 +1000,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   };
 
   return (
-    <div className={styles.mediaPanel} key={`video_player__${frameID}`}>
+    <div className={styles.mediaPanel} key={`video_player__${frameID}`} data-frame-id={"IO Player"}>
       {renderVideoElement()}
     </div>
   );
@@ -985,11 +1009,10 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
   const downlinkNumber = useAppSelector((state: RootState) => {
-    return state.framework.frames[frameID].paneStateData.channel;
+    return (state.framework.frames[frameID].paneStateData.channel + 1) as number;
   }, refEqual);
 
   const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
-    const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
   }, deepEqual);
 
@@ -1022,12 +1045,19 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
     }
   }
 
-  // if it's "today" and the playhead is within 15 minutes of the current time of day, use HLS
   const now = new Date();
-  const nowSeconds = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  const nowAppSeconds = appSecondsFromDateString(now.toISOString());
+
+  const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
+  const mtxHlsEndpoints = videos.mtxHlsEndpoints;
+  const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
+
+  const duration = hlsEndpoint?.secondsAvailable || 0;
+
+  // if it's "today" and the playhead is within the available HLS video time, use HLS
   if (
     isSameDate(new Date(playhead.date), now) &&
-    Math.abs(playhead.appSeconds - nowSeconds) < 900
+    Math.abs(playhead.appSeconds - nowAppSeconds) < duration
   ) {
     videoPlayerType = "HLS";
   }

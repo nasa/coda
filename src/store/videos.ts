@@ -4,7 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export const initialState: VideosState = {
   videoFiles: [],
   mtxPlaybackAvailability: {},
-  mtxHlsEndpointNames: [],
+  mtxHlsEndpoints: [],
   responseMetadata: null,
   loadingStatus: "loading",
 };
@@ -39,8 +39,8 @@ export const videoSlice = createSlice({
       state.mtxPlaybackAvailability = action.payload;
     },
 
-    setMtxHlsEndpointNames(state, action: { payload: MTXHlsEndpointName[] }) {
-      state.mtxHlsEndpointNames = action.payload;
+    setMtxHlsEndpoints(state, action: { payload: MTXHlsEndpoint[] }) {
+      state.mtxHlsEndpoints = action.payload;
     },
   },
 });
@@ -51,7 +51,7 @@ export const {
   fetchError,
   setVideoLoadingStatus,
   setMtxPlaybackAvailability,
-  setMtxHlsEndpointNames,
+  setMtxHlsEndpoints,
 } = videoSlice.actions;
 
 /** Map seconds and downlinks to videos */

@@ -1,6 +1,11 @@
 type MTXApiResponses = {
   mtxPlaybackAvailability: MTXPlaybackAvailability;
-  mtxHlsEndpointNames: MTXHlsEndpointName[];
+  mtxHlsEndpoints: MTXHlsEndpoint[];
+};
+
+type MTXHlsEndpoint = {
+  name: MTXHlsEndpointName;
+  secondsAvailable: number;
 };
 
 type MTXPlaybackAvailability = {
