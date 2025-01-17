@@ -24,7 +24,7 @@ import {
   fetchError as videosFetchError,
   clearVideos,
   setMtxPlaybackAvailability,
-  setMtxHlsEndpointNames,
+  setMtxHlsEndpoints,
 } from "store/videos";
 import {
   addPhotos,
@@ -110,8 +110,8 @@ export function V2() {
     (state: RootState) => state.videos.mtxPlaybackAvailability,
     deepEqual
   );
-  const oldMtxHlsEndpointNames = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpointNames,
+  const oldMtxHlsEndpoints = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpoints,
     deepEqual
   );
 
@@ -319,7 +319,7 @@ export function V2() {
           );
           if (response.data) {
             dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
-            dispatch(setMtxHlsEndpointNames(response.data.mtxHlsEndpointNames));
+            dispatch(setMtxHlsEndpoints(response.data.mtxHlsEndpoints));
           }
           return;
         }
@@ -332,11 +332,11 @@ export function V2() {
           // we do this because the API call can sometimes be "inprogress" for a long time and each timeout refresh causes the video panes to reload
           const diff =
             isEqual(oldMtxPlaybackAvailability, response.data.mtxPlaybackAvailability) &&
-            isEqual(oldMtxHlsEndpointNames, response.data.mtxHlsEndpointNames);
+            isEqual(oldMtxHlsEndpoints, response.data.mtxHlsEndpoints);
 
           if (!diff) {
             dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
-            dispatch(setMtxHlsEndpointNames(response.data.mtxHlsEndpointNames));
+            dispatch(setMtxHlsEndpoints(response.data.mtxHlsEndpoints));
           }
         }
       } catch (e) {

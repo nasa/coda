@@ -21,7 +21,7 @@ RUN fc-list
 
 
 # Copy MediaMTX binary from the original image
-COPY --from=bluenviron/mediamtx:1.9.3 /mediamtx /mediamtx
+COPY --from=bluenviron/mediamtx:1.11.1 /mediamtx /mediamtx
 
 # Copy the entrypoint script into the container
 COPY ./docker/mediamtx-mock/entrypoint.sh /entrypoint.sh

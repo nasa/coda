@@ -148,7 +148,11 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
   };
 
   return (
-    <div key={`video_element__${frameID}`} className={styles.vidContainer}>
+    <div
+      key={`video_element__${frameID}`}
+      className={styles.vidContainer}
+      data-frame-id={"MTX Player"}
+    >
       {status === "buffering" ? (
         <>
           <div className={styles.playerPosterNovid}></div>

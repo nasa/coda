@@ -17,8 +17,8 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     (state: RootState) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
-  const mtxHlsEndpointNames = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpointNames,
+  const mtxHlsEndpoints = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpoints,
     deepEqual
   );
 
@@ -78,7 +78,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   };
 
   const prepareHlsPlayer = () => {
-    if (!videoRef.current || !mtxHlsEndpointNames || mtxHlsEndpointNames.length === 0) return;
+    if (!videoRef.current || !mtxHlsEndpoints || mtxHlsEndpoints.length === 0) return;
 
     const downlinkNumber = (paneStateData.channel + 1).toString();
     const sourceSuffix = source === "ISS" ? "ISS" : "TE";
@@ -86,6 +86,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     const streamEndpointName = `DL${downlinkNumber}_${sourceSuffix}` as MTXHlsEndpointName;
 
     // check if the endpoint name is in the list of available endpoints from medaimtx
+    const mtxHlsEndpointNames = mtxHlsEndpoints.map((endpoint) => endpoint.name);
     if (!mtxHlsEndpointNames.includes(streamEndpointName)) {
       return;
     }
@@ -141,20 +142,24 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     let hlsForThisChannel = false;
 
     // loop through the hlsEndpointNames and look for this downlink channel
-    for (const mtxHlsEndpointName of mtxHlsEndpointNames) {
-      if (mtxHlsEndpointName.includes(downlinkNumber)) {
+    for (const mtxHlsEndpoint of mtxHlsEndpoints) {
+      if (mtxHlsEndpoint.name.includes(downlinkNumber)) {
         hlsForThisChannel = true;
       }
     }
     setHlsAvailable(hlsForThisChannel);
-  }, [mtxHlsEndpointNames]);
+  }, [mtxHlsEndpoints]);
 
-  useEffect(prepareHlsPlayer, [mtxHlsEndpointNames, videoRef.current, paneStateData]);
+  useEffect(prepareHlsPlayer, [mtxHlsEndpoints, videoRef.current, paneStateData]);
   useEffect(syncToPlayhead, [hlsRef.current, playhead.appSeconds]);
   useEffect(playOrPause, [playhead.isRunning, playhead.appSeconds]);
 
   return (
-    <div key={`video_element__${frameID}`} className={styles.vidContainer}>
+    <div
+      key={`video_element__${frameID}`}
+      className={styles.vidContainer}
+      data-frame-id={"HLS Player"}
+    >
       {!hlsAvailable ? <div className={styles.playerPosterNovid}></div> : null}
       <video
         muted
