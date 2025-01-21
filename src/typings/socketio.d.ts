@@ -2,7 +2,6 @@
 interface ServerToClientEvents {
   noArg: () => void;
   statusFromServer: (payload: StatusFromServer) => void;
-  transcriptSnippetFileFromServer: (payload: TranscriptSnippetFile) => void;
 }
 
 interface ClientToServerEvents {
@@ -22,9 +21,30 @@ interface SocketData {
   age: number;
 }
 
+type EMSSRole =
+  | "AEGIS-Editor"
+  | "AEGIS-Superuser"
+  | "CODA-Superuser"
+  | "Maestro-Superuser"
+  | "EMSS-Superuser";
+
+type EmssUser = {
+  uupic: string;
+  email: string;
+  auid: string;
+  givenname: string;
+  surname: string;
+  display_name: string;
+  roles: EMSSRole[];
+  uscitizen: boolean;
+  legal_permanent_resident: boolean;
+  usperson: boolean;
+  ip_address: string;
+};
+
 interface VisitorData {
   socketId: string;
-  room: string;
+  user: EmssUser;
 }
 
 type ConnectionStatus = "connected" | "disconnected" | "connecting" | "reconnecting";
@@ -35,12 +55,8 @@ interface SocketStatus {
   clientVersion: string;
 }
 
-interface VisitorCounts {
-  viewers: number;
-}
-
 interface StatusFromServer {
-  viewers: number;
+  users: EmssUser[];
   timestamp: number;
   version: string;
 }

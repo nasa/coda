@@ -235,10 +235,10 @@ rtsp: yes
 # UDP-multicast allows to save bandwidth when clients are all in the same LAN.
 # TCP is the most versatile, and does support encryption.
 # The handshake is always performed with TCP.
-protocols: [udp, multicast, tcp]
+rtspTransports: [udp, multicast, tcp]
 # Encrypt handshakes and TCP streams with TLS (RTSPS).
 # Available values are "no", "strict", "optional".
-encryption: "no"
+rtspEncryption: "no"
 # Address of the TCP/RTSP listener. This is needed only when encryption is "no" or "optional".
 rtspAddress: :8554
 # Address of the TCP/TLS/RTSPS listener. This is needed only when encryption is "strict" or "optional".
@@ -257,9 +257,9 @@ multicastRTCPPort: 8003
 # This can be generated with:
 # openssl genrsa -out server.key 2048
 # openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
-serverKey: server.key
+rtspServerKey: server.key
 # Path to the server certificate. This is needed only when encryption is "strict" or "optional".
-serverCert: server.crt
+rtspServerCert: server.crt
 # Authentication methods. Available are "basic" and "digest".
 # "digest" doesn't provide any additional security and is available for compatibility only.
 rtspAuthMethods: [basic]
@@ -319,7 +319,7 @@ hlsVariant: lowLatency
 # Number of HLS segments to keep on the server.
 # Segments allow to seek through the stream.
 # Their number doesn't influence latency.
-hlsSegmentCount: 360 # 360 at 5s = 30 minutes
+hlsSegmentCount: 60 # 60 at 5s = 5 minutes
 # Minimum duration of each segment.
 # A player usually puts 3 segments in a buffer before reproducing the stream.
 # The final segment duration is also influenced by the interval between IDR frames,
@@ -466,7 +466,7 @@ pathDefaults:
   # Therefore, the part duration is equal to the RPO (recovery point objective).
   recordPartDuration: 1s
   # Minimum duration of each segment.
-  recordSegmentDuration: 5m
+  recordSegmentDuration: 90s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
   # recordDeleteAfter: 0s
@@ -753,13 +753,17 @@ paths:
 
   # iss
   DL1_ISS:
-    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=640x480 -vf drawtext="fontfile=monofonto.ttf:fontsize=48:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3):text='DL1_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInitRestart: yes
+
+  DL2_ISS:
+    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL2_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
     runOnInitRestart: yes
 
   # test event
-  DL1_TE:
-    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=640x480 -vf drawtext="fontfile=monofonto.ttf:fontsize=48:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3):text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
-    runOnInitRestart: yes
+  # DL1_TE:
+  #   runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+  #   runOnInitRestart: yes
 
   # Settings under path "all_others" are applied to all paths that
   # do not match another entry.

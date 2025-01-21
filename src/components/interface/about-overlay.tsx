@@ -97,7 +97,7 @@ const AboutOverlay = ({
               </div>
             </div>
             <div className={styles.description}>
-              <div className={styles.strong}>Collaborative Operations Data Activation</div>
+              <div className={styles.strong}>Contextual Operations Data Activation</div>
               <p>
                 Consolidating the context of mission, training, and testing data into an exploratory
                 platform to relive and analyse each moment

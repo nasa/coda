@@ -4,6 +4,7 @@
   height: 50px;
   padding-top: 6px;
   padding-bottom: 6px;
+  min-width: 1332px;
 }
 
 .left {
@@ -14,7 +15,7 @@
   width: 300px;
 }
 
-@media (max-width: 1351px) {
+@media (max-width: 1530px) {
   .eventDropdownWrapper {
     width: 100px;
   }
@@ -193,26 +194,6 @@
   grid-row: 1;
 }
 
-.timeButtonLive {
-  grid-column: 1 / span 2;
-  grid-row: 2;
-}
-
-.liveButtonText {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.liveButtonIcon {
-  background-color: red;
-  width: 6px;
-  height: 6px;
-  border: none;
-  border-radius: 100%;
-  margin-right: 3px;
-}
-
 .select {
   position: relative;
   display: flex;
@@ -271,6 +252,40 @@
   background-size: 15px 15px;
   margin-left: 0;
   margin-right: 0;
+}
+
+.liveButton {
+  background-color: var(--lightest-grey);
+  width: 80px;
+  height: 40px;
+  padding-top: 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  user-select: none;
+}
+
+.liveIndicator {
+  background-color: var(--grey);
+  display: flex;
+  justify-content: space-evenly;
+  width: 80px;
+  height: 40px;
+  padding-top: 10px;
+  border-radius: var(--radius);
+  user-select: none;
+}
+
+.liveIndicatorIcon {
+  background-color: red;
+  width: 13px;
+  height: 13px;
+  border: none;
+  border-radius: 100%;
+  margin: 4px 0 0 3px;
+}
+
+.liveIndicatorText {
+  margin: 0 1px 0 0;
 }
 
 .userCount {

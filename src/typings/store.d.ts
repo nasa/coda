@@ -56,7 +56,7 @@ type VideosState = {
   videoFiles: VideoFile[];
   mtxPlaybackAvailability: MTXPlaybackAvailability;
   // string of stream names in the DL1_ISS, DL2_ISS, etc format or DL1_TE (test event), DL2_TE, etc.
-  mtxHlsEndpointNames: MTXHlsEndpointName[];
+  mtxHlsEndpoints: MTXHlsEndpoint[];
   responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatus;
 };
@@ -110,4 +110,11 @@ type MaestroState = {
   evaDurationSec: number;
   responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatus;
+};
+
+/**
+ * User State
+ */
+type UserState = {
+  user: EmssUser;
 };

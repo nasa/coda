@@ -24,7 +24,7 @@ import {
   fetchError as videosFetchError,
   clearVideos,
   setMtxPlaybackAvailability,
-  setMtxHlsEndpointNames,
+  setMtxHlsEndpoints,
 } from "store/videos";
 import {
   addPhotos,
@@ -91,7 +91,7 @@ import { URLSearchParams } from "url";
 import { getGPSTracks } from "http-client/db";
 import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
-import { appSecondsFromDateString, padZeros } from "utils/formatting";
+import { appSecondsFromDateString } from "utils/formatting";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export function V2() {
@@ -110,8 +110,8 @@ export function V2() {
     (state: RootState) => state.videos.mtxPlaybackAvailability,
     deepEqual
   );
-  const oldMtxHlsEndpointNames = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpointNames,
+  const oldMtxHlsEndpoints = useAppSelector(
+    (state: RootState) => state.videos.mtxHlsEndpoints,
     deepEqual
   );
 
@@ -120,7 +120,7 @@ export function V2() {
     connectionStatus: "disconnected",
     lastStatusFromServer: {
       timestamp: 0,
-      viewers: 0,
+      users: [],
       version: "",
     },
     clientVersion: "",
@@ -319,7 +319,7 @@ export function V2() {
           );
           if (response.data) {
             dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
-            dispatch(setMtxHlsEndpointNames(response.data.mtxHlsEndpointNames));
+            dispatch(setMtxHlsEndpoints(response.data.mtxHlsEndpoints));
           }
           return;
         }
@@ -332,11 +332,11 @@ export function V2() {
           // we do this because the API call can sometimes be "inprogress" for a long time and each timeout refresh causes the video panes to reload
           const diff =
             isEqual(oldMtxPlaybackAvailability, response.data.mtxPlaybackAvailability) &&
-            isEqual(oldMtxHlsEndpointNames, response.data.mtxHlsEndpointNames);
+            isEqual(oldMtxHlsEndpoints, response.data.mtxHlsEndpoints);
 
           if (!diff) {
             dispatch(setMtxPlaybackAvailability(response.data.mtxPlaybackAvailability));
-            dispatch(setMtxHlsEndpointNames(response.data.mtxHlsEndpointNames));
+            dispatch(setMtxHlsEndpoints(response.data.mtxHlsEndpoints));
           }
         }
       } catch (e) {
@@ -541,14 +541,6 @@ export function V2() {
     dispatch(setGraphsLoadingStatus("loaded"));
   };
 
-  // make path for socketio room
-  const makeDateSourcePath = () => {
-    const newPlayheadDate = urlState.date !== null ? urlState.date : new Date();
-    const newPlayheadSource = urlState.frameworkState.source;
-    const date = new Date(newPlayheadDate);
-    return `${padZeros(date.getUTCDate(), 2)}-${padZeros(date.getUTCMonth() + 1, 2)}-${date.getUTCFullYear()}/${newPlayheadSource}`;
-  };
-
   // populate store when date or source change
   useEffect(() => {
     if (isNull(playheadDate) || isNull(source)) {
@@ -615,11 +607,7 @@ export function V2() {
         setHelpLoaderOpen={setHelpLoaderOpen}
         socketStatus={socketStatus}
       />
-      <SocketClient
-        roomName={makeDateSourcePath()}
-        socketStatus={socketStatus}
-        setSocketStatus={setSocketStatus}
-      />
+      <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
       <div className={styles.body}>
         <Viewer />
       </div>

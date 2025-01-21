@@ -79,6 +79,7 @@ interface GetVideosQueryParams {
 }
 
 interface GetMTXPlaybackQueryParams {
+  dateWanted: string;
   source: Source;
   forceNew?: boolean;
 }

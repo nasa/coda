@@ -104,7 +104,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     drawNav.current = new DrawNav({
       videoFiles: filterVisibleVideos(videos.videoFiles, playheadDate),
       mtxPlaybackAvailability: videos.mtxPlaybackAvailability,
-      mtxHlsEndpointNames: videos.mtxHlsEndpointNames,
+      mtxHlsEndpoints: videos.mtxHlsEndpoints,
       source,
       photoFiles: photos.photoFiles,
       collectionFilters: photos.collectionFilters,
