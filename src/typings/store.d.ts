@@ -111,3 +111,10 @@ type MaestroState = {
   responseMetadata: ResponseMetadata;
   loadingStatus: LoadingStatus;
 };
+
+/**
+ * User State
+ */
+type UserState = {
+  user: EmssUser;
+};

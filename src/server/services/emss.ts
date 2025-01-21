@@ -534,7 +534,7 @@ export const fetchMTXAPIResponses = async ({
     for (let channel = 1; channel <= 8; channel++) {
       const mtxPlaybackUrl = `${mtxRecordingsBaseUrl}list?path=DL${channel}_${sourceAbbr}`;
       try {
-        const res = await fetchWithTimeout(mtxPlaybackUrl);
+        const res = await fetchWithTimeout(mtxPlaybackUrl, {}, 20000);
         const rawJson: MtxRecordingTimeRangeResponse[] = await res.json();
         const mtxPlaybackRecords: MtxRecordingTimeRange[] =
           rawJson?.map(({ start, duration }) => ({

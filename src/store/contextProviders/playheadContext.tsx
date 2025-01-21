@@ -24,6 +24,8 @@ export function playheadReducer(state: Playhead, action: PlayheadAction): Playhe
       return {
         ...state,
         appSeconds: newAppSeconds,
+        setDatestamp: new Date().toISOString(),
+        setAppSeconds: newAppSeconds,
       };
     }
 
@@ -34,8 +36,11 @@ export function playheadReducer(state: Playhead, action: PlayheadAction): Playhe
       return { ...state, isRunning: false };
 
     case "TICK":
-      return { ...state, appSeconds: state.appSeconds + 1 };
-
+      // seconds since setAppSeconds was set
+      const elapsedSeconds =
+        new Date().getTime() / 1000 - new Date(state.setDatestamp).getTime() / 1000;
+      const newAppSeconds = state.setAppSeconds + elapsedSeconds;
+      return { ...state, appSeconds: newAppSeconds };
     default:
       return state;
   }
@@ -48,6 +53,8 @@ export const PlayheadContextProvider = ({ children }: { children: ReactNode }): 
     date: null,
     appSeconds: 28800, // 08:00:00Z
     isRunning: false,
+    setDatestamp: null,
+    setAppSeconds: null,
   };
 
   const [playhead, dispatchPlayhead] = useReducer(playheadReducer, initialState);

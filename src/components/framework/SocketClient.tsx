@@ -1,17 +1,33 @@
-import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef } from "react";
+import { setupFetchFns } from "packages/fetchFns";
+import { getCurrentUser } from "packages/getCurrentUser";
+import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 
 const SocketClient: FunctionComponent<{
-  roomName: string;
   socketStatus: SocketStatus;
   setSocketStatus: Dispatch<SetStateAction<SocketStatus>>;
-}> = ({ roomName, socketStatus, setSocketStatus }) => {
+}> = ({ socketStatus, setSocketStatus }) => {
   //socket connection
   const socket = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(null);
 
+  const [user, setUser] = useState<EmssUser | undefined>(undefined);
+
+  // Ensure the user is logged in and get the user data
+  useEffect(() => {
+    setupFetchFns();
+    getCurrentUser().then((thisUser) => {
+      if (user instanceof Error) {
+        return;
+      }
+      setUser(thisUser as EmssUser);
+    });
+  }, []);
+
   //Handle socketio events
   useEffect(() => {
+    if (!user) return;
+
     // Create a socket connection
     if (!socket.current || (socket.current && !socket.current.connected)) {
       const socketUrl = window.location.origin;
@@ -26,7 +42,7 @@ const SocketClient: FunctionComponent<{
     socket.current.on("connect", () => {
       const visitorData: VisitorData = {
         socketId: socket.current.id,
-        room: roomName,
+        user: user,
       };
       socket.current.emit("visitorJoin", visitorData);
     });
@@ -68,7 +84,7 @@ const SocketClient: FunctionComponent<{
       socket.current.off("statusFromServer");
       socket.current.disconnect();
     };
-  }, [socket]);
+  }, [socket, user]);
 
   return <></>;
 };

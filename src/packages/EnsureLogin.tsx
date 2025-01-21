@@ -1,8 +1,11 @@
 import { FC, useEffect } from "react";
 import { getCurrentUser } from "./getCurrentUser";
 import { setupFetchFns } from "./fetchFns";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { setUser } from "store/user";
 
 export const EnsureLogin: FC<{ fqdn?: string }> = ({ fqdn = "" }) => {
+  const dispatch = useAppDispatch();
   useEffect(() => {
     setupFetchFns();
     getCurrentUser().then((user) => {
@@ -11,6 +14,7 @@ export const EnsureLogin: FC<{ fqdn?: string }> = ({ fqdn = "" }) => {
         return;
       }
       console.log(`Welcome, ${user.display_name || "unknown user"}`);
+      dispatch(setUser(user));
     });
   }, [fqdn]);
 

@@ -585,7 +585,7 @@ export default class DrawNav {
           strokeColor: this.gColorBarBorder,
           name: name,
         });
-        mtxLine.fillColor = new paper.Color("yellow");
+        mtxLine.fillColor = new paper.Color(this.gColorVideo);
         group.addChild(mtxLine);
       }
     }

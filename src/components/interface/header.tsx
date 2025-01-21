@@ -22,8 +22,9 @@ import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "rea
 import { generateShareURL } from "utils/share-state";
 import { isSameDate } from "utils/date";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { isSuperuser } from "utils/user";
 
-export const LoaderHelpMenu: FunctionComponent<{
+const LoaderHelpMenu: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen }) => {
@@ -55,7 +56,7 @@ export const LoaderHelpMenu: FunctionComponent<{
   );
 };
 
-export const LayoutDropdown: FunctionComponent = () => {
+const LayoutDropdown: FunctionComponent = () => {
   const layout = useAppSelector((state: RootState) => state.framework.layout, refEqual);
 
   const layoutDefinition = allLayouts[layout];
@@ -81,7 +82,7 @@ export const LayoutDropdown: FunctionComponent = () => {
   );
 };
 
-export const PresetDropdown: FunctionComponent = () => (
+const PresetDropdown: FunctionComponent = () => (
   <ModalDropdown modal={PresetPicker} modalWidth={350} color="grey" caret="down">
     <div
       className={`${styles.verticalCenter} ${styles.preset}`}
@@ -92,7 +93,7 @@ export const PresetDropdown: FunctionComponent = () => (
   </ModalDropdown>
 );
 
-export const ShareDropdown: FunctionComponent = () => (
+const ShareDropdown: FunctionComponent = () => (
   <ModalDropdown modal={SharePanel} modalWidth={350} color="grey" caret="down">
     <div
       className={`${styles.verticalCenter} ${styles.shareButton}`}
@@ -103,7 +104,39 @@ export const ShareDropdown: FunctionComponent = () => (
   </ModalDropdown>
 );
 
-export const SourcesDropdown: FunctionComponent = () => {
+const LiveButton: FunctionComponent = () => {
+  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  const LIVE_THRESHOLD_SECONDS = 5;
+
+  const handleLive = () => {
+    const timeLive = appSecondsFromDateString(new Date().toISOString());
+    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: timeLive });
+  };
+
+  const isLiveEnabled = import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "true";
+  const isToday = isSameDate(new Date(playhead.date), new Date());
+  const currentLiveTime = appSecondsFromDateString(new Date().toISOString());
+  const isNearLive = Math.abs(playhead.appSeconds - currentLiveTime) <= LIVE_THRESHOLD_SECONDS;
+
+  if (!isLiveEnabled || !isToday) return null;
+
+  return isNearLive ? (
+    <div className={styles.liveIndicator} title="Currently Live">
+      <div className={styles.liveIndicatorIcon}></div>
+      <div className={styles.liveIndicatorText}>Live</div>
+    </div>
+  ) : (
+    <div
+      className={`${styles.verticalCenter} ${styles.liveButton}`}
+      title="Go Live"
+      onClick={handleLive}
+    >
+      Go Live
+    </div>
+  );
+};
+
+const SourcesDropdown: FunctionComponent = () => {
   const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
 
   const { playhead } = usePlayheadContext();
@@ -142,7 +175,7 @@ export const SourcesDropdown: FunctionComponent = () => {
   );
 };
 
-export const DatetimeDropdown: FunctionComponent = () => {
+const DatetimeDropdown: FunctionComponent = () => {
   const { playhead } = usePlayheadContext();
 
   const date = new Date(playhead.date);
@@ -162,7 +195,7 @@ export const DatetimeDropdown: FunctionComponent = () => {
   );
 };
 
-export const Clock: FunctionComponent = () => {
+const Clock: FunctionComponent = () => {
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
   const [editingTime, setEditingTime] = useState(false);
@@ -192,27 +225,6 @@ export const Clock: FunctionComponent = () => {
     setUserTimeValue("");
     setEditingTime(false);
   };
-
-  /** Navigates to most recent time, "live" */
-  const handleLive = () => {
-    const timeLive = appSecondsFromDateString(new Date().toISOString());
-    setRenderTime(hhmmssFromSeconds(timeLive));
-    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: timeLive });
-
-    setUserTimeValue("");
-    setEditingTime(false);
-  };
-
-  const windowURL = window.location;
-  let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
-  var today = new Date();
-  if (paramDate) {
-    let [year, month, day] = paramDate[0].split("-");
-    var urlDate = new Date(`${year}-${month}-${day}`);
-  } else {
-    // This is a safety parameter, so that isSameDate doesnt have an undefined.
-    urlDate = new Date();
-  }
 
   let timeButtonsDisplay = editingTime ? "grid" : "none";
 
@@ -265,19 +277,6 @@ export const Clock: FunctionComponent = () => {
         >
           <span>Go</span>
         </button>
-        {isSameDate(urlDate, today) ? (
-          <button
-            className={`${styles.timeButtonsItems} ${styles.timeButtons} ${styles.timeButtonLive}`}
-            onClick={() => {
-              handleLive();
-            }}
-          >
-            <div className={styles.liveButtonText}>
-              <div className={styles.liveButtonIcon}></div>
-              <span>Live</span>
-            </div>
-          </button>
-        ) : null}
       </div>
     </div>
   );
@@ -285,25 +284,41 @@ export const Clock: FunctionComponent = () => {
 
 export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = ({
   socketStatus,
-}) => (
-  <div
-    className={styles.userCount}
-    data-tooltip-id="app-tooltip"
-    data-tooltip-html={
-      socketStatus.connectionStatus === "connected"
-        ? `CODA Visitors: ${socketStatus.lastStatusFromServer.viewers || 0}`
-        : "Connection to server lost"
-    }
-    style={
-      socketStatus.connectionStatus === "connected"
-        ? { color: "var(--greyish)" }
-        : { color: "var(--even-greyer)" }
-    }
-  >
-    <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
-    <div className={styles.userCountText}>{socketStatus.lastStatusFromServer.viewers || 0}</div>
-  </div>
-);
+}) => {
+  const isSu = useAppSelector((state: RootState) => isSuperuser(state.user.user), refEqual);
+
+  let visitorList = "";
+  if (isSu) {
+    visitorList =
+      "<br/>" +
+      socketStatus.lastStatusFromServer.users
+        .map((user) => user.display_name || `${user.surname}, ${user.givenname}`)
+        .join("<br/>");
+  } else {
+    visitorList = socketStatus.lastStatusFromServer.users?.length.toString() || "0";
+  }
+  return (
+    <div
+      className={styles.userCount}
+      data-tooltip-id="app-tooltip"
+      data-tooltip-html={
+        socketStatus.connectionStatus === "connected"
+          ? `CODA Visitors: ${visitorList}`
+          : "Connection to server lost"
+      }
+      style={
+        socketStatus.connectionStatus === "connected"
+          ? { color: "var(--greyish)" }
+          : { color: "var(--even-greyer)" }
+      }
+    >
+      <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
+      <div className={styles.userCountText}>
+        {socketStatus.lastStatusFromServer.users?.length || 0}
+      </div>
+    </div>
+  );
+};
 
 const Header: FunctionComponent<{
   helpLoaderOpen: boolean;
@@ -315,6 +330,9 @@ const Header: FunctionComponent<{
     (state: RootState) => state.framework.emssVideoEnabled,
     refEqual
   );
+  const { playhead } = usePlayheadContext();
+  const isToday = isSameDate(new Date(playhead.date), new Date());
+
   const dispatch = useAppDispatch();
   return (
     <div className={styles.main}>
@@ -331,6 +349,11 @@ const Header: FunctionComponent<{
         <div className={styles.item} style={{ width: "130px" }}>
           <Clock />
         </div>
+        {isToday && (
+          <div className={styles.item} style={{ width: "80px" }}>
+            <LiveButton />
+          </div>
+        )}
         <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
           <EventDropdown collection={collection[source]} />
         </div>
