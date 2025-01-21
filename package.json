@@ -1,7 +1,7 @@
 {
   "name": "coda",
-  "version": "3.0.5",
-  "description": "Collaborative Operations Data Activation",
+  "version": "3.0.6",
+  "description": "Contextual Operations Data Activation",
   "main": "src/index.tsx",
   "scripts": {
     "make-dotenv": "make-dotenv",

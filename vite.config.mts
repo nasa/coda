@@ -12,6 +12,7 @@ export const config: UserConfig = {
     alias: {
       components: path.resolve(__dirname, "./src/components"),
       "http-client": path.resolve(__dirname, "./src/http-client"),
+      packages: path.resolve(__dirname, "./src/packages"),
       pages: path.resolve(__dirname, "./src/pages"),
       public: path.resolve(__dirname, "./src/public"),
       store: path.resolve(__dirname, "./src/store"),

@@ -18,9 +18,6 @@ export const setupSocketIO = (): void => {
     socket.emit("version", packagejson.version || "unknown version");
 
     socket.on("visitorJoin", (visitorData: VisitorData) => {
-      // join the room for the user's selected date
-      socket.join(visitorData.room);
-
       // remove this socket from tracking list if it exists
       remove(visitorsData, (item) => {
         return item.socketId === visitorData.socketId;
@@ -60,9 +57,12 @@ export const setupSocketIO = (): void => {
 };
 
 export const getStatusFromServer = (): StatusFromServer => {
-  const viewerCount = globalValues.serverSocketStatus.visitorsData?.length;
+  const users: EmssUser[] = globalValues.serverSocketStatus.visitorsData.map((visitor) => {
+    return visitor.user;
+  });
+
   return {
-    viewers: viewerCount,
+    users,
     timestamp: Date.now(),
     version: packagejson.version || "",
   };

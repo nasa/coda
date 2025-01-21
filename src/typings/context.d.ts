@@ -7,6 +7,8 @@ interface Playhead {
   date: string;
   appSeconds: number;
   isRunning: boolean;
+  setDatestamp: string;
+  setAppSeconds: number;
 }
 
 type PlayheadAction =

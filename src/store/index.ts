@@ -10,6 +10,7 @@ import { transcriptSlice, initialState as transcriptInitialState } from "./trans
 import { sgAudioSlice, initialState as sgAudioInitialState } from "./sg-audio";
 import { graphSlice, initialState as graphInitialState } from "./graphs";
 import { maestroSlice, initialState as maestroInitialState } from "./maestro";
+import { userSlice, initialState as userInitialState } from "./user";
 
 export const initialState = {
   sequences: sequencesInitialState,
@@ -23,6 +24,7 @@ export const initialState = {
   sgAudio: sgAudioInitialState,
   graphs: graphInitialState,
   maestro: maestroInitialState,
+  user: userInitialState,
 };
 
 const sliceReducers = combineReducers({
@@ -37,6 +39,7 @@ const sliceReducers = combineReducers({
   sgAudio: sgAudioSlice.reducer,
   graphs: graphSlice.reducer,
   maestro: maestroSlice.reducer,
+  user: userSlice.reducer,
 });
 export type RootState = ReturnType<typeof sliceReducers>;
 

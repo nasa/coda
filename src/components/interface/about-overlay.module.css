@@ -48,7 +48,6 @@
 
 .leftSection {
   display: flex;
-  height: max-content;
   flex-direction: column;
   flex: 0 0 450px;
   background-color: rgba(65, 65, 65, 0.5);
