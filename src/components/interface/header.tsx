@@ -292,7 +292,7 @@ export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = (
     visitorList =
       "<br/>" +
       socketStatus.lastStatusFromServer.users
-        .map((user) => user.display_name || `${user.surname}, ${user.givenname}`)
+        .map((user) => user?.display_name || `${user?.surname}, ${user?.givenname}`)
         .join("<br/>");
   } else {
     visitorList = socketStatus.lastStatusFromServer.users?.length.toString() || "0";
