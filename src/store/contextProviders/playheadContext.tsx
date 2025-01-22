@@ -39,7 +39,7 @@ export function playheadReducer(state: Playhead, action: PlayheadAction): Playhe
       // seconds since setAppSeconds was set
       const elapsedSeconds =
         new Date().getTime() / 1000 - new Date(state.setDatestamp).getTime() / 1000;
-      const newAppSeconds = state.setAppSeconds + elapsedSeconds;
+      const newAppSeconds = Math.round(state.setAppSeconds + elapsedSeconds);
       return { ...state, appSeconds: newAppSeconds };
     default:
       return state;
