@@ -431,11 +431,11 @@ export const VideoDLPaneControls: FunctionComponent<{
       const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
       const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
 
-      const duration = hlsEndpoint?.secondsAvailable || 0;
+      const hlsDuration = hlsEndpoint?.secondsAvailable || 0;
 
       if (
         isSameDate(playheadDate, now) &&
-        Math.abs(playhead.appSeconds - nowAppSeconds) < duration
+        Math.abs(playhead.appSeconds - nowAppSeconds) < hlsDuration
       ) {
         // loop through the hlsEndpointNames and look for this downlink channel
         for (const mtxHlsEndpoint of mtxHlsEndpoints) {
