@@ -504,7 +504,13 @@ export default class DrawNav {
       }
     }
 
+    // stop drawing here if live streams are disabled
+    if (import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "false") {
+      return group;
+    }
+
     // draw the MTX playback availability lines on top of the video segments
+
     for (let dl = 1; dl <= 8; dl++) {
       const mtxPlaybackRecords = this.mtxPlaybackAvailability[dl.toString()];
       if (!mtxPlaybackRecords) break;
