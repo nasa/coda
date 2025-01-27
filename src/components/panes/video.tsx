@@ -399,6 +399,8 @@ export const VideoDLPaneControls: FunctionComponent<{
   useEffect(() => {
     const cAvailability = [];
 
+    const liveEnabled = import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "true";
+
     // loop through all channel numbers and check if there is either mtxPlayback video or IO video available for each channel at this time
     for (let channel = 0; channel < 8; channel++) {
       let mtxForThisChannel = false;
@@ -445,7 +447,11 @@ export const VideoDLPaneControls: FunctionComponent<{
         }
       }
 
-      cAvailability.push(mtxForThisChannel || ioVideoForThisChannel || hlsForThisChannel);
+      if (liveEnabled) {
+        cAvailability.push(mtxForThisChannel || ioVideoForThisChannel || hlsForThisChannel);
+      } else {
+        cAvailability.push(ioVideoForThisChannel);
+      }
     }
     setChannelAvailability(cAvailability);
   }, [visibleVideos, playhead.appSeconds, mtxPlaybackAvailability, mtxHlsEndpoints]);
@@ -1067,7 +1073,7 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
   if (downlinkNumber !== -1) {
     const videoFiles = videos.videoFiles;
     const visibleVideos = visibleVideosBySecond(videoFiles, new Date(playhead.date));
-    const videosNextSecond = visibleVideos.get(`${playhead.appSeconds + 1}/${downlinkNumber}`);
+    const videosNextSecond = visibleVideos.get(`${playhead.appSeconds + 1}/${downlinkNumber - 1}`);
     if (videosNextSecond) {
       videoPlayerType = "IO";
     }

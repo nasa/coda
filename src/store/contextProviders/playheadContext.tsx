@@ -30,7 +30,12 @@ export function playheadReducer(state: Playhead, action: PlayheadAction): Playhe
     }
 
     case "START":
-      return { ...state, isRunning: true };
+      return {
+        ...state,
+        isRunning: true,
+        setAppSeconds: state.appSeconds,
+        setDatestamp: new Date().toISOString(),
+      };
 
     case "STOP":
       return { ...state, isRunning: false };
