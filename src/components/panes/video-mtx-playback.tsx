@@ -27,7 +27,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
 
   const [status, setStatus] = useState(null);
   const [currVidMTXPlaybackRecord, setCurrVidMTXPlaybackRecord] =
-    useState<MtxRecordingTimeRange>(null);
+    useState<MTXRecordingTimeRange>(null);
   const [currChannel, setCurrChannel] = useState(null);
 
   const [lastURLStartTime, setLastURLStartTime] = useState(null);
