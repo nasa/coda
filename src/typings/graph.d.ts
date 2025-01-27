@@ -33,7 +33,21 @@ type GraphData = {
   value: number;
 };
 
-type PlotlyChartTrace = Pick<Plotly.Data, "x" | "y" | "type" | "mode" | "line" | "name">;
+type PlotlyChartTrace = {
+  x: (string | number | Date)[] | null;
+  y: (string | number)[] | null;
+  type: "scatter" | "bar" | "line";
+  mode?:
+    | "lines"
+    | "markers"
+    | "text"
+    | "lines+markers"
+    | "lines+text"
+    | "markers+text"
+    | "lines+markers+text";
+  line?: Partial<Plotly.ScatterLine>;
+  name?: string;
+};
 
 type AncillaryDataSource = {
   id: number;

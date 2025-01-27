@@ -8,8 +8,13 @@ type MTXHlsEndpoint = {
   secondsAvailable: number;
 };
 
+type MTXRecordingTimeRange = {
+  start: string;
+  duration: number;
+};
+
 type MTXPlaybackAvailability = {
-  [dlNumber: string]: MtxRecordingTimeRange[];
+  [dlNumber: string]: MTXRecordingTimeRange[];
 };
 
 type MTXHlsEndpointName =
@@ -31,23 +36,3 @@ type MTXHlsEndpointName =
   | "DL8_TE";
 
 type VideoPlayerType = "IO" | "MTX" | "HLS";
-
-type MtxPathRecording = {
-  name: string;
-  segments: MtxSegment[];
-};
-
-type MtxRecordingsListResponse = {
-  itemCount: number;
-  pageCount: number;
-  items: MtxRecordingsListItem[];
-};
-
-type MtxSegment = {
-  start: string;
-};
-
-type MtxRecordingTimeRange = {
-  start: string;
-  duration: number;
-};

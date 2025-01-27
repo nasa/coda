@@ -21,27 +21,6 @@ interface SocketData {
   age: number;
 }
 
-type EMSSRole =
-  | "AEGIS-Editor"
-  | "AEGIS-Superuser"
-  | "CODA-Superuser"
-  | "Maestro-Superuser"
-  | "EMSS-Superuser";
-
-type EmssUser = {
-  uupic: string;
-  email: string;
-  auid: string;
-  givenname: string;
-  surname: string;
-  display_name: string;
-  roles: EMSSRole[];
-  uscitizen: boolean;
-  legal_permanent_resident: boolean;
-  usperson: boolean;
-  ip_address: string;
-};
-
 interface VisitorData {
   socketId: string;
   user: EmssUser;

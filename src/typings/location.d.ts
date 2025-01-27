@@ -1,5 +1,5 @@
 type MapMarker = {
-  marker: Marker; //the MapBox marker reference
+  marker: import("mapbox-gl").Marker; //the MapBox marker reference
   markerNode: HTMLDivElement; //the real DOM id of the marker
 };
 
@@ -33,11 +33,11 @@ type MapInfoDisplay = {
 };
 
 type TrackFeatures = {
-  EV1?: FeatureCollection;
-  EV2?: FeatureCollection;
-  EV3?: FeatureCollection;
-  EV4?: FeatureCollection;
-  Cart?: FeatureCollection;
-  LightCart?: FeatureCollection;
-  Staff?: FeatureCollection;
+  EV1?: import("geojson").FeatureCollection;
+  EV2?: import("geojson").FeatureCollection;
+  EV3?: import("geojson").FeatureCollection;
+  EV4?: import("geojson").FeatureCollection;
+  Cart?: import("geojson").FeatureCollection;
+  LightCart?: import("geojson").FeatureCollection;
+  Staff?: import("geojson").FeatureCollection;
 };

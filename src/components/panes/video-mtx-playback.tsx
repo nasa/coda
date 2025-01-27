@@ -52,7 +52,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     asyncFunc();
   };
 
-  const getMtxPlaybackRecordForPlayhead = (appSeconds: number): MtxRecordingTimeRange => {
+  const getMtxPlaybackRecordForPlayhead = (appSeconds: number): MTXRecordingTimeRange => {
     for (const mtxPlaybackRecord of mtxPlaybackRecordsForDownlink) {
       // check that the mtxPlaybackRecord is for today. Remember that these records were modifed
       // when they were fetched to look like they started at midnight if they started before today
@@ -69,7 +69,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     return null;
   };
 
-  const playVideoAtPlayhead = (mtxRecordingTimeRange: MtxRecordingTimeRange) => {
+  const playVideoAtPlayhead = (mtxRecordingTimeRange: MTXRecordingTimeRange) => {
     if (!mtxRecordingTimeRange) return;
     // add x seconds to counteract the delay in the video starting
     const playheadStart = dateFromAppSeconds(playhead.appSeconds + 2, playhead.date)

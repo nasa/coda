@@ -527,7 +527,7 @@ export const fetchMTXAPIResponses = async ({
     // loop through the 8 channels and get the mtxPlayback records for each channel
     const mtxPlaybackAvailability: MTXPlaybackAvailability = {};
 
-    interface MtxRecordingTimeRangeResponse extends MtxRecordingTimeRange {
+    interface MtxRecordingTimeRangeResponse extends MTXRecordingTimeRange {
       url: string;
     }
 
@@ -536,7 +536,7 @@ export const fetchMTXAPIResponses = async ({
       try {
         const res = await fetchWithTimeout(mtxPlaybackUrl, {}, 20000);
         const rawJson: MtxRecordingTimeRangeResponse[] = await res.json();
-        const mtxPlaybackRecords: MtxRecordingTimeRange[] =
+        const mtxPlaybackRecords: MTXRecordingTimeRange[] =
           rawJson?.map(({ start, duration }) => ({
             start,
             duration,
@@ -562,7 +562,7 @@ export const fetchMTXAPIResponses = async ({
         continue;
       }
       const mtxPlaybackRecords = clone(mtxPlaybackAvailability[channel.toString()]);
-      const newMtxPlaybackRecords: MtxRecordingTimeRange[] = [];
+      const newMtxPlaybackRecords: MTXRecordingTimeRange[] = [];
 
       for (const mtxPlaybackRecord of mtxPlaybackRecords) {
         // the mtx playback record starts before the beginning of today, check if it ends after the beginning of today
