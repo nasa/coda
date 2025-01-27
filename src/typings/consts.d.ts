@@ -21,20 +21,3 @@ type SequenceType = 1 | 2 | "testing" | "analog" | "training";
  * Pane types converted to integers
  */
 type PaneTypeShortVal = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-
-/**
- * Contains all the possible subfolders for the cache.
- * This type is iterated through when clearing the entire cache
- */
-type CacheFolder =
-  | "celestrak"
-  | "spacetrack"
-  | "daynight/topo"
-  | "daynight/issLocation"
-  | "io"
-  | "labs/transcripts"
-  | "labs/audio"
-  | "wiki"
-  | "wiki/all"
-  | "wiki/gps"
-  | "test";
