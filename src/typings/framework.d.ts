@@ -16,13 +16,13 @@ interface Preset {
 interface Pane {
   title: string;
   shortTitle: string;
-  icon: IconProp;
+  icon: import("@fortawesome/fontawesome-svg-core").IconProp;
   color: string;
   defaultPaneStateData:
     | EmptyPaneStateData
     | VideoPaneStateData
     | PhotoPaneStateData
-    | PhotoAllPaneStateDate
+    | PhotoAllPaneStateData
     | LocationPaneStateData
     | EventPaneStateData
     | CommPaneStateData;

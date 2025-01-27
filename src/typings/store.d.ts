@@ -1,3 +1,6 @@
+declare type EMSSRole = import("@emss/oauth2-proxy-common").EMSSRole;
+declare type EmssUser = import("@emss/oauth2-proxy-common").EmssUser;
+
 /**
  * Ephemera store
  */

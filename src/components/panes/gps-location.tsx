@@ -8,10 +8,10 @@ import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatti
 import styles from "./gps-location.module.css";
 import TEMarker from "./gps-location-marker";
 
-import mapboxgl, { LngLatLike, Map } from "mapbox-gl";
+import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import type { FeatureCollection } from "geojson";
+import type { FeatureCollection, LineString } from "geojson";
 import { setPaneStateValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
@@ -130,21 +130,21 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     Staff: { ...initialMarker },
   };
 
-  const initialTrackFeature: FeatureCollection = {
+  const initialTrackFeature: FeatureCollection<LineString> = {
     type: "FeatureCollection",
     features: [
       {
         type: "Feature",
         geometry: {
           type: "LineString",
-          coordinates: [],
-        },
+          coordinates: [] as number[][],
+        } as LineString,
         properties: {},
       },
     ],
   };
 
-  let trackFeatures: TrackFeatures = {
+  let trackFeatures: Record<string, FeatureCollection<LineString>> = {
     EV1: { ...initialTrackFeature },
     EV2: { ...initialTrackFeature },
     EV3: { ...initialTrackFeature },
@@ -334,9 +334,9 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
       //loop through the gps track objects
       for (let track = 0; track < gpsTracks.length; track++) {
         const gpsTrack = gpsTracks[track];
-        const newCoordinates: LngLatLike[] = [];
+        const newCoordinates: number[][] = [];
         for (let x = 0; x < gpsTrack.points.length; x++) {
-          const thisCoordinate: LngLatLike = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
+          const thisCoordinate: number[] = [gpsTrack.points[x].lon, gpsTrack.points[x].lat];
           newCoordinates.push(thisCoordinate);
         }
 

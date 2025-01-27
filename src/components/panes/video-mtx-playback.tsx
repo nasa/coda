@@ -26,7 +26,10 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
   const videoRef = useRef() as MutableRefObject<HTMLVideoElement>;
 
   const [status, setStatus] = useState(null);
-  const [currVidMTXPlaybackRecord, setCurrVidMTXPlaybackRecord] = useState(null);
+  const [currVidMTXPlaybackRecord, setCurrVidMTXPlaybackRecord] =
+    useState<MTXRecordingTimeRange>(null);
+  const [currChannel, setCurrChannel] = useState(null);
+
   const [lastURLStartTime, setLastURLStartTime] = useState(null);
 
   const { playhead } = usePlayheadContext();
@@ -52,7 +55,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     asyncFunc();
   };
 
-  const getMtxPlaybackRecordForPlayhead = (appSeconds: number): MtxRecordingTimeRange => {
+  const getMtxPlaybackRecordForPlayhead = (appSeconds: number): MTXRecordingTimeRange => {
     for (const mtxPlaybackRecord of mtxPlaybackRecordsForDownlink) {
       // check that the mtxPlaybackRecord is for today. Remember that these records were modifed
       // when they were fetched to look like they started at midnight if they started before today
@@ -69,7 +72,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     return null;
   };
 
-  const playVideoAtPlayhead = (mtxRecordingTimeRange: MtxRecordingTimeRange) => {
+  const playVideoAtPlayhead = (mtxRecordingTimeRange: MTXRecordingTimeRange) => {
     if (!mtxRecordingTimeRange) return;
     // add x seconds to counteract the delay in the video starting
     const playheadStart = dateFromAppSeconds(playhead.appSeconds + 2, playhead.date)
@@ -79,6 +82,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     const mtxRecordingsBaseUrl = import.meta.env.VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL;
     const sourceAbbr = source === "ISS" ? "ISS" : "TE";
     const channel = (paneStateData.channel + 1).toString();
+    setCurrChannel(parseInt(channel));
     const path = `DL${channel}_${sourceAbbr}`;
 
     const url = new URL("get", mtxRecordingsBaseUrl);
@@ -94,7 +98,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     if (!videoRef.current) return;
 
     // if there is MTX video available, use the MTX playback video pane
-    if (currVidMTXPlaybackRecord) {
+    if (currVidMTXPlaybackRecord && currChannel === paneStateData.channel + 1) {
       // there's a video already loaded, so let's make sure it's still the right video
       const currVidStartSeconds = appSecondsFromDateString(currVidMTXPlaybackRecord.start);
       if (
@@ -122,17 +126,23 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     const lastUrlStartTimeAppSeconds = appSecondsFromDateString(lastURLStartTime);
     const videoPlaySeconds = lastUrlStartTimeAppSeconds + currentVidSeconds;
 
+    const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(playhead.appSeconds);
+    if (!isEqual(mtxPlaybackRecord, currVidMTXPlaybackRecord)) {
+      setCurrVidMTXPlaybackRecord(mtxPlaybackRecord);
+    }
+
     // playback is off by > x seconds, so we need to assemble a new MTX URL with the correct start time
     if (Math.abs(playhead.appSeconds - videoPlaySeconds) < 10) return;
 
-    const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(playhead.appSeconds);
-    if (isEqual(mtxPlaybackRecord, currVidMTXPlaybackRecord)) {
-      setCurrVidMTXPlaybackRecord(mtxPlaybackRecord);
-    }
     playVideoAtPlayhead(mtxPlaybackRecord);
   };
 
-  useEffect(selectAndLoadVideo, [mtxPlaybackRecordsForDownlink, playhead.appSeconds]);
+  useEffect(selectAndLoadVideo, [
+    mtxPlaybackRecordsForDownlink,
+    playhead.appSeconds,
+    paneStateData,
+    currChannel,
+  ]);
   useEffect(syncToPlayhead, [
     playhead.appSeconds,
     currVidMTXPlaybackRecord,

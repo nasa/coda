@@ -12,7 +12,7 @@
     "baseUrl": "./src",
     "forceConsistentCasingInFileNames": true,
     "strict": false,
-    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+    "skipLibCheck": false /* Skip type checking all .d.ts files. */,
     "lib": ["dom", "dom.iterable", "es2022"],
     "allowJs": true,
     "noImplicitAny": true,
