@@ -482,6 +482,7 @@ restart-apiv1:prod:
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
     - sudo docker stats --no-stream
     - cd /opt/coda
+    - sudo docker compose restart apiv1
 
 .db-export-template:
   needs: []
