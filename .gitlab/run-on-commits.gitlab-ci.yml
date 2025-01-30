@@ -497,6 +497,9 @@ stats:prod:
   script:
     - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
     - sudo docker stats --no-stream
+    - cd /opt/coda
+    - sudo docker compose exec apiv1 lsof -p $(pgrep -n node) | wc -l
+    - sudo docker compose exec apiv1 lsof -p $(pgrep -n node)
 
 .db-export-template:
   needs: []
