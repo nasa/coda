@@ -483,6 +483,20 @@ restart-apiv1:prod:
     - sudo docker stats --no-stream
     - cd /opt/coda
     - sudo docker compose restart apiv1
+    - sleep 5
+    - sudo docker stats --no-stream
+
+stats:prod:
+  stage: stageless
+  tags: ["emss-coda-prod"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+  when: manual
+  # only:
+  #   - prod
+  script:
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - sudo docker stats --no-stream
 
 .db-export-template:
   needs: []
