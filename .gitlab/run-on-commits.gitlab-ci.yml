@@ -470,6 +470,19 @@ deploy:prod:
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env
 
+restart-apiv1:prod:
+  stage: stageless
+  tags: ["emss-coda-prod"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+  when: manual
+  # only:
+  #   - prod
+  script:
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - sudo docker stats --no-stream
+    - cd /opt/coda
+
 .db-export-template:
   needs: []
   # I don't think we want to do this, because I don't think we want GitLab to consider this a
