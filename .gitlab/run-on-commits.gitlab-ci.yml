@@ -501,6 +501,21 @@ stats:prod:
     - sudo docker compose exec apiv1 lsof -p $(pgrep -n node) | wc -l
     - sudo docker compose exec apiv1 lsof -p $(pgrep -n node)
 
+networks:int:
+  stage: stageless
+  tags: ["emss-coda-int"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+  when: manual
+  # only:
+  #   - prod
+  script:
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - |
+      for id in $(sudo docker network ls -q); do
+        sudo docker network inspect "$id";
+      done
+
 .db-export-template:
   needs: []
   # I don't think we want to do this, because I don't think we want GitLab to consider this a
