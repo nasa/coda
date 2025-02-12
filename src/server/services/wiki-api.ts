@@ -15,6 +15,7 @@ import fetchWithCache from "../processing/cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import { collection, sequenceType } from "utils/consts";
 import fetchWithTimeout from "utils/fetch-with-timeout";
+import { nasaWikiFetch } from "utils/wikiFetcher";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.VITE_PUBLIC_APP_ENV}.json`;
@@ -59,6 +60,30 @@ async function getMWBot(wiki: string) {
 function isLoginError(e: any | WikiResponse): e is WikiResponse {
   return e.errorResponse && e.code === "readapidenied";
 }
+
+const fetchWikiCargo = async (url: string) => {
+  const bot = await getMWBot("ISS");
+
+  try {
+    const res = await bot.request({ url });
+    return res;
+  } catch (e) {
+    if (isLoginError(e)) {
+      try {
+        await bot.login({
+          username: process.env.WIKI_USER,
+          password: process.env.WIKI_PASSWORD,
+        });
+      } catch (e) {
+        console.error("Wiki login unsuccessful: ", e);
+        throw e;
+      }
+    } else {
+      console.error("Wiki request error", e);
+      throw e;
+    }
+  }
+};
 
 /** Options for querying the wiki API */
 interface FetchWikiOptions {
@@ -145,11 +170,28 @@ async function getAllEVAs(): Promise<WikibotResponse<EVASummaryResponse>> {
   // const res = await fetchWiki({ askQuery, wiki: "iss" });
   // const results: EVASummaryResponse = res.data.query.results;
 
-  const url = `${process.env.WIKI_BASE_URL}/iss/index.php?title=Special:CargoExport&tables=EVA&&fields=_pageName%2C+EVA_title%2C+Maestro_event_uuid%2C+Start_date%2C+Start_hour%2C+Start_minute%2C+Duration_hour%2C+Duration_minute&where=_pageName+LIKE+%27%25S+EVA%25%27+AND+EVA_Classification+%3D+%27Scheduled+or+Historical%27&order+by=Start_date+ASC&limit=5000&format=json`;
+  // const url = `${process.env.WIKI_BASE_URL}/iss/index.php?title=Special:CargoExport&tables=EVA&&fields=_pageName%2C+EVA_title%2C+Maestro_event_uuid%2C+Start_date%2C+Start_hour%2C+Start_minute%2C+Duration_hour%2C+Duration_minute&where=_pageName+LIKE+%27%25S+EVA%25%27+AND+EVA_Classification+%3D+%27Scheduled+or+Historical%27&order+by=Start_date+ASC&limit=5000&format=json`;
 
-  const res = await fetchWithTimeout(url);
-  const resText = await res.text();
-  const results: EVASummaryResponse = JSON.parse(resText);
+  //   const cargoQuery = `
+  //     {{#cargo_query:
+  //     |table=EVA
+  //     |fields=_pageName, EVA_title, Maestro_event_uuid, Start_date, Start_hour, Start_minute, Duration_hour, Duration_minute
+  //     |where=_pageName LIKE '%S EVA%' AND EVA_Classification = 'Scheduled or Historical'
+  //     |order by=Start_date ASC
+  //     |format=json
+  //     }}
+  // `;
+
+  const queryParams =
+    "tables=EVA&fields=EVA_title,Maestro_event_uuid,Start_date,Start_hour,Start_minute,Duration_hour,Duration_minute&where=_pageName%20LIKE%20%27%S%20EVA%%27%20AND%20EVA_Classification%20=%20%27Scheduled%20or%20Historical%27&order_by=Start_date%20ASC&limit=500";
+
+  const results: EVASummaryResponse = await nasaWikiFetch({
+    wikiName: "iss",
+    queryParams,
+  });
+
+  // const res = await fetchWiki({ askQuery: cargoQuery, wiki: "iss" });
+  // const results: EVASummaryResponse = res.data.query.results;
 
   return {
     data: results,
@@ -191,9 +233,11 @@ async function getAllAsExecuted(): Promise<WikibotResponse<AllExecution>> {
 
   const url = `${process.env.WIKI_BASE_URL}/iss/index.php?title=Special:CargoExport&tables=Actor_task&&fields=_rowID%2C+Task_title%2C+Duration_hour%2C+Duration_minute%2C+Related_article%2C+Task_color%2C+Actor_title&where=_pageName+LIKE+%27US+EVA%25%2F%25xecuted%25%27&order+by=Actor_title+ASC%2C+_rowID+ASC&limit=5000&format=json`;
 
-  const res = await fetchWithTimeout(url);
-  const resJson = await res.json();
-  const results = parseAllAsExecuted(resJson);
+  const res = await fetchWikiCargo(url);
+
+  // const res = await fetchWithTimeout(url);
+  // const resJson = await res.json();
+  const results = parseAllAsExecuted(res.data.query.results);
 
   return {
     data: results,

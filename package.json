@@ -61,6 +61,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "fast-xml-parser": "^4.5.0",
+    "fetch-cookie": "^3.1.0",
     "hls.js": "^1.5.17",
     "leo-profanity": "^1.7.0",
     "lodash": "^4.17.21",
