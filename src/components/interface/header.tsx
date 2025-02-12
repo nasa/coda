@@ -302,6 +302,7 @@ export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = (
               (visitor) => visitor.uupic === user.uupic
             ) === index
         )
+        .sort((userA, userB) => userA.surname.localeCompare(userB.surname))
         .map(
           (user) =>
             `(${visitors[user.uupic]}) ${user?.display_name}` ||
