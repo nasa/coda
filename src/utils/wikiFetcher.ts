@@ -44,11 +44,11 @@ async function performLogin(apiUrl: string, username: string, password: string):
   }
 
   const loginParams = new URLSearchParams({
-    action: "clientlogin",
-    username,
-    password,
-    logintoken: loginToken,
-    loginreturnurl: process.env.HOST || "https://example.com",
+    action: "login",
+    lgname: username,
+    lgpassword: password,
+    lgdomain: process.env.HOST,
+    lgtoken: loginToken,
     format: "json",
   });
 
