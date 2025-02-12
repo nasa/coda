@@ -146,68 +146,60 @@ const AboutOverlay = ({
               <div className={styles.aboutSectionTitle}>The Team</div>
               <ul className={styles.theTeamUl}>
                 <li>
-                  <div>
-                    <a className={styles.teamName} href={"mailto:benjamin.f.feist@nasa.gov"}>
-                      Ben Feist
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Concept, Software Engineering</div>
+                  <TeamMemberCredit
+                    fullName={"Ben Feist"}
+                    position={"Concept, Software Engineering"}
+                    email={"benjamin.f.feist@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:david.w.charney@nasa.gov"}>
-                      David Charney
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Interaction and Visual Design</div>
+                  <TeamMemberCredit
+                    fullName={"David Charney"}
+                    position={"Interaction and Visual Design"}
+                    email={"david.w.charney@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:jackie.vu@nasa.gov"}>
-                      Jackie Vu
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Software Engineering</div>
+                  <TeamMemberCredit
+                    fullName={"Jackie Vu"}
+                    position={"Software Engineering"}
+                    email={"jackie.vu@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:luke.a.mcsherry@nasa.gov"}>
-                      Luke McSherry
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Software Engineering</div>
+                  <TeamMemberCredit
+                    fullName={"Luke McSherry"}
+                    position={"Software Engineering"}
+                    email={"luke.a.mcsherry@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:omar.a.baig@nasa.gov"}>
-                      Omar Baig
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Software Engineering</div>
+                  <TeamMemberCredit
+                    fullName={"Omar Baig"}
+                    position={"Software Engineering"}
+                    email={"omar.a.baig@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:cameron.w.pittman@nasa.gov"}>
-                      Cameron Pittman
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Software Architecture</div>
+                  <TeamMemberCredit
+                    fullName={"Cameron Pittman"}
+                    position={"Software Architecture"}
+                    email={"cameron.w.pittman@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:matthew.j.miller-1@nasa.gov"}>
-                      Matthew Miller
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>Project Management</div>
+                  <TeamMemberCredit
+                    fullName={"Matthew Miller"}
+                    position={"Project Management"}
+                    email={"matthew.j.miller-1@nasa.gov"}
+                  />
                 </li>
                 <li>
-                  <div className={styles.creditHeading}>
-                    <a className={styles.teamName} href={"mailto:edwin.j.montalvo@nasa.gov"}>
-                      James Montalvo
-                    </a>
-                  </div>
-                  <div className={styles.teamTitle}>EMSS Lead</div>
+                  <TeamMemberCredit
+                    fullName={"James Montalvo"}
+                    position={"EMSS Lead"}
+                    email={"edwin.j.montalvo@nasa.gov"}
+                  />
                 </li>
               </ul>
             </div>
@@ -255,6 +247,27 @@ const AboutOverlay = ({
         </div>
       </div>
     </Modal>
+  );
+};
+
+const TeamMemberCredit = ({
+  fullName,
+  position,
+  email,
+}: {
+  fullName: string;
+  position: string;
+  email: string;
+}) => {
+  return (
+    <>
+      <div className={styles.creditHeading}>
+        <a className={styles.teamName} href={`mailto:${email}`}>
+          {fullName}
+        </a>
+      </div>
+      <div className={styles.teamTitle}>{position}</div>
+    </>
   );
 };
 

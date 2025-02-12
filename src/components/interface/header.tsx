@@ -289,10 +289,24 @@ export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = (
 
   let visitorList = "";
   if (isSu) {
+    let visitors: { [uupic: string]: number } = {};
+    socketStatus.lastStatusFromServer.users.forEach((user) => {
+      visitors[user.uupic] = (visitors[user.uupic] || 0) + 1;
+    });
     visitorList =
       "<br/>" +
       socketStatus.lastStatusFromServer.users
-        .map((user) => user?.display_name || `${user?.surname}, ${user?.givenname}`)
+        .filter(
+          (user, index) =>
+            socketStatus.lastStatusFromServer.users.findIndex(
+              (visitor) => visitor.uupic === user.uupic
+            ) === index
+        )
+        .map(
+          (user) =>
+            `(${visitors[user.uupic]}) ${user?.display_name}` ||
+            `(${visitors[user.uupic]}) ${user?.surname}, ${user?.givenname}`
+        )
         .join("<br/>");
   } else {
     visitorList = socketStatus.lastStatusFromServer.users?.length.toString() || "0";
