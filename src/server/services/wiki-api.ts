@@ -14,6 +14,7 @@ import request from "request";
 import fetchWithCache from "../processing/cache-client";
 import { formatEVADisplayTitle, padZeros } from "utils/formatting";
 import { collection, sequenceType } from "utils/consts";
+import fetchWithTimeout from "utils/fetch-with-timeout";
 
 const COOKIE_JAR_DIR = `.cookies`;
 const COOKIE_JAR = `${COOKIE_JAR_DIR}/cookies-wiki-${process.env.VITE_PUBLIC_APP_ENV}.json`;
@@ -129,20 +130,26 @@ async function fetchWiki(options: FetchWikiOptions): Promise<WikibotResponse<Wik
 
 /** Get a summary of all EVAs on the wiki */
 async function getAllEVAs(): Promise<WikibotResponse<EVASummaryResponse>> {
-  // wiki query parameters
-  const askQuery = `
-    [[~*S EVA*]]
-    [[EVA Classification::Scheduled or Historical]]
-    |? EVA title
-    |? Maestro event uuid
-    |? Start date
-    |? Start time
-    |? Duration
-    |sort=Start date
-    |limit=10000
-  `;
-  const res = await fetchWiki({ askQuery, wiki: "iss" });
-  const results: EVASummaryResponse = res.data.query.results;
+  // // wiki query parameters
+  // const askQuery = `
+  //   [[~*S EVA*]]
+  //   [[EVA Classification::Scheduled or Historical]]
+  //   |? EVA title
+  //   |? Maestro event uuid
+  //   |? Start date
+  //   |? Start time
+  //   |? Duration
+  //   |sort=Start date
+  //   |limit=10000
+  // `;
+  // const res = await fetchWiki({ askQuery, wiki: "iss" });
+  // const results: EVASummaryResponse = res.data.query.results;
+
+  const url = `${process.env.WIKI_BASE_URL}/iss/index.php?title=Special:CargoExport&tables=EVA&&fields=_pageName%2C+EVA_title%2C+Maestro_event_uuid%2C+Start_date%2C+Start_hour%2C+Start_minute%2C+Duration_hour%2C+Duration_minute&where=_pageName+LIKE+%27%25S+EVA%25%27+AND+EVA_Classification+%3D+%27Scheduled+or+Historical%27&order+by=Start_date+ASC&limit=5000&format=json`;
+
+  const res = await fetchWithTimeout(url);
+  const resText = await res.text();
+  const results: EVASummaryResponse = JSON.parse(resText);
 
   return {
     data: results,
@@ -167,21 +174,26 @@ const colorTranslator = {
 
 /** Get as-executed data for a given EV on a given EVA */
 async function getAllAsExecuted(): Promise<WikibotResponse<AllExecution>> {
-  const askQuery = `
-    [[From page::~US EVA*/*xecuted*]]
-    |mainlabel=-|?Index
-    |? Has text title
-    |? Duration hour
-    |? Duration minute
-    |? Related article
-    |? Color
-    |? Actor
-    |named args=yes
-    |sort=Actor, Index
-    |limit=1000000
-  `;
-  const res = await fetchWiki({ askQuery, wiki: "iss" });
-  const results = parseAllAsExecuted(res.data.query.results);
+  // const askQuery = `
+  //   [[From page::~US EVA*/*xecuted*]]
+  //   |mainlabel=-|?Index
+  //   |? Has text title
+  //   |? Duration hour
+  //   |? Duration minute
+  //   |? Related article
+  //   |? Color
+  //   |? Actor
+  //   |named args=yes
+  //   |sort=Actor, Index
+  //   |limit=1000000
+  // `;
+  // const res = await fetchWiki({ askQuery, wiki: "iss" });
+
+  const url = `${process.env.WIKI_BASE_URL}/iss/index.php?title=Special:CargoExport&tables=Actor_task&&fields=_rowID%2C+Task_title%2C+Duration_hour%2C+Duration_minute%2C+Related_article%2C+Task_color%2C+Actor_title&where=_pageName+LIKE+%27US+EVA%25%2F%25xecuted%25%27&order+by=Actor_title+ASC%2C+_rowID+ASC&limit=5000&format=json`;
+
+  const res = await fetchWithTimeout(url);
+  const resJson = await res.json();
+  const results = parseAllAsExecuted(resJson);
 
   return {
     data: results,
@@ -249,17 +261,22 @@ const plus = () => {
 
 /** Get crew assignment data for all EVAs */
 async function getAllCrew(): Promise<WikibotResponse<AllCrews>> {
-  const askQuery = `
-    [[Crew involved with subject::${plus()}]]
-    [[From page::~US EVA*]]
-    |? Has full name
-    |? Has role
-    |? Has EMU Page
-    |limit=10000
-  `;
+  // const askQuery = `
+  //   [[Crew involved with subject::${plus()}]]
+  //   [[From page::~US EVA*]]
+  //   |? Has full name
+  //   |? Has role
+  //   |? Has EMU Page
+  //   |limit=10000
+  // `;
 
-  const res = await fetchWiki({ askQuery, wiki: "iss" });
-  const results: AllCrews = parseAllCrew(res.data.query.results);
+  // const res = await fetchWiki({ askQuery, wiki: "iss" });
+
+  const url = `${process.env.WIKI_BASE_URL}/iss/index.php?title=Special:CargoExport&tables=EVA%2C+Crew_involved_with_subject&join+on=EVA._pageName+%3D+Crew_involved_with_subject._pageName&fields=Crew_involved_with_subject._pageName%2C+Crew_name%2C+Crew_involved_with_subject.Crew_role%2C+Crew_involved_with_subject.EMU_SN&where=Crew_involved_with_subject._pageName+LIKE+%27US+EVA%25%27+AND+EVA.Country_performing_EVA+%3D+%27US%27+AND+EVA.EVA_type+%3D+%27ISS%27&limit=5000&format=json`;
+
+  const res = await fetchWithTimeout(url);
+  const resJson = await res.json();
+  const results: AllCrews = parseAllCrew(resJson);
   return {
     data: results,
   };
