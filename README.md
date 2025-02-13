@@ -39,13 +39,16 @@ EMSS dev servers all have element names, and are:
 ### First Time Setup
 
 1. Install JavaScript dependencies: `npm i`
-2. Create a `.env.secret` file by running `bash ./scripts/make-dotenv.sh`. This will create a file with blank variables. Ask [someone listed as a maintainer or owner of the CODA repo](https://eegitlab.fit.nasa.gov/emss/coda/-/project_members) for the initial values if you don't have them.
-3. Re-run `bash ./scripts/make-dotenv.sh` to generate a `.env` file for your local setup based on the populated `.env.secret`.
+2. Get the secret values from another CODA developer and paste them into a new file called `env.secret.ts`.
+3. Create a `./.env` file by running `npm run make-dotenv` in the terminal.
 4. Get the required NOCA (NASA Operational Certification Authority) Cert. This is required so CODA will authenticate other NASA website's certs.
    1. Go to https://cset.nasa.gov/ascs/application/trust-anchor-management-ntam-for-linux/
    2. In section "Installation for Linux Desktop Use Cases (RHEL only)" (Linux variety is fine for all OSes) go to the "Manual Installation" section
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
+
+- To my code reviewer: are we still using `coda-local.fit.nasa.gov`? If not, I can remove this next step
+
 5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
 6. (Required for Docker) Create a self-signed SSL certificate by doing `bash ./scripts/make-dev-ssl-cert.sh`
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAXBOX_KEY` value in the `.env` file.

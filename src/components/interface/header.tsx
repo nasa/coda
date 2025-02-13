@@ -289,10 +289,32 @@ export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = (
 
   let visitorList = "";
   if (isSu) {
+    let visitors: { [uupic: string]: number } = {};
+    socketStatus.lastStatusFromServer.users.forEach((user) => {
+      if (user.uupic) {
+        visitors[user.uupic] = (visitors[user.uupic] || 0) + 1;
+      }
+    });
+    // Filter out duplicate users, sort by surname, and decide display name
     visitorList =
       "<br/>" +
       socketStatus.lastStatusFromServer.users
-        .map((user) => user?.display_name || `${user?.surname}, ${user?.givenname}`)
+        .filter(
+          (user, index) =>
+            socketStatus.lastStatusFromServer.users.findIndex(
+              (visitor) => visitor?.uupic === user?.uupic
+            ) === index
+        )
+        .sort((a, b) => {
+          const sa = a.surname || "";
+          const sb = b.surname || "";
+          return sa.localeCompare(sb);
+        })
+        .map(
+          (user) =>
+            `(${visitors[user.uupic] || "1"}) ${user?.display_name}` ||
+            `(${visitors[user.uupic] || "1"}) ${user?.surname}, ${user?.givenname}`
+        )
         .join("<br/>");
   } else {
     visitorList = socketStatus.lastStatusFromServer.users?.length.toString() || "0";
