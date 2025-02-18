@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { getUser } from "packages/getUser";
 import serverLogger from "utils/serverLogger";
+import { isSuperuser } from "utils/user";
 
 const router = express.Router();
 
@@ -36,4 +37,17 @@ export const allowAccess = (req: Request) => {
 
   // allow all others
   return true;
+};
+
+export const onlyEmssSuperuser = (req: Request): EmssUser | false => {
+  const user = getUser(req);
+  if (user instanceof Error) {
+    const msg = "Unable to decode JWT";
+    console.error(msg, user);
+    return false; // auth error, don't allow
+  }
+  if (isSuperuser(user)) {
+    return user;
+  }
+  return false;
 };
