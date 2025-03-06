@@ -7,6 +7,7 @@ import { padZeros } from "utils/formatting";
 import fetchWithCache from "../processing/cache-client";
 import { getEpochTimestamp } from "tle.js";
 import { isSameDate } from "../../utils/date";
+import ConsoleLogger from "utils/logger";
 
 const oneYearInSeconds = 31536000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -19,7 +20,7 @@ async function fetchSpacetrack(
   const isLocal = process.env.VITE_PUBLIC_APP_ENV === "local";
 
   if (isLocal) {
-    console.log("Mocking request for fetchSpacetrack()");
+    ConsoleLogger.log("Mocking request for fetchSpacetrack()");
     let mockSpacetrackData: EphemerisFile[] = require("../../../mocks/fakedata/ephemera.json");
 
     // mock the request with local data
@@ -32,11 +33,16 @@ async function fetchSpacetrack(
   const loginUrl = "https://www.space-track.org/ajaxauth/login";
   const loginBody = `identity=${process.env.SPACETRACK_USER}&password=${process.env.SPACETRACK_PASSWORD}`;
 
-  const loginRes = await fetchWithTimeout(loginUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: loginBody,
-  });
+  let loginRes: Response;
+  try {
+    loginRes = await fetchWithTimeout(loginUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: loginBody,
+    });
+  } catch (e) {
+    return [];
+  }
 
   // Extract the cookie from the response headers
   const cookies = loginRes.headers.get("set-cookie");

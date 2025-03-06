@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { cleanCollectionsString } from "utils/formatting";
 
 export const initialPhotoFileState: PhotoFile = {
   id: "",
@@ -29,7 +30,7 @@ export const photoSlice = createSlice({
   reducers: {
     /** Add new photo files to the store */
     addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
-      state.photoFiles = action.payload.data;
+      state.photoFiles = action.payload.data || []; // null returned when retriever error
       state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
       state.ready = true;
     },
@@ -64,3 +65,34 @@ export const {
   setPhotoLoadingStatus,
   setCollectionFilters,
 } = photoSlice.actions;
+
+export function buildPhotoCollections(photos: PhotoFile[]) {
+  const collections: PhotoCollectionFilters[] = [];
+  const uniqueList: string[] = [];
+  for (let i = 0; i <= photos?.length; i++) {
+    if (photos[i] !== undefined) {
+      if (!uniqueList.includes(photos[i].collections)) {
+        const collectionsObject: PhotoCollectionFilters = {
+          fullList: photos[i].collections,
+          display: cleanCollectionsString(photos[i].collections),
+          selected: true,
+        };
+        collections.push(collectionsObject);
+        uniqueList.push(photos[i].collections);
+      }
+    }
+  }
+  //sort collections alphabetically.
+  collections.sort(function (a, b) {
+    const valA = a.display.toUpperCase(); // ignore upper and lowercase
+    const valB = b.display.toUpperCase(); // ignore upper and lowercase
+    if (valA < valB) {
+      return -1;
+    }
+    if (valA > valB) {
+      return 1;
+    }
+    return 0;
+  });
+  return collections;
+}

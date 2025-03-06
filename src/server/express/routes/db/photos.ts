@@ -32,7 +32,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         res.status(400).json({ status: "error", message: "Invalid date format" });
         return;
       }
-      const records: PhotoRecord[] = await getPhotoRecordsByDate(queryObj.dateWanted);
+      const records: PhotoRecord[] = await getPhotoTimeshiftRecordsByDate(queryObj.dateWanted);
       const wrappedResponse: WrappedResponse<PhotoRecord[]> = {
         responseMetadata: {
           retrieverStatus: "complete",
@@ -47,7 +47,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       };
       res.status(200).json(wrappedResponse);
     } else {
-      const records: PhotoRecord[] = await getPhotoRecordsList();
+      const records: PhotoRecord[] = await getPhotoTimeshiftRecordsList();
       const wrappedResponse: WrappedResponse<PhotoRecord[]> = {
         responseMetadata: {
           retrieverStatus: "complete",
@@ -181,7 +181,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 
 export default router;
 
-async function getPhotoRecordsByDate(date: string): Promise<PhotoRecord[]> {
+async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord[]> {
   const em = getEM();
 
   let photoRecords_db: Loaded<PhotoRecord, never>[];
@@ -201,7 +201,7 @@ async function getPhotoRecordsByDate(date: string): Promise<PhotoRecord[]> {
   }
 }
 
-export async function getPhotoRecordsList(): Promise<PhotoRecord[]> {
+export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
   const em = getEM();
 
   const photos_db = await em.find(

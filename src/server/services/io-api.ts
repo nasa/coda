@@ -19,6 +19,7 @@ import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
+import ConsoleLogger from "utils/logger";
 
 /** Perform a request against IO with the given parameters */
 async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse> {
@@ -27,13 +28,13 @@ async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse
   if (isLocal) {
     // we're in the local environment. mock the request
     if (action === "videos") {
-      console.log("Mocking request for getVideoData()");
+      ConsoleLogger.log("Mocking request for getVideoData()");
       let mockIOData: IOResponse = require("../../../mocks/fakedata/io_videos.json");
 
       // mock the request with local data
       return await Promise.resolve(mockIOData);
     } else if (action === "photos") {
-      console.log("Mocking request for getPhotoData()");
+      ConsoleLogger.log("Mocking request for getPhotoData()");
       const mockIOData: IOResponse = require("../../../mocks/fakedata/io_photos.json");
 
       // mock the request with local data
@@ -58,7 +59,7 @@ async function fetchIO(params: string, action?: IOFetchType): Promise<IOResponse
   try {
     res = await fetchWithTimeout(url, options);
   } catch (e) {
-    throw e;
+    console.error("Error fetching IO data", e);
   }
   return res.json();
 }

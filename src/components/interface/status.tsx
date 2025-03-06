@@ -193,14 +193,14 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
       message = "data not applicable";
       classname = styles.unneeded;
     } else {
+      if (responseMetadata?.retrieverStatus === "error") {
+        message = "Error: " + responseMetadata.error;
+        classname = styles.error;
+        return { message, classname };
+      }
       if (!resultsReturned) {
         message = "data is empty";
         classname = styles.unneeded;
-        return { message, classname };
-      }
-      if (responseMetadata?.error) {
-        message = "Error: " + responseMetadata.error;
-        classname = styles.error;
         return { message, classname };
       }
       //have data and no error

@@ -31,7 +31,6 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     res.status(200).json(evas);
     return;
   } catch (e) {
-    console.error(e);
     res.status(400).json({ error: e.toString() });
     return;
   }

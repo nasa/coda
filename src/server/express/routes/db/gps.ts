@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { getEM } from "utils/mikro";
-import { Loaded } from "@mikro-orm/core";
 import { GPXTracks_db } from "server/database/models/_allModels";
+import { getGpxTrackRecordsByDate, getGpxTrackRecordsList } from "server/processing/db/gps";
 
 /**
  * Get gps tracks from CODA DB for a given date
@@ -174,34 +174,3 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 });
 
 export default router;
-
-async function getGpxTrackRecordsByDate(date: string): Promise<GPXTrackRecord[]> {
-  const em = getEM();
-
-  let gpxTracks_db: Loaded<GPXTracks_db, never>[];
-  gpxTracks_db = await em.find(GPXTracks_db, { date: date }, { orderBy: { name: "ASC" } });
-  if (gpxTracks_db) {
-    const gpsTrackRecordData: GPXTrackRecord[] = gpxTracks_db.map((gpxTrackRecord) => {
-      const gpsTrackRecordData = gpxTrackRecord;
-      return gpsTrackRecordData;
-    });
-    return gpsTrackRecordData;
-  } else {
-    return [];
-  }
-}
-
-async function getGpxTrackRecordsList(): Promise<GPXTrackListRecord[]> {
-  const em = getEM();
-
-  const gpxTracks_db = await em.find(
-    GPXTracks_db,
-    {},
-    { orderBy: { date: "ASC", name: "ASC" }, fields: ["id", "date", "name"] }
-  );
-  if (gpxTracks_db) {
-    return gpxTracks_db;
-  } else {
-    return [];
-  }
-}
