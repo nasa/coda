@@ -147,6 +147,13 @@ const AboutOverlay = ({
               <ul className={styles.theTeamUl}>
                 <li>
                   <TeamMemberCredit
+                    fullName={"Jackie Vu"}
+                    position={"Software Engineering Lead"}
+                    email={"jackie.vu@nasa.gov"}
+                  />
+                </li>
+                <li>
+                  <TeamMemberCredit
                     fullName={"Ben Feist"}
                     position={"Concept, Software Engineering"}
                     email={"benjamin.f.feist@nasa.gov"}
@@ -157,13 +164,6 @@ const AboutOverlay = ({
                     fullName={"David Charney"}
                     position={"Interaction and Visual Design"}
                     email={"david.w.charney@nasa.gov"}
-                  />
-                </li>
-                <li>
-                  <TeamMemberCredit
-                    fullName={"Jackie Vu"}
-                    position={"Software Engineering"}
-                    email={"jackie.vu@nasa.gov"}
                   />
                 </li>
                 <li>

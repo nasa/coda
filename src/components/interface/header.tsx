@@ -1,5 +1,4 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import { useAppDispatch } from "utils/useAppDispatch";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faChevronDown, faEye, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,7 +15,7 @@ import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
 
-import { allLayouts, setEmssVideoEnabled } from "store/framework";
+import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
 import { generateShareURL } from "utils/share-state";
@@ -348,14 +347,9 @@ const Header: FunctionComponent<{
   socketStatus: SocketStatus;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen, socketStatus }) => {
   const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const emssVideoEnabled = useAppSelector(
-    (state: RootState) => state.framework.emssVideoEnabled,
-    refEqual
-  );
   const { playhead } = usePlayheadContext();
   const isToday = isSameDate(new Date(playhead.date), new Date());
 
-  const dispatch = useAppDispatch();
   return (
     <div className={styles.main}>
       <div className={styles.left}>
@@ -412,15 +406,6 @@ const Header: FunctionComponent<{
           </div>
           <div
             className={styles.logoEmssWrapper}
-            // onClick={() => {
-            //   window.open(
-            //     "https://wiki.jsc.nasa.gov/exploration/index.php/EVA_Mission_System_Software",
-            //     "_blank"
-            //   );
-            // }}
-            onClick={() => {
-              dispatch(setEmssVideoEnabled(!emssVideoEnabled));
-            }}
             title="More info about EVA Mission System Software (EMSS)"
           >
             <span className={styles.logoEmss}></span>

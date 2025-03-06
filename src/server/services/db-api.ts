@@ -1,8 +1,8 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getMediaOverridesList } from "../express/routes/db/mediaOverrides";
 import { getAncillaryDataSourceList } from "../express/routes/db/ancillaryDataSources";
-import { getVideoRecordsList } from "server/express/routes/db/video";
-import { getPhotoRecordsList } from "server/express/routes/db/photos";
+import { getVideoStartTimeOverridesRecordsList } from "server/express/routes/db/video";
+import { getPhotoTimeshiftRecordsList } from "server/express/routes/db/photos";
 
 /**
  * Fetch override video manifest from the override location specified in the db
@@ -46,9 +46,9 @@ export async function fetchAncillaryDataSourceList(): Promise<AncillaryDataSourc
  * Data lives here: https://wiki.jsc.nasa.gov/exploration/index.php/CODA/Datetime_Shifts
  */
 export async function fetchVideoDateTimeOverrides(): Promise<VideoRecord[]> {
-  return await getVideoRecordsList();
+  return await getVideoStartTimeOverridesRecordsList();
 }
 
 export async function fetchPhotoDateTimeOverrides(): Promise<PhotoRecord[]> {
-  return await getPhotoRecordsList();
+  return await getPhotoTimeshiftRecordsList();
 }

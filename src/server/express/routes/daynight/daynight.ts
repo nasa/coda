@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
 /**
- * `/api/v1/external/daynight/daynight?dateWanted=2021-01-01
+ * `/api/v1/daynight/daynight?dateWanted=2021-01-01
  *
  * Get day night data
  */

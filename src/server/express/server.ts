@@ -7,8 +7,12 @@ import { getORM } from "utils/mikro";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
 import serverLogger from "utils/serverLogger";
+import { ConsoleLogger } from "../../utils/logger";
 
 const port = 3001;
+
+// enable console logging on the server side based on the environment variable
+if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
 
 // start the database connection
 getORM();

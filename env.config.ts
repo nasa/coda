@@ -312,6 +312,12 @@ export const config: DotenvConfig<typeof environments> = {
     default: "udp://127.0.0.1:514",
   },
 
+  // show / hide console logs via logger class on server side
+  SHOW_CLG: {
+    local: "true",
+    default: "false",
+  },
+
   /**
    * Versioning
    */

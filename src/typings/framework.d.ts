@@ -49,7 +49,6 @@ interface FrameworkState {
   layoutLastChanged: number; // milliseconds since epoch
   /** Current mapping of visible frames to Frame types */
   frames: FrameState;
-  emssVideoEnabled: boolean;
 }
 
 interface FrameState {

@@ -1,4 +1,4 @@
-import getISSLocation from "server/processing/location/iss";
+import getEphemera from "server/processing/location/iss";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 
@@ -23,7 +23,7 @@ const parseQuery = (query: Query): GetEphemerisQueryParams => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    const data = await getISSLocation({
+    const data = await getEphemera({
       dateWanted: queryObj.dateWanted,
       forceNew: queryObj.forceNew,
     });

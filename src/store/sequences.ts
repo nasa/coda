@@ -4,7 +4,7 @@ import { padZeros } from "utils/formatting";
 export const initialState: SequencesState = {
   allSequences: [],
   responseMetadata: null,
-  loadingStatus: "loading",
+  loadingStatus: "unneeded", // default to unneeded because wiki api is down and we don't want infinite loading indicator
 };
 
 export const sequencesSlice = createSlice({

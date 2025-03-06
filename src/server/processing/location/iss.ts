@@ -1,6 +1,6 @@
 import * as EphemeraService from "server/services/ephemera-api";
 
-export default async function getISSLocation({
+export default async function getEphemera({
   dateWanted,
   forceNew,
 }: {

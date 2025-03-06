@@ -106,7 +106,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
      * on the previous photo for use.
      */
     let thisPhotoFile = initialPhotoFileState;
-    for (let i = 0; i < photoFiles.length; i++) {
+    for (let i = 0; i < photoFiles?.length; i++) {
       const secondsIntoToday = photoFiles[i].datetimeTakenAppSeconds;
       if (secondsIntoToday > playhead.appSeconds) {
         break;

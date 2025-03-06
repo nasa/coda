@@ -260,13 +260,14 @@
 }
 
 .aboutSection .aboutSectionTitle {
-  font-size: 1.3em;
+  font-size: 1.1em;
   color: #eeeeee;
   text-align: left;
   margin-top: 10px;
 }
 
 .aboutSection ul {
+  font-size: 0.9em;
   list-style-position: outside;
   list-style: none;
   margin: 0;
