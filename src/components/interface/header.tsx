@@ -21,7 +21,6 @@ import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "rea
 import { generateShareURL } from "utils/share-state";
 import { isSameDate } from "utils/date";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { isSuperuser } from "utils/user";
 
 const LoaderHelpMenu: FunctionComponent<{
   helpLoaderOpen: boolean;
@@ -281,50 +280,18 @@ const Clock: FunctionComponent = () => {
   );
 };
 
-export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = ({
+export const SocketStatus: FunctionComponent<{ socketStatus: ClientSocketStatus }> = ({
   socketStatus,
 }) => {
-  const isSu = useAppSelector((state: RootState) => isSuperuser(state.user.user), refEqual);
+  const visitorCount = socketStatus.lastStatusFromServer.visitorCount?.toString() || "0";
 
-  let visitorList = "";
-  if (isSu) {
-    let visitors: { [uupic: string]: number } = {};
-    socketStatus.lastStatusFromServer.users.forEach((user) => {
-      if (user.uupic) {
-        visitors[user.uupic] = (visitors[user.uupic] || 0) + 1;
-      }
-    });
-    // Filter out duplicate users, sort by surname, and decide display name
-    visitorList =
-      "<br/>" +
-      socketStatus.lastStatusFromServer.users
-        .filter(
-          (user, index) =>
-            socketStatus.lastStatusFromServer.users.findIndex(
-              (visitor) => visitor?.uupic === user?.uupic
-            ) === index
-        )
-        .sort((a, b) => {
-          const sa = a.surname || "";
-          const sb = b.surname || "";
-          return sa.localeCompare(sb);
-        })
-        .map(
-          (user) =>
-            `(${visitors[user.uupic] || "1"}) ${user?.display_name}` ||
-            `(${visitors[user.uupic] || "1"}) ${user?.surname}, ${user?.givenname}`
-        )
-        .join("<br/>");
-  } else {
-    visitorList = socketStatus.lastStatusFromServer.users?.length.toString() || "0";
-  }
   return (
     <div
       className={styles.userCount}
       data-tooltip-id="app-tooltip"
       data-tooltip-html={
         socketStatus.connectionStatus === "connected"
-          ? `CODA Visitors: ${visitorList}`
+          ? `CODA Visitors: ${visitorCount}`
           : "Connection to server lost"
       }
       style={
@@ -335,7 +302,7 @@ export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = (
     >
       <FontAwesomeIcon className={styles.userCountIcon} icon={faEye} />
       <div className={styles.userCountText}>
-        {socketStatus.lastStatusFromServer.users?.length || 0}
+        {socketStatus.lastStatusFromServer.visitorCount || 0}
       </div>
     </div>
   );
@@ -344,7 +311,7 @@ export const SocketStatus: FunctionComponent<{ socketStatus: SocketStatus }> = (
 const Header: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
-  socketStatus: SocketStatus;
+  socketStatus: ClientSocketStatus;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen, socketStatus }) => {
   const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
   const { playhead } = usePlayheadContext();

@@ -1,7 +1,20 @@
-import { FunctionComponent } from "react";
-import { Link } from "react-router-dom";
+import { getCurrentUser } from "packages/getCurrentUser";
+import { FunctionComponent, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { isSuperuser } from "utils/user";
 
 const AdminIndex: FunctionComponent = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      //check permissions
+      const user = await getCurrentUser();
+      if (user instanceof Error || !isSuperuser(user)) {
+        navigate("/"); //Redirect to homepage
+      }
+    })();
+  }, []);
+
   return (
     <div>
       <h1>Admin</h1>
@@ -15,6 +28,9 @@ const AdminIndex: FunctionComponent = () => {
         <Link to="/admin/videoStartTimeOverrides">Video Start Time Overrides</Link>
         <br />
         <Link to="/admin/photoTimeShifts">Photo Time Shifts</Link>
+      </p>
+      <p>
+        <Link to="/admin/socketStatus">Server Socket Status</Link>
       </p>
     </div>
   );

@@ -35,11 +35,11 @@ export function V2() {
   let allEVAs = sequences.allSequences;
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
-  const [socketStatus, setSocketStatus] = useState<SocketStatus>({
+  const [socketStatus, setSocketStatus] = useState<ClientSocketStatus>({
     connectionStatus: "disconnected",
     lastStatusFromServer: {
       timestamp: 0,
-      users: [],
+      visitorCount: 0,
       version: "",
     },
     clientVersion: "",

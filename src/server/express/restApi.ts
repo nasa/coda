@@ -23,6 +23,7 @@ import profiler from "./routes/profiler/profiler";
 
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
+import serverSocketStatus from "./routes/socketStatus/socketStatus";
 
 const app: Application = express();
 
@@ -34,6 +35,9 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/api/v1/health", (req, res) => {
   res.send({ status: "ok" });
 });
+
+// output socket visitor information
+app.use("/api/v1/socketStatus", serverSocketStatus);
 
 app.get("/api/v1/version", (req, res) => {
   res.send({ version: packageJSON.version });

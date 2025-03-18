@@ -1,6 +1,8 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import styles from "./admin.module.css";
+import { getCurrentUser } from "packages/getCurrentUser";
+import { isSuperuser } from "utils/user";
 
 const FormItem: FunctionComponent<{
   label: string;
@@ -23,6 +25,16 @@ export const EditPhotoRecord: FunctionComponent = () => {
   const navigate = useNavigate();
   const query = useQuery();
   const id = query.get("id");
+
+  useEffect(() => {
+    (async () => {
+      //check permissions
+      const user = await getCurrentUser();
+      if (user instanceof Error || !isSuperuser(user)) {
+        navigate("/"); //Redirect to homepage
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (id) {
