@@ -4,11 +4,7 @@
   background-size: 30px 30px;
   width: 30px;
   height: 30px;
-
-  /* background: url("/images/icon_ISS.svg") no-repeat center;
-  background-size: 45px 45px;
-  width: 45px;
-  height: 45px; */
+  pointer-events: none;
 }
 
 .hoverMarker {
@@ -17,4 +13,5 @@
   background-size: 30px 30px;
   width: 30px;
   height: 30px;
+  pointer-events: none;
 }

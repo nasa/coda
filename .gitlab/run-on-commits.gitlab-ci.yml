@@ -313,6 +313,8 @@ docker:build:nginx:
       VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
       VITE_PUBLIC_MEDIA_MTX_HLS_URL
       VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL
+      VITE_PUBLIC_MAPLIBRE_BASE_URL
+      VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME
 
 docker:build:apiv1:
   extends: .kaniko-build-template
