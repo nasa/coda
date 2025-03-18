@@ -1,6 +1,7 @@
 .main_9Rows {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
+  height: calc(100vh - (50px + 122px)); /* constrain total height */
   /* 50px for header and the rest for timeline because these elements are fixed height */
   grid-auto-rows: minmax(calc((100vh / 9) - ((50px + 122px) / 9)), auto);
 }
