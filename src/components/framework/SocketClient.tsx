@@ -27,8 +27,8 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
 
 const SocketClient: FunctionComponent<{
-  socketStatus: SocketStatus;
-  setSocketStatus: Dispatch<SetStateAction<SocketStatus>>;
+  socketStatus: ClientSocketStatus;
+  setSocketStatus: Dispatch<SetStateAction<ClientSocketStatus>>;
 }> = ({ socketStatus, setSocketStatus }) => {
   const dispatch = useAppDispatch();
   const { playhead } = usePlayheadContext();
@@ -72,6 +72,7 @@ const SocketClient: FunctionComponent<{
         dateViewing: playhead.date.split("T")[0],
         source: source,
         user: user,
+        connectedAt: Date.now(),
       };
       socket.current.emit("visitorJoin", visitorData);
     });

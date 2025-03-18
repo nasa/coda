@@ -56,18 +56,20 @@ interface VisitorData {
   dateViewing: string;
   source: Source;
   user: EmssUser;
+  connectedAt: number;
 }
 
 type ConnectionStatus = "connected" | "disconnected" | "connecting" | "reconnecting";
 
-interface SocketStatus {
+// socket status for the client
+interface ClientSocketStatus {
   connectionStatus: ConnectionStatus;
   lastStatusFromServer: StatusFromServer;
   clientVersion: string;
 }
 
 interface StatusFromServer {
-  users: EmssUser[];
+  visitorCount: number;
   timestamp: number;
   version: string;
 }

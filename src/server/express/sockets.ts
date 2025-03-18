@@ -81,12 +81,8 @@ export const setupSocketIO = (): void => {
 };
 
 const getStatusFromServer = (): StatusFromServer => {
-  const users: EmssUser[] = globalValues.serverSocketStatus.visitorsData.map((visitor) => {
-    return visitor.user;
-  });
-
   return {
-    users,
+    visitorCount: globalValues.serverSocketStatus.visitorsData?.length,
     timestamp: Date.now(),
     version: packagejson.version || "",
   };
