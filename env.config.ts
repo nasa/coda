@@ -148,26 +148,51 @@ export const config: DotenvConfig<typeof environments> = {
   /**
    * MTX Live streams
    */
-  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
   VITE_PUBLIC_LIVE_STREAMS_ENABLED: {
     local: "true",
     default: "true",
   },
-  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
   VITE_PUBLIC_MEDIA_MTX_CONTROL_URL: {
     local: "http://127.0.0.1:9997/",
     default: "https://emss-lambda2.fit.nasa.gov/api/",
   },
-  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
   VITE_PUBLIC_MEDIA_MTX_HLS_URL: {
     local: "http://127.0.0.1:8888/",
     default: "https://emss-lambda2.fit.nasa.gov/live/",
   },
-  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
   VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL: {
     local: "http://127.0.0.1:9996/",
     default: "https://emss-lambda2.fit.nasa.gov/recordings/",
   },
+
+  /**
+   * Maplibre variables
+   */
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // no trailing slash
+  VITE_PUBLIC_MAPLIBRE_BASE_URL: {
+    local: "https://emss-labs.fit.nasa.gov/localearth",
+    default: "https://emss-labs.fit.nasa.gov/localearth",
+  },
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME: {
+    local: "20250213.pmtiles",
+    default: "20250213.pmtiles",
+  },
+
+  /*
+  !!!! SENSITIVE DATA !!!!
+
+  The following env vars are sensitive! Do not send them to anyone who doesn't need them
+  If sending them to someone who does need them, send via encrypted email.
+
+  If you need values, request from CODA developers or copy from GitLab CI/CD variables. These values
+  will be stored in .env.secret so make-dotenv.sh can reuse them.
+  */
 
   MEDIAMTX_USERNAME: {
     default: {
@@ -180,15 +205,6 @@ export const config: DotenvConfig<typeof environments> = {
     },
   },
 
-  /*
-  !!!! SENSITIVE DATA !!!!
-
-  The following env vars are sensitive! Do not send them to anyone who doesn't need them
-  If sending them to someone who does need them, send via encrypted email.
-
-  If you need values, request from CODA developers or copy from GitLab CI/CD variables. These values
-  will be stored in .env.secret so make-dotenv.sh can reuse them.
-  */
   IO_KEY: {
     default: {
       type: "required-from-secret",
@@ -310,6 +326,12 @@ export const config: DotenvConfig<typeof environments> = {
 
     // For FIT, send to host machine's Rsyslog
     default: "udp://127.0.0.1:514",
+  },
+
+  // show / hide console logs via logger class on server side
+  SHOW_CLG: {
+    local: "true",
+    default: "false",
   },
 
   /**

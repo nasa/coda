@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import type { Dispatch, SetStateAction, MutableRefObject, FunctionComponent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { MutableRefObject, FunctionComponent } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { RootState } from "store/index";
@@ -10,8 +10,11 @@ import { getPlayheadISOString } from "utils/formatting";
 import styles from "./iss-location.module.css";
 import Marker from "./iss-location-marker";
 
-import mapboxgl, { Map } from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { Protocol } from "pmtiles";
+import mapStyle from "./protomaps-theme.json";
+
 import Terminator from "utils/terminator";
 import type { FeatureCollection, Geometry } from "geojson";
 import { HelpButton } from "components/interface/pane-help-control-button";
@@ -104,14 +107,15 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   );
   const todayEphemera = ephemera.ephemerisFiles;
 
-  const [map, setMap] = useState<Map>(null);
-  const [playheadMarker, setPlayheadMarker] = useState(initialMarker);
-  const [hoverMarker, setHoverMarker] = useState(initialMarker);
+  const mapRef = useRef<maplibregl.Map>(null);
+  const playheadMarkerRef = useRef<MapMarker>(initialMarker);
+  const hoverMarkerRef = useRef<MapMarker>(initialMarker);
 
   const { playhead } = usePlayheadContext();
   const { hoverPlayhead } = useHoverPlayheadContext();
 
-  const mapContainer = useRef(null);
+  const mapContainer = useRef<any>(null);
+  const [mapLoaded, setMapLoaded] = useState(false); // Added state to track map load
 
   //just need any location for getSatelliteInfo
   const houstonLatLng = {
@@ -121,73 +125,89 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
 
   //init map app
   useEffect(() => {
-    mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_KEY;
-    if (!map) initializeMap(setMap, mapContainer);
-  }, [map]);
+    if (!mapRef.current) initializeMap(mapContainer);
+  }, [mapRef.current]);
 
   //redraw the map when the frame dimension change due to window resize or a layout change
   useEffect(() => {
-    if (map) {
-      map.resize();
+    if (mapRef.current) {
+      mapRef.current.resize();
     }
   }, [frameDimensions, layoutLastChanged]);
 
-  //update map based on changes in seconds / hoverSeconds
+  //update map based on changes in seconds / hoverSeconds only after map loading
   useEffect(() => {
-    if (!map || !playhead.date || todayEphemera?.length === 0) {
-      return;
-    }
+    if (!mapLoaded || !mapRef.current || !playhead.date || todayEphemera?.length === 0) return;
 
     const playHeadISODate = getPlayheadISOString(playhead.date, playhead.appSeconds);
     const tle = getAppropriateTLE(todayEphemera, playHeadISODate);
 
-    //calculate lat long for timestamp of interest using mostRecentTLE as orbital starting point
     const playheadLatLonObj = getLatLngObj(tle, new Date(playHeadISODate).getTime());
-    if (playheadMarker.markerNode.style.visibility === "hidden") {
-      playheadMarker.markerNode.style.visibility = "visible";
+    if (playheadMarkerRef.current.markerNode) {
+      playheadMarkerRef.current.markerNode.style.visibility = "visible";
     }
     if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
-      playheadMarker.marker.setLngLat(playheadLatLonObj);
+      playheadMarkerRef.current.marker.setLngLat(playheadLatLonObj);
     }
 
-    //position hover marker
     if (hoverPlayhead.hoverSeconds) {
-      hoverMarker.markerNode.style.visibility = "visible";
+      hoverMarkerRef.current.markerNode.style.visibility = "visible";
       const hoverISODate = getPlayheadISOString(playhead.date, hoverPlayhead.hoverSeconds);
-      const tle = getAppropriateTLE(todayEphemera, hoverISODate);
+      const hoverTle = getAppropriateTLE(todayEphemera, hoverISODate);
 
-      const hoverLatLonObj = getLatLngObj(tle, new Date(hoverISODate).getTime());
+      const hoverLatLonObj = getLatLngObj(hoverTle, new Date(hoverISODate).getTime());
       if (!isNaN(hoverLatLonObj.lat) && !isNaN(hoverLatLonObj.lng)) {
-        hoverMarker.marker.setLngLat(hoverLatLonObj);
+        hoverMarkerRef.current.marker.setLngLat(hoverLatLonObj);
       }
 
-      updateTerminator(map, hoverISODate);
+      updateTerminator(mapRef.current, hoverISODate);
     } else {
-      hoverMarker.markerNode.style.visibility = "hidden";
-      //position playhead marker
-      updateOrbitLine(map, playHeadISODate);
-      updateTerminator(map, playHeadISODate);
+      hoverMarkerRef.current.markerNode.style.visibility = "hidden";
+    }
 
-      if (paneStateData.lockMap) {
-        if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
-          map.panTo(playheadLatLonObj);
-        }
+    updateOrbitLine(mapRef.current, playHeadISODate);
+    updateTerminator(mapRef.current, playHeadISODate);
+
+    if (paneStateData.lockMap) {
+      if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
+        mapRef.current.panTo(playheadLatLonObj);
       }
     }
-  }, [ephemera, playhead, hoverPlayhead]);
+  }, [ephemera, playhead, hoverPlayhead, mapLoaded]);
 
-  function initializeMap(
-    setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
-    mapContainer: MutableRefObject<any>
-  ) {
+  function initializeMap(mapContainer: MutableRefObject<HTMLDivElement>) {
     mapContainer.current.innerHTML = ""; // Clear the container
-    const thisMap = new mapboxgl.Map({
+
+    let protocol = new Protocol();
+    maplibregl.addProtocol("pmtiles", protocol.tile);
+
+    const maplibreBaseUrl = import.meta.env.VITE_PUBLIC_MAPLIBRE_BASE_URL;
+    const pmtilesFilename = import.meta.env.VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME;
+
+    const overrideStyle = {
+      ...mapStyle,
+      sources: {
+        protomaps: {
+          type: "vector",
+          url: `pmtiles://${maplibreBaseUrl}/${pmtilesFilename}`,
+        },
+      },
+      sprite: `${maplibreBaseUrl}/basemaps-assets-main/sprites/v4/light`,
+      glyphs: `${maplibreBaseUrl}/basemaps-assets-main/fonts/{fontstack}/{range}.pbf`,
+      layers:
+        mapStyle.layers?.map((layer) =>
+          layer.id === "background"
+            ? { ...layer, paint: { ...layer.paint, "background-color": "rgba(0,0,0,0)" } }
+            : layer
+        ) || [],
+    };
+
+    const thisMap = new maplibregl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/bfeist/ckm6yjob22j6b17o79mq0tvr7", // satellite
-      center: houstonLatLng, // starting position [lng, lat]
-      zoom: 1, // starting zoom
+      style: overrideStyle as any,
+      center: houstonLatLng,
+      zoom: 2,
       attributionControl: false,
-      antialias: true,
     });
 
     thisMap.on("load", () => {
@@ -195,34 +215,37 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       addTerminator(thisMap);
 
       // create playhead marker node
-      addMapMarker(thisMap, "playheadMarker", setPlayheadMarker);
+      addMapMarker(thisMap, "playheadMarker", playheadMarkerRef);
       // create hover marker node
-      addMapMarker(thisMap, "hoverMarker", setHoverMarker);
+      addMapMarker(thisMap, "hoverMarker", hoverMarkerRef);
       // add orbit path
       addOrbitLine(thisMap);
 
-      thisMap.addControl(new mapboxgl.NavigationControl(), "top-right");
-      setMap(thisMap);
+      // thisMap.addControl(new maplibregl.NavigationControl(), "top-right");
+      mapRef.current = thisMap;
+      setMapLoaded(true); // Mark map as loaded
       thisMap.resize();
     });
   }
 
   function addMapMarker(
-    thisMap: any,
+    thisMap: maplibregl.Map,
     typeName: string,
-    setMarker: Dispatch<SetStateAction<MapMarker>>
+    markerRef: MutableRefObject<MapMarker>
   ) {
     const markerNode = document.createElement("div");
     markerNode.style.visibility = "hidden";
     const root = createRoot(markerNode);
     const element = <Marker id={`${typeName}`} type={`${typeName}`} />;
     root.render(element);
-    const marker = new mapboxgl.Marker(markerNode).setLngLat(houstonLatLng);
+    const marker = new maplibregl.Marker({
+      element: markerNode,
+    }).setLngLat(houstonLatLng);
     marker.addTo(thisMap);
-    setMarker({ marker: marker, markerNode: markerNode });
+    markerRef.current = { marker: marker, markerNode: markerNode };
   }
 
-  function addOrbitLine(thisMap: Map) {
+  function addOrbitLine(thisMap: maplibregl.Map) {
     //part 1 always used
     thisMap.addSource("orbitLine1", {
       type: "geojson",
@@ -280,7 +303,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     });
   }
 
-  function updateOrbitLine(thisMap: Map, isoDate: string) {
+  function updateOrbitLine(thisMap: maplibregl.Map, isoDate: string) {
     const secondsStart = -2000;
     const secondsEnd = 3800;
     const secondsStep = 10;
@@ -323,9 +346,9 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     }
 
     // complex override due to typescript types not being correct in npm library
-    const orbitLine1: mapboxgl.GeoJSONSource = thisMap.getSource(
+    const orbitLine1: maplibregl.GeoJSONSource = thisMap.getSource(
       "orbitLine1"
-    ) as mapboxgl.GeoJSONSource;
+    ) as maplibregl.GeoJSONSource;
     orbitLine1.setData({
       type: "Feature",
       properties: {},
@@ -336,9 +359,9 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     });
 
     // complex override due to typescript types not being correct in npm library
-    const orbitLine2: mapboxgl.GeoJSONSource = thisMap.getSource(
+    const orbitLine2: maplibregl.GeoJSONSource = thisMap.getSource(
       "orbitLine2"
-    ) as mapboxgl.GeoJSONSource;
+    ) as maplibregl.GeoJSONSource;
     orbitLine2.setData({
       type: "Feature",
       properties: {},
@@ -349,7 +372,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     });
   }
 
-  function addTerminator(thisMap: Map) {
+  function addTerminator(thisMap: maplibregl.Map) {
     thisMap.addSource("terminator", {
       type: "geojson",
       data: {
@@ -375,7 +398,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     });
   }
 
-  function updateTerminator(thisMap: Map, isoDate: string) {
+  function updateTerminator(thisMap: maplibregl.Map, isoDate: string) {
     const terminatorObj = new Terminator({ resolution: 1, time: new Date(isoDate) });
     const terminatorGeoJSON: FeatureCollection<
       Geometry,
@@ -385,46 +408,44 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     > = terminatorObj.getTerminator();
 
     // complex override due to typescript types not being correct in npm library
-    const terminator: mapboxgl.GeoJSONSource = thisMap.getSource(
+    const terminator: maplibregl.GeoJSONSource = thisMap.getSource(
       "terminator"
-    ) as mapboxgl.GeoJSONSource;
+    ) as maplibregl.GeoJSONSource;
     terminator.setData(terminatorGeoJSON);
   }
 
   // toggle button display settings
   return (
-    <>
-      <div className={styles.container}>
-        <div
-          ref={mapContainer}
-          className={styles.mapContainer}
-          onMouseDown={() => {
-            setPaneStateValue(dispatch, frameID, "lockMap", false);
-          }}
-        ></div>
-        <HelpOverlay
-          isModalOpen={paneStateData.showHelp}
-          closeHandler={() => {
-            setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
-          }}
-        >
-          <div>
-            <p>
-              Displays the ISS position as a red "X" at the current CODA time on an interactive map.
-              The map shows a yellow line representing the orbit of the ISS immediately surrounding
-              the current CODA time. The map is shaded to indicate the terminator shadow on the
-              Earth. Hovering over the CODA timeline will show a white "X" indicating where the ISS
-              will be at the hovered CODA time.
-            </p>
-            <p>
-              ISS Location, along with insolation/eclipse, is calculated using orbital ephemeris
-              data retrieved from an external data source.{" "}
-            </p>
-            <p></p>
-          </div>
-        </HelpOverlay>
-      </div>
-    </>
+    <div className={styles.container}>
+      <div
+        ref={mapContainer}
+        className={styles.mapContainer}
+        onMouseDown={() => {
+          setPaneStateValue(dispatch, frameID, "lockMap", false);
+        }}
+      ></div>
+      <HelpOverlay
+        isModalOpen={paneStateData.showHelp}
+        closeHandler={() => {
+          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+        }}
+      >
+        <div>
+          <p>
+            Displays the ISS position as a red "X" at the current CODA time on an interactive map.
+            The map shows a yellow line representing the orbit of the ISS immediately surrounding
+            the current CODA time. The map is shaded to indicate the terminator shadow on the Earth.
+            Hovering over the CODA timeline will show a white "X" indicating where the ISS will be
+            at the hovered CODA time.
+          </p>
+          <p>
+            ISS Location, along with insolation/eclipse, is calculated using orbital ephemeris data
+            retrieved from an external data source.{" "}
+          </p>
+          <p></p>
+        </div>
+      </HelpOverlay>
+    </div>
   );
 };
 

@@ -21,7 +21,7 @@ const parseQuery = (query: Query): GetSequencesTestEventsQueryParams => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    const testEvents = await getTestEventsData(queryObj.forceNew);
+    const testEvents = await getTestEventsData({ forceNew: queryObj.forceNew });
     res.status(200).json(testEvents);
     return;
   } catch (e) {

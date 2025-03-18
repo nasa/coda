@@ -3,11 +3,38 @@ import { getCurrentUser } from "packages/getCurrentUser";
 import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
+import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { addDayNight, setDayNightLoadingStatus } from "store/daynight";
+import { addEphemera, setEphemeraLoadingStatus } from "store/ephemera";
+import { setGPSTracks, setGpsLoadingStatus } from "store/gps";
+import { setGraphsLoadingStatus, setGraphsManifest } from "store/graphs";
+import {
+  addPhotos,
+  buildPhotoCollections,
+  setCollectionFilters,
+  setPhotoLoadingStatus,
+} from "store/photos";
+import { addSequences, setSequenceLoadingStatus } from "store/sequences";
+import { setSgAudioActivity, setSgAudioLoadingStatus } from "store/sg-audio";
+import { setTranscriptLoadingStatus, setTranscripts } from "store/transcript";
+import {
+  addVideos,
+  setMtxHlsEndpoints,
+  setMtxPlaybackAvailability,
+  setVideoLoadingStatus,
+} from "store/videos";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { refEqual, useAppSelector } from "utils/useAppSelector";
 
 const SocketClient: FunctionComponent<{
-  socketStatus: SocketStatus;
-  setSocketStatus: Dispatch<SetStateAction<SocketStatus>>;
+  socketStatus: ClientSocketStatus;
+  setSocketStatus: Dispatch<SetStateAction<ClientSocketStatus>>;
 }> = ({ socketStatus, setSocketStatus }) => {
+  const dispatch = useAppDispatch();
+  const { playhead } = usePlayheadContext();
+
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+
   //socket connection
   const socket = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(null);
 
@@ -26,7 +53,7 @@ const SocketClient: FunctionComponent<{
 
   //Handle socketio events
   useEffect(() => {
-    if (!user) return;
+    if (!user || !source || !playhead) return;
 
     // Create a socket connection
     if (!socket.current || (socket.current && !socket.current.connected)) {
@@ -42,7 +69,10 @@ const SocketClient: FunctionComponent<{
     socket.current.on("connect", () => {
       const visitorData: VisitorData = {
         socketId: socket.current.id,
+        dateViewing: playhead.date.split("T")[0],
+        source: source,
         user: user,
+        connectedAt: Date.now(),
       };
       socket.current.emit("visitorJoin", visitorData);
     });
@@ -75,6 +105,50 @@ const SocketClient: FunctionComponent<{
       });
     });
 
+    // Incoming data updates
+    socket.current.on("dataUpdate", (dataUpdate: DataUpdate) => {
+      if (dataUpdate.type === "daynight") {
+        dispatch(addDayNight(dataUpdate.wrappedResponse));
+        dispatch(setDayNightLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "ephemeris") {
+        dispatch(addEphemera(dataUpdate.wrappedResponse));
+        dispatch(setEphemeraLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "videos") {
+        dispatch(addVideos(dataUpdate.wrappedResponse));
+        dispatch(setVideoLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "photos") {
+        dispatch(addPhotos(dataUpdate.wrappedResponse));
+        const photoCollectionsFilter = buildPhotoCollections(dataUpdate.wrappedResponse.data);
+        dispatch(setCollectionFilters(photoCollectionsFilter));
+        dispatch(setPhotoLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "wikiEvas") {
+        //TODO: add maestro stuff
+        dispatch(addSequences(dataUpdate.wrappedResponse));
+        dispatch(setSequenceLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "wikiTestEvents") {
+        //TODO: add maestro stuff
+        dispatch(addSequences(dataUpdate.wrappedResponse));
+        dispatch(setSequenceLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "mtxvideo") {
+        dispatch(
+          setMtxPlaybackAvailability(dataUpdate.wrappedResponse.data.mtxPlaybackAvailability)
+        );
+        dispatch(setMtxHlsEndpoints(dataUpdate.wrappedResponse.data.mtxHlsEndpoints));
+      } else if (dataUpdate.type === "gpstracks") {
+        dispatch(setGPSTracks(dataUpdate.wrappedResponse));
+        dispatch(setGpsLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "transcript") {
+        dispatch(setTranscripts(dataUpdate.wrappedResponse));
+        dispatch(setTranscriptLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "sgaudio") {
+        dispatch(setSgAudioActivity(dataUpdate.wrappedResponse));
+        dispatch(setSgAudioLoadingStatus("loaded"));
+      } else if (dataUpdate.type === "graph") {
+        dispatch(setGraphsManifest(dataUpdate.wrappedResponse));
+        dispatch(setGraphsLoadingStatus("loaded"));
+      }
+    });
+
     // Clean up the socket connection on unmount
     return () => {
       socket.current.off("connect");
@@ -84,7 +158,7 @@ const SocketClient: FunctionComponent<{
       socket.current.off("statusFromServer");
       socket.current.disconnect();
     };
-  }, [socket, user]);
+  }, [socket, user, playhead.date, source]);
 
   return <></>;
 };

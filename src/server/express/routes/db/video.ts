@@ -28,7 +28,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         res.status(400).json({ status: "error", message: "Invalid video ID format" });
         return;
       }
-      const record: VideoRecord = await getVideoRecordByVideoId(queryObj.videoId);
+      const record: VideoRecord = await getVideoStartTimeOverridesRecordByVideoId(queryObj.videoId);
       const wrappedResponse: WrappedResponse<VideoRecord> = {
         responseMetadata: {
           retrieverStatus: "complete",
@@ -43,7 +43,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       };
       res.status(200).json(wrappedResponse);
     } else {
-      const records: VideoRecord[] = await getVideoRecordsList();
+      const records: VideoRecord[] = await getVideoStartTimeOverridesRecordsList();
       const wrappedResponse: WrappedResponse<VideoRecord[]> = {
         responseMetadata: {
           retrieverStatus: "complete",
@@ -181,7 +181,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 
 export default router;
 
-async function getVideoRecordByVideoId(videoId: string): Promise<VideoRecord> {
+async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promise<VideoRecord> {
   const em = getEM();
 
   let videoRecord: Loaded<VideoRecord, never>;
@@ -195,7 +195,7 @@ async function getVideoRecordByVideoId(videoId: string): Promise<VideoRecord> {
   }
 }
 
-export async function getVideoRecordsList(): Promise<VideoRecord[]> {
+export async function getVideoStartTimeOverridesRecordsList(): Promise<VideoRecord[]> {
   const em = getEM();
 
   const videos_db = await em.find(

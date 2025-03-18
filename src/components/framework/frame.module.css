@@ -4,6 +4,7 @@
   background-color: var(--lightest-grey);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .headerContainer {
@@ -14,6 +15,7 @@
   flex: auto;
   display: flex;
   background-color: var(--nearly-black);
+  height: 100%;
 }
 
 .photoPoster {

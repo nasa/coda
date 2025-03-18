@@ -15,7 +15,7 @@ export const videoSlice = createSlice({
   reducers: {
     /** Add new video files to the store */
     addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
-      state.videoFiles = action.payload.data;
+      state.videoFiles = action.payload.data || []; // null returned when retriever error
       state.responseMetadata = action.payload.responseMetadata;
     },
 

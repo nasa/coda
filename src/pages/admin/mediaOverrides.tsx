@@ -1,10 +1,23 @@
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FunctionComponent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "./admin.module.css";
+import { getCurrentUser } from "packages/getCurrentUser";
+import { isSuperuser } from "utils/user";
 
 const AdminIndex: FunctionComponent = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      //check permissions
+      const user = await getCurrentUser();
+      if (user instanceof Error || !isSuperuser(user)) {
+        navigate("/"); //Redirect to homepage
+      }
+    })();
+  }, []);
+
   return (
     <div>
       <Link to="/admin">Admin Home</Link>

@@ -8,7 +8,6 @@ import transcriptsRoute from "./routes/emss/transcripts";
 import executeTimelineStatusRoute from "./routes/maestro/executeTimelineStatus";
 import photosRoute from "./routes/media/photos";
 import videosRoute from "./routes/media/videos";
-import emssVideosRoute from "./routes/media/emssVideos";
 import mtxPlaybackRoute from "./routes/media/videoMediaMtx";
 import evasRoute from "./routes/sequences/evas";
 import gpsRoute from "./routes/db/gps";
@@ -18,12 +17,13 @@ import graphsRoute from "./routes/sequences/graphs";
 import testEventsRoute from "./routes/sequences/test-events";
 import clearRoute from "./routes/cache/clear";
 import clearAllRoute from "./routes/cache/clearAll";
-import enableDisableEmssVideoRoute from "./routes/media/enableDisableEmssVideo";
 import getCurrentUser from "./routes/user/auth";
 import logFromClient from "./routes/user/logFromClient";
+import profiler from "./routes/profiler/profiler";
 
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
+import serverSocketStatus from "./routes/socketStatus/socketStatus";
 
 const app: Application = express();
 
@@ -36,13 +36,14 @@ app.get("/api/v1/health", (req, res) => {
   res.send({ status: "ok" });
 });
 
+// output socket visitor information
+app.use("/api/v1/socketStatus", serverSocketStatus);
+
 app.get("/api/v1/version", (req, res) => {
   res.send({ version: packageJSON.version });
 });
-// temporary fix for maestro accessing daynight with old URL. This should be removed once maestro is updated to use /external
+app.use("/api/v1/external/daynight/daynight", dayNightRoute); // this is what maestro needs. They should
 app.use("/api/v1/daynight/daynight", dayNightRoute);
-
-app.use("/api/v1/external/daynight/daynight", dayNightRoute);
 app.use("/api/v1/emss/sgAudio", sgAudioRoute);
 app.use("/api/v1/emss/transcripts", transcriptsRoute);
 app.use("/api/v1/location/iss", locationIssRoute);
@@ -50,8 +51,6 @@ app.use("/api/v1/maestro/executeTimelineStatus", executeTimelineStatusRoute);
 app.use("/api/v1/media/photos", photosRoute);
 app.use("/api/v1/media/videos", videosRoute);
 app.use("/api/v1/media/videosMediaMtx", mtxPlaybackRoute);
-app.use("/api/v1/media/emssVideos", emssVideosRoute);
-app.use("/api/v1/media/enableDisableEmssVideo", enableDisableEmssVideoRoute);
 app.use("/api/v1/sequences/evas", evasRoute);
 app.use("/api/v1/sequences/graphs", graphsRoute);
 app.use("/api/v1/sequences/test-events", testEventsRoute);
@@ -64,4 +63,5 @@ app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);
 app.use("/api/v1/db/photoTimeShifts", photoRoute);
 app.use("/api/v1/user/current", getCurrentUser);
 app.use("/api/v1/log/from-client", logFromClient);
+app.use("/api/v1/profile", profiler);
 export default app;

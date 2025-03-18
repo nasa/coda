@@ -54,7 +54,9 @@ describe("fetchWithTimeout", () => {
   });
 
   it("fetch times out", async () => {
-    await expect(fetchWithTimeout("url", {}, 10)).rejects.toThrow("The operation was aborted.");
+    const response = await fetchWithTimeout("url", {}, 10);
+    expect(response.ok).toBe(false);
+    expect(response.status).toBe(408); // Request Timeout status code
   });
 
   // Put the fetch call and spy calls back to original

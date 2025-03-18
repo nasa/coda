@@ -10,5 +10,7 @@ type GlobalValues = {
     | null;
   serverSocketStatus: ServerSocketStatus;
   socketInterval: NodeJS.Timeout;
-  emssVideoEnabled: boolean;
+  serverDataRefreshTimeouts: {
+    [source: string]: { [date: string]: { [dataType: string]: NodeJS.Timeout } };
+  };
 };

@@ -21,13 +21,20 @@ export default async function fetchWithTimeout(
     },
   });
 
-  const response = await fetch(url, {
-    ...requestInit,
-    method: requestInit?.method || "GET",
-    signal,
-    dispatcher: agent,
-  });
+  try {
+    const response = await fetch(url, {
+      ...requestInit,
+      method: requestInit?.method || "GET",
+      signal,
+      dispatcher: agent,
+    });
 
-  clearTimeout(id);
-  return response as unknown as Response; // Type casting to standard Response
+    clearTimeout(id);
+    return response as unknown as Response; // Type casting to standard Response
+  } catch (e) {
+    clearTimeout(id);
+  }
+
+  // return a response object with status 408 (timeout)
+  return new Response(null, { status: 408 });
 }

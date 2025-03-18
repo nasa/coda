@@ -3,7 +3,7 @@ import sortBy from "lodash/sortBy";
 import * as IoService from "server/services/io-api";
 import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
-import { getVideoRecordsList } from "server/express/routes/db/video";
+import { getVideoStartTimeOverridesRecordsList } from "server/express/routes/db/video";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
@@ -68,7 +68,7 @@ export default async function getVideoData({
     // fetch start time overrides, but don't throw if the request fails
     await (async () => {
       try {
-        let dateTimeOverrides = await getVideoRecordsList();
+        let dateTimeOverrides = await getVideoStartTimeOverridesRecordsList();
         return dateTimeOverrides;
       } catch (e) {
         // don't block video results if we can't find overrides
