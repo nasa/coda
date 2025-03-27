@@ -89,7 +89,7 @@ const setDataRefreshTimeout = ({
   }
 
   // Clear existing timeout if it exists
-  globalValues.serverDataRefreshTimeouts[source][dateWanted][dataType] &&
+  globalValues.serverDataRefreshTimeouts?.[source]?.[dateWanted]?.[dataType] &&
     clearTimeout(globalValues.serverDataRefreshTimeouts[source][dateWanted][dataType]);
 
   ConsoleLogger.log(
@@ -222,7 +222,7 @@ export const getSourceDateDataType = async ({
         `${dataFetchConfig.type} Data is already being fetched for ${source}_${dateWanted}, return the existing cache data.`
       );
       const cacheEntryData =
-        cacheEntry?.data.toString() === "" ? null : JSON.parse(cacheEntry?.data.toString());
+        cacheEntry?.data?.toString() === "" ? null : JSON.parse(cacheEntry?.data?.toString());
       return cacheEntryData;
     }
   }
@@ -235,7 +235,7 @@ export const getSourceDateDataType = async ({
   // Return cached data if not expired
   if (cacheEntry && !isExpired) {
     // Setup timeout if missing
-    if (!globalValues.serverDataRefreshTimeouts[source][dateWanted][dataFetchConfig.type]) {
+    if (!globalValues.serverDataRefreshTimeouts?.[source]?.[dateWanted]?.[dataFetchConfig.type]) {
       const delay = calculateTimeoutFromExpiration(cacheEntry.metadata.expiration);
       if (delay > 0) {
         setDataRefreshTimeout({
@@ -258,7 +258,7 @@ export const getSourceDateDataType = async ({
     }
 
     try {
-      return JSON.parse(cacheEntry.data.toString());
+      return JSON.parse(cacheEntry?.data?.toString());
     } catch (e) {
       ConsoleLogger.error(
         "Failed to parse cached data JSON. Erasing cache entry and continuing to fetch new data"
@@ -297,7 +297,7 @@ export const getSourceDateDataType = async ({
 
   if (autoRefresh) {
     // Setup refresh timeout
-    const delay = calculateTimeoutFromExpiration(wrappedResponse.responseMetadata.expiration);
+    const delay = calculateTimeoutFromExpiration(wrappedResponse?.responseMetadata?.expiration);
     if (delay > 0) {
       setDataRefreshTimeout({
         source,
@@ -331,7 +331,7 @@ export const getSourceDateDataType = async ({
   };
   try {
     cacheEntryData =
-      cacheEntry?.data.toString() === "" ? null : JSON.parse(cacheEntry?.data.toString());
+      cacheEntry?.data?.toString() === "" ? null : JSON.parse(cacheEntry?.data?.toString());
   } catch (e) {
     ConsoleLogger.error("Failed to parse cached data JSON. Assuming null");
   }
