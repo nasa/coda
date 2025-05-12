@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, JSX, ReactNode, useContext, useState } from "react";
 
 // Create the context
 const HoverPlayheadCtx = createContext<HoverPlayheadContextType | undefined>(undefined);

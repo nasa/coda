@@ -2,7 +2,7 @@
 #   (which is true when building locally) then use the value to the right of the = operator
 # Base image optionally from arg
 # ref: https://eegitlab.fit.nasa.gov/emss/docs/-/blob/main/docker.md#base-images-as-arg
-ARG APIV1_BASE_IMAGE=node:20.11.0-alpine
+ARG APIV1_BASE_IMAGE=node:22.15.0-alpine
 
 # # # # # # # #
 # PROD image  #

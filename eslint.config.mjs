@@ -4,6 +4,16 @@ import prettier from "eslint-plugin-prettier";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 
+// Clean the browser globals to remove any keys with leading/trailing whitespace
+const originalBrowserGlobals = globals.browser;
+const cleanedBrowserGlobals = {};
+for (const key in originalBrowserGlobals) {
+  if (Object.prototype.hasOwnProperty.call(originalBrowserGlobals, key)) {
+    const trimmedKey = key.trim();
+    cleanedBrowserGlobals[trimmedKey] = originalBrowserGlobals[key];
+  }
+}
+
 export default [
   {
     ignores: [
@@ -23,7 +33,7 @@ export default [
 
     languageOptions: {
       globals: {
-        ...globals.browser,
+        ...cleanedBrowserGlobals, // Use the cleaned globals
       },
 
       parser: tsParser,

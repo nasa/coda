@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, JSX } from "react";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import Frame from "components/framework/frame";
 import { allLayouts } from "store/framework";

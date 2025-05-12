@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 import Index from "pages/index";
 import View from "pages/view";
 import Iss from "pages/view/iss";

@@ -596,7 +596,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
 
-  const videoElement = useRef() as MutableRefObject<HTMLVideoElement>;
+  const videoElement = useRef(null) as MutableRefObject<HTMLVideoElement>;
   const [metadata, setMetadata] = useState(null);
   const [status, setStatus] = useState(null);
   const [sourceURL, setSourceURL] = useState("");
