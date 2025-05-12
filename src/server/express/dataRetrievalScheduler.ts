@@ -14,11 +14,7 @@ import getTestEventsData from "server/processing/sequences/test-events";
 import cacache from "cacache";
 import { ConsoleLogger } from "../../utils/logger";
 import isEqual from "lodash/isEqual";
-
-type SocketCacheMetadata = {
-  expiration: string;
-  retrieving: boolean;
-};
+import { cachePutWrapper } from "server/processing/cache-client";
 
 export const dataFetchConfigs: DataFetchConfig[] = [
   {
@@ -183,20 +179,6 @@ const getCacheEntry = async ({ cachePath, dataType }: { cachePath: string; dataT
   }
 };
 
-const updateSocketCache = async ({
-  cachePath,
-  dataType,
-  data,
-  metadata,
-}: {
-  cachePath: string;
-  dataType: string;
-  data: string;
-  metadata: SocketCacheMetadata;
-}) => {
-  await cacache.put(cachePath, dataType, data, { metadata });
-};
-
 export const getSourceDateDataType = async ({
   source,
   dateWanted,
@@ -272,9 +254,9 @@ export const getSourceDateDataType = async ({
   ConsoleLogger.log(`${dataFetchConfig.type} Cache miss or expired for ${source}_${dateWanted}`);
 
   // Mark as retrieving to prevent multiple fetches with an expiration to account for stuck fetches
-  await updateSocketCache({
+  await cachePutWrapper({
     cachePath,
-    dataType: dataFetchConfig.type,
+    cacheKey: dataFetchConfig.type,
     data: cacheEntry ? cacheEntry.data.toString() : "",
     metadata: {
       expiration: new Date(Date.now() + 30000).toISOString(),
@@ -354,9 +336,9 @@ export const getSourceDateDataType = async ({
   }
 
   // Update cache with new data even if it's an error
-  await updateSocketCache({
+  await cachePutWrapper({
     cachePath,
-    dataType: dataFetchConfig.type,
+    cacheKey: dataFetchConfig.type,
     data: JSON.stringify(wrappedResponse),
     metadata: {
       expiration: wrappedResponse?.responseMetadata?.expiration,

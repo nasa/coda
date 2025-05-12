@@ -20,7 +20,7 @@ import clearAllRoute from "./routes/cache/clearAll";
 import getCurrentUser from "./routes/user/auth";
 import logFromClient from "./routes/user/logFromClient";
 import profiler from "./routes/profiler/profiler";
-
+import cacheGarbageCollectRoute from "./routes/cache/cacheGarbageCollect";
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
 import serverSocketStatus from "./routes/socketStatus/socketStatus";
@@ -56,6 +56,7 @@ app.use("/api/v1/sequences/graphs", graphsRoute);
 app.use("/api/v1/sequences/test-events", testEventsRoute);
 app.use("/api/v1/cache/clear", clearRoute);
 app.use("/api/v1/cache/clearAll", clearAllRoute);
+app.use("/api/v1/cache/garbageCollect", cacheGarbageCollectRoute);
 app.use("/api/v1/db/gps", gpsRoute);
 app.use("/api/v1/db/mediaOverrides", mediaOverridesRoute);
 app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
