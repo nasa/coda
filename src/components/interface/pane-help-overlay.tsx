@@ -1,7 +1,7 @@
 import styles from "./pane-help-overlay.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { FunctionComponent } from "react";
+import { FunctionComponent, JSX } from "react";
 
 const HelpOverlay: FunctionComponent<{
   children: JSX.Element;

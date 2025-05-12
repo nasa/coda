@@ -34,7 +34,7 @@ export const graphSlice = createSlice({
     clearGraphsData: (state) => {
       if (!state.graphsManifest) return;
       state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
-        return { ...stateGraph, data: null };
+        return { ...stateGraph, data: null as GraphData[] | null };
       });
     },
     graphsFetchError: (state, action: { payload: string }) => {

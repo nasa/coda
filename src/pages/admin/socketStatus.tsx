@@ -1,6 +1,6 @@
 import { getCurrentUser } from "packages/getCurrentUser";
 import { FunctionComponent, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { isSuperuser } from "utils/user";
 
 const ServerSocketStatus: FunctionComponent = () => {

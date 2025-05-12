@@ -23,7 +23,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
   }, deepEqual);
-  const videoRef = useRef() as MutableRefObject<HTMLVideoElement>;
+  const videoRef = useRef(null) as MutableRefObject<HTMLVideoElement>;
 
   const [status, setStatus] = useState(null);
   const [currVidMTXPlaybackRecord, setCurrVidMTXPlaybackRecord] =
