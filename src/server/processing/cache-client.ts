@@ -101,8 +101,8 @@ export default async function fetchWithCache<T>({
     }
   };
 
-  // default cachedData to this Buffer because we can't put null in caCache data
-  let cachedData: Buffer = Buffer.from('{"empty": "cache"}');
+  // default cachedData to this string because we can't put null in caCache data
+  let cachedData: string = '{"empty": "cache"}';
   let cachedRes: T = null;
   let shouldRunRetriever: Boolean;
   let caCacheMetadata: CaCacheMetadata = {
@@ -138,8 +138,8 @@ export default async function fetchWithCache<T>({
     // we have a cache entry! grab what we know about the retriever and response from last time
     //   and then determine if we have to run the retriever or not
     const cacheEntry = await cacache.get(cachePath, cacheKey);
-    cachedData = cacheEntry.data;
-    cachedRes = JSON.parse(cachedData.toString());
+    cachedData = cacheEntry.data.toString();
+    cachedRes = JSON.parse(cachedData);
     caCacheMetadata = cacheEntry.metadata;
     responseMetadata = {
       ...responseMetadata,
@@ -169,7 +169,10 @@ export default async function fetchWithCache<T>({
     // use caCacheMetadata.expiration to store the expiration date that in this case means how long to wait for "inprogress" before trying again
     caCacheMetadata.expiration = new Date(Date.now() + 60000).toISOString(); // 60 seconds
     try {
-      await cacache.put(cachePath, cacheKey, cachedData, {
+      await cachePutWrapper({
+        cachePath,
+        cacheKey,
+        data: cachedData,
         metadata: caCacheMetadata,
       });
     } catch (e) {
@@ -179,7 +182,7 @@ export default async function fetchWithCache<T>({
     retriever()
       .then(async (res) => {
         //update the cache
-        const newData = Buffer.from(JSON.stringify(res));
+        const newData = JSON.stringify(res);
 
         let expiration = new Date(Date.now() + cacheAge * 1000);
         // make a new expiry date that is cacheAge seconds from now but add a random number of seconds to avoid cache stampedes
@@ -202,13 +205,15 @@ export default async function fetchWithCache<T>({
           lastErrorTimestamp: null,
         };
 
-        return cacache.put(cachePath, cacheKey, newData, {
+        return cachePutWrapper({
+          cachePath,
+          cacheKey,
+          data: newData,
           metadata: newMetadata,
         });
       })
       .catch((e) => {
         // the cache should represent that an error occurred in the retriever
-
         const newMetadata: CaCacheMetadata = {
           retrieverStatus: "error",
           cachedTimestamp: caCacheMetadata.cachedTimestamp,
@@ -218,7 +223,10 @@ export default async function fetchWithCache<T>({
           lastErrorTimestamp: new Date().toISOString(),
         };
 
-        return cacache.put(cachePath, cacheKey, cachedData, {
+        return cachePutWrapper({
+          cachePath,
+          cacheKey,
+          data: cachedData,
           metadata: newMetadata,
         });
       });
@@ -294,4 +302,23 @@ export async function clearCacheByFolder(folder: CacheFolder) {
     console.warn(`Could not clear cache folder: '${folder}'`);
     console.warn(e);
   }
+}
+
+/**
+ * Wrapper for cacache.put that ensures maintenance operations are serialized.
+ */
+export async function cachePutWrapper({
+  cachePath,
+  cacheKey,
+  data,
+  metadata,
+}: {
+  cachePath: string;
+  cacheKey: string;
+  data: string;
+  metadata: CaCacheMetadata | SocketCacheMetadata;
+}): Promise<string> {
+  return await cacache.put(cachePath, cacheKey, Buffer.from(data), {
+    metadata,
+  });
 }

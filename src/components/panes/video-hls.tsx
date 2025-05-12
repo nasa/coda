@@ -27,7 +27,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const { playhead } = usePlayheadContext();
 
   const hlsRef = useRef<Hls | null>(null);
-  const videoRef = useRef() as MutableRefObject<HTMLVideoElement>;
+  const videoRef = useRef(null) as MutableRefObject<HTMLVideoElement>;
 
   const downlinkNumber = (paneStateData.channel + 1).toString();
 

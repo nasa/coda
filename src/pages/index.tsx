@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import styles from "./index.module.css";
 
 // Make sure all images are <=1mb for quick loading time.

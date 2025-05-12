@@ -27,6 +27,7 @@ const config = {
   transform: {
     "^.+\\.(ts|tsx)$": ["ts-jest", { tsconfig: "tsconfig.jest.json", warnOnly: true }],
   },
+  transformIgnorePatterns: ["/node_modules/(?!tle.js/).*"],
 };
 
 export default config;

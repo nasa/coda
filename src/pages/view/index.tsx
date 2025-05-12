@@ -19,7 +19,7 @@ import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import Viewer from "components/framework/frames";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";

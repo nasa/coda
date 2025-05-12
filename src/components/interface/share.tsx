@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, JSX } from "react";
 import styles from "./share.module.css";
 import { generateShareURL } from "utils/share-state";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
