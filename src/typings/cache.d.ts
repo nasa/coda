@@ -38,3 +38,8 @@ type CacheFolder =
   | "test"
   | "labs/mtxPlayback"
   | "gps/tracks";
+
+type SocketCacheMetadata = {
+  expiration: string;
+  retrieving: boolean;
+};
