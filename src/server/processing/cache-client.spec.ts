@@ -1,5 +1,6 @@
-import cacache from "cacache";
-import fetchWithCache, { clearCacheByFolder } from "./cache-client";
+import fetchWithCache from "./cache-client";
+import { removeCacheEntry } from "./cache-db";
+import { getORM, closeORM } from "../../utils/mikro";
 
 /** Pause the main thread for `seconds` seconds */
 async function waitFor(seconds: number) {
@@ -14,16 +15,18 @@ describe("services/cache-client", () => {
   let warnMock: jest.SpyInstance, errorMock: jest.SpyInstance;
 
   beforeAll(async () => {
+    await getORM(); // Initialize ORM
     // testing retrievers that throw will lead to a bunch of unnecessary console.warn'ing and console.error'ing
     errorMock = jest.spyOn(console, "error").mockImplementation(() => {});
     warnMock = jest.spyOn(console, "warn").mockImplementation(() => {});
-    await clearCacheByFolder("test");
+    await removeCacheEntry({ folder: "test" });
   });
 
   afterAll(async () => {
     errorMock.mockReset();
     warnMock.mockReset();
-    await clearCacheByFolder("test");
+    await removeCacheEntry({ folder: "test" });
+    await closeORM(); // Close ORM connection
   });
 
   it("new calls should return inprogress", async () => {
@@ -267,67 +270,5 @@ describe("services/cache-client", () => {
     expect(res5.responseMetadata.retrieverErrorCount).toBe(0);
     // the retriever erred twice then succeeded
     expect(retriever).toHaveBeenCalledTimes(3);
-  });
-
-  it("should err gracefully when cacache experiences read errors", async () => {
-    // simulate an error like the cache's disk isn't found. the cache client won't bother running the retriever if it doesn't think it can access the filesystem
-    const cacacheGetInfoMock = jest.spyOn(cacache.get, "info").mockImplementation(async () => {
-      throw new Error("something went wrong reading from the filesystem");
-    });
-
-    const identifier = `${expect.getState().currentTestName} test6`;
-    const data = "Brent Spiner";
-    let runs = 0;
-    const retriever = async () => {
-      runs += 1;
-      return data;
-    };
-
-    const res = await fetchWithCache({
-      identifier,
-      cacheFolder: "test",
-      retriever,
-    });
-
-    expect(res.responseMetadata.retrieverStatus).toEqual("complete");
-
-    // cache client should always run the retriever when the cache is unavailable
-    expect(res.data).toEqual(data);
-    expect(runs).toEqual(1);
-
-    expect(cacacheGetInfoMock).toHaveBeenCalled();
-
-    cacacheGetInfoMock.mockReset();
-  });
-
-  it("should err gracefully when cacache experiences write errors", async () => {
-    // simulate an error like the cache's disk isn't found. the cache client won't bother running the retriever if it doesn't think it can access the filesystem
-    const cacachePutMock = jest.spyOn(cacache, "put").mockImplementation(async () => {
-      throw new Error("something went wrong writing to the filesystem");
-    });
-
-    const identifier = `${expect.getState().currentTestName} test7`;
-    const data = "Brent Spiner";
-    let runs = 0;
-    const retriever = async () => {
-      runs += 1;
-      return data;
-    };
-
-    const res = await fetchWithCache({
-      identifier,
-      cacheFolder: "test",
-      retriever,
-    });
-
-    expect(res.responseMetadata.retrieverStatus).toEqual("complete");
-
-    // cache client should always run the retriever when the cache is unavailable
-    expect(res.data).toEqual(data);
-    expect(runs).toEqual(1);
-
-    expect(cacachePutMock).toHaveBeenCalled();
-
-    cacachePutMock.mockReset();
   });
 });

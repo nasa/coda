@@ -15,6 +15,7 @@ import {
   MediaOverride_db,
   PhotoTimeShifts_db,
   VideoStartTimeOverrides_db,
+  Cache_db,
 } from "./src/server/database/models/_allModels";
 import path from "path";
 
@@ -37,6 +38,7 @@ export default defineConfig({
     AncillaryDataSource_db,
     VideoStartTimeOverrides_db,
     PhotoTimeShifts_db,
+    Cache_db,
   ],
   entities: [
     GPXTracks_db,
@@ -44,6 +46,7 @@ export default defineConfig({
     AncillaryDataSource_db,
     VideoStartTimeOverrides_db,
     PhotoTimeShifts_db,
+    Cache_db,
   ],
   debug: process.env.DEBUG === "true" || process.env.DEBUG?.includes("db"),
   allowGlobalContext: true,

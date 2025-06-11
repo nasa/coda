@@ -328,6 +328,12 @@ export const config: DotenvConfig<typeof environments> = {
     default: "udp://127.0.0.1:514",
   },
 
+  // Mock up the user when running in non-docker local dev or else JWT errors will occur
+  MOCK_USER: {
+    local: "true",
+    default: "false",
+  },
+
   // show / hide console logs via logger class on server side
   SHOW_CLG: {
     local: "true",
