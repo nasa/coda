@@ -112,3 +112,8 @@ interface VideoQueryParams {
 interface PhotoQueryParams {
   dateWanted: string;
 }
+
+interface EvictCacheQueryParams {
+  lastUsedIsoDate: string;
+  folder?: string;
+}

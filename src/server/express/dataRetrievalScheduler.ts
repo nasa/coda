@@ -11,10 +11,9 @@ import getLabsSgAudio from "server/processing/emss/sgAudio";
 import getGraphManifest from "server/processing/sequences/graph";
 import { getISSEvaData } from "server/processing/sequences/evas";
 import getTestEventsData from "server/processing/sequences/test-events";
-import cacache from "cacache";
 import { ConsoleLogger } from "../../utils/logger";
 import isEqual from "lodash/isEqual";
-import { cachePutWrapper } from "server/processing/cache-client";
+import { getCacheEntry, putCacheEntry, removeCacheEntry } from "server/processing/cache-db";
 
 export const dataFetchConfigs: DataFetchConfig[] = [
   {
@@ -171,14 +170,6 @@ const fetchDataWithRetries = async ({
   return wrappedResponse;
 };
 
-const getCacheEntry = async ({ cachePath, dataType }: { cachePath: string; dataType: string }) => {
-  try {
-    return await cacache.get(cachePath, dataType);
-  } catch (e) {
-    return null;
-  }
-};
-
 export const getSourceDateDataType = async ({
   source,
   dateWanted,
@@ -190,22 +181,38 @@ export const getSourceDateDataType = async ({
   dataFetchConfig: DataFetchConfig;
   autoRefresh?: boolean;
 }): Promise<WrappedResponse<any>> => {
-  const cachePath = `${process.env.CACHE_ROOT}/socketDataCache/${source}/${dateWanted}`;
-  const cacheEntry = await getCacheEntry({ cachePath, dataType: dataFetchConfig.type });
+  const cachePath = `socketDataCache/${source}/${dateWanted}`;
+  const cacheEntry = await getCacheEntry({ folder: cachePath, identifier: dataFetchConfig.type });
+
+  // Helper function to check if cache data is a valid object for WrappedResponse
+  const isValidCacheData = (data: any, logPrefix?: string): data is WrappedResponse<any> => {
+    const isValid = data !== null && typeof data === "object";
+    if (!isValid && logPrefix) {
+      ConsoleLogger.warn(
+        `${logPrefix} Cached data for ${dataFetchConfig.type} at ${cachePath} is invalid or not an object. Will use fresh data.`
+      );
+    }
+    return isValid;
+  };
 
   // Check if data is currently being fetched
-  if (cacheEntry?.metadata?.retrieving) {
+  if ((cacheEntry?.metadata as SocketCacheMetadata)?.retrieving) {
     const socketCacheExpired = cacheEntry?.metadata?.expiration
       ? Date.now() > new Date(cacheEntry.metadata.expiration).getTime()
       : true;
 
     if (!socketCacheExpired) {
-      ConsoleLogger.log(
-        `${dataFetchConfig.type} Data is already being fetched for ${source}_${dateWanted}, return the existing cache data.`
-      );
-      const cacheEntryData =
-        cacheEntry?.data?.toString() === "" ? null : JSON.parse(cacheEntry?.data?.toString());
-      return cacheEntryData;
+      if (isValidCacheData(cacheEntry.data, "RETRIEVING CACHE:")) {
+        ConsoleLogger.log(
+          `${dataFetchConfig.type} Data is already being fetched for ${source}_${dateWanted}, returning existing cache data.`
+        );
+        return cacheEntry.data;
+      } else {
+        ConsoleLogger.log(
+          `${dataFetchConfig.type} Data is already being fetched for ${source}_${dateWanted}, but existing cache data is not valid. Returning null.`
+        );
+        return null;
+      }
     }
   }
 
@@ -239,29 +246,26 @@ export const getSourceDateDataType = async ({
       }
     }
 
-    try {
-      return JSON.parse(cacheEntry?.data?.toString());
-    } catch (e) {
-      ConsoleLogger.error(
-        "Failed to parse cached data JSON. Erasing cache entry and continuing to fetch new data"
-      );
-      // Clear cache entry if parsing fails
-      await cacache.rm.entry(cachePath, dataFetchConfig.type);
-      // Continue to fetch new data
+    if (isValidCacheData(cacheEntry.data, "NON-EXPIRED CACHE:")) {
+      return cacheEntry.data;
+    } else {
+      // Remove the problematic cache entry
+      await removeCacheEntry({ folder: cachePath, identifier: dataFetchConfig.type });
+      // Fall through to fetch new data
     }
   }
 
   ConsoleLogger.log(`${dataFetchConfig.type} Cache miss or expired for ${source}_${dateWanted}`);
 
   // Mark as retrieving to prevent multiple fetches with an expiration to account for stuck fetches
-  await cachePutWrapper({
-    cachePath,
-    cacheKey: dataFetchConfig.type,
-    data: cacheEntry ? cacheEntry.data.toString() : "",
+  await putCacheEntry({
+    folder: cachePath,
+    identifier: dataFetchConfig.type,
+    data: cacheEntry ? cacheEntry.data : null,
     metadata: {
       expiration: new Date(Date.now() + 30000).toISOString(),
       retrieving: true,
-    },
+    } as SocketCacheMetadata,
   });
 
   // Fetch new data
@@ -300,26 +304,14 @@ export const getSourceDateDataType = async ({
     }
   }
 
-  let cacheEntryData: WrappedResponse<any> = {
-    data: null,
-    responseMetadata: {
-      retrieverStatus: "error",
-      expiration: null,
-      cachedTimestamp: null,
-      error: null,
-      retrieverErrorCount: 0,
-      lastErrorTimestamp: null,
-    },
-  };
-  try {
-    cacheEntryData =
-      cacheEntry?.data?.toString() === "" ? null : JSON.parse(cacheEntry?.data?.toString());
-  } catch (e) {
-    ConsoleLogger.error("Failed to parse cached data JSON. Assuming null");
+  // Get previous cached WrappedResponse for comparison
+  let previousCachedWrappedResponse: WrappedResponse<any> | null = null;
+  if (cacheEntry && isValidCacheData(cacheEntry.data, "COMPARISON CACHE:")) {
+    previousCachedWrappedResponse = cacheEntry.data;
   }
 
   // Emit to all clients in source_date channel regardless of status, but only if the data from the fetch is different from the cache
-  if (!isEqual(wrappedResponse?.data, cacheEntryData?.data)) {
+  if (!isEqual(wrappedResponse?.data, previousCachedWrappedResponse?.data)) {
     ConsoleLogger.log(
       `${dataFetchConfig.type} Emitting data update to room for ${source}_${dateWanted} to all clients\n`
     );
@@ -336,10 +328,10 @@ export const getSourceDateDataType = async ({
   }
 
   // Update cache with new data even if it's an error
-  await cachePutWrapper({
-    cachePath,
-    cacheKey: dataFetchConfig.type,
-    data: JSON.stringify(wrappedResponse),
+  await putCacheEntry({
+    folder: cachePath,
+    identifier: dataFetchConfig.type,
+    data: wrappedResponse, // Pass wrappedResponse directly
     metadata: {
       expiration: wrappedResponse?.responseMetadata?.expiration,
       retrieving: false,

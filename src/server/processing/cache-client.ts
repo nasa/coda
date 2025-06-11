@@ -1,7 +1,5 @@
-import cacache from "cacache";
-import crypto from "crypto";
-import isNil from "lodash/isNil";
 import random from "lodash/random";
+import { getCacheEntry, putCacheEntry } from "./cache-db";
 
 interface FetchWithCacheParams<T> {
   /** The cache key. Must be unique for the folder */
@@ -11,7 +9,7 @@ interface FetchWithCacheParams<T> {
   /** Async function to perform a request if we can't use the cache. Must return JSON */
   retriever: () => Promise<T>;
   /** The max age in seconds for cache entries before retrieving new data. When the retriever is run,
-   * this value is used to create the expiration value store in the caCache metadata.
+   * this value is used to create the expiration value store in the cache metadata.
    * Note that a random amount of time is added to this value to avoid cache stampedes */
   cacheAge?: number;
   /**Return the cached data, then force the retriever function to get new data regardless of cache age. */
@@ -42,16 +40,12 @@ There are two types of errors to consider - (1) errors that are the fault of the
 In the case of (1), we use the `"error"` retriever status to let the caller know something went wrong with their retriever.
 We enforce that the caller must wait some growing number of seconds, with a maximum of 30 seconds, between retriever calls that err.
 
-Case (2) is assumed to be caused by an issue with the cache. While cacache is robust, lots can go wrong when you read from / write to the filesystem.
-This is especially so because we are not guaranteed to have exclusive control over the disk that the cache lives on.
-We could have everything from permission issues to missing disks to corrupted files to missing volumes, etc.
-We take the view that errors could occur on reads from the cache or writes to the cache. Thus, in the function below we only `try / catch` the
-  first time we read from / write to the cache. Subsequent reads and writes are assumed to be safe if the first ones worked.
-
-The cache client is supposed to be a transparent layer from the perspective of the caller.
-We are always responsible for returning data (when we can). You will see that if we cannot access the cache,
-  we still run the retriever function to give something to the caller.
-CODA will slow down because we're skipping the cache, but at least it should keep working!
+Case (2) involves issues with the database cache. Errors can occur during reads (`getCacheEntry`) or writes (`putCacheEntry`)
+due to various reasons like connection problems, query failures, or other database-related issues.
+We aim to make the cache layer transparent and resilient. If cache operations fail, we log the error
+and attempt to proceed by running the `retriever` function. This ensures that CODA continues to function,
+albeit potentially slower if the cache is consistently unavailable, rather than failing outright due to cache issues.
+The primary goal is to return data to the caller whenever possible.
 */
 
 /**
@@ -67,45 +61,14 @@ export default async function fetchWithCache<T>({
   randomizeCacheAge = true,
   errorRetryCoefficient = 10, // 10 seconds
 }: FetchWithCacheParams<T>): Promise<WrappedResponse<T>> {
-  const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder}`;
+  const cachePath = `${cacheFolder}`;
 
-  // to be clear, we're not hashing sensitive data, just cache keys
-  const hash = crypto.createHash("md5");
-  hash.update(identifier);
-  const cacheKey = hash.copy().digest("hex");
+  const cacheKey = identifier; // Use the identifier directly as the cache key
 
-  const noCacheRunRetriever = async () => {
-    const newResponseMetadata: ResponseMetadata = {
-      retrieverStatus: null,
-      cachedTimestamp: null,
-      expiration: null,
-      error: "cache client failed",
-      retrieverErrorCount: 0,
-      lastErrorTimestamp: new Date().toISOString(),
-    };
-
-    try {
-      const res = await retriever();
-      newResponseMetadata.retrieverStatus = "complete";
-      return {
-        responseMetadata: newResponseMetadata,
-        data: res,
-      };
-    } catch (e) {
-      newResponseMetadata.retrieverStatus = "error";
-      newResponseMetadata.error = `cache client failed and retriever also failed with ${e}`;
-      return {
-        responseMetadata: newResponseMetadata,
-        data: null,
-      };
-    }
-  };
-
-  // default cachedData to this string because we can't put null in caCache data
-  let cachedData: string = '{"empty": "cache"}';
   let cachedRes: T = null;
+  const initialCacheObject = { empty: "cache" }; // Used as a placeholder or default
   let shouldRunRetriever: Boolean;
-  let caCacheMetadata: CaCacheMetadata = {
+  let cacheMetadata: CacheMetadata = {
     retrieverStatus: null,
     cachedTimestamp: null,
     expiration: null,
@@ -121,68 +84,71 @@ export default async function fetchWithCache<T>({
     retrieverErrorCount: 0,
     lastErrorTimestamp: null,
   };
-  let cacheInfo = null;
 
+  // fetch the cache entry
+  let cacheEntry;
   try {
-    // probe the cache
-    cacheInfo = await cacache.get.info(cachePath, cacheKey);
+    cacheEntry = await getCacheEntry({ folder: cachePath, identifier: cacheKey });
   } catch (e) {
-    console.error(`Cache client failed to read from cache path ${cachePath}`, e);
-    return noCacheRunRetriever();
+    console.warn(
+      `Cache client failed to read from cache. Key: ${cacheKey}. Proceeding with retriever.`,
+      e
+    );
+    // Treat as cache miss, retriever will run.
+    cacheEntry = null;
   }
 
-  if (isNil(cacheInfo)) {
-    // new cache entry! always run the retriever in this case
-    shouldRunRetriever = true;
-  } else {
-    // we have a cache entry! grab what we know about the retriever and response from last time
-    //   and then determine if we have to run the retriever or not
-    const cacheEntry = await cacache.get(cachePath, cacheKey);
-    cachedData = cacheEntry.data.toString();
-    cachedRes = JSON.parse(cachedData);
-    caCacheMetadata = cacheEntry.metadata;
+  if (cacheEntry) {
+    cachedRes = cacheEntry.data as T;
+    cacheMetadata = cacheEntry.metadata as CacheMetadata; // Ensure metadata is correctly typed
     responseMetadata = {
       ...responseMetadata,
-      retrieverStatus: caCacheMetadata.retrieverStatus,
-      cachedTimestamp: caCacheMetadata.cachedTimestamp,
-      expiration: caCacheMetadata.expiration,
-      retrieverErrorCount: caCacheMetadata.retrieverErrorCount,
+      retrieverStatus: cacheMetadata.retrieverStatus,
+      cachedTimestamp: cacheMetadata.cachedTimestamp,
+      expiration: cacheMetadata.expiration,
+      retrieverErrorCount: cacheMetadata.retrieverErrorCount,
     };
 
     shouldRunRetriever =
       // caller is insistent, or...
       forceRetriever ||
       // ...cache is expired like normal, or...
-      (caCacheMetadata?.retrieverStatus === "complete" &&
-        new Date(caCacheMetadata?.expiration) < new Date()) ||
+      (cacheMetadata?.retrieverStatus === "complete" &&
+        new Date(cacheMetadata?.expiration) < new Date()) ||
       // ...something went wrong with the retriever last time (and we've waited long enough to try again)
-      (caCacheMetadata?.retrieverStatus === "error" &&
-        waitedLongEnough(caCacheMetadata, errorRetryCoefficient)) ||
-      // ...the retriever is still in progress but it has been taking longer than the caCacheMetadata.expiration that we set when we started it, so retry
-      (caCacheMetadata?.retrieverStatus === "inprogress" &&
-        new Date(caCacheMetadata?.expiration) < new Date());
+      (cacheMetadata?.retrieverStatus === "error" &&
+        waitedLongEnough(cacheMetadata, errorRetryCoefficient)) ||
+      // ...the retriever is still in progress but it has been taking longer than the cacheMetadata.expiration that we set when we started it, so retry
+      (cacheMetadata?.retrieverStatus === "inprogress" &&
+        new Date(cacheMetadata?.expiration) < new Date());
+  } else {
+    // no cache entry (or failed to read), so we have to run the retriever
+    shouldRunRetriever = true;
   }
 
   if (shouldRunRetriever) {
     responseMetadata.retrieverStatus = "inprogress";
-    caCacheMetadata.retrieverStatus = "inprogress";
-    // use caCacheMetadata.expiration to store the expiration date that in this case means how long to wait for "inprogress" before trying again
-    caCacheMetadata.expiration = new Date(Date.now() + 60000).toISOString(); // 60 seconds
+    cacheMetadata.retrieverStatus = "inprogress";
+    // use cacheMetadata.expiration to store the expiration date that in this case means how long to wait for "inprogress" before trying again
+    cacheMetadata.expiration = new Date(Date.now() + 60000).toISOString(); // 60 seconds
     try {
-      await cachePutWrapper({
-        cachePath,
-        cacheKey,
-        data: cachedData,
-        metadata: caCacheMetadata,
+      await putCacheEntry({
+        folder: cachePath,
+        identifier: cacheKey,
+        data: cachedRes && !cachedRes.hasOwnProperty("empty") ? cachedRes : initialCacheObject,
+        metadata: cacheMetadata,
       });
     } catch (e) {
-      console.error(`cache client failed to write to cache path ${cachePath}`, e);
-      return noCacheRunRetriever();
+      console.warn(
+        `Cache client failed to write 'inprogress' status to cache. Key: ${cacheKey}. Proceeding with retriever.`,
+        e
+      );
+      // Don't re-throw. Allow retriever to run. The cache might be temporarily unavailable.
     }
     retriever()
       .then(async (res) => {
         //update the cache
-        const newData = JSON.stringify(res);
+        // const newData = JSON.stringify(res); // No longer stringify
 
         let expiration = new Date(Date.now() + cacheAge * 1000);
         // make a new expiry date that is cacheAge seconds from now but add a random number of seconds to avoid cache stampedes
@@ -196,7 +162,7 @@ export default async function fetchWithCache<T>({
           }
         }
 
-        const newMetadata: CaCacheMetadata = {
+        const newMetadata: CacheMetadata = {
           retrieverStatus: "complete",
           cachedTimestamp: new Date().toISOString(),
           expiration: expiration.toISOString(),
@@ -205,28 +171,28 @@ export default async function fetchWithCache<T>({
           lastErrorTimestamp: null,
         };
 
-        return cachePutWrapper({
-          cachePath,
-          cacheKey,
-          data: newData,
+        return putCacheEntry({
+          folder: cachePath,
+          identifier: cacheKey,
+          data: res, // Pass the raw 'res' object
           metadata: newMetadata,
         });
       })
       .catch((e) => {
         // the cache should represent that an error occurred in the retriever
-        const newMetadata: CaCacheMetadata = {
+        const newMetadata: CacheMetadata = {
           retrieverStatus: "error",
-          cachedTimestamp: caCacheMetadata.cachedTimestamp,
-          expiration: caCacheMetadata.expiration,
+          cachedTimestamp: cacheMetadata.cachedTimestamp,
+          expiration: cacheMetadata.expiration,
           retrieverErrorDescription: e.toString(),
-          retrieverErrorCount: caCacheMetadata.retrieverErrorCount + 1,
+          retrieverErrorCount: cacheMetadata.retrieverErrorCount + 1,
           lastErrorTimestamp: new Date().toISOString(),
         };
 
-        return cachePutWrapper({
-          cachePath,
-          cacheKey,
-          data: cachedData,
+        return putCacheEntry({
+          folder: cachePath,
+          identifier: cacheKey,
+          data: cachedRes && !cachedRes.hasOwnProperty("empty") ? cachedRes : initialCacheObject,
           metadata: newMetadata,
         });
       });
@@ -241,84 +207,15 @@ export default async function fetchWithCache<T>({
 /**
  * In the event of an error, we want to avoid spamming retries. Check if enough time has passed since the last retry
  */
-function waitedLongEnough(caCacheMetadata: CaCacheMetadata, errorRetryCoefficient: number) {
+function waitedLongEnough(cacheMetadata: CacheMetadata, errorRetryCoefficient: number) {
   // if the retriever has errored, space out retries by an additional `errorRetryCoefficient` ms each time, with a max wait of 30 seconds
   const retryInterval = Math.min(
     30000,
-    errorRetryCoefficient * 1000 * caCacheMetadata.retrieverErrorCount
+    errorRetryCoefficient * 1000 * cacheMetadata.retrieverErrorCount
   );
-  const lastRetryTimestamp = new Date(caCacheMetadata.lastErrorTimestamp);
+  const lastRetryTimestamp = new Date(cacheMetadata.lastErrorTimestamp);
   const nextRetryTimestamp = new Date(lastRetryTimestamp.getTime() + retryInterval);
   const now = new Date();
 
   return now > nextRetryTimestamp;
-}
-
-/** Nuke the cache */
-export async function clearAll() {
-  const cacheFolder = {
-    Celestrak: "celestrak" as CacheFolder,
-    Spacetrack: "spacetrack" as CacheFolder,
-    Daynight_topo: "daynight/topo" as CacheFolder,
-    Daynight_issLocation: "daynight/issLocation" as CacheFolder,
-    Io: "io" as CacheFolder,
-    Transcripts: "labs/transcripts" as CacheFolder,
-    Audio: "labs/audio" as CacheFolder,
-    Wiki: "wiki" as CacheFolder,
-    Wiki_all: "wiki/all" as CacheFolder,
-    Wiki_gps: "wiki/gps" as CacheFolder,
-    test: "test" as CacheFolder,
-  };
-
-  try {
-    for (const folder in cacheFolder) {
-      const cachePath = `${process.env.CACHE_ROOT}/${cacheFolder[folder as keyof typeof cacheFolder]}`;
-      await cacache.rm.all(cachePath);
-    }
-  } catch (e) {
-    console.warn(`Could not clear cache`);
-    console.warn(e);
-  }
-}
-
-export async function clearCacheByIdentifer(identifier: string, folder: CacheFolder) {
-  const cachePath = `${process.env.CACHE_ROOT}/${folder}`;
-  const hash = crypto.createHash("md5");
-  hash.update(identifier);
-  const cacheKey = hash.copy().digest("hex");
-  try {
-    await cacache.rm(cachePath, cacheKey);
-  } catch (e) {
-    console.warn(`Could not clear cache identifier: '${folder}/${identifier}'`);
-    console.warn(e);
-  }
-}
-
-export async function clearCacheByFolder(folder: CacheFolder) {
-  const cachePath = `${process.env.CACHE_ROOT}/${folder}`;
-  try {
-    await cacache.rm.all(cachePath);
-  } catch (e) {
-    console.warn(`Could not clear cache folder: '${folder}'`);
-    console.warn(e);
-  }
-}
-
-/**
- * Wrapper for cacache.put that ensures maintenance operations are serialized.
- */
-export async function cachePutWrapper({
-  cachePath,
-  cacheKey,
-  data,
-  metadata,
-}: {
-  cachePath: string;
-  cacheKey: string;
-  data: string;
-  metadata: CaCacheMetadata | SocketCacheMetadata;
-}): Promise<string> {
-  return await cacache.put(cachePath, cacheKey, Buffer.from(data), {
-    metadata,
-  });
 }

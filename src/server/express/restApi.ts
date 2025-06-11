@@ -15,15 +15,14 @@ import mediaOverridesRoute from "./routes/db/mediaOverrides";
 import ancillaryDataRoute from "./routes/db/ancillaryDataSources";
 import graphsRoute from "./routes/sequences/graphs";
 import testEventsRoute from "./routes/sequences/test-events";
-import clearRoute from "./routes/cache/clear";
-import clearAllRoute from "./routes/cache/clearAll";
 import getCurrentUser from "./routes/user/auth";
 import logFromClient from "./routes/user/logFromClient";
 import profiler from "./routes/profiler/profiler";
-import cacheGarbageCollectRoute from "./routes/cache/cacheGarbageCollect";
+import cachePortRoute from "./routes/cache/port";
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
 import serverSocketStatus from "./routes/socketStatus/socketStatus";
+import evictRoute from "./routes/cache/evict";
 
 const app: Application = express();
 
@@ -37,7 +36,7 @@ app.get("/api/v1/health", (req, res) => {
 });
 
 // output socket visitor information
-app.use("/api/v1/socketStatus", serverSocketStatus);
+app.use("/api/v1/socketStatus", serverSocketStatus); // routed through launchpad
 
 app.get("/api/v1/version", (req, res) => {
   res.send({ version: packageJSON.version });
@@ -54,15 +53,14 @@ app.use("/api/v1/media/videosMediaMtx", mtxPlaybackRoute);
 app.use("/api/v1/sequences/evas", evasRoute);
 app.use("/api/v1/sequences/graphs", graphsRoute);
 app.use("/api/v1/sequences/test-events", testEventsRoute);
-app.use("/api/v1/cache/clear", clearRoute);
-app.use("/api/v1/cache/clearAll", clearAllRoute);
-app.use("/api/v1/cache/garbageCollect", cacheGarbageCollectRoute);
+app.use("/api/v1/cache/evict", evictRoute); // routed through launchpad
+app.use("/api/v1/cache/port", cachePortRoute); // routed through launchpad
 app.use("/api/v1/db/gps", gpsRoute);
 app.use("/api/v1/db/mediaOverrides", mediaOverridesRoute);
 app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
 app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);
 app.use("/api/v1/db/photoTimeShifts", photoRoute);
-app.use("/api/v1/user/current", getCurrentUser);
+app.use("/api/v1/user/current", getCurrentUser); // routed through launchpad
 app.use("/api/v1/log/from-client", logFromClient);
 app.use("/api/v1/profile", profiler);
 export default app;
