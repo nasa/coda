@@ -10,8 +10,8 @@ interface ResponseMetadata {
   mocked?: boolean;
 }
 
-/** This is the structure of the metadata object that we save within each caCache entry */
-interface CaCacheMetadata {
+/** This is the structure of the metadata object that we save within each cache entry */
+interface CacheMetadata {
   retrieverStatus: RetrieverStatus;
   cachedTimestamp: string; // ISO string
   expiration: string; // ISO string
@@ -42,4 +42,14 @@ type CacheFolder =
 type SocketCacheMetadata = {
   expiration: string;
   retrieving: boolean;
+};
+
+type CacheRecord_db_type = {
+  id: number;
+  folder: string;
+  cacheKey: string;
+  data: unknown;
+  metadata: CacheMetadata | SocketCacheMetadata;
+  createdAt: Date;
+  lastAccessedAt: Date;
 };

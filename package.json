@@ -26,11 +26,11 @@
     "vite:dev:wait": "wait-on http://localhost:3001/api/v1/health && vite",
     "api:build": "node esbuild.mjs",
     "api:build:watch": "npm run api:build -- --watch",
-    "api:dev": "rimraf ./.local/express/dist && cross-env MOCK_USER=true npm run api:build:watch",
+    "api:dev": "rimraf ./.local/express/dist && cross-env npm run api:build:watch",
     "api:prod": "cross-env NODE_ENV=production node ./.local/express/dist/api.js",
     "migrate:up": "npx mikro-orm migration:up",
     "migrate:down": "npx mikro-orm migration:down",
-    "migrate:create": "npx mikro-orm migration:create",
+    "migrate:create": "npx mikro-orm migration:create && npx prettier --write ./src/server/database/migrations/Migration20*.ts --ignore-path .prettierignore",
     "migrate:fresh": "npx mikro-orm migration:fresh"
   },
   "repository": {

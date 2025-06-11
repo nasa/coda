@@ -36,7 +36,7 @@ export const setupSocketIO = (): void => {
         // update the server data refresh timeouts object to possibly add this source/day if this is the first visitor currently viewing it
         updateServerDataRefreshTimeoutsObject();
 
-        // immediately emit any cacached data we have for this visitor's source and date
+        // immediately emit any cached data we have for this visitor's source and date
         // if caches are missed in these calls, they are filled
         fetchAndEmitAllData({
           socket,

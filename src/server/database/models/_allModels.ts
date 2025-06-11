@@ -5,9 +5,11 @@ import { MediaOverride_db } from "./mediaOverride.model";
 import { AncillaryDataSource_db } from "./ancillaryData.model";
 import { VideoStartTimeOverrides_db } from "./VideoStartTimeOverrides.model";
 import { PhotoTimeShifts_db } from "./PhotoTimeShifts.model";
+import { Cache_db } from "./cache.model"; // new import
 
 export { GPXTracks_db };
 export { MediaOverride_db };
 export { AncillaryDataSource_db };
 export { VideoStartTimeOverrides_db };
 export { PhotoTimeShifts_db };
+export { Cache_db }; // new export
