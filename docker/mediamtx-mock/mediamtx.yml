@@ -756,14 +756,14 @@ paths:
     runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
     runOnInitRestart: yes
 
-  DL2_ISS:
-    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL2_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
-    runOnInitRestart: yes
+  # DL2_ISS:
+  #   runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL2_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+  #   runOnInitRestart: yes
 
   # test event
-  # DL1_TE:
-  #   runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
-  #   runOnInitRestart: yes
+  DL1_TE:
+    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInitRestart: yes
 
   # Settings under path "all_others" are applied to all paths that
   # do not match another entry.

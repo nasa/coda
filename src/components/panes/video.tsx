@@ -302,10 +302,10 @@ export const ChannelSelectorSmall: FunctionComponent<{
   );
 };
 
-const ChannelDropdownLabel: FunctionComponent<{
-  dlNumber: number;
-  isAvailable: boolean;
-}> = ({ dlNumber, isAvailable }) => {
+const ChannelDropdownLabel: FunctionComponent<{ dlNumber: number; isAvailable: boolean }> = ({
+  dlNumber,
+  isAvailable,
+}) => {
   let color = isAvailable ? "active_selected" : "disabled_selected";
 
   return (
@@ -1022,6 +1022,10 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
   }, deepEqual);
 
+  const source = useAppSelector((state: RootState) => {
+    return state.framework.source;
+  }, refEqual);
+
   const { playhead } = usePlayheadContext();
 
   // if live video system is diabled, always show the IO player
@@ -1054,7 +1058,9 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
   const now = new Date();
   const nowAppSeconds = appSecondsFromDateString(now.toISOString());
 
-  const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
+  const suffix = source === "ISS" ? "ISS" : "TE";
+
+  const endpointName = `DL${downlinkNumber}_${suffix}` as MTXHlsEndpointName;
   const mtxHlsEndpoints = videos.mtxHlsEndpoints;
   const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
 
