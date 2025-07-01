@@ -112,6 +112,10 @@ const RightButtons: FunctionComponent<{
     deepEqual
   );
 
+  const source = useAppSelector((state: RootState) => {
+    return state.framework.source;
+  }, refEqual);
+
   const [videoPlayerType, setVideoPlayerType] = useState<VideoPlayerType>("IO");
 
   const { playhead } = usePlayheadContext();
@@ -140,7 +144,9 @@ const RightButtons: FunctionComponent<{
     const now = new Date();
     const nowAppSeconds = appSecondsFromDateString(now.toISOString());
 
-    const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
+    const suffix = source === "ISS" ? "ISS" : "TE";
+
+    const endpointName = `DL${downlinkNumber}_${suffix}` as MTXHlsEndpointName;
     const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
 
     const duration = hlsEndpoint?.secondsAvailable || 0;
@@ -394,6 +400,10 @@ export const VideoDLPaneControls: FunctionComponent<{
     deepEqual
   );
 
+  const source = useAppSelector((state: RootState) => {
+    return state.framework.source;
+  }, refEqual);
+
   const [channelAvailability, setChannelAvailability] = useState<boolean[]>([]);
 
   useEffect(() => {
@@ -430,7 +440,9 @@ export const VideoDLPaneControls: FunctionComponent<{
       const now = new Date();
       const nowAppSeconds = appSecondsFromDateString(now.toISOString());
 
-      const endpointName = `DL${downlinkNumber}_ISS` as MTXHlsEndpointName;
+      const suffix = source === "ISS" ? "ISS" : "TE";
+
+      const endpointName = `DL${downlinkNumber}_${suffix}` as MTXHlsEndpointName;
       const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
 
       const hlsDuration = hlsEndpoint?.secondsAvailable || 0;
