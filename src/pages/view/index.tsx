@@ -162,10 +162,10 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.frames = setGPSLocationFrame(fState, "5");
       // set the default layout to the standard without Event Info
       fState.layout = "c";
-      if (isNil(date)) {
-        // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
-        date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
-      }
+      // if (isNil(date)) {
+      //   // 2021-10-23 is a good representation of Test Events (D-RATS 2021)
+      //   date = new Date(2021, 9, 23).toISOString().split("T")[0]; // 9 = October
+      // }
     } else if (source === sourceShortVal.NBL) {
       fState.source = "NBL";
       // set the default layout to show no map, only All Photos along the bottom
