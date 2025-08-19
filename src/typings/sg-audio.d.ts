@@ -26,6 +26,30 @@ type SgActivityRangeFullUrlRecord = {
   aacSegmentFullUrl: string;
 };
 
+/**
+ * Talky Bot external manifest API audio activity record
+ */
+type TBExternalManifestActivityRecord = {
+  start: number;
+  stop: number;
+  id: number;
+};
+
+/**
+ * Talky Bot external manifest API channel activity record
+ */
+type TBExternalManifestChannelRecord = {
+  channel: number;
+  activity: TBExternalManifestActivityRecord[];
+};
+
+/**
+ * Talky Bot external manifest API response
+ */
+type TBExternalManifest = {
+  channels: TBExternalManifestChannelRecord[];
+};
+
 type SgActivityFullUrlRecord = {
   override: boolean;
   sgActivityRangeFullUrlRecords: SgActivityRangeFullUrlRecord[][]; // 4 channels
