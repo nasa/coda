@@ -5,9 +5,7 @@ type GlobalValues = {
     InterServerEvents,
     SocketData
   >;
-  ormCache:
-    | import("@mikro-orm/core").MikroORM<import("@mikro-orm/postgresql").PostgreSqlDriver>
-    | null;
+  ormCache: import("@mikro-orm/postgresql").MikroORM | null;
   serverSocketStatus: ServerSocketStatus;
   socketInterval: NodeJS.Timeout;
   serverDataRefreshTimeouts: {

@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property, Index, types as MikroTypes } from "@mikro-orm/core";
+import { Entity, PrimaryKey, Property, Index, types as MikroTypes } from "@mikro-orm/postgresql";
 
 @Entity()
 export class Cache_db implements CacheRecord_db_type {

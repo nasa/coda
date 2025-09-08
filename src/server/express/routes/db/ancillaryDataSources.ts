@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { getEM } from "utils/mikro";
-import { Loaded } from "@mikro-orm/core";
+import { Loaded } from "@mikro-orm/postgresql";
 import { AncillaryDataSource_db } from "server/database/models/_allModels";
 
 /**

@@ -1,5 +1,5 @@
 import { getEM } from "utils/mikro";
-import { Loaded } from "@mikro-orm/core";
+import { Loaded } from "@mikro-orm/postgresql";
 import { GPXTracks_db } from "server/database/models/_allModels";
 import fetchWithCache from "../cache-client"; // new import
 import { XMLParser } from "fast-xml-parser";
