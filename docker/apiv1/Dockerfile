@@ -25,4 +25,4 @@ COPY . /app
 RUN npm run api:build
 
 # This image is intended to be run with docker-compose.
-CMD ["/bin/sh", "-c", "npm run migrate:up; npm run api:prod"]
+CMD ["/bin/sh", "-c", "npm run migration:up; npm run api:prod"]
