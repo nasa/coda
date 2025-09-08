@@ -7,7 +7,7 @@ ARG APIV1_BASE_IMAGE=node:22.15.0-alpine
 # # # # # # # #
 # PROD image  #
 # # # # # # # #
-FROM $APIV1_BASE_IMAGE as prod
+FROM $APIV1_BASE_IMAGE AS prod
 
 # CODA requires a special CA-cert in place to talk to Imagery Online.
 COPY .env.local.cert.pem /
