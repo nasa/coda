@@ -249,7 +249,7 @@ test:
     - make-test-dotenv
   tags: ["docker", "linux"]
   script:
-    - npm run migrate:up
+    - npm run migration:up
     - npm run lint
     - npm run tsc
     - npm run test:coverage

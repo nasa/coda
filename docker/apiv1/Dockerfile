@@ -2,12 +2,13 @@
 #   (which is true when building locally) then use the value to the right of the = operator
 # Base image optionally from arg
 # ref: https://eegitlab.fit.nasa.gov/emss/docs/-/blob/main/docker.md#base-images-as-arg
+# hadolint global ignore=DL3006
 ARG APIV1_BASE_IMAGE=node:22.15.0-alpine
 
 # # # # # # # #
 # PROD image  #
 # # # # # # # #
-FROM $APIV1_BASE_IMAGE as prod
+FROM $APIV1_BASE_IMAGE AS prod
 
 # CODA requires a special CA-cert in place to talk to Imagery Online.
 COPY .env.local.cert.pem /
@@ -25,4 +26,4 @@ COPY . /app
 RUN npm run api:build
 
 # This image is intended to be run with docker-compose.
-CMD ["/bin/sh", "-c", "npm run migrate:up; npm run api:prod"]
+CMD ["/bin/sh", "-c", "npm run migration:up; npm run api:prod"]

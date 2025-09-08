@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Creates a self-signed SSL certificate for the purpose of local development
 

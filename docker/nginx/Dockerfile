@@ -1,5 +1,6 @@
 # Get the base image, which is supplied by the pipeline. If the *_BASE_IMAGE value is not defined
 #   (which is true when building locally) then use the value to the right of the = operator
+# hadolint global ignore=DL3006
 ARG NGINX_BASE_IMAGE=nginx:1.28.0-alpine
 ARG NODE_BASE_IMAGE=node:22.15.0-alpine
 
@@ -9,7 +10,7 @@ ARG NODE_BASE_IMAGE=node:22.15.0-alpine
 
 # This build doesn't actually need the "AS base" except that it simplifies our .gitlab-ci.yml by
 # allowing us to specify `--target base`
-FROM $NGINX_BASE_IMAGE as base
+FROM $NGINX_BASE_IMAGE AS base
 
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static 
@@ -19,7 +20,7 @@ RUN mkdir -p /usr/share/nginx/static
 # # # # # # # # #
 
 ### Build the React client
-FROM $NODE_BASE_IMAGE as builder
+FROM $NODE_BASE_IMAGE AS builder
 
 RUN mkdir /clientsrc
 WORKDIR /clientsrc
@@ -60,7 +61,7 @@ RUN npm run vite:build
 
 # This build doesn't actually need the "AS base" except that it simplifies our .gitlab-ci.yml by
 # allowing us to specify `--target base`
-FROM base as prod
+FROM base AS prod
 
 # Clear out the default nginx files
 RUN rm -rf /usr/share/nginx/html/*
