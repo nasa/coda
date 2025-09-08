@@ -1,11 +1,6 @@
 import dotenv from "dotenv"; //needed to allow jest to init Mikro in globalTeardown
 dotenv.config();
 
-// The following 3 lines are needed to make the MikroORM 6.0.x import for the PostgreSqlDriver work in jest.
-import { TextEncoder, TextDecoder } from "util";
-global.TextEncoder = TextEncoder;
-(global as any).TextDecoder = TextDecoder;
-
 import { PostgreSqlDriver, defineConfig } from "@mikro-orm/postgresql";
 import { Migrator } from "@mikro-orm/migrations";
 import { SeedManager } from "@mikro-orm/seeder";
