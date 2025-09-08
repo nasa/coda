@@ -126,7 +126,7 @@ export function V2() {
 
   return (
     <div className={styles.main}>
-      <title>CODA - {source}</title>
+      <title>{`CODA - ${source}`}</title>
       <Header
         helpLoaderOpen={helpLoaderOpen}
         setHelpLoaderOpen={setHelpLoaderOpen}
