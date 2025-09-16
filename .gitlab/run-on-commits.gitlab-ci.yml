@@ -12,8 +12,8 @@ default:
 variables:
   HOME: "/tmp" # required for openshift for now
   a11y_urls: "https://coda-int.fit.nasa.gov/view?date=2021-03-13&gmt=14:49:46&v=2.0&l=n&s=0&f1=01001iss064m010721435&f2=01011iss064m020721435&f3=0300&f4=0701&f5=051&f6=04&f7=080"
-  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:20.11.0-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:21-alpine"
+  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:22.18.0-alpine"
+  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.4.1-alpine"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"

@@ -2,7 +2,7 @@
 #   (which is true when building locally) then use the value to the right of the = operator
 # hadolint global ignore=DL3006
 ARG NGINX_BASE_IMAGE=nginx:1.28.0-alpine
-ARG NODE_BASE_IMAGE=node:22.15.0-alpine
+ARG NODE_BASE_IMAGE=node:22.18.0-alpine
 
 # # # # # # # #
 # BASE image  #
