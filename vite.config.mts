@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { UserConfig, defineConfig } from "vite";
-import reactPlugin from "@vitejs/plugin-react";
 import path from "path";
+import react from "@vitejs/plugin-react-swc";
 
 const ReactCompilerConfig = {
   // You can specify a target version: '17' | '18' | '19'
@@ -11,13 +11,8 @@ const ReactCompilerConfig = {
 export const config: UserConfig = {
   root: "./src",
   envDir: "../",
-  plugins: [
-    reactPlugin({
-      babel: {
-        plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
-      },
-    }),
-  ],
+  plugins: [react()],
+
   resolve: {
     //alias paths so that the import statements are shorter and start from the src folder
     alias: {

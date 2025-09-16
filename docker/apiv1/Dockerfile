@@ -3,7 +3,7 @@
 # Base image optionally from arg
 # ref: https://eegitlab.fit.nasa.gov/emss/docs/-/blob/main/docker.md#base-images-as-arg
 # hadolint global ignore=DL3006
-ARG APIV1_BASE_IMAGE=node:22.15.0-alpine
+ARG APIV1_BASE_IMAGE=node:22.18.0-alpine
 
 # # # # # # # #
 # PROD image  #
