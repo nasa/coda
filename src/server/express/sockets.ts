@@ -28,7 +28,6 @@ export const setupSocketIO = (): void => {
           client: ${JSON.stringify(visitorData.appVersion)}
           server: ${JSON.stringify(globalValues.appVersion)}`
             );
-            return;
           }
 
           // join the new visitor to the room named the date they are viewing

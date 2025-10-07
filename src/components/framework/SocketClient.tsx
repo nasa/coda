@@ -94,22 +94,6 @@ const SocketClient: FunctionComponent<{
         lastStatusFromServer: socketStatus.lastStatusFromServer,
         clientVersion: socketStatus.clientVersion,
       });
-
-      // hit the API to get the app version and if they are different, then alert the user and refresh the page
-      (async () => {
-        const res = await fetch(`${window.location.origin}/api/v1/version`);
-        if (res.status === 200) {
-          const serverAppVersion = await res.json();
-          if (!isEqual(serverAppVersion, socketStatus.clientVersion)) {
-            alert(
-              `CODA has been updated while you were disconnected.\n
-              Please refresh your browser to get the latest version.`
-            );
-          }
-        } else {
-          alert("Unable to fetch CODA version from server. Please refresh your browser");
-        }
-      })();
     });
 
     // For non-production environments. In production we will attempt reconnects infinitely
