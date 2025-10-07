@@ -23,6 +23,7 @@ import photoRoute from "./routes/db/photos";
 import serverSocketStatus from "./routes/socketStatus/socketStatus";
 import evictRoute from "./routes/cache/evict";
 import { globalValues } from "./global";
+import timeRoute from "./routes/time/time";
 
 const app: Application = express();
 
@@ -64,4 +65,5 @@ app.use("/api/v1/db/photoTimeShifts", photoRoute);
 app.use("/api/v1/user/current", getCurrentUser); // routed through launchpad
 app.use("/api/v1/log/from-client", logFromClient);
 app.use("/api/v1/profile", profiler);
+app.use("/api/v1/time", timeRoute); // simple route to get server time
 export default app;
