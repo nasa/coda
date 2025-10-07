@@ -13,7 +13,7 @@ ARG NODE_BASE_IMAGE=node:22.18.0-alpine
 FROM $NGINX_BASE_IMAGE AS base
 
 # Ensure images directory exists.
-RUN mkdir -p /usr/share/nginx/static 
+RUN mkdir -p /usr/share/nginx/static
 
 # # # # # # # # #
 # BUILDER image #
@@ -32,12 +32,12 @@ RUN npm ci
 
 # copy the rest of the files.
 # Will not copy the .env file due to .dockerignore. This is desirable because we technically want to
-# keep images enviromentally agnosic as possible
+# keep images environmentally agnostic as possible
 COPY . /clientsrc
 
 # All VITE_PUBLIC* environment variables need to be present at build time, because they
 # are actually inserted into the client-side code. Aka, any .env variable that we need
-# at build time must be explicity listed here. The "ARG" command is the docker file saying 
+# at build time must be explicitly listed here. The "ARG" command is the docker file saying
 # "we accept this variable". If you don't list it, it will be un-set at build.
 #
 # The .env file is not copied over, so these variables must be sent in another way. In the pipeline
@@ -51,6 +51,12 @@ ARG VITE_PUBLIC_MEDIA_MTX_HLS_URL
 ARG VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL
 ARG VITE_PUBLIC_MAPLIBRE_BASE_URL
 ARG VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME
+
+# Make GIT_COMMIT available inside docker/kaniko so it can be baked into the code at build time
+# The GIT_COMMIT value is passed in using MAP_ENV_VARS_TO_BUILD_ARGS from the job pipeline.
+# When building this container locally, this is not available so "localDev" will be used as default value
+ARG GIT_COMMIT=localDev
+ENV GIT_COMMIT=$GIT_COMMIT
 
 # Build the React client
 RUN npm run vite:build

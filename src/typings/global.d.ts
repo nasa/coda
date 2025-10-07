@@ -2,13 +2,18 @@ type GlobalValues = {
   socketio: import("socket.io").Server<
     ClientToServerEvents,
     ServerToClientEvents,
-    InterServerEvents,
-    SocketData
+    import("socket.io/dist/typed-events").DefaultEventsMap,
+    {}
   >;
   ormCache: import("@mikro-orm/postgresql").MikroORM | null;
   serverSocketStatus: ServerSocketStatus;
   socketInterval: NodeJS.Timeout;
+  appVersion: AppVersion | null;
   serverDataRefreshTimeouts: {
     [source: string]: { [date: string]: { [dataType: string]: NodeJS.Timeout } };
   };
 };
+
+// these are defined in esbuild.mjs and vite.config.mts
+declare const __APP_VERSION__: string;
+declare const __GIT_COMMIT__: string;

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config({ override: true });
+dotenv.config({ override: true, quiet: true });
 import { createServer } from "http";
 import app from "./restApi";
 import { Server as SocketServer } from "socket.io";
@@ -9,8 +9,6 @@ import { setupSocketIO } from "./sockets";
 import serverLogger from "utils/serverLogger";
 import { ConsoleLogger } from "../../utils/logger";
 
-const port = 3001;
-
 // enable console logging on the server side based on the environment variable
 if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
 
@@ -19,7 +17,6 @@ getORM();
 
 // Create server
 const server = createServer();
-server.on("request", app);
 
 // Start Socket.IO
 console.log("*Starting Socket.IO");
@@ -27,17 +24,26 @@ globalValues.socketio = new SocketServer<
   ClientToServerEvents,
   ServerToClientEvents,
   InterServerEvents,
-  SocketData
+  {}
 >(server, {
   transports: ["websocket"],
   path: "/api/v1/socketio",
   addTrailingSlash: false,
 });
 
+// these values are defined in esbuild.mjs and populated at build time
+globalValues.appVersion = {
+  version: typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "unknown",
+  gitCommit: typeof __GIT_COMMIT__ !== "undefined" ? __GIT_COMMIT__ : "unknown",
+};
+
 setupSocketIO();
 
+// express request handler
+server.on("request", app);
+
 // Start the server
-server.listen(port, () => {
+server.listen(3001, () => {
   serverLogger.info({ logId: "api-restart" });
 });
 
