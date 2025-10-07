@@ -173,10 +173,10 @@ export async function fetchTalkybotTranscripts({
   }
 
   const transcripts: UnprocessedTranscript[] = [];
-  const urlBase = `${process.env.TALKYBOT_URL}/api/v1/external/${dateWanted}`;
+  const urlBase = `${process.env.TALKYBOT_URL}/api/v1/external/transcript/${dateWanted}`;
   // Get all 4 S/G transcript files. If 404 is returned, then return an empty unprocessed utterance array.
   for (let i = 1; i <= 4; i++) {
-    const url = `${urlBase}/transcript-SG${i}.json`;
+    const url = `${urlBase}/channel/${i}`;
     const unprocessedTranscript: UnprocessedTranscript = {
       sgNum: i,
       unprocessedUtterances: [],
@@ -392,7 +392,7 @@ export async function fetchTalkybotSGAudio({
     } as SgActivityFullUrlRecord;
   }
 
-  const url = `${process.env.TALKYBOT_URL}/api/v1/external/audio/${dateWanted}/audioManifest.json`;
+  const url = `${process.env.TALKYBOT_URL}/api/v1/external/manifest/${dateWanted}`;
 
   const res = await fetchWithTimeout(url);
   if (!res.ok) {
@@ -403,19 +403,19 @@ export async function fetchTalkybotSGAudio({
   }
 
   const resJson = await res.json();
-  const audioManifestItem: AudioManifestItem = resJson[0];
+  const manifest: TBExternalManifest = resJson;
 
   const sgActivityRangeFullUrlRecords: SgActivityRangeFullUrlRecord[][] = [];
   for (let sgChannel = 1; sgChannel <= 4; sgChannel++) {
-    const sgChannels = audioManifestItem.sgChannels;
+    const sgChannels = manifest.channels;
     // get the activity ranges for the sgChannel using the sgChannel property in sgChannels
-    const activityRanges = sgChannels.find((sgc) => sgc.sgChannel === sgChannel).activity_ranges;
-    const sgChannelActivityRangeFullUrlRecord: SgActivityRangeFullUrlRecord[] = activityRanges.map(
-      (activityRange) => {
+    const activity = sgChannels.find((val) => val.channel === sgChannel).activity;
+    const sgChannelActivityRangeFullUrlRecord: SgActivityRangeFullUrlRecord[] = activity.map(
+      (val) => {
         return {
-          sound_start_secs: activityRange.sound_start_secs,
-          sound_stop_secs: activityRange.sound_stop_secs,
-          aacSegmentFullUrl: `${process.env.TALKYBOT_URL}/api/v1/external/getSGAudio/${activityRange.aacSegmentFilename}`,
+          sound_start_secs: val.start,
+          sound_stop_secs: val.stop,
+          aacSegmentFullUrl: `${process.env.TALKYBOT_URL}/api/v1/external/audiofiles/${val.id}/file`,
         };
       }
     );
