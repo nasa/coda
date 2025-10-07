@@ -236,14 +236,14 @@ export function lightColor(color: string): boolean {
 }
 
 /**
- * Determine if we don't want to cache. This is for when we're near real-time
+ * Determine if we don't want to cache. This is for when we're within a week
  * This definition may change, so make it a shared function.
  * @param ms
  * @returns
  */
 export function isNearRealTime(ms: number, col: Collection): boolean {
   return (
-    ms > Date.now() - 24 * 60 * 60 * 1000 &&
+    ms > Date.now() - 7 * 24 * 60 * 60 * 1000 &&
     (col === collection.TEST_EVENTS || col === collection.ISS)
   );
 }
