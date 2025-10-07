@@ -59,7 +59,7 @@ describe("appSecondsFromDateString", () => {
 
     expect(() => {
       appSecondsFromDateString(invalidDateString);
-    }).toThrowError("The date string couldn't be converted into a Date");
+    }).toThrow("The date string couldn't be converted into a Date");
   });
 });
 
@@ -99,7 +99,7 @@ describe("hhmmssFromDateString", () => {
 
     expect(() => {
       hhmmssFromDateString(invalidDateString);
-    }).toThrowError("The date string couldn't be converted into a Date");
+    }).toThrow("The date string couldn't be converted into a Date");
   });
 });
 
@@ -214,7 +214,7 @@ describe("isoStringFromAnyDateString", () => {
 
     expect(() => {
       isoStringFromAnyDateString(invalidDateString);
-    }).toThrowError("The date string couldn't be converted into a Date");
+    }).toThrow("The date string couldn't be converted into a Date");
   });
 });
 

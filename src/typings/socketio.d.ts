@@ -1,3 +1,5 @@
+declare type LaunchpadUser = import("@emss/oauth2-proxy-common").EmssUser;
+
 type StoreDataType =
   | "daynight"
   | "ephemeris"
@@ -31,7 +33,7 @@ interface ServerToClientEvents {
   noArg: () => void;
   statusFromServer: (payload: StatusFromServer) => void;
   dataUpdate: (payload: DataUpdate) => void;
-  version: (payload: string) => void;
+  version: (version: AppVersion) => void; // server version sent to client
 }
 
 interface ClientToServerEvents {
@@ -46,30 +48,31 @@ interface ServerSocketStatus {
   visitorsData: VisitorData[];
 }
 
-interface SocketData {
-  name: string;
-  age: number;
-}
-
 interface VisitorData {
   socketId: string;
   dateViewing: string;
   source: Source;
-  user: EmssUser;
+  appVersion: AppVersion;
+  user: LaunchpadUser;
   connectedAt: number;
 }
 
-type ConnectionStatus = "connected" | "disconnected" | "connecting" | "reconnecting";
+type ConnectionStatus = "connected" | "disconnected" | "connecting" | "reconnecting" | "failed";
 
 // socket status for the client
 interface ClientSocketStatus {
   connectionStatus: ConnectionStatus;
   lastStatusFromServer: StatusFromServer;
-  clientVersion: string;
+  clientVersion: AppVersion;
 }
 
 interface StatusFromServer {
   visitorCount: number;
   timestamp: number;
+  serverVersion: AppVersion;
+}
+
+interface AppVersion {
   version: string;
+  gitCommit: string;
 }

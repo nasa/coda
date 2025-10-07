@@ -1,4 +1,3 @@
-import packageJSON from "../../../package.json";
 import express, { Application } from "express";
 import cors from "cors";
 import locationIssRoute from "./routes/location/iss";
@@ -23,6 +22,8 @@ import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
 import serverSocketStatus from "./routes/socketStatus/socketStatus";
 import evictRoute from "./routes/cache/evict";
+import { globalValues } from "./global";
+import timeRoute from "./routes/time/time";
 
 const app: Application = express();
 
@@ -39,8 +40,9 @@ app.get("/api/v1/health", (req, res) => {
 app.use("/api/v1/socketStatus", serverSocketStatus); // routed through launchpad
 
 app.get("/api/v1/version", (req, res) => {
-  res.send({ version: packageJSON.version });
+  res.send(globalValues.appVersion);
 });
+
 app.use("/api/v1/external/daynight/daynight", dayNightRoute); // this is what maestro needs. They should
 app.use("/api/v1/daynight/daynight", dayNightRoute);
 app.use("/api/v1/emss/sgAudio", sgAudioRoute);
@@ -63,4 +65,5 @@ app.use("/api/v1/db/photoTimeShifts", photoRoute);
 app.use("/api/v1/user/current", getCurrentUser); // routed through launchpad
 app.use("/api/v1/log/from-client", logFromClient);
 app.use("/api/v1/profile", profiler);
+app.use("/api/v1/time", timeRoute); // simple route to get server time
 export default app;

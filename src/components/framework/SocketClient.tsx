@@ -1,3 +1,4 @@
+import isEqual from "lodash/isEqual";
 import { setupFetchFns } from "packages/fetchFns";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef, useState } from "react";
@@ -63,6 +64,7 @@ const SocketClient: FunctionComponent<{
         transports: ["websocket"],
         upgrade: true,
         path: "/api/v1/socketio",
+        reconnectionAttempts: socketUrl === "coda.fit.nasa.gov" ? Infinity : 10,
       });
     }
 
@@ -72,6 +74,7 @@ const SocketClient: FunctionComponent<{
         dateViewing: playhead.date.split("T")[0],
         source: source,
         user: user,
+        appVersion: socketStatus.clientVersion,
         connectedAt: Date.now(),
       };
       socket.current.emit("visitorJoin", visitorData);
@@ -93,15 +96,28 @@ const SocketClient: FunctionComponent<{
       });
     });
 
+    // For non-production environments. In production we will attempt reconnects infinitely
+    socket.current.io.on("reconnect_failed", () => {
+      console.error("Socket reconnection failed after maximum attempts.");
+    });
+
+    // Incoming version number
+    socket.current.on("version", (appVersion: AppVersion) => {
+      if (!isEqual(appVersion, socketStatus.clientVersion)) {
+        if (socketStatus.clientVersion?.version) {
+          alert(
+            `A new version of CODA is available. Please refresh your browser to get the latest version. \nCurrent version: ${socketStatus.clientVersion.version}/${socketStatus.clientVersion.gitCommit}\nNew version: ${appVersion.version}/${appVersion.gitCommit} `
+          );
+        }
+      }
+    });
+
     // Incoming client counts
     socket.current.on("statusFromServer", (statusFromServer: StatusFromServer) => {
-      if (statusFromServer.version !== socketStatus.clientVersion && socketStatus.clientVersion) {
-        alert("A new version of CODA is available. Please refresh your browser.");
-      }
       setSocketStatus({
         connectionStatus: "connected",
         lastStatusFromServer: statusFromServer,
-        clientVersion: statusFromServer.version,
+        clientVersion: statusFromServer.serverVersion,
       });
     });
 
@@ -155,7 +171,10 @@ const SocketClient: FunctionComponent<{
       socket.current.off("disconnect");
       socket.current.io.off("reconnect_attempt");
       socket.current.io.off("reconnect");
+      socket.current.io.off("reconnect_failed");
+      socket.current.off("version");
       socket.current.off("statusFromServer");
+      socket.current.off("dataUpdate");
       socket.current.disconnect();
     };
   }, [socket, user, playhead.date, source]);

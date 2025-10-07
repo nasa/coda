@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { Loaded } from "@mikro-orm/core";
+import { Loaded } from "@mikro-orm/postgresql";
 import { getEM } from "utils/mikro";
 import { PhotoTimeShifts_db } from "server/database/models/PhotoTimeShifts.model";
 

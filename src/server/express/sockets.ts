@@ -1,14 +1,13 @@
-import packagejson from "../../../package.json";
 import remove from "lodash/remove";
 import find from "lodash/find";
+import isEqual from "lodash/isEqual";
 import { globalValues } from "./global";
 import { dataFetchConfigs, getSourceDateDataType } from "./dataRetrievalScheduler";
-import { Socket } from "socket.io";
+import type { DefaultEventsMap, Socket } from "socket.io";
 import { ConsoleLogger } from "../../utils/logger";
 
 export const setupSocketIO = (): void => {
-  // initialize the global object that will store the visitor tracking data and last edit events
-
+  // initialize the global object that will store the visitor tracking data
   const visitorsData: VisitorData[] = globalValues.serverSocketStatus.visitorsData;
   let socketInterval: NodeJS.Timeout = null;
   const io = globalValues.socketio;
@@ -16,57 +15,75 @@ export const setupSocketIO = (): void => {
   // Listen for connection events
   io.on(
     "connection",
-    (socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) => {
+    (socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, {}>) => {
       // emit app version to client that just connected
-      socket.emit("version", packagejson.version || "unknown version");
+      socket.emit("version", globalValues.appVersion);
 
       socket.on("visitorJoin", (visitorData: VisitorData) => {
-        // remove this socket from tracking list if it exists
-        remove(visitorsData, (item) => {
-          return item.socketId === visitorData.socketId;
-        });
-        visitorsData.push(visitorData);
+        try {
+          // check app version and git commit
+          if (!isEqual(visitorData.appVersion, globalValues.appVersion)) {
+            console.log(
+              `SocketIO - visitorJoin: appVersion mismatch between client and server
+          client: ${JSON.stringify(visitorData.appVersion)}
+          server: ${JSON.stringify(globalValues.appVersion)}`
+            );
+          }
 
-        // join the new visitor to the room named the date they are viewing
-        ConsoleLogger.log(
-          `New Client: Joining room ${visitorData.source}_${visitorData.dateViewing}`
-        );
-        socket.join(`${visitorData.source}_${visitorData.dateViewing}`);
+          // join the new visitor to the room named the date they are viewing
+          ConsoleLogger.log(
+            `New Client: Joining room ${visitorData.source}_${visitorData.dateViewing}`
+          );
+          socket.join(`${visitorData.source}_${visitorData.dateViewing}`);
 
-        // update the server data refresh timeouts object to possibly add this source/day if this is the first visitor currently viewing it
-        updateServerDataRefreshTimeoutsObject();
+          // set this visitor's information on the server's global
+          // remove this socket from tracking list if it exists and push the new one
+          remove(visitorsData, (item) => {
+            return item.socketId === visitorData.socketId;
+          });
+          visitorsData.push(visitorData);
 
-        // immediately emit any cached data we have for this visitor's source and date
-        // if caches are missed in these calls, they are filled
-        fetchAndEmitAllData({
-          socket,
-          visitorData,
-        });
+          // update the server data refresh timeouts object to possibly add this source/day if this is the first visitor currently viewing it
+          updateServerDataRefreshTimeoutsObject();
 
-        const statusFromServer = getStatusFromServer();
-        // emit visitor count to all clients
-        io.emit("statusFromServer", statusFromServer);
+          // immediately emit any cached data we have for this visitor's source and date
+          // if caches are missed in these calls, they are filled
+          fetchAndEmitAllData({
+            socket,
+            visitorData,
+          });
+
+          // emit visitor count to all clients
+          const statusFromServer = getStatusFromServer();
+          io.emit("statusFromServer", statusFromServer);
+        } catch (error) {
+          console.error("SocketIO - visitorJoin: ", error);
+        }
       });
 
       socket.on("disconnect", () => {
-        const visitorBeingRemoved = find(visitorsData, {
-          socketId: socket.id,
-        });
+        try {
+          const visitorBeingRemoved = find(visitorsData, {
+            socketId: socket.id,
+          });
 
-        // remove this socket from the visitor tracking
-        remove(visitorsData, (item) => {
-          return item?.socketId === visitorBeingRemoved?.socketId;
-        });
+          // remove this socket from the visitor tracking
+          remove(visitorsData, (item) => {
+            return item?.socketId === visitorBeingRemoved?.socketId;
+          });
 
-        // remove the source/day from the server data refresh timeouts object if no more visitors are viewing it
-        updateServerDataRefreshTimeoutsObject();
+          // remove the source/day from the server data refresh timeouts object if no more visitors are viewing it
+          updateServerDataRefreshTimeoutsObject();
 
-        // remove the visitor from the room named the date they are viewing
-        socket.leave(`${visitorBeingRemoved?.source}_${visitorBeingRemoved?.dateViewing}`);
+          // remove the visitor from the room named the date they are viewing
+          socket.leave(`${visitorBeingRemoved?.source}_${visitorBeingRemoved?.dateViewing}`);
 
-        const statusFromServer = getStatusFromServer();
-        // emit visitor count to all clients
-        socket.emit("statusFromServer", statusFromServer);
+          const statusFromServer = getStatusFromServer();
+          // emit visitor count to all clients
+          socket.emit("statusFromServer", statusFromServer);
+        } catch (error) {
+          console.error("SocketIO - disconnect: ", error);
+        }
       });
 
       // send visitor counts to all clients every 10 seconds
@@ -84,7 +101,7 @@ const getStatusFromServer = (): StatusFromServer => {
   return {
     visitorCount: globalValues.serverSocketStatus.visitorsData?.length,
     timestamp: Date.now(),
-    version: packagejson.version || "",
+    serverVersion: globalValues.appVersion,
   };
 };
 

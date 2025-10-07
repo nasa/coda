@@ -40,9 +40,12 @@ export function V2() {
     lastStatusFromServer: {
       timestamp: 0,
       visitorCount: 0,
-      version: "",
+      serverVersion: null,
     },
-    clientVersion: "",
+    clientVersion: {
+      version: __APP_VERSION__,
+      gitCommit: __GIT_COMMIT__,
+    },
   });
 
   const dispatch = useAppDispatch();
@@ -126,7 +129,7 @@ export function V2() {
 
   return (
     <div className={styles.main}>
-      <title>CODA - {source}</title>
+      <title>{`CODA - ${source}`}</title>
       <Header
         helpLoaderOpen={helpLoaderOpen}
         setHelpLoaderOpen={setHelpLoaderOpen}

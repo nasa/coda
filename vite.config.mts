@@ -1,7 +1,10 @@
 /// <reference types="vite/client" />
+import dotenv from "dotenv";
+dotenv.config({ override: true, quiet: true });
 import { UserConfig, defineConfig } from "vite";
-import reactPlugin from "@vitejs/plugin-react";
 import path from "path";
+import react from "@vitejs/plugin-react-swc";
+import packageJSON from "./package.json";
 
 const ReactCompilerConfig = {
   // You can specify a target version: '17' | '18' | '19'
@@ -11,18 +14,12 @@ const ReactCompilerConfig = {
 export const config: UserConfig = {
   root: "./src",
   envDir: "../",
-  plugins: [
-    reactPlugin({
-      babel: {
-        plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
-      },
-    }),
-  ],
+  plugins: [react()],
+
   resolve: {
     //alias paths so that the import statements are shorter and start from the src folder
     alias: {
       components: path.resolve(__dirname, "./src/components"),
-      "http-client": path.resolve(__dirname, "./src/http-client"),
       packages: path.resolve(__dirname, "./src/packages"),
       pages: path.resolve(__dirname, "./src/pages"),
       public: path.resolve(__dirname, "./src/public"),
@@ -87,8 +84,14 @@ export const config: UserConfig = {
       external: ["path", "os", "crypto"],
     },
   },
+  // build time variables
   define: {
     global: {},
+    __APP_VERSION__: JSON.stringify(packageJSON.version),
+    // In the pipeline, GIT_COMMIT will be populated when the ci job passes it in MAP_ENV_VARS_TO_BUILD_ARGS
+    //   to give it to kaniko docker to use during build. However when running this locally
+    //   with NO docker container, we need to set a default value of "localDev"
+    __GIT_COMMIT__: JSON.stringify(process.env.GIT_COMMIT || "localDev"),
   },
 };
 
