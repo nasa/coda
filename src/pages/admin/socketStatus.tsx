@@ -196,9 +196,9 @@ const PrintUsers: FunctionComponent<{
                                         style={{ paddingLeft: "20px" }}
                                         key={`${record.socketId}-${index}`}
                                       >
-                                        Version: {record.appVersion.version} -{" "}
-                                        {record.appVersion.gitCommit} <br />
-                                        Connected At: {new Date(record.connectedAt).toUTCString()}
+                                        Version: {record?.appVersion?.version} -{" "}
+                                        {record?.appVersion?.gitCommit} <br />
+                                        Connected At: {new Date(record?.connectedAt).toUTCString()}
                                       </div>
                                     </div>
                                   );
