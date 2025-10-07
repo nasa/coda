@@ -5,5 +5,6 @@ export const globalValues: GlobalValues = {
   },
   ormCache: null,
   socketInterval: null,
+  appVersion: null,
   serverDataRefreshTimeouts: {},
 };

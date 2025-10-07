@@ -195,7 +195,7 @@ node-sbom:
 
     # Determine which docker image type (dev, int, or prod) to deploy based on branch
     # Append the commit sha in order to ensure the correct build is being deployed in the case
-    # multiple devs are building images simutaneously
+    # multiple devs are building images simultaneously
     - >
       if [ "${CI_COMMIT_REF_SLUG}" == "prod" ]; then
         IMAGE_VERSION="prod-${CI_COMMIT_SHORT_SHA}"
@@ -230,24 +230,28 @@ make-test-dotenv:
 
 test:
   stage: stageless
+  needs:
+    - install_dependencies
+    - make-test-dotenv
   variables:
     # define variables used by Node app
     DB_HOST: postgres-test-container
     DB_PASS: test-only-password
-    DB_PORT: 5432
-    DB_NAME: aegis
+    DB_NAME: coda
 
     # plug those same variables into the Postgres container we're spinning up
     POSTGRES_PASSWORD: test-only-password
-    POSTGRES_DB: aegis
+    POSTGRES_DB: coda
   services:
     # image should match database used in docker-compose.yml
     - name: $CI_REGISTRY/emss/docker-images/postgres:postgis-14-alpine
       alias: postgres-test-container
-  needs:
-    - install_dependencies
-    - make-test-dotenv
   tags: ["docker", "linux"]
+  before_script:
+    # Remove lines from .env file.
+    - sed -i '/DB_PASS/d' .env
+    - sed -i '/DB_HOST/d' .env
+    - sed -i '/DB_NAME/d' .env
   script:
     - npm run migration:up
     - npm run lint
@@ -304,6 +308,7 @@ docker:build:nginx:
     MULTISTAGE_TARGET: prod
     NGINX_BASE_IMAGE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
     NODE_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
+    GIT_COMMIT: $CI_COMMIT_SHORT_SHA
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       NGINX_BASE_IMAGE
       NODE_BASE_IMAGE
@@ -315,6 +320,7 @@ docker:build:nginx:
       VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL
       VITE_PUBLIC_MAPLIBRE_BASE_URL
       VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME
+      GIT_COMMIT
 
 docker:build:apiv1:
   extends: .kaniko-build-template
@@ -322,8 +328,10 @@ docker:build:apiv1:
     SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
     APIV1_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
+    GIT_COMMIT: $CI_COMMIT_SHORT_SHA
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       APIV1_BASE_IMAGE
+      GIT_COMMIT
 
 #
 # Retag docker images after necessary jobs pass (e.g. unit testing passes)
@@ -623,7 +631,7 @@ z:db-import:int:
     - sudo docker compose logs nginx --tail 100
 
     # Put the full logs into artifacts. Full logs may hit the job log length
-    # limit, and generally make the job log unreadably long
+    # limit, and generally make the job log un-readably long
     - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
     - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
 

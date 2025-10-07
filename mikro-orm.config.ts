@@ -1,5 +1,5 @@
 import dotenv from "dotenv"; //needed to allow jest to init Mikro in globalTeardown
-dotenv.config();
+dotenv.config({ override: true, quiet: true });
 
 import path from "node:path";
 

@@ -3,7 +3,7 @@ import { assertEnvVarsExist } from "@emss/utils";
 import dotenv from "dotenv";
 
 // ensures the env vars below are set in all contexts, including CI tests
-dotenv.config({ override: true });
+dotenv.config({ override: true, quiet: true });
 
 const env = assertEnvVarsExist(
   "LOG_ENABLE_APP_LOGGING",

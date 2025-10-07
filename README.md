@@ -108,6 +108,6 @@ _[XKCD](https://xkcd.com/2867/) understands our pain..._
 
 ## APIs
 
-On the server, CODA interacts with external APIs, cleans data, caches responses, and exposes its own APIs to provide nicely formatted data to clients. CODA interacts with external APIs with the code in `src/server/services`. Browser clients interact with CODA's APIs with the code in `src/http-client/`.
+On the server, CODA interacts with external APIs, cleans data, caches responses, and exposes its own APIs to provide nicely formatted data to clients. CODA interacts with external APIs with the code in `src/server/services`.
 
 For more information about the APIs CODA interfaces with: https://eegitlab.fit.nasa.gov/emss/coda/-/wikis/APIs

@@ -1,5 +1,4 @@
 import { DotenvConfig } from "@emss/make-dotenv/src/types";
-import packageJSON from "./package.json";
 
 export const environments = ["local", "fit", "test"] as const;
 
@@ -54,7 +53,7 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   // Ultimately need to alter this based on what server we're on (prod/int/dev). Currently this override
-  // happens in the pipeline depoy script. `INSERT_SUBDOMAIN` that gets replaced
+  // happens in the pipeline deploy script. `INSERT_SUBDOMAIN` that gets replaced
   // with the appropriate subdomain during deploy.
   OAUTH2_PROXY_REDIRECT_URL: {
     // prod: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
@@ -83,7 +82,7 @@ export const config: DotenvConfig<typeof environments> = {
     default: "/d1/coda/static",
   },
 
-  /* 
+  /*
   You probably don't want to change this away from "development"
   "development" for normal dev work, "local" to mock some services. Code seems to only look for
    whether this is set to "local" or not, so could be "local" or anything else.
@@ -115,7 +114,7 @@ export const config: DotenvConfig<typeof environments> = {
   // Optional for local dev only?
   IO_MOCK_MEDIA_URL: { default: "https://coda-data.apolloinrealtime.org/mocks/" },
 
-  // - These values are not used locally since the docker-compose is overriden by
+  // - These values are not used locally since the docker-compose is overridden by
   //   the docker-compose.preview files. Those files build the images directly from the Dockerfiles
   // - IMAGE_VERSION is defined in the pipeline job
   // - The docker images to be used in docker compose when running in the pipeline. These
@@ -245,7 +244,7 @@ export const config: DotenvConfig<typeof environments> = {
       type: "required-from-secret",
     },
   },
-  // Generate passwords if there wern't any sourced from the env.secret.ts
+  // Generate passwords if there weren't any sourced from the env.secret.ts
   DB_PASS: {
     local: {
       type: "generate-to-secret-if-missing",
@@ -338,15 +337,5 @@ export const config: DotenvConfig<typeof environments> = {
   SHOW_CLG: {
     local: "true",
     default: "false",
-  },
-
-  /**
-   * Versioning
-   */
-  APP_VERSION: {
-    default: packageJSON.version,
-  },
-  GIT_COMMIT: {
-    default: process.env.CI_COMMIT_SHA || "DEV",
   },
 };

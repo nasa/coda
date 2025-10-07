@@ -55,6 +55,8 @@ export default [
     },
 
     rules: {
+      "no-warning-comments": ["error", { terms: ["fixme", "tbd", "xxx"], location: "anywhere" }],
+
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -79,7 +81,7 @@ export default [
               name: "react-redux",
               importNames: ["useSelector", "shallowEqual"],
               message:
-                "Use useAppSelector() instead of useSelector(), and refEqual()/shallowEqual()/deepEqual() from useAppSelector.ts versus other locations. These functions provide better Aegis-specific defaults.",
+                "Use useAppSelector() instead of useSelector(), and refEqual()/shallowEqual()/deepEqual() from useAppSelector.ts versus other locations. These functions provide better CODA-specific defaults.",
             },
             {
               name: "assert",

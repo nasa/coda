@@ -9,7 +9,6 @@ const config = {
     "\\.(css|scss)$": "identity-obj-proxy",
     "^__mocks__(.*)$": "<rootDir>/__mocks__$1",
     "^components/(.*)$": "<rootDir>/components/$1",
-    "^http-client/(.*)$": "<rootDir>/http-client/$1",
     "^pages/(.*)$": "<rootDir>/pages/$1",
     "^public/(.*)$": "<rootDir>/public/$1",
     "^server/(.*)$": "<rootDir>/server/$1",
