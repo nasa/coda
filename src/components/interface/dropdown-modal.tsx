@@ -60,6 +60,7 @@ export const ModalDropdown: FunctionComponent<{
   const modalStyle = {
     display: display ? "block" : "none",
     width: opts.modalWidth ? opts.modalWidth + "px" : null,
+    top: display ? `${labelRef.current?.getBoundingClientRect().bottom + 4}px` : null,
   };
 
   return (
