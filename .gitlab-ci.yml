@@ -1,3 +1,12 @@
+stages:
+  - stageless
+
+default:
+  timeout: 10 minutes
+
+variables:
+  HOME: "/tmp" # required for openshift for now
+
 # These includes do not define the order of the pipeline. That is determined by
 # the `needs` value for each job
 include:
@@ -13,3 +22,11 @@ include:
   - local: .gitlab/run-on-commits.gitlab-ci.yml
     rules:
       - if: $CI_PIPELINE_SOURCE != "schedule"
+
+  # Other jobs that we need for both types of pipelines
+  - local: .gitlab/includes/db-import.yml
+  - project: "emss/gitlab-templates"
+    ref: 2.6.0
+    file:
+      # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
+      - "/jobs/emss-shared-dev.gitlab-ci.yml"
