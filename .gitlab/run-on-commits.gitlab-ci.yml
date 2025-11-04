@@ -3,73 +3,43 @@
 # To check the validity of this file, try the live editor:
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
-stages:
-  - stageless
-
-default:
-  timeout: 10 minutes
-
 variables:
-  HOME: "/tmp" # required for openshift for now
-  a11y_urls: "https://coda-int.fit.nasa.gov/view?date=2021-03-13&gmt=14:49:46&v=2.0&l=n&s=0&f1=01001iss064m010721435&f2=01011iss064m020721435&f3=0300&f4=0701&f5=051&f6=04&f7=080"
   CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:22.18.0-alpine"
   FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.4.1-alpine"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"
 
-# also run standard FIT dependency and package checks
-# https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates
 include:
-  - project: "developer-ecosystem/ci-job-templates"
-    ref: 5.4.3
-    file: "/rollups/all-projects.gitlab-ci.yml"
-  - template: "Verify/Accessibility.gitlab-ci.yml"
+  # A11y tests. Disabled for now.
+  # - template: "Verify/Accessibility.gitlab-ci.yml"
 
-  # Code quality checks
-  - project: "emss/gitlab-templates"
-    ref: 2.2.0
-    file: "/jobs/code-quality.gitlab-ci.yml"
-
-  # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
-  - project: "emss/gitlab-templates"
-    ref: 2.2.0
-    file: "/jobs/emss-shared-dev.gitlab-ci.yml"
-
-  # Fitdock deploy template
-  - project: "emss/gitlab-templates"
-    ref: 2.2.0
-    file: "/jobs/fitdock-deploy.gitlab-ci.yml"
-
-  # Kaniko build template
-  - project: "emss/gitlab-templates"
-    ref: 2.2.0
-    file: "/jobs/kaniko-build.gitlab-ci.yml"
+  # There are more jobs included at the top level .gitlab-ci.yml
 
   - project: "emss/gitlab-templates"
-    ref: 2.2.0
-    file: "/jobs/container-retag.gitlab-ci.yml"
+    ref: 2.6.0
+    file:
+      # Run standard FIT developer-ecosystem/ci-job-templates with emss
+      # stageless overrides.
+      # <https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates>
+      - "/jobs/fit-ecosystem.gitlab-ci.yml"
 
-# Override some properties on FIT jobs. Unfortunately using a template for these
-# make GitLab angry, so a lot of repetition
-project-check:
-  stage: stageless
-  needs: []
-nodejs-scan-sast:
-  stage: stageless
-  needs: []
-semgrep-sast:
-  stage: stageless
-  needs: []
-sast:
-  stage: stageless
-  needs: []
-secret_detection:
-  stage: stageless
-  needs: []
-code-count:
-  stage: stageless
-  needs: []
+      # Code quality checks
+      - "/jobs/code-quality.gitlab-ci.yml"
+
+      # Fitdock deploy template
+      - "/jobs/fitdock-deploy.gitlab-ci.yml"
+
+      # Kaniko build template
+      - "/jobs/kaniko-build.gitlab-ci.yml"
+
+      # Retag job template
+      - "/jobs/container-retag.gitlab-ci.yml"
+
+  # Adds jobs to export db, and dump logs
+  - local: .gitlab/includes/server-jobs.yml
+
+# Override some properties on FIT jobs.
 yaml-lint:
   stage: stageless
   needs: []
@@ -89,17 +59,12 @@ yaml-lint:
       else
         yamllint -c ${CONFIG_FILE} .
       fi
-job-report-visualization:
-  stage: stageless
-  needs: []
-deprecated-keywords:
-  stage: stageless
-  needs: []
-file-count:
-  stage: stageless
-  needs: []
-a11y:
-  stage: stageless
+
+project-check:
+  variables:
+    SCAN_FOR_DOCS: "no"
+    ALLOWED_FILES: >
+      src/packages
 
 dependency-check:
   stage: stageless
@@ -111,22 +76,11 @@ dependency-check:
 npm-audit:
   stage: stageless
   image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit
+  when: manual
   needs: []
   tags: ["openshift"]
   allow_failure: true
   script:
-    # Runs `npm audit --json` then sends the results to EMSS dashboard (only on EMSS major branches)
-    - >
-      if
-      [ "${CI_COMMIT_REF_SLUG}" == "prod" ] ||
-      [ "${CI_COMMIT_REF_SLUG}" == "int" ] ||
-      [ "${CI_COMMIT_REF_SLUG}" == "stable" ] ||
-      [ "${CI_COMMIT_REF_SLUG}" == "beta" ] ||
-      [ "${CI_COMMIT_REF_SLUG}" == "alpha" ];
-      then
-        node /postAuditReport.js;
-      fi
-
     # Run this without --json to make a pretty-print for the job log, plus will pass/fail the job
     - npm audit
 
@@ -146,17 +100,16 @@ install_dependencies:
 #
 node-sbom:
   stage: stageless
-  allow_failure: true
   tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
   needs: ["install_dependencies"]
-  image: $CI_REGISTRY/emss/docker-images:node-ci-sbom
+  image: $CI_REGISTRY/emss/docker-images/node-ci:sbom
   script:
-    - /create-and-compare-bom.sh ./BOM.md
+    - /make-sbom.sh
   artifacts:
     when: always
     paths:
       - "./bom.json"
-      - "./new-bom.md"
+      - "./BOM.md"
     expire_in: 1 day
 
 .make-dotenv-template:
@@ -291,6 +244,7 @@ test-node-next:
 .kaniko-build-template:
   extends: .emss-kaniko-build # use job template from gitlab-templates repo
   stage: stageless
+  tags: ["docker", "linux"]
   needs:
     - make-dotenv
   before_script:
@@ -366,6 +320,10 @@ deploy:artifactize-committed-files:
 
 .deploy-template:
   extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
   stage: stageless
   timeout: 10 minutes
 
@@ -373,10 +331,6 @@ deploy:carbon:
   extends:
     - .deploy-template
     - .carbon-deploy
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
   when: manual
   before_script:
     # This is currently our hack to change out a necessary var for Launchpad Auth
@@ -387,10 +341,6 @@ deploy:gold:
   extends:
     - .deploy-template
     - .gold-deploy
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
   when: manual
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
@@ -400,10 +350,6 @@ deploy:iron:
   extends:
     - .deploy-template
     - .iron-deploy
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
   when: manual
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/iron-emss-dev/g" .env
@@ -413,10 +359,6 @@ deploy:neon:
   extends:
     - .deploy-template
     - .neon-deploy
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
   when: manual
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/neon-emss-dev/g" .env
@@ -426,10 +368,6 @@ deploy:oxygen:
   extends:
     - .deploy-template
     - .oxygen-deploy
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
   when: manual
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
@@ -438,10 +376,7 @@ deploy:oxygen:
 deploy:int:
   extends: .deploy-template
   tags: ["emss-coda-int"]
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
+  resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
   environment:
     name: integration
     url: https://coda-int.fit.nasa.gov
@@ -457,16 +392,7 @@ deploy:int:
 deploy:prod:
   extends: .deploy-template
   tags: ["emss-coda-prod"]
-  needs:
-    - make-dotenv
-    - docker:retag
-    - deploy:artifactize-committed-files
-    - { job: "test", artifacts: false }
-    - { job: "project-check", artifacts: false }
-    # - { job: "phpcs-security-audit-sast", artifacts: false }
-    # - { job: "nodejs-scan-sast", artifacts: false }
-    - { job: "semgrep-sast", artifacts: false }
-    - { job: "dependency-check", artifacts: false }
+  resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
   environment:
     name: production
     url: https://coda.fit.nasa.gov
@@ -479,204 +405,3 @@ deploy:prod:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env
-
-.db-export-template:
-  needs: []
-  # I don't think we want to do this, because I don't think we want GitLab to consider this a
-  # deployment. It's just grabbing some data off of Production.
-  # environment:
-  #   name: production
-  #   url: https://coda.fit.nasa.gov
-  when: manual
-  stage: stageless
-  timeout: 10 minutes
-  variables:
-    GIT_STRATEGY: none
-  script:
-    # init sudo ability
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-    - PROJECT_DIR=$(pwd)
-    - cd /opt/coda
-    - sudo docker compose exec database pg_dump -U postgres coda > "${PROJECT_DIR}/coda.sql"
-  artifacts:
-    paths:
-      - coda.sql
-    expire_in: 1 day
-
-z:db-export:prod:
-  extends: .db-export-template
-  # when: always
-  tags: ["emss-coda-prod"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
-
-z:db-export:int:
-  extends: .db-export-template
-  tags: ["emss-coda-int"]
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
-
-z:db-export:carbon:
-  extends:
-    - .db-export-template
-    - .carbon-access
-
-z:db-export:gold:
-  extends:
-    - .db-export-template
-    - .gold-access
-
-z:db-export:iron:
-  extends:
-    - .db-export-template
-    - .iron-access
-
-z:db-export:neon:
-  extends:
-    - .db-export-template
-    - .neon-access
-
-z:db-export:oxygen:
-  extends:
-    - .db-export-template
-    - .oxygen-access
-
-.db-import-template:
-  when: manual
-  stage: stageless
-  timeout: 10 minutes
-  variables:
-    GIT_STRATEGY: none
-  script:
-    # init sudo ability
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-    - PROJECT_DIR=$(pwd)
-    - cd /opt/coda
-    - cp "${PROJECT_DIR}/coda.sql" /d1/coda/db-init/coda.sql
-
-    # Stop docker compose, then remove database files
-    - sudo /usr/bin/docker compose down --remove-orphans
-    - sudo rm -rf /d1/coda/postgres
-
-    # Bring docker compose back up, which will use the file at /d1/coda/db-init/coda.sql, then remove it
-    - sudo /usr/bin/docker compose up -d
-    - sudo rm -f /d1/coda/db-init/coda.sql
-
-    # Migrations will be run when the apiv1 container restarts
-
-z:db-import:carbon:
-  extends:
-    - .db-import-template
-    - .carbon-deploy
-  needs: ["z:db-export:prod"]
-
-z:db-import:gold:
-  extends:
-    - .db-import-template
-    - .gold-deploy
-  needs: ["z:db-export:prod"]
-
-z:db-import:iron:
-  extends:
-    - .db-import-template
-    - .iron-deploy
-  needs: ["z:db-export:prod"]
-
-z:db-import:neon:
-  extends:
-    - .db-import-template
-    - .neon-deploy
-  needs: ["z:db-export:prod"]
-
-z:db-import:oxygen:
-  extends:
-    - .db-import-template
-    - .oxygen-deploy
-  needs: ["z:db-export:prod"]
-
-z:db-import:int:
-  extends: .db-import-template
-  tags: ["emss-coda-int"]
-  needs: ["z:db-export:prod"]
-  environment:
-    name: integration
-    url: $URL
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
-    URL: https://coda-int.fit.nasa.gov
-
-.container-logs-template:
-  when: manual
-  needs: []
-  stage: stageless
-  timeout: 10 minutes
-  variables:
-    GIT_STRATEGY: none
-  script:
-    # Start with a trivial sudo command to record the sudo password session
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-
-    # OS info and partition usage
-    - cat /etc/os-release
-    - df -h
-
-    # Setup artifact directories
-    - LOG_ARTIFACTS=$(pwd)/log_artifacts
-    - mkdir -p "${LOG_ARTIFACTS}"
-
-    - cd /opt/coda
-
-    # Print the last 100 lines of logs to the GitLab job log
-    - sudo docker compose logs apiv1 --tail 100
-    - sudo docker compose logs nginx --tail 100
-
-    # Put the full logs into artifacts. Full logs may hit the job log length
-    # limit, and generally make the job log un-readably long
-    - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
-    - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
-
-    - sudo journalctl --unit=rsyslog -n 200 --no-pager
-  artifacts:
-    when: always
-    paths:
-      - ./log_artifacts
-    expire_in: 1 day
-
-z:logs:carbon:
-  extends:
-    - .container-logs-template
-    - .carbon-access
-
-z:logs:gold:
-  extends:
-    - .container-logs-template
-    - .gold-access
-
-z:logs:iron:
-  extends:
-    - .container-logs-template
-    - .iron-access
-
-z:logs:neon:
-  extends:
-    - .container-logs-template
-    - .neon-access
-
-z:logs:oxygen:
-  extends:
-    - .container-logs-template
-    - .oxygen-access
-
-z-logs:int:
-  extends: .container-logs-template
-  tags: ["emss-coda-int"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
-
-z-logs:prod:
-  extends: .container-logs-template
-  tags: ["emss-coda-prod"]
-  needs: []
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD

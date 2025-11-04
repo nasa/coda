@@ -1,5 +1,5 @@
-stages:
-  - stageless
+# .include:
+#   - local: .gitlab/includes/db-import.yml
 
 .db-export-template:
   needs: []
@@ -28,7 +28,21 @@ stages:
 
 z:db-export:prod:
   extends: .db-export-template
-  when: always
+  rules:
+    - if: $SCHEDULE_TYPE == "backup"
+      when: always
   tags: ["emss-coda-prod"]
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
+
+npm-audit:
+  stage: stageless
+  rules:
+    - if: $SCHEDULE_TYPE == "audit"
+      when: always
+  tags: ["openshift"]
+  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit
+  allow_failure: true
+  script:
+    # Run this without --json to make a pretty-print for the job log, plus will pass/fail the job
+    - npm audit

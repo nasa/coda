@@ -1,0 +1,65 @@
+#
+# Adds jobs to import the prod database dump into the database.
+# Must have exported the prod database first
+# Put these jobs in a separate file so they can be included in both gitlab-ci.yml files
+#
+
+.db-import-template:
+  when: manual
+  stage: stageless
+  needs: ["z:db-export:prod"]
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - PROJECT_DIR=$(pwd)
+    - cd /opt/coda
+    - cp "${PROJECT_DIR}/coda.sql" /d1/coda/db-init/coda.sql
+
+    # Stop docker compose, then remove database files
+    - sudo /usr/bin/docker compose down --remove-orphans
+    - sudo rm -rf /d1/coda/postgres
+
+    # Bring docker compose back up, which will use the file at /d1/coda/db-init/coda.sql, then remove it
+    - sudo /usr/bin/docker compose up -d
+    - sudo rm -f /d1/coda/db-init/coda.sql
+
+    # Migrations will be run when the apiv1 container restarts
+
+z:db-import:carbon:
+  extends:
+    - .db-import-template
+    - .carbon-deploy
+
+z:db-import:gold:
+  extends:
+    - .db-import-template
+    - .gold-deploy
+
+z:db-import:iron:
+  extends:
+    - .db-import-template
+    - .iron-deploy
+
+z:db-import:neon:
+  extends:
+    - .db-import-template
+    - .neon-deploy
+
+z:db-import:oxygen:
+  extends:
+    - .db-import-template
+    - .oxygen-deploy
+
+z:db-import:int:
+  extends: .db-import-template
+  tags: ["emss-coda-int"]
+  resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
+  environment:
+    name: integration
+    url: $URL
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+    URL: https://coda-int.fit.nasa.gov

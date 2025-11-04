@@ -1,0 +1,146 @@
+#
+# Adds jobs to export the database from various servers.
+#
+
+.db-export-template:
+  needs: []
+  # I don't think we want to do this, because I don't think we want GitLab to consider this a
+  # deployment. It's just grabbing some data off of Production.
+  # environment:
+  #   name: production
+  #   url: https://coda.fit.nasa.gov
+  when: manual
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - PROJECT_DIR=$(pwd)
+    - cd /opt/coda
+    - sudo docker compose exec database pg_dump -U postgres coda > "${PROJECT_DIR}/coda.sql"
+  artifacts:
+    paths:
+      - coda.sql
+    expire_in: 1 day
+
+z:db-export:prod:
+  extends: .db-export-template
+  # when: always
+  resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
+  tags: ["emss-coda-prod"]
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
+
+z:db-export:int:
+  extends: .db-export-template
+  tags: ["emss-coda-int"]
+  resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+
+z:db-export:carbon:
+  extends:
+    - .db-export-template
+    - .carbon-access
+
+z:db-export:gold:
+  extends:
+    - .db-export-template
+    - .gold-access
+
+z:db-export:iron:
+  extends:
+    - .db-export-template
+    - .iron-access
+
+z:db-export:neon:
+  extends:
+    - .db-export-template
+    - .neon-access
+
+z:db-export:oxygen:
+  extends:
+    - .db-export-template
+    - .oxygen-access
+
+#
+# Adds jobs to trigger log collection on various servers.
+#
+
+.container-logs-template:
+  when: manual
+  needs: []
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # Start with a trivial sudo command to record the sudo password session
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+
+    # OS info and partition usage
+    - cat /etc/os-release
+    - df -h
+
+    # Setup artifact directories
+    - LOG_ARTIFACTS=$(pwd)/log_artifacts
+    - mkdir -p "${LOG_ARTIFACTS}"
+
+    - cd /opt/coda
+
+    # Print the last 100 lines of logs to the GitLab job log
+    - sudo docker compose logs apiv1 --tail 100
+    - sudo docker compose logs nginx --tail 100
+    - sudo journalctl --unit=rsyslog -n 200 --no-pager
+
+    # Put the full logs into artifacts. Full logs may hit the job log length
+    # limit, and generally make the job log un-readably long
+    - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
+    - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
+    - sudo journalctl --unit=rsyslog --no-pager > "${LOG_ARTIFACTS}/host-rsyslog"
+  artifacts:
+    when: always
+    paths:
+      - ./log_artifacts
+    expire_in: 1 day
+
+z:logs:carbon:
+  extends:
+    - .container-logs-template
+    - .carbon-access
+
+z:logs:gold:
+  extends:
+    - .container-logs-template
+    - .gold-access
+
+z:logs:iron:
+  extends:
+    - .container-logs-template
+    - .iron-access
+
+z:logs:neon:
+  extends:
+    - .container-logs-template
+    - .neon-access
+
+z:logs:oxygen:
+  extends:
+    - .container-logs-template
+    - .oxygen-access
+
+z:logs:int:
+  extends: .container-logs-template
+  tags: ["emss-coda-int"]
+  resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+
+z:logs:prod:
+  extends: .container-logs-template
+  tags: ["emss-coda-prod"]
+  resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD

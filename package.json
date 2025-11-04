@@ -4,6 +4,7 @@
   "description": "Contextual Operations Data Activation",
   "main": "src/index.tsx",
   "scripts": {
+    "bom": "docker run -it -v .:/repo -w /repo --name node-sbom --rm eegitlabregistry.fit.nasa.gov/emss/docker-images/node-ci:sbom /make-sbom.sh",
     "make-dotenv": "make-dotenv",
     "build": "npm run vite:build && npm run api:build",
     "dev": "concurrently -n vite,api \"npm run vite:dev:wait\" \"npm run api:dev\"",
