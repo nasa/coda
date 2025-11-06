@@ -415,7 +415,7 @@ export async function fetchTalkybotSGAudio({
         return {
           sound_start_secs: val.start,
           sound_stop_secs: val.stop,
-          aacSegmentFullUrl: `${process.env.TALKYBOT_URL}/api/v1/external/audiofiles/${val.id}/file`,
+          aacSegmentFullUrl: `${process.env.TALKYBOT_URL}/api/v1/external/audiofiles/${val.uuid}/file`,
         };
       }
     );
