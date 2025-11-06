@@ -343,7 +343,7 @@ const Header: FunctionComponent<{
         <div className={styles.item} style={{ width: "80px" }}>
           <LayoutDropdown />
         </div>
-        <div className={styles.item} style={{ width: "60px" }}>
+        <div className={styles.item}>
           <PresetDropdown />
         </div>
         <div className={styles.item} style={{ width: "60px" }}>

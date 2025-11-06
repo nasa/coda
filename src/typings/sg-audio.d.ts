@@ -32,7 +32,7 @@ type SgActivityRangeFullUrlRecord = {
 type TBExternalManifestActivityRecord = {
   start: number;
   stop: number;
-  id: number;
+  uuid: string;
 };
 
 /**
