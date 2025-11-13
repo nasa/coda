@@ -2,8 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: TranscriptState = {
   transcripts: [], // indexed by S/G channel number - 1
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
   isTranscripts: false,
 };
 
@@ -12,7 +11,7 @@ export const transcriptSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    setTranscripts: (state, action: { payload: WrappedResponse<UnprocessedTranscript[]> }) => {
+    setTranscripts: (state, action: { payload: FetchResponse<UnprocessedTranscript[]> }) => {
       const unprocessedTranscripts = action.payload.data;
       /** Convert the unprocessed transcript into process transcript objects in the store */
       const transcripts: Transcript[] = [];
@@ -40,26 +39,21 @@ export const transcriptSlice = createSlice({
         transcripts.push(transcript);
       }
       state.transcripts = transcripts;
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
+      state.metadata = action.payload.fetchMetadata;
       state.isTranscripts = anyUtterances;
     },
     clearTranscripts: (state) => {
       state.transcripts = [];
-      state.responseMetadata = null;
-      state.loadingStatus = "loading";
+      state.metadata = null;
     },
     transcriptFetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setTranscriptLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const {
-  setTranscripts,
-  clearTranscripts,
-  transcriptFetchError,
-  setTranscriptLoadingStatus,
-} = transcriptSlice.actions;
+export const { setTranscripts, clearTranscripts, transcriptFetchError } = transcriptSlice.actions;

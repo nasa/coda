@@ -23,27 +23,42 @@ const AboutOverlay = ({
   const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
   const gps: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
   const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
+  const transcript: TranscriptState = useAppSelector(
+    (state: RootState) => state.transcript,
+    deepEqual
+  );
+  const sgAudio: SgAudioState = useAppSelector((state: RootState) => state.sgAudio, deepEqual);
+  const graphs: GraphsState = useAppSelector((state: RootState) => state.graphs, deepEqual);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (
-      videos.loadingStatus === "loading" ||
-      photos.loadingStatus === "loading" ||
-      sequences.loadingStatus === "loading" ||
-      gps.loadingStatus === "loading" ||
-      ephemera.loadingStatus === "loading"
-    ) {
-      setIsLoaded(false);
-    } else {
-      setIsLoaded(true);
-    }
+    // Check if all non-unneeded data types have loaded (metadata is not null and not unneeded)
+    const allLoaded =
+      videos.metadataIo !== null &&
+      !videos.metadataIo?.unneeded &&
+      videos.metadataMtx !== null &&
+      !videos.metadataMtx?.unneeded &&
+      photos.metadata !== null &&
+      !photos.metadata?.unneeded &&
+      (sequences.metadata !== null || sequences.metadata?.unneeded) &&
+      (gps.metadata !== null || gps.metadata?.unneeded) &&
+      (ephemera.metadata !== null || ephemera.metadata?.unneeded) &&
+      (transcript.metadata !== null || transcript.metadata?.unneeded) &&
+      (sgAudio.metadata !== null || sgAudio.metadata?.unneeded) &&
+      (graphs.metadata !== null || graphs.metadata?.unneeded);
+
+    setIsLoaded(allLoaded);
   }, [
-    videos.loadingStatus,
-    photos.loadingStatus,
-    sequences.loadingStatus,
-    gps.loadingStatus,
-    ephemera.loadingStatus,
+    videos.metadataIo,
+    videos.metadataMtx,
+    photos.metadata,
+    sequences.metadata,
+    gps.metadata,
+    ephemera.metadata,
+    transcript.metadata,
+    sgAudio.metadata,
+    graphs.metadata,
   ]);
 
   const earliestCutoff = new Date("2013-03-30");

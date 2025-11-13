@@ -4,12 +4,10 @@
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { padZeros } from "utils/formatting";
-import fetchWithCache from "../processing/cache-client";
 import { getEpochTimestamp } from "tle.js";
 import { isSameDate } from "../../utils/date";
 import ConsoleLogger from "utils/logger";
 
-const oneYearInSeconds = 31536000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 async function fetchSpacetrack(
@@ -96,7 +94,20 @@ async function fetchCelestrakToday() {
 
     // Calculate the epoch timestamp from the TLE data
     const epoch = getEpochTimestamp(tle);
-    const epochString = new Date(epoch).toISOString().split("Z")[0];
+
+    // Validate epoch before creating Date
+    if (!epoch || isNaN(epoch) || !isFinite(epoch)) {
+      ConsoleLogger.error(`Invalid epoch timestamp from TLE: ${epoch}`);
+      return null;
+    }
+
+    const epochDate = new Date(epoch);
+    if (isNaN(epochDate.getTime())) {
+      ConsoleLogger.error(`Unable to create valid Date from epoch: ${epoch}`);
+      return null;
+    }
+
+    const epochString = epochDate.toISOString().split("Z")[0];
 
     const result: EphemerisFile = {
       EPOCH: epochString,
@@ -117,141 +128,161 @@ async function fetchCelestrakToday() {
  * @param year yyyy
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
- * @param forceRetriever Return the cached data, then force the retriever function to get new data regardless of cache age.
- * @param ephemerisSource manually specify the source for this fetch. Will not cache
+ * @param ephemerisSource Manually specify the data source for this fetch. Bypasses cached fallbacks.
+ * @returns DataResponse containing ephemeris data and fetch metadata.
  */
 export async function fetchISSLocation(
   year: number,
   month: number,
   date: number,
-  forceRetriever?: boolean,
   ephemerisSource?: string
-): Promise<WrappedResponse<EphemerisStore>> {
+): Promise<FetchResponse<EphemerisStore>> {
   const now = new Date();
-  const dateObj = new Date(Date.UTC(year, month - 1, date));
-  const isToday = isSameDate(now, dateObj);
+  const requestDate = new Date(Date.UTC(year, month - 1, date));
+  const isToday = isSameDate(now, requestDate);
+  const defaultData: EphemerisStore = { ephemera: [] };
 
-  const retrieverCelestrak = async (): Promise<EphemerisStore> => {
+  const createSuccessResponse = (data: EphemerisStore, source: string) => {
+    const timestamp = new Date().toISOString();
+    const response: FetchResponse<EphemerisStore> = {
+      data,
+      fetchMetadata: {
+        success: true,
+        error: undefined,
+        timestamp,
+      },
+      source,
+    };
+    return response;
+  };
+
+  const createErrorResponse = (message: string, source?: string) => {
+    const timestamp = new Date().toISOString();
+    const response: FetchResponse<EphemerisStore> = {
+      data: defaultData,
+      fetchMetadata: {
+        success: false,
+        error: message,
+        timestamp,
+      },
+      source,
+    };
+    return response;
+  };
+
+  const getCelestrakEphemera = async (): Promise<EphemerisStore | null> => {
     const celestrakResult = await fetchCelestrakToday();
     if (celestrakResult) {
       return { ephemera: [celestrakResult] };
     }
+    return null;
   };
 
-  const retrieverSpacetrack = async (): Promise<EphemerisStore> => {
-    // Keep hitting spacetrack going back one day per call until we get some results
-
-    let dateToGet = new Date(Date.UTC(year, month - 1, date));
+  const getSpacetrackEphemera = async (): Promise<EphemerisStore> => {
+    let dateToGet = new Date(requestDate.getTime());
     let count = 0;
     let numResults = 0;
     let spacetrackResults: EphemerisFile[] = [];
 
     while (numResults === 0 && count < 10) {
       spacetrackResults = await fetchSpacetrack(
-        dateToGet.getFullYear(),
+        dateToGet.getUTCFullYear(),
         dateToGet.getUTCMonth() + 1,
-        dateToGet.getDate()
+        dateToGet.getUTCDate()
       );
 
       numResults = spacetrackResults.length;
       if (numResults === 0) {
-        //subtract 1 day from dateToGet if we didn't get any results
         dateToGet = new Date(dateToGet.getTime() - ONE_DAY_MS);
-
-        // pause 5 seconds before hitting spacetrack again
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
       count++;
     }
-    const ephemera: EphemerisFile[] = spacetrackResults.map((result) => {
-      return {
-        EPOCH: result.EPOCH,
-        TLE_LINE0: result.TLE_LINE0,
-        TLE_LINE1: result.TLE_LINE1,
-        TLE_LINE2: result.TLE_LINE2,
-      };
-    });
 
-    return { ephemera: ephemera };
+    const ephemera: EphemerisFile[] = spacetrackResults.map((result) => ({
+      EPOCH: result.EPOCH,
+      TLE_LINE0: result.TLE_LINE0,
+      TLE_LINE1: result.TLE_LINE1,
+      TLE_LINE2: result.TLE_LINE2,
+    }));
+
+    return { ephemera };
   };
 
-  let spacetrackRes: WrappedResponse<EphemerisStore> = null;
-  let celestrakRes: WrappedResponse<EphemerisStore> = null;
+  const handleExplicitSource = async (): Promise<FetchResponse<EphemerisStore> | null> => {
+    if (!ephemerisSource) return null;
 
-  const identifier = isToday ? "today" : `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
-
-  // check if request wanted a custom source. Do not cache. Also used in fetchDayNight's retrieverIssLocation in order to bypass cache
-  if (ephemerisSource === "spacetrack") {
-    const spacetrackRes = await retrieverSpacetrack();
-    return {
-      responseMetadata: null,
-      data: spacetrackRes,
-      source: "spacetrack",
-    };
-  } else if (ephemerisSource === "celestrak") {
-    if (isToday) {
-      const celestrackRes = await retrieverCelestrak();
-      return {
-        responseMetadata: null,
-        data: celestrackRes,
-        source: "celestrak",
-      };
-    } else {
-      return {
-        data: null,
-        responseMetadata: {
-          retrieverStatus: "complete",
-          error: "Celestrak can only be queried for today's date",
-          cachedTimestamp: null,
-          expiration: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-      };
+    if (ephemerisSource === "spacetrack") {
+      try {
+        const spacetrackStore = await getSpacetrackEphemera();
+        if (spacetrackStore.ephemera.length > 0) {
+          return createSuccessResponse(spacetrackStore, "spacetrack");
+        }
+        return createErrorResponse("Spacetrack returned no ephemera.", "spacetrack");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown error fetching spacetrack ephemera.";
+        ConsoleLogger.error(`Spacetrack override failed: ${message}`);
+        return createErrorResponse(message, "spacetrack");
+      }
     }
-  } else if (ephemerisSource) {
-    return {
-      data: null,
-      responseMetadata: {
-        retrieverStatus: "complete",
-        error: "Unrecognized source",
-        cachedTimestamp: null,
-        expiration: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
-    };
+
+    if (ephemerisSource === "celestrak") {
+      if (!isToday) {
+        return createErrorResponse("Celestrak can only be queried for today's date", "celestrak");
+      }
+      try {
+        const celestrakStore = await getCelestrakEphemera();
+        if (celestrakStore?.ephemera?.length) {
+          return createSuccessResponse(celestrakStore, "celestrak");
+        }
+        return createErrorResponse("Celestrak returned no ephemera.", "celestrak");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown error fetching celestrak ephemera.";
+        ConsoleLogger.error(`Celestrak override failed: ${message}`);
+        return createErrorResponse(message, "celestrak");
+      }
+    }
+
+    return createErrorResponse("Unrecognized source");
+  };
+
+  const explicitResponse = await handleExplicitSource();
+  if (explicitResponse) {
+    return explicitResponse;
   }
 
+  let celestrakError: string | undefined;
   if (isToday) {
-    // if today, first try to get TLE data from celestrak, cache only for 5 minutes
-
-    celestrakRes = await fetchWithCache<EphemerisStore>({
-      identifier,
-      cacheFolder: "celestrak",
-      retriever: retrieverCelestrak,
-      cacheAge: 300,
-      forceRetriever,
-    });
-    celestrakRes = { ...celestrakRes, source: "celestrak" };
-
-    //check response from celestrak
-    if (celestrakRes.responseMetadata.error) {
-      console.error(celestrakRes.responseMetadata.error);
-    } else if (celestrakRes.data?.ephemera.length > 0) {
-      return celestrakRes; //got data from celestrak!
+    try {
+      const celestrakStore = await getCelestrakEphemera();
+      if (celestrakStore?.ephemera?.length) {
+        return createSuccessResponse(celestrakStore, "celestrak");
+      }
+      celestrakError = "Celestrak returned no ephemera.";
+    } catch (error) {
+      celestrakError =
+        error instanceof Error ? error.message : "Unknown error fetching celestrak ephemera.";
+      ConsoleLogger.error(`Celestrak fetch failed: ${celestrakError}`);
     }
   }
 
-  // if celestrak didn't work, or if it's not today, try to get data from spacetrack
-  spacetrackRes = await fetchWithCache<EphemerisStore>({
-    identifier,
-    cacheFolder: "spacetrack",
-    retriever: retrieverSpacetrack,
-    cacheAge: isToday ? 300 : oneYearInSeconds,
-    forceRetriever,
-  });
-  spacetrackRes = { ...spacetrackRes, source: "spacetrack" };
-
-  return spacetrackRes;
+  try {
+    const spacetrackStore = await getSpacetrackEphemera();
+    if (spacetrackStore.ephemera.length > 0) {
+      return createSuccessResponse(spacetrackStore, "spacetrack");
+    }
+    const message = "Spacetrack returned no ephemera.";
+    const combinedMessage = celestrakError ? `${celestrakError} ${message}` : message;
+    return createErrorResponse(combinedMessage.trim(), "spacetrack");
+  } catch (error) {
+    const spacetrackError =
+      error instanceof Error ? error.message : "Unknown error fetching spacetrack ephemera.";
+    ConsoleLogger.error(`Spacetrack fetch failed: ${spacetrackError}`);
+    const combinedMessage = celestrakError
+      ? `${celestrakError} ${spacetrackError}`
+      : spacetrackError;
+    return createErrorResponse(combinedMessage.trim(), "spacetrack");
+  }
 }

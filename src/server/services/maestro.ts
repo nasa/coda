@@ -3,7 +3,7 @@ import { midnightZulu } from "../../utils/date";
 
 export const fetchMaestroExecuteTimelineStatus = async (
   executeEventUuid: string
-): Promise<WrappedResponse<MaestroInternalAPIData>> => {
+): Promise<FetchResponse<MaestroInternalAPIData>> => {
   function activityFromMaestroResponse(
     crewName: string,
     activities: Record<string, MaestroActivityTimelineStatus>,
@@ -89,27 +89,23 @@ export const fetchMaestroExecuteTimelineStatus = async (
 
     return {
       data: maestroInternalAPIData,
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
+      fetchMetadata: {
+        success: true,
+        timestamp: new Date().toISOString(),
       },
+      source: "maestro",
     };
   } catch (e) {
     console.error(e);
+    const errorMessage = e instanceof Error ? e.message : "Unknown Maestro error";
     return {
       data: null,
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
+      fetchMetadata: {
+        success: false,
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
       },
+      source: "maestro",
     };
   }
 };

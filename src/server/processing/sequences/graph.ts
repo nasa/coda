@@ -6,7 +6,7 @@ export default async function getGraphManifest({
 }: {
   source: Source;
   dateWanted: string;
-}): Promise<WrappedResponse<GraphsManifest>> {
+}): Promise<FetchResponse<GraphsManifest>> {
   const results = await AncillaryService.fetchGraphsManifest(source, dateWanted);
   return results;
 }

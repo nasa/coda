@@ -5,8 +5,7 @@ export const initialState: SgAudioState = {
     override: false,
     sgActivityRangeFullUrlRecords: [[], [], [], []] as SgActivityRangeFullUrlRecord[][], // indexed by S/G channel number - 1
   },
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
 };
 
 export const sgAudioSlice = createSlice({
@@ -14,28 +13,22 @@ export const sgAudioSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    setSgAudioActivity: (state, action: { payload: WrappedResponse<SgActivityFullUrlRecord> }) => {
+    setSgAudioActivity: (state, action: { payload: FetchResponse<SgActivityFullUrlRecord> }) => {
       state.sgActivityFullUrlRecord = action.payload.data;
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
-      state.loadingStatus = "loaded";
+      state.metadata = action.payload.fetchMetadata;
     },
     clearSgAudioActivity: (state) => {
       state.sgActivityFullUrlRecord = null;
-      state.responseMetadata = null;
-      state.loadingStatus = "loading";
+      state.metadata = null;
     },
     sgAudioFetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setSgAudioLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const {
-  setSgAudioActivity,
-  clearSgAudioActivity,
-  sgAudioFetchError,
-  setSgAudioLoadingStatus,
-} = sgAudioSlice.actions;
+export const { setSgAudioActivity, clearSgAudioActivity, sgAudioFetchError } = sgAudioSlice.actions;

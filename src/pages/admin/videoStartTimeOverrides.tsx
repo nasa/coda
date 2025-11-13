@@ -48,8 +48,8 @@ const ListRecords: FunctionComponent = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("/api/v1/db/videoStartTimeOverrides");
-      const data: WrappedResponse<VideoRecord[]> = await response.json();
-      setRecords(data.data);
+      const data: VideoRecord[] = await response.json();
+      setRecords(data);
     };
     fetchData();
   }, []);

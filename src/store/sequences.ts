@@ -3,8 +3,7 @@ import { padZeros } from "utils/formatting";
 
 export const initialState: SequencesState = {
   allSequences: [],
-  responseMetadata: null,
-  loadingStatus: "unneeded", // default to unneeded because wiki api is down and we don't want infinite loading indicator
+  metadata: null,
 };
 
 export const sequencesSlice = createSlice({
@@ -12,30 +11,29 @@ export const sequencesSlice = createSlice({
   initialState,
   reducers: {
     /** Add one (or more) Sequence(s) to the store */
-    addSequences: (state, action: { payload: WrappedResponse<Sequence[]> }) => {
+    addSequences: (state, action: { payload: FetchResponse<Sequence[]> }) => {
       state.allSequences = action.payload.data;
-      state.responseMetadata = action.payload.responseMetadata;
+      state.metadata = action.payload.fetchMetadata;
     },
 
     /** Clear all Sequences from the store */
     clearSequences: (state) => {
       state.allSequences = [];
-      state.responseMetadata = null;
+      state.metadata = null;
     },
 
     /** An error occured fetching wiki data */
     fetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-
-    setSequenceLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const { addSequences, clearSequences, fetchError, setSequenceLoadingStatus } =
-  sequencesSlice.actions;
+export const { addSequences, clearSequences, fetchError } = sequencesSlice.actions;
 
 /**
  * Get a potential Sequence ID from an ISO or UTC date string

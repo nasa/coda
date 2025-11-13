@@ -33,34 +33,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
       const records: GPXTrackRecord[] = await getGpxTrackRecordsByDate(queryObj.dateWanted);
-      const wrappedResponse: WrappedResponse<GPXTrackRecord[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     } else {
       const records: GPXTrackListRecord[] = await getGpxTrackRecordsList();
-      const wrappedResponse: WrappedResponse<GPXTrackListRecord[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -76,49 +52,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
     const em = getEM();
     const gpxTrackRecord: GPXTrackRecord = await em.findOne(GPXTracks_db, { id: Number(id) });
     if (gpxTrackRecord) {
-      const wrappedResponse: WrappedResponse<GPXTrackRecord> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: gpxTrackRecord,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(gpxTrackRecord);
     } else {
-      const wrappedResponse: WrappedResponse<GPXTrackRecord> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "gpx track not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "gpx track not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<GPXTrackRecord> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 

@@ -1,8 +1,5 @@
-import { collection } from "utils/consts";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import leoProfanity from "leo-profanity";
-import fetchWithCache from "../processing/cache-client";
-import { isNearRealTime } from "utils/formatting";
 import { getVideoCoverageTimeRanges } from "server/processing/media/videos";
 import { midnightZulu } from "utils/date";
 import clone from "lodash/clone";
@@ -10,115 +7,113 @@ import clone from "lodash/clone";
 export async function fetchLabsAndTalkybotTranscripts({
   source,
   dateWanted,
-  forceNew = false,
 }: {
   source: Source;
   dateWanted: string;
-  forceNew?: boolean;
-}): Promise<WrappedResponse<UnprocessedTranscript[]>> {
-  if (source !== "ISS") {
-    return await fetchLabsTranscripts({ source, dateWanted, forceNew });
-  }
+}): Promise<FetchResponse<UnprocessedTranscript[]>> {
+  try {
+    if (source !== "ISS") {
+      return await fetchLabsTranscripts({ source, dateWanted });
+    }
 
-  // get both, the labs and talkybot transcripts
-  let labsResponse = await fetchLabsTranscripts({ source, dateWanted });
-  let retries = 0;
-  while (labsResponse.responseMetadata.retrieverStatus === "inprogress" && retries < 10) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    labsResponse = await fetchLabsTranscripts({ source, dateWanted, forceNew });
-    retries++;
-  }
-  const labsTranscripts = labsResponse.data;
-  const tbTranscripts = await fetchTalkybotTranscripts({ source, dateWanted });
+    // get both, the labs and talkybot transcripts
+    const labsResponse = await fetchLabsTranscripts({ source, dateWanted });
+    const labsTranscripts = labsResponse.data;
+    const tbTranscripts = await fetchTalkybotTranscripts({ source, dateWanted });
 
-  // if no TB response, just return labs
-  if (tbTranscripts.length === 0) {
-    return labsResponse;
-  }
+    // if no TB response, just return labs
+    if (tbTranscripts.length === 0) {
+      return labsResponse;
+    }
 
-  // get the time ranges of all IO videos for this date
-  const videoCoverageTimeRanges = await getVideoCoverageTimeRanges({
-    dateWanted,
-    source,
-    forceNew: false,
-  });
+    // get the time ranges of all IO videos for this date
+    const videoCoverageTimeRanges = await getVideoCoverageTimeRanges({
+      dateWanted,
+      source,
+    });
 
-  // Start with the full labs transcript
-  // Merge the talkybot transcripts into the result by using the video coverage from IO. If there is a video for a given utterance time, that means we have transcribed any audio in that timerange already we should ignore any TB utterances at that time. If there is not video coverage during an utterance, we should use the TB utterance.
-  const mergedTranscripts: UnprocessedTranscript[] = [];
-  for (let i = 0; i < 4; i++) {
-    const tbTranscript = tbTranscripts[i];
-    const labsTranscript = labsTranscripts[i];
-    // copy the whole labs transcript first
-    const mergedTranscript: UnprocessedTranscript = {
-      sgNum: i + 1,
-      unprocessedUtterances: [...labsTranscript.unprocessedUtterances],
-    };
+    // Start with the full labs transcript
+    // Merge the talkybot transcripts into the result by using the video coverage from IO. If there is a video for a given utterance time, that means we have transcribed any audio in that timerange already we should ignore any TB utterances at that time. If there is not video coverage during an utterance, we should use the TB utterance.
+    const mergedTranscripts: UnprocessedTranscript[] = [];
+    for (let i = 0; i < 4; i++) {
+      const tbTranscript = tbTranscripts[i];
+      const labsTranscript = labsTranscripts[i];
+      // copy the whole labs transcript first
+      const mergedTranscript: UnprocessedTranscript = {
+        sgNum: i + 1,
+        unprocessedUtterances: [...labsTranscript.unprocessedUtterances],
+      };
 
-    for (const tbUtterance of tbTranscript.unprocessedUtterances) {
-      // if the tbUtterance time falls outside of the video coverage time ranges, add it to the merged transcript
-      let shouldAdd = true;
-      for (const videoCoverageTimeRange of videoCoverageTimeRanges) {
-        if (
-          tbUtterance[0] >= videoCoverageTimeRange[0] &&
-          tbUtterance[0] <= videoCoverageTimeRange[1]
-        ) {
-          shouldAdd = false;
-          break;
+      for (const tbUtterance of tbTranscript.unprocessedUtterances) {
+        // if the tbUtterance time falls outside of the video coverage time ranges, add it to the merged transcript
+        let shouldAdd = true;
+        for (const videoCoverageTimeRange of videoCoverageTimeRanges) {
+          if (
+            tbUtterance[0] >= videoCoverageTimeRange[0] &&
+            tbUtterance[0] <= videoCoverageTimeRange[1]
+          ) {
+            shouldAdd = false;
+            break;
+          }
+        }
+        if (shouldAdd) {
+          tbUtterance[2] = tbUtterance[2] + " [TB]";
+          mergedTranscript.unprocessedUtterances.push(tbUtterance);
         }
       }
-      if (shouldAdd) {
-        tbUtterance[2] = tbUtterance[2] + " [TB]";
-        mergedTranscript.unprocessedUtterances.push(tbUtterance);
-      }
+      mergedTranscripts.push(mergedTranscript);
     }
-    mergedTranscripts.push(mergedTranscript);
+
+    // sort the merged transcripts by time
+    mergedTranscripts.forEach((transcript) => {
+      transcript.unprocessedUtterances.sort((a, b) => a[0] - b[0]);
+    });
+
+    return {
+      data: mergedTranscripts,
+      fetchMetadata: {
+        success: labsResponse.fetchMetadata.success,
+        timestamp: new Date().toISOString(),
+      },
+      source: labsResponse.source || "labs",
+    };
+  } catch (e) {
+    return {
+      data: returnEmptyUnprocessedTranscriptArray(),
+      fetchMetadata: {
+        success: false,
+        error: e instanceof Error ? e.message : "Failed to merge labs and talkybot transcripts",
+        timestamp: new Date().toISOString(),
+      },
+      source: "labs",
+    };
   }
-
-  // sort the merged transcripts by time
-  mergedTranscripts.forEach((transcript) => {
-    transcript.unprocessedUtterances.sort((a, b) => a[0] - b[0]);
-  });
-
-  const response: WrappedResponse<UnprocessedTranscript[]> = {
-    responseMetadata: labsResponse.responseMetadata,
-    data: mergedTranscripts,
-  };
-
-  return response;
 }
 
 export async function fetchLabsTranscripts({
   source,
   dateWanted,
   overrideBaseUrl,
-  forceNew = false,
 }: {
   source: Source;
   dateWanted: string;
   overrideBaseUrl?: string;
-  forceNew?: boolean;
-}): Promise<WrappedResponse<UnprocessedTranscript[]>> {
-  // if not ISS return nothing unless an override URL has been send, then use the override URL
-  if (source !== "ISS" && !overrideBaseUrl) {
-    return {
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
-      data: returnEmptyUnprocessedTranscriptArray(),
-    };
-  }
+}): Promise<FetchResponse<UnprocessedTranscript[]>> {
+  try {
+    // if not ISS return nothing unless an override URL has been send, then use the override URL
+    if (source !== "ISS" && !overrideBaseUrl) {
+      return {
+        data: returnEmptyUnprocessedTranscriptArray(),
+        fetchMetadata: {
+          success: true,
+          timestamp: new Date().toISOString(),
+        },
+        source: "labs",
+      };
+    }
 
-  const cacheAge = isNearRealTime(new Date(dateWanted).getTime(), collection[source]) ? 0 : 60;
+    leoProfanity.loadDictionary("en");
 
-  leoProfanity.loadDictionary("en");
-
-  const retriever = async (): Promise<UnprocessedTranscript[]> => {
     const transcripts: UnprocessedTranscript[] = [];
     const urlBase = overrideBaseUrl
       ? overrideBaseUrl
@@ -144,20 +139,26 @@ export async function fetchLabsTranscripts({
       });
       transcripts[i - 1] = unprocessedTranscript;
     }
-    return transcripts;
-  };
 
-  const res: WrappedResponse<UnprocessedTranscript[]> = await fetchWithCache<
-    UnprocessedTranscript[]
-  >({
-    identifier: `${dateWanted}`,
-    cacheFolder: "labs/transcripts",
-    retriever,
-    cacheAge,
-    forceRetriever: forceNew,
-  });
-
-  return { ...res, source: "labs" };
+    return {
+      data: transcripts,
+      fetchMetadata: {
+        success: true,
+        timestamp: new Date().toISOString(),
+      },
+      source: "labs",
+    };
+  } catch (e) {
+    return {
+      data: returnEmptyUnprocessedTranscriptArray(),
+      fetchMetadata: {
+        success: false,
+        error: e instanceof Error ? e.message : "Failed to fetch labs transcripts",
+        timestamp: new Date().toISOString(),
+      },
+      source: "labs",
+    };
+  }
 }
 
 export async function fetchTalkybotTranscripts({
@@ -203,119 +204,122 @@ export async function fetchLabsAndTalkybotSGAudio({
   source,
   dateWanted,
   overrideBaseUrl = null,
-  forceNew = false,
 }: {
   source: Source;
   dateWanted: string;
   overrideBaseUrl?: string;
-  forceNew?: boolean;
-}): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
-  if (source !== "ISS") {
-    return await fetchLabsSGAudio({ source, dateWanted, overrideBaseUrl, forceNew });
-  }
+}): Promise<FetchResponse<SgActivityFullUrlRecord>> {
+  try {
+    if (source !== "ISS") {
+      return await fetchLabsSGAudio({ source, dateWanted, overrideBaseUrl });
+    }
 
-  // get both, the labs and talkybot sgAudio
-  let labsResponse = await fetchLabsSGAudio({ source, dateWanted, forceNew });
-  let retries = 0;
-  while (labsResponse.responseMetadata.retrieverStatus === "inprogress" && retries < 10) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    labsResponse = await fetchLabsSGAudio({ source, dateWanted, overrideBaseUrl });
-    retries++;
-  }
-  const labsAudio = labsResponse.data;
-  const tbAudio = await fetchTalkybotSGAudio({ source, dateWanted });
+    // get both, the labs and talkybot sgAudio
+    const labsResponse = await fetchLabsSGAudio({ source, dateWanted, overrideBaseUrl });
+    const labsAudio = labsResponse.data;
+    const tbAudio = await fetchTalkybotSGAudio({ source, dateWanted });
 
-  // if no TB response, just return labs
-  if (
-    tbAudio.sgActivityRangeFullUrlRecords[0].length === 0 &&
-    tbAudio.sgActivityRangeFullUrlRecords[1].length === 0 &&
-    tbAudio.sgActivityRangeFullUrlRecords[2].length === 0 &&
-    tbAudio.sgActivityRangeFullUrlRecords[3].length === 0
-  ) {
-    return labsResponse;
-  }
+    // if no TB response, just return labs
+    if (
+      tbAudio.sgActivityRangeFullUrlRecords[0].length === 0 &&
+      tbAudio.sgActivityRangeFullUrlRecords[1].length === 0 &&
+      tbAudio.sgActivityRangeFullUrlRecords[2].length === 0 &&
+      tbAudio.sgActivityRangeFullUrlRecords[3].length === 0
+    ) {
+      return labsResponse;
+    }
 
-  // Start with the full labs audio
-  // Merge the talkybot audio into the result by using the video coverage from IO. If there is a video for a given utterance time, that
+    // Start with the full labs audio
+    // Merge the talkybot audio into the result by using the video coverage from IO. If there is a video for a given utterance time, that
 
-  // get the time ranges of all IO videos for this date
-  const videoCoverageTimeRanges = await getVideoCoverageTimeRanges({
-    dateWanted,
-    source,
-    forceNew: false,
-  });
+    // get the time ranges of all IO videos for this date
+    const videoCoverageTimeRanges = await getVideoCoverageTimeRanges({
+      dateWanted,
+      source,
+    });
 
-  // Start with the full labs audio
-  const mergedAudio: SgActivityFullUrlRecord = {
-    override: labsAudio.override,
-    sgActivityRangeFullUrlRecords: [],
-  };
+    // Start with the full labs audio
+    const mergedAudio: SgActivityFullUrlRecord = {
+      override: labsAudio.override,
+      sgActivityRangeFullUrlRecords: [],
+    };
 
-  for (let i = 0; i < 4; i++) {
-    const tbAudioRanges = tbAudio.sgActivityRangeFullUrlRecords[i];
-    const labsAudioRanges = labsAudio.sgActivityRangeFullUrlRecords[i];
-    const mergedRanges: SgActivityRangeFullUrlRecord[] = [];
+    for (let i = 0; i < 4; i++) {
+      const tbAudioRanges = tbAudio.sgActivityRangeFullUrlRecords[i];
+      const labsAudioRanges = labsAudio.sgActivityRangeFullUrlRecords[i];
+      const mergedRanges: SgActivityRangeFullUrlRecord[] = [];
 
-    // copy the whole labs audio first
-    mergedRanges.push(...labsAudioRanges);
+      // copy the whole labs audio first
+      mergedRanges.push(...labsAudioRanges);
 
-    for (const tbRange of tbAudioRanges) {
-      // if the tbRange time falls outside of the video coverage time ranges, add it to the merged audio
-      let shouldAdd = true;
-      for (const videoCoverageTimeRange of videoCoverageTimeRanges) {
-        if (
-          tbRange.sound_start_secs >= videoCoverageTimeRange[0] &&
-          tbRange.sound_start_secs <= videoCoverageTimeRange[1]
-        ) {
-          shouldAdd = false;
-          break;
+      for (const tbRange of tbAudioRanges) {
+        // if the tbRange time falls outside of the video coverage time ranges, add it to the merged audio
+        let shouldAdd = true;
+        for (const videoCoverageTimeRange of videoCoverageTimeRanges) {
+          if (
+            tbRange.sound_start_secs >= videoCoverageTimeRange[0] &&
+            tbRange.sound_start_secs <= videoCoverageTimeRange[1]
+          ) {
+            shouldAdd = false;
+            break;
+          }
+        }
+        if (shouldAdd) {
+          mergedRanges.push(tbRange);
         }
       }
-      if (shouldAdd) {
-        mergedRanges.push(tbRange);
-      }
+      mergedRanges.sort((a, b) => a.sound_start_secs - b.sound_start_secs);
+      mergedAudio.sgActivityRangeFullUrlRecords.push(mergedRanges);
     }
-    mergedRanges.sort((a, b) => a.sound_start_secs - b.sound_start_secs);
-    mergedAudio.sgActivityRangeFullUrlRecords.push(mergedRanges);
-  }
 
-  return {
-    responseMetadata: labsResponse.responseMetadata,
-    data: mergedAudio,
-  };
+    return {
+      data: mergedAudio,
+      fetchMetadata: {
+        success: labsResponse.fetchMetadata.success,
+        timestamp: new Date().toISOString(),
+      },
+      source: labsResponse.source || "labs",
+    };
+  } catch (e) {
+    return {
+      data: {
+        override: false,
+        sgActivityRangeFullUrlRecords: [[], [], [], []],
+      },
+      fetchMetadata: {
+        success: false,
+        error: e instanceof Error ? e.message : "Failed to merge labs and talkybot SG audio",
+        timestamp: new Date().toISOString(),
+      },
+      source: "labs",
+    };
+  }
 }
 
 export async function fetchLabsSGAudio({
   source,
   dateWanted,
   overrideBaseUrl = null,
-  forceNew = false,
 }: {
   source: Source;
   dateWanted: string;
   overrideBaseUrl?: string;
-  forceNew?: boolean;
-}): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
-  if (source !== "ISS" && !overrideBaseUrl) {
-    return {
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
-      data: {
-        override: false,
-        sgActivityRangeFullUrlRecords: [[], [], [], []],
-      } as SgActivityFullUrlRecord,
-    };
-  }
+}): Promise<FetchResponse<SgActivityFullUrlRecord>> {
+  try {
+    if (source !== "ISS" && !overrideBaseUrl) {
+      return {
+        data: {
+          override: false,
+          sgActivityRangeFullUrlRecords: [[], [], [], []],
+        },
+        fetchMetadata: {
+          success: true,
+          timestamp: new Date().toISOString(),
+        },
+        source: "labs",
+      };
+    }
 
-  const cacheAge = isNearRealTime(new Date(dateWanted).getTime(), collection[source]) ? 0 : 60;
-
-  const retriever = async (): Promise<SgActivityFullUrlRecord> => {
     const labsBaseUrl = "https://emss-labs.fit.nasa.gov/transcriptions";
     const baseUrl = overrideBaseUrl ? overrideBaseUrl : labsBaseUrl;
     const url = overrideBaseUrl
@@ -360,21 +364,30 @@ export async function fetchLabsSGAudio({
     }
 
     return {
-      override: overrideBaseUrl ? true : false,
-      sgActivityRangeFullUrlRecords: sgActivityRangeFullUrlRecords,
-    } as SgActivityFullUrlRecord;
-  };
-
-  const res: WrappedResponse<SgActivityFullUrlRecord> =
-    await fetchWithCache<SgActivityFullUrlRecord>({
-      identifier: `${dateWanted}`,
-      cacheFolder: "labs/audio",
-      retriever,
-      cacheAge,
-      forceRetriever: forceNew,
-    });
-
-  return { ...res, source: "labs" };
+      data: {
+        override: overrideBaseUrl ? true : false,
+        sgActivityRangeFullUrlRecords: sgActivityRangeFullUrlRecords,
+      },
+      fetchMetadata: {
+        success: true,
+        timestamp: new Date().toISOString(),
+      },
+      source: "labs",
+    };
+  } catch (e) {
+    return {
+      data: {
+        override: false,
+        sgActivityRangeFullUrlRecords: [[], [], [], []],
+      },
+      fetchMetadata: {
+        success: false,
+        error: e instanceof Error ? e.message : "Failed to fetch labs SG audio",
+        timestamp: new Date().toISOString(),
+      },
+      source: "labs",
+    };
+  }
 }
 
 export async function fetchTalkybotSGAudio({
@@ -481,13 +494,11 @@ const calcHlsDuration = async ({
 export const fetchMTXAPIResponses = async ({
   dateWanted,
   source,
-  forceNew,
 }: {
   dateWanted: string;
   source: Source;
-  forceNew: boolean;
-}): Promise<WrappedResponse<MTXApiResponses>> => {
-  const retriever = async (): Promise<MTXApiResponses> => {
+}): Promise<FetchResponse<MTXApiResponses>> => {
+  try {
     const sourceAbbr = source === "ISS" ? "ISS" : "TE";
 
     /**
@@ -521,8 +532,16 @@ export const fetchMTXAPIResponses = async ({
     } catch (e) {
       // if the mtxApi is down, return an empty object
       return {
-        mtxPlaybackAvailability: {},
-        mtxHlsEndpoints: [],
+        data: {
+          mtxPlaybackAvailability: {},
+          mtxHlsEndpoints: [],
+        },
+        fetchMetadata: {
+          success: false,
+          error: e instanceof Error ? e.message : "Failed to fetch MTX HLS endpoints",
+          timestamp: new Date().toISOString(),
+        },
+        source: "mtx",
       };
     }
 
@@ -600,18 +619,28 @@ export const fetchMTXAPIResponses = async ({
     }
 
     return {
-      mtxPlaybackAvailability: newMtxPlaybackAvailability,
-      mtxHlsEndpoints,
+      data: {
+        mtxPlaybackAvailability: newMtxPlaybackAvailability,
+        mtxHlsEndpoints,
+      },
+      fetchMetadata: {
+        success: true,
+        timestamp: new Date().toISOString(),
+      },
+      source: "mtx",
     };
-  };
-
-  const res: WrappedResponse<MTXApiResponses> = await fetchWithCache<MTXApiResponses>({
-    identifier: `mtxPlaybackAvailability_${source}_${dateWanted}`,
-    cacheFolder: "labs/mtxPlayback",
-    retriever,
-    cacheAge: 120, // 2 minutes.
-    forceRetriever: forceNew,
-  });
-
-  return { ...res, source: "mtx" };
+  } catch (error) {
+    return {
+      data: {
+        mtxPlaybackAvailability: {},
+        mtxHlsEndpoints: [],
+      },
+      fetchMetadata: {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+        timestamp: new Date().toISOString(),
+      },
+      source: "mtx",
+    };
+  }
 };

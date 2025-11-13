@@ -33,34 +33,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
       const records: PhotoRecord[] = await getPhotoTimeshiftRecordsByDate(queryObj.dateWanted);
-      const wrappedResponse: WrappedResponse<PhotoRecord[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     } else {
       const records: PhotoRecord[] = await getPhotoTimeshiftRecordsList();
-      const wrappedResponse: WrappedResponse<PhotoRecord[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -76,49 +52,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
     const em = getEM();
     const photoRecord: PhotoRecord = await em.findOne(PhotoTimeShifts_db, { id: Number(id) });
     if (photoRecord) {
-      const wrappedResponse: WrappedResponse<PhotoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: photoRecord,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(photoRecord);
     } else {
-      const wrappedResponse: WrappedResponse<PhotoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "gpx track not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "photo record not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<PhotoRecord> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 

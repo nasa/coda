@@ -41,7 +41,7 @@ export async function putCacheEntry({
   folder: string;
   identifier: string;
   data: Object | null;
-  metadata: CacheMetadata | SocketCacheMetadata;
+  metadata: CacheMetadata;
 }): Promise<Cache_db | null> {
   const em = getEM().fork();
   try {

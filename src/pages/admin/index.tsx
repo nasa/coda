@@ -31,6 +31,8 @@ const AdminIndex: FunctionComponent = () => {
       </p>
       <p>
         <Link to="/admin/socketStatus">Server Socket Status</Link>
+        <br />
+        <Link to="/admin/fetchInspector">Data Fetching Inspector</Link>
       </p>
     </div>
   );

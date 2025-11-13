@@ -2,8 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: GraphsState = {
   graphsManifest: null,
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
 };
 
 export const graphSlice = createSlice({
@@ -11,14 +10,13 @@ export const graphSlice = createSlice({
   initialState,
   reducers: {
     /** Add new graph manifest to the store */
-    setGraphsManifest: (state, action: { payload: WrappedResponse<GraphsManifest> }) => {
+    setGraphsManifest: (state, action: { payload: FetchResponse<GraphsManifest> }) => {
       state.graphsManifest = action.payload.data;
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
+      state.metadata = action.payload.fetchMetadata;
     },
     clearGraphsManifest: (state) => {
       state.graphsManifest = null;
-      state.responseMetadata = null;
-      state.loadingStatus = "loading";
+      state.metadata = null;
     },
     setGraphsData: (state, action: { payload: { graphId: string; graphData: GraphData[] } }) => {
       const graph = state.graphsManifest?.graphs.find((g) => g.id === action.payload.graphId);
@@ -38,10 +36,11 @@ export const graphSlice = createSlice({
       });
     },
     graphsFetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setGraphsLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
@@ -52,5 +51,4 @@ export const {
   setGraphsData,
   clearGraphsData,
   graphsFetchError,
-  setGraphsLoadingStatus,
 } = graphSlice.actions;

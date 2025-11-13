@@ -13,8 +13,7 @@ Known query parameters:
 
 FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
 */
-import { padZeros, appSecondsFromDateString, isNearRealTime } from "utils/formatting";
-import fetchWithCache from "../processing/cache-client";
+import { padZeros, appSecondsFromDateString } from "utils/formatting";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
@@ -95,90 +94,70 @@ export function formatDateQuery(start: Date, end?: Date): string {
 }
 
 /**
- * Fetch for either photo or video data from the IO API. Checks cache. Uses multiple parallel calls if necessary
+ * Fetch for either photo or video data from the IO API.
  * @param collection Collection object used to build the IO query string
  * @param fetchType IOFetchType
  * @param requestDate The date to fetch data for
  * @returns PhotoFile[] | VideoFile[]
  */
-export async function fetchData({
+export async function retrieveIoData({
   collection,
   fetchType,
-  requestedDate: requestDate,
-  forceNew,
+  requestedDate,
 }: {
   collection: Collection;
   fetchType: IOFetchType;
   requestedDate: Date;
-  forceNew?: boolean;
-}) {
+}): Promise<PhotoFile[] | VideoFile[]> {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
-  let dateQuery: string;
   let queryParams: string;
-  let cacheAge: number = 43200; // 12 hours default
-  if (isNearRealTime(requestDate.getTime(), collection)) {
-    cacheAge = 0;
-  }
 
   if (fetchType === "photos") {
     parser = parseIOPhotoResponse;
-    dateQuery = formatDateQuery(requestDate);
+    const dateQuery = formatDateQuery(requestedDate);
     queryParams = `${dateQuery}&as=1&so=7&cols=${collection}`;
   } else if (fetchType === "videos") {
     parser = parseIOVideoResponse;
-    dateQuery = formatDateQuery(addMs(requestDate, -86400000), requestDate); //get video for requestDate and also one day before to catch any vids crossing midnight
+    const dateQuery = formatDateQuery(addMs(requestedDate, -86400000), requestedDate); // get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${collection}&as=2`;
   } else {
-    //  this will error on compile-time if there's a code path that falls here. Essentially a "should never hit this" test.
-    // Ref: https://www.typescriptlang.org/docs/handbook/2/functions.html#never
-    throw new Error(fetchType);
+    throw new Error(`Unsupported IO fetch type: ${fetchType}`);
   }
 
-  const retriever = async () => {
-    const res = await fetchIO(queryParams, fetchType);
-    const limit = 500; //limit on results per call for IO API
+  const initialResponse = await fetchIO(queryParams, fetchType);
+  const limit = 500; // limit on results per call for IO API
+  const { numfound } = initialResponse.results.response;
+  const callsRequired = Math.ceil(numfound / limit);
 
-    const { numfound } = res.results.response;
-    const callsRequired = Math.ceil(numfound / limit);
+  // create array from first API call
+  const data1 = parser(initialResponse, collection);
 
-    // create array from first API call
-    const data1 = parser(res, collection);
+  if (callsRequired <= 1 || process.env.VITE_PUBLIC_APP_ENV === "local") {
+    // If using mock data, just return the first batch in the mock response
+    // Only one API call was needed because we got fewer results than the limit. Just return it.
+    return data1;
+  }
 
-    if (callsRequired <= 1 || process.env.VITE_PUBLIC_APP_ENV === "local") {
-      // If using mock data, just return the first batch in the mock response
-      // Only one API call was needed because we got fewer results than the limit. Just return it.
-      return data1;
-    }
+  // Construct an array of queryParams, one for each page required to reach numFound from first API call
+  let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
 
-    // Construct an array of queryParams, one for each page required to reach numFound from first API call
-    let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
+  // create an array of promises for async IO calls
+  const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
 
-    // create an array of promises for async IO calls
-    const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
+  // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
+  const resArray = await Promise.all(promiseArray);
 
-    // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
-    const resArray = await Promise.all(promiseArray);
-
-    // Parse out results into array of objects
-    const additionalDataArray = resArray.map((res) => {
-      return parser(res, collection);
-    });
-
-    // Turn array of arrays into one enormous array
-    let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
-
-    // Merge the additional objects with the objects from the first API call and return it
-    const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
-    return allData;
-  };
-
-  return fetchWithCache<PhotoFile[] | VideoFile[]>({
-    identifier: `${fetchType}-${collection}-${requestDate.toISOString()}`,
-    cacheFolder: "io",
-    retriever,
-    cacheAge,
-    forceRetriever: forceNew,
+  // Parse out results into array of objects
+  const additionalDataArray = resArray.map((res) => {
+    return parser(res, collection);
   });
+
+  // Turn array of arrays into one enormous array
+  let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
+
+  // Merge the additional objects with the objects from the first API call and return it
+  const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
+  return allData;
 }
 
 /**
