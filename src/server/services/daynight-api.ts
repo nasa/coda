@@ -1,5 +1,4 @@
-import fetchWithCache from "../processing/cache-client";
-import { hhmmssFromSeconds, padZeros } from "utils/formatting";
+import { hhmmssFromSeconds } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
 import SunCalc from "utils/suncalc";
 import { getSatelliteInfo } from "tle.js";
@@ -19,17 +18,15 @@ type TopoURL = {
  * @param year yyyy
  * @param month 1-indexed, eg. `1` for Jan, `2` for Feb, etc.
  * @param date day of the month
- * @param forceRetriever Return the cached data, then force the retriever function to get new data regardless of cache age.
  * @param dayNightSource manually specify the data source for this fetch. Will not cache
- * @returns wrapped response of daynight objects
+ * @returns data response of daynight objects
  */
 export async function fetchDayNight(
   year: number,
   month: number,
   date: number,
-  forceRetriever?: boolean,
   dayNightSource?: string
-): Promise<WrappedResponse<DayNightStore>> {
+): Promise<FetchResponse<DayNightStore>> {
   /** Get data from topo for a single day.
    *  To do this, we need to query multiple files covering current week, week before, week after to ensure we get the requested date.
    *  Each raw week pulled from topo by attempting to retrieve a file for every day of the week starting on Tuesday
@@ -37,7 +34,38 @@ export async function fetchDayNight(
    *  All the file data is aggregated and parsed down to find the requested day.
    *  Then formatted into day/night and cached.
    */
-  const retrieverTopo = async (): Promise<DayNightStore> => {
+  const requestDate = new Date(Date.UTC(year, month - 1, date));
+  const defaultData: DayNightStore = { dayNight: [] };
+
+  const createSuccessResponse = (data: DayNightStore, source: string) => {
+    const timestamp = new Date().toISOString();
+    const response: FetchResponse<DayNightStore> = {
+      data,
+      fetchMetadata: {
+        success: true,
+        error: undefined,
+        timestamp,
+      },
+      source,
+    };
+    return response;
+  };
+
+  const createErrorResponse = (message: string, source?: string) => {
+    const timestamp = new Date().toISOString();
+    const response: FetchResponse<DayNightStore> = {
+      data: defaultData,
+      fetchMetadata: {
+        success: false,
+        error: message,
+        timestamp,
+      },
+      source,
+    };
+    return response;
+  };
+
+  const fetchTopoDayNight = async (): Promise<DayNightStore> => {
     let dayNight: DayNightObj[] = [];
     let topoFileData: string[] = [];
 
@@ -100,7 +128,7 @@ export async function fetchDayNight(
             break; //got a success response. we have our data for this week. do not check additional days.
           } else {
             if (response.statusCode === 404) {
-              //file not found. Try the next day day
+              //file not found. Try the next day.
               queryDate.setUTCDate(queryDate.getUTCDate() + 1);
               continue;
             } else {
@@ -120,35 +148,34 @@ export async function fetchDayNight(
       // got all the raw week files. process and parse responses
       dayNight = parseTopoData(topoFileData, requestDate);
     } catch (e) {
-      console.log("Caught error in retrieverTopoDay: " + e);
+      console.log("Caught error in fetchTopoDayNight: " + e);
       throw e;
     }
     return { dayNight };
   };
 
   /** Get data using the service fetchISSLocation.
-   * Calculate Day/Night from ephemera (this is what get's cached)
+   * Calculate Day/Night from ephemera (this is what gets cached)
    *
    * Return a wrapped response in order to pass along source value returned from fetchISSLocation (spacetrack or celestrack)
    */
-  const retrieverIssLocationDayNight = async (): Promise<DayNightStore> => {
+  const fetchIssLocationDayNight = async (): Promise<DayNightStore> => {
     try {
       const now = new Date();
       const dateObj = new Date(Date.UTC(year, month - 1, date));
       const isToday = isSameDate(now, dateObj);
-      // specify the source in order to bypass caching and get direct resposnes
-      const issLocation: WrappedResponse<EphemerisStore> = await fetchISSLocation(
+      // specify the source in order to bypass caching and get direct responses
+      const issLocation = await fetchISSLocation(
         year,
         month,
         date,
-        false,
         isToday ? "celestrak" : "spacetrack"
       );
 
       let dayNight: DayNightStore = null;
 
       // calculate day night based off ephemera if we have data
-      if (issLocation.data?.ephemera) {
+      if (issLocation.fetchMetadata.success && issLocation.data?.ephemera?.length) {
         let ephemera = issLocation.data.ephemera;
         if (ephemera.length > 0) {
           dayNight = { dayNight: calcDayNight(ephemera, year, month, date) };
@@ -157,166 +184,103 @@ export async function fetchDayNight(
 
       return dayNight;
     } catch (e) {
-      console.log("Caught error in retrieverIssLocation: " + e);
+      console.log("Caught error in fetchIssLocationDayNight: " + e);
       throw e;
     }
   };
 
-  //init variables
-  const requestDate = new Date(Date.UTC(year, month - 1, date)); //requested date in UTC
-  let res: WrappedResponse<DayNightStore> = {
-    responseMetadata: null,
-    data: { dayNight: [] },
-  };
-  const todayMidnight = new Date(Date.now()).setUTCHours(0, 0, 0, 0); //today at midnight
-  const twoWeeksAgo = todayMidnight - 1209600000; //60*60*24*14*1000 = ms UTC two weeks ago
-  const isHistoric = requestDate.getTime() < todayMidnight;
-  const oneYearInSeconds = 31536000;
-  let identifier = `${year}-${padZeros(month, 2)}-${padZeros(date, 2)}`;
   const ONE_DAY_MS = 24 * 60 * 60 * 1000;
   const tomorrowMidnight = new Date(Date.now() + ONE_DAY_MS).setUTCHours(0, 0, 0, 0);
+  const topoState = getTopoState(requestDate);
 
-  //first check if it's too far in the future
-  let topoState = getTopoState(requestDate);
   if (topoState === "outOfRange_predicted") {
-    return {
-      ...res,
-      responseMetadata: {
-        retrieverStatus: null,
-        error: "Requested date is too far in the future",
-        cachedTimestamp: null,
-        expiration: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
-    };
-  } //date requested is too far in the future. No data available
+    return createErrorResponse("Requested date is too far in the future", "topo");
+  }
 
-  //check if request wanted a custom source. Do not cache.
   if (dayNightSource === "topo") {
     if (topoState === "outOfRange_historic") {
-      return {
-        ...res,
-        responseMetadata: {
-          retrieverStatus: null,
-          error: "Requested date is too far in the past for this data source",
-          cachedTimestamp: null,
-          expiration: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-      };
+      return createErrorResponse(
+        "Requested date is too far in the past for this data source",
+        "topo"
+      );
     }
-    const dayNight = await retrieverTopo();
-    return {
-      responseMetadata: null,
-      data: dayNight,
-      source: "topo",
-    };
+    try {
+      const topoDayNight = await fetchTopoDayNight();
+      if (!topoDayNight?.dayNight?.length) {
+        return createErrorResponse("TOPO returned no day/night data", "topo");
+      }
+      return createSuccessResponse(topoDayNight, "topo");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error fetching TOPO day/night data";
+      console.error("TOPO override failed:", error);
+      return createErrorResponse(errorMessage, "topo");
+    }
   } else if (dayNightSource === "spacetrack" || dayNightSource === "celestrak") {
     if (requestDate.getTime() > tomorrowMidnight) {
-      return {
-        responseMetadata: {
-          retrieverStatus: null,
-          error: "Requested date is too far in the future for this data source.",
-          cachedTimestamp: null,
-          expiration: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        data: { dayNight: [] },
-      };
+      return createErrorResponse(
+        "Requested date is too far in the future for this data source.",
+        "spacetrack_celestrak"
+      );
     }
-    const issLocDayNight = await retrieverIssLocationDayNight();
-    return {
-      responseMetadata: null,
-      data: issLocDayNight,
-      source: "spacetrack_celestrak",
-    };
+    try {
+      const issDayNight = await fetchIssLocationDayNight();
+      if (!issDayNight?.dayNight?.length) {
+        return createErrorResponse(
+          "ISS location returned no day/night data",
+          "spacetrack_celestrak"
+        );
+      }
+      return createSuccessResponse(issDayNight, "spacetrack_celestrak");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unknown error fetching ISS location day/night data";
+      console.error("ISS location override failed:", error);
+      return createErrorResponse(errorMessage, "spacetrack_celestrak");
+    }
   } else if (dayNightSource) {
-    //unrecognized source
-    return {
-      ...res,
-      responseMetadata: {
-        retrieverStatus: null,
-        error: "Unrecognized source",
-        cachedTimestamp: null,
-        expiration: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
-    };
+    return createErrorResponse("Unrecognized source");
   }
 
-  /**
-   * Determine cache age for topo
-   *   if today and future, cache for 1 week (the schedule that topo predicted data is released)
-   *   if in the last 2 weeks, cache for 24 hours incase topo data is missing.
-   *      we are accepting the risk that if topo data *is* available, it will be short-cached until 2 weeks past
-   *   if older than 2 weeks, cache for a year
-   * */
-  let cacheAge_topo = oneYearInSeconds;
-  if (!isHistoric) {
-    cacheAge_topo = 604800; //60*60*24*7 = 1 week in seconds
-  } else if (requestDate.getTime() >= twoWeeksAgo) {
-    cacheAge_topo = 86400; //60*60*24 = 1 day in seconds
-  }
-
-  //fetch topo. we're in a valid date range for topo. this is the prefered method.
+  let topoError: string | undefined;
   if (topoState !== "outOfRange_historic") {
-    res = await fetchWithCache<DayNightStore>({
-      identifier,
-      cacheFolder: "daynight/topo",
-      retriever: retrieverTopo,
-      cacheAge: cacheAge_topo,
-      forceRetriever,
-    });
-    res.source = "topo";
-
-    //check topo response.
-    if (res.responseMetadata.error) {
-      console.error("TOPO fetch with cache returned an error: " + res.responseMetadata.error);
-    } else {
-      return res;
+    try {
+      const topoDayNight = await fetchTopoDayNight();
+      if (topoDayNight?.dayNight?.length) {
+        return createSuccessResponse(topoDayNight, "topo");
+      }
+      topoError = "TOPO returned no day/night data.";
+    } catch (error) {
+      topoError =
+        error instanceof Error ? error.message : "Unknown error fetching TOPO day/night data";
+      console.error("TOPO fetch failed:", error);
     }
   }
 
-  // topo failed or in progress, check if requested date is after tomorrow midnight, don't fall back to spacetrack
   if (requestDate.getTime() > tomorrowMidnight) {
-    return {
-      ...res,
-      responseMetadata: {
-        ...res.responseMetadata,
-        error: `${
-          res.responseMetadata.error ? res.responseMetadata.error + ". " : ""
-        }Unable to failover to ISS Location because requested date is too far in the future.`,
-      },
-    };
+    const errorMessage = topoError
+      ? `${topoError} Unable to failover to ISS Location because requested date is too far in the future.`
+      : "Unable to failover to ISS Location because requested date is too far in the future.";
+    return createErrorResponse(errorMessage, "topo");
   }
 
-  // topo either returned bad/no data, or date requested is too far in the past for topo. move on...
-  // fetch iss location.
-
-  /**
-   * Determine cache age for spacetrack
-   *   if today or if we are here becuase topo failed, cache for 5 minutes
-   *   otherwise we are in the past, cache for 1 year
-   * */
-  let cacheAge_spacetrack = oneYearInSeconds;
-  if (!isHistoric || topoState !== "outOfRange_historic") {
-    cacheAge_spacetrack = 300; // 5 minutes
+  try {
+    const issDayNight = await fetchIssLocationDayNight();
+    if (issDayNight?.dayNight?.length) {
+      return createSuccessResponse(issDayNight, "spacetrack_celestrak");
+    }
+    const fallbackError = "ISS location returned no day/night data.";
+    const combinedError = topoError ? `${topoError}. ${fallbackError}` : fallbackError;
+    return createErrorResponse(combinedError, "spacetrack_celestrak");
+  } catch (error) {
+    const fallbackError =
+      error instanceof Error ? error.message : "Unknown error fetching ISS location day/night data";
+    console.error("ISS location fallback failed:", error);
+    const combinedError = topoError ? `${topoError}. ${fallbackError}` : fallbackError;
+    return createErrorResponse(combinedError, "spacetrack_celestrak");
   }
-
-  res = await fetchWithCache<DayNightStore>({
-    identifier,
-    cacheFolder: "daynight/issLocation",
-    retriever: retrieverIssLocationDayNight,
-    cacheAge: cacheAge_spacetrack,
-    forceRetriever,
-  });
-  res.source = "spacetrack_celestrak";
-
-  return res;
 }
 
 /**

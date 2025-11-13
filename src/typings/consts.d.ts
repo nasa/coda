@@ -7,8 +7,6 @@ type Collection =
 
 type IOFetchType = "videos" | "photos";
 
-type LoadingStatus = "loading" | "loaded" | "unneeded";
-
 type Source = "ISS" | "TEST_EVENTS" | "NBL" | "ARTEMIS";
 
 type MediaMedium = "video" | "photo" | "transcript" | "audio";

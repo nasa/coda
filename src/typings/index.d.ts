@@ -14,16 +14,11 @@ interface IOResponse {
   };
 }
 
-/** The base type for all responses from the CODA API */
-interface WrappedResponse<T> {
+/** New simplified response type focused on fetch success/failure - no caching concerns */
+interface FetchResponse<T> {
   data: T;
-  responseMetadata: ResponseMetadata;
-  source?: string;
-}
-
-/** Wikibot responses */
-interface WikibotResponse<T> {
-  data?: T;
+  fetchMetadata: FetchMetadata;
+  source?: string; // where the data came from
 }
 
 /** A large contiguous section of the timeline representing an event at a location, eg. an EVA on ISS */

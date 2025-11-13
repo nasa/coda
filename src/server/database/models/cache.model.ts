@@ -17,7 +17,7 @@ export class Cache_db implements CacheRecord_db_type {
   data!: unknown;
 
   @Property({ type: MikroTypes.json })
-  metadata!: CacheMetadata | SocketCacheMetadata;
+  metadata!: CacheMetadata;
 
   @Property({ type: MikroTypes.datetime, columnType: "timestamptz(3)" })
   createdAt!: Date;

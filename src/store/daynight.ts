@@ -2,8 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: DayNightState = {
   dayNight: [],
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
   source: null,
 };
 
@@ -12,25 +11,24 @@ export const dayNightSlice = createSlice({
   initialState,
   reducers: {
     /** Add new day night to the store */
-    addDayNight: (state, action: { payload: WrappedResponse<DayNightStore> }) => {
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
-      state.dayNight = action.payload.data.dayNight;
+    addDayNight: (state, action: { payload: FetchResponse<DayNightStore> }) => {
+      state.dayNight = action.payload.data?.dayNight || [];
+      state.metadata = action.payload.fetchMetadata;
       state.source = action.payload.source;
     },
     clearDayNight: (state) => {
       state.dayNight = [];
-      state.responseMetadata = null;
-      state.loadingStatus = "loading";
+      state.metadata = null;
       state.source = null;
     },
     fetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setDayNightLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const { addDayNight, clearDayNight, fetchError, setDayNightLoadingStatus } =
-  dayNightSlice.actions;
+export const { addDayNight, clearDayNight, fetchError } = dayNightSlice.actions;

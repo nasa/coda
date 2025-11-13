@@ -4,12 +4,10 @@ import * as DbService from "server/services/db-api";
 export default async function getTranscripts({
   source,
   dateWanted,
-  forceNew,
 }: {
   source: Source;
   dateWanted: string; //yy-mm-dd
-  forceNew: boolean;
-}): Promise<WrappedResponse<UnprocessedTranscript[]>> {
+}): Promise<FetchResponse<UnprocessedTranscript[]>> {
   const requestedDate = new Date(dateWanted);
 
   // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online
@@ -32,7 +30,6 @@ export default async function getTranscripts({
         source,
         dateWanted,
         overrideBaseUrl: mediaOverride.url,
-        forceNew,
       });
     }
   } catch (e) {
@@ -43,23 +40,21 @@ export default async function getTranscripts({
   // labs audio and transcription was turned off around late October. Only grab from TB after this date
   // to avoid messy merging of labs and talkybot  transcripts
   if (new Date(dateWanted).getTime() < new Date("2024-10-21T00:00:00").getTime()) {
-    return LabsService.fetchLabsAndTalkybotTranscripts({ source, dateWanted, forceNew });
+    return LabsService.fetchLabsAndTalkybotTranscripts({
+      source,
+      dateWanted,
+    });
   } else {
     const res: UnprocessedTranscript[] = await LabsService.fetchTalkybotTranscripts({
       source,
       dateWanted,
     });
-    // wrap the response
     return {
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: "",
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
       data: res,
+      fetchMetadata: {
+        success: true,
+        timestamp: new Date().toISOString(),
+      },
       source: "talky-bot",
     };
   }

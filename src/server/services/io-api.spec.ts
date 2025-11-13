@@ -3,7 +3,39 @@ import {
   formatDateQuery,
   videoSorter,
   buildQueryArray,
+  retrieveIoData,
 } from "server/services/io-api";
+import fetchWithTimeout from "../../utils/fetch-with-timeout";
+import { collection } from "utils/consts";
+
+jest.mock("../../utils/fetch-with-timeout");
+
+const fetchWithTimeoutMock = fetchWithTimeout as jest.MockedFunction<typeof fetchWithTimeout>;
+
+const createPhotoDoc = (id: string) => ({
+  id,
+  nasa_id: id,
+  description: `description-${id}`,
+  webpath: `/path/${id}`,
+  file_extension_lores: "jpg",
+  date_added: "2024-01-01T00:00:00Z",
+  md_creation_date: "2024-01-01T00:00:00Z",
+  collections_string: ["collectionRoot", `collection-${id}`],
+});
+
+const createIoResponse = (docs: any[], numfound?: number) => ({
+  results: {
+    response: {
+      numfound: numfound ?? docs.length,
+      docs,
+    },
+  },
+});
+
+const mockFetchResponse = (payload: any): Response =>
+  ({
+    json: () => Promise.resolve(payload),
+  }) as unknown as Response;
 
 describe("services/io-api", () => {
   describe("getChannel()", () => {
@@ -132,6 +164,36 @@ describe("services/io-api", () => {
         "a=b&b=c&sr=1001",
         "a=b&b=c&sr=1501",
       ]);
+    });
+  });
+
+  describe("retrieveIoData()", () => {
+    beforeEach(() => {
+      fetchWithTimeoutMock.mockReset();
+      process.env.VITE_PUBLIC_APP_ENV = "test";
+      process.env.IO_API_URL = "https://io.test/search";
+      process.env.IO_KEY = "unit-test-key";
+      process.env.IO_HOST = "https://io.host";
+    });
+
+    it("aggregates paginated photo results", async () => {
+      const firstDocs = [createPhotoDoc("A"), createPhotoDoc("B")];
+      const secondDocs = [createPhotoDoc("C")];
+
+      fetchWithTimeoutMock.mockResolvedValueOnce(
+        mockFetchResponse(createIoResponse(firstDocs, 501))
+      );
+      fetchWithTimeoutMock.mockResolvedValueOnce(mockFetchResponse(createIoResponse(secondDocs)));
+
+      const results = await retrieveIoData({
+        collection: collection.ISS,
+        fetchType: "photos",
+        requestedDate: new Date("2024-01-02T00:00:00Z"),
+      });
+
+      expect(results.map((photo) => photo.id)).toEqual(["A", "B", "C"]);
+      expect(fetchWithTimeoutMock).toHaveBeenCalledTimes(2);
+      expect(fetchWithTimeoutMock.mock.calls[1]?.[0]).toContain("&sr=501");
     });
   });
 });

@@ -246,20 +246,20 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
 
   // Trigger loading of graph data when selectedGraphId changes
   useEffect(() => {
-    if (graphs.loadingStatus !== "loaded" || !paneStateData.selectedGraphId) return;
+    if (graphs.metadata === null || !paneStateData.selectedGraphId) return;
 
     setPaneStateValue(dispatch, frameID, "showHelp", false);
 
     dispatch(clearGraphsData());
 
     localAsyncFetchData();
-  }, [paneStateData.selectedGraphId, graphs.loadingStatus]);
+  }, [paneStateData.selectedGraphId, graphs.metadata]);
 
   // Peroiodically update the graph data depending on the graphs.graphManifest.updateFrequency value. If not value, default to 10 seconds. If -1 don't refresh.
   useEffect(() => {
     // don't refrech if updateFrequency is < 1
     if (
-      graphs.loadingStatus !== "loaded" ||
+      graphs.metadata === null ||
       !paneStateData.selectedGraphId ||
       graphs.graphsManifest?.updateFrequency < 1
     )
@@ -273,7 +273,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     }, updateFrequency * 1000);
 
     return () => clearInterval(interval);
-  }, [graphs.loadingStatus, paneStateData.selectedGraphId]);
+  }, [graphs.metadata, paneStateData.selectedGraphId]);
 
   const findPlotIndexToHighlight = (seconds: number): number => {
     let plotIndexToHighlight = 0;

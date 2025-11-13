@@ -9,9 +9,7 @@ type GlobalValues = {
   serverSocketStatus: ServerSocketStatus;
   socketInterval: NodeJS.Timeout;
   appVersion: AppVersion | null;
-  serverDataRefreshTimeouts: {
-    [source: string]: { [date: string]: { [dataType: string]: NodeJS.Timeout } };
-  };
+  fetchTrackers: FetchTrackers;
 };
 
 // these are defined in esbuild.mjs and vite.config.mts

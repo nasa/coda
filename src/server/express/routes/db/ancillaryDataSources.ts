@@ -35,34 +35,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       const records: AncillaryDataSource[] = await getAncillaryDataSourcesByDate(
         queryObj.dateWanted
       );
-      const wrappedResponse: WrappedResponse<AncillaryDataSource[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     } else {
       const records: AncillaryDataSourceList[] = await getAncillaryDataSourceList();
-      const wrappedResponse: WrappedResponse<AncillaryDataSourceList[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -80,49 +56,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       id: Number(id),
     });
     if (ancillaryDataSource) {
-      const wrappedResponse: WrappedResponse<AncillaryDataSource> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: ancillaryDataSource,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(ancillaryDataSource);
     } else {
-      const wrappedResponse: WrappedResponse<AncillaryDataSource> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "ancillary data source not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "ancillary data source not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<AncillaryDataSource> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 

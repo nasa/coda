@@ -29,34 +29,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
       const record: VideoRecord = await getVideoStartTimeOverridesRecordByVideoId(queryObj.videoId);
-      const wrappedResponse: WrappedResponse<VideoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: record,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(record);
     } else {
       const records: VideoRecord[] = await getVideoStartTimeOverridesRecordsList();
-      const wrappedResponse: WrappedResponse<VideoRecord[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -74,49 +50,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       id: Number(id),
     });
     if (videoRecord) {
-      const wrappedResponse: WrappedResponse<VideoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: videoRecord,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(videoRecord);
     } else {
-      const wrappedResponse: WrappedResponse<VideoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "gpx track not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "video record not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<VideoRecord> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 

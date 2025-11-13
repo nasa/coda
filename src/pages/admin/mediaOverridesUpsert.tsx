@@ -30,11 +30,11 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
     if (id) {
       const fetchData = async () => {
         const response = await fetch(`/api/v1/db/mediaOverrides/${id}`);
-        const data: WrappedResponse<MediaOverride> = await response.json();
-        setDate(data.data.date);
-        setSource(data.data.source);
-        setType(data.data.type);
-        setURL(data.data.url);
+        const data: MediaOverride = await response.json();
+        setDate(data.date);
+        setSource(data.source);
+        setType(data.type);
+        setURL(data.url);
       };
       fetchData();
     }

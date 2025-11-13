@@ -3,8 +3,7 @@ import { diff } from "../utils/date";
 
 export const initialState: EphemeraState = {
   ephemerisFiles: [],
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
 };
 
 export const ephemeraSlice = createSlice({
@@ -12,26 +11,26 @@ export const ephemeraSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
-      state.ephemerisFiles = action.payload.data.ephemera;
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
+    addEphemera: (state, action: { payload: FetchResponse<EphemerisStore> }) => {
+      state.ephemerisFiles = action.payload.data?.ephemera || [];
+      state.metadata = action.payload.fetchMetadata;
     },
     clearEphemera: (state) => {
       state.ephemerisFiles = [];
-      state.responseMetadata = null;
+      state.metadata = null;
     },
 
     fetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setEphemeraLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const { addEphemera, clearEphemera, fetchError, setEphemeraLoadingStatus } =
-  ephemeraSlice.actions;
+export const { addEphemera, clearEphemera, fetchError } = ephemeraSlice.actions;
 
 /**
  * Returns a Two-Line Element (TLE) from space-track.org that is closest to dateTimeWanted

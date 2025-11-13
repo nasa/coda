@@ -1,13 +1,25 @@
 import * as DbService from "server/services/db-api";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 
+const buildResponse = (
+  data: GraphsManifest | null,
+  options: { success: boolean; error?: string }
+): FetchResponse<GraphsManifest> => ({
+  data,
+  fetchMetadata: {
+    success: options.success,
+    error: options.error,
+    timestamp: new Date().toISOString(),
+  },
+  source: options.success ? "ancillary" : undefined,
+});
+
 export const fetchGraphsManifest = async (
   source: Source,
   dateWanted: string
-): Promise<WrappedResponse<GraphsManifest>> => {
+): Promise<FetchResponse<GraphsManifest>> => {
   const ancillaryDataSources = await DbService.fetchAncillaryDataSourceList();
 
-  // Check if there is a video override for this date and Source
   const ancillaryDataSource = ancillaryDataSources?.find((vo) => {
     const overrideDate = new Date(vo.date);
     const requestedDate = new Date(dateWanted);
@@ -19,46 +31,16 @@ export const fetchGraphsManifest = async (
   });
 
   if (ancillaryDataSource) {
-    // Get the graph manifest json from the url in the wiki
-    let graphManifest: GraphsManifest = null;
     try {
       const res = await fetchWithTimeout(ancillaryDataSource.url);
-      graphManifest = (await res.json()) as GraphsManifest;
-    } catch (e) {
-      return {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: new Date().toISOString(),
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        data: null,
-      };
+      const graphManifest = (await res.json()) as GraphsManifest;
+      return buildResponse(graphManifest ?? null, { success: true });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load graphs manifest";
+      return buildResponse(null, { success: false, error: message });
     }
-    return {
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: null,
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
-      data: graphManifest,
-    };
   }
 
-  return {
-    responseMetadata: {
-      retrieverStatus: "complete",
-      cachedTimestamp: new Date().toISOString(),
-      expiration: null,
-      error: null,
-      retrieverErrorCount: 0,
-      lastErrorTimestamp: null,
-    },
-    data: null,
-  };
+  // No ancillary data source found for this date and type. This is not an error; just return empty data.
+  return buildResponse(null, { success: true });
 };

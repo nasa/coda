@@ -33,34 +33,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
       const records: MediaOverride[] = await getMediaOverridesByDate(queryObj.dateWanted);
-      const wrappedResponse: WrappedResponse<MediaOverride[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     } else {
       const records: MediaOverrideList[] = await getMediaOverridesList();
-      const wrappedResponse: WrappedResponse<MediaOverrideList[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -76,49 +52,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
     const em = getEM();
     const mediaOverride: MediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
     if (mediaOverride) {
-      const wrappedResponse: WrappedResponse<MediaOverride> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: mediaOverride,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(mediaOverride);
     } else {
-      const wrappedResponse: WrappedResponse<MediaOverride> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "media override not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "media override not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<MediaOverride> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 

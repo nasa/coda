@@ -1,35 +1,35 @@
 import * as WikiService from "server/services/wiki-api";
 
-export default async function getEVAData(
-  agency: AgencyQuery,
-  forceNew: boolean
-): Promise<WikibotResponse<Sequence[]>> {
-  const response = await WikiService.getAllEVAData(agency, forceNew);
+const ensureData = (response: FetchResponse<Sequence[]>): FetchResponse<Sequence[]> => {
   if (!response.data) {
-    // Return an empty array if there's no last known good data.
-    // This is neede because the front-end can't deal with null.
-    return { ...response, data: [] };
+    return {
+      ...response,
+      data: [],
+      fetchMetadata: {
+        ...response.fetchMetadata,
+        success: response.fetchMetadata?.success ?? true,
+        timestamp: response.fetchMetadata?.timestamp || new Date().toISOString(),
+      },
+    };
   }
   return response;
+};
+
+export default async function getEVAData(agency: AgencyQuery): Promise<FetchResponse<Sequence[]>> {
+  const response = await WikiService.getAllEVAData(agency);
+  return ensureData(response);
 }
 
 export async function getISSEvaData({
   // ignore source and dateWanted. We only have those parameters set to make this function compatible with the other socket fetch functions.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   dateWanted,
-  forceNew,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   source,
 }: {
   dateWanted: string;
-  forceNew: boolean;
   source?: string;
-}): Promise<WikibotResponse<Sequence[]>> {
-  const response = await WikiService.getAllEVAData("all", forceNew);
-  if (!response.data) {
-    // Return an empty array if there's no last known good data.
-    // This is neede because the front-end can't deal with null.
-    return { ...response, data: [] };
-  }
-  return response;
+}): Promise<FetchResponse<Sequence[]>> {
+  const response = await WikiService.getAllEVAData("all");
+  return ensureData(response);
 }

@@ -1,35 +1,39 @@
 import { getEM } from "utils/mikro";
 import { Loaded } from "@mikro-orm/postgresql";
 import { GPXTracks_db } from "server/database/models/_allModels";
-import fetchWithCache from "../cache-client"; // new import
 import { XMLParser } from "fast-xml-parser";
 
 export default async function getGpsTrackData({
   dateWanted,
-  forceNew = false,
 }: {
   dateWanted: string;
-  forceNew?: boolean;
-}): Promise<WrappedResponse<GPSTrack[]>> {
-  const retriever = async (): Promise<GPXTrackRecord[]> => {
-    return await getGpxTrackRecordsByDate(dateWanted);
-  };
+}): Promise<FetchResponse<GPSTrack[]>> {
+  try {
+    const gpxTrackRecords = await getGpxTrackRecordsByDate(dateWanted);
+    const gpsTracks = gpxTrackRecords ? makeGPSTracks(gpxTrackRecords) : [];
 
-  const res: WrappedResponse<GPXTrackRecord[]> = await fetchWithCache<GPXTrackRecord[]>({
-    identifier: `gpsTracks_${dateWanted}`,
-    cacheFolder: "gps/tracks",
-    retriever,
-    cacheAge: 60 * 60 * 24, // 24 hours
-    forceRetriever: forceNew,
-  });
-
-  const convertedRes: WrappedResponse<GPSTrack[]> = {
-    responseMetadata: res.responseMetadata,
-    source: "database",
-    data: res.data ? makeGPSTracks(res.data) : [],
-  };
-
-  return convertedRes;
+    const timestamp = new Date().toISOString();
+    return {
+      data: gpsTracks,
+      fetchMetadata: {
+        success: true,
+        error: undefined,
+        timestamp,
+      },
+      source: "database",
+    };
+  } catch (error) {
+    const timestamp = new Date().toISOString();
+    return {
+      data: [],
+      fetchMetadata: {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error fetching GPS data",
+        timestamp,
+      },
+      source: "database",
+    };
+  }
 }
 
 export async function getGpxTrackRecordsByDate(date: string): Promise<GPXTrackRecord[]> {

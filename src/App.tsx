@@ -21,6 +21,7 @@ import { Tooltip } from "react-tooltip";
 import HLSPage from "pages/hls";
 import CombinedProviders from "store/contextProviders/_CombinedProviders";
 import ServerSocketStatus from "pages/admin/socketStatus";
+import FetchInspector from "pages/admin/fetchInspector";
 
 const App = (): React.ReactElement => {
   return (
@@ -45,6 +46,7 @@ const App = (): React.ReactElement => {
         <Route path="/admin/photoTimeShiftUpsert" element={<EditPhotoRecord />} />
         <Route path="/hls" element={<HLSPage />} />
         <Route path="/admin/socketStatus" element={<ServerSocketStatus />} />
+        <Route path="/admin/fetchInspector" element={<FetchInspector />} />
       </Routes>
       <Tooltip
         id="app-tooltip"

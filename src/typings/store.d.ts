@@ -7,8 +7,7 @@ declare type EmssUser = import("@emss/oauth2-proxy-common").EmssUser;
 
 type EphemeraState = {
   ephemerisFiles: EphemerisFile[];
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
 };
 
 /**
@@ -16,8 +15,7 @@ type EphemeraState = {
  */
 type DayNightState = {
   dayNight: DayNightObj[];
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
   source?: string;
 };
 
@@ -27,8 +25,7 @@ type DayNightState = {
 
 type SequencesState = {
   allSequences: Sequence[];
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
 };
 
 /**
@@ -39,8 +36,7 @@ type PhotosState = {
   photoFiles: PhotoFile[];
   activePhoto: PhotoFile;
   ready: boolean;
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
   collectionFilters: PhotoCollectionFilters[];
 };
 
@@ -60,8 +56,8 @@ type VideosState = {
   mtxPlaybackAvailability: MTXPlaybackAvailability;
   // string of stream names in the DL1_ISS, DL2_ISS, etc format or DL1_TE (test event), DL2_TE, etc.
   mtxHlsEndpoints: MTXHlsEndpoint[];
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadataIo: FetchMetadata | null;
+  metadataMtx: FetchMetadata | null;
 };
 
 /**
@@ -69,8 +65,7 @@ type VideosState = {
  */
 type GPSState = {
   gpsTracks: GPSTrack[];
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
 };
 
 /**
@@ -78,8 +73,7 @@ type GPSState = {
  */
 type TranscriptState = {
   transcripts: Transcript[];
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
   isTranscripts: boolean;
 };
 
@@ -88,8 +82,7 @@ type TranscriptState = {
  */
 type SgAudioState = {
   sgActivityFullUrlRecord: SgActivityFullUrlRecord;
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
 };
 
 /**
@@ -97,8 +90,7 @@ type SgAudioState = {
  */
 type GraphsState = {
   graphsManifest: GraphsManifest;
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
 };
 
 /**
@@ -111,8 +103,7 @@ type MaestroState = {
   evaStartSec: number;
   evaEndSec: number;
   evaDurationSec: number;
-  responseMetadata: ResponseMetadata;
-  loadingStatus: LoadingStatus;
+  metadata: FetchMetadata | null;
 };
 
 /**

@@ -4,12 +4,10 @@ import * as DbService from "server/services/db-api";
 export default async function getLabsSgAudio({
   source,
   dateWanted,
-  forceNew,
 }: {
   source: Source;
   dateWanted: string; //yy-mm-dd
-  forceNew: boolean;
-}): Promise<WrappedResponse<SgActivityFullUrlRecord>> {
+}): Promise<FetchResponse<SgActivityFullUrlRecord>> {
   const requestedDate = new Date(dateWanted);
 
   // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online
@@ -32,7 +30,6 @@ export default async function getLabsSgAudio({
         source,
         dateWanted,
         overrideBaseUrl: mediaOverride.url,
-        forceNew,
       });
     }
   } catch (e) {
@@ -43,23 +40,21 @@ export default async function getLabsSgAudio({
   // labs audio and transcription was turned off around late October. Only grab from TB after this date
   // to avoid messy merging of labs and talkybot transcripts
   if (new Date(dateWanted).getTime() < new Date("2024-10-21T00:00:00").getTime()) {
-    return LabsService.fetchLabsAndTalkybotSGAudio({ source, dateWanted, forceNew });
+    return LabsService.fetchLabsAndTalkybotSGAudio({
+      source,
+      dateWanted,
+    });
   } else {
     const res: SgActivityFullUrlRecord = await LabsService.fetchTalkybotSGAudio({
       source,
       dateWanted,
     });
-    // wrap the response
     return {
-      responseMetadata: {
-        retrieverStatus: "complete",
-        cachedTimestamp: new Date().toISOString(),
-        expiration: null,
-        error: "",
-        retrieverErrorCount: 0,
-        lastErrorTimestamp: null,
-      },
       data: res,
+      fetchMetadata: {
+        success: true,
+        timestamp: new Date().toISOString(),
+      },
       source: "talky-bot",
     };
   }

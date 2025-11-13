@@ -29,10 +29,10 @@ export const EditGPSRecord: FunctionComponent = () => {
     if (id) {
       const fetchData = async () => {
         const response = await fetch(`/api/v1/db/gps/${id}`);
-        const data: WrappedResponse<GPXTrackRecord> = await response.json();
-        setDate(data.data.date);
-        setName(data.data.name);
-        setGpxData(data.data.gpxData);
+        const data: GPXTrackRecord = await response.json();
+        setDate(data.date);
+        setName(data.name);
+        setGpxData(data.gpxData);
       };
       fetchData();
     }

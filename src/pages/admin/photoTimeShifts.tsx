@@ -47,8 +47,8 @@ const ListRecords: FunctionComponent = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("/api/v1/db/photoTimeShifts");
-      const data: WrappedResponse<PhotoRecord[]> = await response.json();
-      setRecords(data.data);
+      const data: PhotoRecord[] = await response.json();
+      setRecords(data);
     };
     fetchData();
   }, []);

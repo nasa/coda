@@ -44,8 +44,8 @@ const ListRecords: FunctionComponent = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("/api/v1/db/gps");
-      const data: WrappedResponse<GPXTrackListRecord[]> = await response.json();
-      setRecords(data.data);
+      const data: GPXTrackListRecord[] = await response.json();
+      setRecords(data);
     };
     fetchData();
   }, []);

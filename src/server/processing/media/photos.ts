@@ -1,12 +1,11 @@
 import clone from "lodash/clone";
 import isNil from "lodash/isNil";
 import sortBy from "lodash/sortBy";
-import * as IoService from "server/services/io-api";
-import * as WikiService from "server/services/wiki-api";
+import { retrieveIoData } from "server/services/io-api";
 import * as DbService from "server/services/db-api";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
-import { addMs, isSameDate } from "../../../utils/date";
+import { addMs } from "../../../utils/date";
 
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
@@ -14,20 +13,43 @@ import { addMs, isSameDate } from "../../../utils/date";
 export default async function getPhotoData({
   dateWanted,
   source,
-  forceNew,
 }: {
   dateWanted: string;
   source: Source;
-  forceNew: boolean;
-}): Promise<WrappedResponse<PhotoFile[]>> {
-  const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
-  const requestedDate = new Date(Date.UTC(year, month - 1, date));
+}): Promise<FetchResponse<PhotoFile[]>> {
+  const buildSuccessResponse = (data: PhotoFile[], origin: string): FetchResponse<PhotoFile[]> => ({
+    data,
+    fetchMetadata: {
+      success: true,
+      error: undefined,
+      timestamp: new Date().toISOString(),
+    },
+    source: origin,
+  });
 
-  // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
+  const buildErrorResponse = (message: string): FetchResponse<PhotoFile[]> => ({
+    data: [],
+    fetchMetadata: {
+      success: false,
+      error: message,
+      timestamp: new Date().toISOString(),
+    },
+    source: source ?? "io",
+  });
+
   try {
-    let mediaOverrides = await DbService.fetchMediaOverrides();
+    const [year, month, date] = dateWanted.split("-").map((x) => parseInt(x, 10));
+    const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
-    // Check if there is a video override for this date and Source
+    let mediaOverrides: MediaOverride[] | undefined;
+    // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
+    try {
+      mediaOverrides = await DbService.fetchMediaOverrides();
+    } catch (overrideError) {
+      // don't block results if media overrides call fails
+      console.error(overrideError);
+    }
+
     const mediaOverride = mediaOverrides?.find((vo) => {
       const overrideDate = new Date(vo.date);
       return (
@@ -43,102 +65,73 @@ export default async function getPhotoData({
         (await DbService.getManifest(mediaOverride)) as PhotoFile[],
         "datetimeTaken"
       );
-
-      return {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-        },
-        data: photos,
-      } as WrappedResponse<PhotoFile[]>;
+      return buildSuccessResponse(photos, "database");
     }
-  } catch (e) {
-    // don't block results if media overrides call fails
-    console.error(e);
-  }
 
-  const col = collection[source];
-  const [results, sequences, allOverrides] = await Promise.all([
-    IoService.fetchData({
-      collection: col,
-      fetchType: "photos",
-      requestedDate,
-      forceNew,
-    }) as Promise<WrappedResponse<PhotoFile[]>>,
-    // fetch sequence data, but don't throw if the request fails
-    await (async () => {
-      try {
-        return await WikiService.fetchSequences(source, forceNew);
-      } catch (e) {
-        console.error(e);
-      }
-    })(),
-    // fetch start time overrides, but don't throw if the request fails
-    await (async () => {
-      try {
-        return await DbService.fetchPhotoDateTimeOverrides();
-      } catch (e) {
-        // don't block photo results if we can't find overrides
-        console.error(e);
-      }
-    })(),
-  ]);
-
-  if (isNil(allOverrides) || isNil(sequences)) {
-    // we don't have the info required to apply fudge factors. just return the photos
-    return results;
-  }
-
-  const seqs = sequences.data?.filter(
-    (seq) => isSameDate(new Date(seq.startDate), requestedDate) //||
-    // isSameDate(new Date(seq.startDate), previousDate) ||
-    // isSameDate(new Date(seq.startDate), nextDate)
-  );
-
-  // no sequence corresponds with this date so there won't be any overrides
-  if (!seqs || seqs?.length === 0) {
-    return results;
-  }
-
-  let overrides: PhotoRecord;
-
-  for (let override of allOverrides) {
-    for (let seq of seqs) {
-      if (override.date === seq.startDate) {
-        overrides = override;
-        break;
-      }
+    if (!source) {
+      throw new Error("Source is required to fetch photo data");
     }
-    if (overrides) break;
-  }
 
-  // no overrides for this date
-  if (isNil(overrides)) {
-    return results;
-  }
+    const col = collection[source];
+    if (isNil(col)) {
+      throw new Error(`Unable to resolve IO collection for source ${source}`);
+    }
 
-  try {
-    const [_, sign, hh, mm, ss] = overrides.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
+    const [ioPhotos, allOverrides] = await Promise.all([
+      retrieveIoData({
+        collection: col,
+        fetchType: "photos",
+        requestedDate,
+      }) as Promise<PhotoFile[]>,
+      // fetch start time overrides, but don't throw if the request fails
+      (async () => {
+        try {
+          return await DbService.fetchPhotoDateTimeOverrides();
+        } catch (overrideError) {
+          // don't block photo results if we can't find overrides
+          console.error(overrideError);
+        }
+      })(),
+    ]);
 
-    const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
+    if (isNil(allOverrides)) {
+      // we don't have the info required to apply time offsets. just return the photos
+      return buildSuccessResponse(ioPhotos ?? [], "io");
+    }
 
-    // we got overrides from the wiki, so apply them
-    const data: PhotoFile[] = results.data.map((result) => {
-      const res = clone(result);
-      // shift the date
-      res.datetimeTaken = addMs(new Date(res.datetimeTaken), -milliseconds).toISOString();
-      res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
-      return res;
-    });
+    // Find override for this date
+    const overrides = allOverrides.find((override) => override.date === dateWanted);
 
-    return {
-      ...results,
-      data,
-    };
-  } catch (e) {
-    console.error("Error parsing and apply photo overrides from the wiki");
-    console.error(e);
-    return results;
+    // no overrides for this date
+    if (isNil(overrides)) {
+      return buildSuccessResponse(ioPhotos ?? [], "io");
+    }
+
+    try {
+      const match = overrides.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
+      if (!match) {
+        throw new Error(`Invalid photo time offset format: ${overrides.timeOffset}`);
+      }
+
+      const [, sign, hh, mm, ss] = match;
+      const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
+
+      const data: PhotoFile[] = (ioPhotos ?? []).map((result) => {
+        const res = clone(result);
+        // shift the date
+        res.datetimeTaken = addMs(new Date(res.datetimeTaken), -milliseconds).toISOString();
+        res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
+        return res;
+      });
+
+      return buildSuccessResponse(data, "io");
+    } catch (timeOverrideError) {
+      console.error("Error parsing and apply photo overrides from the wiki");
+      console.error(timeOverrideError);
+      return buildSuccessResponse(ioPhotos ?? [], "io");
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error fetching photo data";
+    return buildErrorResponse(message);
   }
 }

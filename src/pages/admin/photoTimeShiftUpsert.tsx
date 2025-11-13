@@ -40,10 +40,10 @@ export const EditPhotoRecord: FunctionComponent = () => {
     if (id) {
       const fetchData = async () => {
         const response = await fetch(`/api/v1/db/photoTimeShifts/${id}`);
-        const data: WrappedResponse<PhotoRecord> = await response.json();
-        setDate(data.data.date);
-        setSource(data.data.source);
-        setTimeOffset(data.data.timeOffset);
+        const data: PhotoRecord = await response.json();
+        setDate(data.date);
+        setSource(data.source);
+        setTimeOffset(data.timeOffset);
       };
       fetchData();
     }

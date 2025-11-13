@@ -2,8 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: GPSState = {
   gpsTracks: [],
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
 };
 
 export const gpsSlice = createSlice({
@@ -11,23 +10,22 @@ export const gpsSlice = createSlice({
   initialState,
   reducers: {
     /** Add new gps tracks to the store */
-    setGPSTracks: (state, action: { payload: WrappedResponse<GPSTrack[]> }) => {
-      state.gpsTracks = action.payload.data;
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
+    setGPSTracks: (state, action: { payload: FetchResponse<GPSTrack[]> }) => {
+      state.gpsTracks = action.payload.data || [];
+      state.metadata = action.payload.fetchMetadata;
     },
     clearGPSTracks: (state) => {
       state.gpsTracks = [];
-      state.responseMetadata = null;
-      state.loadingStatus = "loading";
+      state.metadata = null;
     },
     gpsFetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setGpsLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const { setGPSTracks, clearGPSTracks, gpsFetchError, setGpsLoadingStatus } =
-  gpsSlice.actions;
+export const { setGPSTracks, clearGPSTracks, gpsFetchError } = gpsSlice.actions;

@@ -5,8 +5,8 @@ export const initialState: VideosState = {
   videoFiles: [],
   mtxPlaybackAvailability: {},
   mtxHlsEndpoints: [],
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadataIo: null,
+  metadataMtx: null,
 };
 
 export const videoSlice = createSlice({
@@ -14,45 +14,47 @@ export const videoSlice = createSlice({
   initialState,
   reducers: {
     /** Add new video files to the store */
-    addVideos: (state, action: { payload: WrappedResponse<VideoFile[]> }) => {
+    addVideos: (state, action: { payload: FetchResponse<VideoFile[]> }) => {
       state.videoFiles = action.payload.data || []; // null returned when retriever error
-      state.responseMetadata = action.payload.responseMetadata;
+      state.metadataIo = action.payload.fetchMetadata;
     },
 
     /** Clear all videos from the store */
     clearVideos: (state) => {
       state.videoFiles = [];
-      state.responseMetadata = null;
+      state.metadataIo = null;
     },
 
     /** An error occured fetching video metadata */
-    fetchError: (state, action: { payload: string }) => {
+    fetchErrorIo: (state, action: { payload: string }) => {
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
-      state.responseMetadata = { ...state.responseMetadata, error };
+      state.metadataIo = {
+        success: false,
+        error,
+        timestamp: state.metadataIo?.timestamp || new Date().toISOString(),
+      };
     },
 
-    setVideoLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+    /** An error occured fetching MTX video metadata */
+    fetchErrorMtx: (state, action: { payload: string }) => {
+      const error = action.payload.replace(/key=.*&/, "key=[key]&");
+      state.metadataMtx = {
+        success: false,
+        error,
+        timestamp: state.metadataMtx?.timestamp || new Date().toISOString(),
+      };
     },
 
-    setMtxPlaybackAvailability: (state, action: { payload: MTXPlaybackAvailability }) => {
-      state.mtxPlaybackAvailability = action.payload;
-    },
-
-    setMtxHlsEndpoints(state, action: { payload: MTXHlsEndpoint[] }) {
-      state.mtxHlsEndpoints = action.payload;
+    setMtxPlayback: (state, action: { payload: FetchResponse<MTXApiResponses> }) => {
+      state.mtxPlaybackAvailability = action.payload.data.mtxPlaybackAvailability || {};
+      state.mtxHlsEndpoints = action.payload.data.mtxHlsEndpoints || [];
+      state.metadataMtx = action.payload.fetchMetadata;
     },
   },
 });
 
-export const {
-  addVideos,
-  clearVideos,
-  fetchError,
-  setVideoLoadingStatus,
-  setMtxPlaybackAvailability,
-  setMtxHlsEndpoints,
-} = videoSlice.actions;
+export const { addVideos, clearVideos, fetchErrorIo, fetchErrorMtx, setMtxPlayback } =
+  videoSlice.actions;
 
 /** Map seconds and downlinks to videos */
 const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {

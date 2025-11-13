@@ -30,11 +30,11 @@ export const EditAncillaryDataRecord: FunctionComponent = () => {
     if (id) {
       const fetchData = async () => {
         const response = await fetch(`/api/v1/db/ancillaryDataSources/${id}`);
-        const data: WrappedResponse<AncillaryDataSource> = await response.json();
-        setDate(data.data.date);
-        setSource(data.data.source);
-        setType(data.data.type);
-        setURL(data.data.url);
+        const data: AncillaryDataSource = await response.json();
+        setDate(data.date);
+        setSource(data.source);
+        setType(data.type);
+        setURL(data.url);
       };
       fetchData();
     }

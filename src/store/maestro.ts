@@ -7,8 +7,7 @@ export const initialState: MaestroState = {
   evaEndSec: null,
   evaDurationSec: null,
   processedActivitiesData: null,
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
 };
 
 export const maestroSlice = createSlice({
@@ -27,12 +26,13 @@ export const maestroSlice = createSlice({
       state.evaDurationSec = action.payload.maestroInternalAPIData.evaDurationSec;
     },
     maestroFetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setMaestroLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const { setMaestroData, maestroFetchError, setMaestroLoadingStatus } = maestroSlice.actions;
+export const { setMaestroData, maestroFetchError } = maestroSlice.actions;
