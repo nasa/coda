@@ -319,7 +319,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
           filterActive: false,
           sgChannel: parseInt(frameString.substring(2, 3)),
           isMuted: false,
-          showHelp: false,
+          showHelp: true,
         },
       };
       return commReturnVal;

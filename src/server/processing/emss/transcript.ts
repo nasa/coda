@@ -1,4 +1,4 @@
-import * as LabsService from "server/services/emss";
+import * as TbService from "server/services/emssTb";
 import * as DbService from "server/services/db-api";
 
 export default async function getTranscripts({
@@ -10,7 +10,7 @@ export default async function getTranscripts({
 }): Promise<FetchResponse<UnprocessedTranscript[]>> {
   const requestedDate = new Date(dateWanted);
 
-  // Fetch source overrides from the wiki for this date. If there are none, then use Imagery Online
+  // Fetch source overrides from the database for this date
   try {
     let mediaOverrides = await DbService.fetchMediaOverrides();
 
@@ -24,38 +24,38 @@ export default async function getTranscripts({
       );
     });
 
-    // if there are media overrides, use those instead of labs
+    // if there are media overrides, use those
     if (mediaOverride) {
-      return LabsService.fetchLabsTranscripts({
+      const res: UnprocessedTranscript[] = await TbService.fetchTalkybotTranscripts({
         source,
         dateWanted,
         overrideBaseUrl: mediaOverride.url,
       });
+      return {
+        data: res,
+        fetchMetadata: {
+          success: true,
+          timestamp: new Date().toISOString(),
+        },
+        source: "override",
+      };
     }
   } catch (e) {
     // don't block results if media overrides call fails
     console.error(e);
   }
 
-  // labs audio and transcription was turned off around late October. Only grab from TB after this date
-  // to avoid messy merging of labs and talkybot  transcripts
-  if (new Date(dateWanted).getTime() < new Date("2024-10-21T00:00:00").getTime()) {
-    return LabsService.fetchLabsAndTalkybotTranscripts({
-      source,
-      dateWanted,
-    });
-  } else {
-    const res: UnprocessedTranscript[] = await LabsService.fetchTalkybotTranscripts({
-      source,
-      dateWanted,
-    });
-    return {
-      data: res,
-      fetchMetadata: {
-        success: true,
-        timestamp: new Date().toISOString(),
-      },
-      source: "talky-bot",
-    };
-  }
+  // Fetch transcripts from Talkybot
+  const res: UnprocessedTranscript[] = await TbService.fetchTalkybotTranscripts({
+    source,
+    dateWanted,
+  });
+  return {
+    data: res,
+    fetchMetadata: {
+      success: true,
+      timestamp: new Date().toISOString(),
+    },
+    source: "talky-bot",
+  };
 }
