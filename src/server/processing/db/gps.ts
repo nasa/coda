@@ -1,4 +1,4 @@
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { GPXTracks_db } from "server/database/models/_allModels";
 import { XMLParser } from "fast-xml-parser";
@@ -37,8 +37,7 @@ export default async function getGpsTrackData({
 }
 
 export async function getGpxTrackRecordsByDate(date: string): Promise<GPXTrackRecord[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   let gpxTracks_db: Loaded<GPXTracks_db, never>[];
   gpxTracks_db = await em.find(GPXTracks_db, { date: date }, { orderBy: { name: "ASC" } });
   if (gpxTracks_db) {
@@ -53,8 +52,7 @@ export async function getGpxTrackRecordsByDate(date: string): Promise<GPXTrackRe
 }
 
 export async function getGpxTrackRecordsList(): Promise<GPXTrackListRecord[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   const gpxTracks_db = await em.find(
     GPXTracks_db,
     {},

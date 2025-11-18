@@ -1,5 +1,4 @@
-import dotenv from "dotenv"; //needed to allow jest to init Mikro in globalTeardown
-dotenv.config({ override: true, quiet: true });
+import "../../utils/loadEnv";
 
 import path from "node:path";
 
@@ -14,20 +13,20 @@ import {
   PhotoTimeShifts_db,
   VideoStartTimeOverrides_db,
   Cache_db,
-} from "./src/server/database/models/_allModels";
+} from "./models/_allModels";
 
 export default defineConfig({
   dbName: process.env.DB_NAME,
   host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT),
+  port: parseInt(process.env.DB_PORT ?? "5432"),
   driver: PostgreSqlDriver,
   password: process.env.DB_PASS,
   migrations: {
-    path: path.join(__dirname, "./src/server/database/migrations"), // path to the folder with migrations
+    path: path.join(__dirname, "./migrations"), // path to the folder with migrations
     snapshot: false,
   },
   seeder: {
-    path: path.join(__dirname, "./src/server/database/seeds"), // path to the folder with seed files
+    path: path.join(__dirname, "./seeds"), // path to the folder with seed files
   },
   entitiesTs: [
     GPXTracks_db,

@@ -1,10 +1,9 @@
-import { getEM } from "../../utils/mikro";
+import { globalValues } from "server/express/global";
 import { Cache_db } from "../database/models/cache.model";
 
 /**
  * Retrieves a cache entry from the database and updates its lastAccessedAt timestamp.
  */
-
 export async function getCacheEntry({
   folder,
   identifier,
@@ -12,7 +11,7 @@ export async function getCacheEntry({
   folder: string;
   identifier: string;
 }): Promise<Cache_db | null> {
-  const em = getEM().fork();
+  const em = globalValues.orm.em;
   try {
     const entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
     if (entry) {
@@ -43,7 +42,7 @@ export async function putCacheEntry({
   data: Object | null;
   metadata: CacheMetadata;
 }): Promise<Cache_db | null> {
-  const em = getEM().fork();
+  const em = globalValues.orm.em;
   try {
     let entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
     const now = new Date();
@@ -82,7 +81,7 @@ export async function removeCacheEntry({
   folder: string;
   identifier?: string;
 }): Promise<boolean> {
-  const em = getEM().fork();
+  const em = globalValues.orm.em;
   try {
     if (identifier) {
       // If identifier is provided, remove a specific entry
@@ -116,7 +115,7 @@ export async function evictLruCacheEntries({
   olderThanDate: Date;
   folder?: string;
 }): Promise<number> {
-  const em = getEM().fork();
+  const em = globalValues.orm.em;
   try {
     const filter: any = {
       lastAccessedAt: { $lt: olderThanDate },
