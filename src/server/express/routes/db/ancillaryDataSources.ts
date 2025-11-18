@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { AncillaryDataSource_db } from "server/database/models/_allModels";
 
@@ -49,9 +49,9 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const ancillaryDataSource: AncillaryDataSource = await em.findOne(AncillaryDataSource_db, {
       id: Number(id),
     });
@@ -69,9 +69,9 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url } = req.body as AncillaryDataUpsertRequest;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     if (id) {
       const ancillaryDataSource = await em.findOne(AncillaryDataSource_db, { id: Number(id) });
       if (ancillaryDataSource) {
@@ -112,9 +112,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const ancillaryDataSource: AncillaryDataSource = await em.findOne(AncillaryDataSource_db, {
       id: Number(id),
     });
@@ -133,8 +133,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 export default router;
 
 export async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDataSource[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   let ancillaryDataSource_db: Loaded<AncillaryDataSource_db, never>[];
   ancillaryDataSource_db = await em.find(
     AncillaryDataSource_db,
@@ -155,8 +154,7 @@ export async function getAncillaryDataSourcesByDate(date: string): Promise<Ancil
 }
 
 export async function getAncillaryDataSourceList(): Promise<AncillaryDataSourceList[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   const ancillaryDataSource_db = await em.find(
     AncillaryDataSource_db,
     {},

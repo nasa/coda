@@ -1,5 +1,6 @@
 import express, { Application } from "express";
 import cors from "cors";
+import { RequestContext } from "@mikro-orm/postgresql";
 import dayNightRoute from "./routes/daynight/daynight";
 import dataRefreshRoute from "./routes/emss/dataRefresh";
 import dataViewRoute from "./routes/emss/dataView";
@@ -20,6 +21,13 @@ const app: Application = express();
 app.use(express.json({ limit: "20mb" }));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
+
+// Mikro-ORM RequestContext should be last middleware before routes
+// https://mikro-orm.io/docs/identity-map#request-context
+// use Mikro-ORM RequestContext for express and socketio handlers
+app.use((_req, _res, next) => {
+  RequestContext.create(globalValues.orm.em, next);
+});
 
 // Serve a successful response. For use with wait-on
 app.get("/api/v1/health", (req, res) => {

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { GPXTracks_db } from "server/database/models/_allModels";
 import { getGpxTrackRecordsByDate, getGpxTrackRecordsList } from "server/processing/db/gps";
 
@@ -47,9 +47,9 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const gpxTrackRecord: GPXTrackRecord = await em.findOne(GPXTracks_db, { id: Number(id) });
     if (gpxTrackRecord) {
       res.status(200).json(gpxTrackRecord);
@@ -65,9 +65,9 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, date, name, gpxData } = req.body as GPSUpsertRequest;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     if (id) {
       const gpxTrackRecord = await em.findOne(GPXTracks_db, { id: Number(id) });
       if (gpxTrackRecord) {
@@ -97,9 +97,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const gpxTrackRecord: GPXTrackRecord = await em.findOne(GPXTracks_db, { id: Number(id) });
     if (gpxTrackRecord) {
       await em.removeAndFlush(gpxTrackRecord);

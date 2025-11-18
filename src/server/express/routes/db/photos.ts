@@ -1,13 +1,12 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { Loaded } from "@mikro-orm/postgresql";
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { PhotoTimeShifts_db } from "server/database/models/PhotoTimeShifts.model";
 
 /**
  * Get photo datetime overrides from CODA DB for a given photo id
  */
-
 const router = express.Router();
 
 const parseQuery = (query: Query): PhotoQueryParams => {
@@ -47,9 +46,9 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const photoRecord: PhotoRecord = await em.findOne(PhotoTimeShifts_db, { id: Number(id) });
     if (photoRecord) {
       res.status(200).json(photoRecord);
@@ -65,9 +64,9 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, timeOffset } = req.body as PhotoUpsertRequest;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     if (id) {
       const photoRecord = await em.findOne(PhotoTimeShifts_db, { id: Number(id) });
       if (photoRecord) {
@@ -101,9 +100,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const photoRecord: PhotoRecord = await em.findOne(PhotoTimeShifts_db, {
       id: Number(id),
     });
@@ -122,8 +121,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 export default router;
 
 async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   let photoRecords_db: Loaded<PhotoRecord, never>[];
   photoRecords_db = await em.find(
     PhotoTimeShifts_db,
@@ -142,8 +140,7 @@ async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord
 }
 
 export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   const photos_db = await em.find(
     PhotoTimeShifts_db,
     {},

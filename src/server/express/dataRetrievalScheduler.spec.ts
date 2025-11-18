@@ -33,8 +33,17 @@ jest.mock("server/processing/sequences/evas");
 jest.mock("server/processing/sequences/test-events");
 jest.mock("./global", () => ({
   globalValues: {
+    socketio: null,
+    serverSocketStatus: {
+      visitorsData: [],
+    },
+    orm: {
+      em: {},
+    },
+    socketInterval: null,
+    appVersion: null,
     fetchTrackers: {},
-  },
+  } as GlobalValues,
 }));
 
 const getCacheEntryMock = getCacheEntry as jest.MockedFunction<typeof getCacheEntry>;

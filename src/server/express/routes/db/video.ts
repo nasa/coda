@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { VideoStartTimeOverrides_db } from "server/database/models/VideoStartTimeOverrides.model";
 
@@ -43,9 +43,9 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const videoRecord: VideoRecord = await em.findOne(VideoStartTimeOverrides_db, {
       id: Number(id),
     });
@@ -63,9 +63,9 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, videoId, startTime } = req.body as VideoUpsertRequest;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     if (id) {
       const videoRecord = await em.findOne(VideoStartTimeOverrides_db, { id: Number(id) });
       if (videoRecord) {
@@ -101,9 +101,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const videoRecord: VideoRecord = await em.findOne(VideoStartTimeOverrides_db, {
       id: Number(id),
     });
@@ -122,8 +122,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 export default router;
 
 async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promise<VideoRecord> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   let videoRecord: Loaded<VideoRecord, never>;
   videoRecord = await em.findOne(VideoStartTimeOverrides_db, { videoId: videoId });
 
@@ -136,8 +135,7 @@ async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promi
 }
 
 export async function getVideoStartTimeOverridesRecordsList(): Promise<VideoRecord[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   const videos_db = await em.find(
     VideoStartTimeOverrides_db,
     {},
