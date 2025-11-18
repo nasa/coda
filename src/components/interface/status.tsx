@@ -92,18 +92,28 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
   }, [ephemera.metadata]);
   useEffect(() => {
-    let isTranscript = false;
+    setGpsStatus(createStatus(gps.metadata, gps.gpsTracks.length > 0));
+  }, [gps.metadata]);
+
+  useEffect(() => {
+    setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
+  }, [ephemera.metadata]);
+  useEffect(() => {
+    let hasTranscripts = false;
     transcript.transcripts.forEach((transcript) => {
       if (transcript.utterances.length > 0) {
-        isTranscript = true;
+        hasTranscripts = true;
       }
     });
 
-    setTranscriptStatus(createStatus(transcript.metadata, isTranscript));
+    setTranscriptStatus(createStatus(transcript.metadata, hasTranscripts));
   }, [transcript.metadata]);
 
   useEffect(() => {
-    const hasSgAudio = sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.length > 0;
+    const hasSgAudio =
+      sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.some(
+        (channelArray) => channelArray?.length > 0
+      ) ?? false;
     setSgAudioStatus(createStatus(sgAudio.metadata, hasSgAudio));
   }, [sgAudio.metadata]);
 

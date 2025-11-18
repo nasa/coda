@@ -74,7 +74,6 @@ type GPSState = {
 type TranscriptState = {
   transcripts: Transcript[];
   metadata: FetchMetadata | null;
-  isTranscripts: boolean;
 };
 
 /**

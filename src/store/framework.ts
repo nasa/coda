@@ -202,7 +202,7 @@ export const allPanes: Panes = {
       filterActive: false,
       sgChannel: 0,
       isMuted: false,
-      showHelp: false,
+      showHelp: true,
     } as CommPaneStateData,
   },
   graph: {
@@ -278,7 +278,7 @@ export const defaultFrames: FrameState = {
       filterActive: false,
       sgChannel: 0,
       isMuted: false,
-      showHelp: false,
+      showHelp: true,
     } as CommPaneStateData,
   },
 };

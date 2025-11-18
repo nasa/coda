@@ -5,7 +5,7 @@ import getDayNight from "server/processing/daynight/daynight";
 import getEphemera from "server/processing/location/iss";
 import getPhotoData from "server/processing/media/photos";
 import getGpsTrackData from "server/processing/db/gps";
-import { fetchMTXAPIResponses } from "server/services/emss";
+import { getMTXAPIResponses } from "server/services/emssMtx";
 import getTranscripts from "server/processing/emss/transcript";
 import getLabsSgAudio from "server/processing/emss/sgAudio";
 import getGraphManifest from "server/processing/sequences/graph";
@@ -53,7 +53,7 @@ export const dataFetchConfigs: FetchConfig[] = [
   },
   {
     type: "mtxvideo",
-    getDataFunction: fetchMTXAPIResponses,
+    getDataFunction: getMTXAPIResponses,
     timeoutMs: 20000,
     refreshIntervalTodayMs: 2 * 60 * 1000, // 2 minutes for today's data
     refreshIntervalMs: 60 * 60 * 1000, // 60 minutes for other days

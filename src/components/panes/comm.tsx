@@ -17,6 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { MuteButton } from "components/panes/video";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { dateFromAppSeconds } from "utils/formatting";
 
 const sgChannels = [0, 1, 2, 3];
 
@@ -212,14 +213,23 @@ type SgAudioObj = {
 
 const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const transcripts = useAppSelector((state: RootState) => state.transcript.transcripts, deepEqual);
-  const isTranscripts = useAppSelector(
-    (state: RootState) => state.transcript.isTranscripts,
-    deepEqual
-  );
+  const hasTranscripts = useAppSelector((state: RootState) => {
+    let hasTranscripts = false;
+    state.transcript.transcripts.forEach((transcript) => {
+      if (transcript.utterances.length > 0) {
+        hasTranscripts = true;
+      }
+    });
+    return hasTranscripts;
+  }, deepEqual);
   const sgActivityFullUrlRecord = useAppSelector(
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord,
     deepEqual
   );
+  const hasSgAudio =
+    sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.some(
+      (channelArray) => channelArray?.length > 0
+    ) ?? false;
   const paneStateData: CommPaneStateData = useAppSelector(
     (state: RootState) => state.framework.frames[frameID].paneStateData,
     deepEqual
@@ -337,7 +347,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   // Update the filtered utterances
   useEffect(() => {
-    if (!isTranscripts) {
+    if (!hasTranscripts) {
       return;
     }
     let filteredUtterances: Utterance[] = transcripts[paneStateData.sgChannel].utterances;
@@ -347,11 +357,11 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       });
     }
     setFiltereredUtterances(filteredUtterances);
-  }, [paneStateData, filterText, isTranscripts]);
+  }, [paneStateData, filterText, hasTranscripts]);
 
-  // Update the active utterance secds
+  // Update the active utterance secs
   useEffect(() => {
-    if (!isTranscripts) {
+    if (!hasTranscripts) {
       return;
     }
     let aUtteranceSecs = 0;
@@ -364,16 +374,16 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         break;
       }
     }
-  }, [playhead, isTranscripts, paneStateData.sgChannel]);
+  }, [playhead, hasTranscripts, paneStateData.sgChannel]);
 
   // Show the help panel if there are no transcripts
   useEffect(() => {
-    if (isTranscripts) {
+    if (hasTranscripts || hasSgAudio) {
       setPaneStateValue(dispatch, frameID, "showHelp", false);
     } else {
       setPaneStateValue(dispatch, frameID, "showHelp", true);
     }
-  }, [isTranscripts]);
+  }, [hasTranscripts, hasSgAudio]);
 
   function displayUtterance(utterance: Utterance, idx: number) {
     let uttClass = styles.speaker1;
@@ -405,6 +415,15 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const displayFilterStyle = paneStateData.filterActive
     ? styles.filterSearch
     : styles.filterSearchHidden;
+
+  const issRealtimeDate =
+    playhead.date && !Number.isNaN(new Date(playhead.date).valueOf())
+      ? dateFromAppSeconds(playhead.appSeconds ?? 0, playhead.date)
+      : null;
+  const dateTimeString =
+    issRealtimeDate && !Number.isNaN(issRealtimeDate.valueOf())
+      ? issRealtimeDate.toISOString().split(".")[0].replace("Z", "")
+      : "";
 
   return (
     <div className={styles.main}>
@@ -473,9 +492,19 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         <div>
           <p>Plays Space-to-ground comm audio for all 4 ISS S/G loops with transcripts for each.</p>
           <p>
-            <span style={{ color: "yellow" }}>Not available for all days</span>. We are currently
-            processing ISS audio in reverse chronological order. For days missing this comm audio,
-            use the mute button on the videos to hear S/G 1 and 2.
+            This comm is pulled from <a href="https://talkybot.fit.nasa.gov/">Talky-bot</a>. We plan
+            to back-fill Talky-bot with comm dating back to 2011.
+          </p>
+          <p>
+            Until then, you can find comm for historical dates on ISS in Real Time.{" "}
+            <a href={`https://issinrealtime.org/${dateTimeString}`} target="_blank">
+              This link
+            </a>{" "}
+            will open ISS in Real Time to the exact date and time you are currently viewing in CODA.
+          </p>
+          <p>
+            <span style={{ color: "yellow" }}>Not available for all days</span>. For remaining
+            dates, use the mute button on any available videos to hear S/G 1 and 2.
           </p>
           <p>
             Select a S/G loop using the 4 channel numbers above. Use the Filter button to Filter for

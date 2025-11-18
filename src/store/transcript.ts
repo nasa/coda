@@ -3,7 +3,6 @@ import { createSlice } from "@reduxjs/toolkit";
 export const initialState: TranscriptState = {
   transcripts: [], // indexed by S/G channel number - 1
   metadata: null,
-  isTranscripts: false,
 };
 
 export const transcriptSlice = createSlice({
@@ -40,7 +39,6 @@ export const transcriptSlice = createSlice({
       }
       state.transcripts = transcripts;
       state.metadata = action.payload.fetchMetadata;
-      state.isTranscripts = anyUtterances;
     },
     clearTranscripts: (state) => {
       state.transcripts = [];
