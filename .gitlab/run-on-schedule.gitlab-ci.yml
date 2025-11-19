@@ -1,6 +1,3 @@
-# .include:
-#   - local: .gitlab/includes/db-import.yml
-
 .db-export-template:
   needs: []
   # I don't think we want to do this, because I don't think we want GitLab to consider this a
@@ -23,7 +20,7 @@
     name: "$CI_JOB_STARTED_AT$-coda.sql"
     paths:
       - coda.sql
-    # hold on to this artifact longer than default (1 day). . The latest for any branch never expires
+    # hold on to this artifact longer than default (1 day). The latest for any branch never expires
     expire_in: 60 days
 
 z:db-export:prod:
@@ -32,6 +29,7 @@ z:db-export:prod:
     - if: $SCHEDULE_TYPE == "backup"
       when: always
   tags: ["emss-coda-prod"]
+  resource_group: prod # prevents concurrent executions of this job when there are multiple pipelines
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
 
