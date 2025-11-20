@@ -4,8 +4,8 @@
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
 variables:
-  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:22.18.0-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.4.1-alpine"
+  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.11.1-alpine"
+  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/25.2.1-alpine"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"
