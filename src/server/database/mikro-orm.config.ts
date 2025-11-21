@@ -13,6 +13,7 @@ import {
   PhotoTimeShifts_db,
   VideoStartTimeOverrides_db,
   Cache_db,
+  Ephemeris_db,
 } from "./models/_allModels";
 
 export default defineConfig({
@@ -35,6 +36,7 @@ export default defineConfig({
     VideoStartTimeOverrides_db,
     PhotoTimeShifts_db,
     Cache_db,
+    Ephemeris_db,
   ],
   entities: [
     GPXTracks_db,
@@ -43,6 +45,7 @@ export default defineConfig({
     VideoStartTimeOverrides_db,
     PhotoTimeShifts_db,
     Cache_db,
+    Ephemeris_db,
   ],
   debug: process.env.DEBUG === "true" || process.env.DEBUG?.includes("db"),
   allowGlobalContext: true,

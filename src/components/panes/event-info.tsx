@@ -9,7 +9,7 @@ import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/s
 import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useState } from "react";
 import { isSameDate } from "../../utils/date";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
@@ -54,14 +54,8 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const seq = allSequences.find((seq) =>
     isSameDate(new Date(seq.startDate), new Date(playhead.date))
   );
-  const maestro = useAppSelector((state: RootState) => state.maestro, deepEqual);
   const dispatch = useAppDispatch();
-  const [seqSourceName, setSeqSourceName] = useState<"Maestro" | "Wiki">("Wiki");
-
-  useEffect(() => {
-    const newSeqSourceName = maestro?.processedActivitiesData ? "Maestro" : "Wiki";
-    setSeqSourceName(newSeqSourceName);
-  }, [maestro]);
+  const [seqSourceName] = useState<"Wiki">("Wiki");
 
   function asExecutedTable(evNum: string) {
     const asPerformed: { [key: string]: Activity[] } = { EV1: [], EV2: [] };
@@ -84,9 +78,6 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           );
         }
       }
-    } else {
-      asPerformed.EV1 = maestro?.processedActivitiesData.EV1;
-      asPerformed.EV2 = maestro?.processedActivitiesData.EV2;
     }
     const response = [];
     for (let i = 0; i < asPerformed[evNum].length; i++) {
@@ -126,7 +117,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               <tr>
                 <td>Event:</td>
                 <td className={styles.labelValue} colSpan={2}>
-                  {seqSourceName === "Wiki" ? seq.displayTitle : maestro.title}
+                  {seq.displayTitle}
                 </td>
               </tr>
               <tr>
@@ -142,18 +133,13 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                       });
                     }}
                   >
-                    {seqSourceName === "Wiki"
-                      ? seq.startTime
-                      : hhmmFromSeconds(maestro.evaStartSec)}
-                    Z
+                    {seq.startTime}Z
                   </span>
                 </td>
                 <td>
                   <span>Duration:</span>
                   <span className={`${styles.labelValue} ${styles.leftPadded}`}>
-                    {seqSourceName === "Wiki"
-                      ? hhmmFromSeconds(seq.duration)
-                      : hhmmFromSeconds(maestro.evaDurationSec)}
+                    {hhmmFromSeconds(seq.duration)}
                   </span>
                 </td>
               </tr>
@@ -168,24 +154,16 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               </tr>
               <tr>
                 <th>
-                  {seqSourceName === "Wiki" ? (
-                    <>
-                      <span style={{ fontWeight: 300 }}>EV1: </span>
-                      <span className={styles.labelValue}>{seq.crew.EV1}</span>
-                    </>
-                  ) : (
-                    <span className={styles.labelValue}>{maestro.crewAssignment.EV1}</span>
-                  )}
+                  <>
+                    <span style={{ fontWeight: 300 }}>EV1: </span>
+                    <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                  </>
                 </th>
                 <th>
-                  {seqSourceName === "Wiki" ? (
-                    <>
-                      <span style={{ fontWeight: 300 }}>EV2: </span>
-                      <span className={styles.labelValue}>{seq.crew.EV2}</span>
-                    </>
-                  ) : (
-                    <span className={styles.labelValue}>{maestro.crewAssignment.EV2}</span>
-                  )}
+                  <>
+                    <span style={{ fontWeight: 300 }}>EV2: </span>
+                    <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                  </>
                 </th>
               </tr>
               <tr>

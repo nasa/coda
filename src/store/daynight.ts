@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export const initialState: DayNightState = {
   dayNight: [],
   metadata: null,
-  source: null,
+  origin: null,
 };
 
 export const dayNightSlice = createSlice({
@@ -14,12 +14,12 @@ export const dayNightSlice = createSlice({
     addDayNight: (state, action: { payload: FetchResponse<DayNightStore> }) => {
       state.dayNight = action.payload.data?.dayNight || [];
       state.metadata = action.payload.fetchMetadata;
-      state.source = action.payload.source;
+      state.origin = action.payload.origin;
     },
     clearDayNight: (state) => {
       state.dayNight = [];
       state.metadata = null;
-      state.source = null;
+      state.origin = null;
     },
     fetchError: (state, action: { payload: string }) => {
       state.metadata = {

@@ -13,7 +13,7 @@ import DynPlotlyChart from "./plotly";
 
 import styles from "./graph.module.css";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
-import { hasProp } from "utils/type-guards";
+
 import Button from "components/interface/button";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
 import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
@@ -294,7 +294,12 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
 
     if (!Array.isArray(graphData)) {
       const badData = graphData as unknown;
-      if (hasProp(badData, "authorized") && badData.authorized === false) {
+      if (
+        typeof badData === "object" &&
+        badData !== null &&
+        "authorized" in badData &&
+        (badData as Record<string, unknown>).authorized === false
+      ) {
         console.error("Unauthorized graph data:", { graphData });
         setGraphDataIsBad("unauthorized");
       } else {

@@ -5,7 +5,7 @@
 
 variables:
   CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.11.1-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/25.2.1-alpine"
+  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:25.2.1-alpine"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"
@@ -267,7 +267,6 @@ docker:build:nginx:
       NGINX_BASE_IMAGE
       NODE_BASE_IMAGE
       VITE_PUBLIC_MAPBOX_KEY
-      VITE_PUBLIC_APP_ENV
       VITE_PUBLIC_LIVE_STREAMS_ENABLED
       VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
       VITE_PUBLIC_MEDIA_MTX_HLS_URL

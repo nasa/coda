@@ -21,7 +21,6 @@ const config = {
   coverageReporters: ["text", "lcov", "cobertura"],
   globalSetup: "<rootDir>/../jest.globalSetup.ts",
   setupFiles: ["<rootDir>/../jest.setup.ts"],
-  setupFilesAfterEnv: ["<rootDir>/utils/jest-extends.ts"],
   globals: {},
   transform: {
     "^.+\\.(ts|tsx)$": ["ts-jest", { tsconfig: "tsconfig.jest.json", warnOnly: true }],

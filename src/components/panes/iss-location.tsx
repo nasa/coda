@@ -454,7 +454,7 @@ type lngLat = {
   lat: number;
 };
 
-function getNextPosition(isoDate: string, secondsInc: number, ephemera: EphemerisFile[]): lngLat {
+function getNextPosition(isoDate: string, secondsInc: number, ephemera: EphemerisEntry[]): lngLat {
   const incrementDate = new Date(isoDate).valueOf();
   const nextIncrementDate = new Date(incrementDate + secondsInc * 1000);
   const nextIncremenetDateISO = nextIncrementDate.toISOString();

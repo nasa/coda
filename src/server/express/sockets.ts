@@ -5,7 +5,7 @@ import { globalValues } from "./global";
 import { dataFetchConfigs, getSourceDateDataType } from "./dataRetrievalScheduler";
 import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
-import { ConsoleLogger } from "../../utils/logger";
+import { ConsoleLogger } from "../../utils/consoleLogger";
 
 const FETCH_INSPECTOR_ROOM = "fetchInspectorRoom";
 

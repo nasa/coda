@@ -21,14 +21,13 @@ interface DataUpdate {
 interface DataFetchCallContext {
   dateWanted: string;
   source: Source;
-  timeoutMs?: number;
 }
 
 // Define a configuration for each data type
 interface FetchConfig {
   type: StoreDataType;
   getDataFunction: (params: DataFetchCallContext) => Promise<FetchResponse<any>>;
-  timeoutMs?: number;
+  fetchTimeoutMs?: number; // custom fetch timeout in milliseconds, defaults to DEFAULT_DATA_FETCH_TIMEOUT_MS
   refreshIntervalMs?: number; // custom refresh interval, defaults to DATA_REFRESH_INTERVAL_MS
   refreshIntervalTodayMs?: number; // custom refresh interval for today's data
   disableCacheUse?: boolean; // whether to disable the use of cache for this data type

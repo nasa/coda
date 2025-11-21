@@ -1,0 +1,387 @@
+/*
+Methods for fetching from Imagery Online (IO)
+
+Known query parameters:
+    s_dt - start date
+    e_dt - end date
+    as=2 - filetype: video
+    as=1 - filetype: photo
+    so=7 - sort oldest date taken first
+    go=0 - 0 - No filter (default) 1 - Ground-based imagery 2 - On-orbit imagery (IO metadata doesn't seem to support this)
+    ie=0 - 0 - No filter (default) 1 - Interior imagery 2 - Exterior imagery (IO metadata doesn't seem to support this)
+    cols=4 - 4 - ISS Missions. Full list https://io.jsc.nasa.gov/api/search
+
+FYI, s_dt and e_dt don't act like a range apparently. setting s_dt and e_dt to different days means you're literally asking for videos that start on one day and end on another
+*/
+import { padZeros, appSecondsFromDateString } from "utils/formatting";
+import fetchWithTimeout from "../../utils/fetch-with-timeout";
+import isNil from "lodash/isNil";
+import { collection } from "utils/consts";
+import { addMs } from "../../utils/date";
+
+/**
+ * Perform a request against the Imagery Online (IO) API with the given parameters.
+ * @param params - URL query parameters (e.g., "s_dt=01-01-2020&e_dt=01-02-2020")
+ * @returns Promise resolving to IO API response with docs array
+ */
+async function fetchIO(params: string): Promise<IOResponse> {
+  const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
+  const options = {
+    headers: {
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      "Accept-Encoding": "gzip,deflate,br",
+      "Accept-Language": "en-US,en;q=0.9",
+      Connection: "keep-alive",
+      Origin: process.env.HOST,
+    },
+  };
+
+  try {
+    const res = await fetchWithTimeout(url, options);
+    return res.json();
+  } catch (e) {
+    console.error("Error fetching IO data", e);
+    throw e; // Re-throw to allow caller to handle the error
+  }
+}
+
+/** Fetch an override manifest for video, photo, or transcript sources. */
+export async function fetchForgedIoManifest(
+  override: MediaOverride
+): Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]> {
+  const dataPath = `${override.url}/${override.type}Manifest.json`;
+
+  const res = await fetchWithTimeout(dataPath);
+  return res.json() as Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]>;
+}
+
+/**
+ * Format an IO API date query string for a date range.
+ * IO API expects dates in MM-DD-YYYY format.
+ * Note: IO API treats s_dt and e_dt as exact match filters (not a true range),
+ * so videos must start on s_dt and end on e_dt.
+ * Exported for testing purposes.
+ * @param start - Start date for the query
+ * @param end - Optional end date. If omitted, uses start date (single day query)
+ * @returns Query string like "s_dt=01-30-2020&e_dt=01-30-2020"
+ */
+export function formatDateQuery(start: Date, end?: Date): string {
+  const formatDate = (d: Date): string => {
+    const month = padZeros(d.getUTCMonth() + 1, 2);
+    const day = padZeros(d.getUTCDate(), 2);
+    const year = d.getUTCFullYear();
+    return `${month}-${day}-${year}`;
+  };
+
+  const rangeStartIO = formatDate(start);
+  const rangeEndIO = isNil(end) ? rangeStartIO : formatDate(end);
+
+  return `s_dt=${rangeStartIO}&e_dt=${rangeEndIO}`;
+}
+
+/**
+ * Fetch for either photo or video data from the IO API.
+ * @param collection Collection ID used to build the IO query string
+ * @param fetchType IOFetchType
+ * @param requestedDate The date to fetch data for
+ * @returns PhotoFile[] | VideoFile[]
+ */
+export async function fetchIoData({
+  collection,
+  fetchType,
+  requestedDate,
+}: {
+  collection: Collection;
+  fetchType: IOFetchType;
+  requestedDate: Date;
+}): Promise<PhotoFile[] | VideoFile[]> {
+  let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
+  let queryParams: string;
+
+  if (fetchType === "photos") {
+    parser = parseIOPhotoResponse;
+    const dateQuery = formatDateQuery(requestedDate);
+    queryParams = `${dateQuery}&as=1&so=7&cols=${collection}`;
+  } else if (fetchType === "videos") {
+    parser = parseIOVideoResponse;
+    const dateQuery = formatDateQuery(addMs(requestedDate, -86400000), requestedDate); // get video for requestDate and also one day before to catch any vids crossing midnight
+    queryParams = `${dateQuery}&cols=${collection}&as=2`;
+  } else {
+    throw new Error(`Unsupported IO fetch type: ${fetchType}`);
+  }
+
+  const initialResponse = await fetchIO(queryParams);
+  const limit = 500; // limit on results per call for IO API
+  const { numfound } = initialResponse.results.response;
+  const callsRequired = Math.ceil(numfound / limit);
+
+  // create array from first API call
+  const data1 = parser(initialResponse, collection);
+
+  // Construct an array of queryParams, one for each page required to reach numFound from first API call
+  let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
+
+  // create an array of promises for async IO calls
+  const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
+
+  // Call IO as many times as required in parallel. Waits for all calls to resolve into an array of IO results objects
+  const resArray = await Promise.all(promiseArray);
+
+  // Parse out results into array of objects
+  const additionalDataArray = resArray.map((res) => {
+    return parser(res, collection);
+  });
+
+  // Turn array of arrays into one enormous array
+  let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
+
+  // Merge the additional objects with the objects from the first API call and return it
+  const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
+  return allData;
+}
+
+/**
+ * Builds a string array of URL parameters for paginated IO API calls.
+ * The first call (page 0) is made separately, so this builds query strings for pages 1 through N-1.
+ * Each subsequent page uses the "sr" (start record) parameter to offset into the result set.
+ * Exported for unit testing.
+ * @param queryParams - Base query parameter string to prepend (e.g., "s_dt=01-01-2020&as=2")
+ * @param callsRequired - Total number of API calls needed to retrieve all records
+ * @param limit - Maximum records returned per API call (IO API limit is 500)
+ * @returns Array of query strings, one per additional page needed (excludes first page)
+ */
+export function buildQueryArray(
+  queryParams: string,
+  callsRequired: number,
+  limit: number
+): string[] {
+  const queryParamsArray: string[] = [];
+  for (let i = 1; i < callsRequired; i++) {
+    const startNum = limit * i + 1;
+    queryParamsArray.push(`${queryParams}&sr=${startNum}`);
+  }
+  return queryParamsArray;
+}
+
+function parseIOVideoResponse(res: IOResponse, collection: Collection) {
+  const { docs } = res.results.response;
+  const videos: VideoFile[] = [];
+
+  for (let i = 0; i < docs.length; i++) {
+    const doc = docs[i];
+    const metadata = parseVideoResultMetadata(doc, collection);
+    videos.push(metadata);
+  }
+  videos.sort(videoSorter);
+
+  return videos;
+}
+
+/**
+ * Sort comparator for video files: prioritizes by priority value (lower is better), then by duration (longer is better).
+ * This sorting is used to select the preferred video stream when multiple videos exist for the same time period.
+ * Priority 0 = LOS (Loss of Signal) recorded video, Priority 1 = realtime downlink.
+ * Longer videos are preferred when priority is equal (more continuous coverage).
+ * Exported for testing.
+ * @returns Negative if a comes first, positive if b comes first, 0 if equal
+ */
+export const videoSorter = (a: VideoFile, b: VideoFile) => {
+  const aDuration = a.end - a.start;
+  const bDuration = b.end - b.start;
+  // Standard sort comparator: <0 sorts a before b, >0 sorts a after b, 0 keeps original order
+  return a.priority - b.priority || bDuration - aDuration;
+};
+
+/**
+ * Parse a video document from IO API response into a VideoFile object.
+ * Extracts metadata including downlink channel, start/end times, and media URLs.
+ * @param doc - Raw video document from IO API response
+ * @param col - Collection ID to determine how to parse downlink information
+ * @returns Parsed VideoFile object ready for application use
+ */
+function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
+  let downlink = -1; // -1 indicates no specific downlink channel
+  let LOS = false; // LOS (Loss of Signal) = video recorded during communication blackout, downlinked later
+
+  // Determine downlink channel based on collection type
+  // Different collections store channel information in different metadata fields
+  if (col === collection.ISS) {
+    const channel = getISSChannel(doc.collections_string);
+    // ISS has 8 downlink channels (01-08), convert to 0-indexed
+    if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
+      downlink = parseInt(channel) - 1;
+    }
+  } else if (col === +collection.TEST_EVENTS) {
+    // For test events, downlink channel is encoded in the video title
+    // EV1 = EVA crew member 1, EV2 = EVA crew member 2, QUAD = multi-view
+    if (doc.md_title) {
+      if (doc.md_title.includes("EV1")) {
+        downlink = 0;
+      } else if (doc.md_title.includes("EV2")) {
+        downlink = 1;
+      } else if (doc.md_title.includes("QUAD")) {
+        downlink = 2;
+      }
+    }
+  } else if (col === collection.NBL) {
+    // For NBL (Neutral Buoyancy Lab), check all collection strings
+    // Videos may be added to multiple collections, need to check all to find crew member assignment
+    for (let i = 0; i < doc.collections_string.length; i++) {
+      const thisCollectionsString = doc.collections_string[i];
+      if (thisCollectionsString.includes("EV1")) {
+        downlink = 0;
+      } else if (thisCollectionsString.includes("EV2")) {
+        downlink = 1;
+      } else if (thisCollectionsString.includes("QUAD")) {
+        downlink = 2;
+      }
+    }
+  } else if (col === collection.ARTEMIS) {
+    // Artemis missions use a different channel naming scheme
+    const channel = getArtemisChannel(doc.collections_string);
+    downlink = channel !== "" ? parseInt(channel) - 1 : -1;
+  }
+
+  // Determine video start time from IO metadata
+  // Prefer vmd_start_gmt (manually corrected start time) over md_creation_date
+  const dateToUse = doc.vmd_start_gmt || doc.md_creation_date;
+
+  // Parse ISO 8601 timestamp (YYYY-MM-DDTHH:MM:SSZ)
+  let dateArr = dateToUse
+    .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
+    .slice(1) // Remove full match, keep only capture groups
+    .map((n: string) => parseInt(n));
+
+  // For LOS videos, nasa_id contains the actual start time, not md_creation_date
+  // nasa_id format: iss<exp>m<realtime><downlink><day><time>
+  // Example: iss060m532331624 = Exp 60, recorded during LOS (5), downlink 3 (after delay), day 278, time 1939 UTC
+  // When middle digit is "5", it indicates LOS recording (vs "0-4" for realtime)
+  const id_metadata = doc.nasa_id.match(/iss\d{3}m(\d)(\d)\d+(\d{2})(\d{2})/);
+  if (id_metadata && id_metadata[1] === "5") {
+    // Extract actual start time from nasa_id instead of using md_creation_date
+    dateArr[3] = +id_metadata[3]; // Hour
+    dateArr[4] = +id_metadata[4]; // Minute
+    dateArr[5] = 0; // Seconds (not encoded in nasa_id)
+    LOS = true;
+  }
+
+  // Create UTC timestamp. Note: JavaScript months are 0-indexed (0=January, 11=December)
+  const UTCstartMilliseconds = Date.UTC(
+    dateArr[0], // Year
+    dateArr[1] - 1, // Month (convert from 1-indexed to 0-indexed)
+    dateArr[2], // Day
+    dateArr[3], // Hour
+    dateArr[4], // Minute
+    dateArr[5] // Second
+  );
+  const duration_ms = (doc.duration_seconds || 0) * 1000;
+  const UTCend = new Date(UTCstartMilliseconds + duration_ms);
+
+  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+
+  const mediaLowResURL = `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+
+  const videoFile: VideoFile = {
+    id: doc.nasa_id,
+    title: doc.md_title || "",
+    description: doc.description || "",
+    start: UTCstartMilliseconds / 1000,
+    end: UTCend.valueOf() / 1000,
+    dataURL,
+    mediaLowResURL,
+    LOS,
+    priority: LOS ? 0 : 1,
+    startDateTime: "",
+    downlink,
+    collection: col,
+    // last and longest string in the array
+    collections: doc.collections_string[doc.collections_string.length - 1],
+  };
+
+  // Use vmd_start_gmt (manually corrected start time) if available, otherwise use md_creation_date.
+  // Note: Despite the name, md_creation_date is the video start time, not the IO database creation date.
+  videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
+
+  return videoFile;
+}
+
+/**
+ * Extract ISS downlink channel number from IO API collection strings.
+ * IO stores channel info in hierarchical collection paths like:
+ * "ISS Missions|ISS-060|Video|US Downlink|Channel 03"
+ * Exported for testing purposes.
+ * @param collectionStrings - Array of collection path strings from IO API doc
+ * @returns Zero-padded channel number ("01"-"08") or empty string if no channel found
+ */
+export function getISSChannel(collectionStrings: string[]): string {
+  for (const collectionStr of collectionStrings) {
+    const chMatch = collectionStr.match(/US Downlink\|Channel (\d+)/);
+    if (chMatch) {
+      return padZeros(parseInt(chMatch[1]), 2);
+    }
+  }
+  return "";
+}
+
+/**
+ * Extract Artemis mission channel number from IO API collection strings.
+ * Artemis uses different channel naming: "Downlink" = channel 1, "NASA TV" = channel 2.
+ * Exported for testing purposes.
+ * @param collectionStrings - Array of collection path strings from IO API doc
+ * @returns Zero-padded channel number ("01" or "02") or empty string if no channel found
+ */
+export function getArtemisChannel(collectionStrings: string[]): string {
+  for (const collectionStr of collectionStrings) {
+    if (collectionStr.match(/Downlink/)) {
+      return padZeros(1, 2);
+    }
+    if (collectionStr.match(/NASA TV/)) {
+      return padZeros(2, 2);
+    }
+  }
+  return "";
+}
+
+function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFile[] {
+  const { docs } = res.results.response;
+  const photos: PhotoFile[] = [];
+
+  for (let i = 0; i < docs.length; i++) {
+    const doc = docs[i];
+    const metadata = parsePhotoResultMetadata(doc, collection);
+    photos.push(metadata);
+  }
+  return photos;
+}
+
+/**
+ * Parse a photo document from IO API response into a PhotoFile object.
+ * Extracts metadata and constructs URLs for thumbnail, low-res, and high-res versions.
+ * @param doc - Raw photo document from IO API response
+ * @param collection - Collection ID for categorization
+ * @returns Parsed PhotoFile object ready for application use
+ */
+function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
+  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+
+  const mediaLowResURL = `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaHighResURL = `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaThumbURL = `${process.env.IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
+
+  const photoFile: PhotoFile = {
+    id: doc.nasa_id,
+    description: doc.description || "",
+    mediaLowResURL,
+    mediaHighResURL,
+    mediaThumbURL,
+    dataURL,
+    dateAdded: doc.date_added,
+    datetimeTaken: doc.md_creation_date,
+    datetimeTakenAppSeconds: appSecondsFromDateString(doc.md_creation_date),
+    collection,
+    // last and longest string in the array
+    collections: doc.collections_string[doc.collections_string.length - 1],
+  };
+
+  return photoFile;
+}

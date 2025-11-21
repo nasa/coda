@@ -82,14 +82,6 @@ export const config: DotenvConfig<typeof environments> = {
     default: "/d1/coda/static",
   },
 
-  /*
-  You probably don't want to change this away from "development"
-  "development" for normal dev work, "local" to mock some services. Code seems to only look for
-   whether this is set to "local" or not, so could be "local" or anything else.
-  */
-  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY TOO */
-  VITE_PUBLIC_APP_ENV: { default: "development" },
-
   //# Unlikely these ever need to change
   IO_API_URL: { default: "https://io.jsc.nasa.gov/api/search/rpp=500" },
   IO_HOST: { default: "https://io.jsc.nasa.gov" },
@@ -215,16 +207,6 @@ export const config: DotenvConfig<typeof environments> = {
     },
   },
   WIKI_PASSWORD: {
-    default: {
-      type: "required-from-secret",
-    },
-  },
-  SPACETRACK_USER: {
-    default: {
-      type: "required-from-secret",
-    },
-  },
-  SPACETRACK_PASSWORD: {
     default: {
       type: "required-from-secret",
     },

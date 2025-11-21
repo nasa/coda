@@ -11,8 +11,8 @@ export const ephemeraSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addEphemera: (state, action: { payload: FetchResponse<EphemerisStore> }) => {
-      state.ephemerisFiles = action.payload.data?.ephemera || [];
+    addEphemera: (state, action: { payload: FetchResponse<EphemerisEntry[]> }) => {
+      state.ephemerisFiles = action.payload.data || [];
       state.metadata = action.payload.fetchMetadata;
     },
     clearEphemera: (state) => {
@@ -38,23 +38,21 @@ export const { addEphemera, clearEphemera, fetchError } = ephemeraSlice.actions;
  * @param dateTimeWanted
  * @returns TLE string
  */
-export function getAppropriateTLE(ephemera: EphemerisFile[], dateTimeWanted: string): string {
+export function getAppropriateTLE(ephemera: EphemerisEntry[], dateTimeWanted: string): string {
   let thisDateDiff;
   let lastDateDiff = -1;
 
   let tleObj = ephemera[0];
-  let mostRecentTLE = `${tleObj.TLE_LINE0}
-                  ${tleObj.TLE_LINE1}
-                  ${tleObj.TLE_LINE2}`;
+  let mostRecentTLE = `${tleObj.tle_line1}
+                  ${tleObj.tle_line2}`;
 
   // chew through ephemiris data looking for the TLE closest to the timestamp of interest
   for (let i = 0; i < ephemera.length; i++) {
-    thisDateDiff = Math.abs(diff(new Date(ephemera[i].EPOCH + "Z"), new Date(dateTimeWanted)));
+    thisDateDiff = Math.abs(diff(new Date(ephemera[i].epoch + "Z"), new Date(dateTimeWanted)));
     if (i !== 0 && thisDateDiff < lastDateDiff) {
       tleObj = ephemera[i];
-      mostRecentTLE = `${tleObj.TLE_LINE0}
-                  ${tleObj.TLE_LINE1}
-                  ${tleObj.TLE_LINE2}`;
+      mostRecentTLE = `${tleObj.tle_line1}
+                  ${tleObj.tle_line2}`;
     }
     lastDateDiff = thisDateDiff;
   }

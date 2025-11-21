@@ -5,9 +5,10 @@ import { Server as SocketServer } from "socket.io";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
 import serverLogger from "utils/serverLogger";
-import { ConsoleLogger } from "../../utils/logger";
+import { ConsoleLogger } from "../../utils/consoleLogger";
 import config from "server/database/mikro-orm.config";
 import { MikroORM } from "@mikro-orm/postgresql";
+import { updateFromCelestrak } from "server/processing/ephemeris-celestrak";
 
 // enable console logging on the server side based on the environment variable
 if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
@@ -44,14 +45,36 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
   // express request handler
   server.on("request", app);
 
+  // Celestrak TLE update scheduler - runs regardless of user activity
+  const CELESTRAK_UPDATE_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+  let celestrakInterval: NodeJS.Timeout | null = null;
+
+  const startCelestrakScheduler = () => {
+    // Initial update on startup. "void" on this "fire and forget" call to explicitly ignore returned Promise
+    void updateFromCelestrak();
+
+    celestrakInterval = setInterval(() => {
+      void updateFromCelestrak();
+    }, CELESTRAK_UPDATE_INTERVAL_MS);
+
+    ConsoleLogger.log("Celestrak TLE update scheduler started (30 minute interval)");
+  };
+
   // Start the server
   server.listen(3001, () => {
     serverLogger.info({ logId: "api-restart" });
+    startCelestrakScheduler();
   });
 
   // Simple shutdown handler
   const gracefulShutdown = async () => {
     console.log("Gracefully shutting down server...");
+
+    // Stop Celestrak scheduler
+    if (celestrakInterval) {
+      clearInterval(celestrakInterval);
+      console.log("Celestrak scheduler stopped");
+    }
 
     // Close Socket.IO first
     if (globalValues.socketio) {
@@ -65,27 +88,23 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
 
     // Close the HTTP server
     try {
-      if (server) {
-        await new Promise<void>((resolve, reject) => {
-          server.close((err) => {
-            if (err) {
-              // Check for ERR_SERVER_NOT_RUNNING with proper type checking
-              if (err instanceof Error && "code" in err && err.code === "ERR_SERVER_NOT_RUNNING") {
-                console.log("Server was already closed");
-                resolve();
-              } else {
-                console.error("Error closing HTTP server:", err);
-                reject(err);
-              }
-            } else {
-              console.log("HTTP server closed");
+      await new Promise<void>((resolve, reject) => {
+        server.close((err) => {
+          if (err) {
+            // Check for ERR_SERVER_NOT_RUNNING with proper type checking
+            if (err instanceof Error && "code" in err && err.code === "ERR_SERVER_NOT_RUNNING") {
+              console.log("Server was already closed");
               resolve();
+            } else {
+              console.error("Error closing HTTP server:", err);
+              reject(err);
             }
-          });
+          } else {
+            console.log("HTTP server closed");
+            resolve();
+          }
         });
-      } else {
-        console.log("Server was not initialized");
-      }
+      });
     } catch (err) {
       // Just log the error, but continue shutdown
       console.log("Server might already be closed:", err);

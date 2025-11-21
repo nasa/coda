@@ -9,7 +9,6 @@ import { gpsSlice, initialState as gpsInitialState } from "./gps";
 import { transcriptSlice, initialState as transcriptInitialState } from "./transcript";
 import { sgAudioSlice, initialState as sgAudioInitialState } from "./sg-audio";
 import { graphSlice, initialState as graphInitialState } from "./graphs";
-import { maestroSlice, initialState as maestroInitialState } from "./maestro";
 import { userSlice, initialState as userInitialState } from "./user";
 
 export const initialState = {
@@ -23,7 +22,6 @@ export const initialState = {
   framework: viewerInitialState,
   sgAudio: sgAudioInitialState,
   graphs: graphInitialState,
-  maestro: maestroInitialState,
   user: userInitialState,
 };
 
@@ -38,7 +36,6 @@ const sliceReducers = combineReducers({
   framework: frameworkSlice.reducer,
   sgAudio: sgAudioSlice.reducer,
   graphs: graphSlice.reducer,
-  maestro: maestroSlice.reducer,
   user: userSlice.reducer,
 });
 export type RootState = ReturnType<typeof sliceReducers>;

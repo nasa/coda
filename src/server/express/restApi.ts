@@ -5,6 +5,7 @@ import dayNightRoute from "./routes/daynight/daynight";
 import dataRefreshRoute from "./routes/emss/dataRefresh";
 import dataViewRoute from "./routes/emss/dataView";
 import gpsRoute from "./routes/db/gps";
+import ephemerisRoute from "./routes/db/ephemeris";
 import mediaOverridesRoute from "./routes/db/mediaOverrides";
 import ancillaryDataRoute from "./routes/db/ancillaryDataSources";
 import getCurrentUser from "./routes/user/auth";
@@ -45,6 +46,7 @@ app.use("/api/v1/external/daynight/daynight", dayNightRoute); // external endpoi
 app.use("/api/v1/emss/dataRefresh", dataRefreshRoute); // routed through launchpad
 app.use("/api/v1/emss/dataView", dataViewRoute); // routed through launchpad
 app.use("/api/v1/db/gps", gpsRoute);
+app.use("/api/v1/db/ephemeris", ephemerisRoute);
 app.use("/api/v1/db/mediaOverrides", mediaOverridesRoute);
 app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
 app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);

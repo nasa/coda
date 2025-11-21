@@ -1,8 +1,12 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { globalValues } from "server/express/global";
-import { Loaded } from "@mikro-orm/postgresql";
-import { AncillaryDataSource_db } from "server/database/models/_allModels";
+import {
+  deleteAncillaryDataSourceById,
+  getAncillaryDataSourceById,
+  getAncillaryDataSourceList,
+  getAncillaryDataSourcesByDate,
+  upsertAncillaryDataSource,
+} from "server/processing/ancillaryDataSources";
 
 /**
  * Get Ancillary Data Source URLs from CODA DB for a given date
@@ -49,12 +53,9 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
-  const em = globalValues.orm.em;
 
   try {
-    const ancillaryDataSource: AncillaryDataSource = await em.findOne(AncillaryDataSource_db, {
-      id: Number(id),
-    });
+    const ancillaryDataSource = await getAncillaryDataSourceById(Number(id));
     if (ancillaryDataSource) {
       res.status(200).json(ancillaryDataSource);
     } else {
@@ -69,40 +70,18 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url } = req.body as AncillaryDataUpsertRequest;
-  const em = globalValues.orm.em;
 
   try {
-    if (id) {
-      const ancillaryDataSource = await em.findOne(AncillaryDataSource_db, { id: Number(id) });
-      if (ancillaryDataSource) {
-        ancillaryDataSource.date = date;
-        ancillaryDataSource.source = source;
-        ancillaryDataSource.type = type;
-        ancillaryDataSource.url = url;
-        await em.persistAndFlush(ancillaryDataSource);
-        res.status(200).json({
-          status: "success",
-          message: "ancillary data source updated",
-          data: ancillaryDataSource,
-        });
-      } else {
-        res.status(404).json({ status: "error", message: "ancillary data source not found" });
-      }
-    } else {
-      const ancillaryDataSource: AncillaryDataSource = em.create(AncillaryDataSource_db, {
-        id,
-        date,
-        source,
-        type,
-        url,
-      });
-      await em.persistAndFlush(ancillaryDataSource);
-      res.status(201).json({
-        status: "success",
-        message: "ancillary data source inserted",
-        data: ancillaryDataSource,
-      });
+    const result = await upsertAncillaryDataSource({ id, date, source, type, url });
+    if (!result) {
+      res.status(404).json({ status: "error", message: "ancillary data source not found" });
+      return;
     }
+
+    const { record, isNew } = result;
+    const statusCode = isNew ? 201 : 200;
+    const message = isNew ? "ancillary data source inserted" : "ancillary data source updated";
+    res.status(statusCode).json({ status: "success", message, data: record });
   } catch (e) {
     console.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
@@ -112,14 +91,10 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
-  const em = globalValues.orm.em;
 
   try {
-    const ancillaryDataSource: AncillaryDataSource = await em.findOne(AncillaryDataSource_db, {
-      id: Number(id),
-    });
-    if (ancillaryDataSource) {
-      await em.removeAndFlush(ancillaryDataSource);
+    const deleted = await deleteAncillaryDataSourceById(Number(id));
+    if (deleted) {
       res.status(200).json({ status: "success", message: "ancillary data source deleted" });
     } else {
       res.status(404).json({ status: "error", message: "ancillary data source not found" });
@@ -131,38 +106,3 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 });
 
 export default router;
-
-export async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDataSource[]> {
-  const em = globalValues.orm.em;
-  let ancillaryDataSource_db: Loaded<AncillaryDataSource_db, never>[];
-  ancillaryDataSource_db = await em.find(
-    AncillaryDataSource_db,
-    { date: date },
-    { orderBy: { source: "ASC" } }
-  );
-  if (ancillaryDataSource_db) {
-    const ancillaryDataSourceData: AncillaryDataSource[] = ancillaryDataSource_db.map(
-      (ancillaryDataSourceRecord) => {
-        const ancillaryDataSource = ancillaryDataSourceRecord;
-        return ancillaryDataSource;
-      }
-    );
-    return ancillaryDataSourceData;
-  } else {
-    return [];
-  }
-}
-
-export async function getAncillaryDataSourceList(): Promise<AncillaryDataSourceList[]> {
-  const em = globalValues.orm.em;
-  const ancillaryDataSource_db = await em.find(
-    AncillaryDataSource_db,
-    {},
-    { orderBy: { date: "ASC", source: "ASC" }, fields: ["id", "date", "source", "type", "url"] }
-  );
-  if (ancillaryDataSource_db) {
-    return ancillaryDataSource_db;
-  } else {
-    return [];
-  }
-}

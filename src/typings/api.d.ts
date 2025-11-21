@@ -22,6 +22,15 @@ interface GPSTracksQueryParams {
   dateWanted: string;
 }
 
+interface EphemerisQueryParams {
+  dateWanted: string;
+}
+
+type EphemerisUpsertRequest = {
+  records: Array<EphemerisEntry>;
+  origin: "celestrak" | "seed";
+};
+
 type MediaOverrideUpsertRequest = MediaOverride;
 
 interface MediaOverrideQueryParams {
@@ -50,57 +59,10 @@ interface DayNightQueryParams {
   date?: number;
 }
 
-interface GetTranscriptsQueryParams {
-  dateWanted: string;
-  source: Source;
-}
-
-interface GetSgAudioQueryParams {
-  dateWanted: string;
-  source: Source;
-}
-
-interface GetEphemerisQueryParams {
-  dateWanted: string;
-}
-
-interface GetMaestroExecuteTimelineStatusQueryParams {
-  uuid: string;
-}
-
-interface GetVideosQueryParams {
-  dateWanted: string;
-  source: Source;
-}
-
-interface GetMTXPlaybackQueryParams {
-  dateWanted: string;
-  source: Source;
-}
-
-interface GetPhotosQueryParams {
-  dateWanted: string;
-  source: Source;
-}
-
-interface GetSequencesAllEvasQueryParams {
-  agency: AgencyQuery;
-}
-
-interface GetGraphsManifestQueryParams {
-  dateWanted: string;
-  source: Source;
-}
-
 interface VideoQueryParams {
   videoId: string;
 }
 
 interface PhotoQueryParams {
   dateWanted: string;
-}
-
-interface EvictCacheQueryParams {
-  lastUsedIsoDate: string;
-  folder?: string;
 }

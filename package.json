@@ -66,6 +66,7 @@
     "@jest/globals": "30.2.0",
     "@reduxjs/toolkit": "2.10.1",
     "@testing-library/jest-dom": "6.9.1",
+    "@types/aria-query": "^5.0.4",
     "@types/cors": "2.8.19",
     "@types/express": "5.0.5",
     "@types/geojson": "7946.0.16",
