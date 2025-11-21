@@ -7,7 +7,7 @@ export class Migration20251120122600 extends Migration {
 
     // Create ephemeris_db table
     this.addSql(
-      `create table "ephemeris_db" ("epoch" timestamptz(3) not null, "tle_line1" text not null, "tle_line2" text not null, "source" varchar(20) not null, "ingested_at" timestamptz(3) not null default now(), constraint "ephemeris_db_pkey" primary key ("epoch"));`
+      `create table "ephemeris_db" ("epoch" timestamptz(3) not null, "tle_line1" text not null, "tle_line2" text not null, "origin" varchar(20) not null, "created_at" timestamptz(3) not null default now(), constraint "ephemeris_db_pkey" primary key ("epoch"));`
     );
     this.addSql(`create index "ephemeris_db_epoch_index" on "ephemeris_db" ("epoch");`);
   }
