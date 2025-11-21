@@ -81,7 +81,7 @@ const SocketClient: FunctionComponent<{
         dispatch(addDayNight({ data: { dayNight: [] }, fetchMetadata: unneededMetadata }));
       }
       if (!isDataTypeValidForSource(source, "ephemeris")) {
-        dispatch(addEphemera({ data: { ephemera: [] }, fetchMetadata: unneededMetadata }));
+        dispatch(addEphemera({ data: [], fetchMetadata: unneededMetadata }));
       }
       if (
         !isDataTypeValidForSource(source, "wikiEvas") &&
@@ -147,7 +147,7 @@ const SocketClient: FunctionComponent<{
         const dataResponse = response as FetchResponse<DayNightStore>;
         dispatch(addDayNight(dataResponse));
       } else if (dataUpdate.type === "ephemeris") {
-        const dataResponse = response as FetchResponse<EphemerisStore>;
+        const dataResponse = response as FetchResponse<EphemerisEntry[]>;
         dispatch(addEphemera(dataResponse));
       } else if (dataUpdate.type === "videos") {
         const dataResponse = response as FetchResponse<VideoFile[]>;
@@ -158,11 +158,9 @@ const SocketClient: FunctionComponent<{
         const photoCollectionsFilter = buildPhotoCollections(dataResponse.data ?? []);
         dispatch(setCollectionFilters(photoCollectionsFilter));
       } else if (dataUpdate.type === "wikiEvas") {
-        //TODO: add maestro stuff
         const dataResponse = response as FetchResponse<Sequence[]>;
         dispatch(addSequences(dataResponse));
       } else if (dataUpdate.type === "wikiTestEvents") {
-        //TODO: add maestro stuff
         const dataResponse = response as FetchResponse<Sequence[]>;
         dispatch(addSequences(dataResponse));
       } else if (dataUpdate.type === "mtxvideo") {

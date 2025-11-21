@@ -1,36 +1,33 @@
 import { getSourceDateDataType, forceRefreshDataType } from "./dataRetrievalScheduler";
-import { getCacheEntry, putCacheEntry } from "server/processing/cache-db";
+import { getCacheEntry, putCacheEntry } from "server/express/cache-db";
 import { globalValues } from "./global";
 import { emitDataUpdate } from "./sockets";
-import getVideoData from "server/processing/media/videos";
+import getVideoData from "server/processing/io-videos";
 
 // Import for mocking purposes (need to mock to prevent actual module execution)
-import "server/processing/daynight/daynight";
-import "server/processing/location/iss";
-import "server/processing/media/photos";
-import "server/processing/db/gps";
-import "server/services/emssTb";
-import "server/services/emssMtx";
-import "server/processing/emss/transcript";
-import "server/processing/emss/sgAudio";
-import "server/processing/sequences/graph";
-import "server/processing/sequences/evas";
-import "server/processing/sequences/test-events";
+import "server/processing/daynight";
+import "server/processing/ephemeris";
+import "server/processing/io-videos";
+import "server/processing/io-photos";
+import "server/processing/gps";
+import "server/processing/tbAudio";
+import "server/processing/tbTranscripts";
+import "server/processing/mediaMtx";
+import "server/processing/graphs";
+import "server/processing/wikiData";
 
-jest.mock("server/processing/cache-db");
+jest.mock("server/express/cache-db");
 jest.mock("./sockets");
-jest.mock("server/processing/media/videos");
-jest.mock("server/processing/daynight/daynight");
-jest.mock("server/processing/location/iss");
-jest.mock("server/processing/media/photos");
-jest.mock("server/processing/db/gps");
-jest.mock("server/services/emssTb");
-jest.mock("server/services/emssMtx");
-jest.mock("server/processing/emss/transcript");
-jest.mock("server/processing/emss/sgAudio");
-jest.mock("server/processing/sequences/graph");
-jest.mock("server/processing/sequences/evas");
-jest.mock("server/processing/sequences/test-events");
+jest.mock("server/processing/daynight");
+jest.mock("server/processing/ephemeris");
+jest.mock("server/processing/io-videos");
+jest.mock("server/processing/io-photos");
+jest.mock("server/processing/gps");
+jest.mock("server/processing/tbAudio");
+jest.mock("server/processing/tbTranscripts");
+jest.mock("server/processing/mediaMtx");
+jest.mock("server/processing/graphs");
+jest.mock("server/processing/wikiData");
 jest.mock("./global", () => ({
   globalValues: {
     socketio: null,
@@ -84,7 +81,6 @@ describe("dataRetrievalScheduler", () => {
       getDataFunction: jest.fn(),
       refreshIntervalMs: 15 * 60 * 1000,
       refreshIntervalTodayMs: 2 * 60 * 1000,
-      timeoutMs: 30000,
     };
 
     const mockSuccessResponse: FetchResponse<any> = {
@@ -170,7 +166,6 @@ describe("dataRetrievalScheduler", () => {
       expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalledWith({
         source: "ISS",
         dateWanted: "2025-01-01",
-        timeoutMs: 30000,
       });
     });
 

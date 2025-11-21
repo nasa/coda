@@ -17,7 +17,7 @@ const PI = Math.PI,
   acos = Math.acos,
   rad = PI / 180;
 
-// sun calculations are based on http://aa.quae.nl/en/reken/zonpositie.html formulas
+// sun calculations are based on https://aa.quae.nl/en/reken/zonpositie.html formulas
 
 // date/time constants and conversions
 
@@ -90,11 +90,9 @@ function sunCoords(d) {
   };
 }
 
-const SunCalc = {};
-
 // calculates sun position for a given date and latitude/longitude
 
-SunCalc.getPosition = function (date, lat, lng) {
+export function getPosition(date, lat, lng) {
   const lw = rad * -lng,
     phi = rad * lat,
     d = toDays(date),
@@ -105,24 +103,24 @@ SunCalc.getPosition = function (date, lat, lng) {
     azimuth: azimuth(H, phi, c.dec),
     altitude: altitude(H, phi, c.dec),
   };
-};
+}
 
 // sun times configuration (angle, morning name, evening name)
 
-const times = (SunCalc.times = [
+export const times = [
   [-0.833, "sunrise", "sunset"],
   [-0.3, "sunriseEnd", "sunsetStart"],
   [-6, "dawn", "dusk"],
   [-12, "nauticalDawn", "nauticalDusk"],
   [-18, "nightEnd", "night"],
   [6, "goldenHourEnd", "goldenHour"],
-]);
+];
 
 // adds a custom time to the times config
 
-SunCalc.addTime = function (angle, riseName, setName) {
+export function addTime(angle, riseName, setName) {
   times.push([angle, riseName, setName]);
-};
+}
 
 // calculations for sun times
 
@@ -156,7 +154,14 @@ function getSetJ(h, lw, phi, dec, n, M, L) {
 // calculates sun times for a given date, latitude/longitude, and, optionally,
 // the observer height (in meters) relative to the horizon
 
-SunCalc.getTimes = function (date, lat, lng, height) {
+/**
+ * @param {Date} date
+ * @param {number} lat
+ * @param {number} lng
+ * @param {number} [height]
+ * @returns {Object.<string, Date>}
+ */
+export function getTimes(date, lat, lng, height) {
   height = height || 0;
 
   const lw = rad * -lng,
@@ -168,31 +173,24 @@ SunCalc.getTimes = function (date, lat, lng, height) {
     M = solarMeanAnomaly(ds),
     L = eclipticLongitude(M),
     dec = declination(L, 0),
-    Jnoon = solarTransitJ(ds, M, L),
-    result = {
-      solarNoon: fromJulian(Jnoon),
-      nadir: fromJulian(Jnoon - 0.5),
-      sunset: null,
-      goldenHour: null,
-      sunrise: null,
-      sunriseEnd: null,
-    };
+    Jnoon = solarTransitJ(ds, M, L);
 
-  let time, h0, Jset, Jrise;
+  const result = {
+    solarNoon: fromJulian(Jnoon),
+    nadir: fromJulian(Jnoon - 0.5),
+  };
 
-  for (let i = 0, len = times.length; i < len; i += 1) {
-    time = times[i];
-    h0 = (time[0] + dh) * rad;
-
-    Jset = getSetJ(h0, lw, phi, dec, n, M, L);
-    Jrise = Jnoon - (Jset - Jnoon);
+  for (const time of times) {
+    const h0 = (time[0] + dh) * rad;
+    const Jset = getSetJ(h0, lw, phi, dec, n, M, L);
+    const Jrise = Jnoon - (Jset - Jnoon);
 
     result[time[1]] = fromJulian(Jrise);
     result[time[2]] = fromJulian(Jset);
   }
 
   return result;
-};
+}
 
 // moon calculations, based on http://aa.quae.nl/en/reken/hemelpositie.html formulas
 
@@ -213,32 +211,29 @@ function moonCoords(d) {
   };
 }
 
-SunCalc.getMoonPosition = function (date, lat, lng) {
+export function getMoonPosition(date, lat, lng) {
   const lw = rad * -lng,
     phi = rad * lat,
     d = toDays(date),
     c = moonCoords(d),
-    H = siderealTime(d, lw) - c.ra;
-
-  let h = altitude(H, phi, c.dec);
-  // formula 14.1 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
-  const pa = atan(sin(H), tan(phi) * cos(c.dec) - sin(c.dec) * cos(H));
-
-  h = h + astroRefraction(h); // altitude correction for refraction
+    H = siderealTime(d, lw) - c.ra,
+    h = altitude(H, phi, c.dec),
+    // formula 14.1 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
+    pa = atan(sin(H), tan(phi) * cos(c.dec) - sin(c.dec) * cos(H));
 
   return {
     azimuth: azimuth(H, phi, c.dec),
-    altitude: h,
+    altitude: h + astroRefraction(h), // altitude correction for refraction,
     distance: c.dist,
     parallacticAngle: pa,
   };
-};
+}
 
 // calculations for illumination parameters of the moon,
 // based on http://idlastro.gsfc.nasa.gov/ftp/pro/astro/mphase.pro formulas and
 // Chapter 48 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
 
-SunCalc.getMoonIllumination = function (date) {
+export function getMoonIllumination(date) {
   const d = toDays(date || new Date()),
     s = sunCoords(d),
     m = moonCoords(d),
@@ -253,9 +248,9 @@ SunCalc.getMoonIllumination = function (date) {
   return {
     fraction: (1 + cos(inc)) / 2,
     phase: 0.5 + (0.5 * inc * (angle < 0 ? -1 : 1)) / Math.PI,
-    angle: angle,
+    angle,
   };
-};
+}
 
 function hoursLater(date, h) {
   return new Date(date.valueOf() + (h * dayMs) / 24);
@@ -263,29 +258,32 @@ function hoursLater(date, h) {
 
 // calculations for moon rise/set times are based on http://www.stargazing.net/kepler/moonrise.html article
 
-SunCalc.getMoonTimes = function (date, lat, lng, inUTC) {
+export function getMoonTimes(date, lat, lng, inUTC) {
   const t = new Date(date);
   if (inUTC) t.setUTCHours(0, 0, 0, 0);
   else t.setHours(0, 0, 0, 0);
 
   const hc = 0.133 * rad;
-  let h0 = SunCalc.getMoonPosition(t, lat, lng).altitude - hc;
-  let h1, h2, rise, set, a, b, xe, ye, d, roots, x1, x2, dx;
+  let h0 = getMoonPosition(t, lat, lng).altitude - hc,
+    rise,
+    set,
+    ye;
 
   // go in 2-hour chunks, each time seeing if a 3-point quadratic curve crosses zero (which means rise or set)
   for (let i = 1; i <= 24; i += 2) {
-    h1 = SunCalc.getMoonPosition(hoursLater(t, i), lat, lng).altitude - hc;
-    h2 = SunCalc.getMoonPosition(hoursLater(t, i + 1), lat, lng).altitude - hc;
-
-    a = (h0 + h2) / 2 - h1;
-    b = (h2 - h0) / 2;
-    xe = -b / (2 * a);
+    const h1 = getMoonPosition(hoursLater(t, i), lat, lng).altitude - hc;
+    const h2 = getMoonPosition(hoursLater(t, i + 1), lat, lng).altitude - hc;
+    const a = (h0 + h2) / 2 - h1;
+    const b = (h2 - h0) / 2;
+    const xe = -b / (2 * a);
+    const d = b * b - 4 * a * h1;
+    let roots = 0,
+      x1 = 0,
+      x2 = 0;
     ye = (a * xe + b) * xe + h1;
-    d = b * b - 4 * a * h1;
-    roots = 0;
 
     if (d >= 0) {
-      dx = Math.sqrt(d) / (Math.abs(a) * 2);
+      const dx = Math.sqrt(d) / (Math.abs(a) * 2);
       x1 = xe - dx;
       x2 = xe + dx;
       if (Math.abs(x1) <= 1) roots++;
@@ -314,6 +312,15 @@ SunCalc.getMoonTimes = function (date, lat, lng, inUTC) {
   if (!rise && !set) result[ye > 0 ? "alwaysUp" : "alwaysDown"] = true;
 
   return result;
-};
+}
 
-export default SunCalc;
+// Default export for backward compatibility
+export default {
+  getPosition,
+  getTimes,
+  getMoonPosition,
+  getMoonIllumination,
+  getMoonTimes,
+  addTime,
+  times,
+};

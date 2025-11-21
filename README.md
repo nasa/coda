@@ -1,6 +1,6 @@
 # CODA
 
-_Collaborative Operations Data Activation_
+Contextual Operations Data Activation
 
 https://coda.fit.nasa.gov/
 

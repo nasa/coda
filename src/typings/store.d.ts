@@ -6,7 +6,7 @@ declare type EmssUser = import("@emss/oauth2-proxy-common").EmssUser;
  */
 
 type EphemeraState = {
-  ephemerisFiles: EphemerisFile[];
+  ephemerisFiles: EphemerisEntry[];
   metadata: FetchMetadata | null;
 };
 
@@ -16,7 +16,7 @@ type EphemeraState = {
 type DayNightState = {
   dayNight: DayNightObj[];
   metadata: FetchMetadata | null;
-  source?: string;
+  origin?: string;
 };
 
 /**
@@ -89,19 +89,6 @@ type SgAudioState = {
  */
 type GraphsState = {
   graphsManifest: GraphsManifest;
-  metadata: FetchMetadata | null;
-};
-
-/**
- * Maestro Store
- */
-type MaestroState = {
-  title: string;
-  crewAssignment: Crew;
-  processedActivitiesData: { [key: string]: Activity[] };
-  evaStartSec: number;
-  evaEndSec: number;
-  evaDurationSec: number;
   metadata: FetchMetadata | null;
 };
 

@@ -1,20 +1,23 @@
-import getVideoData from "server/processing/media/videos";
+import getVideoData from "server/processing/io-videos";
 import { globalValues } from "./global";
 import { emitDataUpdate, emitFetchInspectorUpdate } from "./sockets";
-import getDayNight from "server/processing/daynight/daynight";
-import getEphemera from "server/processing/location/iss";
-import getPhotoData from "server/processing/media/photos";
-import getGpsTrackData from "server/processing/db/gps";
-import { getMTXAPIResponses } from "server/services/emssMtx";
-import getTranscripts from "server/processing/emss/transcript";
-import getLabsSgAudio from "server/processing/emss/sgAudio";
-import getGraphManifest from "server/processing/sequences/graph";
-import { getISSEvaData } from "server/processing/sequences/evas";
-import getTestEventsData from "server/processing/sequences/test-events";
-import { ConsoleLogger } from "../../utils/logger";
+import getDayNight from "server/processing/daynight";
+import getEphemera from "server/processing/ephemeris";
+import getPhotoData from "server/processing/io-photos";
+import getGpsTrackData from "server/processing/gps";
+import { getMTXAPIResponses } from "server/processing/mediaMtx";
+import getTalkybotTranscripts from "server/processing/tbTranscripts";
+import getTalkybotSgAudio from "server/processing/tbAudio";
+import getGraphManifest from "server/processing/graphs";
+import { getISSEvaData, getTestEventsData } from "server/processing/wikiData";
+import { ConsoleLogger } from "../../utils/consoleLogger";
 import isEqual from "lodash/isEqual";
-import { getCacheEntry, putCacheEntry } from "server/processing/cache-db";
+import { getCacheEntry, putCacheEntry } from "server/express/cache-db";
 import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+
+const DEFAULT_REFRESH_INTERVAL_MS_TODAY = 2 * 60 * 1000; // refresh cache every 2 minutes for "today"
+const DEFAULT_REFRESH_INTERVAL_MS = 60 * 60 * 1000; // refresh cache every 60 minutes by default
+const DEFAULT_DATA_FETCH_TIMEOUT_MS = 30000; // 30 seconds
 
 export const dataFetchConfigs: FetchConfig[] = [
   {
@@ -22,24 +25,24 @@ export const dataFetchConfigs: FetchConfig[] = [
     getDataFunction: getDayNight,
     refreshIntervalTodayMs: 3 * 60 * 60 * 1000, // 3 hours for today's data
     refreshIntervalMs: 12 * 60 * 60 * 1000, // 12 hours for other days
+    fetchTimeoutMs: 60000, // 60 seconds (allows for TOPO failure + ephemeris db fallback)
   },
   {
     type: "ephemeris",
     getDataFunction: getEphemera,
-    refreshIntervalTodayMs: 3 * 60 * 60 * 1000, // 3 hours for today's data
-    refreshIntervalMs: 12 * 60 * 60 * 1000, // 12 hours for other days
+    disableCacheUse: true, // Data retrieved from local database
   },
   {
     type: "videos",
     getDataFunction: getVideoData,
-    refreshIntervalTodayMs: 2 * 60 * 1000, // 2 minutes for today's data
-    refreshIntervalMs: 15 * 60 * 1000, // 15 minutes for other days
+    // refreshIntervalTodayMs uses default
+    refreshIntervalMs: 15 * 60 * 1000, // 15 minutes for other days (faster than 60 min default)
   },
   {
     type: "photos",
     getDataFunction: getPhotoData,
-    refreshIntervalTodayMs: 2 * 60 * 1000, // 2 minutes for today's data
-    refreshIntervalMs: 15 * 60 * 1000, // 15 minutes for other days
+    // refreshIntervalTodayMs uses default
+    refreshIntervalMs: 15 * 60 * 1000, // 15 minutes for other days (faster than 60 min default)
   },
   {
     type: "wikiEvas",
@@ -54,9 +57,8 @@ export const dataFetchConfigs: FetchConfig[] = [
   {
     type: "mtxvideo",
     getDataFunction: getMTXAPIResponses,
-    timeoutMs: 20000,
-    refreshIntervalTodayMs: 2 * 60 * 1000, // 2 minutes for today's data
-    refreshIntervalMs: 60 * 60 * 1000, // 60 minutes for other days
+    // refreshIntervalTodayMs uses default
+    // refreshIntervalMs uses default
   },
   {
     type: "gpstracks",
@@ -66,14 +68,14 @@ export const dataFetchConfigs: FetchConfig[] = [
   },
   {
     type: "transcript",
-    getDataFunction: getTranscripts,
-    refreshIntervalTodayMs: 2 * 60 * 1000, // 2 minutes for today's data
+    getDataFunction: getTalkybotTranscripts,
+    // refreshIntervalTodayMs uses default
     refreshIntervalMs: 3 * 60 * 60 * 1000, // 3 hours for other days
   },
   {
     type: "sgaudio",
-    getDataFunction: getLabsSgAudio,
-    refreshIntervalTodayMs: 2 * 60 * 1000, // 2 minutes for today's data
+    getDataFunction: getTalkybotSgAudio,
+    // refreshIntervalTodayMs uses default
     refreshIntervalMs: 3 * 60 * 60 * 1000, // 3 hours for other days
   },
   {
@@ -83,10 +85,6 @@ export const dataFetchConfigs: FetchConfig[] = [
     refreshIntervalMs: 12 * 60 * 60 * 1000, // 12 hours for other days
   },
 ];
-
-const DEFAULT_DATA_FETCH_TIMEOUT_MS = 30000; // 30 seconds
-const DATA_REFRESH_INTERVAL_MS = 15 * 60 * 1000; // refresh cache every 15 minutes by default
-const DATA_REFRESH_INTERVAL_MS_TODAY = 2 * 60 * 1000; // refresh cache every 2 minutes for "today" data types
 
 // returns existing fetch tracker data or initializes an empty fetch tracker entry if it doesn't exist
 const ensureFetchTrackerEntry = (
@@ -259,7 +257,7 @@ const fetchData = async ({
   }
 
   const dataType = config.type;
-  const fetchTimeoutMs = config.timeoutMs ?? DEFAULT_DATA_FETCH_TIMEOUT_MS;
+  const fetchTimeoutMs = config.fetchTimeoutMs ?? DEFAULT_DATA_FETCH_TIMEOUT_MS;
   const fetchStartedAt = new Date();
 
   updateFetchTracker(source, dateWanted, dataType, {
@@ -282,7 +280,6 @@ const fetchData = async ({
       config.getDataFunction({
         dateWanted,
         source,
-        timeoutMs: fetchTimeoutMs,
       }),
       timeoutPromise,
     ]);
@@ -495,8 +492,8 @@ const performBackgroundFetch = async ({
   const today = new Date().toISOString().split("T")[0];
   const isToday = dateWanted === today;
   const baseRefreshInterval = isToday
-    ? (dataFetchConfig.refreshIntervalTodayMs ?? DATA_REFRESH_INTERVAL_MS_TODAY)
-    : (dataFetchConfig.refreshIntervalMs ?? DATA_REFRESH_INTERVAL_MS);
+    ? (dataFetchConfig.refreshIntervalTodayMs ?? DEFAULT_REFRESH_INTERVAL_MS_TODAY)
+    : (dataFetchConfig.refreshIntervalMs ?? DEFAULT_REFRESH_INTERVAL_MS);
 
   const randomFactor = 0.8 + Math.random() * 0.4; // ±20% randomness
   const randomizedInterval = Math.floor(baseRefreshInterval * randomFactor);

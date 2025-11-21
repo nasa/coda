@@ -13,9 +13,25 @@ type MediaMedium = "video" | "photo" | "transcript" | "audio";
 
 type SourceShortVal = 0 | 1 | 2 | 3;
 
+/** Keys used to lookup and map sequence type values */
+type SequenceTypeKey = "EVA" | "IVA" | "testing" | "analog" | "training";
+
 type SequenceType = 1 | 2 | "testing" | "analog" | "training";
 
-/**
- * Pane types converted to integers
- */
+/** Keys used to look up short integer values for pane types */
+type PaneTypeKey =
+  | "empty"
+  | "video_downlink"
+  | "video_non_downlink"
+  | "photo"
+  | "event_info"
+  | "iss_location"
+  | "gps_location"
+  | "photo_all"
+  | "transcript"
+  | "sgAudio"
+  | "graph";
+
+/** Pane types converted to integers */
+
 type PaneTypeShortVal = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;

@@ -44,7 +44,6 @@ COPY . /clientsrc
 # these are sent in as build args through the docker build command (kaniko). Locally, these are sent in
 # via docker-compose build:args: property.
 ARG VITE_PUBLIC_MAPBOX_KEY
-ARG VITE_PUBLIC_APP_ENV
 ARG VITE_PUBLIC_LIVE_STREAMS_ENABLED
 ARG VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
 ARG VITE_PUBLIC_MEDIA_MTX_HLS_URL
