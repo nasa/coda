@@ -46,7 +46,7 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
   server.on("request", app);
 
   // Celestrak TLE update scheduler - runs regardless of user activity
-  const CELESTRAK_UPDATE_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+  const CELESTRAK_UPDATE_INTERVAL_MS = 120 * 60 * 1000; // 120 minutes (Celestrak itself updates every 2 hours)
   let celestrakInterval: NodeJS.Timeout | null = null;
 
   const startCelestrakScheduler = () => {
@@ -57,7 +57,7 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
       void updateFromCelestrak();
     }, CELESTRAK_UPDATE_INTERVAL_MS);
 
-    ConsoleLogger.log("Celestrak TLE update scheduler started (30 minute interval)");
+    ConsoleLogger.log("Celestrak TLE update scheduler started (120 minute interval)");
   };
 
   // Start the server
