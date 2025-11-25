@@ -25,6 +25,8 @@ include:
 
   # Other jobs that we need for both types of pipelines
   - local: .gitlab/includes/db-import.yml
+    rules:
+      - if: $SCHEDULE_TYPE != "audit" # exclude from audit scheduled pipelines
   - project: "emss/gitlab-templates"
     ref: 2.6.0
     file:

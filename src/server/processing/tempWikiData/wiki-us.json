@@ -1,0 +1,6044 @@
+[
+  {
+    "crew": {
+      "EV1": "Carl Walz",
+      "EV2": "Dan Bursch",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 1",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_1",
+    "duration": 20820,
+    "location": 4,
+    "startDate": "2002-02-20",
+    "startTime": "11:38",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Ken Bowersox",
+      "EV2": "Don Pettit",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 2",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_2",
+    "duration": 24660,
+    "location": 4,
+    "startDate": "2003-01-15",
+    "startTime": "12:50",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Ken Bowersox",
+      "EV2": "Don Pettit",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 3",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_3",
+    "duration": 23160,
+    "location": 4,
+    "startDate": "2003-04-08",
+    "startTime": "12:40",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 3",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Bill McArthur",
+      "EV2": "Valeri Tokarev",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 4",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_4",
+    "duration": 19320,
+    "location": 4,
+    "startDate": "2005-11-07",
+    "startTime": "15:32",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 4",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Jeff Williams",
+      "EV2": "Thomas Reiter",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 5",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_5",
+    "duration": 21240,
+    "location": 4,
+    "startDate": "2006-08-03",
+    "startTime": "14:04",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 5",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Mike Lopez-Alegria",
+      "EV2": "Sunita Williams",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 6",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_6",
+    "duration": 28500,
+    "location": 4,
+    "startDate": "2007-01-31",
+    "startTime": "15:14",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 6",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Mike Lopez-Alegria",
+      "EV2": "Sunita Williams",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 7",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_7",
+    "duration": 25860,
+    "location": 4,
+    "startDate": "2007-02-04",
+    "startTime": "13:38",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 7",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Mike Lopez-Alegria",
+      "EV2": "Sunita Williams",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 8",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_8",
+    "duration": 24000,
+    "location": 4,
+    "startDate": "2007-02-08",
+    "startTime": "13:26",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 8",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Clay Anderson",
+      "EV2": "Fyodor Yurchikhin",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 9",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_9",
+    "duration": 27660,
+    "location": 4,
+    "startDate": "2007-07-23",
+    "startTime": "10:25",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 9",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Peggy Whitson",
+      "EV2": "Yuri Malenchenko",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 10",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_10",
+    "duration": 24900,
+    "location": 4,
+    "startDate": "2007-11-09",
+    "startTime": "09:54",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 10",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Peggy Whitson",
+      "EV2": "Dan Tani",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 11",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_11",
+    "duration": 26160,
+    "location": 4,
+    "startDate": "2007-11-20",
+    "startTime": "10:10",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 11",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Peggy Whitson",
+      "EV2": "Dan Tani",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 12",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_12",
+    "duration": 25440,
+    "location": 4,
+    "startDate": "2007-11-24",
+    "startTime": "09:50",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 12",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Dan Tani",
+      "EV2": "Peggy Whitson",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 13",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_13",
+    "duration": 24960,
+    "location": 4,
+    "startDate": "2007-12-18",
+    "startTime": "09:50",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 13",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Peggy Whitson",
+      "EV2": "Dan Tani",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 14",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_14",
+    "duration": 25800,
+    "location": 4,
+    "startDate": "2008-01-30",
+    "startTime": "09:56",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 14",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Doug Wheelock",
+      "EV2": "Tracy Caldwell Dyson",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 15",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_15",
+    "duration": 28980,
+    "location": 4,
+    "startDate": "2010-08-07",
+    "startTime": "11:19",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 15",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Doug Wheelock",
+      "EV2": "Tracy Caldwell Dyson",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 16",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_16",
+    "duration": 26760,
+    "location": 4,
+    "startDate": "2010-08-11",
+    "startTime": "12:27",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 16",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Doug Wheelock",
+      "EV2": "Tracy Caldwell Dyson",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 17",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_17",
+    "duration": 26400,
+    "location": 4,
+    "startDate": "2010-08-16",
+    "startTime": "10:20",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 17",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Joe Acaba",
+      "EV1": "Sunita Williams",
+      "EV2": "Akihiko Hoshide",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 18",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_18",
+    "duration": 29820,
+    "location": 4,
+    "startDate": "2012-08-30",
+    "startTime": "12:16",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 18",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Joe Acaba",
+      "EV1": "Sunita Williams",
+      "EV2": "Akihiko Hoshide",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 19",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_19",
+    "duration": 23280,
+    "location": 4,
+    "startDate": "2012-09-05",
+    "startTime": "11:06",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 19",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Sunita Williams",
+      "EV2": "Akihiko Hoshide",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 20",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_20",
+    "duration": 23880,
+    "location": 4,
+    "startDate": "2012-11-01",
+    "startTime": "12:29",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 20",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Chris Cassidy",
+      "EV2": "Tom Marshburn",
+      "SUIT_IV": "Chris Hadfield"
+    },
+    "name": "US EVA 21",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_21",
+    "duration": 19800,
+    "location": 4,
+    "startDate": "2013-05-11",
+    "startTime": "12:44",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 21",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Karen Nyberg",
+      "EV1": "Chris Cassidy",
+      "EV2": "Luca Parmitano",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 22",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_22",
+    "duration": 22020,
+    "location": 4,
+    "startDate": "2013-07-09",
+    "startTime": "12:02",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 22",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Chris Cassidy",
+      "EV2": "Luca Parmitano",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 23",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_23",
+    "duration": 5520,
+    "location": 4,
+    "startDate": "2013-07-16",
+    "startTime": "11:57",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 23",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Koichi Wakata",
+      "EV1": "Rick Mastracchio",
+      "EV2": "Mike Hopkins",
+      "SUIT_IV": "Koichi Wakata"
+    },
+    "name": "US EVA 24",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_24",
+    "duration": 19680,
+    "location": 4,
+    "startDate": "2013-12-21",
+    "startTime": "12:01",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 24",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Koichi Wakata",
+      "EV1": "Mike Hopkins",
+      "EV2": "Rick Mastracchio",
+      "SUIT_IV": "Koichi Wakata"
+    },
+    "name": "US EVA 25",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_25",
+    "duration": 27000,
+    "location": 4,
+    "startDate": "2013-12-24",
+    "startTime": "11:53",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 25",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Rick Mastracchio",
+      "EV2": "Steve Swanson",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 26",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_26",
+    "duration": 5760,
+    "location": 4,
+    "startDate": "2014-04-23",
+    "startTime": "13:56",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 26",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Reid Wiseman",
+      "EV2": "Alex Gerst",
+      "SUIT_IV": "Barry Wilmore"
+    },
+    "name": "US EVA 27",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_27",
+    "duration": 22380,
+    "location": 4,
+    "startDate": "2014-10-07",
+    "startTime": "12:30",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 27 - PM Relocate / MTRA Install",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Reid Wiseman",
+      "EV2": "Barry Wilmore",
+      "SUIT_IV": "Alex Gerst"
+    },
+    "name": "US EVA 28",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_28",
+    "duration": 23640,
+    "location": 4,
+    "startDate": "2014-10-15",
+    "startTime": "12:16",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 28 - SSU/PMM Prep",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Barry Wilmore",
+      "EV2": "Terry Virts",
+      "SUIT_IV": "Samantha Cristoforetti"
+    },
+    "name": "US EVA 29",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_29",
+    "duration": 24060,
+    "location": 4,
+    "startDate": "2015-02-21",
+    "startTime": "12:45",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 29 - US EVA IDA1 Cables",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Barry Wilmore",
+      "EV2": "Terry Virts",
+      "SUIT_IV": "Samantha Cristoforetti"
+    },
+    "name": "US EVA 30",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_30",
+    "duration": 24180,
+    "location": 4,
+    "startDate": "2015-02-25",
+    "startTime": "11:51",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 30 - IDA 1 Cables / LEE Lube",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Terry Virts",
+      "EV2": "Barry Wilmore",
+      "SUIT_IV": "Samantha Cristoforetti"
+    },
+    "name": "US EVA 31",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_31",
+    "duration": 20280,
+    "location": 4,
+    "startDate": "2015-03-01",
+    "startTime": "11:52",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 31 - C2V2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Scott Kelly",
+      "EV2": "Kjell Lindgren",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 32",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_32",
+    "duration": 26160,
+    "location": 4,
+    "startDate": "2015-10-28",
+    "startTime": "12:03",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 32 - ISS UPGRADES",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Kjell Lindgren",
+      "EV2": "Scott Kelly",
+      "SUIT_IV": "Kimiya Yui"
+    },
+    "name": "US EVA 33",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_33",
+    "duration": 28080,
+    "location": 4,
+    "startDate": "2015-11-06",
+    "startTime": "11:22",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 33 - PVTCS RTOC",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Scott Kelly",
+      "EV2": "Tim Kopra",
+      "SUIT_IV": "Tim Peake"
+    },
+    "name": "US EVA 34",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_34",
+    "duration": 11760,
+    "location": 4,
+    "startDate": "2015-12-21",
+    "startTime": "12:45",
+    "asPerformed": {
+      "EV1 - Kelly": [
+        {
+          "color": "#28B463",
+          "content": "Post Depress",
+          "duration": 300
+        },
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 900
+        },
+        {
+          "color": "#C0392B",
+          "content": "STBD CETA Cart Brake Release",
+          "duration": 1800
+        },
+        {
+          "color": "#8E44AD",
+          "content": "White/Purple IDA3 Cable",
+          "duration": 1560
+        },
+        {
+          "color": "#B7950B",
+          "content": "Yellow IDA3 Cable",
+          "duration": 4920
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 2040
+        },
+        {
+          "color": "#28B463",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ],
+      "EV2 - Kopra": [
+        {
+          "color": "#28B463",
+          "content": "Post Depress",
+          "duration": 300
+        },
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 900
+        },
+        {
+          "color": "#C0392B",
+          "content": "Port CETA Cart Brake Release",
+          "duration": 1800
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SPDA Doors",
+          "duration": 300
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "MLM Ethernet Cable",
+          "duration": 2700
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Scoop/D-Handle Retireve",
+          "duration": 1020
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Retrieve IDA Cable Bag",
+          "duration": 1500
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Close out photos",
+          "duration": 960
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 2040
+        },
+        {
+          "color": "#28B463",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ]
+    },
+    "displayTitle": "US EVA 34 - MT Rescue",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Tim Kopra",
+      "EV2": "Tim Peake",
+      "SUIT_IV": "Scott Kelly"
+    },
+    "name": "US EVA 35",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_35",
+    "duration": 16980,
+    "location": 4,
+    "startDate": "2016-01-15",
+    "startTime": "12:48",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 35 - 1B SSU",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Jeff Williams",
+      "EV2": "Kate Rubins",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 36",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_36",
+    "duration": 21480,
+    "location": 4,
+    "startDate": "2016-08-19",
+    "startTime": "12:04",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 36 - IDA2 Install",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Takuya Onishi",
+      "EV1": "Jeff Williams",
+      "EV2": "Kate Rubins",
+      "SUIT_IV": "Takuya Onishi"
+    },
+    "name": "US EVA 37",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_37",
+    "duration": 24480,
+    "location": 4,
+    "startDate": "2016-09-01",
+    "startTime": "11:53",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Setup",
+          "duration": 1680
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Retract (includes translation)",
+          "duration": 1920
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Cinch",
+          "duration": 1920
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Shroud",
+          "duration": 2580
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Cleanup/Xlate",
+          "duration": 900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Setup",
+          "duration": 2100
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP9 Light R&R",
+          "duration": 1260
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP9 HD Camera Install",
+          "duration": 1260
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Translate to CP8",
+          "duration": 1740
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 HD Camera Install",
+          "duration": 2580
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Cleanup",
+          "duration": 2460
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Port CETA Cart Reconfig",
+          "duration": 1020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup/Ingress",
+          "duration": 3060
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Setup",
+          "duration": 2100
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Retract (includes translation)",
+          "duration": 1500
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Cinch",
+          "duration": 1920
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Shroud",
+          "duration": 2580
+        },
+        {
+          "color": "#C0392B",
+          "content": "TTCR Cleanup/Xlate",
+          "duration": 1140
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "HD Camera Setup",
+          "duration": 1980
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "AJIS Strut #3",
+          "duration": 1380
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SARJ Photos",
+          "duration": 1020
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "AJIS Strut #2",
+          "duration": 300
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 Bag Retrieve",
+          "duration": 2760
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "AJIS Strut #1",
+          "duration": 1380
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "PFCS MLI",
+          "duration": 1860
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Bag Cleanup",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup/Ingress",
+          "duration": 2760
+        }
+      ]
+    },
+    "displayTitle": "US EVA 37 - TTCR Restow",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Shane Kimbrough",
+      "EV2": "Peggy Whitson",
+      "SUIT_IV": "Thomas Pesquet"
+    },
+    "name": "US EVA 38",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_38",
+    "duration": 23520,
+    "location": 4,
+    "startDate": "2017-01-06",
+    "startTime": "12:23",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 38 - S4 Battery R&R EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Shane Kimbrough",
+      "EV2": "Thomas Pesquet",
+      "SUIT_IV": "Peggy Whitson"
+    },
+    "name": "US EVA 39",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_39",
+    "duration": 21480,
+    "location": 4,
+    "startDate": "2017-01-13",
+    "startTime": "11:22",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 39 - S4 Battery R&R EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Shane Kimbrough",
+      "EV2": "Thomas Pesquet",
+      "SUIT_IV": "Peggy Whitson"
+    },
+    "name": "US EVA 40",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_40",
+    "duration": 23640,
+    "location": 4,
+    "startDate": "2017-03-24",
+    "startTime": "11:25",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 40 - EPIC SPDM LUBE",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Shane Kimbrough",
+      "EV2": "Peggy Whitson",
+      "SUIT_IV": "Thomas Pesquet"
+    },
+    "name": "US EVA 41",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_41",
+    "duration": 25440,
+    "location": 4,
+    "startDate": "2017-03-30",
+    "startTime": "11:29",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 1140
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Ext EPIC MDM R&R",
+          "duration": 3900
+        },
+        {
+          "color": "#2980B9",
+          "content": "PMA 3 Cover Removal",
+          "duration": 1740
+        },
+        {
+          "color": "#B7950B",
+          "content": "Node 3 Axial Shields Install",
+          "duration": 11520
+        },
+        {
+          "color": "#2980B9",
+          "content": "PMA 3 Cummerbunds Install",
+          "duration": 3120
+        },
+        {
+          "color": "#28B463",
+          "content": "NOD2 Nadir CBM Cleaning",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 2940
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 1140
+        },
+        {
+          "color": "#2980B9",
+          "content": "PMA 3 Connections",
+          "duration": 2340
+        },
+        {
+          "color": "#2980B9",
+          "content": "PMA 3 Cover Removal",
+          "duration": 3300
+        },
+        {
+          "color": "#B7950B",
+          "content": "Node 3 Axial Shields Install",
+          "duration": 11520
+        },
+        {
+          "color": "#2980B9",
+          "content": "PMA 3 Cummerbunds Install",
+          "duration": 3120
+        },
+        {
+          "color": "#28B463",
+          "content": "NOD2 Nadir CBM Cleaning",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 2940
+        }
+      ]
+    },
+    "displayTitle": "US EVA 41 - EPIC Shields",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Peggy Whitson",
+      "EV2": "Jack Fischer",
+      "SUIT_IV": "Thomas Pesquet"
+    },
+    "name": "US EVA 42",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_42",
+    "duration": 15180,
+    "location": 4,
+    "startDate": "2017-05-12",
+    "startTime": "13:08",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 42 - ExPCA",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Peggy Whitson",
+      "EV2": "Jack Fischer",
+      "SUIT_IV": "Thomas Pesquet"
+    },
+    "name": "US EVA 43",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_43",
+    "duration": 9960,
+    "location": 4,
+    "startDate": "2017-05-23",
+    "startTime": "11:20",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 43 - EXT-1 MDM  R&R CCE",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Paolo Nespoli",
+      "EV1": "Randy Bresnik",
+      "EV2": "Mark Vande Hei",
+      "SUIT_IV": "Joe Acaba"
+    },
+    "name": "US EVA 44",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_44",
+    "duration": 24900,
+    "location": 4,
+    "startDate": "2017-10-05",
+    "startTime": "12:05",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 44 - LEE R&R",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Paolo Nespoli",
+      "EV1": "Randy Bresnik",
+      "EV2": "Mark Vande Hei",
+      "SUIT_IV": "Joe Acaba"
+    },
+    "name": "US EVA 45",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_45",
+    "duration": 23160,
+    "location": 4,
+    "startDate": "2017-10-10",
+    "startTime": "11:56",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 45 - CP9 & LEE Lube",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Paolo Nespoli",
+      "EV1": "Randy Bresnik",
+      "EV2": "Joe Acaba",
+      "SUIT_IV": "Mark Vande Hei"
+    },
+    "name": "US EVA 46",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_46",
+    "duration": 24540,
+    "location": 4,
+    "startDate": "2017-10-20",
+    "startTime": "11:47",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 46 - CP13 & LEE Lube",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Norishige Kanai",
+      "EV1": "Mark Vande Hei",
+      "EV2": "Scott Tingle",
+      "SUIT_IV": "Joe Acaba"
+    },
+    "name": "US EVA 47",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_47",
+    "duration": 26640,
+    "location": 4,
+    "startDate": "2018-01-23",
+    "startTime": "11:49",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 47 - LEE B R&R",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Scott Tingle",
+      "EV1": "Mark Vande Hei",
+      "EV2": "Norishige Kanai",
+      "SUIT_IV": "Scott Tingle"
+    },
+    "name": "US EVA 48",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_48",
+    "duration": 21420,
+    "location": 4,
+    "startDate": "2018-02-16",
+    "startTime": "12:00",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 48 - LEE B R&R",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Scott Tingle",
+      "M2": "Norishige Kanai",
+      "EV1": "Drew Feustel",
+      "EV2": "Ricky Arnold",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 49",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_49",
+    "duration": 22200,
+    "location": 4,
+    "startDate": "2018-03-29",
+    "startTime": "13:33",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "EGRESS/SETUP",
+          "duration": 1020
+        },
+        {
+          "color": "#B7950B",
+          "content": "NOD3 EWC TRANLATE AND SETUP",
+          "duration": 240
+        },
+        {
+          "color": "#B7950B",
+          "content": "INSTALL EWC NADIR ANTENNA",
+          "duration": 3180
+        },
+        {
+          "color": "#B7950B",
+          "content": "INSTALL EWC ZENITH ANTENNA",
+          "duration": 300
+        },
+        {
+          "color": "#B7950B",
+          "content": "ROUTE EWC CABLE",
+          "duration": 1680
+        },
+        {
+          "color": "#B7950B",
+          "content": "EWC WORKSITE CLEANUP AND TRANSLATE (TO A/L)",
+          "duration": 960
+        },
+        {
+          "color": "#C0392B",
+          "content": "ASSESS PFCS JUMPER STOWAGE",
+          "duration": 960
+        },
+        {
+          "color": "#C0392B",
+          "content": "RETRIEVE AND STOW PFCS JUMPER STOWAGE",
+          "duration": 2280
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 ETVCG SETUP",
+          "duration": 1800
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 R&R AND STOW",
+          "duration": 1620
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 HD CAMERA REMOVAL AND CP8 TRANSLATION",
+          "duration": 960
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "HD CAMERA AND BAG BUNDLE SWAP WITH EV2",
+          "duration": 240
+        },
+        {
+          "color": "#000000",
+          "content": "EV1 WAITING FOR HD CAMERA INSTALL",
+          "duration": 2160
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "STOWING AND PREPPING BAGS",
+          "duration": 900
+        },
+        {
+          "color": "#28B463",
+          "content": "PM PREP (ESP-2)",
+          "duration": 1680
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CLEANUP/INGRESS",
+          "duration": 2220
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "EGRESS/SETUP",
+          "duration": 1020
+        },
+        {
+          "color": "#2980B9",
+          "content": "SSRMS SETUP",
+          "duration": 2100
+        },
+        {
+          "color": "#2980B9",
+          "content": "GCA TO RETRIEVE BAG AND RBVM SSRMS TRANSLATION",
+          "duration": 1980
+        },
+        {
+          "color": "#8E44AD",
+          "content": "RELEASE RBVM NZGLs AND CLAMPS",
+          "duration": 1320
+        },
+        {
+          "color": "#8E44AD",
+          "content": "QD RELEASE #1 (RBVM-M2)",
+          "duration": 780
+        },
+        {
+          "color": "#8E44AD",
+          "content": "QD RELEASE #2 (RBVM-M1)",
+          "duration": 720
+        },
+        {
+          "color": "#8E44AD",
+          "content": "QD RELEASE #4 (RADIATOR-M4)",
+          "duration": 840
+        },
+        {
+          "color": "#8E44AD",
+          "content": "QD RELEASE #3 (RADIATOR-M3)",
+          "duration": 480
+        },
+        {
+          "color": "#8E44AD",
+          "content": "STOW JUMPERS AND CP8 TRANSLATION",
+          "duration": 1500
+        },
+        {
+          "color": "#2980B9",
+          "content": "CP8 CAMERA ROTATION GCA",
+          "duration": 1320
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 CAMERA ROTATION",
+          "duration": 180
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 ETVCG REMOVAL",
+          "duration": 960
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 ETVCG INSTALL",
+          "duration": 1140
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "EV2 WAITING FOR HD CAMERA",
+          "duration": 900
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 HD CAMERA INSTALL",
+          "duration": 1800
+        },
+        {
+          "color": "#2980B9",
+          "content": "SSRMS EGRESS",
+          "duration": 1560
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "APFR RELOCATE",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CLEANUP/INGRESS",
+          "duration": 1800
+        }
+      ]
+    },
+    "displayTitle": "US EVA 49 - N3 EWC & CP8",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Scott Tingle",
+      "M2": "Norishige Kanai",
+      "EV1": "Drew Feustel",
+      "EV2": "Ricky Arnold",
+      "SUIT_IV": "Norishige Kanai"
+    },
+    "name": "US EVA 50",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_50",
+    "duration": 23460,
+    "location": 4,
+    "startDate": "2018-05-16",
+    "startTime": "11:39",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#96a5a7",
+          "content": "Post Depress",
+          "duration": 420
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Egress",
+          "duration": 540
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Worksite Setup",
+          "duration": 2340
+        },
+        {
+          "color": "#C0392B",
+          "content": "Isolate PFCS FSE",
+          "duration": 720
+        },
+        {
+          "color": "#28B463",
+          "content": "Release Failed PFCS from EOTP",
+          "duration": 2340
+        },
+        {
+          "color": "#2980B9",
+          "content": "Relocate Spare PFCS",
+          "duration": 1140
+        },
+        {
+          "color": "#28B463",
+          "content": "Install Failed PFCS on ESP1",
+          "duration": 960
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "PFCS Worksite Cleanup",
+          "duration": 1380
+        },
+        {
+          "color": "#000000",
+          "content": "CP13 R&R Drop Off",
+          "duration": 780
+        },
+        {
+          "color": "#B7950B",
+          "content": "SGTRC R&R",
+          "duration": 1200
+        },
+        {
+          "color": "#000000",
+          "content": "CP13 R&R Assist",
+          "duration": 2340
+        },
+        {
+          "color": "#B7950B",
+          "content": "SGTRC R&R Completion",
+          "duration": 2820
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "RGB T-Handles",
+          "duration": 2520
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "FHRC Strut",
+          "duration": 1860
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Cleanup/Ingress",
+          "duration": 1800
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#96a5a7",
+          "content": "Post Depress",
+          "duration": 420
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Egress",
+          "duration": 540
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Worksite Setup",
+          "duration": 2340
+        },
+        {
+          "color": "#C0392B",
+          "content": "Isolate PFCS FSE",
+          "duration": 720
+        },
+        {
+          "color": "#28B463",
+          "content": "Release Failed PFCS from EOTP",
+          "duration": 2340
+        },
+        {
+          "color": "#2980B9",
+          "content": "Relocate Spare PFCS",
+          "duration": 1140
+        },
+        {
+          "color": "#28B463",
+          "content": "Install Failed PFCS on ESP1",
+          "duration": 960
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SSRMS Setup",
+          "duration": 2400
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "CP13 ETVCG R&R",
+          "duration": 4020
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SSRMS Cleanup",
+          "duration": 2100
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DCSU MLI Removal",
+          "duration": 2340
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DCSU MLI Tie Back",
+          "duration": 1260
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Cleanup/Ingress",
+          "duration": 2580
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ],
+      "Inhibits": [
+        {
+          "color": "#7F8C8D",
+          "content": "DESATS Enabled",
+          "duration": 12600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DESATS Inhibited",
+          "duration": 10800
+        }
+      ]
+    },
+    "displayTitle": "US EVA 50 - PFCS Relocate",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Serena Auñón-Chancellor",
+      "M2": "Alex Gerst",
+      "EV1": "Ricky Arnold",
+      "EV2": "Drew Feustel",
+      "SUIT_IV": "Alex Gerst"
+    },
+    "name": "US EVA 51",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_51",
+    "duration": 24540,
+    "location": 4,
+    "startDate": "2018-06-14",
+    "startTime": "12:06",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 51 - N2 EWC",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Anne McClain",
+      "EV2": "Nick Hague",
+      "SUIT_IV": "David Saint-Jacques"
+    },
+    "name": "US EVA 52",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_52",
+    "duration": 23940,
+    "location": 4,
+    "startDate": "2019-03-22",
+    "startTime": "12:01",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post Depress & Egress",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "V-Guide Bag Deploy",
+          "duration": 1320
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Worksite Prep",
+          "duration": 3000
+        },
+        {
+          "color": "#2980B9",
+          "content": "Retrieve AP A / AP B",
+          "duration": 1380
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Install AP A",
+          "duration": 1740
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Relocate Battery 4",
+          "duration": 1260
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Install AP B",
+          "duration": 1200
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Relocate Battery 2",
+          "duration": 1440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Retrieve AP C",
+          "duration": 3600
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Install AP C",
+          "duration": 1800
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Cleanup + 2A Prep",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CBM Cleaning",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Imagery",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre Repress",
+          "duration": 1200
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post Depress & Egress",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "V-Guide Bag Deploy",
+          "duration": 1320
+        },
+        {
+          "color": "#2980B9",
+          "content": "Worksite Prep",
+          "duration": 3000
+        },
+        {
+          "color": "#2980B9",
+          "content": "Retrieve AP A / AP B",
+          "duration": 1380
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Install AP A",
+          "duration": 1740
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Relocate Battery 4",
+          "duration": 1260
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Install AP B",
+          "duration": 1200
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Relocate Battery 2",
+          "duration": 1440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Retrieve AP C",
+          "duration": 3600
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Install AP C",
+          "duration": 1800
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Cleanup + 2A Prep",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SABB Bolt Restraints",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre Repress",
+          "duration": 1200
+        }
+      ]
+    },
+    "displayTitle": "US EVA 52 - P4 Battery R&R",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Nick Hague",
+      "EV2": "Christina Hammock Koch",
+      "SUIT_IV": "David Saint-Jacques"
+    },
+    "name": "US EVA 53",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_53",
+    "duration": 24300,
+    "location": 4,
+    "startDate": "2019-03-29",
+    "startTime": "11:42",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 53 - P4 Battery R&R EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Anne McClain",
+      "EV2": "David Saint-Jacques",
+      "SUIT_IV": "Christina Hammock Koch"
+    },
+    "name": "US EVA 54",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_54",
+    "duration": 23340,
+    "location": 4,
+    "startDate": "2019-04-08",
+    "startTime": "11:31",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress / Setup",
+          "duration": 1020
+        },
+        {
+          "color": "#8E44AD",
+          "content": "P4 Batt AP Relocate",
+          "duration": 6060
+        },
+        {
+          "color": "#28B463",
+          "content": "Install Spider Cable (W4300) under LAB Shield C2-01",
+          "duration": 5580
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Install Short Truss Jumper Cables Under NOD1 Shield C2-08",
+          "duration": 4440
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "S0 Truss Jumper Blue Cable",
+          "duration": 3900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Spider Cable Routing",
+          "duration": 1560
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup / Ingress",
+          "duration": 780
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress / Setup",
+          "duration": 1020
+        },
+        {
+          "color": "#8E44AD",
+          "content": "P4 Batt AP Relocate",
+          "duration": 6060
+        },
+        {
+          "color": "#28B463",
+          "content": "Install Spider Cable (W4300) under LAB Shield C2-01",
+          "duration": 5580
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Install NOD1 Zenith to S0 Aft side Truss Jumper Cables (Red & Blue)",
+          "duration": 2640
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Assist NOD1 Nadir MMOD Shield",
+          "duration": 1800
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Bartolomeo Trunnion Slip-Off Prevention Install",
+          "duration": 4800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup / Ingress",
+          "duration": 1440
+        }
+      ]
+    },
+    "displayTitle": "US EVA 54 - Truss Jumpers",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Nick Hague",
+      "EV2": "Drew Morgan",
+      "SUIT_IV": "Christina Hammock Koch"
+    },
+    "name": "US EVA 55",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_55",
+    "duration": 23520,
+    "location": 4,
+    "startDate": "2019-08-21",
+    "startTime": "12:27",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress / Egress / Setup",
+          "duration": 3480
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Aft Cable Routing",
+          "duration": 3060
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Fwd Cable Routing",
+          "duration": 1020
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "IV Drive IDA Hook Gang 1",
+          "duration": 600
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Gang 2 + PWC + Cable Prep",
+          "duration": 900
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Fwd Cable Routing",
+          "duration": 1800
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Aft Cable Routing",
+          "duration": 3000
+        },
+        {
+          "color": "#28B463",
+          "content": "IDA 3 Cleanup",
+          "duration": 2280
+        },
+        {
+          "color": "#C0392B",
+          "content": "S0 Insulating Sleeve Install",
+          "duration": 960
+        },
+        {
+          "color": "#C0392B",
+          "content": "S0 Red Truss Jumper Install",
+          "duration": 1080
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Route Spider Cable thru Rat's Nest",
+          "duration": 2220
+        },
+        {
+          "color": "#28B463",
+          "content": "IDA3 Cleanup",
+          "duration": 1980
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup / Ingress / Pre-Repress",
+          "duration": 1140
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress / Egress / Setup",
+          "duration": 3600
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 AFT Cable Routing",
+          "duration": 3060
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Fwd Cable Routing",
+          "duration": 900
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "IV Drive IDA Hook Gang 1",
+          "duration": 600
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Gang 2 + Cable Prep",
+          "duration": 900
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Fwd Cable Routing",
+          "duration": 1800
+        },
+        {
+          "color": "#2980B9",
+          "content": "IDA 3 Aft Cable Routing",
+          "duration": 2880
+        },
+        {
+          "color": "#28B463",
+          "content": "IDA3 Cleanup & H-Fixture MLI",
+          "duration": 840
+        },
+        {
+          "color": "#28B463",
+          "content": "IDA Cover Remove & Stow",
+          "duration": 1560
+        },
+        {
+          "color": "#28B463",
+          "content": "IDA3 Planar and Hemi Reflectors",
+          "duration": 2700
+        },
+        {
+          "color": "#B7950B",
+          "content": "Relocate APFR PMA3 to Stbd CETA",
+          "duration": 1440
+        },
+        {
+          "color": "#B7950B",
+          "content": "Install Wire Tie Port CETA APFR Ingress Aid",
+          "duration": 540
+        },
+        {
+          "color": "#28B463",
+          "content": "Cleanup",
+          "duration": 1020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup / Ingress / Pre-Repress",
+          "duration": 1680
+        }
+      ]
+    },
+    "displayTitle": "US EVA 55 - IDA3 Install",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Jessica Meir",
+      "EV1": "Christina Hammock Koch",
+      "EV2": "Drew Morgan",
+      "SUIT_IV": "Luca Parmitano"
+    },
+    "name": "US EVA 56",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_56",
+    "duration": 25260,
+    "location": 4,
+    "startDate": "2019-10-06",
+    "startTime": "11:39",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 56 - P6 Batteries: EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Drew Morgan",
+      "EV2": "Christina Hammock Koch",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 57",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_57",
+    "duration": 24300,
+    "location": 4,
+    "startDate": "2019-10-11",
+    "startTime": "11:38",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 57 - P6 Batteries: EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Christina Hammock Koch",
+      "EV2": "Jessica Meir",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 58",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_58",
+    "duration": 26220,
+    "location": 4,
+    "startDate": "2019-10-18",
+    "startTime": "11:38",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 58 - BCDU 2B2 R&R",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Jessica Meir",
+      "EV1": "Luca Parmitano",
+      "EV2": "Drew Morgan",
+      "SUIT_IV": "Christina Hammock Koch"
+    },
+    "name": "US EVA 59",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_59",
+    "duration": 23940,
+    "location": 4,
+    "startDate": "2019-11-15",
+    "startTime": "11:39",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "POST-DEPRESS / EGRESS",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS SETUP",
+          "duration": 1560
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS TRANSLATE",
+          "duration": 2160
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DEBRIS SHIELD REMOVAL",
+          "duration": 4260
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DEBRIS SHIELD JETTISON",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "HANDRAIL INSTALL",
+          "duration": 2460
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB MLI / ZIP TIE REMOVAL",
+          "duration": 2040
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB COVER REMOVAL",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB COVER JETTISON",
+          "duration": 480
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB SPACER REMOVAL",
+          "duration": 1260
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DATA CABLE PREP",
+          "duration": 960
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CLEANUP",
+          "duration": 720
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS TRANSLATE",
+          "duration": 2880
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "INGRESS/PRE-REPRESS",
+          "duration": 1200
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "POST-DEPRESS / EGRESS",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "AMS WORKSITE SETUP",
+          "duration": 3180
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "GCA",
+          "duration": 960
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "RETRIEVE GREEN BAG FROM A/L",
+          "duration": 1020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "GCA",
+          "duration": 540
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "TOOL SETUP / TRANSFER",
+          "duration": 1680
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "PREP FOR JETTISON",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "DEBRIS SHIELD JETTISON",
+          "duration": 900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "HANDRAIL INSTALL / HARDWARE PREP",
+          "duration": 2580
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "TOOL MANAGEMENT",
+          "duration": 3300
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "PREP FOR JETTISON",
+          "duration": 540
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB COVER JETTISON",
+          "duration": 300
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "TOOL MANAGEMENT",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CLEANUP",
+          "duration": 4200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "INGRESS/PRE-REPRESS",
+          "duration": 960
+        }
+      ]
+    },
+    "displayTitle": "US EVA 59 - AMS TTCS Repair EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Jessica Meir",
+      "EV1": "Luca Parmitano",
+      "EV2": "Drew Morgan",
+      "SUIT_IV": "Christina Hammock Koch",
+      "SUIT_IV_OJT": "Oleg Skripochka"
+    },
+    "name": "US EVA 60",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_60",
+    "duration": 23580,
+    "location": 4,
+    "startDate": "2019-11-22",
+    "startTime": "12:02",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress / Egress",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Translate",
+          "duration": 2040
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Power Cable Prep",
+          "duration": 4320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "MAD Install",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Translate",
+          "duration": 1860
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Depress Cut",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB Tube Rough Cut",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB MLI Closeout",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Translate",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Nadir MLI Removal",
+          "duration": 840
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Nadir Rough Cut",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Get Ahead (Nadir Blanket Trajectory)",
+          "duration": 900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "SSRMS Translate",
+          "duration": 2040
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Translate to A/L",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre-repress",
+          "duration": 840
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress / Egress",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Translate to Worksite",
+          "duration": 1260
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "ELC-2 Setup",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Power Cable Prep",
+          "duration": 4320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "MAD Install",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "GCA / Tool Prep",
+          "duration": 1860
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Depress Cut",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "VSB Tube Rough Cut",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Tool Prep",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "GCA / Tool Prep",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Nadir MLI Removal",
+          "duration": 840
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Nadir Rough Cut",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup",
+          "duration": 3540
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre-repress",
+          "duration": 840
+        }
+      ]
+    },
+    "displayTitle": "US EVA 60 - AMS TTCS Repair EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Jessica Meir",
+      "EV1": "Luca Parmitano",
+      "EV2": "Drew Morgan",
+      "SUIT_IV": "Christina Hammock Koch"
+    },
+    "name": "US EVA 61",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_61",
+    "duration": 21720,
+    "location": 4,
+    "startDate": "2019-12-02",
+    "startTime": "11:31",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#C0392B",
+          "content": "Post-Depress / Egress",
+          "duration": 1200
+        },
+        {
+          "color": "#2980B9",
+          "content": "Inchworm UTTPS to ESP-2",
+          "duration": 1380
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate",
+          "duration": 1560
+        },
+        {
+          "color": "#2980B9",
+          "content": "UTTPS Install",
+          "duration": 840
+        },
+        {
+          "color": "#2980B9",
+          "content": "Power & Data cable Install",
+          "duration": 420
+        },
+        {
+          "color": "#2980B9",
+          "content": "Open Refill Valve",
+          "duration": 240
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate",
+          "duration": 1200
+        },
+        {
+          "color": "#2980B9",
+          "content": "VSB Tube Clean Cut & Swage",
+          "duration": 5460
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate",
+          "duration": 1860
+        },
+        {
+          "color": "#2980B9",
+          "content": "Nadir Tube Routing",
+          "duration": 360
+        },
+        {
+          "color": "#2980B9",
+          "content": "Nadir Tube Clean Cut & Swage",
+          "duration": 2520
+        },
+        {
+          "color": "#B7950B",
+          "content": "Nadir Blanket Install",
+          "duration": 540
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate",
+          "duration": 1980
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Deconfig",
+          "duration": 1440
+        },
+        {
+          "color": "#C0392B",
+          "content": "Ingress / Pre-repress",
+          "duration": 780
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#C0392B",
+          "content": "Post-Depress / Egress",
+          "duration": 1200
+        },
+        {
+          "color": "#2980B9",
+          "content": "Inchworm UTTPS to ESP-2",
+          "duration": 1380
+        },
+        {
+          "color": "#2980B9",
+          "content": "Translate to Worksite",
+          "duration": 1560
+        },
+        {
+          "color": "#2980B9",
+          "content": "UTTPS Install",
+          "duration": 840
+        },
+        {
+          "color": "#2980B9",
+          "content": "Prep for Swage",
+          "duration": 660
+        },
+        {
+          "color": "#28B463",
+          "content": "GCA",
+          "duration": 1200
+        },
+        {
+          "color": "#2980B9",
+          "content": "VSB Tube Clean Cut & Swage",
+          "duration": 5460
+        },
+        {
+          "color": "#2980B9",
+          "content": "GCA / Tool Prep",
+          "duration": 1860
+        },
+        {
+          "color": "#2980B9",
+          "content": "Nadir Tube Routing",
+          "duration": 360
+        },
+        {
+          "color": "#2980B9",
+          "content": "Nadir Tube Clean Cut & Swage",
+          "duration": 2520
+        },
+        {
+          "color": "#B7950B",
+          "content": "Nadir Blanket Install",
+          "duration": 540
+        },
+        {
+          "color": "#2980B9",
+          "content": "Cleanup",
+          "duration": 3600
+        },
+        {
+          "color": "#C0392B",
+          "content": "Ingress / Pre-repress",
+          "duration": 600
+        }
+      ]
+    },
+    "displayTitle": "US EVA 61 - AMS TTCS Repair EVA 3",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Drew Morgan",
+      "EV1": "Jessica Meir",
+      "EV2": "Christina Hammock Koch",
+      "SUIT_IV": "Luca Parmitano"
+    },
+    "name": "US EVA 62",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_62",
+    "duration": 26940,
+    "location": 4,
+    "startDate": "2020-01-15",
+    "startTime": "11:35",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 62 - P6 Batteries: EVA 3",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Luca Parmitano",
+      "EV1": "Jessica Meir",
+      "EV2": "Christina Hammock Koch",
+      "SUIT_IV": "Drew Morgan"
+    },
+    "name": "US EVA 63",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_63",
+    "duration": 25080,
+    "location": 4,
+    "startDate": "2020-01-20",
+    "startTime": "11:35",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 63 - P6 Batteries: EVA 4",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Christina Hammock Koch",
+      "EV1": "Drew Morgan",
+      "EV2": "Luca Parmitano",
+      "SUIT_IV": "Jessica Meir"
+    },
+    "name": "US EVA 64",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_64",
+    "duration": 22560,
+    "location": 4,
+    "startDate": "2020-01-25",
+    "startTime": "12:04",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#C0392B",
+          "content": "Post-Depress / Egress",
+          "duration": 720
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Setup",
+          "duration": 1860
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate to Nadir",
+          "duration": 2040
+        },
+        {
+          "color": "#2980B9",
+          "content": "Nadir Leak Check",
+          "duration": 780
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Retrieve Jumper Bags & Assist with Additional Leak Checks",
+          "duration": 2940
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate to Zenith",
+          "duration": 1500
+        },
+        {
+          "color": "#2980B9",
+          "content": "Open Accumulator Valve",
+          "duration": 780
+        },
+        {
+          "color": "#2980B9",
+          "content": "MLI Tent Install",
+          "duration": 3180
+        },
+        {
+          "color": "#28B463",
+          "content": "GCA",
+          "duration": 720
+        },
+        {
+          "color": "#2980B9",
+          "content": "MLI Assist",
+          "duration": 1440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Cleanup",
+          "duration": 2700
+        },
+        {
+          "color": "#B7950B",
+          "content": "Get Aheads",
+          "duration": 3000
+        },
+        {
+          "color": "#C0392B",
+          "content": "Ingress / Pre-repress",
+          "duration": 900
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#C0392B",
+          "content": "Post-Depress / Egress",
+          "duration": 720
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Setup",
+          "duration": 1560
+        },
+        {
+          "color": "#2980B9",
+          "content": "Translate to Worksite",
+          "duration": 900
+        },
+        {
+          "color": "#28B463",
+          "content": "Worksite Prep/GCA",
+          "duration": 540
+        },
+        {
+          "color": "#2980B9",
+          "content": "VSB Leak Check",
+          "duration": 1920
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "Retrieve Jumper Bags & Assist with Additional Leak Checks",
+          "duration": 4500
+        },
+        {
+          "color": "#2980B9",
+          "content": "Hardware Prep",
+          "duration": 600
+        },
+        {
+          "color": "#2980B9",
+          "content": "MLI Tent Install",
+          "duration": 3180
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate to Zenith",
+          "duration": 720
+        },
+        {
+          "color": "#2980B9",
+          "content": "Mudflap Install, Shower Cap Remove",
+          "duration": 1440
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Translate to S1",
+          "duration": 1320
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Deconfig",
+          "duration": 1080
+        },
+        {
+          "color": "#B7950B",
+          "content": "Get Aheads",
+          "duration": 3180
+        },
+        {
+          "color": "#C0392B",
+          "content": "Ingress / Pre-repress",
+          "duration": 900
+        }
+      ]
+    },
+    "displayTitle": "US EVA 64 - AMS TTCS Repair EVA 4",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Doug Hurley",
+      "EV1": "Chris Cassidy",
+      "EV2": "Bob Behnken",
+      "SUIT_IV": "Ivan Vagner"
+    },
+    "name": "US EVA 65",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_65",
+    "duration": 22020,
+    "location": 4,
+    "startDate": "2020-06-26",
+    "startTime": "11:35",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 65 - S6 Batteries: 1B EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Doug Hurley",
+      "EV1": "Chris Cassidy",
+      "EV2": "Bob Behnken",
+      "SUIT_IV": "Doug Hurley"
+    },
+    "name": "US EVA 66",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_66",
+    "duration": 21660,
+    "location": 4,
+    "startDate": "2020-07-01",
+    "startTime": "11:12",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-depress / Egress",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 1440
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt D to Slot 6",
+          "duration": 1380
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 5 to EP D",
+          "duration": 3060
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Reconfigure for 3B",
+          "duration": 5580
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Route S3 Power Cable",
+          "duration": 3600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Route S3 Ethernet Cable",
+          "duration": 3600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre-repress",
+          "duration": 1500
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-depress / Egress",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 1440
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt D to Slot 6",
+          "duration": 1380
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 5 to EP D",
+          "duration": 3060
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 5 to EP D",
+          "duration": 5580
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "3A H-Fixture Release",
+          "duration": 2100
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Route S3 Ethernet Cable",
+          "duration": 3600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre-repress",
+          "duration": 1500
+        }
+      ]
+    },
+    "displayTitle": "US EVA 66 - S6 Batteries: 1B EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Bob Behnken",
+      "EV2": "Chris Cassidy",
+      "SUIT_IV": "Doug Hurley"
+    },
+    "name": "US EVA 67",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_67",
+    "duration": 21600,
+    "location": 4,
+    "startDate": "2020-07-16",
+    "startTime": "11:10",
+    "asPerformed": {
+      "EV1 - Bob": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress",
+          "duration": 240
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 3060
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 1 to EP Z",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt F to Slot 1",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 2 to EP F / AP F to slot 2",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 3 to AP F slot 2",
+          "duration": 660
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt E to Slot 3",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 4 to EP E / AP E to Slot 4",
+          "duration": 2460
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 6 to AP E slot 4",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt C to slot 6",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 5 to EP C / AP C to Slot 5",
+          "duration": 3000
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre-repress",
+          "duration": 540
+        }
+      ],
+      "EV2 - Chris": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress",
+          "duration": 240
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "S3 Boom Install",
+          "duration": 2220
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 840
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 1 to EP Z",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt F to Slot 1",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 2 to EP F / AP F to slot 2",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 3 to AP F slot 2",
+          "duration": 660
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt E to Slot 3",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 4 to EP E / AP E to Slot 4",
+          "duration": 2460
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 6 to AP E slot 4",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt C to slot 6",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Batt 5 to EP C / AP C to Slot 5",
+          "duration": 3000
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre-repress",
+          "duration": 540
+        }
+      ]
+    },
+    "displayTitle": "US EVA 67 - S6 Batteries: 3B EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Bob Behnken",
+      "EV2": "Chris Cassidy",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 68",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_68",
+    "duration": 19740,
+    "location": 4,
+    "startDate": "2020-07-21",
+    "startTime": "11:12",
+    "asPerformed": {
+      "EV1 - Bob": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "RiTS",
+          "duration": 900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "IEA Cleanup",
+          "duration": 3120
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "3B H-Fixture",
+          "duration": 3060
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup",
+          "duration": 1440
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Safety Tether Reset",
+          "duration": 420
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Nanoracks Airlock Prep",
+          "duration": 4860
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CP13 Cable Routing",
+          "duration": 2940
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CP13 Lens Filter Removal",
+          "duration": 480
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 540
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre Repress",
+          "duration": 600
+        }
+      ],
+      "EV2 - Chris": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 600
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "RiTS",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "1A H-Fixture",
+          "duration": 2520
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "3B H-Fixture Assist",
+          "duration": 2040
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup",
+          "duration": 2640
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Safety Tether Reset",
+          "duration": 420
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Nanoracks Airlock Prep",
+          "duration": 5340
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CP3 Ethernet Cable Routing",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre Repress",
+          "duration": 600
+        }
+      ]
+    },
+    "displayTitle": "US EVA 68 - S6 Batteries: 3B EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Kate Rubins",
+      "M2": "Soichi Noguchi",
+      "EV1": "Mike Hopkins",
+      "EV2": "Victor Glover",
+      "SUIT_IV": "Soichi Noguchi",
+      "SUIT_IV_ASSISTANT": "Kate Rubins"
+    },
+    "name": "US EVA 69",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_69",
+    "duration": 24960,
+    "location": 4,
+    "startDate": "2021-01-27",
+    "startTime": "11:28",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress/Egress",
+          "duration": 1080
+        },
+        {
+          "color": "#8E44AD",
+          "content": "COLKA Worksite Setup",
+          "duration": 1620
+        },
+        {
+          "color": "#28B463",
+          "content": "Bartolomeo Worksite Setup",
+          "duration": 840
+        },
+        {
+          "color": "#8E44AD",
+          "content": "COLKA Bolt Install",
+          "duration": 3240
+        },
+        {
+          "color": "#28B463",
+          "content": "Bartolomeo Worksite Setup",
+          "duration": 1800
+        },
+        {
+          "color": "#28B463",
+          "content": "Bartolomeo PAPOS Cable Routing",
+          "duration": 1080
+        },
+        {
+          "color": "#28B463",
+          "content": "Bartolomeo Antenna Cable Routing + NZGL T/S",
+          "duration": 3000
+        },
+        {
+          "color": "#8E44AD",
+          "content": "COLKA Cover Removal",
+          "duration": 2040
+        },
+        {
+          "color": "#28B463",
+          "content": "Columbus Cleanup + PAPOS Cable Cleanup",
+          "duration": 5400
+        },
+        {
+          "color": "#2980B9",
+          "content": "P6 H-Fixture Removal",
+          "duration": 3900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup/Ingress/Repress",
+          "duration": 960
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post-Depress/Egress",
+          "duration": 1080
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Setup + Translation",
+          "duration": 2460
+        },
+        {
+          "color": "#8E44AD",
+          "content": "COLKA Bolt Install",
+          "duration": 3240
+        },
+        {
+          "color": "#8E44AD",
+          "content": "COLKA Cable Routing",
+          "duration": 1200
+        },
+        {
+          "color": "#28B463",
+          "content": "Bartolomeo PAPOS Cable Routing + NZGL T/S",
+          "duration": 5040
+        },
+        {
+          "color": "#8E44AD",
+          "content": "COLKA Cover Removal + Jettison",
+          "duration": 3180
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Cleanup",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Bag Reconfig + Airlock PIP Pin",
+          "duration": 2280
+        },
+        {
+          "color": "#2980B9",
+          "content": "P6 H-Fixture Removal",
+          "duration": 3900
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup/Ingress/Repress",
+          "duration": 960
+        }
+      ]
+    },
+    "displayTitle": "US EVA 69 - COL Upgrades",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Kate Rubins",
+      "M2": "Soichi Noguchi",
+      "EV1": "Mike Hopkins",
+      "EV2": "Victor Glover",
+      "SUIT_IV": "Soichi Noguchi",
+      "SUIT_IV_ASSISTANT": "Kate Rubins"
+    },
+    "name": "US EVA 70",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_70",
+    "duration": 19200,
+    "location": 4,
+    "startDate": "2021-02-01",
+    "startTime": "12:56",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Setup",
+          "duration": 600
+        },
+        {
+          "color": "#C0392B",
+          "content": "P4 Adapter Plate Relocate + P4 Li-Ion & DCSU Bolts",
+          "duration": 2460
+        },
+        {
+          "color": "#B7950B",
+          "content": "P4/S4 H-Fixture",
+          "duration": 1680
+        },
+        {
+          "color": "#8E44AD",
+          "content": "CP3 ETVCG R&R",
+          "duration": 3720
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "JEMRMS WVE R&R",
+          "duration": 3840
+        },
+        {
+          "color": "#2980B9",
+          "content": "CP13 Cleanup",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Get-Aheads",
+          "duration": 4140
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup/Ingress",
+          "duration": 1140
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Setup",
+          "duration": 600
+        },
+        {
+          "color": "#C0392B",
+          "content": "P4 Adapter Plate Relocate + P4 Li-Ion & DCSU Bolts",
+          "duration": 3300
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Setup",
+          "duration": 1380
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Translate",
+          "duration": 420
+        },
+        {
+          "color": "#8E44AD",
+          "content": "CP3 ETVCG R&R",
+          "duration": 3180
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Translate",
+          "duration": 1200
+        },
+        {
+          "color": "#2980B9",
+          "content": "CP13 HD Camera Install",
+          "duration": 3420
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Cleanup",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Get-Aheads",
+          "duration": 2100
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup/Ingress",
+          "duration": 2280
+        }
+      ]
+    },
+    "displayTitle": "US EVA 70 - ISS Upgrades II",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Kate Rubins",
+      "EV2": "Victor Glover",
+      "SUIT_IV": "Soichi Noguchi",
+      "SUIT_IV_ASSISTANT": "Mike Hopkins"
+    },
+    "name": "US EVA 71",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_71",
+    "duration": 25440,
+    "location": 4,
+    "startDate": "2021-02-28",
+    "startTime": "11:12",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress & post depress",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 3240
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B Center Pad to Mast Canister",
+          "duration": 1020
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 2B Left Struts",
+          "duration": 4440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 2B Right Struts, clamps, MLI",
+          "duration": 8520
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "2B-4B transition",
+          "duration": 2640
+        },
+        {
+          "color": "#28B463",
+          "content": "Upper Triangle Tiedown",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Cleanup",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress & pre-repress",
+          "duration": 1560
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress & post depress",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 1200
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B Upper Bracket Build",
+          "duration": 2040
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B Center Pad to Mast Canister",
+          "duration": 1020
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 2B Left Struts",
+          "duration": 4440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 2B Right Struts, clamps, MLI",
+          "duration": 8520
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "2B-4B transition",
+          "duration": 1020
+        },
+        {
+          "color": "#28B463",
+          "content": "4B Upper Bracket Build",
+          "duration": 1620
+        },
+        {
+          "color": "#28B463",
+          "content": "Upper Triangle Tiedown",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Cleanup",
+          "duration": 780
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress & pre-repress",
+          "duration": 1560
+        }
+      ]
+    },
+    "displayTitle": "US EVA 71 - IROSA Prep",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Kate Rubins",
+      "EV2": "Soichi Noguchi",
+      "SUIT_IV": "Mike Hopkins",
+      "SUIT_IV_ASSISTANT": "Victor Glover"
+    },
+    "name": "US EVA 72",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_72",
+    "duration": 24960,
+    "location": 4,
+    "startDate": "2021-03-05",
+    "startTime": "11:37",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#96a5a7",
+          "content": "POST DEPRESS & EGRESS / SETUP",
+          "duration": 1200
+        },
+        {
+          "color": "#28B463",
+          "content": "Worksite Prep",
+          "duration": 1500
+        },
+        {
+          "color": "#28B463",
+          "content": "Center Pad to Mast Canister",
+          "duration": 3000
+        },
+        {
+          "color": "#28B463",
+          "content": "Right Struts",
+          "duration": 3240
+        },
+        {
+          "color": "#28B463",
+          "content": "Left Struts & MLI",
+          "duration": 7020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "4B - 2B Transition",
+          "duration": 2700
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B Mod Kit Completion",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "P6 WORKSITE CLEANUP/ tether reset",
+          "duration": 3300
+        },
+        {
+          "color": "#96a5a7",
+          "content": "INGRESS",
+          "duration": 1200
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#96a5a7",
+          "content": "POST DEPRESS & EGRESS / SETUP",
+          "duration": 1200
+        },
+        {
+          "color": "#28B463",
+          "content": "Worksite Prep",
+          "duration": 1500
+        },
+        {
+          "color": "#28B463",
+          "content": "Center Pad to Mast Canister",
+          "duration": 3000
+        },
+        {
+          "color": "#28B463",
+          "content": "Right Struts",
+          "duration": 3240
+        },
+        {
+          "color": "#28B463",
+          "content": "Left Struts & MLI",
+          "duration": 7020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "4B - 2B Transition",
+          "duration": 2700
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B Mod Kit Completion",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "P6 WORKSITE CLEANUP/ tether reset",
+          "duration": 1500
+        },
+        {
+          "color": "#96a5a7",
+          "content": "WIFEX Stow/APFR Relocate",
+          "duration": 1800
+        },
+        {
+          "color": "#96a5a7",
+          "content": "INGRESS",
+          "duration": 1200
+        }
+      ]
+    },
+    "displayTitle": "US EVA 72 - ISS Upgrades III",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Victor Glover",
+      "EV2": "Mike Hopkins",
+      "SUIT_IV": "Soichi Noguchi",
+      "SUIT_IV_ASSISTANT": "Kate Rubins"
+    },
+    "name": "US EVA 73",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_73",
+    "duration": 24420,
+    "location": 4,
+    "startDate": "2021-03-13",
+    "startTime": "13:14",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#2980B9",
+          "content": "Egress/Setup",
+          "duration": 1140
+        },
+        {
+          "color": "#8E44AD",
+          "content": "EAS Jumpers vent (Vent tool extender)",
+          "duration": 7500
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "P6 Wkst Clean",
+          "duration": 2640
+        },
+        {
+          "color": "#2980B9",
+          "content": "WETA R&R",
+          "duration": 3660
+        },
+        {
+          "color": "#2980B9",
+          "content": "Stiffener Install",
+          "duration": 4260
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP9 Cable Routing",
+          "duration": 3600
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1620
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#2980B9",
+          "content": "Egress/Setup",
+          "duration": 1140
+        },
+        {
+          "color": "#8E44AD",
+          "content": "EAS Jumpers vent (Jumper role)",
+          "duration": 7500
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "P6 Worksite cleanup/tether reset",
+          "duration": 2640
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "COL Tasks",
+          "duration": 7920
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "CP8 Cable Routing",
+          "duration": 3600
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1620
+        }
+      ]
+    },
+    "displayTitle": "US EVA 73 - ISS Upgrades 3.5",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Megan McArthur Behnken",
+      "M2": "Mark Vande Hei",
+      "EV1": "Thomas Pesquet",
+      "EV2": "Shane Kimbrough",
+      "SUIT_IV": "Mark Vande Hei",
+      "SUIT_IV_ASSIST": "Megan McArthur Behnken"
+    },
+    "name": "US EVA 74",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_74",
+    "duration": 26100,
+    "location": 4,
+    "startDate": "2021-06-16",
+    "startTime": "12:11",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post Depress",
+          "duration": 300
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 960
+        },
+        {
+          "color": "#28B463",
+          "content": "Worksite Prep / SSRMS Setup",
+          "duration": 12360
+        },
+        {
+          "color": "#28B463",
+          "content": "IROSA Release from FSE",
+          "duration": 1380
+        },
+        {
+          "color": "#2980B9",
+          "content": "IROSA Install",
+          "duration": 6360
+        },
+        {
+          "color": "#2980B9",
+          "content": "Cleanup",
+          "duration": 3120
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1200
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre Repress",
+          "duration": 420
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post Depress",
+          "duration": 300
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 1020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "A/L Thermal Cover Troubleshooting",
+          "duration": 900
+        },
+        {
+          "color": "#2980B9",
+          "content": "Worksite Prep",
+          "duration": 8040
+        },
+        {
+          "color": "#28B463",
+          "content": "EMU Troubleshooting",
+          "duration": 3360
+        },
+        {
+          "color": "#28B463",
+          "content": "IROSA Release from FSE",
+          "duration": 1140
+        },
+        {
+          "color": "#2980B9",
+          "content": "IROSA Install",
+          "duration": 6600
+        },
+        {
+          "color": "#2980B9",
+          "content": "Cleanup",
+          "duration": 2340
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1980
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre Repress",
+          "duration": 420
+        }
+      ]
+    },
+    "displayTitle": "US EVA 74 - P6 IROSA Install EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Thomas Pesquet",
+      "EV2": "Shane Kimbrough",
+      "SUIT_IV": "Mark Vande Hei",
+      "SUIT_IV_ASSIST": "Megan McArthur Behnken"
+    },
+    "name": "US EVA 75",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_75",
+    "duration": 23280,
+    "location": 4,
+    "startDate": "2021-06-20",
+    "startTime": "11:42",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#96a5a7",
+          "content": "Post Depress",
+          "duration": 420
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Egress",
+          "duration": 2160
+        },
+        {
+          "color": "#C0392B",
+          "content": "IROSA Install",
+          "duration": 10500
+        },
+        {
+          "color": "#2980B9",
+          "content": "IROSA Deploy",
+          "duration": 1260
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B/4B Transition",
+          "duration": 1980
+        },
+        {
+          "color": "#28B463",
+          "content": "Lower IROSA Prep",
+          "duration": 4620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 2340
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#96a5a7",
+          "content": "Post Depress",
+          "duration": 420
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Egress",
+          "duration": 2160
+        },
+        {
+          "color": "#C0392B",
+          "content": "IROSA Install",
+          "duration": 10500
+        },
+        {
+          "color": "#2980B9",
+          "content": "IROSA Deploy",
+          "duration": 1260
+        },
+        {
+          "color": "#2980B9",
+          "content": "2B/4B Transition",
+          "duration": 1980
+        },
+        {
+          "color": "#28B463",
+          "content": "Lower IROSA Prep",
+          "duration": 4620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 2340
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ]
+    },
+    "displayTitle": "US EVA 75 - P6 IROSA Install EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Megan McArthur Behnken",
+      "M2": "Mark Vande Hei",
+      "EV1": "Thomas Pesquet",
+      "EV2": "Shane Kimbrough",
+      "SUIT_IV": "Mark Vande Hei",
+      "SUIT_IV_ASSIST": "Megan McArthur Behnken"
+    },
+    "name": "US EVA 76",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_76",
+    "duration": 24300,
+    "location": 4,
+    "startDate": "2021-06-25",
+    "startTime": "11:52",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#96a5a7",
+          "content": "Egress",
+          "duration": 720
+        },
+        {
+          "color": "#28B463",
+          "content": "Worksite Prep / SSRMS Ingress",
+          "duration": 6660
+        },
+        {
+          "color": "#28B463",
+          "content": "IROSA Release from FSE",
+          "duration": 1680
+        },
+        {
+          "color": "#C0392B",
+          "content": "IROSA Install",
+          "duration": 10320
+        },
+        {
+          "color": "#2980B9",
+          "content": "IROSA Deploy",
+          "duration": 2100
+        },
+        {
+          "color": "#2980B9",
+          "content": "Cleanup",
+          "duration": 900
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Ingress",
+          "duration": 1920
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#96a5a7",
+          "content": "Egress",
+          "duration": 720
+        },
+        {
+          "color": "#2980B9",
+          "content": "Worksite Prep",
+          "duration": 3840
+        },
+        {
+          "color": "#28B463",
+          "content": "IROSA Release from FSE",
+          "duration": 4500
+        },
+        {
+          "color": "#C0392B",
+          "content": "IROSA Install",
+          "duration": 10320
+        },
+        {
+          "color": "#2980B9",
+          "content": "IROSA Deploy",
+          "duration": 480
+        },
+        {
+          "color": "#2980B9",
+          "content": "Cleanup",
+          "duration": 2400
+        },
+        {
+          "color": "#96a5a7",
+          "content": "Ingress",
+          "duration": 2040
+        }
+      ],
+      "SSRMS": [
+        {
+          "color": "#96a5a7",
+          "content": "SSRMS at P3 APFR Install Location",
+          "duration": 3900
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS APFR Reconfig & Ingress",
+          "duration": 900
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS to nadir Release Position",
+          "duration": 900
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS to P6 Handoff",
+          "duration": 2400
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS to egress posn at P6 Spacer",
+          "duration": 1500
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Cleanup",
+          "duration": 900
+        },
+        {
+          "color": "#96a5a7",
+          "content": "SSRMS to Viewing Posn",
+          "duration": 8700
+        }
+      ]
+    },
+    "displayTitle": "US EVA 76 - P6 IROSA Install EVA 3",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Akihiko Hoshide",
+      "EV2": "Thomas Pesquet",
+      "SUIT_IV": "Mark Vande Hei"
+    },
+    "name": "US EVA 77",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_77",
+    "duration": 24840,
+    "location": 4,
+    "startDate": "2021-09-12",
+    "startTime": "12:15",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "POST DEPRESS & EGRESS / SETUP",
+          "duration": 1200
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Worksite Prep",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Build Upper Triangle",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Center Pad to Mast Canister",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Left Struts",
+          "duration": 3300
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Right Struts & MLI",
+          "duration": 6600
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Clean up",
+          "duration": 1800
+        },
+        {
+          "color": "#28B463",
+          "content": "FPMU R&R",
+          "duration": 4800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre-Repress",
+          "duration": 1200
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "POST DEPRESS & EGRESS / SETUP",
+          "duration": 1200
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Worksite Prep",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Build Upper Triangle",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Center Pad to Mast Canister",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Left Struts",
+          "duration": 3300
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Right Struts & MLI",
+          "duration": 7800
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Clean up",
+          "duration": 600
+        },
+        {
+          "color": "#28B463",
+          "content": "FPMU R&R",
+          "duration": 4800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre-Repress",
+          "duration": 1200
+        }
+      ]
+    },
+    "displayTitle": "US EVA 77 - IROSA Prep 4A",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Matthias Maurer",
+      "EV1": "Tom Marshburn",
+      "EV2": "Kayla Barron",
+      "SUIT_IV": "Mark Vande Hei",
+      "SUIT_IV_(OJT)": "Raja Chari"
+    },
+    "name": "US EVA 78",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_78",
+    "duration": 23520,
+    "location": 4,
+    "startDate": "2021-12-02",
+    "startTime": "11:15",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post Depress",
+          "duration": 300
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 720
+        },
+        {
+          "color": "#2980B9",
+          "content": "SSRMS Setup",
+          "duration": 2280
+        },
+        {
+          "color": "#C0392B",
+          "content": "Remove Degraded P1 SASA",
+          "duration": 2580
+        },
+        {
+          "color": "#C0392B",
+          "content": "Temp Stow Degraded SASA",
+          "duration": 900
+        },
+        {
+          "color": "#28B463",
+          "content": "Retrieve Spare SASA from ELC 3",
+          "duration": 2520
+        },
+        {
+          "color": "#28B463",
+          "content": "Install Spare SASA on P1",
+          "duration": 3300
+        },
+        {
+          "color": "#C0392B",
+          "content": "Stow Degraded SASA on ELC3",
+          "duration": 3900
+        },
+        {
+          "color": "#2980B9",
+          "content": "SSRMS Cleanup",
+          "duration": 3180
+        },
+        {
+          "color": "#000000",
+          "content": "Hold for EV2 Get Ahead completion",
+          "duration": 1080
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 2460
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Post Depress",
+          "duration": 300
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 720
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Worksite ELC-3 Setup",
+          "duration": 3900
+        },
+        {
+          "color": "#C0392B",
+          "content": "Remove Degraded P1 SASA",
+          "duration": 960
+        },
+        {
+          "color": "#C0392B",
+          "content": "Temp Stow Degraded SASA",
+          "duration": 900
+        },
+        {
+          "color": "#28B463",
+          "content": "Retrieve Spare SASA from ELC 3",
+          "duration": 2520
+        },
+        {
+          "color": "#28B463",
+          "content": "Install Spare SASA on P1",
+          "duration": 3300
+        },
+        {
+          "color": "#C0392B",
+          "content": "Stow Degraded SASA on ELC3",
+          "duration": 3900
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Worksite Cleanup",
+          "duration": 1440
+        },
+        {
+          "color": "#000000",
+          "content": "BCDU Bolt Torque reset",
+          "duration": 1500
+        },
+        {
+          "color": "#000000",
+          "content": "SABB Restraint Tie Back",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 2460
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Pre-Repress",
+          "duration": 300
+        }
+      ]
+    },
+    "displayTitle": "US EVA 78 - P1 SASA R&R",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Kayla Barron",
+      "EV2": "Raja Chari",
+      "SUIT_IV": "Tom Marshburn",
+      "SUIT_IV_ASSISTANT": "Matthias Maurer"
+    },
+    "name": "US EVA 79",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_79",
+    "duration": 24840,
+    "location": 4,
+    "startDate": "2022-03-15",
+    "startTime": "12:12",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress / Set up",
+          "duration": 1320
+        },
+        {
+          "color": "#2980B9",
+          "content": "Worksite Prep",
+          "duration": 1380
+        },
+        {
+          "color": "#2980B9",
+          "content": "3A UPPER TRIANGLE BUILD",
+          "duration": 1260
+        },
+        {
+          "color": "#2980B9",
+          "content": "Center Pad to Mast Canister",
+          "duration": 840
+        },
+        {
+          "color": "#2980B9",
+          "content": "Left Lower Strut Install",
+          "duration": 2040
+        },
+        {
+          "color": "#2980B9",
+          "content": "Left Mid Strut Install",
+          "duration": 1320
+        },
+        {
+          "color": "#2980B9",
+          "content": "Right Struts & MLI",
+          "duration": 4440
+        },
+        {
+          "color": "#2980B9",
+          "content": "3A Mod Kit Clean up",
+          "duration": 480
+        },
+        {
+          "color": "#8E44AD",
+          "content": "S6 BCDU MLI",
+          "duration": 1740
+        },
+        {
+          "color": "#000000",
+          "content": "Bolt Torque Get Aheads",
+          "duration": 4860
+        },
+        {
+          "color": "#000000",
+          "content": "Transition to AMS",
+          "duration": 480
+        },
+        {
+          "color": "#000000",
+          "content": "AMS Get-Ahead",
+          "duration": 1380
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre Repress",
+          "duration": 3240
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress / Set up",
+          "duration": 1380
+        },
+        {
+          "color": "#2980B9",
+          "content": "Worksite Prep",
+          "duration": 1380
+        },
+        {
+          "color": "#2980B9",
+          "content": "3A UPPER TRIANGLE BUILD",
+          "duration": 1080
+        },
+        {
+          "color": "#2980B9",
+          "content": "Center Pad to Mast Canister",
+          "duration": 1020
+        },
+        {
+          "color": "#2980B9",
+          "content": "Left Lower Strut Install",
+          "duration": 2100
+        },
+        {
+          "color": "#2980B9",
+          "content": "Left Mid Strut Install",
+          "duration": 1080
+        },
+        {
+          "color": "#2980B9",
+          "content": "Right Struts & MLI",
+          "duration": 3600
+        },
+        {
+          "color": "#2980B9",
+          "content": "3A Mod Kit Clean up",
+          "duration": 1440
+        },
+        {
+          "color": "#8E44AD",
+          "content": "S6 BCDU MLI",
+          "duration": 1740
+        },
+        {
+          "color": "#000000",
+          "content": "Bolt Torque Get Aheads",
+          "duration": 4860
+        },
+        {
+          "color": "#000000",
+          "content": "Transition to AMS",
+          "duration": 480
+        },
+        {
+          "color": "#000000",
+          "content": "AMS Get-Ahead",
+          "duration": 1380
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress / Pre Repress",
+          "duration": 3240
+        }
+      ]
+    },
+    "displayTitle": "US EVA 79 - IROSA Prep 3A",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Kayla Barron",
+      "M2": "Tom Marshburn",
+      "EV1": "Raja Chari",
+      "EV2": "Matthias Maurer",
+      "SUIT_IV": "Tom Marshburn",
+      "SUIT_IV_ASSISTANT": "Kayla Barron"
+    },
+    "name": "US EVA 80",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_80",
+    "duration": 24840,
+    "location": 4,
+    "startDate": "2022-03-23",
+    "startTime": "12:32",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Setup",
+          "duration": 4440
+        },
+        {
+          "color": "#C0392B",
+          "content": "SSRMS Setup",
+          "duration": 2340
+        },
+        {
+          "color": "#C0392B",
+          "content": "SSRMS Translate to RBVM",
+          "duration": 900
+        },
+        {
+          "color": "#2980B9",
+          "content": "RBVM Jumper Install",
+          "duration": 5760
+        },
+        {
+          "color": "#C0392B",
+          "content": "SSRMS Translate to CP8 & Bag Swap",
+          "duration": 1680
+        },
+        {
+          "color": "#000000",
+          "content": "CP8 HD Camera R&R",
+          "duration": 5280
+        },
+        {
+          "color": "#C0392B",
+          "content": "SSRMS Translate to Cleanup",
+          "duration": 1140
+        },
+        {
+          "color": "#C0392B",
+          "content": "SSRMS Cleanup",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup & Ingress",
+          "duration": 1500
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Setup",
+          "duration": 4440
+        },
+        {
+          "color": "#000000",
+          "content": "CP8 Ethernet Cable Routing",
+          "duration": 3840
+        },
+        {
+          "color": "#B7950B",
+          "content": "PAPOS Cable Adapter",
+          "duration": 1920
+        },
+        {
+          "color": "#B7950B",
+          "content": "BTL Cable Clamps",
+          "duration": 2280
+        },
+        {
+          "color": "#B7950B",
+          "content": "JEM MLI Secure",
+          "duration": 2220
+        },
+        {
+          "color": "#000000",
+          "content": "Retrieve EHDC, Bag Swap, Assist",
+          "duration": 5700
+        },
+        {
+          "color": "#B7950B",
+          "content": "Panel A316 Reconfig",
+          "duration": 1320
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "A/L PIP Pin Imagery",
+          "duration": 540
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Cleanup & Ingress",
+          "duration": 2580
+        }
+      ]
+    },
+    "displayTitle": "US EVA 80 - RBVM Jumper Install",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Koichi Wakata",
+      "EV1": "Josh Cassada",
+      "EV2": "Frank Rubio",
+      "SUIT_IV": "Nicole Mann"
+    },
+    "name": "US EVA 81",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_81",
+    "duration": 25860,
+    "location": 4,
+    "startDate": "2022-11-15",
+    "startTime": "14:14",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress, Post-Depress",
+          "duration": 1920
+        },
+        {
+          "color": "#8E44AD",
+          "content": "Worksite Prep",
+          "duration": 4080
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B H-Fixture Removal",
+          "duration": 4080
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Upper Triangle to Mast Canister",
+          "duration": 1200
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Left Struts",
+          "duration": 4560
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Right Struts",
+          "duration": 3960
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "1B Cleanup",
+          "duration": 3000
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Slingshot Cleanup",
+          "duration": 2100
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress & Pre-Repress",
+          "duration": 960
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress, Post-Depress",
+          "duration": 1920
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Prep",
+          "duration": 1320
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "3A IROSA Cable Routing",
+          "duration": 2880
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Upper Triangle Build",
+          "duration": 1980
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Waited for EV1",
+          "duration": 1980
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Upper Triangle to Mast Canister",
+          "duration": 1200
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Left Struts",
+          "duration": 4560
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Right Struts",
+          "duration": 3960
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "1B Cleanup",
+          "duration": 3000
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Slingshot Cleanup",
+          "duration": 1800
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress & Pre-Repress",
+          "duration": 1260
+        }
+      ]
+    },
+    "displayTitle": "US EVA 81 - IROSA Prep 1B",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Koichi Wakata",
+      "M2": "Nicole Mann",
+      "EV1": "Josh Cassada",
+      "EV2": "Frank Rubio",
+      "SUIT_IV": "Nicole Mann",
+      "SUIT_IV_ASSIST": "Koichi Wakata"
+    },
+    "name": "US EVA 82",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_82",
+    "duration": 25500,
+    "location": 4,
+    "startDate": "2022-12-03",
+    "startTime": "12:16",
+    "asPerformed": {
+      "Josh (EV1)": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2820
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Prep",
+          "duration": 1080
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SSRMS Setup",
+          "duration": 1740
+        },
+        {
+          "color": "#28B463",
+          "content": "Release R Bolts",
+          "duration": 1740
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 1920
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate from FSE to Mod Kit",
+          "duration": 960
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install",
+          "duration": 5820
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 2520
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA Deploy / Worksite Cleanup",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "R1-R4 Release",
+          "duration": 3480
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1020
+        }
+      ],
+      "Frank (EV2)": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2820
+        },
+        {
+          "color": "#8E44AD",
+          "content": "S4 Worksite Setup",
+          "duration": 1500
+        },
+        {
+          "color": "#28B463",
+          "content": "Release ARDs",
+          "duration": 2340
+        },
+        {
+          "color": "#28B463",
+          "content": "Release C bolts",
+          "duration": 1860
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 1320
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate from FSE to Mod Kit",
+          "duration": 600
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install",
+          "duration": 6180
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 2100
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA Deploy / Worksite Cleanup",
+          "duration": 2340
+        },
+        {
+          "color": "#28B463",
+          "content": "1B Cable Demate",
+          "duration": 3420
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1020
+        }
+      ]
+    },
+    "displayTitle": "US EVA 82 - IROSA 3A 4A Install EVA 1",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "M1": "Nicole Mann",
+      "M2": "Koichi Wakata",
+      "EV1": "Frank Rubio",
+      "EV2": "Josh Cassada",
+      "SUIT_IV": "Koichi Wakata",
+      "SUIT_IV_ASSIST": "Nicole Mann"
+    },
+    "name": "US EVA 83",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_83",
+    "duration": 25680,
+    "location": 4,
+    "startDate": "2022-12-22",
+    "startTime": "13:22",
+    "asPerformed": {
+      "Josh (EV2)": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2940
+        },
+        {
+          "color": "#28B463",
+          "content": "Release ARDs",
+          "duration": 2880
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Beam Release",
+          "duration": 1860
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SSRMS Setup",
+          "duration": 1620
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "wait",
+          "duration": 600
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 1080
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate from FSE to Mod Kit",
+          "duration": 600
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install",
+          "duration": 4380
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 3360
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA Deploy/Worksite Cleanup",
+          "duration": 3000
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SSRMS clean up/FSE Beam Stow",
+          "duration": 1260
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 2100
+        }
+      ],
+      "Frank (EV1)": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2340
+        },
+        {
+          "color": "#8E44AD",
+          "content": "P4 Cable Routing",
+          "duration": 2880
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Beam Release",
+          "duration": 2520
+        },
+        {
+          "color": "#28B463",
+          "content": "Release C Bolts",
+          "duration": 2160
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 1080
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate from FSE to Mod Kit (2)",
+          "duration": 600
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install (2)",
+          "duration": 4620
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 3180
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA Deploy/Worksite Cleanup",
+          "duration": 3000
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Clean Up/FSE Beam Stow",
+          "duration": 1980
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1320
+        }
+      ]
+    },
+    "displayTitle": "US EVA 83 - IROSA 3A 4A Install EVA 2",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Koichi Wakata",
+      "EV2": "Nicole Mann",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 84",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_84",
+    "duration": 26460,
+    "location": 4,
+    "startDate": "2023-01-20",
+    "startTime": "13:13",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Post-Depress",
+          "duration": 3660
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Setup",
+          "duration": 1620
+        },
+        {
+          "color": "#B7950B",
+          "content": "1B Collars",
+          "duration": 3000
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Upper Triangle to Mast Canister",
+          "duration": 1740
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 1A Right Struts",
+          "duration": 4560
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 1A Left Struts",
+          "duration": 4560
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Cleanup",
+          "duration": 4140
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress/Pre-Repress",
+          "duration": 3240
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress/Post-Depress",
+          "duration": 3660
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Setup",
+          "duration": 4440
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Upper Triangle Build",
+          "duration": 2580
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Upper Triangle to Mast Canister",
+          "duration": 2760
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 1A Right Struts",
+          "duration": 2880
+        },
+        {
+          "color": "#2980B9",
+          "content": "Install 1A Left Struts",
+          "duration": 2880
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Cleanup",
+          "duration": 4020
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress/Pre-Repress",
+          "duration": 3240
+        }
+      ]
+    },
+    "displayTitle": "US EVA 84 - IROSA Prep 1A",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Nicole Mann",
+      "EV2": "Koichi Wakata",
+      "SUIT_IV": "Josh Cassada"
+    },
+    "name": "US EVA 85",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_85",
+    "duration": 24060,
+    "location": 4,
+    "startDate": "2023-02-02",
+    "startTime": "12:45",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress, Post-Depress",
+          "duration": 1380
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Setup",
+          "duration": 1680
+        },
+        {
+          "color": "#2980B9",
+          "content": "Lower Strut Troubleshooting",
+          "duration": 240
+        },
+        {
+          "color": "#2980B9",
+          "content": "Mid Strut Troubleshooting",
+          "duration": 6600
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Collars and MLI",
+          "duration": 4260
+        },
+        {
+          "color": "#8E44AD",
+          "content": "1B Cable Routing",
+          "duration": 2580
+        },
+        {
+          "color": "#8E44AD",
+          "content": "APFR Shuttle",
+          "duration": 0
+        },
+        {
+          "color": "#28B463",
+          "content": "Reset Anchors",
+          "duration": 2580
+        },
+        {
+          "color": "#28B463",
+          "content": "P6 APFR Retrieval",
+          "duration": 2400
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress, Pre-Repress",
+          "duration": 2340
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress, Post-Depress",
+          "duration": 1380
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Worksite Setup",
+          "duration": 1680
+        },
+        {
+          "color": "#2980B9",
+          "content": "Lower Strut Troubleshooting",
+          "duration": 360
+        },
+        {
+          "color": "#2980B9",
+          "content": "Mid Strut Troubleshooting",
+          "duration": 6480
+        },
+        {
+          "color": "#2980B9",
+          "content": "1A Collars and MLI",
+          "duration": 6000
+        },
+        {
+          "color": "#8E44AD",
+          "content": "APFR Shuttle",
+          "duration": 1320
+        },
+        {
+          "color": "#28B463",
+          "content": "Reset Anchors",
+          "duration": 2160
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "AIA Relocate, Pitch Knob Pics",
+          "duration": 1980
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress, Pre-Repress",
+          "duration": 2700
+        }
+      ]
+    },
+    "displayTitle": "US EVA 85 - IROSA Prep 1A Troubleshooting",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Steve Bowen",
+      "EV2": "Sultan Al Neyadi",
+      "SUIT_IV": "Warren Hoburg",
+      "SUIT_IV_ASSIST": "Frank Rubio"
+    },
+    "name": "US EVA 86",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_86",
+    "duration": 25260,
+    "location": 4,
+    "startDate": "2023-04-28",
+    "startTime": "13:11",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 1800
+        },
+        {
+          "color": "#B7950B",
+          "content": "Bag Stow and APFR Relocate",
+          "duration": 4200
+        },
+        {
+          "color": "#B7950B",
+          "content": "1B Cable Route and MLI",
+          "duration": 1800
+        },
+        {
+          "color": "#B7950B",
+          "content": "1A MLI",
+          "duration": 2700
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS/ESP-2 Setup",
+          "duration": 2400
+        },
+        {
+          "color": "#2980B9",
+          "content": "Remove RFG",
+          "duration": 4500
+        },
+        {
+          "color": "#2980B9",
+          "content": "RFG Stow in A/L",
+          "duration": 1500
+        },
+        {
+          "color": "#28B463",
+          "content": "SSRMS Cleanup",
+          "duration": 2700
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1800
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#7F8C8D",
+          "content": "Egress",
+          "duration": 1800
+        },
+        {
+          "color": "#B7950B",
+          "content": "Bag Stow and APFR Relocate",
+          "duration": 2400
+        },
+        {
+          "color": "#B7950B",
+          "content": "1B Cable Route and MLI",
+          "duration": 3600
+        },
+        {
+          "color": "#B7950B",
+          "content": "1A MLI",
+          "duration": 2700
+        },
+        {
+          "color": "#2980B9",
+          "content": "ESP-2 setup",
+          "duration": 3600
+        },
+        {
+          "color": "#2980B9",
+          "content": "Remove RFG",
+          "duration": 3300
+        },
+        {
+          "color": "#2980B9",
+          "content": "RFG stow in A/L",
+          "duration": 1500
+        },
+        {
+          "color": "#2980B9",
+          "content": "ESP-2 Cleanup",
+          "duration": 2700
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Ingress",
+          "duration": 1800
+        }
+      ]
+    },
+    "displayTitle": "US EVA 86 - S-Band RFG Retrieve",
+    "maestroEventUuid": "e391feaa-c38e-46b3-a02a-9a6eb5d09e88"
+  },
+  {
+    "crew": {
+      "M1": "Frank Rubio",
+      "EV1": "Steve Bowen",
+      "EV2": "Warren Hoburg",
+      "SUIT_IV": "Sultan Al Neyadi"
+    },
+    "name": "US EVA 87",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_87",
+    "duration": 21780,
+    "location": 4,
+    "startDate": "2023-06-09",
+    "startTime": "13:25",
+    "asPerformed": {
+      "Bowen": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 1800
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Prep",
+          "duration": 960
+        },
+        {
+          "color": "#28B463",
+          "content": "Release ARDs",
+          "duration": 1560
+        },
+        {
+          "color": "#28B463",
+          "content": "Release C bolts",
+          "duration": 1140
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 1140
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate from FSE to Mod Kit",
+          "duration": 1260
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install Part 1",
+          "duration": 3000
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 1200
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install Part 2",
+          "duration": 1320
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA Deploy / Worksite Cleanup",
+          "duration": 900
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Beam Release",
+          "duration": 2400
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Release R Bolts (Lower) - Get Ahead",
+          "duration": 3720
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1800
+        }
+      ],
+      "Hoburg": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 1800
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Prep",
+          "duration": 300
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Setup",
+          "duration": 840
+        },
+        {
+          "color": "#28B463",
+          "content": "Release R Bolts",
+          "duration": 2160
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Standby for Sync",
+          "duration": 1020
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 960
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate from FSE to Mod Kit",
+          "duration": 780
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install Part 1",
+          "duration": 3000
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 1200
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install Part 2",
+          "duration": 1320
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA Deploy / Worksite Cleanup",
+          "duration": 1800
+        },
+        {
+          "color": "#28B463",
+          "content": "FSE Beam Release",
+          "duration": 1500
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Release ARD - Get Ahead",
+          "duration": 2940
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Magnet FOD Retrieval",
+          "duration": 960
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1620
+        }
+      ]
+    },
+    "displayTitle": "US EVA 87 - IROSA 1A 1B Install - EVA 1",
+    "maestroEventUuid": "07c50abb-2563-47a1-aa13-6d79af49aa0e"
+  },
+  {
+    "crew": {
+      "M1": "Frank Rubio",
+      "EV1": "Warren Hoburg",
+      "EV2": "Steve Bowen",
+      "SUIT_IV": "Sultan Al Neyadi"
+    },
+    "name": "US EVA 88",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_88",
+    "duration": 20100,
+    "location": 4,
+    "startDate": "2023-06-15",
+    "startTime": "12:42",
+    "asPerformed": {
+      "Bowen": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2100
+        },
+        {
+          "color": "#28B463",
+          "content": "C bolt Release",
+          "duration": 1620
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 600
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA relocate to S6",
+          "duration": 900
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Handoff",
+          "duration": 3000
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install",
+          "duration": 1800
+        },
+        {
+          "color": "#8E44AD",
+          "content": "NZGLs/APFR Relocate/FSE",
+          "duration": 2640
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 2400
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA deploy",
+          "duration": 1800
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Anchor hook reset",
+          "duration": 600
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Cannon Connnector retrieve",
+          "duration": 1440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1200
+        }
+      ],
+      "Hoburg": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2100
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS Setup",
+          "duration": 720
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "Wait for FSE",
+          "duration": 900
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Release from FSE",
+          "duration": 600
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Relocate to S6",
+          "duration": 900
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Handoff",
+          "duration": 3000
+        },
+        {
+          "color": "#B7950B",
+          "content": "IROSA Install",
+          "duration": 1800
+        },
+        {
+          "color": "#8E44AD",
+          "content": "NZGLs/APFR Relocate/FSE Beam",
+          "duration": 2640
+        },
+        {
+          "color": "#C0392B",
+          "content": "Cable Mate",
+          "duration": 2400
+        },
+        {
+          "color": "#8E44AD",
+          "content": "IROSA deploy",
+          "duration": 1800
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "Anchor hook reset",
+          "duration": 600
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "SSRMS clean up",
+          "duration": 1440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 1200
+        }
+      ]
+    },
+    "displayTitle": "US EVA 88 - IROSA 1A 1B Install - EVA 2",
+    "maestroEventUuid": "6a2d4cca-d0d2-49dc-b2df-c997be276698"
+  },
+  {
+    "crew": {
+      "M1": "Andreas Mogensen",
+      "EV1": "Jasmin Moghbeli",
+      "EV2": "Loral O'Hara",
+      "SUIT_IV": "Satoshi Furukawa",
+      "SUIT_IV_ASSIST": "Nickolai Chub"
+    },
+    "name": "US EVA 89",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_89",
+    "duration": 24180,
+    "location": 4,
+    "startDate": "2023-11-01",
+    "startTime": "12:05",
+    "asPerformed": {
+      "EV1": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 2040
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "2A H-Fixture",
+          "duration": 3480
+        },
+        {
+          "color": "#CA6F1E",
+          "content": "BGA Survey",
+          "duration": 480
+        },
+        {
+          "color": "#C0392B",
+          "content": "TBA Assist",
+          "duration": 1800
+        },
+        {
+          "color": "#8E44AD",
+          "content": "CP8 Ethernet",
+          "duration": 4320
+        },
+        {
+          "color": "#C0392B",
+          "content": "TBA Assist",
+          "duration": 960
+        },
+        {
+          "color": "#B7950B",
+          "content": "ESP-2 Setup",
+          "duration": 4680
+        },
+        {
+          "color": "#2980B9",
+          "content": "RFG Release",
+          "duration": 1620
+        },
+        {
+          "color": "#B7950B",
+          "content": "ESP-2 Cleanup",
+          "duration": 1440
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 3360
+        }
+      ],
+      "EV2": [
+        {
+          "color": "#2980B9",
+          "content": "Egress",
+          "duration": 1800
+        },
+        {
+          "color": "#C0392B",
+          "content": "TBA Removal",
+          "duration": 6240
+        },
+        {
+          "color": "#FFC0CB",
+          "content": "SARJ Lube",
+          "duration": 2040
+        },
+        {
+          "color": "#C0392B",
+          "content": "TBA Install",
+          "duration": 7440
+        },
+        {
+          "color": "#7F8C8D",
+          "content": "CETA Cart Brake Handle Reset",
+          "duration": 480
+        },
+        {
+          "color": "#28B463",
+          "content": "ESP-2 Setup",
+          "duration": 1740
+        },
+        {
+          "color": "#28B463",
+          "content": "ESP-2 Cleanup",
+          "duration": 840
+        },
+        {
+          "color": "#2980B9",
+          "content": "Ingress",
+          "duration": 3600
+        }
+      ]
+    },
+    "displayTitle": "US EVA 89 - S-Band RFG Retrieve II",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Tracy Caldwell-Dyson",
+      "EV2": "Mike Barratt",
+      "SUIT_IV": ""
+    },
+    "name": "US EVA 90",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_90",
+    "duration": 1860,
+    "location": 4,
+    "startDate": "2024-06-24",
+    "startTime": "12:46",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA 90",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Tracy Caldwell Dyson",
+      "EV2": "Mike Barratt",
+      "SUIT_IV": "Matthew Dominick"
+    },
+    "name": "US EVA CARD",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_CARD",
+    "duration": -1,
+    "location": 4,
+    "startDate": "2024-07-29",
+    "startTime": ":",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA CARD",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Unknown",
+      "EV2": "Unknown",
+      "SUIT_IV": "Unknown"
+    },
+    "name": "US EVA RGA and Reflector",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_RGA_and_Reflector",
+    "duration": -1,
+    "location": 4,
+    "startDate": "2025-01-16",
+    "startTime": ":",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA RGA and Reflector",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Unknown",
+      "EV2": "Unknown",
+      "SUIT_IV": "Unknown"
+    },
+    "name": "US EVA RFG Retrieval 2.5",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_RFG_Retrieval_2.5",
+    "duration": -1,
+    "location": 4,
+    "startDate": "2025-01-23",
+    "startTime": ":",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA RFG Retrieval 2.5",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Unknown",
+      "EV2": "Unknown",
+      "SUIT_IV": "Unknown"
+    },
+    "name": "US EVA IROSA Prep 2A",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_IROSA_Prep_2A",
+    "duration": -1,
+    "location": 4,
+    "startDate": "2025-03-03",
+    "startTime": ":",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA IROSA Prep 2A",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Unknown",
+      "EV2": "Unknown",
+      "SUIT_IV": "Unknown"
+    },
+    "name": "US EVA IROSA Prep 3B",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_IROSA_Prep_3B",
+    "duration": -1,
+    "location": 4,
+    "startDate": "2025-05-02",
+    "startTime": ":",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA IROSA Prep 3B",
+    "maestroEventUuid": false
+  },
+  {
+    "crew": {
+      "EV1": "Unknown",
+      "EV2": "Unknown",
+      "SUIT_IV": "Unknown"
+    },
+    "name": "US EVA MPM Stow",
+    "type": 1,
+    "dataURL": "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_MPM_Stow",
+    "duration": -1,
+    "location": 4,
+    "startDate": "2026-01-01",
+    "startTime": ":",
+    "asPerformed": {
+      "EV1": [],
+      "EV2": []
+    },
+    "displayTitle": "US EVA MPM Stow",
+    "maestroEventUuid": false
+  }
+]

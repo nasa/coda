@@ -3,8 +3,7 @@ import { diff } from "../utils/date";
 
 export const initialState: EphemeraState = {
   ephemerisFiles: [],
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
 };
 
 export const ephemeraSlice = createSlice({
@@ -12,26 +11,26 @@ export const ephemeraSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addEphemera: (state, action: { payload: WrappedResponse<EphemerisStore> }) => {
-      state.ephemerisFiles = action.payload.data.ephemera;
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
+    addEphemera: (state, action: { payload: FetchResponse<EphemerisEntry[]> }) => {
+      state.ephemerisFiles = action.payload.data || [];
+      state.metadata = action.payload.fetchMetadata;
     },
     clearEphemera: (state) => {
       state.ephemerisFiles = [];
-      state.responseMetadata = null;
+      state.metadata = null;
     },
 
     fetchError: (state, action: { payload: string }) => {
-      state.responseMetadata = { ...state.responseMetadata, error: action.payload };
-    },
-    setEphemeraLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error: action.payload,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
   },
 });
 
-export const { addEphemera, clearEphemera, fetchError, setEphemeraLoadingStatus } =
-  ephemeraSlice.actions;
+export const { addEphemera, clearEphemera, fetchError } = ephemeraSlice.actions;
 
 /**
  * Returns a Two-Line Element (TLE) from space-track.org that is closest to dateTimeWanted
@@ -39,23 +38,21 @@ export const { addEphemera, clearEphemera, fetchError, setEphemeraLoadingStatus 
  * @param dateTimeWanted
  * @returns TLE string
  */
-export function getAppropriateTLE(ephemera: EphemerisFile[], dateTimeWanted: string): string {
+export function getAppropriateTLE(ephemera: EphemerisEntry[], dateTimeWanted: string): string {
   let thisDateDiff;
   let lastDateDiff = -1;
 
   let tleObj = ephemera[0];
-  let mostRecentTLE = `${tleObj.TLE_LINE0}
-                  ${tleObj.TLE_LINE1}
-                  ${tleObj.TLE_LINE2}`;
+  let mostRecentTLE = `${tleObj.tle_line1}
+                  ${tleObj.tle_line2}`;
 
   // chew through ephemiris data looking for the TLE closest to the timestamp of interest
   for (let i = 0; i < ephemera.length; i++) {
-    thisDateDiff = Math.abs(diff(new Date(ephemera[i].EPOCH + "Z"), new Date(dateTimeWanted)));
+    thisDateDiff = Math.abs(diff(new Date(ephemera[i].epoch + "Z"), new Date(dateTimeWanted)));
     if (i !== 0 && thisDateDiff < lastDateDiff) {
       tleObj = ephemera[i];
-      mostRecentTLE = `${tleObj.TLE_LINE0}
-                  ${tleObj.TLE_LINE1}
-                  ${tleObj.TLE_LINE2}`;
+      mostRecentTLE = `${tleObj.tle_line1}
+                  ${tleObj.tle_line2}`;
     }
     lastDateDiff = thisDateDiff;
   }

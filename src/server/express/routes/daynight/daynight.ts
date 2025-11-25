@@ -1,6 +1,22 @@
-import getDayNight from "server/processing/daynight/daynight";
+import getDayNight from "server/processing/daynight";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
+
+interface ResponseMetadata {
+  retrieverStatus: FetchStatus;
+  cachedTimestamp: string;
+  expiration: string;
+  error: string;
+  retrieverErrorCount: number;
+  lastErrorTimestamp: string;
+}
+
+/** Legacy response type with caching concerns - to be phased out */
+interface WrappedResponse<T> {
+  data: T;
+  responseMetadata: ResponseMetadata;
+  source?: string;
+}
 
 /**
  * `/api/v1/daynight/daynight?dateWanted=2021-01-01
@@ -10,16 +26,10 @@ import { Query } from "express-serve-static-core";
 const router = express.Router();
 
 const parseQuery = (query: Query): DayNightQueryParams => {
-  // add support for year month date query params for Maestro
-  //    remove when Maestro is updated to use dateWanted
-  const { dateWanted, forceNew, dayNightSource, year, month, date } = query;
+  const { dateWanted, dayNightSource } = query;
   const queryObj: DayNightQueryParams = {
     dateWanted: dateWanted as string,
-    forceNew: forceNew === "true",
     dayNightSource: dayNightSource ? (dayNightSource as string) : undefined,
-    year: year ? parseInt(year as string) : undefined,
-    month: month ? parseInt(month as string) : undefined,
-    date: date ? parseInt(date as string) : undefined,
   };
   return queryObj;
 };
@@ -31,19 +41,42 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     // add support for year month date query params for Maestro
     //    remove when Maestro is updated to use dateWanted
     if (queryObj.year && queryObj.month && queryObj.date) {
-      const data = await getDayNight({
-        dateWanted: `${queryObj.year}-${queryObj.month}-${queryObj.date}`,
-        forceNew: queryObj.forceNew,
-        dayNightSource: queryObj.dayNightSource,
-      });
-      res.status(200).json(data);
-    } else {
-      const data = await getDayNight({
+      const response = await getDayNight({
         dateWanted: queryObj.dateWanted,
-        forceNew: queryObj.forceNew,
-        dayNightSource: queryObj.dayNightSource,
       });
-      res.status(200).json(data);
+
+      // turn this into a legacy WrappedResponse for Maestro so they don't have to update anything
+      const wrappedResponse: WrappedResponse<DayNightStore> = {
+        responseMetadata: {
+          retrieverStatus: "complete",
+          cachedTimestamp: new Date().toISOString(),
+          expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          error: "",
+          retrieverErrorCount: 0,
+          lastErrorTimestamp: "",
+        },
+        data: response.data,
+      };
+
+      res.status(200).json(wrappedResponse);
+    } else {
+      const response = await getDayNight({
+        dateWanted: queryObj.dateWanted,
+      });
+
+      const wrappedResponse: WrappedResponse<DayNightStore> = {
+        responseMetadata: {
+          retrieverStatus: "complete",
+          cachedTimestamp: new Date().toISOString(),
+          expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          error: "",
+          retrieverErrorCount: 0,
+          lastErrorTimestamp: "",
+        },
+        data: response.data,
+      };
+
+      res.status(200).json(wrappedResponse);
     }
     return;
   } catch (e) {

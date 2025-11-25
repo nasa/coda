@@ -4,10 +4,10 @@ import { getLatLngObj } from "tle.js";
 export const getNextPosition = (
   dateTime: string,
   increment: number,
-  ephemeraItems: EphemerisFile[]
+  ephemerisEntries: EphemerisEntry[]
 ): { lat: number; lng: number } => {
   // Find the closest ephemera item
-  const tle = getAppropriateTLE(ephemeraItems, dateTime);
+  const tle = getAppropriateTLE(ephemerisEntries, dateTime);
 
   // Calculate the time offset in milliseconds
   const baseTime = new Date(dateTime).getTime();
@@ -22,7 +22,7 @@ export const getNextPosition = (
 export const updateOrbitLine = (
   dateTime: string,
   timeStr: string,
-  ephemeraItems: EphemerisFile[]
+  ephemeraItems: EphemerisEntry[]
 ): { coordinates1: [number, number][]; coordinates2: [number, number][] } => {
   const secondsStart = -2000;
   const secondsEnd = 3800;

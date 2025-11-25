@@ -1,47 +1,23 @@
-type RetrieverStatus = "inprogress" | "complete" | "error";
+type FetchStatus = "inprogress" | "complete" | "error";
 
-interface ResponseMetadata {
-  retrieverStatus: RetrieverStatus;
-  cachedTimestamp: string;
-  expiration: string;
-  error: string;
-  retrieverErrorCount: number;
-  lastErrorTimestamp: string;
-  mocked?: boolean;
+/** New simplified metadata for fetch results - no caching concerns */
+interface FetchMetadata {
+  success: boolean;
+  error?: string;
+  timestamp: string;
+  /** Indicates this data type is not applicable for the current source */
+  unneeded?: boolean;
 }
 
-/** This is the structure of the metadata object that we save within each cache entry */
-interface CacheMetadata {
-  retrieverStatus: RetrieverStatus;
-  cachedTimestamp: string; // ISO string
-  expiration: string; // ISO string
-  retrieverErrorDescription: string;
-  retrieverErrorCount: number; // number of times the retriever has been run and failed
-  lastErrorTimestamp: string; // ISO string
+/** New simplified response type focused on fetch success/failure - no caching concerns */
+interface FetchResponse<T> {
+  data: T;
+  fetchMetadata: FetchMetadata;
+  origin?: string; // where the data came from
 }
 
-/**
- * Contains all the possible subfolders for the cache.
- * This type is iterated through when clearing the entire cache
- */
-type CacheFolder =
-  | "celestrak"
-  | "spacetrack"
-  | "daynight/topo"
-  | "daynight/issLocation"
-  | "io"
-  | "labs/transcripts"
-  | "labs/audio"
-  | "wiki"
-  | "wiki/all"
-  | "wiki/gps"
-  | "test"
-  | "labs/mtxPlayback"
-  | "gps/tracks";
-
-type SocketCacheMetadata = {
+type CacheMetadata = {
   expiration: string;
-  retrieving: boolean;
 };
 
 type CacheRecord_db_type = {
@@ -49,7 +25,7 @@ type CacheRecord_db_type = {
   folder: string;
   cacheKey: string;
   data: unknown;
-  metadata: CacheMetadata | SocketCacheMetadata;
+  metadata: CacheMetadata;
   createdAt: Date;
   lastAccessedAt: Date;
 };

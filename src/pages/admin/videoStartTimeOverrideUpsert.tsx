@@ -39,9 +39,9 @@ export const EditVideoRecord: FunctionComponent = () => {
     if (id) {
       const fetchData = async () => {
         const response = await fetch(`/api/v1/db/videoStartTimeOverrides/${id}`);
-        const data: WrappedResponse<VideoRecord> = await response.json();
-        setVideoId(data.data.videoId);
-        setStartTime(data.data.startTime);
+        const data: VideoRecord = await response.json();
+        setVideoId(data.videoId);
+        setStartTime(data.startTime);
       };
       fetchData();
     }

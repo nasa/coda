@@ -5,27 +5,18 @@ import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef, useStat
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { addDayNight, setDayNightLoadingStatus } from "store/daynight";
-import { addEphemera, setEphemeraLoadingStatus } from "store/ephemera";
-import { setGPSTracks, setGpsLoadingStatus } from "store/gps";
-import { setGraphsLoadingStatus, setGraphsManifest } from "store/graphs";
-import {
-  addPhotos,
-  buildPhotoCollections,
-  setCollectionFilters,
-  setPhotoLoadingStatus,
-} from "store/photos";
-import { addSequences, setSequenceLoadingStatus } from "store/sequences";
-import { setSgAudioActivity, setSgAudioLoadingStatus } from "store/sg-audio";
-import { setTranscriptLoadingStatus, setTranscripts } from "store/transcript";
-import {
-  addVideos,
-  setMtxHlsEndpoints,
-  setMtxPlaybackAvailability,
-  setVideoLoadingStatus,
-} from "store/videos";
+import { addDayNight } from "store/daynight";
+import { addEphemera } from "store/ephemera";
+import { setGPSTracks } from "store/gps";
+import { setGraphsManifest } from "store/graphs";
+import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
+import { addSequences } from "store/sequences";
+import { setSgAudioActivity } from "store/sg-audio";
+import { setTranscripts } from "store/transcript";
+import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
+import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
 
 const SocketClient: FunctionComponent<{
   socketStatus: ClientSocketStatus;
@@ -78,6 +69,32 @@ const SocketClient: FunctionComponent<{
         connectedAt: Date.now(),
       };
       socket.current.emit("visitorJoin", visitorData);
+
+      // Set metadata to "unneeded" for data types not valid for this source
+      const unneededMetadata: FetchMetadata = {
+        success: true,
+        timestamp: new Date().toISOString(),
+        unneeded: true,
+      };
+
+      if (!isDataTypeValidForSource(source, "daynight")) {
+        dispatch(addDayNight({ data: { dayNight: [] }, fetchMetadata: unneededMetadata }));
+      }
+      if (!isDataTypeValidForSource(source, "ephemeris")) {
+        dispatch(addEphemera({ data: [], fetchMetadata: unneededMetadata }));
+      }
+      if (
+        !isDataTypeValidForSource(source, "wikiEvas") &&
+        !isDataTypeValidForSource(source, "wikiTestEvents")
+      ) {
+        dispatch(addSequences({ data: [], fetchMetadata: unneededMetadata }));
+      }
+      if (!isDataTypeValidForSource(source, "gpstracks")) {
+        dispatch(setGPSTracks({ data: [], fetchMetadata: unneededMetadata }));
+      }
+      if (!isDataTypeValidForSource(source, "graph")) {
+        dispatch(setGraphsManifest({ data: null, fetchMetadata: unneededMetadata }));
+      }
     });
 
     socket.current.on("disconnect", () => {
@@ -123,45 +140,44 @@ const SocketClient: FunctionComponent<{
 
     // Incoming data updates
     socket.current.on("dataUpdate", (dataUpdate: DataUpdate) => {
+      const { response } = dataUpdate;
+      if (!response) return;
+
       if (dataUpdate.type === "daynight") {
-        dispatch(addDayNight(dataUpdate.wrappedResponse));
-        dispatch(setDayNightLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<DayNightStore>;
+        dispatch(addDayNight(dataResponse));
       } else if (dataUpdate.type === "ephemeris") {
-        dispatch(addEphemera(dataUpdate.wrappedResponse));
-        dispatch(setEphemeraLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<EphemerisEntry[]>;
+        dispatch(addEphemera(dataResponse));
       } else if (dataUpdate.type === "videos") {
-        dispatch(addVideos(dataUpdate.wrappedResponse));
-        dispatch(setVideoLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<VideoFile[]>;
+        dispatch(addVideos(dataResponse));
       } else if (dataUpdate.type === "photos") {
-        dispatch(addPhotos(dataUpdate.wrappedResponse));
-        const photoCollectionsFilter = buildPhotoCollections(dataUpdate.wrappedResponse.data);
+        const dataResponse = response as FetchResponse<PhotoFile[]>;
+        dispatch(addPhotos(dataResponse));
+        const photoCollectionsFilter = buildPhotoCollections(dataResponse.data ?? []);
         dispatch(setCollectionFilters(photoCollectionsFilter));
-        dispatch(setPhotoLoadingStatus("loaded"));
       } else if (dataUpdate.type === "wikiEvas") {
-        //TODO: add maestro stuff
-        dispatch(addSequences(dataUpdate.wrappedResponse));
-        dispatch(setSequenceLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<Sequence[]>;
+        dispatch(addSequences(dataResponse));
       } else if (dataUpdate.type === "wikiTestEvents") {
-        //TODO: add maestro stuff
-        dispatch(addSequences(dataUpdate.wrappedResponse));
-        dispatch(setSequenceLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<Sequence[]>;
+        dispatch(addSequences(dataResponse));
       } else if (dataUpdate.type === "mtxvideo") {
-        dispatch(
-          setMtxPlaybackAvailability(dataUpdate.wrappedResponse.data.mtxPlaybackAvailability)
-        );
-        dispatch(setMtxHlsEndpoints(dataUpdate.wrappedResponse.data.mtxHlsEndpoints));
+        const dataResponse = response as FetchResponse<MTXApiResponses>;
+        dispatch(setMtxPlayback(dataResponse));
       } else if (dataUpdate.type === "gpstracks") {
-        dispatch(setGPSTracks(dataUpdate.wrappedResponse));
-        dispatch(setGpsLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<GPSTrack[]>;
+        dispatch(setGPSTracks(dataResponse));
       } else if (dataUpdate.type === "transcript") {
-        dispatch(setTranscripts(dataUpdate.wrappedResponse));
-        dispatch(setTranscriptLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<UnprocessedTranscript[]>;
+        dispatch(setTranscripts(dataResponse));
       } else if (dataUpdate.type === "sgaudio") {
-        dispatch(setSgAudioActivity(dataUpdate.wrappedResponse));
-        dispatch(setSgAudioLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<SgActivityFullUrlRecord>;
+        dispatch(setSgAudioActivity(dataResponse));
       } else if (dataUpdate.type === "graph") {
-        dispatch(setGraphsManifest(dataUpdate.wrappedResponse));
-        dispatch(setGraphsLoadingStatus("loaded"));
+        const dataResponse = response as FetchResponse<GraphsManifest>;
+        dispatch(setGraphsManifest(dataResponse));
       }
     });
 

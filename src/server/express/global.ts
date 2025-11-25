@@ -3,8 +3,8 @@ export const globalValues: GlobalValues = {
   serverSocketStatus: {
     visitorsData: [],
   },
-  ormCache: null,
+  orm: null,
   socketInterval: null,
   appVersion: null,
-  serverDataRefreshTimeouts: {},
+  fetchTrackers: {},
 };

@@ -28,9 +28,13 @@ const AdminIndex: FunctionComponent = () => {
         <Link to="/admin/videoStartTimeOverrides">Video Start Time Overrides</Link>
         <br />
         <Link to="/admin/photoTimeShifts">Photo Time Shifts</Link>
+        <br />
+        <Link to="/admin/ephemeris">Ephemeris Data</Link>
       </p>
       <p>
         <Link to="/admin/socketStatus">Server Socket Status</Link>
+        <br />
+        <Link to="/admin/fetchInspector">Data Fetching Inspector</Link>
       </p>
     </div>
   );

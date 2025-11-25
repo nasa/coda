@@ -25,7 +25,7 @@ export default function useInterval(callback: () => void, delay_ms: number) {
       savedCallback.current();
     }
     if (delay_ms !== null) {
-      let id = setInterval(tick, delay_ms);
+      const id = setInterval(tick, delay_ms);
       return () => clearInterval(id);
     }
   }, [delay_ms]);

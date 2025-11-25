@@ -3,8 +3,61 @@ import find from "lodash/find";
 import isEqual from "lodash/isEqual";
 import { globalValues } from "./global";
 import { dataFetchConfigs, getSourceDateDataType } from "./dataRetrievalScheduler";
+import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
-import { ConsoleLogger } from "../../utils/logger";
+import { ConsoleLogger } from "../../utils/consoleLogger";
+
+const FETCH_INSPECTOR_ROOM = "fetchInspectorRoom";
+
+const sanitizeServerFetchTrackers = (
+  statuses: FetchTrackers
+): FetchInspectorUpdate["fetchTrackersSanitized"] => {
+  const sanitized: FetchInspectorUpdate["fetchTrackersSanitized"] = {};
+
+  Object.entries(statuses ?? {}).forEach(([source, dateMap]) => {
+    if (!dateMap) return;
+
+    Object.entries(dateMap).forEach(([date, typeMap]) => {
+      if (!typeMap) return;
+
+      Object.entries(typeMap).forEach(([dataType, tracker]) => {
+        if (!tracker) return;
+        // pull out the timeoutObject so ...rest can be assigned later
+        const { timeoutObject: _timeoutObject, ...rest } = tracker;
+
+        if (!sanitized[source]) {
+          sanitized[source] = {};
+        }
+
+        if (!sanitized[source][date]) {
+          sanitized[source][date] = {};
+        }
+
+        sanitized[source][date][dataType] = { ...rest };
+      });
+    });
+  });
+
+  return sanitized;
+};
+
+// Convert all fetch tracker data from the server to a sanitized version for the fetch inspector
+const buildFetchInspectorUpdate = (): FetchInspectorUpdate => {
+  return {
+    // Strip timeout Object to avoid sending non-serializable Node.js timers over the wire
+    fetchTrackersSanitized: sanitizeServerFetchTrackers(globalValues.fetchTrackers),
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export const emitFetchInspectorUpdate = (): void => {
+  if (!globalValues?.socketio) return;
+  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(FETCH_INSPECTOR_ROOM);
+  if (!room || room.size === 0) return;
+  globalValues.socketio
+    .to(FETCH_INSPECTOR_ROOM)
+    .emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
+};
 
 export const setupSocketIO = (): void => {
   // initialize the global object that will store the visitor tracking data
@@ -44,7 +97,7 @@ export const setupSocketIO = (): void => {
           visitorsData.push(visitorData);
 
           // update the server data refresh timeouts object to possibly add this source/day if this is the first visitor currently viewing it
-          updateServerDataRefreshTimeoutsObject();
+          updateServerFetchTrackers();
 
           // immediately emit any cached data we have for this visitor's source and date
           // if caches are missed in these calls, they are filled
@@ -61,6 +114,23 @@ export const setupSocketIO = (): void => {
         }
       });
 
+      socket.on("joinFetchInspector", () => {
+        try {
+          socket.join(FETCH_INSPECTOR_ROOM);
+          socket.emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
+        } catch (error) {
+          console.error("SocketIO - joinFetchInspector: ", error);
+        }
+      });
+
+      socket.on("leaveFetchInspector", () => {
+        try {
+          socket.leave(FETCH_INSPECTOR_ROOM);
+        } catch (error) {
+          console.error("SocketIO - leaveFetchInspector: ", error);
+        }
+      });
+
       socket.on("disconnect", () => {
         try {
           const visitorBeingRemoved = find(visitorsData, {
@@ -73,7 +143,7 @@ export const setupSocketIO = (): void => {
           });
 
           // remove the source/day from the server data refresh timeouts object if no more visitors are viewing it
-          updateServerDataRefreshTimeoutsObject();
+          updateServerFetchTrackers();
 
           // remove the visitor from the room named the date they are viewing
           socket.leave(`${visitorBeingRemoved?.source}_${visitorBeingRemoved?.dateViewing}`);
@@ -118,9 +188,9 @@ export const emitDataUpdate = ({
 };
 
 /**
- * When a new client connects or an existing client disconnects, update the server data refresh timeouts object
+ * When a new client connects or an existing client disconnects, update the server fetch tracker object
  */
-const updateServerDataRefreshTimeoutsObject = () => {
+const updateServerFetchTrackers = () => {
   // Generate unique keys in the format "source_date"
   const uniqueSourceDateKeys = Array.from(
     new Set(
@@ -133,29 +203,46 @@ const updateServerDataRefreshTimeoutsObject = () => {
   //Create new source_date values for new dates being viewed
   uniqueSourceDateKeys.forEach((key) => {
     const [source, date] = key.split("_");
-    if (!globalValues.serverDataRefreshTimeouts[source]) {
-      globalValues.serverDataRefreshTimeouts[source] = {};
+    if (!globalValues.fetchTrackers[source]) {
+      globalValues.fetchTrackers[source] = {};
     }
-    if (!globalValues.serverDataRefreshTimeouts[source][date]) {
-      globalValues.serverDataRefreshTimeouts[source][date] = {};
-      dataFetchConfigs.forEach((config) => {
-        globalValues.serverDataRefreshTimeouts[source][date][config.type] = null;
-      });
+    if (!globalValues.fetchTrackers[source][date]) {
+      globalValues.fetchTrackers[source][date] = {};
     }
-  });
 
-  // Clean up the server data refresh timeouts: remove any source_date values that are no longer being viewed and dispose of timeouts
-  Object.keys(globalValues.serverDataRefreshTimeouts).forEach((source) => {
-    Object.keys(globalValues.serverDataRefreshTimeouts[source]).forEach((date) => {
-      if (!uniqueSourceDateKeys.includes(`${source}_${date}`)) {
-        Object.keys(globalValues.serverDataRefreshTimeouts[source][date]).forEach((type) => {
-          ConsoleLogger.log(`${type} Clearing timeout for ${source}_${date}`);
-          clearTimeout(globalValues.serverDataRefreshTimeouts[source][date][type]);
-          globalValues.serverDataRefreshTimeouts[source][date][type] = null;
-        });
+    dataFetchConfigs.forEach((config) => {
+      if (!globalValues.fetchTrackers[source][date][config.type]) {
+        globalValues.fetchTrackers[source][date][config.type] = {
+          isFetching: false,
+        };
       }
     });
   });
+
+  // Clean up the server fetch trackers: remove any source_date values that are no longer being viewed and dispose of timeouts
+  Object.keys(globalValues.fetchTrackers).forEach((source) => {
+    Object.keys(globalValues.fetchTrackers[source]).forEach((date) => {
+      if (!uniqueSourceDateKeys.includes(`${source}_${date}`)) {
+        Object.keys(globalValues.fetchTrackers[source][date]).forEach((type) => {
+          const status = globalValues.fetchTrackers[source][date][type];
+          if (status?.timeoutObject) {
+            ConsoleLogger.log(`${type} Clearing timeout for ${source}_${date}`);
+            clearTimeout(status.timeoutObject);
+          }
+        });
+
+        // Delete the entire date entry from serverDataRefresh
+        delete globalValues.fetchTrackers[source][date];
+      }
+    });
+
+    // Clean up empty source objects
+    if (Object.keys(globalValues.fetchTrackers[source]).length === 0) {
+      delete globalValues.fetchTrackers[source];
+    }
+  });
+
+  emitFetchInspectorUpdate();
 };
 
 /**
@@ -174,10 +261,13 @@ const fetchAndEmitAllData = async ({
 
   // Loop through each data fetch config
   for (const dataFetchConfig of dataFetchConfigs) {
-    // Only run wikiEvas when source is ISS
-    if (dataFetchConfig.type === "wikiEvas" && visitorData.source !== "ISS") continue;
-    // Only run wikiTestEvents when source is TEST_EVENTS
-    if (dataFetchConfig.type === "wikiTestEvents" && visitorData.source !== "TEST_EVENTS") continue;
+    // Skip data types that are not valid for this source
+    if (!isDataTypeValidForSource(visitorData.source, dataFetchConfig.type)) {
+      ConsoleLogger.log(
+        `${dataFetchConfig.type} Skipping for source ${visitorData.source} (not available)`
+      );
+      continue;
+    }
 
     // Create and store promise for this fetch operation
     const fetchPromise = (async () => {
@@ -185,13 +275,13 @@ const fetchAndEmitAllData = async ({
         `${dataFetchConfig.type} New Client: Fetching data to new client for ${visitorData.source}_${visitorData.dateViewing}`
       );
 
-      const wrappedResponse = await getSourceDateDataType({
+      const response = await getSourceDateDataType({
         source: visitorData.source,
         dateWanted: visitorData.dateViewing,
         dataFetchConfig,
       });
 
-      if (!wrappedResponse) {
+      if (!response) {
         ConsoleLogger.error(
           `${dataFetchConfig.type} Error fetching cached data for ${visitorData.source}_${visitorData.dateViewing}`
         );
@@ -200,7 +290,7 @@ const fetchAndEmitAllData = async ({
 
       socket.emit("dataUpdate", {
         type: dataFetchConfig.type,
-        wrappedResponse,
+        response,
       });
     })();
 

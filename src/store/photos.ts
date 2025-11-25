@@ -19,8 +19,7 @@ export const initialState: PhotosState = {
   photoFiles: [],
   activePhoto: initialPhotoFileState,
   ready: false,
-  responseMetadata: null,
-  loadingStatus: "loading",
+  metadata: null,
   collectionFilters: [],
 };
 
@@ -29,15 +28,15 @@ export const photoSlice = createSlice({
   initialState,
   reducers: {
     /** Add new photo files to the store */
-    addPhotos: (state, action: { payload: WrappedResponse<PhotoFile[]> }) => {
+    addPhotos: (state, action: { payload: FetchResponse<PhotoFile[]> }) => {
       state.photoFiles = action.payload.data || []; // null returned when retriever error
-      state.responseMetadata = { ...state.responseMetadata, ...action.payload.responseMetadata };
+      state.metadata = action.payload.fetchMetadata;
       state.ready = true;
     },
 
     clearPhotos: (state) => {
       state.photoFiles = [];
-      state.responseMetadata = null;
+      state.metadata = null;
       state.ready = false;
     },
     setActivePhoto: (state, action: { payload: PhotoFile }) => {
@@ -46,10 +45,11 @@ export const photoSlice = createSlice({
     /** An error occured fetching photo metadata TODO: determine whether this is needed */
     fetchError: (state, action: { payload: string }) => {
       const error = action.payload.replace(/key=.*&/, "key=[key]&");
-      state.responseMetadata = { ...state.responseMetadata, error };
-    },
-    setPhotoLoadingStatus: (state, action: { payload: LoadingStatus }) => {
-      state.loadingStatus = action.payload;
+      state.metadata = {
+        success: false,
+        error,
+        timestamp: state.metadata?.timestamp || new Date().toISOString(),
+      };
     },
     setCollectionFilters: (state, action: { payload: PhotoCollectionFilters[] }) => {
       state.collectionFilters = action.payload;
@@ -57,14 +57,8 @@ export const photoSlice = createSlice({
   },
 });
 
-export const {
-  addPhotos,
-  clearPhotos,
-  setActivePhoto,
-  fetchError,
-  setPhotoLoadingStatus,
-  setCollectionFilters,
-} = photoSlice.actions;
+export const { addPhotos, clearPhotos, setActivePhoto, fetchError, setCollectionFilters } =
+  photoSlice.actions;
 
 export function buildPhotoCollections(photos: PhotoFile[]) {
   const collections: PhotoCollectionFilters[] = [];

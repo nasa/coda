@@ -1,6 +1,7 @@
 import react from "eslint-plugin-react";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import prettier from "eslint-plugin-prettier";
+import packageJson from "eslint-plugin-package-json";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 
@@ -29,6 +30,7 @@ export default [
       react,
       "@typescript-eslint": typescriptEslint,
       prettier,
+      "package-json": packageJson,
     },
 
     languageOptions: {
@@ -98,6 +100,12 @@ export default [
         },
       ],
       "linebreak-style": ["error", "unix"], // enforce unix (lf) linebreaks
+      "package-json/restrict-dependency-ranges": [
+        "error",
+        {
+          rangeType: "pin", // require that packages have pinned versions
+        },
+      ],
     },
   },
   {

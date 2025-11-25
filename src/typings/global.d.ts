@@ -5,13 +5,11 @@ type GlobalValues = {
     import("socket.io/dist/typed-events").DefaultEventsMap,
     {}
   >;
-  ormCache: import("@mikro-orm/postgresql").MikroORM | null;
+  orm: import("@mikro-orm/postgresql").MikroORM | null;
   serverSocketStatus: ServerSocketStatus;
   socketInterval: NodeJS.Timeout;
   appVersion: AppVersion | null;
-  serverDataRefreshTimeouts: {
-    [source: string]: { [date: string]: { [dataType: string]: NodeJS.Timeout } };
-  };
+  fetchTrackers: FetchTrackers;
 };
 
 // these are defined in esbuild.mjs and vite.config.mts

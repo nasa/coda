@@ -2,7 +2,7 @@
 #   (which is true when building locally) then use the value to the right of the = operator
 # hadolint global ignore=DL3006
 ARG NGINX_BASE_IMAGE=nginx:1.28.0-alpine
-ARG NODE_BASE_IMAGE=node:22.18.0-alpine
+ARG NODE_BASE_IMAGE=node:24.11.1-alpine
 
 # # # # # # # #
 # BASE image  #
@@ -44,7 +44,6 @@ COPY . /clientsrc
 # these are sent in as build args through the docker build command (kaniko). Locally, these are sent in
 # via docker-compose build:args: property.
 ARG VITE_PUBLIC_MAPBOX_KEY
-ARG VITE_PUBLIC_APP_ENV
 ARG VITE_PUBLIC_LIVE_STREAMS_ENABLED
 ARG VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
 ARG VITE_PUBLIC_MEDIA_MTX_HLS_URL

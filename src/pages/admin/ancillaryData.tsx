@@ -43,8 +43,8 @@ const ListOverrides: FunctionComponent = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("/api/v1/db/ancillaryDataSources");
-      const data: WrappedResponse<AncillaryDataSourceList[]> = await response.json();
-      setRecords(data.data);
+      const data: AncillaryDataSourceList[] = await response.json();
+      setRecords(data);
     };
     fetchData();
   }, []);

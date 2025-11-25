@@ -22,6 +22,15 @@ interface GPSTracksQueryParams {
   dateWanted: string;
 }
 
+interface EphemerisQueryParams {
+  dateWanted: string;
+}
+
+type EphemerisUpsertRequest = {
+  records: Array<EphemerisEntry>;
+  origin: "celestrak" | "seed";
+};
+
 type MediaOverrideUpsertRequest = MediaOverride;
 
 interface MediaOverrideQueryParams {
@@ -42,7 +51,6 @@ interface AncillaryDataQueryParams {
 
 interface DayNightQueryParams {
   dateWanted: string;
-  forceNew?: boolean;
   dayNightSource?: string;
   // add support for year month date query params for Maestro
   //    remove when Maestro is updated to use dateWanted
@@ -51,69 +59,10 @@ interface DayNightQueryParams {
   date?: number;
 }
 
-interface GetTranscriptsQueryParams {
-  dateWanted: string;
-  source: Source;
-  forceNew?: boolean;
-}
-
-interface GetSgAudioQueryParams {
-  dateWanted: string;
-  source: Source;
-  forceNew?: boolean;
-}
-
-interface GetEphemerisQueryParams {
-  dateWanted: string;
-  forceNew?: boolean;
-}
-
-interface GetMaestroExecuteTimelineStatusQueryParams {
-  uuid: string;
-}
-
-interface GetVideosQueryParams {
-  dateWanted: string;
-  source: Source;
-  forceNew?: boolean;
-}
-
-interface GetMTXPlaybackQueryParams {
-  dateWanted: string;
-  source: Source;
-  forceNew?: boolean;
-}
-
-interface GetPhotosQueryParams {
-  dateWanted: string;
-  source: Source;
-  forceNew?: boolean;
-}
-
-interface GetSequencesAllEvasQueryParams {
-  agency: AgencyQuery;
-  forceNew?: boolean;
-}
-
-interface GetSequencesTestEventsQueryParams {
-  forceNew?: boolean;
-}
-
-interface GetGraphsManifestQueryParams {
-  dateWanted: string;
-  source: Source;
-  forceNew?: boolean;
-}
-
 interface VideoQueryParams {
   videoId: string;
 }
 
 interface PhotoQueryParams {
   dateWanted: string;
-}
-
-interface EvictCacheQueryParams {
-  lastUsedIsoDate: string;
-  folder?: string;
 }

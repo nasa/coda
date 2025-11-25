@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { VideoStartTimeOverrides_db } from "server/database/models/VideoStartTimeOverrides.model";
 
@@ -29,34 +29,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
       const record: VideoRecord = await getVideoStartTimeOverridesRecordByVideoId(queryObj.videoId);
-      const wrappedResponse: WrappedResponse<VideoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: record,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(record);
     } else {
       const records: VideoRecord[] = await getVideoStartTimeOverridesRecordsList();
-      const wrappedResponse: WrappedResponse<VideoRecord[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -67,65 +43,29 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const videoRecord: VideoRecord = await em.findOne(VideoStartTimeOverrides_db, {
       id: Number(id),
     });
     if (videoRecord) {
-      const wrappedResponse: WrappedResponse<VideoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: videoRecord,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(videoRecord);
     } else {
-      const wrappedResponse: WrappedResponse<VideoRecord> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "gpx track not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "video record not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<VideoRecord> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, videoId, startTime } = req.body as VideoUpsertRequest;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     if (id) {
       const videoRecord = await em.findOne(VideoStartTimeOverrides_db, { id: Number(id) });
       if (videoRecord) {
@@ -161,9 +101,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const videoRecord: VideoRecord = await em.findOne(VideoStartTimeOverrides_db, {
       id: Number(id),
     });
@@ -182,8 +122,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 export default router;
 
 async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promise<VideoRecord> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   let videoRecord: Loaded<VideoRecord, never>;
   videoRecord = await em.findOne(VideoStartTimeOverrides_db, { videoId: videoId });
 
@@ -196,8 +135,7 @@ async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promi
 }
 
 export async function getVideoStartTimeOverridesRecordsList(): Promise<VideoRecord[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   const videos_db = await em.find(
     VideoStartTimeOverrides_db,
     {},

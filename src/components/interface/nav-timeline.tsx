@@ -31,7 +31,6 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     (state: RootState) => state.sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords,
     shallowEqual
   );
-  const maestro: MaestroState = useAppSelector((state: RootState) => state.maestro, deepEqual);
 
   const { playhead, dispatchPlayhead } = usePlayheadContext();
   const { hoverPlayhead, setHoverPlayhead } = useHoverPlayheadContext();
@@ -47,7 +46,6 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
 
-  const maestroDataAvailable = !isNil(maestro.processedActivitiesData);
   const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
@@ -57,14 +55,10 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   const navReady: MutableRefObject<boolean> = useRef(false);
 
   let evaStartSec = null as number;
-  if (!maestroDataAvailable) {
-    const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-    if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
-      const [hh, mm] = sequence.startTime.split(":");
-      evaStartSec = 3600 * +hh + 60 * +mm;
-    }
-  } else {
-    evaStartSec = maestro.evaStartSec;
+  const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
+  if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+    const [hh, mm] = sequence.startTime.split(":");
+    evaStartSec = 3600 * +hh + 60 * +mm;
   }
 
   /** Draw the timeline on the canvas from scratch */
@@ -74,29 +68,24 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     }
 
     const asPerformed = { EV1: [], EV2: [] } as { EV1: Activity[]; EV2: Activity[] };
-    if (!maestroDataAvailable) {
-      if (!isNil(sequence)) {
-        const activityStartUTCMilliseconds = getSequenceStartMilliseconds(sequence);
-        const EV1 = get(sequence.asPerformed, "EV1", null);
-        if (!isNil(EV1)) {
-          asPerformed.EV1 = getAsPerformedMissionTime(
-            EV1,
-            sequence.startDate,
-            activityStartUTCMilliseconds
-          );
-        }
-        const EV2 = get(sequence.asPerformed, "EV2", null);
-        if (!isNil(EV2)) {
-          asPerformed.EV2 = getAsPerformedMissionTime(
-            EV2,
-            sequence.startDate,
-            activityStartUTCMilliseconds
-          );
-        }
+    if (!isNil(sequence)) {
+      const activityStartUTCMilliseconds = getSequenceStartMilliseconds(sequence);
+      const EV1 = get(sequence.asPerformed, "EV1", null);
+      if (!isNil(EV1)) {
+        asPerformed.EV1 = getAsPerformedMissionTime(
+          EV1,
+          sequence.startDate,
+          activityStartUTCMilliseconds
+        );
       }
-    } else {
-      asPerformed.EV1 = maestro.processedActivitiesData.EV1;
-      asPerformed.EV2 = maestro.processedActivitiesData.EV2;
+      const EV2 = get(sequence.asPerformed, "EV2", null);
+      if (!isNil(EV2)) {
+        asPerformed.EV2 = getAsPerformedMissionTime(
+          EV2,
+          sequence.startDate,
+          activityStartUTCMilliseconds
+        );
+      }
     }
 
     const playheadDate = new Date(playhead.date);
@@ -179,7 +168,6 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     installTimeline();
   }, [
     sequence,
-    maestroDataAvailable,
     videos,
     photos.photoFiles,
     dayNight,

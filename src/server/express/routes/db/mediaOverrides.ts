@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { getEM } from "utils/mikro";
+import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { MediaOverride_db } from "server/database/models/_allModels";
 
@@ -33,34 +33,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
       const records: MediaOverride[] = await getMediaOverridesByDate(queryObj.dateWanted);
-      const wrappedResponse: WrappedResponse<MediaOverride[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     } else {
       const records: MediaOverrideList[] = await getMediaOverridesList();
-      const wrappedResponse: WrappedResponse<MediaOverrideList[]> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: records,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(records);
     }
   } catch (e) {
     console.error(e);
@@ -71,63 +47,27 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const mediaOverride: MediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
     if (mediaOverride) {
-      const wrappedResponse: WrappedResponse<MediaOverride> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: null,
-          expiration: null,
-          error: null,
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: mediaOverride,
-      };
-      res.status(200).json(wrappedResponse);
+      res.status(200).json(mediaOverride);
     } else {
-      const wrappedResponse: WrappedResponse<MediaOverride> = {
-        responseMetadata: {
-          retrieverStatus: "error",
-          cachedTimestamp: null,
-          expiration: null,
-          error: "media override not found",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: null,
-        },
-        source: "database",
-        data: null,
-      };
-      res.status(404).json(wrappedResponse);
+      res.status(404).json({ status: "error", message: "media override not found" });
     }
   } catch (e) {
     console.error(e);
-    const wrappedResponse: WrappedResponse<MediaOverride> = {
-      responseMetadata: {
-        retrieverStatus: "error",
-        cachedTimestamp: null,
-        expiration: null,
-        error: e.toString(),
-        retrieverErrorCount: 1,
-        lastErrorTimestamp: null,
-      },
-      source: "database",
-      data: null,
-    };
-    res.status(500).json(wrappedResponse);
+    res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url } = req.body as MediaOverrideUpsertRequest;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     if (id) {
       const mediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
       if (mediaOverride) {
@@ -164,9 +104,9 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 // delete
 router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
+  const em = globalValues.orm.em;
 
   try {
-    const em = getEM();
     const mediaOverride: MediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
     if (mediaOverride) {
       await em.removeAndFlush(mediaOverride);
@@ -183,8 +123,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
 export default router;
 
 export async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   let mediaOverrides_db: Loaded<MediaOverride_db, never>[];
   mediaOverrides_db = await em.find(
     MediaOverride_db,
@@ -203,8 +142,7 @@ export async function getMediaOverridesByDate(date: string): Promise<MediaOverri
 }
 
 export async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
-  const em = getEM();
-
+  const em = globalValues.orm.em;
   const mediaOverrides_db = await em.find(
     MediaOverride_db,
     {},
