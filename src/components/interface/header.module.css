@@ -259,18 +259,20 @@
   width: 80px;
   height: 40px;
   padding-top: 10px;
+  border: 1px solid var(--highlight-red);
   border-radius: var(--radius);
   cursor: pointer;
   user-select: none;
 }
 
 .liveIndicator {
-  background-color: var(--grey);
+  background-color: var(--lightest-grey);
   display: flex;
   justify-content: space-evenly;
   width: 80px;
   height: 40px;
   padding-top: 10px;
+  border: 1px solid var(--lightest-grey);
   border-radius: var(--radius);
   user-select: none;
 }
