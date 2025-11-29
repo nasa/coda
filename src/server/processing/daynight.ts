@@ -3,7 +3,7 @@ import { getAppropriateTLE } from "store/ephemera";
 import * as SunCalc from "utils/suncalc.js";
 import { getSatelliteInfo } from "tle.js";
 import getEphemera from "./ephemeris";
-import { get as ntlmGET } from "@evamss/ntlm";
+import { NtlmClient, NtlmCredentials } from "axios-ntlm";
 import { isSameDate, midnightZulu, mmddyy } from "../../utils/date";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
@@ -83,45 +83,37 @@ export async function getDayNight({
           continue;
         }
 
-        const response: { statusCode: number; body: string } = await new Promise(
-          (resolve, reject) => {
-            ntlmGET(
-              {
-                url: topoURL.url,
-                username: process.env.TOPO_USER,
-                password: process.env.TOPO_PASSWORD,
-                workstation: "any.workstation",
-                domain: "",
-              },
-              (err, res) => {
-                if (err) return reject(err);
-                resolve(res);
-              }
-            );
+        const credentials: NtlmCredentials = {
+          username: process.env.TOPO_USER || "",
+          password: process.env.TOPO_PASSWORD || "",
+          domain: "",
+        };
+
+        const client = NtlmClient(credentials);
+
+        try {
+          const response = await client.get(topoURL.url, {
+            validateStatus: (status: number) => status === 200 || status === 404,
+          });
+
+          // Handle response based on status code
+          if (response.status === 200) {
+            // Success: response.data is already the body string
+            topoData = response.data;
+            break; // Got data for this week, move to next week
           }
-        );
 
-        // Handle response based on status code
-        if (response.statusCode === 200) {
-          // Success: read the stream data
-          const streamChunks = [];
-          for await (const chunk of response.body) {
-            streamChunks.push(Buffer.from(chunk));
+          if (response.status === 404) {
+            // File not found, try next day
+            queryDate.setUTCDate(queryDate.getUTCDate() + 1);
+            continue;
           }
-          topoData = Buffer.concat(streamChunks).toString("utf-8");
-          break; // Got data for this week, move to next week
+        } catch (error) {
+          // Unexpected error
+          throw new Error(
+            `TOPO fetch failed for URL ${topoURL.url}: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
-
-        if (response.statusCode === 404) {
-          // File not found, try next day
-          queryDate.setUTCDate(queryDate.getUTCDate() + 1);
-          continue;
-        }
-
-        // Unexpected error
-        throw new Error(
-          `TOPO fetch failed with status ${response.statusCode} for URL ${topoURL.url}`
-        );
       }
       topoFileData.push(topoData);
     }
