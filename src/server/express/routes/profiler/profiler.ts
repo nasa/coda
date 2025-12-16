@@ -4,37 +4,24 @@ import {
   expressProfilingStop,
   expressProfilingUI,
 } from "packages/onDemandProfiler";
-import { onlyEmssSuperuser } from "../user/auth";
+import { getUser } from "packages/getUser";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  const user = onlyEmssSuperuser(req);
-  if (!user) {
-    res.status(401).send({ error: "not authorized" });
-    return;
-  }
-
+router.get("/", requireSuperuser, async (req, res) => {
   expressProfilingUI(res);
 });
 
-router.post("/start", async (req, res) => {
-  const user = onlyEmssSuperuser(req);
-  if (!user) {
-    res.status(401).send({ error: "not authorized" });
-    return;
-  }
-
+router.post("/start", requireSuperuser, async (req, res) => {
+  const user = getUser(req);
+  if (user instanceof Error) return;
   await expressProfilingStart(res, user);
 });
 
-router.post("/stop", async (req, res) => {
-  const user = onlyEmssSuperuser(req);
-  if (!user) {
-    res.status(401).send({ error: "not authorized" });
-    return;
-  }
-
+router.post("/stop", requireSuperuser, async (req, res) => {
+  const user = getUser(req);
+  if (user instanceof Error) return;
   await expressProfilingStop(res, user);
 });
 

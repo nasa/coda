@@ -4,10 +4,8 @@ import Frame from "components/framework/frame";
 import { allLayouts } from "store/framework";
 import styles from "./frames.module.css";
 
-import { RootState } from "store/index";
-
 const Viewer: FunctionComponent = () => {
-  const selectedLayout = useAppSelector((state: RootState) => state.framework.layout, shallowEqual);
+  const selectedLayout = useAppSelector((state) => state.framework.layout, shallowEqual);
   const layoutDefinition = allLayouts[selectedLayout];
 
   const frames: JSX.Element[] = [];

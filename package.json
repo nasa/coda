@@ -1,6 +1,6 @@
 {
   "name": "coda",
-  "version": "3.0.9",
+  "version": "3.1.0",
   "description": "Contextual Operations Data Activation",
   "main": "src/index.tsx",
   "scripts": {
@@ -27,7 +27,7 @@
     "vite:dev:wait": "wait-on http://localhost:3001/api/v1/health && vite",
     "api:build": "node esbuild.mjs",
     "api:build:watch": "npm run api:build -- --watch",
-    "api:dev": "rimraf ./.local/express/dist && cross-env npm run api:build:watch",
+    "api:dev": "rimraf ./.local/express/dist && cross-env NODE_ENV=development  npm run api:build:watch",
     "api:prod": "cross-env NODE_ENV=production node ./.local/express/dist/api.js",
     "migration:up": "npx mikro-orm migration:up",
     "migration:down": "npx mikro-orm migration:down",

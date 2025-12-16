@@ -1,6 +1,7 @@
 import getDayNight from "server/processing/daynight";
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
+import { ConsoleLogger } from "utils/logging/consoleLogger";
 
 interface ResponseMetadata {
   retrieverStatus: FetchStatus;
@@ -80,7 +81,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     }
     return;
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(400).json({ error: e.toString() });
     return;
   }

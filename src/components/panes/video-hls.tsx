@@ -1,30 +1,28 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import type { RootState } from "store/index";
 import styles from "./video.module.css";
 import { setPaneStateValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import Hls from "hls.js";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
   const paneStateData: VideoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
-  const mtxHlsEndpoints = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpoints,
-    deepEqual
-  );
+  const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
 
   const [hlsAvailable, setHlsAvailable] = useState(false);
 
-  const { playhead } = usePlayheadContext();
+  const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const hlsRef = useRef<Hls | null>(null);
   const videoRef = useRef(null) as MutableRefObject<HTMLVideoElement>;
@@ -34,7 +32,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const playOrPause = () => {
     const asyncFunc = async () => {
       try {
-        if (playhead.isRunning) {
+        if (isRunning) {
           // if the video is not playing, try to play it
           if (videoRef.current.paused) {
             await videoRef.current.play();
@@ -57,19 +55,20 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     if (!hlsRef.current) return;
 
     // if the appSeconds is within 10 second of the current time, just go to the live edge of the hls stream
-    if (Math.abs(playhead.appSeconds - appSecondsFromDateString(new Date().toISOString())) < 5) {
+    if (Math.abs(appSeconds - appSecondsFromDateString(new Date().toISOString())) < 5) {
       if (hlsRef.current.liveSyncPosition - videoRef.current.currentTime < 3) return; // don't sync if we're already close to the live edge
       const liveEdge = hlsRef.current.liveSyncPosition;
       videoRef.current.currentTime = liveEdge;
       return;
     }
 
-    // otherwise, figure out how many seconds to seek to get to the desired playhead.appSeconds
-    const playheadDate = dateFromAppSeconds(playhead.appSeconds, playhead.date);
+    // otherwise, figure out how many seconds to seek to get to the desired appSeconds
+    const playheadDateObj = dateFromAppSeconds(appSeconds, playheadDate);
     const hlsPlayingDate = hlsRef.current.playingDate;
     if (!hlsPlayingDate) return;
 
-    let secondsToSeek = Math.floor((playheadDate.getTime() - hlsPlayingDate.getTime()) / 1000) + 2; // add a fudge to the secondsToSee to make the video play at the correct time
+    let secondsToSeek =
+      Math.floor((playheadDateObj.getTime() - hlsPlayingDate.getTime()) / 1000) + 2; // add a fudge to the secondsToSee to make the video play at the correct time
     if (Math.abs(secondsToSeek) < 4) return;
 
     const videoElementCurrentTime = videoRef.current.currentTime;
@@ -151,8 +150,8 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   }, [mtxHlsEndpoints]);
 
   useEffect(prepareHlsPlayer, [mtxHlsEndpoints, videoRef.current, paneStateData]);
-  useEffect(syncToPlayhead, [hlsRef.current, playhead.appSeconds]);
-  useEffect(playOrPause, [playhead.isRunning, playhead.appSeconds]);
+  useEffect(syncToPlayhead, [hlsRef.current, appSeconds]);
+  useEffect(playOrPause, [isRunning, appSeconds]);
 
   return (
     <div
@@ -160,6 +159,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       className={styles.vidContainer}
       data-frame-id={"HLS Player"}
     >
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {!hlsAvailable ? <div className={styles.playerPosterNovid}></div> : null}
       <video
         muted

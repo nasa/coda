@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import getVideoData from "server/processing/io-videos";
 import { globalValues } from "./global";
 import { emitDataUpdate, emitFetchInspectorUpdate } from "./sockets";
@@ -6,83 +8,100 @@ import getEphemera from "server/processing/ephemeris";
 import getPhotoData from "server/processing/io-photos";
 import getGpsTrackData from "server/processing/gps";
 import { getMTXAPIResponses } from "server/processing/mediaMtx";
-import getTalkybotTranscripts from "server/processing/tbTranscripts";
-import getTalkybotSgAudio from "server/processing/tbAudio";
+import getTalkybotData from "server/processing/talkybot";
 import getGraphManifest from "server/processing/graphs";
 import { getISSEvaData, getTestEventsData } from "server/processing/wikiData";
-import { ConsoleLogger } from "../../utils/consoleLogger";
+import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import isEqual from "lodash/isEqual";
 import { getCacheEntry, putCacheEntry } from "server/express/cache-db";
-import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 
-const DEFAULT_REFRESH_INTERVAL_MS_TODAY = 2 * 60 * 1000; // refresh cache every 2 minutes for "today"
-const DEFAULT_REFRESH_INTERVAL_MS = 60 * 60 * 1000; // refresh cache every 60 minutes by default
-const DEFAULT_DATA_FETCH_TIMEOUT_MS = 30000; // 30 seconds
+dayjs.extend(duration);
+
+const DEFAULT_REFRESH_INTERVAL_MS_TODAY = dayjs.duration(2, "minutes").asMilliseconds(); // refresh cache every 2 minutes for "today"
+const DEFAULT_REFRESH_INTERVAL_MS = dayjs.duration(1, "hour").asMilliseconds(); // refresh cache every 60 minutes by default
+const DEFAULT_DATA_FETCH_TIMEOUT_MS = dayjs.duration(30, "seconds").asMilliseconds(); // 30 seconds
 
 export const dataFetchConfigs: FetchConfig[] = [
   {
     type: "daynight",
     getDataFunction: getDayNight,
-    refreshIntervalTodayMs: 3 * 60 * 60 * 1000, // 3 hours for today's data
-    refreshIntervalMs: 12 * 60 * 60 * 1000, // 12 hours for other days
-    fetchTimeoutMs: 60000, // 60 seconds (allows for TOPO failure + ephemeris db fallback)
+    refreshIntervalTodayMs: dayjs.duration(3, "hours").asMilliseconds(), // 3 hours for today's data
+    refreshIntervalMs: dayjs.duration(12, "hours").asMilliseconds(), // 12 hours for other days
+    fetchTimeoutMs: dayjs.duration(60, "seconds").asMilliseconds(), // 60 seconds (allows for TOPO failure + ephemeris db fallback)
+    enableCacheUse: true,
   },
   {
     type: "ephemeris",
     getDataFunction: getEphemera,
-    disableCacheUse: true, // Data retrieved from local database
+    refreshIntervalTodayMs: null, // No polling - updates pushed via celestrakScheduler after TLE fetch
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Data retrieved from local database (no caching needed)
   },
   {
     type: "videos",
     getDataFunction: getVideoData,
-    // refreshIntervalTodayMs uses default
-    refreshIntervalMs: 15 * 60 * 1000, // 15 minutes for other days (faster than 60 min default)
+    refreshIntervalTodayMs: DEFAULT_REFRESH_INTERVAL_MS_TODAY,
+    refreshIntervalMs: dayjs.duration(15, "minutes").asMilliseconds(), // 15 minutes for other days (faster than 60 min default)
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: true,
   },
   {
     type: "photos",
     getDataFunction: getPhotoData,
-    // refreshIntervalTodayMs uses default
-    refreshIntervalMs: 15 * 60 * 1000, // 15 minutes for other days (faster than 60 min default)
+    refreshIntervalTodayMs: DEFAULT_REFRESH_INTERVAL_MS_TODAY,
+    refreshIntervalMs: dayjs.duration(15, "minutes").asMilliseconds(), // 15 minutes for other days (faster than 60 min default)
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: true,
   },
   {
     type: "wikiEvas",
     getDataFunction: getISSEvaData,
-    disableCacheUse: true, // Static data from JSON file, (data does not use cache)
+    refreshIntervalTodayMs: null, // Static data from JSON file - no refresh needed
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Static data from JSON file (no caching needed)
   },
   {
     type: "wikiTestEvents",
     getDataFunction: getTestEventsData,
-    disableCacheUse: true, // Static data from JSON file, (data does not use cache)
+    refreshIntervalTodayMs: null, // Static data from JSON file - no refresh needed
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Static data from JSON file (no caching needed)
   },
   {
     type: "mtxvideo",
     getDataFunction: getMTXAPIResponses,
-    // refreshIntervalTodayMs uses default
-    // refreshIntervalMs uses default
+    refreshIntervalTodayMs: DEFAULT_REFRESH_INTERVAL_MS_TODAY,
+    refreshIntervalMs: DEFAULT_REFRESH_INTERVAL_MS,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: true,
   },
   {
     type: "gpstracks",
     getDataFunction: getGpsTrackData,
-    refreshIntervalTodayMs: 12 * 60 * 60 * 1000, // 12 hours for today's data
-    refreshIntervalMs: 12 * 60 * 60 * 1000, // 12 hours for other days
+    refreshIntervalTodayMs: null, // No polling - DB-sourced, use force refresh via admin page if needed
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Data retrieved from local database (no caching needed)
   },
   {
-    type: "transcript",
-    getDataFunction: getTalkybotTranscripts,
-    // refreshIntervalTodayMs uses default
-    refreshIntervalMs: 3 * 60 * 60 * 1000, // 3 hours for other days
-  },
-  {
-    type: "sgaudio",
-    getDataFunction: getTalkybotSgAudio,
-    // refreshIntervalTodayMs uses default
-    refreshIntervalMs: 3 * 60 * 60 * 1000, // 3 hours for other days
+    type: "talkybot",
+    getDataFunction: getTalkybotData,
+    refreshIntervalTodayMs: null, // No polling - updates come via talkybotS2sSocket incremental updates
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Always fetch fresh data from talkybot
   },
   {
     type: "graph",
     getDataFunction: getGraphManifest,
-    refreshIntervalTodayMs: 12 * 60 * 60 * 1000, // 12 hours for today's data
-    refreshIntervalMs: 12 * 60 * 60 * 1000, // 12 hours for other days
+    refreshIntervalTodayMs: null, // No polling - DB-sourced, use force refresh via admin page if needed
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Data retrieved from local database (no caching needed)
   },
 ];
 
@@ -148,7 +167,7 @@ const clearTrackerDataTimeout = (source: Source, dateWanted: string, dataType: S
   const status = ensureFetchTrackerEntry(source, dateWanted, dataType);
   if (status.timeoutObject) {
     clearTimeout(status.timeoutObject);
-    ConsoleLogger.log(`${dataType} Cleared existing timeout for ${source}_${dateWanted}`);
+    ConsoleLogger.debug(`${dataType} Cleared existing timeout for ${source}_${dateWanted}`);
   }
   updateFetchTracker(source, dateWanted, dataType, {
     timeoutDelayMs: undefined,
@@ -180,7 +199,7 @@ const createTimeoutObject = ({
     clearTrackerDataTimeout(source, dateWanted, dataTypeKey);
   }
 
-  ConsoleLogger.log(
+  ConsoleLogger.debug(
     `${dataType} Setting timeout for ${source}_${dateWanted} with delay ${delay / 1000}s`
   );
   const createdAt = Date.now();
@@ -219,21 +238,27 @@ const calculateTimeoutDelayFromExpiration = (
   expiration: string,
   bufferMs: number = 1000
 ): number => {
-  // Maximum timeout of 24 hours (86400000 ms)
+  // Maximum timeout of 24 hours
   // Prevents potential integer overflow issues in Node.js setTimeout
-  const maxTimeout = 86400000;
+  const maxTimeout = dayjs.duration(24, "hours").asMilliseconds();
 
   // If expiration is null, return 60 seconds +- 5 seconds
-  if (!expiration) return 60000 + Math.floor(Math.random() * 10000) - 5000;
+  if (!expiration)
+    return (
+      dayjs.duration(60, "seconds").asMilliseconds() + Math.floor(Math.random() * 10000) - 5000
+    );
 
   const expirationTime = new Date(expiration).getTime();
   const timeUntilExpiration = expirationTime - Date.now();
 
   // If the expiration time is in the past, return 60 seconds +- 5 seconds
-  if (timeUntilExpiration <= 0) return 60000 + Math.floor(Math.random() * 10000) - 5000;
+  if (timeUntilExpiration <= 0)
+    return (
+      dayjs.duration(60, "seconds").asMilliseconds() + Math.floor(Math.random() * 10000) - 5000
+    );
 
   if (timeUntilExpiration > maxTimeout) {
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `Reducing timeout from ${timeUntilExpiration / 1000}s to ${maxTimeout / 1000}s to avoid overflow`
     );
     return maxTimeout;
@@ -257,7 +282,6 @@ const fetchData = async ({
   }
 
   const dataType = config.type;
-  const fetchTimeoutMs = config.fetchTimeoutMs ?? DEFAULT_DATA_FETCH_TIMEOUT_MS;
   const fetchStartedAt = new Date();
 
   updateFetchTracker(source, dateWanted, dataType, {
@@ -271,8 +295,8 @@ const fetchData = async ({
     // call the actual fetch function and get the data, race this against a timeout promise to avoid hanging
     const timeoutPromise = new Promise<FetchResponse<any>>((_, reject) => {
       timeoutId = setTimeout(
-        () => reject(new Error(`Timeout after ${fetchTimeoutMs}ms`)),
-        fetchTimeoutMs
+        () => reject(new Error(`Timeout after ${config.fetchTimeoutMs}ms`)),
+        config.fetchTimeoutMs
       );
     });
 
@@ -309,10 +333,10 @@ const fetchData = async ({
   updateFetchTracker(source, dateWanted, dataType, {
     isFetching: false,
     fetchStartedAt: undefined,
-    lastFetchStartedAt: fetchStartedAt.toISOString(),
-    lastFetchCompletedAt: fetchCompletedAt.toISOString(),
-    lastFetchDurationMs: durationMs,
-    lastResultWasSuccess: succeeded,
+    lastOperationStartedAt: fetchStartedAt.toISOString(),
+    lastOperationCompletedAt: fetchCompletedAt.toISOString(),
+    lastOperationDurationMs: durationMs,
+    lastOperationSuccess: succeeded,
     ...(succeeded
       ? {
           lastSuccessAt: fetchCompletedAt.toISOString(),
@@ -343,16 +367,32 @@ export const getSourceDateDataType = async ({
 }): Promise<FetchResponse<any>> => {
   const dataType = dataFetchConfig.type;
 
-  // If disableCacheUse is true, fetch data directly without using cache
-  if (dataFetchConfig.disableCacheUse) {
-    ConsoleLogger.log(
-      `${dataType} Skipping cache for ${source}_${dateWanted} (disableCacheUse enabled)`
+  // Check if this data type is valid for this source and date (e.g., mtxvideo not valid for dates > 7 days ago)
+  if (
+    !isDataTypeValidForSourceAndDate(
+      source,
+      dataType,
+      dateWanted,
+      parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+    )
+  ) {
+    ConsoleLogger.debug(
+      `${dataType} Skipping for ${source}_${dateWanted} (not valid for this source/date combination)`
+    );
+    return null;
+  }
+
+  // If enableCacheUse is false, fetch data directly without using cache
+  if (!dataFetchConfig.enableCacheUse) {
+    ConsoleLogger.debug(
+      `${dataType} Skipping cache for ${source}_${dateWanted} (enableCacheUse disabled)`
     );
     const dataResponse = await fetchData({
       source,
       dateWanted,
       config: dataFetchConfig,
     });
+
     return dataResponse;
   }
 
@@ -384,7 +424,7 @@ export const getSourceDateDataType = async ({
 
   // Start background fetch if needed and not already fetching
   if (needsFetch && !isAlreadyFetching && autoRefresh) {
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataFetchConfig.type} Starting background fetch for ${source}_${dateWanted} (expired: ${isExpired}, hasCache: ${hasCachedData})`
     );
 
@@ -401,7 +441,7 @@ export const getSourceDateDataType = async ({
       );
     });
   } else if (isAlreadyFetching) {
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataFetchConfig.type} Already fetching for ${source}_${dateWanted}, skipping duplicate fetch`
     );
   }
@@ -417,7 +457,7 @@ export const getSourceDateDataType = async ({
           dateWanted,
           dataType: dataFetchConfig.type,
           timeoutCallback: async () => {
-            ConsoleLogger.log(
+            ConsoleLogger.debug(
               `${dataFetchConfig.type} Timeout triggered refresh for ${source}_${dateWanted}`
             );
             await performBackgroundFetch({
@@ -436,18 +476,18 @@ export const getSourceDateDataType = async ({
 
   // Return cached data if available (even if expired), otherwise null
   if (hasCachedData) {
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataFetchConfig.type} Returning cached data for ${source}_${dateWanted} (expired: ${isExpired})`
     );
     updateFetchTracker(source, dateWanted, dataType, {
       lastCacheHitAt: new Date().toISOString(),
-      lastResultWasSuccess: (cacheEntry.data as any)?.metadata?.success ?? true,
+      lastOperationSuccess: (cacheEntry.data as any)?.metadata?.success ?? true,
     });
     return cacheEntry.data as FetchResponse<any>;
   }
 
   // No cache available
-  ConsoleLogger.log(`${dataFetchConfig.type} No cache for ${source}_${dateWanted}`);
+  ConsoleLogger.debug(`${dataFetchConfig.type} No cache for ${source}_${dateWanted}`);
   updateFetchTracker(source, dateWanted, dataType, {
     lastCacheMissAt: new Date().toISOString(),
   });
@@ -492,12 +532,18 @@ const performBackgroundFetch = async ({
   const today = new Date().toISOString().split("T")[0];
   const isToday = dateWanted === today;
   const baseRefreshInterval = isToday
-    ? (dataFetchConfig.refreshIntervalTodayMs ?? DEFAULT_REFRESH_INTERVAL_MS_TODAY)
-    : (dataFetchConfig.refreshIntervalMs ?? DEFAULT_REFRESH_INTERVAL_MS);
+    ? dataFetchConfig.refreshIntervalTodayMs
+    : dataFetchConfig.refreshIntervalMs;
 
-  const randomFactor = 0.8 + Math.random() * 0.4; // ±20% randomness
-  const randomizedInterval = Math.floor(baseRefreshInterval * randomFactor);
-  const expirationISO = new Date(Date.now() + randomizedInterval).toISOString();
+  // If refresh interval is null, no automatic refreshing should occur
+  const shouldScheduleRefresh = baseRefreshInterval !== null && autoRefresh;
+
+  let expirationISO: string | undefined;
+  if (shouldScheduleRefresh) {
+    const randomFactor = 0.8 + Math.random() * 0.4; // ±20% randomness
+    const randomizedInterval = Math.floor(baseRefreshInterval * randomFactor);
+    expirationISO = new Date(Date.now() + randomizedInterval).toISOString();
+  }
 
   // Update cache with new data
   await putCacheEntry({
@@ -505,14 +551,15 @@ const performBackgroundFetch = async ({
     identifier: dataType,
     data: dataResponse?.fetchMetadata?.success ? dataResponse : currentCacheEntry?.data,
     metadata: {
-      expiration: dataResponse?.fetchMetadata?.success
-        ? expirationISO
-        : currentCacheEntry?.metadata?.expiration,
+      expiration:
+        dataResponse?.fetchMetadata?.success && expirationISO
+          ? expirationISO
+          : currentCacheEntry?.metadata?.expiration,
     },
   });
 
-  // Schedule next refresh if autoRefresh is enabled
-  if (autoRefresh) {
+  // Schedule next refresh if refresh interval is configured and autoRefresh is enabled
+  if (shouldScheduleRefresh && expirationISO) {
     const delay = calculateTimeoutDelayFromExpiration(expirationISO);
     if (delay > 0) {
       createTimeoutObject({
@@ -520,7 +567,7 @@ const performBackgroundFetch = async ({
         dateWanted,
         dataType: dataFetchConfig.type,
         timeoutCallback: async () => {
-          ConsoleLogger.log(
+          ConsoleLogger.debug(
             `${dataFetchConfig.type} Timeout triggered refresh for ${source}_${dateWanted}`
           );
           await performBackgroundFetch({
@@ -534,12 +581,16 @@ const performBackgroundFetch = async ({
         delay,
       });
     }
+  } else if (baseRefreshInterval === null) {
+    ConsoleLogger.debug(
+      `${dataFetchConfig.type} No automatic refresh scheduled for ${source}_${dateWanted} (refreshInterval is null)`
+    );
   }
 
   // Emit to all clients only if data changed
   const previousData = (currentCacheEntry?.data as FetchResponse<any>)?.data;
   if (!isEqual(dataResponse?.data, previousData)) {
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataFetchConfig.type} Emitting data update to room for ${source}_${dateWanted}`
     );
 
@@ -552,7 +603,7 @@ const performBackgroundFetch = async ({
       lastEmitAt: new Date().toISOString(),
     });
   } else {
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataFetchConfig.type} Data unchanged for ${source}_${dateWanted}, skipping emit`
     );
     updateFetchTracker(source, dateWanted, dataType, {
@@ -574,9 +625,16 @@ export const forceRefreshDataType = async ({
   dataType: StoreDataType;
 }): Promise<{ success: boolean; data?: FetchResponse<any>; error?: string }> => {
   try {
-    // Check if this data type is valid for this source
-    if (!isDataTypeValidForSource(source, dataType)) {
-      const errorMsg = `Data type ${dataType} is not available for source ${source}`;
+    // Check if this data type is valid for this source and date
+    if (
+      !isDataTypeValidForSourceAndDate(
+        source,
+        dataType,
+        dateWanted,
+        parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+      )
+    ) {
+      const errorMsg = `Data type ${dataType} is not available for source ${source} on ${dateWanted}`;
       ConsoleLogger.error(errorMsg);
       return { success: false, error: errorMsg };
     }
@@ -590,8 +648,8 @@ export const forceRefreshDataType = async ({
     }
 
     // If this data type doesn't use cache, just fetch and return
-    if (config.disableCacheUse) {
-      ConsoleLogger.log(
+    if (!config.enableCacheUse) {
+      ConsoleLogger.debug(
         `${dataType} Force refresh for ${source}_${dateWanted} (data does not use cache)`
       );
       const dataResponse = await getSourceDateDataType({
@@ -603,7 +661,7 @@ export const forceRefreshDataType = async ({
       return { success: true, data: dataResponse };
     }
 
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataType} Force refresh requested for ${source}_${dateWanted}. Expiring cache and clearing timeout...`
     );
 
@@ -624,9 +682,9 @@ export const forceRefreshDataType = async ({
         data: currentCacheEntry.data,
         metadata,
       });
-      ConsoleLogger.log(`${dataType} Expired cache entry for ${source}_${dateWanted}`);
+      ConsoleLogger.debug(`${dataType} Expired cache entry for ${source}_${dateWanted}`);
     } else {
-      ConsoleLogger.log(
+      ConsoleLogger.debug(
         `${dataType} No cache entry found for ${source}_${dateWanted}, will force fetch`
       );
     }
@@ -643,7 +701,7 @@ export const forceRefreshDataType = async ({
       dataFetchConfig: config,
     });
 
-    ConsoleLogger.log(
+    ConsoleLogger.debug(
       `${dataType} Force refresh completed for ${source}_${dateWanted}. Success: ${dataResponse?.fetchMetadata?.success}`
     );
 

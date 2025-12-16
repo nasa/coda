@@ -69,20 +69,12 @@ type GPSState = {
 };
 
 /**
- * Transcript Store
+ * Talkybot Store
  */
-type TranscriptState = {
-  transcripts: Transcript[];
+interface TalkybotState {
+  audioFiles: TbAudioFile[];
   metadata: FetchMetadata | null;
-};
-
-/**
- * SG Audio Store
- */
-type SgAudioState = {
-  sgActivityFullUrlRecord: SgActivityFullUrlRecord;
-  metadata: FetchMetadata | null;
-};
+}
 
 /**
  * Graph Store
@@ -97,4 +89,21 @@ type GraphsState = {
  */
 type UserState = {
   user: EmssUser;
+};
+
+/**
+ * Clock State
+ * Manages playhead time and hover state for the application
+ */
+type ClockState = {
+  /** UTC date being viewed (YYYY-MM-DD format or full ISO string) */
+  date: string | null;
+  /** Timestamp of the last start/stop user event */
+  startStopTimestamp: string | null;
+  /** The appSeconds value when the clock was last started or stopped */
+  appSecondsAtStartStop: number;
+  /** Whether the clock is currently running */
+  isRunning: boolean;
+  /** Hover playhead seconds (for timeline hover indicators) */
+  hoverSeconds: number | null;
 };

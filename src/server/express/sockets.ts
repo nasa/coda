@@ -3,11 +3,12 @@ import find from "lodash/find";
 import isEqual from "lodash/isEqual";
 import { globalValues } from "./global";
 import { dataFetchConfigs, getSourceDateDataType } from "./dataRetrievalScheduler";
-import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
-import { ConsoleLogger } from "../../utils/consoleLogger";
+import { ConsoleLogger } from "../../utils/logging/consoleLogger";
+import { getTalkybotS2sSocketTrackerData } from "./talkybotS2sSocket";
 
-const FETCH_INSPECTOR_ROOM = "fetchInspectorRoom";
+export const INSPECTOR_ROOM = "inspectorRoom";
 
 const sanitizeServerFetchTrackers = (
   statuses: FetchTrackers
@@ -52,11 +53,54 @@ const buildFetchInspectorUpdate = (): FetchInspectorUpdate => {
 
 export const emitFetchInspectorUpdate = (): void => {
   if (!globalValues?.socketio) return;
-  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(FETCH_INSPECTOR_ROOM);
+  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room || room.size === 0) return;
   globalValues.socketio
-    .to(FETCH_INSPECTOR_ROOM)
+    .to(INSPECTOR_ROOM)
     .emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
+};
+
+// Emit TalkybotS2sSocket inspector update to all clients in the inspector room
+export const emitTalkybotS2sSocketInspectorUpdate = (): void => {
+  if (!globalValues?.socketio) return;
+  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  if (!room || room.size === 0) return;
+  globalValues.socketio.to(INSPECTOR_ROOM).emit("talkybotS2sSocketInspectorUpdate", {
+    status: getTalkybotS2sSocketTrackerData(),
+    updatedAt: new Date().toISOString(),
+  });
+};
+
+// Build visitor inspector update payload for the admin monitoring page
+const buildVisitorInspectorUpdate = (): VisitorInspectorUpdate => {
+  return {
+    visitorsData: [...globalValues.serverSocketStatus.visitorsData],
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+// Emit visitor inspector update to all clients in the inspector room
+export const emitVisitorInspectorUpdate = (): void => {
+  if (!globalValues?.socketio) return;
+  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  if (!room || room.size === 0) return;
+  globalValues.socketio
+    .to(INSPECTOR_ROOM)
+    .emit("visitorInspectorUpdate", buildVisitorInspectorUpdate());
+};
+
+// Emit Celestrak inspector update to all clients in the inspector room
+export const emitCelestrakInspectorUpdate = (): void => {
+  const socketio = globalValues?.socketio;
+  if (!socketio) return;
+
+  const room = socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  if (!room?.size) return;
+
+  socketio.to(INSPECTOR_ROOM).emit("celestrakInspectorUpdate", {
+    status: { ...globalValues.celestrakTrackerData },
+    updatedAt: new Date().toISOString(),
+  } as CelestrakTrackerDataUpdate);
 };
 
 export const setupSocketIO = (): void => {
@@ -76,7 +120,7 @@ export const setupSocketIO = (): void => {
         try {
           // check app version and git commit
           if (!isEqual(visitorData.appVersion, globalValues.appVersion)) {
-            console.log(
+            ConsoleLogger.debug(
               `SocketIO - visitorJoin: appVersion mismatch between client and server
           client: ${JSON.stringify(visitorData.appVersion)}
           server: ${JSON.stringify(globalValues.appVersion)}`
@@ -84,7 +128,7 @@ export const setupSocketIO = (): void => {
           }
 
           // join the new visitor to the room named the date they are viewing
-          ConsoleLogger.log(
+          ConsoleLogger.debug(
             `New Client: Joining room ${visitorData.source}_${visitorData.dateViewing}`
           );
           socket.join(`${visitorData.source}_${visitorData.dateViewing}`);
@@ -109,25 +153,38 @@ export const setupSocketIO = (): void => {
           // emit visitor count to all clients
           const statusFromServer = getStatusFromServer();
           io.emit("statusFromServer", statusFromServer);
+
+          // emit updated visitor list to any admin monitoring the visitor inspector
+          emitVisitorInspectorUpdate();
         } catch (error) {
-          console.error("SocketIO - visitorJoin: ", error);
+          ConsoleLogger.error("SocketIO - visitorJoin: ", error);
         }
       });
 
-      socket.on("joinFetchInspector", () => {
+      socket.on("joinInspector", () => {
         try {
-          socket.join(FETCH_INSPECTOR_ROOM);
+          socket.join(INSPECTOR_ROOM);
+          // Send all inspector updates on join - each admin page listens only to what it needs
           socket.emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
+          socket.emit("talkybotS2sSocketInspectorUpdate", {
+            status: getTalkybotS2sSocketTrackerData(),
+            updatedAt: new Date().toISOString(),
+          });
+          socket.emit("celestrakInspectorUpdate", {
+            status: { ...globalValues.celestrakTrackerData },
+            updatedAt: new Date().toISOString(),
+          } as CelestrakTrackerDataUpdate);
+          socket.emit("visitorInspectorUpdate", buildVisitorInspectorUpdate());
         } catch (error) {
-          console.error("SocketIO - joinFetchInspector: ", error);
+          ConsoleLogger.error("SocketIO - joinInspector: ", error);
         }
       });
 
-      socket.on("leaveFetchInspector", () => {
+      socket.on("leaveInspector", () => {
         try {
-          socket.leave(FETCH_INSPECTOR_ROOM);
+          socket.leave(INSPECTOR_ROOM);
         } catch (error) {
-          console.error("SocketIO - leaveFetchInspector: ", error);
+          ConsoleLogger.error("SocketIO - leaveInspector: ", error);
         }
       });
 
@@ -151,8 +208,11 @@ export const setupSocketIO = (): void => {
           const statusFromServer = getStatusFromServer();
           // emit visitor count to all clients
           socket.emit("statusFromServer", statusFromServer);
+
+          // emit updated visitor list to any admin monitoring the visitor inspector
+          emitVisitorInspectorUpdate();
         } catch (error) {
-          console.error("SocketIO - disconnect: ", error);
+          ConsoleLogger.error("SocketIO - disconnect: ", error);
         }
       });
 
@@ -185,6 +245,27 @@ export const emitDataUpdate = ({
   dataUpdate: DataUpdate;
 }): void => {
   globalValues.socketio.to(`${source}_${dataDate}`).emit("dataUpdate", dataUpdate);
+};
+
+/**
+ * Emit an incremental data update to clients viewing a specific source and date.
+ * Used for real-time updates (e.g., new audio files from talkybotS2sSocket).
+ */
+export const emitIncrementalDataUpdate = ({
+  source,
+  dataDate,
+  incrementalUpdate,
+}: {
+  source: Source;
+  dataDate: string;
+  incrementalUpdate: IncrementalDataUpdate;
+}): void => {
+  ConsoleLogger.debug(
+    `Emitting incremental ${incrementalUpdate.type} update to room ${source}_${dataDate}`
+  );
+  globalValues.socketio
+    .to(`${source}_${dataDate}`)
+    .emit("incrementalDataUpdate", incrementalUpdate);
 };
 
 /**
@@ -226,7 +307,7 @@ const updateServerFetchTrackers = () => {
         Object.keys(globalValues.fetchTrackers[source][date]).forEach((type) => {
           const status = globalValues.fetchTrackers[source][date][type];
           if (status?.timeoutObject) {
-            ConsoleLogger.log(`${type} Clearing timeout for ${source}_${date}`);
+            ConsoleLogger.debug(`${type} Clearing timeout for ${source}_${date}`);
             clearTimeout(status.timeoutObject);
           }
         });
@@ -261,17 +342,24 @@ const fetchAndEmitAllData = async ({
 
   // Loop through each data fetch config
   for (const dataFetchConfig of dataFetchConfigs) {
-    // Skip data types that are not valid for this source
-    if (!isDataTypeValidForSource(visitorData.source, dataFetchConfig.type)) {
-      ConsoleLogger.log(
-        `${dataFetchConfig.type} Skipping for source ${visitorData.source} (not available)`
+    // Skip data types that are not valid for this source and date
+    if (
+      !isDataTypeValidForSourceAndDate(
+        visitorData.source,
+        dataFetchConfig.type,
+        visitorData.dateViewing,
+        parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+      )
+    ) {
+      ConsoleLogger.debug(
+        `${dataFetchConfig.type} Skipping for source ${visitorData.source} on ${visitorData.dateViewing} (not available)`
       );
       continue;
     }
 
     // Create and store promise for this fetch operation
     const fetchPromise = (async () => {
-      ConsoleLogger.log(
+      ConsoleLogger.debug(
         `${dataFetchConfig.type} New Client: Fetching data to new client for ${visitorData.source}_${visitorData.dateViewing}`
       );
 

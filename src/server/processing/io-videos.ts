@@ -4,6 +4,7 @@ import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
 import { collection } from "utils/consts";
 import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { getVideoStartTimeOverridesRecordsList } from "server/express/routes/db/video";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
@@ -43,7 +44,7 @@ export default async function getVideoData({
       mediaOverrides = await getMediaOverridesList();
     } catch (overrideError) {
       // don't block results if media overrides call fails
-      console.error(overrideError);
+      ConsoleLogger.warn("Error fetching media overrides:", overrideError);
     }
     // Check if there is a video override for this date and Source
     const relevantMediaOverrides: MediaOverride[] =
@@ -87,7 +88,7 @@ export default async function getVideoData({
           return await getVideoStartTimeOverridesRecordsList();
         } catch (timeOverrideError) {
           // don't block video results if we can't find overrides
-          console.error(timeOverrideError);
+          ConsoleLogger.warn("Error fetching video time overrides:", timeOverrideError);
         }
       })(),
     ]);

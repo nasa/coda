@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import type { MutableRefObject, FunctionComponent } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { RootState } from "store/index";
 import { getAppropriateTLE } from "store/ephemera";
 import { setPaneStateValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
@@ -26,8 +25,7 @@ import isNaN from "lodash/isNaN";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { createRoot } from "react-dom/client";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 type MapMarker = {
   marker: any; //the MapBox marker reference
@@ -43,7 +41,7 @@ export const ISSLocationControls: FunctionComponent<{
   const minWidth = 470;
 
   const paneStateData: LocationPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
@@ -64,12 +62,16 @@ export const ISSLocationControls: FunctionComponent<{
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
-            <span className={styles.buttonLabel}>
-              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
-              <div>
-                <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
-              </div>
-            </span>
+            {frameDimensions[0] > minWidth ? (
+              <span className={styles.buttonLabel}>
+                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>
+                  <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+                </div>
+              </span>
+            ) : (
+              <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+            )}
           </button>
         </div>
         <div className={styles.verticalCenter}>
@@ -96,13 +98,10 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     markerNode: null,
   };
 
-  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
-  const layoutLastChanged = useAppSelector(
-    (state: RootState) => state.framework.layoutLastChanged,
-    refEqual
-  );
+  const ephemera: EphemeraState = useAppSelector((state) => state.ephemera, deepEqual);
+  const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, refEqual);
   const paneStateData: LocationPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
   const todayEphemera = ephemera.ephemerisFiles;
@@ -111,8 +110,10 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   const playheadMarkerRef = useRef<MapMarker>(initialMarker);
   const hoverMarkerRef = useRef<MapMarker>(initialMarker);
 
-  const { playhead } = usePlayheadContext();
-  const { hoverPlayhead } = useHoverPlayheadContext();
+  // Clock state from Redux
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const mapContainer = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false); // Added state to track map load
@@ -137,9 +138,9 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
 
   //update map based on changes in seconds / hoverSeconds only after map loading
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !playhead.date || todayEphemera?.length === 0) return;
+    if (!mapLoaded || !mapRef.current || !playheadDate || todayEphemera?.length === 0) return;
 
-    const playHeadISODate = getPlayheadISOString(playhead.date, playhead.appSeconds);
+    const playHeadISODate = getPlayheadISOString(playheadDate, appSeconds);
     const tle = getAppropriateTLE(todayEphemera, playHeadISODate);
 
     const playheadLatLonObj = getLatLngObj(tle, new Date(playHeadISODate).getTime());
@@ -150,9 +151,9 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       playheadMarkerRef.current.marker.setLngLat(playheadLatLonObj);
     }
 
-    if (hoverPlayhead.hoverSeconds) {
+    if (hoverSeconds) {
       hoverMarkerRef.current.markerNode.style.visibility = "visible";
-      const hoverISODate = getPlayheadISOString(playhead.date, hoverPlayhead.hoverSeconds);
+      const hoverISODate = getPlayheadISOString(playheadDate, hoverSeconds);
       const hoverTle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(hoverTle, new Date(hoverISODate).getTime());
@@ -173,7 +174,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
         mapRef.current.panTo(playheadLatLonObj);
       }
     }
-  }, [ephemera, playhead, hoverPlayhead, mapLoaded]);
+  }, [ephemera, playheadDate, appSeconds, hoverSeconds, mapLoaded]);
 
   function initializeMap(mapContainer: MutableRefObject<HTMLDivElement>) {
     mapContainer.current.innerHTML = ""; // Clear the container
@@ -417,6 +418,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   // toggle button display settings
   return (
     <div className={styles.container}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div
         ref={mapContainer}
         className={styles.mapContainer}

@@ -4,14 +4,16 @@ import app from "./restApi";
 import { Server as SocketServer } from "socket.io";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
-import serverLogger from "utils/serverLogger";
-import { ConsoleLogger } from "../../utils/consoleLogger";
+import { initTalkybotS2sSocket, disconnectTalkybotS2sSocket } from "./talkybotS2sSocket";
+import { startCelestrakScheduler, stopCelestrakScheduler } from "./celestrakScheduler";
+import serverLogger from "utils/logging/serverLogger";
+import { ConsoleLogger, LogLevel } from "../../utils/logging/consoleLogger";
 import config from "server/database/mikro-orm.config";
 import { MikroORM } from "@mikro-orm/postgresql";
-import { updateFromCelestrak } from "server/processing/ephemeris-celestrak";
 
-// enable console logging on the server side based on the environment variable
-if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
+// Set console logging level on the server side based on the environment variable
+const logLevel = (process.env.VITE_PUBLIC_LOG_LEVEL as LogLevel) || "off";
+ConsoleLogger.setLevel(logLevel);
 
 // Wrap in async IIFE to handle top-level await
 (async () => {
@@ -22,7 +24,7 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
   const server = createServer();
 
   // Start Socket.IO
-  console.log("*Starting Socket.IO");
+  ConsoleLogger.info("*Starting Socket.IO");
   globalValues.socketio = new SocketServer<
     ClientToServerEvents,
     ServerToClientEvents,
@@ -45,42 +47,38 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
   // express request handler
   server.on("request", app);
 
-  // Celestrak TLE update scheduler - runs regardless of user activity
-  const CELESTRAK_UPDATE_INTERVAL_MS = 120 * 60 * 1000; // 120 minutes (Celestrak itself updates every 2 hours)
-  let celestrakInterval: NodeJS.Timeout | null = null;
-
-  const startCelestrakScheduler = () => {
-    // Initial update on startup. "void" on this "fire and forget" call to explicitly ignore returned Promise
-    void updateFromCelestrak();
-
-    celestrakInterval = setInterval(() => {
-      void updateFromCelestrak();
-    }, CELESTRAK_UPDATE_INTERVAL_MS);
-
-    ConsoleLogger.log("Celestrak TLE update scheduler started (120 minute interval)");
-  };
-
   // Start the server
   server.listen(3001, () => {
     serverLogger.info({ logId: "api-restart" });
-    startCelestrakScheduler();
+
+    // Start Celestrak TLE update scheduler
+    void startCelestrakScheduler();
+
+    // Initialize server-to-server socket connection to Talkybot
+    const talkybotS2sSocket = initTalkybotS2sSocket();
+    if (talkybotS2sSocket) {
+      globalValues.talkybotS2sSocket = talkybotS2sSocket;
+      ConsoleLogger.info("TalkybotS2s Socket to Talkybot initialized");
+    }
   });
 
   // Simple shutdown handler
   const gracefulShutdown = async () => {
-    console.log("Gracefully shutting down server...");
+    ConsoleLogger.info("Gracefully shutting down server...");
 
     // Stop Celestrak scheduler
-    if (celestrakInterval) {
-      clearInterval(celestrakInterval);
-      console.log("Celestrak scheduler stopped");
-    }
+    stopCelestrakScheduler();
+
+    // Disconnect TalkybotS2s socket to Talkybot
+    disconnectTalkybotS2sSocket();
+    globalValues.talkybotS2sSocket = null;
+    ConsoleLogger.info("TalkybotS2s Socket disconnected");
 
     // Close Socket.IO first
     if (globalValues.socketio) {
       await new Promise<void>((resolve) => {
         globalValues.socketio.close(() => {
-          console.log("Socket.IO server closed");
+          ConsoleLogger.info("Socket.IO server closed");
           resolve();
         });
       });
@@ -93,41 +91,41 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
           if (err) {
             // Check for ERR_SERVER_NOT_RUNNING with proper type checking
             if (err instanceof Error && "code" in err && err.code === "ERR_SERVER_NOT_RUNNING") {
-              console.log("Server was already closed");
+              ConsoleLogger.warn("Server was already closed");
               resolve();
             } else {
-              console.error("Error closing HTTP server:", err);
+              ConsoleLogger.error("Error closing HTTP server:", err);
               reject(err);
             }
           } else {
-            console.log("HTTP server closed");
+            ConsoleLogger.info("HTTP server closed");
             resolve();
           }
         });
       });
     } catch (err) {
       // Just log the error, but continue shutdown
-      console.log("Server might already be closed:", err);
+      ConsoleLogger.warn("Server might already be closed:", err);
     }
 
     // Close database connections
     try {
       if (globalValues.orm) {
         await globalValues.orm.close();
-        console.log("Database connections closed");
+        ConsoleLogger.info("Database connections closed");
       }
     } catch (err) {
-      console.error("Error closing database connection:", err);
+      ConsoleLogger.error("Error closing database connection:", err);
     }
 
-    console.log("Shutdown complete");
+    ConsoleLogger.info("Shutdown complete");
   };
 
   // Handle process events
   if (typeof process !== "undefined") {
     process.on("message", (msg) => {
       if (msg === "shutdown") {
-        gracefulShutdown().catch(console.error);
+        gracefulShutdown().catch(ConsoleLogger.error);
       }
     });
 
@@ -137,6 +135,6 @@ if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
     process.on("SIGUSR2", gracefulShutdown);
   }
 })().catch((err) => {
-  console.error("Failed to start server:", err);
+  ConsoleLogger.error("Failed to start server:", err);
   process.exit(1);
 });

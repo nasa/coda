@@ -83,14 +83,8 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   //# Unlikely these ever need to change
-  IO_API_URL: { default: "https://io.jsc.nasa.gov/api/search/rpp=500" },
-  IO_HOST: { default: "https://io.jsc.nasa.gov" },
-  WIKI_BASE_URL: { default: "https://wiki.jsc.nasa.gov" },
-  DEFAULT_CACHE_AGE: { default: 300 },
-  TALKYBOT_URL: {
-    local: "https://talkybot.fit.nasa.gov",
-    default: "https://talkybot.fit.nasa.gov",
-  },
+  // VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
+  VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
 
   // Actual FIT environments deployed by GitLab CI the CACHE_ROOT needs to be relative
   // for tests run in GitLab CI
@@ -102,9 +96,6 @@ export const config: DotenvConfig<typeof environments> = {
   // use coda.fit.nasa.gov to remove variance. We should rename this var to
   // something like "IO_REQUEST_ORIGIN_HEADER" or something.
   HOST: { default: "https://coda.fit.nasa.gov" },
-
-  // Optional for local dev only?
-  IO_MOCK_MEDIA_URL: { default: "https://coda-data.apolloinrealtime.org/mocks/" },
 
   // - These values are not used locally since the docker-compose is overridden by
   //   the docker-compose.preview files. Those files build the images directly from the Dockerfiles
@@ -140,10 +131,7 @@ export const config: DotenvConfig<typeof environments> = {
    * MTX Live streams
    */
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
-  VITE_PUBLIC_LIVE_STREAMS_ENABLED: {
-    local: "true",
-    default: "true",
-  },
+  VITE_PUBLIC_LIVE_STREAMS_ENABLED: { default: "true" },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
   VITE_PUBLIC_MEDIA_MTX_CONTROL_URL: {
     local: "http://127.0.0.1:9997/",
@@ -159,21 +147,19 @@ export const config: DotenvConfig<typeof environments> = {
     local: "http://127.0.0.1:9996/",
     default: "https://emss-lambda2.fit.nasa.gov/recordings/",
   },
+  /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS: {
+    default: "7",
+  },
 
   /**
    * Maplibre variables
    */
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
   // no trailing slash
-  VITE_PUBLIC_MAPLIBRE_BASE_URL: {
-    local: "https://emss-labs.fit.nasa.gov/localearth",
-    default: "https://emss-labs.fit.nasa.gov/localearth",
-  },
+  VITE_PUBLIC_MAPLIBRE_BASE_URL: { default: "https://emss-labs.fit.nasa.gov/localearth" },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
-  VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME: {
-    local: "20250213.pmtiles",
-    default: "20250213.pmtiles",
-  },
+  VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME: { default: "20250213.pmtiles" },
 
   /*
   !!!! SENSITIVE DATA !!!!
@@ -282,7 +268,7 @@ export const config: DotenvConfig<typeof environments> = {
     //    local: "https://localhost:9443/applog"
     //    (this may be problematic if we disallow insecure certs in emss/packages,
     //    "logger" package, as you'll need to setup a trusted cert)
-    local: "https://carbon-emss-dev.fit.nasa.gov/applog",
+    local: "https://emss-logging.fit.nasa.gov/applog",
 
     // Send this app's logs to a location in FIT. Typically this will be to the
     // emss-logging server, but could also be to dev servers running emss/logs
@@ -315,9 +301,18 @@ export const config: DotenvConfig<typeof environments> = {
     default: "false",
   },
 
-  // show / hide console logs via logger class on server side
-  SHOW_CLG: {
-    local: "true",
-    default: "false",
+  // log level for ConsoleLogger and emss logging service (off, error, warn, info, debug)
+  VITE_PUBLIC_LOG_LEVEL: {
+    local: "debug",
+    default: "info",
+  },
+
+  /**
+   * EMSS Token for inter-service communication
+   */
+  EMSS_TOKEN: {
+    default: {
+      type: "required-from-secret",
+    },
   },
 };

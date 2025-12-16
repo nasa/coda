@@ -3,13 +3,20 @@ import { paneTypeShortVal, sourceShortVal } from "utils/consts";
 
 /**
  * Generates a URL string that represents the state of the application.
+ * @param framework - The framework state
+ * @param date - The current date string
+ * @param appSeconds - The current app seconds
  * @returns {string}
  */
-export function generateShareURL(framework: FrameworkState, playhead: Playhead): string {
-  const dt = new Date(playhead.date);
+export function generateShareURL(
+  framework: FrameworkState,
+  date: string,
+  appSeconds: number
+): string {
+  const dt = new Date(date);
 
   const missionDate = shortdateFromDateString(dt.toISOString());
-  const missionTime = hhmmssFromSeconds(playhead.appSeconds);
+  const missionTime = hhmmssFromSeconds(appSeconds);
 
   const layout = framework.layout;
   const shortSource = sourceShortVal[framework.source];
@@ -151,12 +158,11 @@ function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
 /**
  * @returns {string}
  * Chars 0,1 digits: pane type
- * Char 2: S/G channel number - 1
+ * No channel info - all channels selected by default
  */
-function getStateStringForComm(state: CommPaneStateData) {
-  const paneTypeString = "0" + paneTypeShortVal.transcript;
-  const sgChannel = state.sgChannel.toString();
-  return `${paneTypeString}${sgChannel}`;
+function getStateStringForComm(_state: CommPaneStateData) {
+  const paneTypeString = "0" + paneTypeShortVal.talkybot;
+  return `${paneTypeString}`;
 }
 
 /**
@@ -308,8 +314,8 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return gpsLocationReturnVal;
-    case paneTypeShortVal.transcript:
-      /* Char 2: sgChannel number
+    case paneTypeShortVal.talkybot:
+      /* Channel info ignored - all channels selected by default
        */
       const commReturnVal: { paneType: string; paneStateData: CommPaneStateData } = {
         paneType: "comm",
@@ -317,7 +323,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
           ready: true,
           lockScroll: true,
           filterActive: false,
-          sgChannel: parseInt(frameString.substring(2, 3)),
+          sgChannels: [],
           isMuted: false,
           showHelp: true,
         },

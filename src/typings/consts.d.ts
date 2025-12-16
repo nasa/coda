@@ -28,8 +28,7 @@ type PaneTypeKey =
   | "iss_location"
   | "gps_location"
   | "photo_all"
-  | "transcript"
-  | "sgAudio"
+  | "talkybot"
   | "graph";
 
 /** Pane types converted to integers */

@@ -18,6 +18,10 @@ import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
+import ConsoleLogger from "utils/logging/consoleLogger";
+
+const IO_HOST = "https://io.jsc.nasa.gov";
+const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
 
 /**
  * Perform a request against the Imagery Online (IO) API with the given parameters.
@@ -25,7 +29,7 @@ import { addMs } from "../../utils/date";
  * @returns Promise resolving to IO API response with docs array
  */
 async function fetchIO(params: string): Promise<IOResponse> {
-  const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
+  const url = `${IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
@@ -40,7 +44,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
     const res = await fetchWithTimeout(url, options);
     return res.json();
   } catch (e) {
-    console.error("Error fetching IO data", e);
+    ConsoleLogger.error("Error fetching IO data", e);
     throw e; // Re-throw to allow caller to handle the error
   }
 }
@@ -48,11 +52,11 @@ async function fetchIO(params: string): Promise<IOResponse> {
 /** Fetch an override manifest for video, photo, or transcript sources. */
 export async function fetchForgedIoManifest(
   override: MediaOverride
-): Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]> {
+): Promise<VideoFile[] | PhotoFile[]> {
   const dataPath = `${override.url}/${override.type}Manifest.json`;
 
   const res = await fetchWithTimeout(dataPath);
-  return res.json() as Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]>;
+  return res.json() as Promise<VideoFile[] | PhotoFile[]>;
 }
 
 /**
@@ -277,9 +281,9 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
-  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  const dataURL = `${IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  const mediaLowResURL = `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const mediaLowResURL = `${IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   const videoFile: VideoFile = {
     id: doc.nasa_id,
@@ -362,11 +366,11 @@ function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFil
  * @returns Parsed PhotoFile object ready for application use
  */
 function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
-  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  const dataURL = `${IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  const mediaLowResURL = `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const mediaHighResURL = `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const mediaThumbURL = `${process.env.IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaLowResURL = `${IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaHighResURL = `${IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaThumbURL = `${IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,

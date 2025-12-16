@@ -1,7 +1,6 @@
 import isNil from "lodash/isNil";
 import styles from "./frame.module.css";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { RootState } from "store";
 
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
@@ -105,10 +104,7 @@ const headerContainerHeight = 35;
 
 /** Renders a frame in the viewer */
 const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
-  const frameState = useAppSelector(
-    (state: RootState) => state.framework.frames[frameId],
-    shallowEqual
-  );
+  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
 
   let paneType: string = null;
   if (frameState) {

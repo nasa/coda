@@ -1,8 +1,8 @@
-FROM bluenviron/mediamtx:1.11.2-ffmpeg
+FROM bluenviron/mediamtx:1.15.4-ffmpeg
 
 # add dejavu font
 RUN apk add --no-cache \
-    font-dejavu=2.37-r5
+    font-dejavu=2.37-r6
 
 # add entrypoint script
 COPY ./docker/mediamtx-mock/entrypoint.sh /entrypoint.sh

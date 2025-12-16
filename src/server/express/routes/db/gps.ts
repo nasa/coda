@@ -7,6 +7,8 @@ import {
   upsertGpxTrackRecord,
   deleteGpxTrackRecordById,
 } from "server/processing/gps";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Get gps tracks from CODA DB for a given date
@@ -43,7 +45,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       res.status(200).json(records);
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
@@ -60,13 +62,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "gpx track not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, date, name, gpxData } = req.body as GPSUpsertRequest;
 
   try {
@@ -81,13 +83,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     const message = isNew ? "gpx track inserted" : "gpx track updated";
     res.status(statusCode).json({ status: "success", message, data: record });
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
   }
 });
 
 // delete
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
 
   try {
@@ -98,7 +100,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "gpx track not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the DELETE request ${e}` });
   }
 });

@@ -1,8 +1,8 @@
 /* eslint-env node, jest */
 
 import expectCalledTimes from "@emss/jest-expect-called-times";
-import clientLogger from "utils/clientLogger";
-import serverLogger from "utils/serverLogger";
+import clientLogger from "utils/logging/clientLogger";
+import serverLogger from "utils/logging/serverLogger";
 
 type ServerLoggerFunction = keyof typeof serverLogger;
 type ClientLoggerFunction = keyof typeof clientLogger;

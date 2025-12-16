@@ -1,26 +1,19 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./status.module.css";
-import { RootState } from "store/index";
 import { useEffect, useState, FunctionComponent } from "react";
-import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { isDataTypeValidForSource, isDateValidForMtxVideo } from "utils/sourceDataTypeMap";
 
 const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay }) => {
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
-  );
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-  const gps: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
-  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
-  const dayNight: DayNightState = useAppSelector((state: RootState) => state.dayNight, deepEqual);
-  const transcript: TranscriptState = useAppSelector(
-    (state: RootState) => state.transcript,
-    deepEqual
-  );
-  const sgAudio: SgAudioState = useAppSelector((state: RootState) => state.sgAudio, deepEqual);
-  const graphs: GraphsState = useAppSelector((state: RootState) => state.graphs, deepEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
+  const gps: GPSState = useAppSelector((state) => state.gps, deepEqual);
+  const ephemera: EphemeraState = useAppSelector((state) => state.ephemera, deepEqual);
+  const dayNight: DayNightState = useAppSelector((state) => state.dayNight, deepEqual);
+  const graphs: GraphsState = useAppSelector((state) => state.graphs, deepEqual);
+  const talkybot: TalkybotState = useAppSelector((state) => state.talkybot, deepEqual);
 
   const [videoStatusIo, setVideoStatusIo] = useState({
     message: "",
@@ -46,19 +39,15 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     message: "",
     classname: styles.loading,
   });
-  const [transcriptStatus, setTranscriptStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [sgAudioStatus, setSgAudioStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
   const [graphStatus, setGraphStatus] = useState({
     message: "",
     classname: styles.loading,
   });
   const [dayNightStatus, setDayNightStatus] = useState({
+    message: "",
+    classname: styles.loading,
+  });
+  const [talkybotStatus, setTalkybotStatus] = useState({
     message: "",
     classname: styles.loading,
   });
@@ -91,31 +80,6 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
   useEffect(() => {
     setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
   }, [ephemera.metadata]);
-  useEffect(() => {
-    setGpsStatus(createStatus(gps.metadata, gps.gpsTracks.length > 0));
-  }, [gps.metadata]);
-
-  useEffect(() => {
-    setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
-  }, [ephemera.metadata]);
-  useEffect(() => {
-    let hasTranscripts = false;
-    transcript.transcripts.forEach((transcript) => {
-      if (transcript.utterances.length > 0) {
-        hasTranscripts = true;
-      }
-    });
-
-    setTranscriptStatus(createStatus(transcript.metadata, hasTranscripts));
-  }, [transcript.metadata]);
-
-  useEffect(() => {
-    const hasSgAudio =
-      sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.some(
-        (channelArray) => channelArray?.length > 0
-      ) ?? false;
-    setSgAudioStatus(createStatus(sgAudio.metadata, hasSgAudio));
-  }, [sgAudio.metadata]);
 
   useEffect(() => {
     const hasGraphs = graphs.graphsManifest?.graphs?.length > 0;
@@ -127,14 +91,31 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     setDayNightStatus(createStatus(dayNight.metadata, hasDayNight));
   }, [dayNight.metadata]);
 
+  useEffect(() => {
+    const hasTalkybot = talkybot.audioFiles?.length > 0;
+    setTalkybotStatus(createStatus(talkybot.metadata, hasTalkybot));
+  }, [talkybot.metadata]);
+
   if (!largeDisplay) {
     const dataTypes = [];
 
+    // Status for date being too old for live video
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(
+      clockDate,
+      parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+    );
+    const liveVideoUnneededStatus = {
+      message: "not available for dates > 7 days ago",
+      classname: styles.unneeded,
+    };
+
     if (isDataTypeValidForSource(source, "mtxvideo")) {
       dataTypes.push({
-        label: "Live Video",
-        status: videoStatusMtx,
-        title: "Live Video " + videoStatusMtx.message,
+        label: "EMSS Video",
+        status: liveVideoDateTooOld ? liveVideoUnneededStatus : videoStatusMtx,
+        title:
+          "EMSS Video " +
+          (liveVideoDateTooOld ? liveVideoUnneededStatus.message : videoStatusMtx.message),
       });
     }
     if (isDataTypeValidForSource(source, "videos")) {
@@ -182,18 +163,11 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         title: "Day/Night " + dayNightStatus.message,
       });
     }
-    if (isDataTypeValidForSource(source, "transcript")) {
+    if (isDataTypeValidForSource(source, "talkybot")) {
       dataTypes.push({
-        label: "Transcript",
-        status: transcriptStatus,
-        title: "Transcript " + transcriptStatus.message,
-      });
-    }
-    if (isDataTypeValidForSource(source, "sgaudio")) {
-      dataTypes.push({
-        label: "SG Audio",
-        status: sgAudioStatus,
-        title: "SG Audio " + sgAudioStatus.message,
+        label: "Talkybot",
+        status: talkybotStatus,
+        title: "Talkybot " + talkybotStatus.message,
       });
     }
     if (isDataTypeValidForSource(source, "graph")) {
@@ -232,18 +206,30 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
   } else {
     const dataTypes = [];
 
+    // Status for date being too old for live video
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(
+      clockDate,
+      parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+    );
+    const liveVideoUnneededStatus = {
+      message: "not available for dates > 7 days ago",
+      classname: styles.unneeded,
+    };
+
     if (isDataTypeValidForSource(source, "mtxvideo")) {
       dataTypes.push({
-        label: "Live Video",
-        status: videoStatusMtx,
-        title: "Live Video " + videoStatusMtx.message,
+        label: "EMSS Video",
+        status: liveVideoDateTooOld ? liveVideoUnneededStatus : videoStatusMtx,
+        title:
+          "EMSS Video " +
+          (liveVideoDateTooOld ? liveVideoUnneededStatus.message : videoStatusMtx.message),
       });
     }
     if (isDataTypeValidForSource(source, "videos")) {
       dataTypes.push({
         label: "IO Video",
         status: videoStatusIo,
-        title: "Video " + videoStatusIo.message,
+        title: "IO Video " + videoStatusIo.message,
       });
     }
     if (isDataTypeValidForSource(source, "photos")) {
@@ -284,18 +270,11 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         title: "Day/Night " + dayNightStatus.message,
       });
     }
-    if (isDataTypeValidForSource(source, "transcript")) {
+    if (isDataTypeValidForSource(source, "talkybot")) {
       dataTypes.push({
-        label: "Transcript",
-        status: transcriptStatus,
-        title: "Transcript " + transcriptStatus.message,
-      });
-    }
-    if (isDataTypeValidForSource(source, "sgaudio")) {
-      dataTypes.push({
-        label: "SG Audio",
-        status: sgAudioStatus,
-        title: "SG Audio " + sgAudioStatus.message,
+        label: "Talkybot",
+        status: talkybotStatus,
+        title: "Talkybot " + talkybotStatus.message,
       });
     }
     if (isDataTypeValidForSource(source, "graph")) {

@@ -5,6 +5,7 @@ import { getSatelliteInfo } from "tle.js";
 import getEphemera from "./ephemeris";
 import { get as ntlmGET } from "@evamss/ntlm";
 import { isSameDate, midnightZulu, mmddyy } from "../../utils/date";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_predicted";
 
@@ -155,7 +156,7 @@ export async function getDayNight({
     } catch (error) {
       topoError =
         error instanceof Error ? error.message : "Unknown error fetching TOPO day/night data";
-      console.error("TOPO fetch failed:", error);
+      ConsoleLogger.warn("TOPO fetch failed, attempting fallback:", error);
     }
   }
 
@@ -177,7 +178,7 @@ export async function getDayNight({
   } catch (error) {
     const fallbackError =
       error instanceof Error ? error.message : "Unknown error fetching ISS location day/night data";
-    console.error("ISS location fallback failed:", error);
+    ConsoleLogger.error("ISS location fallback failed:", error);
     const combinedError = `${topoError}. ${fallbackError}`;
     return createErrorResponse(combinedError, "ephemeris_db");
   }

@@ -1,23 +1,23 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import isNil from "lodash/isNil";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
-import { RootState } from "store/index";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
 import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
 import { FunctionComponent, useState } from "react";
 import { isSameDate } from "../../utils/date";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { setAppSeconds } from "store/clock";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData: EventPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
@@ -39,20 +39,19 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 };
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  // Clock state from Redux
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [_appSeconds, setLocalAppSeconds] = useState(0);
 
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
-  );
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
   const paneStateData: EventPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
   const allSequences = sequences.allSequences;
   const seq = allSequences.find((seq) =>
-    isSameDate(new Date(seq.startDate), new Date(playhead.date))
+    isSameDate(new Date(seq.startDate), new Date(playheadDate))
   );
   const dispatch = useAppDispatch();
   const [seqSourceName] = useState<"Wiki">("Wiki");
@@ -89,10 +88,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             key={asPerformed[evNum][i].startTimeSeconds}
             className={styles.taskContainer}
             onClick={() => {
-              dispatchPlayhead({
-                type: "SET_APP_SECONDS",
-                payload: asPerformed[evNum][i].startTimeSeconds,
-              });
+              dispatch(setAppSeconds(asPerformed[evNum][i].startTimeSeconds));
             }}
           >
             <div className={styles.taskTime}>
@@ -110,6 +106,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   return (
     <div className={styles.main}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {!isNil(seq) && seq.type === sequenceType.EVA ? (
         <>
           <table className={styles.dataTable}>
@@ -127,10 +124,11 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                   <span
                     className={`${styles.labelValue} ${styles.leftPadded} ${styles.petValue}`}
                     onClick={() => {
-                      dispatchPlayhead({
-                        type: "SET_APP_SECONDS",
-                        payload: appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`),
-                      });
+                      dispatch(
+                        setAppSeconds(
+                          appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`)
+                        )
+                      );
                     }}
                   >
                     {seq.startTime}Z

@@ -1,79 +1,102 @@
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import styles from "./admin.module.css";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
+import adminCommon from "./adminCommon.module.css";
 
-const AdminIndex: FunctionComponent = () => {
+const AdminGPS: FunctionComponent = () => {
   const navigate = useNavigate();
-  useEffect(() => {
-    (async () => {
-      //check permissions
-      const user = await getCurrentUser();
-      if (user instanceof Error || !isSuperuser(user)) {
-        navigate("/"); //Redirect to homepage
-      }
-    })();
-  }, []);
-
-  return (
-    <div>
-      <Link to="/admin">Admin Home</Link>
-      <h1>GPS</h1>
-      <p>
-        These records contain GPS tracks stored in GPX format. Such tracks are usually generated
-        during field tests and are displayed in CODA in the GPS Position component for TEST_EVENTs
-        with matching dates to the records inserted here.
-      </p>
-      <h3>
-        <Link to={`/admin/gpsUpsert`}>Create Record</Link>
-      </h3>
-      <h3>Records</h3>
-      <ListRecords />
-    </div>
-  );
-};
-
-export default AdminIndex;
-
-const ListRecords: FunctionComponent = () => {
   const [records, setRecords] = useState<GPXTrackListRecord[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
+      const user = await getCurrentUser();
+      if (user instanceof Error || !isSuperuser(user)) {
+        navigate("/");
+        return;
+      }
       const response = await fetch("/api/v1/db/gps");
       const data: GPXTrackListRecord[] = await response.json();
       setRecords(data);
-    };
-    fetchData();
-  }, []);
+    })();
+  }, [navigate]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/v1/db/gps/${id}`, {
-      method: "DELETE",
-    });
-    setRecords(records?.filter((record) => record.id !== id));
+    if (!confirm("Are you sure you want to delete this record?")) return;
+    await fetch(`/api/v1/db/gps/${id}`, { method: "DELETE" });
+    setRecords(records.filter((record) => record.id !== id));
   };
 
+  // Group records by date
+  const groupedRecords = useMemo(() => {
+    const groups: Record<string, GPXTrackListRecord[]> = {};
+    records.forEach((record) => {
+      if (!groups[record.date]) {
+        groups[record.date] = [];
+      }
+      groups[record.date].push(record);
+    });
+    // Sort dates descending
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+  }, [records]);
+
   return (
-    <div>
-      <ul>
-        {records?.map((record) => (
-          <li key={record.id} className={styles.listItem}>
-            <Link to={`/admin/gpsUpsert?id=${record.id}`}>
-              {record.date} - {record.name}
+    <main className={adminCommon.page}>
+      <div className={adminCommon.container}>
+        <Link to="/admin" className={adminCommon.backLink}>
+          ← Admin
+        </Link>
+        <h1 className={adminCommon.pageTitle}>GPS Data</h1>
+        <p className={adminCommon.introText}>
+          Manage GPS tracks stored in GPX format. These tracks are typically generated during field
+          tests and are displayed in the GPS Position component for TEST_EVENTs with matching dates.
+        </p>
+
+        <section className={adminCommon.section}>
+          <h2 className={adminCommon.sectionHeading}>Records</h2>
+          <div className={adminCommon.details}>
+            <Link to="/admin/gpsUpsert" className={adminCommon.createButton}>
+              + Create Record
             </Link>
-            <FontAwesomeIcon
-              onClick={() => {
-                confirm("Are you sure you want to delete this record?") && handleDelete(record.id);
-              }}
-              icon={faTrashAlt}
-            />
-          </li>
-        ))}
-      </ul>
-    </div>
+
+            {records.length === 0 ? (
+              <p className={adminCommon.emptyState}>No GPS records found.</p>
+            ) : (
+              <div style={{ marginTop: "12px" }}>
+                {groupedRecords.map(([date, dateRecords]) => (
+                  <div key={date} className={adminCommon.dateGroup}>
+                    <h3 className={adminCommon.dateGroupHeader}>{date}</h3>
+                    <ul className={adminCommon.dateGroupRecords}>
+                      {dateRecords.map((record) => (
+                        <li key={record.id} className={adminCommon.recordItem}>
+                          <Link
+                            to={`/admin/gpsUpsert?id=${record.id}`}
+                            className={adminCommon.recordLink}
+                          >
+                            {record.name}
+                          </Link>
+                          <button
+                            type="button"
+                            className={adminCommon.deleteButton}
+                            onClick={() => handleDelete(record.id)}
+                            aria-label={`Delete ${record.name}`}
+                          >
+                            <FontAwesomeIcon icon={faTrashAlt} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 };
+
+export default AdminGPS;

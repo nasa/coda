@@ -12,7 +12,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Button from "components/interface/button";
-import type { RootState } from "store/index";
 import { visibleVideosBySecond } from "store/videos";
 import {
   appSecondsFromDateString,
@@ -27,7 +26,7 @@ import { ModalDropdown } from "components/interface/dropdown-modal";
 import { isSameDate, midnightZulu } from "../../utils/date";
 import VideoMTXPlaybackPane from "./video-mtx-playback";
 import VideoHlsPane from "./video-hls";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const IOInfoButton: FunctionComponent<{
   clickHandler: Function;
@@ -47,12 +46,16 @@ export const IOInfoButton: FunctionComponent<{
         }
       }}
     >
-      <span className={styles.ioLabel}>
-        {frameDimensions[0] > 470 ? "IO " : ""}
-        <span className={iconAdjustment}>
-          <FontAwesomeIcon icon={faInfo} />
+      {frameDimensions[0] > 470 ? (
+        <span className={styles.ioLabel}>
+          IO
+          <span className={iconAdjustment}>
+            <FontAwesomeIcon icon={faInfo} />
+          </span>
         </span>
-      </span>
+      ) : (
+        <FontAwesomeIcon icon={faInfo} />
+      )}
     </button>
   );
 };
@@ -96,29 +99,27 @@ const RightButtons: FunctionComponent<{
   frameDimensions: number[];
 }> = ({ frameID, paneStateData, frameDimensions }) => {
   const dispatch = useAppDispatch();
-  const frames = useAppSelector((state: RootState) => state.framework.frames, deepEqual);
+  const frames = useAppSelector((state) => state.framework.frames, deepEqual);
 
   const downlinkNumber = useAppSelector(
-    (state: RootState) => (state.framework.frames[frameID].paneStateData.channel + 1).toString(),
+    (state) => (state.framework.frames[frameID].paneStateData.channel + 1).toString(),
     deepEqual
   );
 
-  const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
+  const mtxPlaybackRecordsForDownlink = useAppSelector((state) => {
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
   }, deepEqual);
 
-  const mtxHlsEndpoints = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpoints,
-    deepEqual
-  );
+  const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
 
-  const source = useAppSelector((state: RootState) => {
+  const source = useAppSelector((state) => {
     return state.framework.source;
   }, refEqual);
 
   const [videoPlayerType, setVideoPlayerType] = useState<VideoPlayerType>("IO");
 
-  const { playhead } = usePlayheadContext();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   useEffect(() => {
     // if there is MTX video available, use the MTX playback video pane
@@ -127,12 +128,12 @@ const RightButtons: FunctionComponent<{
       for (const mtxPlaybackRecord of mtxPlaybackRecordsForDownlink) {
         // check that the mtxPlaybackRecord is for today. Remember that these records were modifed
         // when they were fetched to look like they started at 00:00 today if they started before today
-        if (!isSameDate(new Date(mtxPlaybackRecord.start), new Date(playhead.date))) continue;
+        if (!isSameDate(new Date(mtxPlaybackRecord.start), new Date(playheadDate))) continue;
 
         const mtxDlStartAppSeconds = appSecondsFromDateString(mtxPlaybackRecord.start);
         if (
-          playhead.appSeconds >= mtxDlStartAppSeconds &&
-          playhead.appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
+          appSeconds >= mtxDlStartAppSeconds &&
+          appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
         ) {
           videoPlayerType = "MTX";
           break;
@@ -152,13 +153,13 @@ const RightButtons: FunctionComponent<{
     const duration = hlsEndpoint?.secondsAvailable || 0;
 
     if (
-      isSameDate(new Date(playhead.date), now) &&
-      Math.abs(playhead.appSeconds - nowAppSeconds) < duration
+      isSameDate(new Date(playheadDate), now) &&
+      Math.abs(appSeconds - nowAppSeconds) < duration
     ) {
       videoPlayerType = "HLS";
     }
     setVideoPlayerType(videoPlayerType);
-  }, [frameID, playhead.appSeconds, mtxPlaybackRecordsForDownlink, playhead.date]);
+  }, [frameID, appSeconds, mtxPlaybackRecordsForDownlink, playheadDate]);
 
   /**
    * When unmuting, we need to make this pane the only video pane that is unmuted and mute the others.
@@ -183,6 +184,7 @@ const RightButtons: FunctionComponent<{
 
   return (
     <div className={styles.rightButtonsContainer}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.rightButtons}>
         {videoPlayerType === "IO" && (
           <>
@@ -381,26 +383,24 @@ export const VideoDLPaneControls: FunctionComponent<{
 }> = ({ frameID, frameDimensions }) => {
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
-  const { playhead } = usePlayheadContext();
-  const playheadDate = new Date(playhead.date);
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
+  const playheadDate = new Date(clockDate);
 
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
   const videoFiles = videos.videoFiles;
   const visibleVideos = visibleVideosBySecond(videoFiles, playheadDate);
-  const mtxPlaybackAvailability = useAppSelector((state: RootState) => {
+  const mtxPlaybackAvailability = useAppSelector((state) => {
     return state.videos.mtxPlaybackAvailability;
   }, deepEqual);
-  const mtxHlsEndpoints = useAppSelector(
-    (state: RootState) => state.videos.mtxHlsEndpoints,
-    deepEqual
-  );
+  const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
 
   const paneStateData: VideoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
-  const source = useAppSelector((state: RootState) => {
+  const source = useAppSelector((state) => {
     return state.framework.source;
   }, refEqual);
 
@@ -425,14 +425,14 @@ export const VideoDLPaneControls: FunctionComponent<{
 
         const mtxDlStartAppSeconds = appSecondsFromDateString(mtxPlaybackRecord.start);
         if (
-          playhead.appSeconds >= mtxDlStartAppSeconds &&
-          playhead.appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
+          appSeconds >= mtxDlStartAppSeconds &&
+          appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
         ) {
           mtxForThisChannel = true;
           break;
         }
       }
-      const videosNextSecond = visibleVideos.get(`${playhead.appSeconds + 1}/${channel}`);
+      const videosNextSecond = visibleVideos.get(`${appSeconds + 1}/${channel}`);
       ioVideoForThisChannel = !isNil(videosNextSecond);
 
       // Is there hls video data available for this time? if so, use HLS player
@@ -447,10 +447,7 @@ export const VideoDLPaneControls: FunctionComponent<{
 
       const hlsDuration = hlsEndpoint?.secondsAvailable || 0;
 
-      if (
-        isSameDate(playheadDate, now) &&
-        Math.abs(playhead.appSeconds - nowAppSeconds) < hlsDuration
-      ) {
+      if (isSameDate(playheadDate, now) && Math.abs(appSeconds - nowAppSeconds) < hlsDuration) {
         // loop through the hlsEndpointNames and look for this downlink channel
         for (const mtxHlsEndpoint of mtxHlsEndpoints) {
           if (mtxHlsEndpoint.name.includes(downlinkNumber)) {
@@ -466,18 +463,21 @@ export const VideoDLPaneControls: FunctionComponent<{
       }
     }
     setChannelAvailability(cAvailability);
-  }, [visibleVideos, playhead.appSeconds, mtxPlaybackAvailability, mtxHlsEndpoints]);
+  }, [visibleVideos, appSeconds, mtxPlaybackAvailability, mtxHlsEndpoints]);
 
   const ChannelSelector =
     minWidth > frameDimensions[0] ? ChannelSelectorSmall : ChannelSelectorLarge;
 
   return (
-    <ChannelSelector
-      frameID={frameID}
-      channelAvailability={channelAvailability}
-      paneStateData={paneStateData}
-      frameDimensions={frameDimensions}
-    />
+    <>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
+      <ChannelSelector
+        frameID={frameID}
+        channelAvailability={channelAvailability}
+        paneStateData={paneStateData}
+        frameDimensions={frameDimensions}
+      />
+    </>
   );
 };
 
@@ -489,16 +489,17 @@ export const VideoOtherPaneControls: FunctionComponent<{
 
   const minWidth = 527; // minimum width of the video pane before breaking into dropdown for downlinks
 
-  const { playhead } = usePlayheadContext();
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
   const paneStateData: VideoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
   const videoFiles = videos.videoFiles;
-  const visibleVideos = visibleVideosBySecond(videoFiles, new Date(playhead.date));
+  const visibleVideos = visibleVideosBySecond(videoFiles, new Date(clockDate));
 
   const [nonDlVideoIDs, setNonDlVideoIDs] = useState([]);
 
@@ -528,8 +529,8 @@ export const VideoOtherPaneControls: FunctionComponent<{
   };
 
   useEffect(() => {
-    setNonDlVideoIDs(visibleVideos.get(`${playhead.appSeconds}/-1`) || []);
-  }, [visibleVideos, playhead]);
+    setNonDlVideoIDs(visibleVideos.get(`${appSeconds}/-1`) || []);
+  }, [visibleVideos, appSeconds]);
 
   let selectActiveStyle = "";
   if (nonDlVideoIDs.length > 0) {
@@ -541,6 +542,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
 
   return (
     <div className={styles.controls}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div
         className={`${styles.selectContainer} ${dropDownWidthClass}`}
         title={getPrettyVideoTitle(paneStateData.activeVideoFileID)}
@@ -593,16 +595,18 @@ export const isAutoplayError = (e: unknown): boolean => {
 const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
-  const { playhead } = usePlayheadContext();
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
 
   const paneStateData: VideoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
-  const playheadDate = new Date(playhead.date);
+  const playheadDate = new Date(clockDate);
   const startOfDay = playheadDate.valueOf() / 1000;
 
   const videoFiles = videos.videoFiles;
@@ -619,7 +623,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
     const videoID = Number(paneStateData.activeVideoFileID);
     const videoStart: number = videoFiles[videoID]?.start || 0;
-    if (videoID || !isSameDate(new Date(playhead.date), new Date(videoStart))) {
+    if (videoID || !isSameDate(new Date(clockDate), new Date(videoStart))) {
       setMetadata(null);
     }
   };
@@ -631,7 +635,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
 
     const channel = paneStateData.channel;
-    const videosNextSecondThisChannel = visibleVideos.get(`${playhead.appSeconds + 1}/${channel}`);
+    const videosNextSecondThisChannel = visibleVideos.get(`${appSeconds + 1}/${channel}`);
     const activeVideoFileID = paneStateData.activeVideoFileID;
 
     // check for video changes
@@ -683,7 +687,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     const currentlyPlayingVideo = videoFiles.find((v) => v.id === paneStateData.activeVideoFileID);
     let videoStartOffset = 0;
     if (currentlyPlayingVideo) {
-      videoStartOffset = playhead.appSeconds - (currentlyPlayingVideo.start - startOfDay);
+      videoStartOffset = appSeconds - (currentlyPlayingVideo.start - startOfDay);
     }
 
     if (Math.abs(currentTime - videoStartOffset) > 1) {
@@ -694,11 +698,11 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const playOrPause = () => {
     const asyncFunc = async () => {
       try {
-        if (playhead.isRunning) {
+        if (isRunning) {
           // make sure the video is playing when the playhead is running
           // if the video source is "", trying to play will "unload" the video and we'll show a poster instead
           await videoElement.current.play();
-        } else if (!playhead.isRunning) {
+        } else if (!isRunning) {
           // make sure the video is paused when the playhead isn't running
           await videoElement.current.pause();
         }
@@ -751,15 +755,15 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         return;
       }
 
-      const videoStartOffset = playhead.appSeconds - (currentlyPlayingVideo.start - startOfDay);
+      const videoStartOffset = appSeconds - (currentlyPlayingVideo.start - startOfDay);
       videoElement.current.currentTime = videoStartOffset;
     }
   };
 
-  useEffect(changeVideoFile, [playhead.appSeconds, videoFiles, paneStateData]);
-  useEffect(clearMetadata, [playhead.date, paneStateData.activeVideoFileID, videoFiles]);
-  useEffect(playOrPause, [playhead.isRunning, playhead.appSeconds, sourceURL]);
-  useEffect(syncToPlayhead, [playhead.appSeconds, paneStateData.activeVideoFileID]);
+  useEffect(changeVideoFile, [appSeconds, videoFiles, paneStateData]);
+  useEffect(clearMetadata, [clockDate, paneStateData.activeVideoFileID, videoFiles]);
+  useEffect(playOrPause, [isRunning, appSeconds, sourceURL]);
+  useEffect(syncToPlayhead, [appSeconds, paneStateData.activeVideoFileID]);
   useEffect(updateSourceInfo, [paneStateData.activeVideoFileID, videos]);
   useEffect(cueVideoToPlayhead, [sourceURL]);
 
@@ -829,7 +833,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         <video
           ref={videoElement}
           className={styles.player}
-          src={sourceURL}
+          src={sourceURL || undefined}
           muted={shouldMute}
           onCanPlay={() => {
             if (!paneStateData.ready) {
@@ -956,8 +960,7 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     let openOnIOMessage = "";
     let info = "";
     if (currentlyPlayingVideo) {
-      videoStartOffset =
-        playhead.appSeconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
+      videoStartOffset = appSeconds - Math.max(currentlyPlayingVideo.start - startOfDay, 0);
       videoFilename = currentlyPlayingVideo.id;
       ioSearchLink = currentlyPlayingVideo.dataURL;
       ioVideoURL = `${currentlyPlayingVideo.mediaLowResURL}#t=${videoStartOffset}`;
@@ -1019,26 +1022,28 @@ const VideoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   return (
     <div className={styles.mediaPanel} key={`video_player__${frameID}`} data-frame-id={"IO Player"}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {renderVideoElement()}
     </div>
   );
 };
 
 const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
-  const downlinkNumber = useAppSelector((state: RootState) => {
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
+  const downlinkNumber = useAppSelector((state) => {
     return (state.framework.frames[frameID].paneStateData.channel + 1) as number;
   }, refEqual);
 
-  const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
+  const mtxPlaybackRecordsForDownlink = useAppSelector((state) => {
     return state.videos.mtxPlaybackAvailability[downlinkNumber];
   }, deepEqual);
 
-  const source = useAppSelector((state: RootState) => {
+  const source = useAppSelector((state) => {
     return state.framework.source;
   }, refEqual);
 
-  const { playhead } = usePlayheadContext();
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   // if live video system is diabled, always show the IO player
   const liveEnabled = import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "true";
@@ -1054,12 +1059,12 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
     for (const mtxPlaybackRecord of mtxPlaybackRecordsForDownlink) {
       // check that the mtxPlaybackRecord is for today. Remember that these records were modifed
       // when they were fetched to look like they started at 00:00 today if they started before today
-      if (!isSameDate(new Date(mtxPlaybackRecord.start), new Date(playhead.date))) continue;
+      if (!isSameDate(new Date(mtxPlaybackRecord.start), new Date(clockDate))) continue;
 
       const mtxDlStartAppSeconds = appSecondsFromDateString(mtxPlaybackRecord.start);
       if (
-        playhead.appSeconds >= mtxDlStartAppSeconds &&
-        playhead.appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
+        appSeconds >= mtxDlStartAppSeconds &&
+        appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
       ) {
         videoPlayerType = "MTX";
         break;
@@ -1079,10 +1084,7 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
   const duration = hlsEndpoint?.secondsAvailable || 0;
 
   // if it's "today" and the playhead is within the available HLS video time, use HLS
-  if (
-    isSameDate(new Date(playhead.date), now) &&
-    Math.abs(playhead.appSeconds - nowAppSeconds) < duration
-  ) {
+  if (isSameDate(new Date(clockDate), now) && Math.abs(appSeconds - nowAppSeconds) < duration) {
     videoPlayerType = "HLS";
   }
 
@@ -1090,8 +1092,8 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
 
   if (downlinkNumber !== -1) {
     const videoFiles = videos.videoFiles;
-    const visibleVideos = visibleVideosBySecond(videoFiles, new Date(playhead.date));
-    const videosNextSecond = visibleVideos.get(`${playhead.appSeconds + 1}/${downlinkNumber - 1}`);
+    const visibleVideos = visibleVideosBySecond(videoFiles, new Date(clockDate));
+    const videosNextSecond = visibleVideos.get(`${appSeconds + 1}/${downlinkNumber - 1}`);
     if (videosNextSecond) {
       videoPlayerType = "IO";
     }
@@ -1109,6 +1111,11 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
     AppropriateVideoPane = VideoHlsPane;
   }
 
-  return <AppropriateVideoPane frameID={frameID} />;
+  return (
+    <>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
+      <AppropriateVideoPane frameID={frameID} />
+    </>
+  );
 };
 export default VideoPaneChooser;
