@@ -3,7 +3,6 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateValue } from "store/framework";
-import { RootState } from "store/index";
 import { setActivePhoto } from "store/photos";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
@@ -13,7 +12,7 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { setAppSeconds } from "store/clock";
 
 export const PhotoAllControls: FunctionComponent<{
   frameID: number;
@@ -24,7 +23,7 @@ export const PhotoAllControls: FunctionComponent<{
   const minWidth = 470;
 
   const paneStateData: PhotoAllPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
@@ -46,12 +45,19 @@ export const PhotoAllControls: FunctionComponent<{
               setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
             }}
           >
-            <span className={styles.buttonLabel}>
-              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
-              <div>
-                <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
-              </div>
-            </span>
+            {frameDimensions[0] > minWidth ? (
+              <span className={styles.buttonLabel}>
+                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>
+                  <FontAwesomeIcon
+                    icon={paneStateData.lockScroll ? faLock : faLockOpen}
+                    size="sm"
+                  />
+                </div>
+              </span>
+            ) : (
+              <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
+            )}
           </button>
         </div>
         <div className={styles.verticalCenter}>
@@ -77,9 +83,9 @@ export const PhotoAllControls: FunctionComponent<{
 };
 
 const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
   const paneStateData: PhotoAllPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
@@ -87,8 +93,6 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
-
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
 
   const handleScroll = () => {
     setPaneStateValue(dispatch, frameID, "lockPhotosScroll", false);
@@ -100,7 +104,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         behavior: "smooth",
       });
     }
-  }, [photos.activePhoto, activePhotoRef, playhead, paneStateData.lockScroll]);
+  }, [photos.activePhoto, activePhotoRef, paneStateData.lockScroll]);
 
   // function that displays thumbnails of all photos in photoFiles
   function photoThumbnails() {
@@ -128,10 +132,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               key={photoFiles[i].id}
               {...activeRefOnly}
               onClick={() => {
-                dispatchPlayhead({
-                  type: "SET_APP_SECONDS",
-                  payload: photoFiles[i].datetimeTakenAppSeconds,
-                });
+                dispatch(setAppSeconds(photoFiles[i].datetimeTakenAppSeconds));
                 dispatch(setActivePhoto(photoFiles[i]));
               }}
               title={photoTitle}

@@ -1,9 +1,11 @@
 .buttonLong {
   width: 55px;
+  padding: 0 6px;
 }
 
 .buttonShort {
   width: 20px;
+  padding: 0;
 }
 
 .buttonLabel {

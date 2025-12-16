@@ -1,5 +1,4 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
-import type { RootState } from "store/index";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import styles from "./video.module.css";
 import { setPaneStateValue } from "store/framework";
@@ -9,17 +8,17 @@ import { isSameDate } from "utils/date";
 import isEqual from "lodash/isEqual";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData: VideoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const mtxPlaybackRecordsForDownlink = useAppSelector((state: RootState) => {
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const mtxPlaybackRecordsForDownlink = useAppSelector((state) => {
     const downlinkNumber = (state.framework.frames[frameID].paneStateData.channel + 1).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
   }, deepEqual);
@@ -32,16 +31,18 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
 
   const [lastURLStartTime, setLastURLStartTime] = useState(null);
 
-  const { playhead } = usePlayheadContext();
+  const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const playOrPause = () => {
     const asyncFunc = async () => {
       try {
-        if (playhead.isRunning) {
+        if (isRunning) {
           // make sure the video is playing when the playhead is running
           // if the video source is "", trying to play will "unload" the video and we'll show a poster instead
           await videoRef.current.play();
-        } else if (!playhead.isRunning) {
+        } else if (!isRunning) {
           // make sure the video is paused when the playhead isn't running
           await videoRef.current.pause();
         }
@@ -55,16 +56,16 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     asyncFunc();
   };
 
-  const getMtxPlaybackRecordForPlayhead = (appSeconds: number): MTXRecordingTimeRange => {
+  const getMtxPlaybackRecordForPlayhead = (queryAppSeconds: number): MTXRecordingTimeRange => {
     for (const mtxPlaybackRecord of mtxPlaybackRecordsForDownlink) {
       // check that the mtxPlaybackRecord is for today. Remember that these records were modifed
       // when they were fetched to look like they started at midnight if they started before today
-      if (!isSameDate(new Date(mtxPlaybackRecord.start), new Date(playhead.date))) continue;
+      if (!isSameDate(new Date(mtxPlaybackRecord.start), new Date(playheadDate))) continue;
 
       const mtxDlStartAppSeconds = appSecondsFromDateString(mtxPlaybackRecord.start);
       if (
-        appSeconds >= mtxDlStartAppSeconds &&
-        appSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
+        queryAppSeconds >= mtxDlStartAppSeconds &&
+        queryAppSeconds < mtxDlStartAppSeconds + mtxPlaybackRecord.duration
       ) {
         return mtxPlaybackRecord;
       }
@@ -75,7 +76,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
   const playVideoAtPlayhead = (mtxRecordingTimeRange: MTXRecordingTimeRange) => {
     if (!mtxRecordingTimeRange) return;
     // add x seconds to counteract the delay in the video starting
-    const playheadStart = dateFromAppSeconds(playhead.appSeconds + 2, playhead.date)
+    const playheadStart = dateFromAppSeconds(appSeconds + 2, playheadDate)
       .toISOString()
       .replace(/.000Z/, "Z");
 
@@ -102,15 +103,15 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
       // there's a video already loaded, so let's make sure it's still the right video
       const currVidStartSeconds = appSecondsFromDateString(currVidMTXPlaybackRecord.start);
       if (
-        playhead.appSeconds < currVidStartSeconds ||
-        playhead.appSeconds >= currVidStartSeconds + currVidMTXPlaybackRecord.duration
+        appSeconds < currVidStartSeconds ||
+        appSeconds >= currVidStartSeconds + currVidMTXPlaybackRecord.duration
       ) {
         // the current video is no longer available
         setCurrVidMTXPlaybackRecord(null);
       }
     } else {
       // find the video that is available for the current playhead
-      const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(playhead.appSeconds);
+      const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(appSeconds);
       setCurrVidMTXPlaybackRecord(mtxPlaybackRecord);
       playVideoAtPlayhead(mtxPlaybackRecord);
     }
@@ -126,29 +127,25 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     const lastUrlStartTimeAppSeconds = appSecondsFromDateString(lastURLStartTime);
     const videoPlaySeconds = lastUrlStartTimeAppSeconds + currentVidSeconds;
 
-    const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(playhead.appSeconds);
+    const mtxPlaybackRecord = getMtxPlaybackRecordForPlayhead(appSeconds);
     if (!isEqual(mtxPlaybackRecord, currVidMTXPlaybackRecord)) {
       setCurrVidMTXPlaybackRecord(mtxPlaybackRecord);
     }
 
     // playback is off by > x seconds, so we need to assemble a new MTX URL with the correct start time
-    if (Math.abs(playhead.appSeconds - videoPlaySeconds) < 10) return;
+    if (Math.abs(appSeconds - videoPlaySeconds) < 10) return;
 
     playVideoAtPlayhead(mtxPlaybackRecord);
   };
 
   useEffect(selectAndLoadVideo, [
     mtxPlaybackRecordsForDownlink,
-    playhead.appSeconds,
+    appSeconds,
     paneStateData,
     currChannel,
   ]);
-  useEffect(syncToPlayhead, [
-    playhead.appSeconds,
-    currVidMTXPlaybackRecord,
-    mtxPlaybackRecordsForDownlink,
-  ]);
-  useEffect(playOrPause, [playhead.isRunning, playhead.appSeconds]);
+  useEffect(syncToPlayhead, [appSeconds, currVidMTXPlaybackRecord, mtxPlaybackRecordsForDownlink]);
+  useEffect(playOrPause, [isRunning, appSeconds]);
 
   const toggleFullScreen = () => {
     const el = videoRef.current;
@@ -163,6 +160,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
       className={styles.vidContainer}
       data-frame-id={"MTX Player"}
     >
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {status === "buffering" ? (
         <>
           <div className={styles.playerPosterNovid}></div>

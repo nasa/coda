@@ -3,6 +3,8 @@ import { Query } from "express-serve-static-core";
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { MediaOverride_db } from "server/database/models/_allModels";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Get Media Override URLs from CODA DB for a given date
@@ -39,7 +41,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       res.status(200).json(records);
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
@@ -57,13 +59,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "media override not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url } = req.body as MediaOverrideUpsertRequest;
   const em = globalValues.orm.em;
 
@@ -96,13 +98,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         .json({ status: "success", message: "media override inserted", data: mediaOverride });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
   }
 });
 
 // delete
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
   const em = globalValues.orm.em;
 
@@ -115,7 +117,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "media override not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the DELETE request ${e}` });
   }
 });

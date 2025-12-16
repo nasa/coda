@@ -1,5 +1,6 @@
 import { globalValues } from "server/express/global";
 import { Cache_db } from "../database/models/cache.model";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Retrieves a cache entry from the database and updates its lastAccessedAt timestamp.
@@ -20,7 +21,7 @@ export async function getCacheEntry({
     }
     return entry;
   } catch (error) {
-    console.error(`Error getting cache entry for ${folder}/${identifier}:`, error);
+    ConsoleLogger.error(`Error getting cache entry for ${folder}/${identifier}:`, error);
     return null;
   }
 }
@@ -66,7 +67,7 @@ export async function putCacheEntry({
     await em.persistAndFlush(entry);
     return entry;
   } catch (error) {
-    console.error(`Error putting cache entry for ${folder}/${identifier}:`, error);
+    ConsoleLogger.error(`Error putting cache entry for ${folder}/${identifier}:`, error);
     return null;
   }
 }
@@ -97,7 +98,7 @@ export async function removeCacheEntry({
       return numDeleted > 0;
     }
   } catch (error) {
-    console.error(`Error removing cache entry for ${folder}/${identifier ?? "all"}:`, error);
+    ConsoleLogger.error(`Error removing cache entry for ${folder}/${identifier ?? "all"}:`, error);
     return false;
   }
 }
@@ -126,7 +127,7 @@ export async function evictLruCacheEntries({
     const numDeleted = await em.nativeDelete(Cache_db, filter);
     return numDeleted;
   } catch (error) {
-    console.error(
+    ConsoleLogger.error(
       `Error removing LRU entries ${folder ? `for folder ${folder} ` : ""}older than ${olderThanDate.toISOString()}:`,
       error
     );

@@ -1,23 +1,13 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
-import styles from "./admin.module.css";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
-
-const FormItem: FunctionComponent<{
-  label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ label, value, onChange }) => (
-  <div className={styles.formItem}>
-    <label>{label}</label>
-    <input type="text" value={value} onChange={onChange} />
-  </div>
-);
+import adminCommon from "./adminCommon.module.css";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
+
 export const EditPhotoRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
   const [source, setSource] = useState<string>("");
@@ -28,26 +18,20 @@ export const EditPhotoRecord: FunctionComponent = () => {
 
   useEffect(() => {
     (async () => {
-      //check permissions
       const user = await getCurrentUser();
       if (user instanceof Error || !isSuperuser(user)) {
-        navigate("/"); //Redirect to homepage
+        navigate("/");
+        return;
       }
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (id) {
-      const fetchData = async () => {
+      if (id) {
         const response = await fetch(`/api/v1/db/photoTimeShifts/${id}`);
         const data: PhotoRecord = await response.json();
         setDate(data.date);
         setSource(data.source);
         setTimeOffset(data.timeOffset);
-      };
-      fetchData();
-    }
-  }, [id]);
+      }
+    })();
+  }, [navigate, id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,34 +41,95 @@ export const EditPhotoRecord: FunctionComponent = () => {
       source,
       timeOffset,
     };
-    // upsert
     await fetch(`/api/v1/db/photoTimeShifts`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     navigate("/admin/photoTimeShifts");
   };
 
   return (
-    <div>
-      <h2>Edit Record</h2>
-      <div>
-        <Link to="/admin/photoTimeShifts">Back</Link>
+    <main className={adminCommon.page}>
+      <div className={adminCommon.container}>
+        <Link to="/admin/photoTimeShifts" className={adminCommon.backLink}>
+          ← Photo Time Shifts
+        </Link>
+        <h1 className={adminCommon.pageTitle}>{id ? "Edit" : "Create"} Photo Time Shift</h1>
+        <p className={adminCommon.introText}>
+          {id
+            ? "Modify the photo time shift details below."
+            : "Enter the time offset correction for still camera timestamps."}
+        </p>
+
+        <section className={adminCommon.section}>
+          <h2 className={adminCommon.sectionHeading}>Time Shift Details</h2>
+          <div className={adminCommon.details}>
+            <form onSubmit={handleSubmit} className={adminCommon.form}>
+              <div className={adminCommon.formGroup}>
+                <label htmlFor="date" className={adminCommon.formLabel}>
+                  Date
+                </label>
+                <input
+                  id="date"
+                  type="text"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className={adminCommon.formInput}
+                  placeholder="yyyy-mm-dd"
+                  required
+                />
+                <span className={adminCommon.formHint}>Format: yyyy-mm-dd (e.g., 2024-03-15)</span>
+              </div>
+
+              <div className={adminCommon.formGroup}>
+                <label htmlFor="source" className={adminCommon.formLabel}>
+                  Source
+                </label>
+                <input
+                  id="source"
+                  type="text"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  className={adminCommon.formInput}
+                  placeholder="Camera or source identifier"
+                  required
+                />
+                <span className={adminCommon.formHint}>
+                  Identifier for the camera or photo source
+                </span>
+              </div>
+
+              <div className={adminCommon.formGroup}>
+                <label htmlFor="timeOffset" className={adminCommon.formLabel}>
+                  Time Offset
+                </label>
+                <input
+                  id="timeOffset"
+                  type="text"
+                  value={timeOffset}
+                  onChange={(e) => setTimeOffset(e.target.value)}
+                  className={adminCommon.formInput}
+                  placeholder="±hh:mm:ss"
+                  required
+                />
+                <span className={adminCommon.formHint}>
+                  The time offset from UTC in hh:mm:ss format (e.g., -05:00:00)
+                </span>
+              </div>
+
+              <div className={adminCommon.formActions}>
+                <button type="submit" className={adminCommon.buttonSubmit}>
+                  {id ? "Update Time Shift" : "Create Time Shift"}
+                </button>
+                <Link to="/admin/photoTimeShifts" className={adminCommon.buttonCancel}>
+                  Cancel
+                </Link>
+              </div>
+            </form>
+          </div>
+        </section>
       </div>
-      <h3>{id ? "Edit" : "Create"}</h3>
-      <form onSubmit={handleSubmit}>
-        <FormItem label="Date" value={date} onChange={(e) => setDate(e.target.value)} />
-        <FormItem label="Source" value={source} onChange={(e) => setSource(e.target.value)} />
-        <FormItem
-          label="Time Offset"
-          value={timeOffset}
-          onChange={(e) => setTimeOffset(e.target.value)}
-        />
-        <button type="submit">Submit</button>
-      </form>
-    </div>
+    </main>
   );
 };

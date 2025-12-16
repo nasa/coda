@@ -13,7 +13,6 @@ import logFromClient from "./routes/user/logFromClient";
 import profiler from "./routes/profiler/profiler";
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
-import serverSocketStatus from "./routes/socketStatus/socketStatus";
 import { globalValues } from "./global";
 import timeRoute from "./routes/time/time";
 
@@ -34,9 +33,6 @@ app.use((_req, _res, next) => {
 app.get("/api/v1/health", (req, res) => {
   res.send({ status: "ok" });
 });
-
-// output socket visitor information
-app.use("/api/v1/socketStatus", serverSocketStatus); // routed through launchpad
 
 app.get("/api/v1/version", (req, res) => {
   res.send(globalValues.appVersion);

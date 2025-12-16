@@ -1,39 +1,34 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import paper from "paper";
-import { MutableRefObject, useEffect, useRef, FunctionComponent } from "react";
-import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { MutableRefObject, useEffect, useRef, useState, FunctionComponent } from "react";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import {
   getAsPerformedMissionTime,
   getSequenceStartMilliseconds,
   idFromDate,
 } from "store/sequences";
 import { filterVisibleVideos } from "store/videos";
+import { setAppSeconds, setHoverSeconds } from "store/clock";
 
 import DrawNav from "./nav-timeline-draw";
-import { RootState } from "store/index";
 import styles from "./nav-timeline-draw.module.css";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 /**
  * Renders the navigation timeline presented at the bottom of the CODA window
  */
 const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
-  const dayNights: DayNightState = useAppSelector((state: RootState) => state.dayNight, deepEqual);
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
-  );
-  const sgActivityRangeFullUrlRecord: SgActivityRangeFullUrlRecord[][] = useAppSelector(
-    (state: RootState) => state.sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords,
-    shallowEqual
-  );
-
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
-  const { hoverPlayhead, setHoverPlayhead } = useHoverPlayheadContext();
+  const dispatch = useAppDispatch();
+  const dayNights: DayNightState = useAppSelector((state) => state.dayNight, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
+  const audioFiles: TbAudioFile[] = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const dayNight = dayNights.dayNight;
 
@@ -46,7 +41,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
   }
 
-  const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
+  const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
   const time: MutableRefObject<number> = useRef(0);
   const drawNav: MutableRefObject<DrawNav> = useRef(null);
   const canvas: MutableRefObject<HTMLCanvasElement> = useRef(null);
@@ -88,10 +83,10 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       }
     }
 
-    const playheadDate = new Date(playhead.date);
+    const playheadDateObj = new Date(playheadDate);
 
     drawNav.current = new DrawNav({
-      videoFiles: filterVisibleVideos(videos.videoFiles, playheadDate),
+      videoFiles: filterVisibleVideos(videos.videoFiles, playheadDateObj),
       mtxPlaybackAvailability: videos.mtxPlaybackAvailability,
       mtxHlsEndpoints: videos.mtxHlsEndpoints,
       source,
@@ -99,9 +94,9 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       collectionFilters: photos.collectionFilters,
       dayNight: dayNight,
       asPerformed: asPerformed,
-      dateRendered: playheadDate,
+      dateRendered: playheadDateObj,
       evaStartSec: evaStartSec,
-      sgActivityFullPathRangeRecords: sgActivityRangeFullUrlRecord,
+      audioFiles: audioFiles,
     });
 
     drawNav.current.initGroups();
@@ -124,13 +119,13 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
         // Make the canvas receive click events
         canvasContainer.current.style.pointerEvents = "auto";
       }
-      if (hoverPlayhead.hoverSeconds !== thisHoverSeconds) {
-        setHoverPlayhead({ hoverSeconds: thisHoverSeconds });
+      if (hoverSeconds !== thisHoverSeconds) {
+        dispatch(setHoverSeconds(thisHoverSeconds));
       }
     };
     const mouseUpCb = (hh: number, mm: number, ss: number) => {
       const secondsIntoDate = ss + 60 * mm + 3600 * hh;
-      dispatchPlayhead({ type: "SET_APP_SECONDS", payload: secondsIntoDate });
+      dispatch(setAppSeconds(secondsIntoDate));
     };
     const mouseLeaveCb = () => {
       mouseOnNavigator.current = false;
@@ -139,7 +134,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       drawNav.current.drawCursor(time.current);
 
       // put null in hoverSeconds to disable them across components
-      setHoverPlayhead({ hoverSeconds: null });
+      dispatch(setHoverSeconds(null));
 
       // Make the canvas ignore click events (but still receive mousemove events--somehow).
       // Hover events still work for Paper reason which is super handy for us)
@@ -166,18 +161,10 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       paper.project.remove();
     }
     installTimeline();
-  }, [
-    sequence,
-    videos,
-    photos.photoFiles,
-    dayNight,
-    photos,
-    playhead.date,
-    sgActivityRangeFullUrlRecord,
-  ]);
+  }, [sequence, videos, photos.photoFiles, dayNight, photos, playheadDate, audioFiles]);
 
   useEffect(() => {
-    time.current = playhead.appSeconds;
+    time.current = appSeconds;
 
     if (!navReady.current) {
       // nothing to update if the paperjs timeline hasn't been instantiated
@@ -190,10 +177,11 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     }
     drawNav.current.drawTier2();
     drawNav.current.drawCursor(time.current);
-  }, [playhead.appSeconds]);
+  }, [appSeconds]);
 
   return (
     <>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.expandedBackground}></div>
       <div ref={canvasContainer} className={styles.canvasContainer}>
         <canvas ref={canvas} data-paper-resize />

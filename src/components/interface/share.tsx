@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect, JSX } from "react";
 import styles from "./share.module.css";
 import { generateShareURL } from "utils/share-state";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
-import { RootState } from "store/index";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { HelpButton } from "./pane-help-control-button";
 import HelpOverlay from "./pane-help-overlay";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 const SharePanel = ({
   closeClick,
@@ -14,20 +13,21 @@ const SharePanel = ({
   closeClick?: () => void;
   display: boolean;
 }): JSX.Element => {
-  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const framework = useAppSelector((state) => state.framework, deepEqual);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
   const [shareURLtextValue, setShareURLtextValue] = useState("");
 
-  const { playhead } = usePlayheadContext();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const shareURLtextarea = useRef(null);
 
   function handleRequestOpen() {
     setCopyButtonText("Copy Link");
 
-    const URL = generateShareURL(framework, playhead);
+    const URL = generateShareURL(framework, playheadDate, appSeconds);
     setShareURLtextValue(URL);
   }
 
@@ -48,6 +48,7 @@ const SharePanel = ({
 
   return (
     <div className={styles.main}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.top}>
         <div className={styles.topLeft}>
           <div>Share this View of Playback Time</div>

@@ -3,8 +3,8 @@ import { refEqual, useAppSelector } from "utils/useAppSelector";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allPanes, setPaneType } from "store/framework";
 import styles from "./pane-picker.module.css";
-import { RootState } from "store/index";
 import { useAppDispatch } from "utils/useAppDispatch";
+import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
 
 /**
  * Renders the label for a type of frame
@@ -41,7 +41,7 @@ export const PanePickerModal: FunctionComponent<{
   closeClick: () => void;
   options: { frameID: number };
 }> = ({ closeClick, options: { frameID } }) => {
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
   const [availablePanes, setAvailablePanes] = useState([]);
 
   const dispatch = useAppDispatch();
@@ -53,7 +53,8 @@ export const PanePickerModal: FunctionComponent<{
   };
 
   useEffect(() => {
-    const availablePanes = Object.keys(allPanes);
+    const allPaneTypes = Object.keys(allPanes);
+    const availablePanes = getAvailablePanesForSource(source, allPaneTypes);
 
     setAvailablePanes(availablePanes);
   }, [source]);

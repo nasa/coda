@@ -2,11 +2,13 @@ import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
 import { useEffect, useState } from "react";
 import { faEnvelope, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
-import { RootState } from "store/index";
+import { deepEqual, useAppSelector, refEqual } from "utils/useAppSelector";
 import { diff } from "utils/date";
 import Modal from "react-modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isDataTypeValidForSource, isDateValidForMtxVideo } from "utils/sourceDataTypeMap";
+
+const mtxVideoMaxAgeDays = parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS, 10);
 
 const AboutOverlay = ({
   modalIsOpen,
@@ -15,49 +17,86 @@ const AboutOverlay = ({
   modalIsOpen: boolean;
   setModalIsOpen: Function;
 }) => {
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
-  );
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-  const gps: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
-  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
-  const transcript: TranscriptState = useAppSelector(
-    (state: RootState) => state.transcript,
-    deepEqual
-  );
-  const sgAudio: SgAudioState = useAppSelector((state: RootState) => state.sgAudio, deepEqual);
-  const graphs: GraphsState = useAppSelector((state: RootState) => state.graphs, deepEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
+  const gps: GPSState = useAppSelector((state) => state.gps, deepEqual);
+  const ephemera: EphemeraState = useAppSelector((state) => state.ephemera, deepEqual);
+  const graphs: GraphsState = useAppSelector((state) => state.graphs, deepEqual);
+  const talkybot: TalkybotState = useAppSelector((state) => state.talkybot, deepEqual);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Check if all non-unneeded data types have loaded (metadata is not null and not unneeded)
+    // Check if date is too old for MTX video
+    const mtxVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
+
+    // Check if data type is valid for source, or if it's skipped due to date
+    const isMtxVideoLoaded =
+      !isDataTypeValidForSource(source, "mtxvideo") ||
+      mtxVideoDateTooOld ||
+      videos.metadataMtx !== null ||
+      videos.metadataMtx?.unneeded;
+
+    const isIoVideoLoaded =
+      !isDataTypeValidForSource(source, "videos") ||
+      videos.metadataIo !== null ||
+      videos.metadataIo?.unneeded;
+
+    const isPhotosLoaded =
+      !isDataTypeValidForSource(source, "photos") ||
+      photos.metadata !== null ||
+      photos.metadata?.unneeded;
+
+    const isSequencesLoaded =
+      (!isDataTypeValidForSource(source, "wikiEvas") &&
+        !isDataTypeValidForSource(source, "wikiTestEvents")) ||
+      sequences.metadata !== null ||
+      sequences.metadata?.unneeded;
+
+    const isGpsLoaded =
+      !isDataTypeValidForSource(source, "gpstracks") ||
+      gps.metadata !== null ||
+      gps.metadata?.unneeded;
+
+    const isEphemeraLoaded =
+      !isDataTypeValidForSource(source, "ephemeris") ||
+      ephemera.metadata !== null ||
+      ephemera.metadata?.unneeded;
+
+    const isTalkybotLoaded =
+      !isDataTypeValidForSource(source, "talkybot") ||
+      talkybot.metadata !== null ||
+      talkybot.metadata?.unneeded;
+
+    const isGraphsLoaded =
+      !isDataTypeValidForSource(source, "graph") ||
+      graphs.metadata !== null ||
+      graphs.metadata?.unneeded;
+
     const allLoaded =
-      videos.metadataIo !== null &&
-      !videos.metadataIo?.unneeded &&
-      videos.metadataMtx !== null &&
-      !videos.metadataMtx?.unneeded &&
-      photos.metadata !== null &&
-      !photos.metadata?.unneeded &&
-      (sequences.metadata !== null || sequences.metadata?.unneeded) &&
-      (gps.metadata !== null || gps.metadata?.unneeded) &&
-      (ephemera.metadata !== null || ephemera.metadata?.unneeded) &&
-      (transcript.metadata !== null || transcript.metadata?.unneeded) &&
-      (sgAudio.metadata !== null || sgAudio.metadata?.unneeded) &&
-      (graphs.metadata !== null || graphs.metadata?.unneeded);
+      isMtxVideoLoaded &&
+      isIoVideoLoaded &&
+      isPhotosLoaded &&
+      isSequencesLoaded &&
+      isGpsLoaded &&
+      isEphemeraLoaded &&
+      isTalkybotLoaded &&
+      isGraphsLoaded;
 
     setIsLoaded(allLoaded);
   }, [
+    source,
+    clockDate,
     videos.metadataIo,
     videos.metadataMtx,
     photos.metadata,
     sequences.metadata,
     gps.metadata,
     ephemera.metadata,
-    transcript.metadata,
-    sgAudio.metadata,
+    talkybot.metadata,
     graphs.metadata,
   ]);
 
@@ -198,7 +237,7 @@ const AboutOverlay = ({
                 <li>
                   <TeamMemberCredit
                     fullName={"Cameron Pittman"}
-                    position={"Software Architecture"}
+                    position={"Software Engineering"}
                     email={"cameron.w.pittman@nasa.gov"}
                   />
                 </li>

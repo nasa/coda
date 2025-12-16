@@ -1,7 +1,6 @@
 import filter from "lodash/filter";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { RootState } from "store/index";
 import styles from "./preset-picker.module.css";
 import { allPresets } from "store/framework-presets";
 import { setAllFrameworkState } from "store/framework";
@@ -15,7 +14,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
 const PresetPicker = ({ closeClick }: { closeClick?: () => void }) => {
-  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const framework = useAppSelector((state) => state.framework, deepEqual);
   const dispatch = useAppDispatch();
 
   const [helpOpen, setHelpOpen] = useState(false);

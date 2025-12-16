@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, FunctionComponent } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { RootState } from "store/index";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
 
 import styles from "./gps-location.module.css";
@@ -19,8 +18,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import Button from "components/interface/button";
 import { createRoot } from "react-dom/client";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const GPSLocationControls: FunctionComponent<{
   frameID: number;
@@ -31,11 +29,11 @@ export const GPSLocationControls: FunctionComponent<{
   const minWidth = 470;
 
   const paneStateData: GpsTrackPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
-  const gpsTracks = useAppSelector((state: RootState) => state.gps.gpsTracks, deepEqual);
+  const gpsTracks = useAppSelector((state) => state.gps.gpsTracks, deepEqual);
 
   const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
@@ -88,12 +86,16 @@ export const GPSLocationControls: FunctionComponent<{
               setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
             }}
           >
-            <span className={styles.buttonLabel}>
-              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
-              <div>
-                <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
-              </div>
-            </span>
+            {frameDimensions[0] > minWidth ? (
+              <span className={styles.buttonLabel}>
+                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>
+                  <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+                </div>
+              </span>
+            ) : (
+              <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+            )}
           </button>
         </div>
         <div className={styles.verticalCenter}>
@@ -154,18 +156,17 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     Staff: { ...initialTrackFeature },
   };
 
-  const gpsState: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
-  const layoutLastChanged = useAppSelector(
-    (state: RootState) => state.framework.layoutLastChanged,
-    deepEqual
-  );
+  const gpsState: GPSState = useAppSelector((state) => state.gps, deepEqual);
+  const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, deepEqual);
   const paneStateData: GpsTrackPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
-  const { playhead } = usePlayheadContext();
-  const { hoverPlayhead } = useHoverPlayheadContext();
+  // Clock state from Redux
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const mapContainer = useRef(null);
 
@@ -221,7 +222,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   //update map GPS markers and tracks
   useEffect(() => {
-    if (!map || !playhead.date || gpsState.gpsTracks.length === 0) return;
+    if (!map || !playheadDate || gpsState.gpsTracks.length === 0) return;
 
     // set eventType to DRATS if EV1 is present, set as GANDALF if Staff is present
     if (gpsState.gpsTracks.filter((track) => track.name === "EV1").length > 0) {
@@ -255,9 +256,9 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
       let markerIndex = 0;
 
-      let isoDate = hoverPlayhead.hoverSeconds
-        ? getPlayheadISOString(playhead.date, hoverPlayhead.hoverSeconds)
-        : getPlayheadISOString(playhead.date, playhead.appSeconds);
+      let isoDate = hoverSeconds
+        ? getPlayheadISOString(playheadDate, hoverSeconds)
+        : getPlayheadISOString(playheadDate, appSeconds);
 
       //Look for the point in each GPS track closest to the playheadTime
       for (let i = 0; i < gpsTracks[track].points.length; i++) {
@@ -322,7 +323,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         setZoomLevel(1);
       }
     }
-  }, [map, playhead, hoverPlayhead, gpsState.gpsTracks, paneStateData]);
+  }, [map, playheadDate, appSeconds, hoverSeconds, gpsState.gpsTracks, paneStateData]);
 
   //Display GPS tracks on map
   useEffect(() => {
@@ -525,6 +526,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   return (
     <>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.container}>
         <div
           ref={mapContainer}

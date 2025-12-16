@@ -3,7 +3,6 @@ import styles from "./photo-filter-button.module.css";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { RootState } from "store";
 import { setCollectionFilters } from "store/photos";
 import { FunctionComponent } from "react";
 
@@ -19,19 +18,23 @@ export const FilterButton: FunctionComponent<{
       className={`${styles.filterButton} ${buttonLength} ${selectedStyle}`}
       onClick={clickHandler}
     >
-      <span className={styles.filterLabel}>
-        <div>{frameDimensions[0] > 470 ? "Filter" : ""}</div>
-        <div>
-          <FontAwesomeIcon icon={faFilter} size="sm" />
-        </div>
-      </span>
+      {frameDimensions[0] > 470 ? (
+        <span className={styles.filterLabel}>
+          <div>{frameDimensions[0] > 470 ? "Filter" : ""}</div>
+          <div>
+            <FontAwesomeIcon icon={faFilter} size="sm" />
+          </div>
+        </span>
+      ) : (
+        <FontAwesomeIcon icon={faFilter} size="sm" />
+      )}
     </button>
   );
 };
 
 export const RenderPhotoFilter: FunctionComponent = () => {
   const dispatch = useAppDispatch();
-  const photos = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const photos = useAppSelector((state) => state.photos, deepEqual);
 
   const changeFilter = (index: number, value: boolean) => {
     let filters = JSON.parse(JSON.stringify(photos.collectionFilters));

@@ -3,8 +3,7 @@ import isNull from "lodash/isNull";
 import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
 
-import { useEffect, useState } from "react";
-import { RootState } from "store/index";
+import { useEffect, useRef, useState } from "react";
 import { idFromDate } from "store/sequences";
 import { sourceShortVal } from "utils/consts";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
@@ -14,6 +13,7 @@ import {
   initialState as initialFrameworkState,
   setAllFrameworkState,
 } from "store/framework";
+import { setDate, setAppSeconds } from "store/clock";
 import { interpretFramestateQueryString } from "utils/share-state";
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
@@ -24,17 +24,17 @@ import { URLSearchParams } from "url";
 import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
 import { appSecondsFromDateString } from "utils/formatting";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 export function V2() {
   const [searchParams, _setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const sequences = useAppSelector((state) => state.sequences, deepEqual);
   let allEVAs = sequences.allSequences;
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
+  const [frameworkReady, setFrameworkReady] = useState(false);
   const [socketStatus, setSocketStatus] = useState<ClientSocketStatus>({
     connectionStatus: "disconnected",
     lastStatusFromServer: {
@@ -50,9 +50,10 @@ export function V2() {
 
   const dispatch = useAppDispatch();
 
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
 
-  const playheadDate = playhead.date;
+  // Track whether initial time setup has been done (to distinguish page load from date rollover)
+  const hasInitializedTime = useRef(false);
 
   // make sure the application is running on the correct date
   let userDate = null;
@@ -60,7 +61,9 @@ export function V2() {
   const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
   if (!isNull(urlState.date) && !isNull(urlState.date.match(yyyymmdd))) {
     // change the date if the user set the `date` query param
-    userDate = midnightZulu(new Date(urlState.date));
+    // Parse YYYY-MM-DD format as UTC to avoid timezone drift, then normalize to midnight UTC
+    const [year, month, day] = urlState.date.split("-").map(Number);
+    userDate = midnightZulu(new Date(Date.UTC(year, month - 1, day)));
   } else {
     // default the date to today
     userDate = midnightZulu(new Date());
@@ -82,23 +85,29 @@ export function V2() {
   }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      dispatchPlayhead({ type: "SET_DATE", payload: userDate.toISOString() });
+      dispatch(setDate(userDate.toISOString()));
     }
   }, []);
 
   useEffect(() => {
     // make sure the application is running on the correct time
-    // default the time to 10:30:00Z
-    const isToday = isSameDate(new Date(), new Date(playheadDate));
+    // Only apply "jump to live" logic on initial page load, not on date rollover/calendar changes
+    // Use userDate (from URL or default today) since playheadDate might be null initially
+    const isToday = isSameDate(new Date(), userDate);
 
-    let userTime = isToday ? appSecondsFromDateString(new Date().toISOString()) : 10.5 * 60 * 60;
+    // Default time: if today and this is initial load, use current time; otherwise 10:30:00Z
+    let userTime =
+      isToday && !hasInitializedTime.current
+        ? appSecondsFromDateString(new Date().toISOString())
+        : 10.5 * 60 * 60;
 
     const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d:[0-9]\d))$/; // matches valid hh:mm:ss times
     // change the time if the user set the `gmt` query param and it's in a valid format
     if (!isNil(urlState.gmt) && !isNil(urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
-    } else {
+    } else if (!hasInitializedTime.current) {
+      // Only look for EVA start times on initial load
       // change the time if the sequence has a PET start time
       if (urlState.frameworkState.source === "NBL") {
         // Show only NBL sequences
@@ -107,7 +116,7 @@ export function V2() {
         // Filter out all NBL sequences
         allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
       }
-      const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
+      const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
       let evaStartSec = null as number;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
       if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
@@ -117,7 +126,11 @@ export function V2() {
       }
     }
 
-    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: userTime });
+    // Only set time on initial load, not when sequences update after rollover
+    if (!hasInitializedTime.current) {
+      dispatch(setAppSeconds(userTime));
+      hasInitializedTime.current = true;
+    }
   }, [sequences]);
 
   useEffect(() => {
@@ -125,6 +138,8 @@ export function V2() {
     if (!isNull(urlState.frameworkState)) {
       dispatch(setAllFrameworkState(urlState.frameworkState));
     }
+    // Mark framework as ready after URL state has been applied
+    setFrameworkReady(true);
   }, []);
 
   return (
@@ -136,9 +151,7 @@ export function V2() {
         socketStatus={socketStatus}
       />
       <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
-      <div className={styles.body}>
-        <Viewer />
-      </div>
+      <div className={styles.body}>{frameworkReady && <Viewer />}</div>
       <Timeline source={source} />
       <PlaybackControls />
     </div>

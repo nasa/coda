@@ -3,6 +3,8 @@ import { Query } from "express-serve-static-core";
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { VideoStartTimeOverrides_db } from "server/database/models/VideoStartTimeOverrides.model";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Get videos datetime overrides from CODA DB for a given video id
@@ -35,7 +37,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       res.status(200).json(records);
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
@@ -55,13 +57,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "video record not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, videoId, startTime } = req.body as VideoUpsertRequest;
   const em = globalValues.orm.em;
 
@@ -93,13 +95,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
   }
 });
 
 // delete
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
   const em = globalValues.orm.em;
 
@@ -114,7 +116,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "video not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the DELETE request ${e}` });
   }
 });

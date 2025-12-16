@@ -1,17 +1,16 @@
-import { FunctionComponent, useEffect } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { initialPhotoFileState, setActivePhoto } from "store/photos";
 import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
-import type { RootState } from "store/index";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateValue } from "store/framework";
 import { IOInfoButton } from "./video";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
   frameID,
@@ -20,13 +19,13 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
   const dispatch = useAppDispatch();
 
   const paneStateData: PhotoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
 
-  const { playhead } = usePlayheadContext();
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   let datetimeTakenLabel = "";
   let datetimeTakenValue = "";
@@ -37,13 +36,14 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
     currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
     if (currentlyActivePhoto) {
       timeSinceTaken = `(${hhmmssFromSeconds(
-        Math.round(playhead.appSeconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
+        Math.round(appSeconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
       )} ago)`;
     }
-  }, [photos, playhead]);
+  }, [photos, appSeconds]);
 
   return (
     <>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.controls}>
         <div className={styles.controlsLeft}>
           <span style={{ marginRight: "5px" }} className={styles.photoHeaderText}>
@@ -87,14 +87,14 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData: PhotoPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
   );
 
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
   const photoFiles = photos.photoFiles;
 
-  const { playhead } = usePlayheadContext();
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const changePhoto = () => {
     if (!photos.ready) {
@@ -108,7 +108,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     let thisPhotoFile = initialPhotoFileState;
     for (let i = 0; i < photoFiles?.length; i++) {
       const secondsIntoToday = photoFiles[i].datetimeTakenAppSeconds;
-      if (secondsIntoToday > playhead.appSeconds) {
+      if (secondsIntoToday > appSeconds) {
         break;
       }
 
@@ -130,7 +130,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
   };
 
-  useEffect(changePhoto, [playhead, photoFiles, photos]);
+  useEffect(changePhoto, [appSeconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
@@ -212,6 +212,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   return (
     <div className={styles.mediaPanel} key={`photo_viewer`}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div key={`photo_element`} className={styles.photoContainer}>
         {photos.activePhoto.mediaLowResURL !== "" ? (
           <>

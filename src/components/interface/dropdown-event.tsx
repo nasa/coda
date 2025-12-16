@@ -1,8 +1,7 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import { useEffect, useState, FunctionComponent } from "react";
-import { deepEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { RootState } from "store/index";
+import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
 import { collection as collectionEnum } from "utils/consts";
@@ -10,19 +9,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
 const EventDropdown: FunctionComponent<{
   collection: Collection;
 }> = ({ collection }) => {
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
-  );
-  const framework = useAppSelector((state: RootState) => state.framework, shallowEqual);
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
+  const framework = useAppSelector((state) => state.framework, shallowEqual);
 
-  const { playhead } = usePlayheadContext();
-  const date = playhead.date;
+  const date = useAppSelector((state) => state.clock.date, refEqual);
+  const appSeconds = useAppSelector((state) => state.clock.appSecondsAtStartStop, refEqual);
 
   let allSequences = sequences.allSequences;
   if (collection === collectionEnum.NBL) {
@@ -53,7 +48,7 @@ const EventDropdown: FunctionComponent<{
     if (e.target.value !== "") {
       const [year, month, day] = e.target.value.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      let URL = generateShareURL(framework, playhead);
+      let URL = generateShareURL(framework, date, appSeconds);
       // replace the datestring in URL with selected calendar date
       URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
       window.location.assign(URL);
@@ -131,9 +126,9 @@ const EventDropdown: FunctionComponent<{
               })
               // sort most recent to oldest
               .reverse()
-              .map((eva) => {
+              .map((eva, index) => {
                 return (
-                  <option key={eva.name + eva.startDate} value={eva.startDate}>
+                  <option key={`${eva.name}-${eva.startDate}-${index}`} value={eva.startDate}>
                     {eva.displayTitle}
                   </option>
                 );

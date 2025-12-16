@@ -7,6 +7,7 @@ import { getPhotoTimeshiftRecordsList } from "server/express/routes/db/photos";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
 import { addMs } from "../../utils/date";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
@@ -46,7 +47,7 @@ export default async function getPhotoData({
       mediaOverrides = await getMediaOverridesList();
     } catch (overrideError) {
       // don't block results if media overrides call fails
-      console.error(overrideError);
+      ConsoleLogger.warn("Error fetching media overrides:", overrideError);
     }
 
     const mediaOverride = mediaOverrides?.find((vo) => {
@@ -88,7 +89,7 @@ export default async function getPhotoData({
           return await getPhotoTimeshiftRecordsList();
         } catch (overrideError) {
           // don't block photo results if we can't find overrides
-          console.error(overrideError);
+          ConsoleLogger.warn("Error fetching photo timeshift overrides:", overrideError);
         }
       })(),
     ]);
@@ -125,8 +126,8 @@ export default async function getPhotoData({
 
       return buildResponse({ data });
     } catch (timeOverrideError) {
-      console.error("Error parsing and apply photo overrides");
-      console.error(timeOverrideError);
+      ConsoleLogger.error("Error parsing and apply photo overrides");
+      ConsoleLogger.error(timeOverrideError);
       return buildResponse({ data: ioPhotos ?? [] });
     }
   } catch (error) {

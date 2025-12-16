@@ -1,4 +1,4 @@
-import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faChevronDown, faEye, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -6,7 +6,6 @@ import { Calendar } from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
 import PresetPicker from "components/framework/preset-picker";
-import { RootState } from "store/index";
 import styles from "./header.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds, padZeros } from "utils/formatting";
@@ -20,20 +19,22 @@ import AboutOverlay from "./about-overlay";
 import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
 import { generateShareURL } from "utils/share-state";
 import { isSameDate } from "utils/date";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { startClock, stopClock, setAppSeconds } from "store/clock";
+import ClockInterval from "components/framework/ClockInterval";
 
 const LoaderHelpMenu: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen }) => {
-  const { dispatchPlayhead } = usePlayheadContext();
+  const dispatch = useAppDispatch();
 
   const setModalIsOpen = (val: boolean) => {
     setHelpLoaderOpen(val);
     if (val === false) {
-      dispatchPlayhead({ type: "START" }); // start playback when help menu closes
+      dispatch(startClock()); // start playback when help menu closes
     } else {
-      dispatchPlayhead({ type: "STOP" }); // stop playback when help menu opens
+      dispatch(stopClock()); // stop playback when help menu opens
     }
   };
 
@@ -55,7 +56,7 @@ const LoaderHelpMenu: FunctionComponent<{
 };
 
 const LayoutDropdown: FunctionComponent = () => {
-  const layout = useAppSelector((state: RootState) => state.framework.layout, refEqual);
+  const layout = useAppSelector((state) => state.framework.layout, refEqual);
 
   const layoutDefinition = allLayouts[layout];
   const mainStyleName =
@@ -103,23 +104,26 @@ const ShareDropdown: FunctionComponent = () => (
 );
 
 const LiveButton: FunctionComponent = () => {
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  const dispatch = useAppDispatch();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
   const LIVE_THRESHOLD_SECONDS = 5;
 
   const handleLive = () => {
     const timeLive = appSecondsFromDateString(new Date().toISOString());
-    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: timeLive });
+    dispatch(setAppSeconds(timeLive));
   };
 
   const isLiveEnabled = import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "true";
-  const isToday = isSameDate(new Date(playhead.date), new Date());
+  const isToday = isSameDate(new Date(playheadDate), new Date());
   const currentLiveTime = appSecondsFromDateString(new Date().toISOString());
-  const isNearLive = Math.abs(playhead.appSeconds - currentLiveTime) <= LIVE_THRESHOLD_SECONDS;
+  const isNearLive = Math.abs(appSeconds - currentLiveTime) <= LIVE_THRESHOLD_SECONDS;
 
   if (!isLiveEnabled || !isToday) return null;
 
   return isNearLive ? (
     <div className={styles.liveIndicator} title="Currently Live">
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.liveIndicatorIcon}></div>
       <div className={styles.liveIndicatorText}>Live</div>
     </div>
@@ -129,18 +133,19 @@ const LiveButton: FunctionComponent = () => {
       title="Go Live"
       onClick={handleLive}
     >
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       Go Live
     </div>
   );
 };
 
 const SourcesDropdown: FunctionComponent = () => {
-  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-
-  const { playhead } = usePlayheadContext();
+  const framework = useAppSelector((state) => state.framework, deepEqual);
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const handleSourceChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    let URL = generateShareURL(framework, playhead);
+    let URL = generateShareURL(framework, playheadDate, appSeconds);
 
     const value = e.target.value;
 
@@ -155,6 +160,7 @@ const SourcesDropdown: FunctionComponent = () => {
 
   return (
     <div className={styles.select}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <select
         value={framework.source}
         onChange={(e) => {
@@ -174,9 +180,9 @@ const SourcesDropdown: FunctionComponent = () => {
 };
 
 const DatetimeDropdown: FunctionComponent = () => {
-  const { playhead } = usePlayheadContext();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
 
-  const date = new Date(playhead.date);
+  const date = new Date(playheadDate);
   const year = date.getUTCFullYear();
   const month = padZeros(date.getUTCMonth() + 1, 2);
   const day = padZeros(date.getUTCDate(), 2);
@@ -198,20 +204,21 @@ const Clock: FunctionComponent = () => {
   const [userTimeValue, setUserTimeValue] = useState("");
   const [editingTime, setEditingTime] = useState(false);
 
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  const dispatch = useAppDispatch();
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const timeInput = useRef(null);
 
   useEffect(() => {
-    setRenderTime(hhmmssFromSeconds(playhead.appSeconds));
-  }, [playhead.appSeconds]);
+    setRenderTime(hhmmssFromSeconds(appSeconds));
+  }, [appSeconds]);
 
   /** Navigates to a new time */
   const handleTimeChange = () => {
     if (userTimeValue !== "") {
       const [hh, mm = "00", ss = "00"] = userTimeValue.split(":");
       const newTime = +ss + 60 * +mm + 3600 * +hh;
-      dispatchPlayhead({ type: "SET_APP_SECONDS", payload: newTime });
+      dispatch(setAppSeconds(newTime));
       setRenderTime(userTimeValue);
     }
 
@@ -228,6 +235,7 @@ const Clock: FunctionComponent = () => {
 
   return (
     <div className={styles.timeContainer}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.timeInputContainer}>
         <div className={`${styles.iconWithText} ${styles.clockIconContainer}`}>
           <FontAwesomeIcon icon={faClock} size={"sm"} />
@@ -313,9 +321,9 @@ const Header: FunctionComponent<{
   setHelpLoaderOpen: (val: boolean) => void;
   socketStatus: ClientSocketStatus;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen, socketStatus }) => {
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const { playhead } = usePlayheadContext();
-  const isToday = isSameDate(new Date(playhead.date), new Date());
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const clock = useAppSelector((state) => state.clock, shallowEqual);
+  const isToday = isSameDate(new Date(clock.date), new Date());
 
   return (
     <div className={styles.main}>

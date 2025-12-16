@@ -2,7 +2,6 @@ import map from "lodash/map";
 import { useState } from "react";
 import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { RootState } from "store/index";
 import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
 import layoutStyles from "/components/framework/frames.module.css";
@@ -10,7 +9,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
 const LayoutPicker = ({ closeClick }: { closeClick?: () => void }) => {
-  const frameworkState = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const frameworkState = useAppSelector((state) => state.framework, deepEqual);
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
 

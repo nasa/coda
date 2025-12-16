@@ -15,3 +15,9 @@ interface Ephemeris_db_type {
   origin: "celestrak" | "seed";
   createdAt: Date;
 }
+
+interface CelestrakUpdateResult {
+  success: boolean;
+  epoch?: string; // ISO timestamp of the TLE epoch
+  errorMessage?: string;
+}

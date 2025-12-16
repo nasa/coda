@@ -4,15 +4,13 @@ import { getCurrentUser } from "packages/getCurrentUser";
 import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
 import { addDayNight } from "store/daynight";
 import { addEphemera } from "store/ephemera";
 import { setGPSTracks } from "store/gps";
 import { setGraphsManifest } from "store/graphs";
 import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
 import { addSequences } from "store/sequences";
-import { setSgAudioActivity } from "store/sg-audio";
-import { setTranscripts } from "store/transcript";
+import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
@@ -23,7 +21,7 @@ const SocketClient: FunctionComponent<{
   setSocketStatus: Dispatch<SetStateAction<ClientSocketStatus>>;
 }> = ({ socketStatus, setSocketStatus }) => {
   const dispatch = useAppDispatch();
-  const { playhead } = usePlayheadContext();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
 
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
@@ -45,7 +43,7 @@ const SocketClient: FunctionComponent<{
 
   //Handle socketio events
   useEffect(() => {
-    if (!user || !source || !playhead) return;
+    if (!user || !source || !playheadDate) return;
 
     // Create a socket connection
     if (!socket.current || (socket.current && !socket.current.connected)) {
@@ -62,7 +60,7 @@ const SocketClient: FunctionComponent<{
     socket.current.on("connect", () => {
       const visitorData: VisitorData = {
         socketId: socket.current.id,
-        dateViewing: playhead.date.split("T")[0],
+        dateViewing: playheadDate.split("T")[0],
         source: source,
         user: user,
         appVersion: socketStatus.clientVersion,
@@ -169,15 +167,19 @@ const SocketClient: FunctionComponent<{
       } else if (dataUpdate.type === "gpstracks") {
         const dataResponse = response as FetchResponse<GPSTrack[]>;
         dispatch(setGPSTracks(dataResponse));
-      } else if (dataUpdate.type === "transcript") {
-        const dataResponse = response as FetchResponse<UnprocessedTranscript[]>;
-        dispatch(setTranscripts(dataResponse));
-      } else if (dataUpdate.type === "sgaudio") {
-        const dataResponse = response as FetchResponse<SgActivityFullUrlRecord>;
-        dispatch(setSgAudioActivity(dataResponse));
+      } else if (dataUpdate.type === "talkybot") {
+        const dataResponse = response as FetchResponse<TbDateResponse>;
+        dispatch(setTalkybotAudioFiles(dataResponse));
       } else if (dataUpdate.type === "graph") {
         const dataResponse = response as FetchResponse<GraphsManifest>;
         dispatch(setGraphsManifest(dataResponse));
+      }
+    });
+
+    // Incoming incremental data updates (e.g., new audio files from talkybotS2sSocket)
+    socket.current.on("incrementalDataUpdate", (incrementalUpdate: IncrementalDataUpdate) => {
+      if (incrementalUpdate.type === "talkybot") {
+        dispatch(upsertTalkybotAudioFile(incrementalUpdate.item as TbAudioFile));
       }
     });
 
@@ -191,9 +193,10 @@ const SocketClient: FunctionComponent<{
       socket.current.off("version");
       socket.current.off("statusFromServer");
       socket.current.off("dataUpdate");
+      socket.current.off("incrementalDataUpdate");
       socket.current.disconnect();
     };
-  }, [socket, user, playhead.date, source]);
+  }, [socket, user, playheadDate, source]);
 
   return <></>;
 };

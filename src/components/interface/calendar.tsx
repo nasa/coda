@@ -1,15 +1,15 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
 import { ModalDropdown } from "./dropdown-modal";
-import { RootState } from "store/index";
 import { getYearDayNumber, padZeros } from "utils/formatting";
 import styles from "./calendar.module.css";
-import { generateShareURL } from "utils/share-state";
-import { diff, isSameDate } from "../../utils/date";
+import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import isNil from "lodash/isNil";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { thunkChangeViewingDate } from "store/thunk/clockThunk";
+import type { AppDispatch } from "store/index";
 
 interface DateDescription {
   date: Date;
@@ -47,19 +47,25 @@ const allMonths = [
   "DECEMBER",
 ];
 
-const handleDateChange = (
-  description: DateDescription,
-  framework: FrameworkState,
-  playhead: Playhead
-) => {
+const handleDateChange = (description: DateDescription, dispatch: AppDispatch) => {
   const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
     description.date.getUTCMonth() + 1,
     2
   )}-${padZeros(description.date.getUTCDate(), 2)}`;
-  let URL = generateShareURL(framework, playhead);
-  // replace the datestring in URL with selected calendar date
-  URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
-  window.location.assign(URL);
+
+  // Update URL without reloading
+  const url = new URL(window.location.href);
+  url.searchParams.set("date", formattedDate);
+  url.searchParams.set("gmt", "00:00:00");
+  window.history.replaceState({}, "", url.toString());
+
+  // Clear stores and change to new date (socket will reconnect automatically)
+  dispatch(
+    thunkChangeViewingDate({
+      newDate: midnightZulu(description.date).toISOString(),
+      newAppSeconds: 0,
+    })
+  );
 };
 
 export const MonthsModal: FunctionComponent<{
@@ -145,9 +151,7 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
   description,
   closeClick,
 }) => {
-  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-
-  const { playhead } = usePlayheadContext();
+  const dispatch = useAppDispatch();
 
   let dayOfYearColor = "var(--even-greyer)";
   let toolTipText = "";
@@ -184,7 +188,7 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!description.isLater) {
-      handleDateChange(description, framework, playhead);
+      handleDateChange(description, dispatch);
       closeClick();
     }
   };
@@ -219,15 +223,10 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
 };
 
 const DayOfYearPicker: FunctionComponent = () => {
-  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
+  const dispatch = useAppDispatch();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
 
-  const { playhead } = usePlayheadContext();
-
-  const playheadDate = playhead.date;
-  const allSequences = useAppSelector(
-    (state: RootState) => state.sequences.allSequences,
-    deepEqual
-  );
+  const allSequences = useAppSelector((state) => state.sequences.allSequences, deepEqual);
 
   const today = new Date();
   const todayYYYY = today.getUTCFullYear();
@@ -327,8 +326,7 @@ const DayOfYearPicker: FunctionComponent = () => {
                 isLater: isFuture,
                 EVA,
               },
-              framework,
-              playhead
+              dispatch
             );
           }}
         >
@@ -341,11 +339,9 @@ const DayOfYearPicker: FunctionComponent = () => {
 
 /** Renders a calendar */
 export const Calendar: FunctionComponent<{ closeClick?: () => void }> = ({ closeClick }) => {
-  const framework = useAppSelector((state: RootState) => state.framework, deepEqual);
-  const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
-
-  const { playhead } = usePlayheadContext();
-  const playheadDate = playhead.date;
+  const framework = useAppSelector((state) => state.framework, deepEqual);
+  const sequences = useAppSelector((state) => state.sequences, deepEqual);
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
 
   const source = framework.source;
 

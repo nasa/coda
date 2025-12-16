@@ -1,8 +1,12 @@
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import { getSourceDateDataType, forceRefreshDataType } from "./dataRetrievalScheduler";
 import { getCacheEntry, putCacheEntry } from "server/express/cache-db";
 import { globalValues } from "./global";
 import { emitDataUpdate } from "./sockets";
 import getVideoData from "server/processing/io-videos";
+
+dayjs.extend(duration);
 
 // Import for mocking purposes (need to mock to prevent actual module execution)
 import "server/processing/daynight";
@@ -10,8 +14,6 @@ import "server/processing/ephemeris";
 import "server/processing/io-videos";
 import "server/processing/io-photos";
 import "server/processing/gps";
-import "server/processing/tbAudio";
-import "server/processing/tbTranscripts";
 import "server/processing/mediaMtx";
 import "server/processing/graphs";
 import "server/processing/wikiData";
@@ -23,8 +25,6 @@ jest.mock("server/processing/ephemeris");
 jest.mock("server/processing/io-videos");
 jest.mock("server/processing/io-photos");
 jest.mock("server/processing/gps");
-jest.mock("server/processing/tbAudio");
-jest.mock("server/processing/tbTranscripts");
 jest.mock("server/processing/mediaMtx");
 jest.mock("server/processing/graphs");
 jest.mock("server/processing/wikiData");
@@ -79,8 +79,10 @@ describe("dataRetrievalScheduler", () => {
     const mockDataFetchConfig: FetchConfig = {
       type: "videos",
       getDataFunction: jest.fn(),
-      refreshIntervalMs: 15 * 60 * 1000,
-      refreshIntervalTodayMs: 2 * 60 * 1000,
+      refreshIntervalMs: dayjs.duration(15, "minutes").asMilliseconds(),
+      refreshIntervalTodayMs: dayjs.duration(2, "minutes").asMilliseconds(),
+      fetchTimeoutMs: dayjs.duration(30, "seconds").asMilliseconds(),
+      enableCacheUse: true,
     };
 
     const mockSuccessResponse: FetchResponse<any> = {
@@ -101,7 +103,9 @@ describe("dataRetrievalScheduler", () => {
     };
 
     it("returns cached data when cache is valid (not expired)", async () => {
-      const futureExpiration = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min future
+      const futureExpiration = new Date(
+        Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString(); // 10 min future
       const cachedData = {
         data: mockSuccessResponse,
         metadata: {
@@ -128,7 +132,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("expired cache case initiates immediate background fetch while returning stale data", async () => {
       jest.useFakeTimers();
-      const pastExpiration = new Date(Date.now() - 10 * 60 * 1000).toISOString(); // 10 min past
+      const pastExpiration = new Date(
+        Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString(); // 10 min past
       const cachedData = {
         data: mockSuccessResponse,
         metadata: {
@@ -190,10 +196,10 @@ describe("dataRetrievalScheduler", () => {
       expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalled();
     });
 
-    it("skips cache when disableCacheUse is true", async () => {
+    it("skips cache when enableCacheUse is false", async () => {
       const noCacheConfig: FetchConfig = {
         ...mockDataFetchConfig,
-        disableCacheUse: true,
+        enableCacheUse: false,
       };
 
       (noCacheConfig.getDataFunction as jest.Mock).mockResolvedValue(mockSuccessResponse);
@@ -216,7 +222,13 @@ describe("dataRetrievalScheduler", () => {
 
       // Simulate a slow fetch (5 seconds)
       (mockDataFetchConfig.getDataFunction as jest.Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(mockSuccessResponse), 5000))
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () => resolve(mockSuccessResponse),
+              dayjs.duration(5, "seconds").asMilliseconds()
+            )
+          )
       );
 
       // First call - no cache, triggers background fetch
@@ -252,7 +264,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("updates cache after successful background fetch", async () => {
       jest.useFakeTimers();
-      const pastExpiration = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const pastExpiration = new Date(
+        Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString();
       const cachedData = {
         data: mockSuccessResponse,
         metadata: {
@@ -288,7 +302,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("preserves old cache data when fetch fails", async () => {
       jest.useFakeTimers();
-      const pastExpiration = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const pastExpiration = new Date(
+        Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString();
       const oldCachedData = {
         data: mockSuccessResponse,
         metadata: {
@@ -323,7 +339,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("emits data update when data changes", async () => {
       jest.useFakeTimers();
-      const pastExpiration = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const pastExpiration = new Date(
+        Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString();
       const oldData = {
         data: { videos: [{ id: "video1", title: "Test Video" }] },
         metadata: { success: true, timestamp: new Date().toISOString() },
@@ -363,7 +381,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("does not emit when data is unchanged", async () => {
       jest.useFakeTimers();
-      const pastExpiration = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const pastExpiration = new Date(
+        Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString();
       const sameData = {
         data: { videos: [{ id: "video1", title: "Test Video" }] },
         metadata: { success: true, timestamp: new Date().toISOString() },
@@ -395,7 +415,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("schedules refresh timeout for valid cache when autoRefresh is enabled", async () => {
       jest.useFakeTimers();
-      const futureExpiration = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      const futureExpiration = new Date(
+        Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString();
       const cachedData = {
         data: mockSuccessResponse,
         metadata: {
@@ -422,7 +444,9 @@ describe("dataRetrievalScheduler", () => {
 
     it("does not schedule refresh when autoRefresh is disabled", async () => {
       jest.useFakeTimers();
-      const futureExpiration = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      const futureExpiration = new Date(
+        Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
+      ).toISOString();
       const cachedData = {
         data: mockSuccessResponse,
         metadata: {
@@ -494,7 +518,11 @@ describe("dataRetrievalScheduler", () => {
       (mockDataFetchConfig.getDataFunction as jest.Mock).mockImplementation(
         () =>
           new Promise(
-            (resolve) => setTimeout(() => resolve(mockSuccessResponse), 60000) // 60s delay
+            (resolve) =>
+              setTimeout(
+                () => resolve(mockSuccessResponse),
+                dayjs.duration(60, "seconds").asMilliseconds()
+              ) // 60s delay
           )
       );
 
@@ -513,7 +541,7 @@ describe("dataRetrievalScheduler", () => {
 
       // Check that fetch tracker shows timeout error
       const tracker = globalValues.fetchTrackers?.["ISS"]?.["2025-01-01"]?.["videos"];
-      expect(tracker?.lastResultWasSuccess).toBe(false);
+      expect(tracker?.lastOperationSuccess).toBe(false);
       expect(tracker?.lastErrorMessage).toContain("Timeout after 30000ms");
 
       // Clean up any remaining timers (the 60s setTimeout that was never resolved)
@@ -529,7 +557,11 @@ describe("dataRetrievalScheduler", () => {
       getCacheEntryMock
         .mockResolvedValueOnce({
           data: { videos: [] },
-          metadata: { expiration: new Date(Date.now() + 600000).toISOString() },
+          metadata: {
+            expiration: new Date(
+              Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
+            ).toISOString(),
+          },
         } as any)
         .mockResolvedValueOnce({
           data: { videos: [] },
@@ -573,6 +605,10 @@ describe("dataRetrievalScheduler", () => {
           data: null,
           fetchMetadata: { success: true, timestamp: new Date().toISOString() },
         }),
+        fetchTimeoutMs: dayjs.duration(30, "seconds").asMilliseconds(),
+        refreshIntervalMs: dayjs.duration(60, "minutes").asMilliseconds(),
+        refreshIntervalTodayMs: dayjs.duration(2, "minutes").asMilliseconds(),
+        enableCacheUse: true,
       };
 
       getCacheEntryMock.mockResolvedValue(null);

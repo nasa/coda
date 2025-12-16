@@ -1,0 +1,23 @@
+/* Ephemeris Page Specific Styles */
+/* Note: Most shared styles come from shared.module.css */
+
+/* Year counts grid layout */
+.yearCountsGrid {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 4px 16px;
+  font-size: 0.9rem;
+}
+
+.yearCountItem {
+  display: flex;
+  justify-content: space-between;
+}
+
+.yearCountLabel {
+  color: #cbd5e1;
+}
+
+.yearCountValue {
+  color: #e2e8f0;
+}

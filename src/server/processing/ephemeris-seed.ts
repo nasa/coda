@@ -5,7 +5,7 @@
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getEpochTimestamp } from "tle.js";
-import ConsoleLogger from "utils/consoleLogger";
+import ConsoleLogger from "utils/logging/consoleLogger";
 import { upsertEphemerisRecords } from "./ephemeris";
 
 /**
@@ -46,7 +46,7 @@ async function fetchMonthData(year: number, month: number): Promise<EphemerisEnt
   const url = `https://data.issinrealtime.org/ISSiRT_assets/ephemera/${year}/${year}-${monthStr}.json`;
 
   try {
-    ConsoleLogger.log(`Fetching ${url}...`);
+    ConsoleLogger.debug(`Fetching ${url}...`);
     const res = await fetchWithTimeout(url, { method: "GET" });
 
     if (!res.ok) {
@@ -102,7 +102,7 @@ async function seedMonth(
     origin: "seed",
   });
 
-  ConsoleLogger.log(
+  ConsoleLogger.info(
     `${year}-${month.toString().padStart(2, "0")}: Inserted ${result.inserted}, Skipped ${result.skipped}`
   );
 
@@ -122,7 +122,7 @@ export async function seedMissingData(onProgress?: (message: string) => void): P
   let totalSkipped = 0;
   let monthsProcessed = 0;
 
-  ConsoleLogger.log("Seeding ephemeris data from October 2000 to present...");
+  ConsoleLogger.info("Seeding ephemeris data from October 2000 to present...");
 
   const now = new Date();
   const currentYear = now.getUTCFullYear();
@@ -132,7 +132,7 @@ export async function seedMissingData(onProgress?: (message: string) => void): P
   const startYear = 2000;
   const startMonth = 10;
 
-  ConsoleLogger.log(
+  ConsoleLogger.info(
     `Fetching from ${startYear}-${startMonth.toString().padStart(2, "0")} to ${currentYear}-${currentMonth.toString().padStart(2, "0")}`
   );
 
@@ -178,7 +178,7 @@ export async function seedMissingData(onProgress?: (message: string) => void): P
     }
   }
 
-  ConsoleLogger.log(
+  ConsoleLogger.info(
     `Seeding complete! Processed ${monthsProcessed} months. Inserted: ${totalInserted}, Skipped: ${totalSkipped}`
   );
 

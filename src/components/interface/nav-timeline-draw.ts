@@ -58,7 +58,7 @@ export default class DrawNav {
   readonly asPerformed: { [x: string]: Activity[] };
   readonly dateRendered: Date;
   readonly evaStartSec: number;
-  readonly sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][];
+  readonly audioFiles: TbAudioFile[];
 
   constructor({
     videoFiles,
@@ -71,7 +71,7 @@ export default class DrawNav {
     asPerformed,
     dateRendered,
     evaStartSec,
-    sgActivityFullPathRangeRecords,
+    audioFiles,
   }: {
     videoFiles: VideoFile[];
     mtxPlaybackAvailability: MTXPlaybackAvailability;
@@ -84,7 +84,7 @@ export default class DrawNav {
     /** Keep track of dates for bookkeeping purposes */
     dateRendered: Date;
     evaStartSec: number;
-    sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][];
+    audioFiles: TbAudioFile[];
   }) {
     this.videoFiles = videoFiles;
     this.mtxPlaybackAvailability = mtxPlaybackAvailability;
@@ -96,7 +96,7 @@ export default class DrawNav {
     this.asPerformed = asPerformed;
     this.dateRendered = dateRendered;
     this.evaStartSec = evaStartSec;
-    this.sgActivityFullPathRangeRecords = sgActivityFullPathRangeRecords;
+    this.audioFiles = audioFiles;
   }
 
   initGroups() {
@@ -599,7 +599,21 @@ export default class DrawNav {
     return group;
   }
 
-  drawSgAudioSegments(param: {
+  /** Derive channel index (0-3) from channel string like "1-SG-1" or "1_SG_1".
+   * Uses the last digit if present, otherwise defaults to channel 4 (index 3).
+   */
+  private getChannelIndex(channel: string): number {
+    const match = channel.match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      // Clamp to 1-4 range, then convert to 0-3 index
+      return Math.min(Math.max(num, 1), 4) - 1;
+    }
+    // Default to channel 4 (index 3) if no trailing digit
+    return 3;
+  }
+
+  drawTalkybotSegments(param: {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
@@ -610,48 +624,45 @@ export default class DrawNav {
     compress: boolean;
   }): paper.Group {
     const group = new paper.Group();
-    if (!this.sgActivityFullPathRangeRecords || this.sgActivityFullPathRangeRecords?.length < 4) {
-      return;
+    if (!this.audioFiles || this.audioFiles.length === 0) {
+      return group;
     }
-    for (let sgChannel = 0; sgChannel <= 3; sgChannel++) {
-      const activityRanges = this.sgActivityFullPathRangeRecords[sgChannel];
 
-      for (let i = 0; i < activityRanges.length; i++) {
-        const range = activityRanges[i];
-        if (
-          // if video starts before the end of the tier display and ends after the start of the tier display, then draw a bar
-          range.sound_start_secs <= param.secondsEnd &&
-          range.sound_stop_secs >= param.secondsStart
-        ) {
-          let startLocX =
-            param.leftPx +
-            (Math.max(range.sound_start_secs, 0) - param.secondsStart) * param.pixelsPerSecond;
-          let endLocX =
-            param.leftPx +
-            (Math.min(range.sound_stop_secs, 86399) - param.secondsStart) * param.pixelsPerSecond;
+    for (let i = 0; i < this.audioFiles.length; i++) {
+      const file = this.audioFiles[i];
+      const startSecs = file.appSeconds ?? 0;
+      const endSecs = startSecs + file.duration;
 
-          let startLocY = null;
-          let endLocY = null;
-          if (param.compress) {
-            startLocY = param.barsTop;
-            endLocY = startLocY + param.barHeight + 0.5;
-          } else {
-            startLocY = param.barsTop + sgChannel * (param.barHeight + param.barGapHeight);
-            endLocY = startLocY + param.barHeight + 1;
-          }
+      // if audio starts before the end of the tier display and ends after the start of the tier display, then draw a bar
+      if (startSecs <= param.secondsEnd && endSecs >= param.secondsStart) {
+        const sgChannel = this.getChannelIndex(file.channel);
 
-          let name = `sg${sgChannel}Item_${i}`;
+        const startLocX =
+          param.leftPx + (Math.max(startSecs, 0) - param.secondsStart) * param.pixelsPerSecond;
+        const endLocX =
+          param.leftPx + (Math.min(endSecs, 86399) - param.secondsStart) * param.pixelsPerSecond;
 
-          let line = new paper.Path.Rectangle({
-            from: [startLocX, startLocY],
-            to: [endLocX, endLocY],
-            strokeWidth: param.compress ? 0.1 : 1,
-            strokeColor: param.compress ? this.gColorSgAudio : this.gColorBarBorder,
-            name: name,
-          });
-          line.fillColor = this.gColorSgAudio;
-          group.addChild(line);
+        let startLocY: number;
+        let endLocY: number;
+        if (param.compress) {
+          startLocY = param.barsTop;
+          endLocY = startLocY + param.barHeight + 0.5;
+        } else {
+          startLocY = param.barsTop + sgChannel * (param.barHeight + param.barGapHeight);
+          endLocY = startLocY + param.barHeight + 1;
         }
+
+        const name = `sg${sgChannel}Item_${i}`;
+
+        const line = new paper.Path.Rectangle({
+          from: [startLocX, startLocY],
+          to: [endLocX, endLocY],
+          strokeWidth: param.compress ? 0.1 : 1,
+          strokeColor: param.compress ? this.gColorSgAudio : this.gColorBarBorder,
+          name: name,
+        });
+        line.fillColor = this.gColorSgAudio;
+        group.addChild(line);
       }
     }
     return group;
@@ -975,7 +986,7 @@ export default class DrawNav {
     );
 
     this.gTier1Group.addChild(
-      this.drawSgAudioSegments({
+      this.drawTalkybotSegments({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
@@ -1089,7 +1100,7 @@ export default class DrawNav {
     );
 
     this.gTier2Group.addChild(
-      this.drawSgAudioSegments({
+      this.drawTalkybotSegments({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,

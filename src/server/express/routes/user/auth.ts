@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
 import { getUser } from "packages/getUser";
-import serverLogger from "utils/serverLogger";
-import { isSuperuser } from "utils/user";
+import ConsoleLogger from "utils/logging/consoleLogger";
+import serverLogger from "utils/logging/serverLogger";
 
 const router = express.Router();
 
@@ -12,7 +11,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   const user = getUser(req);
   if (user instanceof Error) {
     const msg = "Unable to decode JWT";
-    console.error(msg, user);
+    ConsoleLogger.error(msg, user);
     res.status(500).send({ msg });
     return;
   }
@@ -27,7 +26,7 @@ export const allowAccess = (req: Request) => {
   const user = getUser(req);
   if (user instanceof Error) {
     const msg = "Unable to decode JWT";
-    console.error(msg, user);
+    ConsoleLogger.error(msg, user);
     return false; // auth error, don't allow
   }
   if (!user.usperson) {
@@ -38,19 +37,4 @@ export const allowAccess = (req: Request) => {
 
   // allow all others
   return true;
-};
-
-export const onlyEmssSuperuser = (
-  req: Request<ParamsDictionary, any, any, Record<string, any>>
-): EmssUser | false => {
-  const user = getUser(req);
-  if (user instanceof Error) {
-    const msg = "Unable to decode JWT";
-    console.error(msg, user);
-    return false; // auth error, don't allow
-  }
-  if (isSuperuser(user)) {
-    return user;
-  }
-  return false;
 };
