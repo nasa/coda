@@ -77,11 +77,6 @@ export const config: DotenvConfig<typeof environments> = {
     local: { type: "make-directory-if-missing", value: "./.local/private" },
     default: "/etc/pki/tls/private",
   },
-  DOCKER_HOST_HTTP_STATIC_DIR: {
-    local: { type: "make-directory-if-missing", value: "./.local/static" },
-    default: "/d1/coda/static",
-  },
-
   //# Unlikely these ever need to change
   // VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
   VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },

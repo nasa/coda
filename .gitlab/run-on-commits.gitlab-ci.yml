@@ -327,6 +327,9 @@ deploy:artifactize-committed-files:
     - deploy:artifactize-committed-files
   stage: stageless
   timeout: 10 minutes
+  before_script:
+    # Remove static and cache dirs if they exist. Remove this if this branch is on prod.
+    - rm -rf /d1/coda/static /d1/coda/cache || true
 
 deploy:carbon:
   extends:
@@ -334,6 +337,7 @@ deploy:carbon:
     - .carbon-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/carbon/g" .env
@@ -344,6 +348,7 @@ deploy:gold:
     - .gold-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
 
@@ -353,6 +358,7 @@ deploy:iron:
     - .iron-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/iron-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/iron/g" .env
 
@@ -362,6 +368,7 @@ deploy:neon:
     - .neon-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/neon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/neon/g" .env
 
@@ -371,6 +378,7 @@ deploy:oxygen:
     - .oxygen-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
 
@@ -386,6 +394,7 @@ deploy:int:
   only:
     - int
   before_script:
+    - !reference [.deploy-template, before_script]
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/int/g" .env
@@ -403,6 +412,7 @@ deploy:prod:
   only:
     - prod
   before_script:
+    - !reference [.deploy-template, before_script]
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env
