@@ -2,45 +2,6 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 import { midnightZulu } from "utils/date";
 import clone from "lodash/clone";
 
-const calcHlsDuration = async ({
-  endpointName,
-}: {
-  endpointName: MTXHlsEndpointName;
-}): Promise<number> => {
-  const indexM3u8Url = `${process.env.VITE_PUBLIC_MEDIA_MTX_HLS_URL}${endpointName}/index.m3u8`;
-
-  // get the m3u8 index
-  const indexM3u8Response = await fetch(indexM3u8Url);
-  const indexM3u8Text = await indexM3u8Response.text();
-
-  // get the stream m3u8 file from the index
-  const indexLines = indexM3u8Text.split("\n");
-  let streamM3u8Url = "";
-  for (const line of indexLines) {
-    if (line.includes(".m3u8")) {
-      streamM3u8Url = `${process.env.VITE_PUBLIC_MEDIA_MTX_HLS_URL}${endpointName}/${line.replace(/\n/g, "")}`;
-      break;
-    }
-  }
-
-  // get the m3u8 file
-  const m3u8Response = await fetch(streamM3u8Url);
-
-  // parse the m3u8 file
-  const m3u8Text = await m3u8Response.text();
-  const lines = m3u8Text.split("\n");
-  let totalDuration = 0;
-
-  lines.forEach((line) => {
-    // Match EXTINF lines
-    const extinfMatch = line.match(/^#EXTINF:([\d.]+),/);
-    if (extinfMatch) {
-      totalDuration += parseFloat(extinfMatch[1]);
-    }
-  });
-  return totalDuration;
-};
-
 export const getMTXAPIResponses = async ({
   dateWanted,
   source,
@@ -53,6 +14,9 @@ export const getMTXAPIResponses = async ({
 
     /**
      * Get the mtxHls endpoints and the duration of hls streams
+     * Uses the configured HLS buffer duration instead of parsing the m3u8 playlist,
+     * since the playlist only shows currently available segments (which grows over time
+     * for a live stream) rather than the full configured buffer duration.
      */
     const mtxHlsEndpoints: MTXHlsEndpoint[] = [];
     // we hit this to get a list of current live endpoint names from mediamtx
@@ -62,6 +26,10 @@ export const getMTXAPIResponses = async ({
       ).toString("base64")}`;
 
       const mtxApiBaseUrl = process.env.VITE_PUBLIC_MEDIA_MTX_CONTROL_URL;
+
+      // Use configured HLS buffer duration (default: 900 seconds = 15 minutes)
+      // This matches MediaMTX config: hlsSegmentCount (180) * hlsSegmentDuration (5s)
+      const hlsBufferDuration = parseInt(process.env.HLS_BUFFER_DURATION_SECONDS);
 
       const response = await fetch(`${mtxApiBaseUrl}v3/paths/list`, {
         headers: {
@@ -73,10 +41,9 @@ export const getMTXAPIResponses = async ({
       for (const item of itemsArray) {
         const streamNameSuffix = item.name.split("_")[1];
 
-        // if the stream is ready, get the length of the hls stream and add the result to the list of endpoints
+        // if the stream is ready, use the configured HLS buffer duration
         if (item.ready && sourceAbbr === streamNameSuffix) {
-          const duration = await calcHlsDuration({ endpointName: item.name });
-          mtxHlsEndpoints.push({ name: item.name, secondsAvailable: duration });
+          mtxHlsEndpoints.push({ name: item.name, secondsAvailable: hlsBufferDuration });
         }
       }
     } catch (e) {

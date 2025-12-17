@@ -13,7 +13,7 @@ import {
   faFilter,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import { MuteButton } from "components/panes/video";
+import { MuteButton } from "components/panes/video/video-controls";
 import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
 import ClockInterval from "components/framework/ClockInterval";
@@ -428,30 +428,27 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     setFilteredUtterances(filtered);
   }, [utterances, paneStateData.filterActive, filterText]);
 
-  // Find the utterance closest to the current playhead time
+  // Find the most recent utterance that has started (accounting for ClockInterval's Math.floor)
   useEffect(() => {
     if (!filteredUtterances.length) {
       setActiveUtteranceSecs(0);
       return;
     }
 
-    const targetSecs = appSeconds ?? 0;
-    let closestUtterance: DisplayUtterance = filteredUtterances[0];
-    let minDiff = Math.abs(closestUtterance.secs - targetSecs);
+    // Find the last utterance where floor(utterance.secs) <= appSeconds
+    // ClockInterval floors appSeconds, so we floor utterance times for comparison
+    let activeUtterance = filteredUtterances[0];
 
-    for (let i = 1; i < filteredUtterances.length; i++) {
-      const current = filteredUtterances[i];
-      const diff = Math.abs(current.secs - targetSecs);
-      if (diff < minDiff || (diff === minDiff && current.secs > closestUtterance.secs)) {
-        closestUtterance = current;
-        minDiff = diff;
+    for (const utterance of filteredUtterances) {
+      if (Math.floor(utterance.secs) <= appSeconds) {
+        activeUtterance = utterance;
       }
     }
 
-    if (activeUtteranceSecs !== closestUtterance.secs) {
-      setActiveUtteranceSecs(closestUtterance.secs);
+    if (activeUtteranceSecs !== activeUtterance.secs) {
+      setActiveUtteranceSecs(activeUtterance.secs);
     }
-  }, [appSeconds, filteredUtterances]);
+  }, [appSeconds, filteredUtterances, activeUtteranceSecs]);
 
   // Show the help panel if there are no audio files
   useEffect(() => {
@@ -510,7 +507,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             <div className={styles.time}>{utterance.time}</div>
           </div>
         </div>
-        {content}
+        <div className={styles.utteranceText}>{content}</div>
       </div>
     );
   }

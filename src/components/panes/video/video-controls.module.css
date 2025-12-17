@@ -1,0 +1,187 @@
+.controls {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.selections {
+  display: flex;
+}
+
+.dlLabel {
+  width: 22px;
+}
+
+.dropdown {
+  width: 40px;
+}
+
+.dlButton:not(:last-of-type) {
+  margin-right: 1px;
+}
+
+.rightButtonsContainer {
+  align-items: baseline;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 5px;
+}
+
+.ioButton {
+  display: block;
+  height: 18px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ioButton:hover {
+  background-color: #eeeeee;
+}
+
+.ioButtonLong {
+  width: 30px;
+}
+
+.ioButtonShort {
+  width: 20px;
+}
+
+.iconAdjustmentLong {
+  position: relative;
+  top: "-2px";
+  font-size: 9px;
+}
+
+.iconAdjustmentShort {
+  left: 4px;
+  position: relative;
+  top: "-0.5px";
+  font-size: 10px;
+}
+
+.selected {
+  border: none;
+  background-color: #eeeeee;
+  color: var(--lighter-grey);
+}
+
+.ioLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 20px;
+  left: -2px;
+}
+
+.clearTextButton {
+  display: block;
+  padding: 0;
+  border: none;
+  color: var(--even-greyer);
+  background-color: rgba(0, 0, 0, 0);
+  font-size: 14px;
+}
+
+.clearTextButton:active {
+  border: none;
+}
+
+/* Channel Dropdown */
+.chDropdownLabel {
+  padding-left: 7px;
+}
+
+.chDropdownModal {
+  display: flex;
+  flex-direction: column;
+}
+
+.active_selected {
+  background: var(--lightest-grey);
+  color: white;
+}
+
+.disabled_selected {
+  background: var(--lightest-grey);
+  color: var(--extremely-grey);
+}
+
+/* Non-DL Video Select */
+.selectContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.selectContainerWide {
+  width: 14em;
+}
+
+.selectContainerNarrow {
+  width: 70px;
+}
+
+.selectContainer select {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  cursor: pointer;
+  padding-left: 15px;
+  padding-right: 15px;
+  height: 27px;
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  background-color: var(--lightest-grey);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-overflow: ellipsis;
+  outline: 0;
+}
+
+.selectContainer select::-ms-expand {
+  display: none;
+}
+
+.selectContainer select:hover,
+.selectContainer select:focus {
+  outline: 0;
+}
+
+.selectContainer select:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.nonDlSelect_arrow {
+  position: absolute;
+  pointer-events: none;
+  top: 3px;
+  right: 6px;
+}
+
+.nonDlSelect_arrow {
+  position: absolute;
+  pointer-events: none;
+  top: 3px;
+  right: 6px;
+}

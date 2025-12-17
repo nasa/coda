@@ -6,7 +6,7 @@ import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import { cleanCollectionsString } from "utils/formatting";
 import { setPaneStateValue } from "store/framework";
-import { IOInfoButton } from "./video";
+import { IOInfoButton } from "./video/video-controls";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
