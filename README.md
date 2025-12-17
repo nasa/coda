@@ -97,6 +97,22 @@ CODA is written in JavaScript and [TypeScript](https://www.typescriptlang.org/) 
 3. [Express](https://expressjs.com/) - for serving the back end
 4. [Redux](https://redux.js.org/) and [Redux toolkit](https://redux-toolkit.js.org/) - for managing global state
 
+### Postgres Version Upgrades
+
+When the Postgres version is updated in `docker-compose.yml`, the database must be migrated:
+
+**For Dev Environments (e.g., gold, iron, etc.):**
+For dev environments, when the database version is updated, the database has to be manually migrated by exporting the production database and importing it into the dev environment. This is because we don't know if CODA is already deployed on each dev server so an in-place upgrade might not work--so we don't try.
+
+1. Deploy to the dev environment (e.g., gold)
+2. Run the manual CI job `z:db-export:prod` to export the production database
+3. Run the manual CI job `z:db-import:<env>` to import the database to the dev environment
+
+**For Integration and Production:**
+This does in-place upgrades automatically on every deployment because CODA is always deployed to these environments.
+
+The [`scripts/upgrade-db.sh`](./scripts/upgrade-db.sh) script automatically handles version upgrades on every deployment. It compares the running Postgres version against the target version in `docker-compose.yml` and performs an in-place upgrade if needed (dump → remove old data → reimport on new version).
+
 ### A note about Time
 
 - All times are stored internally in UTC

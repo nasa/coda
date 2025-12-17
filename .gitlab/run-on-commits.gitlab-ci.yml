@@ -38,6 +38,7 @@ include:
 
   # Adds jobs to export db, and dump logs
   - local: .gitlab/includes/server-jobs.yml
+  - local: .gitlab/includes/db-import.yml
 
 # Override some properties on FIT jobs.
 yaml-lint:
@@ -164,9 +165,14 @@ node-sbom:
     - export IMAGE_VERSION
 
     - make-dotenv $MAKE_DOTENV_ENVIRONMENT
+    # Extract DOCKER_IMAGE_DATABASE from .env and export it without quotes for GitLab CI services
+    # GitLab services are initialized before before_script, so we need the variable in dotenv artifact
+    - source .env
+    - echo "DOCKER_IMAGE_DATABASE=${DOCKER_IMAGE_DATABASE//\"/}" >> pipelineVariables.env
   artifacts:
     reports:
-      dotenv: pipelineVariables.env
+      dotenv:
+        - pipelineVariables.env
     paths:
       - .env
     expire_in: 1 day
@@ -197,7 +203,8 @@ test:
     POSTGRES_DB: coda
   services:
     # image should match database used in docker-compose.yml
-    - name: $CI_REGISTRY/emss/docker-images/postgres:postgis-14-alpine
+    # DOCKER_IMAGE_DATABASE comes from pipelineVariables.env dotenv artifact (without quotes)
+    - name: $CI_REGISTRY/emss/docker-images/$DOCKER_IMAGE_DATABASE
       alias: postgres-test-container
   tags: ["docker", "linux"]
   before_script:
@@ -317,6 +324,7 @@ deploy:artifactize-committed-files:
     paths:
       - .fitdock.yml
       - docker-compose.yml
+      - scripts/upgrade-db.sh
     expire_in: 1 day
 
 .deploy-template:
@@ -382,6 +390,21 @@ deploy:oxygen:
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
 
+test-db-upgrade:gold:
+  extends:
+    - .deploy-template
+    - .gold-deploy
+  when: manual
+  needs:
+    - make-dotenv
+    - deploy:artifactize-committed-files
+  script:
+    - chmod +x ./scripts/upgrade-db.sh
+    - ./scripts/upgrade-db.sh
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
+
 deploy:int:
   extends: .deploy-template
   tags: ["emss-coda-int"]
@@ -395,6 +418,9 @@ deploy:int:
     - int
   before_script:
     - !reference [.deploy-template, before_script]
+    # Run DB upgrade script if needed
+    - chmod +x ./scripts/upgrade-db.sh
+    - ./scripts/upgrade-db.sh
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/int/g" .env
@@ -406,6 +432,11 @@ deploy:prod:
   environment:
     name: production
     url: https://coda.fit.nasa.gov
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+    - z:db-export:prod
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
   when: manual
@@ -413,6 +444,9 @@ deploy:prod:
     - prod
   before_script:
     - !reference [.deploy-template, before_script]
+    # Run DB upgrade script if needed
+    - chmod +x ./scripts/upgrade-db.sh
+    - ./scripts/upgrade-db.sh
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env

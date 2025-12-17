@@ -81,11 +81,6 @@ export const config: DotenvConfig<typeof environments> = {
   // VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
   VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
 
-  // Actual FIT environments deployed by GitLab CI the CACHE_ROOT needs to be relative
-  // for tests run in GitLab CI
-  // Varies based on fit, local, or running tests on GitLab
-  CACHE_ROOT: { local: "./.cache/dev", test: "./.cache/test", default: "/d1/coda/cache" },
-
   // Although this would seem to change between envs, it is only the origin
   // header passed along with IO requests, and it is simpler to just always
   // use coda.fit.nasa.gov to remove variance. We should rename this var to
@@ -112,6 +107,8 @@ export const config: DotenvConfig<typeof environments> = {
   /**
    * Database
    */
+  DOCKER_IMAGE_DATABASE: { default: "postgres:17.7-alpine3.22" },
+
   // DB_HOST is "localhost" when doing native/local Node development. When running
   // node in docker in docker:preview, this will be overridden in the
   // docker-compose-preview.yml to be "database"
