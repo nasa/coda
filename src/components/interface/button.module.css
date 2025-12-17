@@ -58,35 +58,46 @@
 
 .active {
   background: var(--grey);
-  border: solid var(--grey);
+  border: 1px solid var(--grey);
   color: white;
 }
 .active:hover {
   background: var(--lightest-grey);
-  border: solid var(--lightest-grey);
+  border: 1px solid var(--lightest-grey);
   color: white;
 }
 
 .selected {
   background: var(--lightest-grey);
-  border: solid var(--lightest-grey);
+  border: 1px solid var(--lightest-grey);
   color: white;
 }
 
 .disabled {
   background: var(--grey);
-  border: solid var(--grey);
+  border: 1px solid var(--grey);
   color: var(--extremely-grey);
 }
 
 .active_selected {
   background: var(--lightest-grey);
-  border: solid var(--lightest-grey);
+  border: 1px solid var(--even-greyer);
   color: white;
 }
 
 .disabled_selected {
   background: var(--lightest-grey);
-  border: solid var(--lightest-grey);
+  border: 1px solid var(--even-greyer);
   color: var(--extremely-grey);
+}
+
+.active_other {
+  background: var(--lightest-grey);
+  border: 1px solid var(--lightest-grey);
+  color: white;
+}
+.active_other:hover {
+  background: var(--lightest-grey);
+  border: 1px solid var(--lightest-grey);
+  color: white;
 }
