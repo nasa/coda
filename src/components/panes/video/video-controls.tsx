@@ -179,10 +179,14 @@ const RightButtons: FunctionComponent<{
 const getChannelButtonColor = (
   channel: number,
   isAvailable: boolean,
-  isSelected: boolean
+  isSelected: boolean,
+  isSelectedByOthers: boolean
 ): string => {
   if (isSelected) {
     return isAvailable ? "active_selected" : "disabled_selected";
+  }
+  if (isAvailable && isSelectedByOthers) {
+    return "active_other";
   }
   return isAvailable ? "active" : "disabled";
 };
@@ -214,6 +218,17 @@ export const ChannelSelectorLarge: FunctionComponent<{
 }> = ({ frameID, channelAvailability, paneStateData, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
+  // Get channels selected by other video panes
+  const channelsSelectedByOthers = useAppSelector((state) => {
+    const channels = new Set<number>();
+    for (const [key, value] of Object.entries(state.framework.frames)) {
+      if (value.paneType.includes("video") && parseInt(key) !== frameID) {
+        channels.add(value.paneStateData.channel);
+      }
+    }
+    return channels;
+  }, deepEqual);
+
   const handleChannelSelect = (channel: number) => {
     dispatch(
       setPaneStateDataValue({
@@ -233,7 +248,8 @@ export const ChannelSelectorLarge: FunctionComponent<{
             color={getChannelButtonColor(
               channel,
               channelAvailability[channel],
-              paneStateData.channel === channel
+              paneStateData.channel === channel,
+              channelsSelectedByOthers.has(channel)
             )}
             size="small"
             rounded={getButtonRounding(channel, CHANNELS.length)}
@@ -271,6 +287,17 @@ const ChannelDropdownModal: FunctionComponent<{
 }> = ({ closeClick, options: { frameID, channelAvailability, channelSelected } }) => {
   const dispatch = useAppDispatch();
 
+  // Get channels selected by other video panes
+  const channelsSelectedByOthers = useAppSelector((state) => {
+    const channels = new Set<number>();
+    for (const [key, value] of Object.entries(state.framework.frames)) {
+      if (value.paneType.includes("video") && parseInt(key) !== frameID) {
+        channels.add(value.paneStateData.channel);
+      }
+    }
+    return channels;
+  }, deepEqual);
+
   const handleSelectChannel = (channel: number) => {
     dispatch(
       setPaneStateDataValue({
@@ -295,7 +322,8 @@ const ChannelDropdownModal: FunctionComponent<{
             color={getChannelButtonColor(
               channel,
               channelAvailability[channel],
-              channelSelected === channel
+              channelSelected === channel,
+              channelsSelectedByOthers.has(channel)
             )}
             size="small"
             rounded={getDropdownButtonRounding(channel, CHANNELS.length)}
