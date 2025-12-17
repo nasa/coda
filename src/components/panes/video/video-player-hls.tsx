@@ -1,11 +1,13 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import styles from "./video.module.css";
+import styles from "./video-player.module.css";
 import { setPaneStateValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
+import { VideoHLSHelpContent } from "./video-help";
 import Hls from "hls.js";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
+import ConsoleLogger from "utils/logging/consoleLogger";
 import ClockInterval from "components/framework/ClockInterval";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
@@ -107,6 +109,27 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
           setPaneStateValue(dispatch, frameID, "ready", true);
         });
+
+        // Handle errors gracefully
+        hlsRef.current.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                ConsoleLogger.error("HLS: Fatal network error, attempting recovery...");
+                hlsRef.current?.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                ConsoleLogger.error("HLS: Fatal media error, attempting recovery...");
+                hlsRef.current?.recoverMediaError();
+                break;
+              default:
+                ConsoleLogger.error("HLS: Fatal error, destroying instance");
+                hlsRef.current?.destroy();
+                hlsRef.current = null;
+                break;
+            }
+          }
+        });
       }
     } else {
       // Fallback for Safari browser which supports HLS natively
@@ -184,12 +207,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
         }}
       >
-        <div>
-          <p>
-            Streams live video from an EMSS livestream recorder, synced to CODA's playback time.
-            Video only temporarily available for playback and is deleted as time progresses.
-          </p>
-        </div>
+        <VideoHLSHelpContent />
       </HelpOverlay>
     </div>
   );

@@ -6,7 +6,8 @@ import { ModalDropdown } from "components/interface/dropdown-modal";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EventInfo, { EventInfoControls } from "components/panes/event-info";
-import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video";
+import VideoPaneChooser from "components/panes/video/video-chooser";
+import { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video/video-controls";
 import PhotoPane, { PhotoControls } from "components/panes/photo";
 import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
@@ -64,11 +65,11 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
   },
   video_downlink: {
     controls: VideoDLPaneControls,
-    pane: VideoPane,
+    pane: VideoPaneChooser,
   },
   video_non_downlink: {
     controls: VideoOtherPaneControls,
-    pane: VideoPane,
+    pane: VideoPaneChooser,
   },
   photo: {
     controls: PhotoControls,

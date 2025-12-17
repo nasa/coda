@@ -151,6 +151,13 @@ export const config: DotenvConfig<typeof environments> = {
   VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS: {
     default: "7",
   },
+  /**
+   * HLS buffer duration in seconds. This should match MediaMTX's hlsSegmentCount * hlsSegmentDuration.
+   * Default: 900 seconds (15 minutes) = 180 segments * 5 seconds
+   */
+  HLS_BUFFER_DURATION_SECONDS: {
+    default: "900",
+  },
 
   /**
    * Maplibre variables

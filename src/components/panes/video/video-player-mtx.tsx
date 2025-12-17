@@ -1,9 +1,10 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
-import styles from "./video.module.css";
+import styles from "./video-player.module.css";
 import { setPaneStateValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { isAutoplayError } from "./video";
+import { VideoMTXHelpContent } from "./video-help";
+import { isAutoplayError } from "utils/video";
 import { isSameDate } from "utils/date";
 import isEqual from "lodash/isEqual";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -220,12 +221,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
           setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
         }}
       >
-        <div>
-          <p>
-            Displays videos recorded from an EMSS livestream recorder, synced to CODA's playback
-            time. Video only temporarily available for playback and is deleted as time progresses.
-          </p>
-        </div>
+        <VideoMTXHelpContent />
       </HelpOverlay>
     </div>
   );

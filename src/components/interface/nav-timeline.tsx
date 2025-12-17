@@ -9,7 +9,7 @@ import {
   getSequenceStartMilliseconds,
   idFromDate,
 } from "store/sequences";
-import { filterVisibleVideos } from "store/videos";
+import { filterVisibleVideos } from "utils/video";
 import { setAppSeconds, setHoverSeconds } from "store/clock";
 
 import DrawNav from "./nav-timeline-draw";
