@@ -62,7 +62,7 @@
 .jumpLeftText {
   position: relative;
   top: -26px;
-  left: 20px;
+  left: 16px;
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;
@@ -90,7 +90,7 @@
 .jumpRightText {
   position: relative;
   top: -26px;
-  left: 21px;
+  left: 17px;
   font-family: Inter;
   font-size: 0.7em;
   cursor: pointer;

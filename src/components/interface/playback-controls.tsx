@@ -82,13 +82,45 @@ const PlaybackControls: FunctionComponent = () => {
     }
   }, [appSeconds, isRunning, performRollover]);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     dispatch(isRunning ? stopClock() : startClock());
-  };
+  }, [isRunning, dispatch]);
 
-  const jumpTime = (seconds: number) => {
-    dispatch(setAppSeconds(appSeconds + seconds));
-  };
+  const jumpTime = useCallback(
+    (seconds: number) => {
+      dispatch(setAppSeconds(appSeconds + seconds));
+    },
+    [appSeconds, dispatch]
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignore keyboard shortcuts when typing in an input or textarea
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (event.code) {
+        case "Space":
+          event.preventDefault();
+          handlePlayPause();
+          break;
+        case "ArrowRight":
+          event.preventDefault();
+          jumpTime(10);
+          break;
+        case "ArrowLeft":
+          event.preventDefault();
+          jumpTime(-10);
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handlePlayPause, jumpTime]);
 
   let playPauseSvgName;
   if (isRunning) {
@@ -112,7 +144,7 @@ const PlaybackControls: FunctionComponent = () => {
         }}
       >
         <div className={styles.jumpLeftImg}></div>
-        <div className={styles.jumpLeftText}>5</div>
+        <div className={styles.jumpLeftText}>10</div>
       </div>
       <div
         className={styles.controlButton}
@@ -121,7 +153,7 @@ const PlaybackControls: FunctionComponent = () => {
         }}
       >
         <div className={styles.jumpRightImg}></div>
-        <div className={styles.jumpRightText}>5</div>
+        <div className={styles.jumpRightText}>10</div>
       </div>
     </div>
   );
