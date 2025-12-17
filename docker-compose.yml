@@ -33,7 +33,6 @@ services:
       - apiv1
     <<: *send_container_logs_to_syslog
     volumes:
-      - ${DOCKER_HOST_HTTP_STATIC_DIR}:/usr/share/nginx/static:ro
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
     ports:
