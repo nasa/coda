@@ -18,10 +18,6 @@ directories:
     mode: "0775"
     owner: gitlab-runner
     group: gitlab-runner
-  - path: /d1/coda/cache
-    mode: "0775"
-    owner: gitlab-runner
-    group: gitlab-runner
   - path: /d1/coda/postgres
     mode: "0775"
     owner: gitlab-runner
