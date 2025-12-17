@@ -3,7 +3,7 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { FunctionComponent, useEffect, useState } from "react";
 import { refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { ChartLayout, getPlotlyChartLayout } from "./graphProperties";
 import { setGraphsData, clearGraphsData } from "store/graphs";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
@@ -35,9 +35,13 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
 
   useEffect(() => {
     if (!graphs && !paneStateData.showHelp) {
-      setPaneStateValue(dispatch, frameID, "showHelp", true);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: true })
+      );
     } else {
-      setPaneStateValue(dispatch, frameID, "showHelp", false);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: false })
+      );
     }
   }, [graphs]);
 
@@ -59,7 +63,13 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -96,7 +106,13 @@ const GraphSelectorDropdown: FunctionComponent<{
           className={styles.selectActive}
           value={selectedGraphId}
           onChange={(event) => {
-            setPaneStateValue(dispatch, frameID, "selectedGraphId", event.target.value);
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "selectedGraphId",
+                paneStateValue: event.target.value,
+              })
+            );
           }}
         >
           <option value="">Select a graph</option>
@@ -156,7 +172,13 @@ const GraphDurationSelector: FunctionComponent<{
             size="medium"
             rounded={rounded}
             callback={() => {
-              setPaneStateValue(dispatch, frameID, "durationSelection", item.value);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "durationSelection",
+                  paneStateValue: item.value,
+                })
+              );
             }}
           >
             <div className={styles.dlLabel}>{item.label}</div>
@@ -249,7 +271,9 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   useEffect(() => {
     if (graphs.metadata === null || !paneStateData.selectedGraphId) return;
 
-    setPaneStateValue(dispatch, frameID, "showHelp", false);
+    dispatch(
+      setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: false })
+    );
 
     dispatch(clearGraphsData());
 
@@ -411,7 +435,13 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>

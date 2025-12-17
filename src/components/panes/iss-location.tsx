@@ -3,7 +3,7 @@ import type { MutableRefObject, FunctionComponent } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { getAppropriateTLE } from "store/ephemera";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
 
 import styles from "./iss-location.module.css";
@@ -59,7 +59,7 @@ export const ISSLocationControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to ISS position`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
+              dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: !paneStateData.lockMap }));
             }}
           >
             {frameDimensions[0] > minWidth ? (
@@ -77,7 +77,7 @@ export const ISSLocationControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: !paneStateData.showHelp }));
             }}
             selected={paneStateData.showHelp}
           />
@@ -423,13 +423,13 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
         ref={mapContainer}
         className={styles.mapContainer}
         onMouseDown={() => {
-          setPaneStateValue(dispatch, frameID, "lockMap", false);
+          dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: false }));
         }}
       ></div>
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: !paneStateData.showHelp }));
         }}
       >
         <div>

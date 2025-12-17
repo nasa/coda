@@ -6,7 +6,7 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { visibleVideosBySecond } from "utils/video";
 import { hhmmssFromSeconds } from "utils/formatting";
 import styles from "./video-player.module.css";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { isSameDate, midnightZulu } from "../../../utils/date";
 import { VideoPoster, getPosterState } from "./video-poster";
@@ -103,7 +103,13 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
   useEffect(() => {
     const currVideoID = findCurrentVideoID();
     if (currVideoID !== paneStateData.activeVideoFileID) {
-      setPaneStateValue(dispatch, frameID, "activeVideoFileID", currVideoID);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "activeVideoFileID",
+          paneStateValue: currVideoID,
+        })
+      );
       setMetadata(null);
     }
   }, [appSeconds, videoFiles, paneStateData]);
@@ -133,7 +139,13 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
       } catch (e: unknown) {
         if (isAutoplayError(e)) {
           // Browser blocking autoplay of unmuted videos - mute and retry
-          setPaneStateValue(dispatch, frameID, "muted", true);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "muted",
+              paneStateValue: true,
+            })
+          );
         }
       }
     };
@@ -182,7 +194,13 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
       // Don't block the playhead
       if (!paneStateData.ready) {
-        setPaneStateValue(dispatch, frameID, "ready", true);
+        dispatch(
+          setPaneStateDataValue({
+            frameID,
+            paneStateProperty: "ready",
+            paneStateValue: true,
+          })
+        );
       }
     }
   }, [paneStateData.activeVideoFileID, videos]);
@@ -203,17 +221,35 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
   const handleCanPlay = () => {
     if (!paneStateData.ready) {
-      setPaneStateValue(dispatch, frameID, "ready", true);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "ready",
+          paneStateValue: true,
+        })
+      );
     }
   };
 
   const handleEnded = () => {
-    setPaneStateValue(dispatch, frameID, "ready", true);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "ready",
+        paneStateValue: true,
+      })
+    );
   };
 
   const handleWaiting = () => {
     if (paneStateData.ready && sourceURL) {
-      setPaneStateValue(dispatch, frameID, "ready", false);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "ready",
+          paneStateValue: false,
+        })
+      );
       setStatus("buffering");
     }
   };
@@ -246,7 +282,13 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
     // Unblock playhead on any error
     if (paneStateData.ready !== true) {
-      setPaneStateValue(dispatch, frameID, "ready", true);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "ready",
+          paneStateValue: true,
+        })
+      );
     }
   };
 
@@ -260,7 +302,13 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
   };
 
   const handleHelpClose = () => {
-    setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "showHelp",
+        paneStateValue: !paneStateData.showHelp,
+      })
+    );
   };
 
   // ============================================================================

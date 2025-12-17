@@ -10,7 +10,7 @@ import { visibleVideosBySecond } from "utils/video";
 import { cleanCollectionsString } from "utils/formatting";
 import { calculateChannelAvailability, determineVideoPlayerType } from "utils/video";
 import styles from "./video-controls.module.css";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 
@@ -100,21 +100,45 @@ const RightButtons: FunctionComponent<{
       Object.entries(frames).forEach(([key, value]) => {
         if (value.paneType.includes("video")) {
           const paneID = parseInt(key);
-          setPaneStateValue(dispatch, paneID, "muted", paneID !== frameID);
+          dispatch(
+            setPaneStateDataValue({
+              frameID: paneID,
+              paneStateProperty: "muted",
+              paneStateValue: paneID !== frameID,
+            })
+          );
         }
       });
     } else {
       // Just mute this pane
-      setPaneStateValue(dispatch, frameID, "muted", true);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "muted",
+          paneStateValue: true,
+        })
+      );
     }
   };
 
   const handleInfoToggle = () => {
-    setPaneStateValue(dispatch, frameID, "showInfo", !paneStateData.showInfo);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "showInfo",
+        paneStateValue: !paneStateData.showInfo,
+      })
+    );
   };
 
   const handleHelpToggle = () => {
-    setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "showHelp",
+        paneStateValue: !paneStateData.showHelp,
+      })
+    );
   };
 
   return (
@@ -191,7 +215,13 @@ export const ChannelSelectorLarge: FunctionComponent<{
   const dispatch = useAppDispatch();
 
   const handleChannelSelect = (channel: number) => {
-    setPaneStateValue(dispatch, frameID, "channel", channel);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "channel",
+        paneStateValue: channel,
+      })
+    );
   };
 
   return (
@@ -242,7 +272,13 @@ const ChannelDropdownModal: FunctionComponent<{
   const dispatch = useAppDispatch();
 
   const handleSelectChannel = (channel: number) => {
-    setPaneStateValue(dispatch, frameID, "channel", channel);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "channel",
+        paneStateValue: channel,
+      })
+    );
     closeClick();
   };
 
@@ -386,8 +422,20 @@ export const VideoOtherPaneControls: FunctionComponent<{
   }, [visibleVideos, appSeconds]);
 
   const handleVideoSelect = (videoID: string) => {
-    setPaneStateValue(dispatch, frameID, "channel", -1);
-    setPaneStateValue(dispatch, frameID, "activeVideoFileID", videoID);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "channel",
+        paneStateValue: -1,
+      })
+    );
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "activeVideoFileID",
+        paneStateValue: videoID,
+      })
+    );
   };
 
   const hasVideosAvailable = nonDlVideoIDs.length > 0;

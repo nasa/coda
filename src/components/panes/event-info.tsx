@@ -3,7 +3,7 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import isNil from "lodash/isNil";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
 import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
@@ -28,7 +28,13 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -177,7 +183,13 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>

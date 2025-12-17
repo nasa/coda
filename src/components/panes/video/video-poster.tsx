@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import styles from "./video-poster.module.css";
 import { VideoGeneralHelpContent } from "./video-help";
@@ -52,7 +52,13 @@ export const VideoPosterPane: FunctionComponent<{ frameID: number }> = ({ frameI
   );
 
   const handleHelpClose = () => {
-    setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "showHelp",
+        paneStateValue: !paneStateData.showHelp,
+      })
+    );
   };
 
   return (

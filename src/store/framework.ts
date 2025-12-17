@@ -8,7 +8,7 @@ import {
   faSatellite,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-import { Dispatch, UnknownAction, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 /**
  * Supporting information about each layout defined in components/layouts.modules.css.
@@ -369,19 +369,4 @@ function getEventInfoTitleBySource(source: Source): string {
   } else {
     throw new Error(source);
   }
-}
-
-export function setPaneStateValue(
-  dispatch: Dispatch<UnknownAction>,
-  frameID: number,
-  propertyName: string,
-  propertyValue: any
-) {
-  dispatch(
-    setPaneStateDataValue({
-      frameID,
-      paneStateProperty: propertyName,
-      paneStateValue: propertyValue,
-    })
-  );
 }

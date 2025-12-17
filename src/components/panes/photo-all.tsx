@@ -2,7 +2,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { setActivePhoto } from "store/photos";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
@@ -42,7 +42,13 @@ export const PhotoAllControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Scroll automatically to the current photo`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockScroll",
+                  paneStateValue: !paneStateData.lockScroll,
+                })
+              );
             }}
           >
             {frameDimensions[0] > minWidth ? (
@@ -63,7 +69,13 @@ export const PhotoAllControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <FilterButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showFilter",
+                  paneStateValue: !paneStateData.showFilter,
+                })
+              );
             }}
             selected={paneStateData.showFilter}
             frameDimensions={frameDimensions}
@@ -72,7 +84,13 @@ export const PhotoAllControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -95,7 +113,13 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const activePhotoRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = () => {
-    setPaneStateValue(dispatch, frameID, "lockPhotosScroll", false);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "lockPhotosScroll",
+        paneStateValue: false,
+      })
+    );
   };
 
   useEffect(() => {
@@ -171,7 +195,13 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>
