@@ -1,7 +1,7 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import styles from "./video-player.module.css";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { VideoMTXHelpContent } from "./video-help";
 import { isAutoplayError } from "utils/video";
@@ -50,7 +50,9 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
       } catch (e: unknown) {
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
-          setPaneStateValue(dispatch, frameID, "muted", true);
+          dispatch(
+            setPaneStateDataValue({ frameID, paneStateProperty: "muted", paneStateValue: true })
+          );
         }
       }
     };
@@ -175,17 +177,23 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
         className={styles.player}
         onCanPlay={() => {
           if (!paneStateData.ready) {
-            setPaneStateValue(dispatch, frameID, "ready", true);
+            dispatch(
+              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+            );
           }
         }}
         onEnded={() => {
           // ready up because we don't want a missing video to hold up the playhead
-          setPaneStateValue(dispatch, frameID, "ready", true);
+          dispatch(
+            setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+          );
           setStatus(null);
         }}
         onWaiting={() => {
           if (paneStateData.ready) {
-            setPaneStateValue(dispatch, frameID, "ready", false);
+            dispatch(
+              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: false })
+            );
             setStatus("buffering");
           }
         }}
@@ -205,7 +213,9 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
           }
           //unblocking playhead
           if (paneStateData.ready !== true) {
-            setPaneStateValue(dispatch, frameID, "ready", true);
+            dispatch(
+              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+            );
           }
         }}
         onClick={() => {
@@ -218,7 +228,13 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <VideoMTXHelpContent />

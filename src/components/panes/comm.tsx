@@ -2,7 +2,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import { FunctionComponent, useEffect, useMemo, useRef, useState } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import styles from "./comm.module.css";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -88,7 +88,13 @@ export const CommControls: FunctionComponent<{
   // Auto-select all channels if none are selected and channels become available
   useEffect(() => {
     if (availableChannels.length > 0 && paneStateData.sgChannels.length === 0) {
-      setPaneStateValue(dispatch, frameID, "sgChannels", availableChannels);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "sgChannels",
+          paneStateValue: availableChannels,
+        })
+      );
     }
   }, [availableChannels, paneStateData.sgChannels, dispatch, frameID]);
 
@@ -106,14 +112,21 @@ export const CommControls: FunctionComponent<{
   const toggleChannel = (channel: string) => {
     const currentChannels = paneStateData.sgChannels || [];
     if (currentChannels.includes(channel)) {
-      setPaneStateValue(
-        dispatch,
-        frameID,
-        "sgChannels",
-        currentChannels.filter((c) => c !== channel)
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "sgChannels",
+          paneStateValue: currentChannels.filter((c) => c !== channel),
+        })
       );
     } else {
-      setPaneStateValue(dispatch, frameID, "sgChannels", [...currentChannels, channel]);
+      dispatch(
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "sgChannels",
+          paneStateValue: [...currentChannels, channel],
+        })
+      );
     }
   };
 
@@ -183,7 +196,13 @@ export const CommControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <MuteButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "isMuted", !paneStateData.isMuted);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "isMuted",
+                  paneStateValue: !paneStateData.isMuted,
+                })
+              );
             }}
             muted={paneStateData.isMuted}
           />
@@ -193,7 +212,13 @@ export const CommControls: FunctionComponent<{
             className={`${styles.filterButton} ${buttonLength} ${filterButtonSelected}`}
             title={`Filter utterances by words`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "filterActive", !paneStateData.filterActive);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "filterActive",
+                  paneStateValue: !paneStateData.filterActive,
+                })
+              );
             }}
           >
             {frameDimensions[0] > minWidth ? (
@@ -213,7 +238,13 @@ export const CommControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Scroll automatically to the last spoken utterance`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockScroll",
+                  paneStateValue: !paneStateData.lockScroll,
+                })
+              );
             }}
           >
             {frameDimensions[0] > minWidth ? (
@@ -234,7 +265,13 @@ export const CommControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -322,7 +359,9 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   const handleScroll = () => {
     if (paneStateData.lockScroll) {
-      setPaneStateValue(dispatch, frameID, "lockScroll", false);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "lockScroll", paneStateValue: false })
+      );
     }
   };
 
@@ -453,9 +492,13 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   // Show the help panel if there are no audio files
   useEffect(() => {
     if (hasAudioFiles) {
-      setPaneStateValue(dispatch, frameID, "showHelp", false);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: false })
+      );
     } else {
-      setPaneStateValue(dispatch, frameID, "showHelp", true);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: true })
+      );
     }
   }, [hasAudioFiles, dispatch, frameID]);
 
@@ -543,7 +586,13 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               className={styles.icon}
               onClick={() => {
                 setFilterText("");
-                setPaneStateValue(dispatch, frameID, "filterActive", false);
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "filterActive",
+                    paneStateValue: false,
+                  })
+                );
               }}
             >
               <FontAwesomeIcon icon={faCircleXmark} size="lg" />
@@ -560,17 +609,27 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           muted={paneStateData.isMuted}
           onCanPlay={() => {
             if (!paneStateData.ready) {
-              setPaneStateValue(dispatch, frameID, "ready", true);
+              dispatch(
+                setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+              );
             }
           }}
           onEnded={() => {
             // ready up because we don't want a missing audio to hold up the playhead
             setSrcUrl("");
-            setPaneStateValue(dispatch, frameID, "ready", true);
+            dispatch(
+              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+            );
           }}
           onWaiting={() => {
             if (paneStateData.ready && srcUrl !== "") {
-              setPaneStateValue(dispatch, frameID, "ready", false);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "ready",
+                  paneStateValue: false,
+                })
+              );
             }
           }}
         />
@@ -586,7 +645,13 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div className={styles.helpContent}>

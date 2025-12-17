@@ -2,7 +2,7 @@ import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./video-player.module.css";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { VideoHLSHelpContent } from "./video-help";
 import Hls from "hls.js";
@@ -107,7 +107,9 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         hlsRef.current.attachMedia(videoRef.current);
 
         hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
-          setPaneStateValue(dispatch, frameID, "ready", true);
+          dispatch(
+            setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+          );
         });
 
         // Handle errors gracefully
@@ -204,7 +206,13 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <VideoHLSHelpContent />

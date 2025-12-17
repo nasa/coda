@@ -5,7 +5,7 @@ import { initialPhotoFileState, setActivePhoto } from "store/photos";
 import styles from "./photo.module.css";
 import { appSecondsFromDateString, hhmmssFromSeconds } from "utils/formatting";
 import { cleanCollectionsString } from "utils/formatting";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { IOInfoButton } from "./video/video-controls";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
@@ -54,7 +54,13 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
           <div className={styles.verticalCenter}>
             <IOInfoButton
               clickHandler={() => {
-                setPaneStateValue(dispatch, frameID, "showInfo", !paneStateData.showInfo);
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "showInfo",
+                    paneStateValue: !paneStateData.showInfo,
+                  })
+                );
               }}
               selected={paneStateData.showInfo}
               frameDimensions={frameDimensions}
@@ -63,7 +69,13 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
           <div className={styles.verticalCenter}>
             <FilterButton
               clickHandler={() => {
-                setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "showFilter",
+                    paneStateValue: !paneStateData.showFilter,
+                  })
+                );
               }}
               selected={paneStateData.showFilter}
               frameDimensions={frameDimensions}
@@ -72,7 +84,13 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
           <div className={styles.verticalCenter}>
             <HelpButton
               clickHandler={() => {
-                setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "showHelp",
+                    paneStateValue: !paneStateData.showHelp,
+                  })
+                );
               }}
               selected={paneStateData.showHelp}
             />
@@ -237,7 +255,13 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>

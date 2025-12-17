@@ -11,7 +11,7 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection, LineString } from "geojson";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -68,7 +68,7 @@ export const GPSLocationControls: FunctionComponent<{
 
                   const newTogglesData = { ...paneStateData.gpsTrackToggles, [track.name]: onOff };
 
-                  setPaneStateValue(dispatch, frameID, "gpsTrackToggles", newTogglesData);
+                  dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "gpsTrackToggles", paneStateValue: newTogglesData }));
                 }}
               >
                 <div className={styles.dlLabel}>{track.name}</div>
@@ -83,7 +83,7 @@ export const GPSLocationControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
+              dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: !paneStateData.lockMap }));
             }}
           >
             {frameDimensions[0] > minWidth ? (
@@ -101,7 +101,7 @@ export const GPSLocationControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: !paneStateData.showHelp }));
             }}
             selected={paneStateData.showHelp}
           />
@@ -532,14 +532,14 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            setPaneStateValue(dispatch, frameID, "lockMap", false);
+            dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: false }));
           }}
         ></div>
         {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         <HelpOverlay
           isModalOpen={paneStateData.showHelp}
           closeHandler={() => {
-            setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+            dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: !paneStateData.showHelp }));
           }}
         >
           <div>
