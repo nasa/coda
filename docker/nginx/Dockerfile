@@ -1,5 +1,5 @@
-# Get the base image, which is supplied by the pipeline. If the *_BASE_IMAGE value is not defined
-#   (which is true when building locally) then use the value to the right of the = operator
+# Get the base images. When building via kaniko in CI, the dependency proxy will cache images
+# from Docker Hub. For local builds, Docker pulls directly from Docker Hub.
 # hadolint global ignore=DL3006
 ARG NGINX_BASE_IMAGE=nginx:1.28.0-alpine
 ARG NODE_BASE_IMAGE=node:24.11.1-alpine
