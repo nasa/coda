@@ -1,11 +1,4 @@
-import {
-  FunctionComponent,
-  MutableRefObject,
-  useRef,
-  useState,
-  MouseEvent,
-  ReactNode,
-} from "react";
+import { FunctionComponent, useRef, MouseEvent, ReactNode, useState } from "react";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-modal.module.css";
@@ -40,31 +33,39 @@ export const ModalDropdown: FunctionComponent<{
   modalOptions?: any;
 }> = ({ children, ...options }) => {
   const opts = { ...modalDefaults, ...options };
-  const [display, setDisplay] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const modalRef = useRef(null) as MutableRefObject<HTMLInputElement>;
-  const labelRef = useRef(null) as MutableRefObject<HTMLButtonElement>;
+  const modalRef = useRef<HTMLInputElement>(null);
+  const labelRef = useRef<HTMLButtonElement>(null);
 
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
-    setDisplay(!display);
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  const handleBlur = (e: React.FocusEvent) => {
+    // Only close if focus moves outside the entire dropdown container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsOpen(false);
+    }
   };
 
   let caretStyle = styles[opts.caret];
-  if (display) {
+  if (isOpen) {
     caretStyle = styles[oppositeCarets[opts.caret]];
   }
 
   const colorClass = styles[opts.color];
   const sizeClass = styles[opts.size];
   const modalStyle = {
-    display: display ? "block" : "none",
+    display: isOpen ? "block" : "none",
     width: opts.modalWidth ? opts.modalWidth + "px" : null,
-    top: display ? `${labelRef.current?.getBoundingClientRect().bottom + 4}px` : null,
+    top: isOpen ? `${labelRef.current?.getBoundingClientRect().bottom + 4}px` : null,
   };
 
   return (
-    <div>
+    <div tabIndex={-1} onBlur={handleBlur}>
       <button className={styles.main} ref={labelRef}>
         <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={handleClick}>
           <div className={styles.verticalCenter}>{children}</div>
@@ -79,9 +80,9 @@ export const ModalDropdown: FunctionComponent<{
       </button>
       <div className={styles.modal} style={modalStyle} ref={modalRef}>
         <opts.modal
-          closeClick={() => setDisplay(!display)}
+          closeClick={() => setIsOpen(false)}
           options={opts.modalOptions}
-          display={display}
+          display={isOpen}
         />
       </div>
     </div>
