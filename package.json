@@ -2,6 +2,7 @@
   "name": "coda",
   "version": "3.1.0",
   "description": "Contextual Operations Data Activation",
+  "type": "module",
   "main": "src/index.tsx",
   "scripts": {
     "bom": "docker run -it -v .:/repo -w /repo --name node-sbom --rm eegitlabregistry.fit.nasa.gov/emss/docker-images/node-ci:sbom /make-sbom.sh",
@@ -29,10 +30,10 @@
     "api:build:watch": "npm run api:build -- --watch",
     "api:dev": "rimraf ./.local/express/dist && cross-env NODE_ENV=development  npm run api:build:watch",
     "api:prod": "cross-env NODE_ENV=production node ./.local/express/dist/api.js",
-    "migration:up": "npx mikro-orm migration:up",
-    "migration:down": "npx mikro-orm migration:down",
-    "migration:create": "npx mikro-orm migration:create && npx prettier --write ./src/server/database/migrations/Migration20*.ts --ignore-path .prettierignore",
-    "migration:fresh": "npx mikro-orm migration:fresh"
+    "migration:up": "npx tsx node_modules/@mikro-orm/cli/esm.js migration:up",
+    "migration:down": "npx tsx node_modules/@mikro-orm/cli/esm.js migration:down",
+    "migration:create": "npx tsx node_modules/@mikro-orm/cli/esm.js migration:create && npx prettier --write ./src/server/database/migrations/Migration20*.ts --ignore-path .prettierignore",
+    "migration:fresh": "npx tsx node_modules/@mikro-orm/cli/esm.js migration:fresh"
   },
   "repository": {
     "type": "git",

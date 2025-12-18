@@ -86,9 +86,13 @@ const context = await esbuild.context({
   entryPoints: ["src/server/express/server.ts"],
   bundle: true,
   sourcemap: true,
-  format: "cjs",
+  format: "esm",
   platform: "node",
   target: "node20",
+  // Kept to support use of 'require' in dependencies. Currently none are using it, but future ones might.
+  banner: {
+    js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
+  },
   external: [
     "@mikro-orm/mongodb",
     "@mikro-orm/mysql",

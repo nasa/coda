@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "es2022",
     "jsx": "react-jsx",
-    "module": "es2022",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "outDir": "./.local/vite/dist",
     "rootDir": ".",
