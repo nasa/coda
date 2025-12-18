@@ -1,6 +1,5 @@
 import styles from "./index.module.css";
 import isNull from "lodash/isNull";
-import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
 
 import { useEffect, useRef, useState } from "react";
@@ -14,14 +13,14 @@ import {
   setAllFrameworkState,
 } from "store/framework";
 import { setDate, setAppSeconds } from "store/clock";
-import { interpretFramestateQueryString } from "utils/share-state";
+import { interpretFramestateQueryString, validateShareLinkDateTime } from "utils/share-state";
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
-import { diff, isSameDate, midnightZulu } from "../../utils/date";
+import { isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
 import { appSecondsFromDateString } from "utils/formatting";
 
@@ -56,33 +55,11 @@ export function V2() {
   const hasInitializedTime = useRef(false);
 
   // make sure the application is running on the correct date
-  let userDate = null;
+  // urlState.date is already validated by validateShareLinkDateTime
+  const userDate = !isNull(urlState.date)
+    ? midnightZulu(new Date(urlState.date))
+    : midnightZulu(new Date());
 
-  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-  if (!isNull(urlState.date) && !isNull(urlState.date.match(yyyymmdd))) {
-    // change the date if the user set the `date` query param
-    // Parse YYYY-MM-DD format as UTC to avoid timezone drift, then normalize to midnight UTC
-    const [year, month, day] = urlState.date.split("-").map(Number);
-    userDate = midnightZulu(new Date(Date.UTC(year, month - 1, day)));
-  } else {
-    // default the date to today
-    userDate = midnightZulu(new Date());
-  }
-
-  // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
-  // https://youtu.be/m_0s8IZWkBg
-  const isFutureDate = diff(userDate, new Date()) > 0;
-
-  // we will ignore the datetime if it is invalid
-  const isMalformedDate = isNaN(userDate.valueOf());
-
-  if (isFutureDate || isMalformedDate) {
-    // set the date today
-    const today = new Date();
-    userDate = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, today.getUTCDate())
-    );
-  }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
       dispatch(setDate(userDate.toISOString()));
@@ -162,10 +139,15 @@ export default V2;
 
 function getURLParams(query: URLSearchParams): QueryParams {
   const version = query?.get("v") || "1.0"; //version of share URL being received
-  let date = query?.get("date");
-  let gmt = query?.get("gmt");
+  const rawDate = query?.get("date");
+  const rawGmt = query?.get("gmt");
   const source = parseInt(query?.get("s"));
   const layout = query?.get("l");
+
+  // Validate share link date/time - future dates go to today, future times go to now
+  const { validatedDate, validatedGmt } = validateShareLinkDateTime(rawDate, rawGmt);
+  let date = validatedDate;
+  let gmt = validatedGmt;
 
   let fState: FrameworkState = { ...initialFrameworkState };
   if (source) {

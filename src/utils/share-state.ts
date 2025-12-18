@@ -1,5 +1,71 @@
-import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
+import {
+  appSecondsFromDateString,
+  hhmmssFromSeconds,
+  shortdateFromDateString,
+} from "utils/formatting";
 import { paneTypeShortVal, sourceShortVal } from "utils/consts";
+import { diff, isSameDate, midnightZulu } from "utils/date";
+import isNull from "lodash/isNull";
+import isNaN from "lodash/isNaN";
+import isNil from "lodash/isNil";
+
+/**
+ * Validates share link date/time parameters.
+ * - Dates in the future are changed to today's date
+ * - Times in the future (when date is today) are changed to now
+ * @returns Validated date and gmt values, plus a flag indicating if the date was validated to today
+ */
+export function validateShareLinkDateTime(
+  date: string | null,
+  gmt: string | null
+): { validatedDate: string | null; validatedGmt: string | null; isToday: boolean } {
+  const now = new Date();
+  const todayMidnight = midnightZulu(now);
+  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
+  // Match HH:MM:SS with either literal colons or URL-encoded colons (%3A)
+  const reHHMMSS = /^(?:(?:([01]?\d|2[0-3])(?::|%3A)[0-5]\d(?::|%3A)[0-9]\d))$/i;
+
+  let validatedDate = date;
+  let validatedGmt = gmt;
+  let isToday = false;
+
+  // Validate date
+  if (!isNull(date) && !isNull(date.match(yyyymmdd))) {
+    const parsedDate = midnightZulu(new Date(date));
+    const isFutureDate = diff(parsedDate, todayMidnight) > 0;
+    const isMalformedDate = isNaN(parsedDate.valueOf());
+
+    if (isFutureDate || isMalformedDate) {
+      // Future or malformed date - set to today
+      validatedDate = now.toISOString().split("T")[0];
+      isToday = true;
+    } else {
+      isToday = isSameDate(parsedDate, now);
+    }
+  } else {
+    // No date provided - defaults to today
+    isToday = true;
+  }
+
+  // Validate time - only check for future time if the date is today
+  if (isToday && !isNil(gmt) && !isNil(gmt.match(reHHMMSS))) {
+    // Decode URL-encoded colons before parsing
+    const decodedGmt = gmt.replace(/%3A/gi, ":");
+    const [hh, mm, ss = 0] = decodedGmt.split(":").map(Number);
+    const gmtSeconds = hh * 3600 + mm * 60 + ss;
+    const currentSeconds = appSecondsFromDateString(now.toISOString());
+
+    if (gmtSeconds > currentSeconds) {
+      // Time is in the future - set to current time
+      const currentHH = Math.floor(currentSeconds / 3600);
+      const currentMM = Math.floor((currentSeconds % 3600) / 60);
+      const currentSS = Math.floor(currentSeconds % 60);
+      validatedGmt = `${String(currentHH).padStart(2, "0")}:${String(currentMM).padStart(2, "0")}:${String(currentSS).padStart(2, "0")}`;
+    }
+  }
+
+  return { validatedDate, validatedGmt, isToday };
+}
 
 /**
  * Generates a URL string that represents the state of the application.
