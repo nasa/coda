@@ -207,9 +207,14 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   let downlink = -1; // -1 indicates no specific downlink channel
   let LOS = false; // LOS (Loss of Signal) = video recorded during communication blackout, downlinked later
 
+  // Only assign downlink channel if this is actually a downlink video (based on NASA ID source code)
+  // Non-downlink videos (onboards, NASA TV, HDEV, etc.) will remain with downlink=-1
+  // so they appear in the "Video Other" component
+  const videoIsDownlink = isDownlinkVideo(doc.nasa_id);
+
   // Determine downlink channel based on collection type
   // Different collections store channel information in different metadata fields
-  if (col === collection.ISS) {
+  if (videoIsDownlink && col === collection.ISS) {
     const channel = getISSChannel(doc.collections_string);
     // ISS has 8 downlink channels (01-08), convert to 0-indexed
     if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
@@ -307,6 +312,45 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
 
   return videoFile;
+}
+
+/**
+ * Determine if a video is a downlink video based on its NASA ID.
+ * NASA ID format: issaaambbcccdddd or stsaaambbcccdddd
+ * Where bb is the video source number:
+ * - 01-10: SD Downlink
+ * - 11-20: HD Downlink
+ * - 31: Russian Downlink
+ * - 60: Shuttle Downlink
+ * All other source IDs are non-downlink (onboards, NASA TV, etc.)
+ * Exported for testing purposes.
+ * @param nasaId - NASA ID string from IO API doc
+ * @returns true if the video is a downlink video, false otherwise
+ */
+export function isDownlinkVideo(nasaId: string): boolean {
+  // Match ISS or STS video ID format: (iss|sts)aaambbcccdddd
+  // aaa = mission number (3 digits)
+  // m = single character (often a digit)
+  // bb = video source number (2 digits)
+  const match = nasaId.match(/^(?:iss|sts)(\d{3})(\d)(\d{2})/i);
+  if (!match) {
+    // If the ID doesn't match the expected format, exclude it to be safe
+    return false;
+  }
+
+  const sourceId = parseInt(match[3], 10);
+
+  // Downlink source IDs:
+  // 01-10: SD Downlink
+  // 11-20: HD Downlink
+  // 31: Russian Downlink
+  // 60: Shuttle Downlink
+  return (
+    (sourceId >= 1 && sourceId <= 10) ||
+    (sourceId >= 11 && sourceId <= 20) ||
+    sourceId === 31 ||
+    sourceId === 60
+  );
 }
 
 /**
