@@ -4,8 +4,11 @@
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
 variables:
-  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.11.1-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:25.2.1-alpine"
+  # Node images pulled via GitLab dependency proxy (caches from Docker Hub)
+  CURRENT_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:24.11.1-alpine"
+  FUTURE_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:25.2.1-alpine"
+  # Kaniko uses the dependency proxy as a registry mirror for rate limiting and caching
+  KANIKO_REGISTRY_MIRROR: "${CI_DEPENDENCY_PROXY_SERVER}"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"
@@ -76,7 +79,7 @@ dependency-check:
 
 npm-audit:
   stage: stageless
-  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit
+  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit # custom image, not on Docker Hub
   when: manual
   needs: []
   tags: ["openshift"]
@@ -103,7 +106,7 @@ node-sbom:
   stage: stageless
   tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
   needs: ["install_dependencies"]
-  image: $CI_REGISTRY/emss/docker-images/node-ci:sbom
+  image: $CI_REGISTRY/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
   script:
     - /make-sbom.sh
   artifacts:
@@ -204,7 +207,8 @@ test:
   services:
     # image should match database used in docker-compose.yml
     # DOCKER_IMAGE_DATABASE comes from pipelineVariables.env dotenv artifact (without quotes)
-    - name: $CI_REGISTRY/emss/docker-images/$DOCKER_IMAGE_DATABASE
+    # Using dependency proxy for caching and rate limiting
+    - name: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/$DOCKER_IMAGE_DATABASE
       alias: postgres-test-container
   tags: ["docker", "linux"]
   before_script:
@@ -267,12 +271,8 @@ docker:build:nginx:
   variables:
     SERVICE_NAME: nginx
     MULTISTAGE_TARGET: prod
-    NGINX_BASE_IMAGE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
-    NODE_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     GIT_COMMIT: $CI_COMMIT_SHORT_SHA
     MAP_ENV_VARS_TO_BUILD_ARGS: |
-      NGINX_BASE_IMAGE
-      NODE_BASE_IMAGE
       VITE_PUBLIC_MAPBOX_KEY
       VITE_PUBLIC_TALKYBOT_URL
       VITE_PUBLIC_LIVE_STREAMS_ENABLED
@@ -289,10 +289,8 @@ docker:build:apiv1:
   variables:
     SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
-    APIV1_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     GIT_COMMIT: $CI_COMMIT_SHORT_SHA
     MAP_ENV_VARS_TO_BUILD_ARGS: |
-      APIV1_BASE_IMAGE
       GIT_COMMIT
 
 #
