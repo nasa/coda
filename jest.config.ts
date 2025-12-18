@@ -1,9 +1,11 @@
 const config = {
-  preset: "ts-jest/presets/js-with-ts",
+  preset: "ts-jest/presets/default-esm",
+  extensionsToTreatAsEsm: [".ts", ".tsx"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "node"],
   moduleDirectories: ["node_modules", "src"],
   rootDir: "./src",
   moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
     "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$":
       "<rootDir>/__mocks__/fileMock.js",
     "\\.(css|scss)$": "identity-obj-proxy",
@@ -23,7 +25,14 @@ const config = {
   setupFiles: ["<rootDir>/../jest.setup.ts"],
   globals: {},
   transform: {
-    "^.+\\.(ts|tsx)$": ["ts-jest", { tsconfig: "tsconfig.jest.json", warnOnly: true }],
+    "^.+\\.(ts|tsx|js)$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.jest.json",
+        warnOnly: true,
+        useESM: true,
+      },
+    ],
   },
   transformIgnorePatterns: ["/node_modules/(?!tle.js/).*"],
 };

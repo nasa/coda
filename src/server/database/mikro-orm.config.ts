@@ -1,6 +1,7 @@
-import "../../utils/loadEnv";
+import "../../utils/loadEnv.js";
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { PostgreSqlDriver, defineConfig } from "@mikro-orm/postgresql";
 import { Migrator } from "@mikro-orm/migrations";
@@ -14,7 +15,10 @@ import {
   VideoStartTimeOverrides_db,
   Cache_db,
   Ephemeris_db,
-} from "./models/_allModels";
+} from "./models/_allModels.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   dbName: process.env.DB_NAME,

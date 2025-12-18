@@ -3,8 +3,12 @@ import dotenv from "dotenv";
 dotenv.config({ override: true, quiet: true });
 import { UserConfig, defineConfig } from "vite";
 import path from "path";
+import { fileURLToPath } from "url";
 import react from "@vitejs/plugin-react-swc";
-import packageJSON from "./package.json";
+import packageJSON from "./package.json" with { type: "json" };
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const ReactCompilerConfig = {
   // You can specify a target version: '17' | '18' | '19'
