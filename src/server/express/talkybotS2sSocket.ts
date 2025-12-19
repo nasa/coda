@@ -2,6 +2,7 @@ import "utils/loadEnv";
 import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
+import { toTbAudioFileConverted } from "../processing/talkybot";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
@@ -15,7 +16,7 @@ import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from 
 interface TalkybotS2sServerToClientEvents {
   statusFromServer: (payload: TalkybotS2sStatusFromServer) => void;
   version: (appVersion: string) => void;
-  audioFile: (payload: TbAudioFile) => void;
+  audioFile: (payload: TbAudioFileNative) => void;
 }
 
 interface TalkybotS2sStatusFromServer {
@@ -249,21 +250,24 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
   });
 
   talkybotS2sSocket.on("audioFile", (payload) => {
-    ConsoleLogger.debug(`TalkybotS2s Socket: Received new audioFile - ${payload.fileUuid}`);
+    // Convert native audio file to Coda format
+    const audioFile = toTbAudioFileConverted(payload);
 
-    const textPreview = payload.text
-      ? `"${payload.text.substring(0, 80)}${payload.text.length > 80 ? "..." : ""}"`
+    ConsoleLogger.debug(`TalkybotS2s Socket: Received new audioFile - ${audioFile.fileUuid}`);
+
+    const textPreview = audioFile.text
+      ? `"${audioFile.text.substring(0, 80)}${audioFile.text.length > 80 ? "..." : ""}"`
       : "No transcript";
 
     updateTalkybotS2sSocketTrackerData({
       messagesReceived: talkybotS2sSocketTrackerData.messagesReceived + 1,
       lastMessageReceivedAt: new Date().toISOString(),
       lastMessageType: "audioFile",
-      lastMessagePreview: `${payload.channel}: ${textPreview}`,
+      lastMessagePreview: `${audioFile.channel}: ${textPreview}`,
       audioFilesReceived: talkybotS2sSocketTrackerData.audioFilesReceived + 1,
       lastAudioFileReceivedAt: new Date().toISOString(),
-      lastAudioFileUuid: payload.fileUuid,
-      lastAudioFilePreview: `[${payload.channel}] ${textPreview} (${payload.duration}s)`,
+      lastAudioFileUuid: audioFile.fileUuid,
+      lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
     });
 
     // Emit incremental update to all clients viewing today's date for ISS source
@@ -273,7 +277,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
       dataDate: today,
       incrementalUpdate: {
         type: "talkybot",
-        item: payload,
+        item: audioFile,
       },
     });
   });

@@ -168,7 +168,10 @@ const SocketClient: FunctionComponent<{
         const dataResponse = response as FetchResponse<GPSTrack[]>;
         dispatch(setGPSTracks(dataResponse));
       } else if (dataUpdate.type === "talkybot") {
-        const dataResponse = response as FetchResponse<TbDateResponse>;
+        const dataResponse = response as FetchResponse<{
+          date: string;
+          audioFiles: TbAudioFileConverted[];
+        }>;
         dispatch(setTalkybotAudioFiles(dataResponse));
       } else if (dataUpdate.type === "graph") {
         const dataResponse = response as FetchResponse<GraphsManifest>;
@@ -179,7 +182,8 @@ const SocketClient: FunctionComponent<{
     // Incoming incremental data updates (e.g., new audio files from talkybotS2sSocket)
     socket.current.on("incrementalDataUpdate", (incrementalUpdate: IncrementalDataUpdate) => {
       if (incrementalUpdate.type === "talkybot") {
-        dispatch(upsertTalkybotAudioFile(incrementalUpdate.item as TbAudioFile));
+        // Server already converts to TbAudioFileConverted before emitting
+        dispatch(upsertTalkybotAudioFile(incrementalUpdate.item as TbAudioFileConverted));
       }
     });
 

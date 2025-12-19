@@ -58,7 +58,7 @@ export default class DrawNav {
   readonly asPerformed: { [x: string]: Activity[] };
   readonly dateRendered: Date;
   readonly evaStartSec: number;
-  readonly audioFiles: TbAudioFile[];
+  readonly audioFiles: TbAudioFileConverted[];
 
   constructor({
     videoFiles,
@@ -84,7 +84,7 @@ export default class DrawNav {
     /** Keep track of dates for bookkeeping purposes */
     dateRendered: Date;
     evaStartSec: number;
-    audioFiles: TbAudioFile[];
+    audioFiles: TbAudioFileConverted[];
   }) {
     this.videoFiles = videoFiles;
     this.mtxPlaybackAvailability = mtxPlaybackAvailability;

@@ -32,14 +32,16 @@ export const channelColors = [
 ];
 
 type ChannelAudioTiming = {
-  file: TbAudioFile;
+  file: TbAudioFileConverted;
   startSeconds: number;
   endSeconds: number;
   timeLabel: string;
 };
 
 /** Precompute channel timings to avoid repeated date/appSeconds conversions */
-function buildChannelTimingMap(audioFiles: TbAudioFile[] = []): Map<string, ChannelAudioTiming[]> {
+function buildChannelTimingMap(
+  audioFiles: TbAudioFileConverted[] = []
+): Map<string, ChannelAudioTiming[]> {
   const channelMap = new Map<string, ChannelAudioTiming[]>();
 
   for (const file of audioFiles) {
@@ -283,7 +285,7 @@ export const CommControls: FunctionComponent<{
 
 /** Represents an audio file that's currently active for playback */
 type ActiveAudioFile = {
-  file: TbAudioFile | null;
+  file: TbAudioFileConverted | null;
   playOffset: number;
 };
 
