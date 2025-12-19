@@ -1,4 +1,4 @@
-/// <reference types="vite/client" />
+/// <reference types="vitest/config" />
 import dotenv from "dotenv";
 dotenv.config({ override: true, quiet: true });
 import { UserConfig, defineConfig } from "vite";
@@ -19,6 +19,10 @@ export const config: UserConfig = {
   root: "./src",
   envDir: "../",
   plugins: [react()],
+  // Enable esbuild decorators for the server-side code (MikroORM entities)
+  esbuild: {
+    target: "esnext",
+  },
 
   resolve: {
     //alias paths so that the import statements are shorter and start from the src folder
@@ -27,6 +31,7 @@ export const config: UserConfig = {
       packages: path.resolve(__dirname, "./src/packages"),
       pages: path.resolve(__dirname, "./src/pages"),
       public: path.resolve(__dirname, "./src/public"),
+      server: path.resolve(__dirname, "./src/server"),
       store: path.resolve(__dirname, "./src/store"),
       typings: path.resolve(__dirname, "./src/typings"),
       utils: path.resolve(__dirname, "./src/utils"),

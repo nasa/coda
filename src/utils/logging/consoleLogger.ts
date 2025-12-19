@@ -97,6 +97,27 @@ function formatArgsForEmssLogger(level: LogLevel, args: any[]) {
 
 export class ConsoleLogger {
   private static level: LogLevel = "off";
+  private static initialized = false;
+
+  /**
+   * Initialize the console logger level based on the environment.
+   * This is called automatically on first use.
+   */
+  private static initialize() {
+    if (this.initialized) return;
+    this.initialized = true;
+
+    // Detect environment and set log level accordingly
+    if (isServer) {
+      // Server side: use process.env
+      const logLevel = (process.env.VITE_PUBLIC_LOG_LEVEL as LogLevel) || "off";
+      this.level = logLevel;
+    } else {
+      // Client side: use import.meta.env
+      const logLevel = (import.meta.env.VITE_PUBLIC_LOG_LEVEL as LogLevel) || "off";
+      this.level = logLevel;
+    }
+  }
 
   private static getTimestamp(): string {
     const now = new Date();
@@ -114,6 +135,7 @@ export class ConsoleLogger {
    * Example: if level is "warn", then error and warn messages are shown, but log and debug are not.
    */
   private static shouldLog(messageLevel: LogLevel): boolean {
+    this.initialize();
     return LOG_LEVEL_PRIORITY[messageLevel] <= LOG_LEVEL_PRIORITY[this.level];
   }
 
@@ -145,6 +167,7 @@ export class ConsoleLogger {
 
   static setLevel(level: LogLevel) {
     this.level = level;
+    this.initialized = true; // Prevent initialize() from overriding the manually set level
   }
 
   static getLevel(): LogLevel {

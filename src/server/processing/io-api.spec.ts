@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import {
   getISSChannel,
   formatDateQuery,
@@ -9,9 +11,9 @@ import {
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import { collection } from "utils/consts";
 
-jest.mock("../../utils/fetch-with-timeout");
+vi.mock("../../utils/fetch-with-timeout");
 
-const fetchWithTimeoutMock = fetchWithTimeout as jest.MockedFunction<typeof fetchWithTimeout>;
+const fetchWithTimeoutMock = fetchWithTimeout as Mock;
 
 const createPhotoDoc = (id: string) => ({
   id,

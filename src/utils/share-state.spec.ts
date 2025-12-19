@@ -3,12 +3,12 @@ import { validateShareLinkDateTime } from "./share-state";
 describe("validateShareLinkDateTime", () => {
   beforeEach(() => {
     // Mock current time to 2024-03-15 14:30:45 UTC for consistent testing
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2024-03-15T14:30:45Z"));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-03-15T14:30:45Z"));
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe("date validation", () => {

@@ -33,7 +33,7 @@
     "declaration": false,
     "jsxImportSource": "react",
     "typeRoots": ["./node_modules/@types", "./typings", "./node_modules"],
-    "types": ["vite/client", "node", "jest", "@testing-library/jest-dom", "react", "react-dom"],
+    "types": ["vite/client", "node", "vitest/globals", "react", "react-dom"],
     "preserveConstEnums": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
