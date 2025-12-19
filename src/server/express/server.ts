@@ -7,13 +7,9 @@ import { setupSocketIO } from "./sockets";
 import { initTalkybotS2sSocket, disconnectTalkybotS2sSocket } from "./talkybotS2sSocket";
 import { startCelestrakScheduler, stopCelestrakScheduler } from "./celestrakScheduler";
 import serverLogger from "utils/logging/serverLogger";
-import { ConsoleLogger, LogLevel } from "../../utils/logging/consoleLogger";
+import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import config from "server/database/mikro-orm.config";
 import { MikroORM } from "@mikro-orm/postgresql";
-
-// Set console logging level on the server side based on the environment variable
-const logLevel = (process.env.VITE_PUBLIC_LOG_LEVEL as LogLevel) || "off";
-ConsoleLogger.setLevel(logLevel);
 
 // start the database connection
 globalValues.orm = await MikroORM.init(config);

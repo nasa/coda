@@ -1,16 +1,18 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import { getUser } from "./getUser";
 import { getUserFromJWT } from "@emss/oauth2-proxy-backend";
 import { Request } from "express";
 
-jest.mock("@emss/oauth2-proxy-backend");
+vi.mock("@emss/oauth2-proxy-backend");
 
-const getUserFromJWTMock = getUserFromJWT as jest.MockedFunction<typeof getUserFromJWT>;
+const getUserFromJWTMock = getUserFromJWT as Mock;
 
 describe("getUser", () => {
   let mockRequest: Partial<Request>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockRequest = {
       headers: {},
     };

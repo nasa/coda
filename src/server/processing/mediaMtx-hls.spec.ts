@@ -1,9 +1,11 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import { fetchMTXHlsEndpoints } from "./mediaMtx-hls";
 
 describe("mediaMtx-hls", () => {
   describe("fetchMTXHlsEndpoints", () => {
     beforeEach(() => {
-      global.fetch = jest.fn();
+      global.fetch = vi.fn();
       process.env.MEDIAMTX_USERNAME = "testuser";
       process.env.MEDIAMTX_PASSWORD = "testpass";
       process.env.VITE_PUBLIC_MEDIA_MTX_CONTROL_URL = "http://localhost:9997/";
@@ -12,7 +14,7 @@ describe("mediaMtx-hls", () => {
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it("should fetch HLS endpoints for specified source", async () => {
@@ -24,7 +26,7 @@ describe("mediaMtx-hls", () => {
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 
@@ -46,7 +48,7 @@ describe("mediaMtx-hls", () => {
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 
@@ -66,7 +68,7 @@ describe("mediaMtx-hls", () => {
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 
@@ -81,7 +83,7 @@ describe("mediaMtx-hls", () => {
         items: [{ name: "DL1_ISS", ready: true }],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 
@@ -99,7 +101,7 @@ describe("mediaMtx-hls", () => {
         items: [{ name: "DL1_ISS", ready: true }],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 
@@ -117,7 +119,7 @@ describe("mediaMtx-hls", () => {
         items: [],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 

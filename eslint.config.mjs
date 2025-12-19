@@ -17,13 +17,7 @@ for (const key in originalBrowserGlobals) {
 
 export default [
   {
-    ignores: [
-      "**/public/**/*",
-      ".local/**/*",
-      "node_modules/**/*",
-      ".cache/**/*",
-      "src/coverage/**/*",
-    ],
+    ignores: ["**/public/**/*", ".local/**/*", "node_modules/**/*", ".cache/**/*", "coverage/**/*"],
   },
   {
     plugins: {

@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { getSourceDateDataType, forceRefreshDataType } from "./dataRetrievalScheduler";
@@ -18,17 +20,17 @@ import "server/processing/mediaMtx";
 import "server/processing/graphs";
 import "server/processing/wikiData";
 
-jest.mock("server/express/cache-db");
-jest.mock("./sockets");
-jest.mock("server/processing/daynight");
-jest.mock("server/processing/ephemeris");
-jest.mock("server/processing/io-videos");
-jest.mock("server/processing/io-photos");
-jest.mock("server/processing/gps");
-jest.mock("server/processing/mediaMtx");
-jest.mock("server/processing/graphs");
-jest.mock("server/processing/wikiData");
-jest.mock("./global", () => ({
+vi.mock("server/express/cache-db");
+vi.mock("./sockets");
+vi.mock("server/processing/daynight");
+vi.mock("server/processing/ephemeris");
+vi.mock("server/processing/io-videos");
+vi.mock("server/processing/io-photos");
+vi.mock("server/processing/gps");
+vi.mock("server/processing/mediaMtx");
+vi.mock("server/processing/graphs");
+vi.mock("server/processing/wikiData");
+vi.mock("./global", () => ({
   globalValues: {
     socketio: null,
     serverSocketStatus: {
@@ -43,10 +45,10 @@ jest.mock("./global", () => ({
   } as GlobalValues,
 }));
 
-const getCacheEntryMock = getCacheEntry as jest.MockedFunction<typeof getCacheEntry>;
-const putCacheEntryMock = putCacheEntry as jest.MockedFunction<typeof putCacheEntry>;
-const emitDataUpdateMock = emitDataUpdate as jest.MockedFunction<typeof emitDataUpdate>;
-const getVideoDataMock = getVideoData as jest.MockedFunction<typeof getVideoData>;
+const getCacheEntryMock = getCacheEntry as Mock;
+const putCacheEntryMock = putCacheEntry as Mock;
+const emitDataUpdateMock = emitDataUpdate as Mock;
+const getVideoDataMock = getVideoData as Mock;
 
 /**
  * Testing Notes:
@@ -55,7 +57,7 @@ const getVideoDataMock = getVideoData as jest.MockedFunction<typeof getVideoData
  * The dataRetrievalScheduler uses "fire-and-forget" promises for background fetches,
  * meaning performBackgroundFetch() is called without await. To test these properly:
  *
- * 1. Use `await jest.advanceTimersByTimeAsync(0)` to flush the microtask queue
+ * 1. Use `await vi.advanceTimersByTimeAsync(0)` to flush the microtask queue
  * 2. Use `await Promise.resolve()` for an additional microtask flush
  *
  * This ensures the fire-and-forget promises have executed before making assertions.
@@ -63,22 +65,22 @@ const getVideoDataMock = getVideoData as jest.MockedFunction<typeof getVideoData
 
 describe("dataRetrievalScheduler", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
+    vi.clearAllMocks();
+    vi.useRealTimers();
     // Reset global state
     globalValues.fetchTrackers = {};
   });
 
   afterEach(() => {
     // Clear all timeouts
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe("getSourceDateDataType - Caching Logic", () => {
     const mockDataFetchConfig: FetchConfig = {
       type: "videos",
-      getDataFunction: jest.fn(),
+      getDataFunction: vi.fn(),
       refreshIntervalMs: dayjs.duration(15, "minutes").asMilliseconds(),
       refreshIntervalTodayMs: dayjs.duration(2, "minutes").asMilliseconds(),
       fetchTimeoutMs: dayjs.duration(30, "seconds").asMilliseconds(),
@@ -131,7 +133,7 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("expired cache case initiates immediate background fetch while returning stale data", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const pastExpiration = new Date(
         Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString(); // 10 min past
@@ -151,7 +153,7 @@ describe("dataRetrievalScheduler", () => {
       };
 
       getCacheEntryMock.mockResolvedValue(cachedData as any);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(newSuccessResponse);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(newSuccessResponse);
 
       const result = await getSourceDateDataType({
         source: "ISS",
@@ -165,7 +167,7 @@ describe("dataRetrievalScheduler", () => {
 
       // Wait for the immediate background fetch to execute (NOT a scheduled timeout)
       // This is a fire-and-forget promise that starts immediately, not on a timer
-      await jest.advanceTimersByTimeAsync(0); // Flush microtasks
+      await vi.advanceTimersByTimeAsync(0); // Flush microtasks
       await Promise.resolve(); // Additional microtask flush
 
       // Verify background fetch was triggered immediately
@@ -176,9 +178,9 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("returns null when no cache exists and triggers background fetch", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       getCacheEntryMock.mockResolvedValue(null);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(mockSuccessResponse);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       const result = await getSourceDateDataType({
         source: "ISS",
@@ -190,7 +192,7 @@ describe("dataRetrievalScheduler", () => {
       expect(result).toBeNull();
 
       // Wait for background fetch fire-and-forget promise to execute
-      await jest.advanceTimersByTimeAsync(0); // Flush microtasks
+      await vi.advanceTimersByTimeAsync(0); // Flush microtasks
       await Promise.resolve(); // Additional microtask flush
 
       expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalled();
@@ -202,7 +204,7 @@ describe("dataRetrievalScheduler", () => {
         enableCacheUse: false,
       };
 
-      (noCacheConfig.getDataFunction as jest.Mock).mockResolvedValue(mockSuccessResponse);
+      (noCacheConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       const result = await getSourceDateDataType({
         source: "ISS",
@@ -217,11 +219,11 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("does not trigger duplicate fetches when already fetching", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       getCacheEntryMock.mockResolvedValue(null);
 
       // Simulate a slow fetch (5 seconds)
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockImplementation(
+      (mockDataFetchConfig.getDataFunction as Mock).mockImplementation(
         () =>
           new Promise((resolve) =>
             setTimeout(
@@ -243,7 +245,7 @@ describe("dataRetrievalScheduler", () => {
       expect(result1).toBeNull();
 
       // Flush microtasks to start background fetch
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
 
       // Second call while first background fetch is still in progress (hasn't reached 5s yet)
       const result2 = await getSourceDateDataType({
@@ -263,7 +265,7 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("updates cache after successful background fetch", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const pastExpiration = new Date(
         Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString();
@@ -275,7 +277,7 @@ describe("dataRetrievalScheduler", () => {
       };
 
       getCacheEntryMock.mockResolvedValue(cachedData as any);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(mockSuccessResponse);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -285,7 +287,7 @@ describe("dataRetrievalScheduler", () => {
       });
 
       // Let background fetch complete (fire-and-forget promise)
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       await Promise.resolve();
 
       expect(putCacheEntryMock).toHaveBeenCalledWith(
@@ -301,7 +303,7 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("preserves old cache data when fetch fails", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const pastExpiration = new Date(
         Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString();
@@ -313,7 +315,7 @@ describe("dataRetrievalScheduler", () => {
       };
 
       getCacheEntryMock.mockResolvedValue(oldCachedData as any);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(mockFailureResponse);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockFailureResponse);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -323,7 +325,7 @@ describe("dataRetrievalScheduler", () => {
       });
 
       // Let background fetch complete (fire-and-forget promise)
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       await Promise.resolve();
 
       // Should preserve old data when new fetch fails
@@ -338,7 +340,7 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("emits data update when data changes", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const pastExpiration = new Date(
         Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString();
@@ -359,7 +361,7 @@ describe("dataRetrievalScheduler", () => {
       };
 
       getCacheEntryMock.mockResolvedValue(cachedData as any);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(newData);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(newData);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -369,7 +371,7 @@ describe("dataRetrievalScheduler", () => {
       });
 
       // Let background fetch complete (fire-and-forget promise)
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       await Promise.resolve();
 
       expect(emitDataUpdateMock).toHaveBeenCalledWith({
@@ -380,7 +382,7 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("does not emit when data is unchanged", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const pastExpiration = new Date(
         Date.now() - dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString();
@@ -397,7 +399,7 @@ describe("dataRetrievalScheduler", () => {
       };
 
       getCacheEntryMock.mockResolvedValue(cachedData as any);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(sameData);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(sameData);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -407,14 +409,14 @@ describe("dataRetrievalScheduler", () => {
       });
 
       // Let background fetch complete (fire-and-forget promise)
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       await Promise.resolve();
 
       expect(emitDataUpdateMock).not.toHaveBeenCalled();
     });
 
     it("schedules refresh timeout for valid cache when autoRefresh is enabled", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const futureExpiration = new Date(
         Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString();
@@ -443,7 +445,7 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("does not schedule refresh when autoRefresh is disabled", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const futureExpiration = new Date(
         Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
       ).toISOString();
@@ -469,9 +471,9 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("uses different timeout delays for today vs historical dates", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const mockNow = new Date();
-      jest.setSystemTime(mockNow);
+      vi.setSystemTime(mockNow);
 
       const today = mockNow.toISOString().split("T")[0];
       const historical = "2020-01-01";
@@ -481,7 +483,7 @@ describe("dataRetrievalScheduler", () => {
       };
 
       getCacheEntryMock.mockResolvedValue(expiredCache as any);
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockResolvedValue(mockSuccessResponse);
+      (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -490,7 +492,7 @@ describe("dataRetrievalScheduler", () => {
         autoRefresh: true,
       });
 
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       const todayDelay = globalValues.fetchTrackers?.["ISS"]?.[today]?.["videos"]?.timeoutDelayMs;
 
       await getSourceDateDataType({
@@ -500,7 +502,7 @@ describe("dataRetrievalScheduler", () => {
         autoRefresh: true,
       });
 
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       const historicalDelay =
         globalValues.fetchTrackers?.["ISS"]?.[historical]?.["videos"]?.timeoutDelayMs;
 
@@ -511,11 +513,11 @@ describe("dataRetrievalScheduler", () => {
     });
 
     it("handles long-running fetch taking longer than 30s timeout correctly", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       getCacheEntryMock.mockResolvedValue(null);
 
       // Simulate a fetch that takes longer than timeout
-      (mockDataFetchConfig.getDataFunction as jest.Mock).mockImplementation(
+      (mockDataFetchConfig.getDataFunction as Mock).mockImplementation(
         () =>
           new Promise(
             (resolve) =>
@@ -536,7 +538,7 @@ describe("dataRetrievalScheduler", () => {
       expect(result).toBeNull();
 
       // Advance past fetch timeout (30s) to trigger timeout in background fetch
-      await jest.advanceTimersByTimeAsync(30100);
+      await vi.advanceTimersByTimeAsync(30100);
       await Promise.resolve();
 
       // Check that fetch tracker shows timeout error
@@ -545,14 +547,14 @@ describe("dataRetrievalScheduler", () => {
       expect(tracker?.lastErrorMessage).toContain("Timeout after 30000ms");
 
       // Clean up any remaining timers (the 60s setTimeout that was never resolved)
-      await jest.runOnlyPendingTimersAsync();
+      await vi.runOnlyPendingTimersAsync();
     });
   });
 
   describe("forceRefreshDataType", () => {
     it("expires cache and triggers immediate fetch", async () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date("2025-11-13T12:00:00Z"));
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2025-11-13T12:00:00Z"));
 
       getCacheEntryMock
         .mockResolvedValueOnce({
@@ -579,7 +581,7 @@ describe("dataRetrievalScheduler", () => {
         dataType: "videos",
       });
 
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
 
       expect(result.success).toBe(true);
       expect(getVideoDataMock).toHaveBeenCalled();
@@ -601,7 +603,7 @@ describe("dataRetrievalScheduler", () => {
     it("initializes fetch tracker entry on first access", async () => {
       const mockConfig: FetchConfig = {
         type: "photos",
-        getDataFunction: jest.fn().mockResolvedValue({
+        getDataFunction: vi.fn().mockResolvedValue({
           data: null,
           fetchMetadata: { success: true, timestamp: new Date().toISOString() },
         }),

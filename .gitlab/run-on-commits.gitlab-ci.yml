@@ -8,7 +8,7 @@ variables:
   CURRENT_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:24.11.1-alpine"
   FUTURE_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:25.2.1-alpine"
   # Kaniko uses the dependency proxy as a registry mirror for rate limiting and caching
-  KANIKO_REGISTRY_MIRROR: "${CI_DEPENDENCY_PROXY_SERVER}"
+  KANIKO_REGISTRY_MIRROR: "${CI_SERVER_HOST}/emss/dependency_proxy/containers"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"

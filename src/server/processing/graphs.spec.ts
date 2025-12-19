@@ -1,18 +1,18 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import { getAncillaryDataSourceList } from "server/processing/ancillaryDataSources";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import getGraphManifest from "./graphs";
 
-jest.mock("server/processing/ancillaryDataSources");
-jest.mock("utils/fetch-with-timeout");
+vi.mock("server/processing/ancillaryDataSources");
+vi.mock("utils/fetch-with-timeout");
 
-const mockGetAncillaryDataSourceList = getAncillaryDataSourceList as jest.MockedFunction<
-  typeof getAncillaryDataSourceList
->;
-const mockFetchWithTimeout = fetchWithTimeout as jest.MockedFunction<typeof fetchWithTimeout>;
+const mockGetAncillaryDataSourceList = getAncillaryDataSourceList as Mock;
+const mockFetchWithTimeout = fetchWithTimeout as Mock;
 
 describe("graphs", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("getGraphManifest", () => {
@@ -33,7 +33,7 @@ describe("graphs", () => {
       ]);
 
       const mockResponse = {
-        json: jest.fn().mockResolvedValue(mockManifest),
+        json: vi.fn().mockResolvedValue(mockManifest),
       };
       mockFetchWithTimeout.mockResolvedValue(mockResponse as any);
 
