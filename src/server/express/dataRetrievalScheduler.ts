@@ -613,7 +613,8 @@ const performBackgroundFetch = async ({
 };
 
 /**
- * Force refresh a specific data type by expiring the cache and triggering a normal fetch
+ * Force refresh a specific data type by expiring the cache and triggering a fetch.
+ * Always emits to clients, regardless of whether data changed.
  */
 export const forceRefreshDataType = async ({
   source,
@@ -647,59 +648,45 @@ export const forceRefreshDataType = async ({
       return { success: false, error: errorMsg };
     }
 
-    // If this data type doesn't use cache, just fetch and return
-    if (!config.enableCacheUse) {
-      ConsoleLogger.debug(
-        `${dataType} Force refresh for ${source}_${dateWanted} (data does not use cache)`
-      );
-      const dataResponse = await getSourceDateDataType({
-        source,
-        dateWanted,
-        dataFetchConfig: config,
-        autoRefresh: false,
-      });
-      return { success: true, data: dataResponse };
+    ConsoleLogger.debug(`${dataType} Force refresh requested for ${source}_${dateWanted}`);
+
+    // If this data type uses cache, expire it first
+    if (config.enableCacheUse) {
+      clearTrackerDataTimeout(source, dateWanted, dataType);
+
+      const cachePath = `socketDataCache/${source}/${dateWanted}`;
+      const currentCacheEntry = await getCacheEntry({ folder: cachePath, identifier: dataType });
+      const expiredTimestamp = new Date(Date.now() - 10000).toISOString();
+
+      if (currentCacheEntry) {
+        await putCacheEntry({
+          folder: cachePath,
+          identifier: dataType,
+          data: currentCacheEntry.data,
+          metadata: { expiration: expiredTimestamp },
+        });
+      }
+
+      updateFetchTracker(source, dateWanted, dataType, { cacheExpiration: expiredTimestamp });
     }
 
-    ConsoleLogger.debug(
-      `${dataType} Force refresh requested for ${source}_${dateWanted}. Expiring cache and clearing timeout...`
-    );
-
-    // Clear any existing timeout
-    clearTrackerDataTimeout(source, dateWanted, dataType);
-
-    // Expire the cache entry by setting expiration to the past (preserves data in case fetch fails)
-    const cachePath = `socketDataCache/${source}/${dateWanted}`;
-    const currentCacheEntry = await getCacheEntry({ folder: cachePath, identifier: dataType });
-    const expiredTimestamp = new Date(Date.now() - 10000).toISOString(); // 10 seconds in the past
-    if (currentCacheEntry) {
-      const metadata: CacheMetadata = {
-        expiration: expiredTimestamp, // Set to past to guarantee expiration
-      };
-      await putCacheEntry({
-        folder: cachePath,
-        identifier: dataType,
-        data: currentCacheEntry.data,
-        metadata,
-      });
-      ConsoleLogger.debug(`${dataType} Expired cache entry for ${source}_${dateWanted}`);
-    } else {
-      ConsoleLogger.debug(
-        `${dataType} No cache entry found for ${source}_${dateWanted}, will force fetch`
-      );
-    }
-
-    // Update status to indicate cache was expired
-    updateFetchTracker(source, dateWanted, dataType, {
-      cacheExpiration: expiredTimestamp,
-    });
-
-    // Force fetch new data (with autoRefresh enabled to restart the timeout)
+    // Fetch fresh data
     const dataResponse = await getSourceDateDataType({
       source,
       dateWanted,
       dataFetchConfig: config,
+      autoRefresh: config.enableCacheUse, // Only auto-refresh for cached types
     });
+
+    // Always emit on force refresh
+    if (dataResponse) {
+      emitDataUpdate({
+        source,
+        dataDate: dateWanted,
+        dataUpdate: { type: dataType, response: dataResponse },
+      });
+      updateFetchTracker(source, dateWanted, dataType, { lastEmitAt: new Date().toISOString() });
+    }
 
     ConsoleLogger.debug(
       `${dataType} Force refresh completed for ${source}_${dateWanted}. Success: ${dataResponse?.fetchMetadata?.success}`
