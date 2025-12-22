@@ -198,7 +198,9 @@ export async function fetchTalkybotAudioFiles({
     }
 
     const data: TbDateResponse = await res.json();
-    ConsoleLogger.debug(`Successfully fetched ${data.audioFiles.length} Talkybot audio files for ${dateWanted}`);
+    ConsoleLogger.debug(
+      `Successfully fetched ${data.audioFiles.length} Talkybot audio files for ${dateWanted}`
+    );
     return data.audioFiles;
   } catch (e) {
     ConsoleLogger.error("Error fetching Talkybot audio files:", e);
