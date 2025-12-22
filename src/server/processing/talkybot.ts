@@ -53,6 +53,13 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
       .map((s) => s.text)
       .join(" ") ?? "";
 
+  // Concatenate text from nativeLanguageSegments if available
+  const textOriginalLanguage =
+    af.transcription?.nativeLanguageSegments
+      ?.filter((s) => s.type === "segment")
+      .map((s) => s.text)
+      .join(" ") || undefined;
+
   return {
     fileUuid: af.uuid,
     startTime: new Date(
@@ -65,6 +72,7 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
     duration,
     channel: af.channel.slug,
     text,
+    textOriginalLanguage,
     language: af.transcription?.language ?? "",
   };
 };
@@ -283,6 +291,7 @@ async function fetchAndMergeLegacyOverrides({
             duration: durationSecs,
             channel: `sg${channelNum}`,
             text: fullText ? fullText : "",
+            textOriginalLanguage: "",
             language: "en",
             override: true,
             audioUrl: `${audioOverrideUrl}/audio/${activityRange.aacSegmentFilename}`,
@@ -305,6 +314,7 @@ async function fetchAndMergeLegacyOverrides({
           duration: 0,
           channel: `sg${channelNum}`,
           text,
+          textOriginalLanguage: "",
           language: "en",
           override: true,
           audioUrl: undefined,

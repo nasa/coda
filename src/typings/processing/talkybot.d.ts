@@ -10,6 +10,7 @@ interface TbAudioFileConverted {
   duration: number;
   channel: string; // channel slug (e.g. "sg1")
   text: string;
+  textOriginalLanguage: string;
   language: string;
 
   /** Indicates this is from an override source, not Talkybot API */
@@ -48,15 +49,14 @@ interface TbAudioFileNative {
     requested: string; // ISO datetime string
     received: string; // ISO datetime string
     updated: string; // ISO datetime string
-    transcriptionOptions: {
-      task: "transcribe" | "translate";
+    transcriptionOptions?: {
       model?: string | null;
       prompt?: string | null;
       hotwords?: string[] | null;
       temperature?: number | null;
       align?: boolean | null;
       diarize?: boolean | null;
-    };
+    } | null;
     language: string;
     aligned: boolean;
     diarized: boolean;
@@ -65,6 +65,12 @@ interface TbAudioFileNative {
       | { type: "segment"; start: number; end: number; text: string }
       | { type: "diarized"; start: number; end: number; text: string; speaker: string }
     >;
+    nativeLanguageSegments?: Array<
+      | { type: "segment"; start: number; end: number; text: string }
+      | { type: "diarized"; start: number; end: number; text: string; speaker: string }
+    > | null;
+    text: string;
+    nativeLanguageText?: string;
   } | null;
 
   mediaInfo?: {

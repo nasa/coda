@@ -295,6 +295,7 @@ type DisplayUtterance = {
   secs: number;
   time: string;
   text: string;
+  textOriginalLanguage?: string;
   duration: number;
   channel: string;
 };
@@ -354,6 +355,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       secs: timing.startSeconds,
       time: timing.timeLabel,
       text: timing.file.text || "",
+      textOriginalLanguage: timing.file?.textOriginalLanguage,
       duration: timing.file.duration,
       channel: timing.file.channel,
     }));
@@ -530,7 +532,12 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         <span></span>
       </div>
     ) : (
-      utterance.text
+      <>
+        {utterance.text}
+        {utterance.textOriginalLanguage && (
+          <span style={{ color: "var(--greyish)" }}> {utterance.textOriginalLanguage}</span>
+        )}
+      </>
     );
 
     // Get color based on channel's position in sorted list
