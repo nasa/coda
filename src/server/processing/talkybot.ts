@@ -184,7 +184,7 @@ export async function fetchTalkybotAudioFiles({
     return [];
   }
 
-  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/date/${dateWanted}`;
+  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles?date=${dateWanted}`;
 
   try {
     const res = await fetchWithTimeout(url, {
@@ -198,6 +198,7 @@ export async function fetchTalkybotAudioFiles({
     }
 
     const data: TbDateResponse = await res.json();
+    ConsoleLogger.debug(`Successfully fetched ${data.audioFiles.length} Talkybot audio files for ${dateWanted}`);
     return data.audioFiles;
   } catch (e) {
     ConsoleLogger.error("Error fetching Talkybot audio files:", e);
