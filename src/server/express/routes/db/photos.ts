@@ -141,7 +141,7 @@ async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord
 }
 
 export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const photos_db = await em.find(
     PhotoTimeShifts_db,
     {},
