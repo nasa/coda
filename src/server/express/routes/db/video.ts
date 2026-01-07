@@ -138,7 +138,7 @@ async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promi
 }
 
 export async function getVideoStartTimeOverridesRecordsList(): Promise<VideoRecord[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const videos_db = await em.find(
     VideoStartTimeOverrides_db,
     {},
