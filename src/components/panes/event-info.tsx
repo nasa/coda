@@ -16,8 +16,8 @@ import ClockInterval from "components/framework/ClockInterval";
 export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
-  const paneStateData: EventPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as EventPaneStateData,
     deepEqual
   );
 
@@ -50,8 +50,8 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const [_appSeconds, setLocalAppSeconds] = useState(0);
 
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
-  const paneStateData: EventPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as EventPaneStateData,
     deepEqual
   );
 
@@ -195,11 +195,19 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         <div>
           <p>
             Displays details housed in the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/iss/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/iss/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               ISS Wiki
             </a>{" "}
             (for ISS events) or the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               Exploration Wiki
             </a>{" "}
             (for test events).
@@ -212,6 +220,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                 "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_41/As-executed_Summary_Timeline"
               }
               target={"_blank"}
+              rel="noopener noreferrer"
             >
               example
             </a>

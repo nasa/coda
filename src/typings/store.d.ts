@@ -72,7 +72,7 @@ type GPSState = {
  * Talkybot Store
  */
 interface TalkybotState {
-  audioFiles: TbAudioFile[];
+  audioFiles: TbAudioFileConverted[];
   metadata: FetchMetadata | null;
 }
 

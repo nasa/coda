@@ -16,7 +16,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
-import Button from "components/interface/button";
+import Button, { RoundedVariant } from "components/interface/button";
 import { createRoot } from "react-dom/client";
 import ClockInterval from "components/framework/ClockInterval";
 
@@ -28,8 +28,8 @@ export const GPSLocationControls: FunctionComponent<{
 
   const minWidth = 470;
 
-  const paneStateData: GpsTrackPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GpsTrackPaneStateData,
     deepEqual
   );
 
@@ -46,7 +46,7 @@ export const GPSLocationControls: FunctionComponent<{
       <div className={styles.controlsLeft}>
         <div className={styles.selections}>
           {gpsTracks.map((track, index) => {
-            let rounded = "none";
+            let rounded: RoundedVariant = "none";
             if (index === 0) {
               rounded = "left";
             } else if (index === gpsTracks.length - 1) {
@@ -68,7 +68,13 @@ export const GPSLocationControls: FunctionComponent<{
 
                   const newTogglesData = { ...paneStateData.gpsTrackToggles, [track.name]: onOff };
 
-                  dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "gpsTrackToggles", paneStateValue: newTogglesData }));
+                  dispatch(
+                    setPaneStateDataValue({
+                      frameID,
+                      paneStateProperty: "gpsTrackToggles",
+                      paneStateValue: newTogglesData,
+                    })
+                  );
                 }}
               >
                 <div className={styles.dlLabel}>{track.name}</div>
@@ -83,7 +89,13 @@ export const GPSLocationControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
             onClick={() => {
-              dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: !paneStateData.lockMap }));
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockMap",
+                  paneStateValue: !paneStateData.lockMap,
+                })
+              );
             }}
           >
             {frameDimensions[0] > minWidth ? (
@@ -101,7 +113,13 @@ export const GPSLocationControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: !paneStateData.showHelp }));
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -146,7 +164,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     ],
   };
 
-  let trackFeatures: Record<string, FeatureCollection<LineString>> = {
+  const trackFeatures: Record<string, FeatureCollection<LineString>> = {
     EV1: { ...initialTrackFeature },
     EV2: { ...initialTrackFeature },
     EV3: { ...initialTrackFeature },
@@ -158,8 +176,8 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   const gpsState: GPSState = useAppSelector((state) => state.gps, deepEqual);
   const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, deepEqual);
-  const paneStateData: GpsTrackPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GpsTrackPaneStateData,
     deepEqual
   );
 
@@ -206,6 +224,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_KEY;
 
     if (!map) initializeMap(setMap, mapContainer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeMap is a stable module-level function
   }, [map]);
 
   //redraw the map when the frame dimension change due to window resize or a layout change
@@ -213,6 +232,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     if (map) {
       map.resize();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- map instance doesn't change, only need to react to dimension changes
   }, [frameDimensions, layoutLastChanged]);
 
   useEffect(() => {
@@ -232,7 +252,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     }
 
     // hide all markers
-    for (let key in mapMarkers) {
+    for (const key in mapMarkers) {
       const marker = mapMarkers[key as keyof MapMarkers];
       marker.markerNode.style.visibility = "hidden";
     }
@@ -256,7 +276,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
       let markerIndex = 0;
 
-      let isoDate = hoverSeconds
+      const isoDate = hoverSeconds
         ? getPlayheadISOString(playheadDate, hoverSeconds)
         : getPlayheadISOString(playheadDate, appSeconds);
 
@@ -323,6 +343,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         setZoomLevel(1);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- houstonLatLng, infoDisplay, mapMarkers, sortedEnabledTracks, zoomLevel are stable or would cause infinite loops
   }, [map, playheadDate, appSeconds, hoverSeconds, gpsState.gpsTracks, paneStateData]);
 
   //Display GPS tracks on map
@@ -349,6 +370,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
       }
     }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trackFeatures is defined inline and adding it would cause infinite loops
   }, [map, gpsState.gpsTracks]);
 
   useEffect(() => {
@@ -478,7 +500,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
-    mapContainer: MutableRefObject<any>
+    mapContainer: MutableRefObject<HTMLDivElement | null>
   ) {
     mapContainer.current.innerHTML = ""; // Clear the container
     const thisMap = new mapboxgl.Map({
@@ -513,7 +535,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     });
   }
 
-  function addMapMarker(thisMap: any, typeName: string): MapMarker {
+  function addMapMarker(thisMap: mapboxgl.Map, typeName: string): MapMarker {
     const markerNode = document.createElement("div");
     markerNode.style.visibility = "hidden";
     const root = createRoot(markerNode);
@@ -532,14 +554,26 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: false }));
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "lockMap",
+                paneStateValue: false,
+              })
+            );
           }}
         ></div>
         {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         <HelpOverlay
           isModalOpen={paneStateData.showHelp}
           closeHandler={() => {
-            dispatch(setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: !paneStateData.showHelp }));
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "showHelp",
+                paneStateValue: !paneStateData.showHelp,
+              })
+            );
           }}
         >
           <div>
@@ -548,6 +582,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
               <a
                 href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA/External_Data"}
                 target={"_blank"}
+                rel="noopener noreferrer"
               >
                 Exploration Wiki
               </a>{" "}

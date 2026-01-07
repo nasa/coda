@@ -126,8 +126,7 @@ export default router;
 
 export async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
   const em = globalValues.orm.em;
-  let mediaOverrides_db: Loaded<MediaOverride_db, never>[];
-  mediaOverrides_db = await em.find(
+  const mediaOverrides_db: Loaded<MediaOverride_db, never>[] = await em.find(
     MediaOverride_db,
     { date: date },
     { orderBy: { source: "ASC" } }

@@ -63,16 +63,10 @@
   position: relative;
   top: -26px;
   left: 16px;
-  font-family: Inter;
+  font-family: Inter, sans-serif;
   font-size: 0.7em;
   cursor: pointer;
   user-select: none;
-}
-
-.jumpRight {
-  cursor: pointer;
-  width: 50px;
-  height: 50px;
 }
 
 .jumpRightImg {
@@ -91,19 +85,8 @@
   position: relative;
   top: -26px;
   left: 17px;
-  font-family: Inter;
+  font-family: Inter, sans-serif;
   font-size: 0.7em;
   cursor: pointer;
   user-select: none;
-}
-
-.blink_me {
-  animation: blinker 0.3s step-start infinite;
-}
-
-@keyframes blinker {
-  60% {
-    /*opacity: 0.2;*/
-    background-color: var(--lighter-grey);
-  }
 }

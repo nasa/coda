@@ -1,11 +1,11 @@
 import isNil from "lodash/isNil";
-import { FunctionComponent, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
 import { isAutoplayError } from "utils/video";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { visibleVideosBySecond } from "utils/video";
 import { hhmmssFromSeconds } from "utils/formatting";
-import styles from "./video-player.module.css";
+import styles from "./video-player-io.module.css";
 import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { isSameDate, midnightZulu } from "../../../utils/date";
@@ -71,7 +71,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
   /**
    * Find the appropriate video for the current channel and time.
    */
-  const findCurrentVideoID = (): string => {
+  const findCurrentVideoID = useCallback((): string => {
     const { channel, activeVideoFileID } = paneStateData;
     const videosThisSecond = visibleVideos.get(`${appSeconds}/${channel}`);
 
@@ -85,15 +85,18 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
     // Downlink channel: use highest priority video available this second
     return videosThisSecond?.[0] ?? "";
-  };
+  }, [paneStateData, appSeconds, visibleVideos]);
 
-  const getCurrentVideo = (): VideoFile | undefined => {
+  const getCurrentVideo = useCallback((): VideoFile | undefined => {
     return videoFiles.find((v) => v.id === paneStateData.activeVideoFileID);
-  };
+  }, [videoFiles, paneStateData.activeVideoFileID]);
 
-  const getVideoOffset = (video: VideoFile): number => {
-    return appSeconds - (video.start - startOfDay);
-  };
+  const getVideoOffset = useCallback(
+    (video: VideoFile): number => {
+      return appSeconds - (video.start - startOfDay);
+    },
+    [appSeconds, startOfDay]
+  );
 
   // ============================================================================
   // Effects
@@ -110,9 +113,10 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
           paneStateValue: currVideoID,
         })
       );
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing metadata when video changes is a legitimate side effect
       setMetadata(null);
     }
-  }, [appSeconds, videoFiles, paneStateData]);
+  }, [findCurrentVideoID, paneStateData.activeVideoFileID, dispatch, frameID]);
 
   // Clear metadata when date changes
   useEffect(() => {
@@ -120,9 +124,10 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     const videoID = Number(paneStateData.activeVideoFileID);
     const videoStart = videoFiles[videoID]?.start || 0;
     if (videoID || !isSameDate(new Date(playheadDate), new Date(videoStart))) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing metadata on date change is a legitimate side effect
       setMetadata(null);
     }
-  }, [playheadDate, paneStateData.activeVideoFileID, videoFiles]);
+  }, [playheadDate, paneStateData.activeVideoFileID, videoFiles, visibleVideos]);
 
   // Handle play/pause based on playhead state
   useEffect(() => {
@@ -150,7 +155,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
       }
     };
     asyncFunc();
-  }, [isRunning, appSeconds, sourceURL]);
+  }, [isRunning, appSeconds, sourceURL, dispatch, frameID]);
 
   // Sync video time to playhead
   useEffect(() => {
@@ -170,7 +175,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (Math.abs(video.currentTime - videoStartOffset) > 1) {
       video.currentTime = videoStartOffset;
     }
-  }, [appSeconds, paneStateData.activeVideoFileID]);
+  }, [appSeconds, paneStateData.activeVideoFileID, sourceURL, getCurrentVideo, getVideoOffset]);
 
   // Update source URL when active video changes
   useEffect(() => {
@@ -179,6 +184,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (activeVideoFileID) {
       const currentVideo = getCurrentVideo();
       if (currentVideo) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- imperative video element control and state sync when active video changes
         setSourceURL(currentVideo.mediaLowResURL);
       }
     } else {
@@ -203,7 +209,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
         );
       }
     }
-  }, [paneStateData.activeVideoFileID, videos]);
+  }, [paneStateData, getCurrentVideo, dispatch, frameID]);
 
   // Cue video to correct time when source changes
   useEffect(() => {
@@ -213,7 +219,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (!currentVideo) return;
 
     videoElement.current.currentTime = getVideoOffset(currentVideo);
-  }, [sourceURL]);
+  }, [sourceURL, getCurrentVideo, getVideoOffset]);
 
   // ============================================================================
   // Event Handlers
@@ -368,7 +374,12 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
             <tr>
               <td>IO Asset Name</td>
               <td>
-                <a href={overlayData.ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                <a
+                  href={overlayData.ioSearchLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "0.9em" }}
+                >
                   Open on IO
                 </a>
                 <div className={styles.digiValue}>{overlayData.videoFilename}</div>
@@ -377,7 +388,12 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
             <tr>
               <td>Video URL</td>
               <td>
-                <a href={overlayData.ioVideoURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                <a
+                  href={overlayData.ioVideoURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "0.9em" }}
+                >
                   {overlayData.openVideoURLMessage}
                 </a>
                 <br />

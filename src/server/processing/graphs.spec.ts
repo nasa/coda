@@ -29,13 +29,13 @@ describe("graphs", () => {
           source,
           type: "graphs",
           url: "https://example.com/manifest.json",
-        } as any,
+        } as AncillaryDataSource,
       ]);
 
       const mockResponse = {
         json: vi.fn().mockResolvedValue(mockManifest),
       };
-      mockFetchWithTimeout.mockResolvedValue(mockResponse as any);
+      mockFetchWithTimeout.mockResolvedValue(mockResponse as unknown as Response);
 
       const result = await getGraphManifest({ source, dateWanted });
 
@@ -64,7 +64,7 @@ describe("graphs", () => {
           source: "source1" as Source,
           type: "graphs",
           url: "https://example.com/manifest.json",
-        } as any,
+        } as AncillaryDataSource,
       ]);
 
       mockFetchWithTimeout.mockRejectedValue(new Error(errorMessage));
@@ -86,7 +86,7 @@ describe("graphs", () => {
           source: "source1" as Source,
           type: "graphs",
           url: "https://example.com/manifest.json",
-        } as any,
+        } as AncillaryDataSource,
       ]);
 
       mockFetchWithTimeout.mockRejectedValue("Unknown error");

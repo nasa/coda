@@ -1,42 +1,73 @@
-import { FunctionComponent, useRef, MouseEvent, ReactNode, useState } from "react";
+import { FunctionComponent, useRef, MouseEvent, ReactNode, useState, useEffect } from "react";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-modal.module.css";
 
-const modalDefaults = {
-  color: "white",
-  size: "default",
-  caret: "down",
-  modalOptions: {},
-};
+// Mapping objects for static class resolution
+const colorClasses = {
+  white: styles.white,
+  grey: styles.grey,
+} as const;
 
-const oppositeCarets: { [key: string]: string } = {
+const sizeClasses = {
+  default: styles.default,
+  skinny: styles.skinny,
+  medium: styles.medium,
+} as const;
+
+const caretClasses = {
+  up: styles.up,
+  down: styles.down,
+  left: styles.left,
+  right: styles.right,
+} as const;
+
+export type DropdownColorVariant = keyof typeof colorClasses;
+export type DropdownSizeVariant = keyof typeof sizeClasses;
+export type CaretVariant = keyof typeof caretClasses;
+
+const oppositeCarets: Record<CaretVariant, CaretVariant> = {
   down: "up",
   up: "down",
   left: "right",
   right: "left",
 };
 
+const modalDefaults = {
+  color: "white" as DropdownColorVariant,
+  size: "default" as DropdownSizeVariant,
+  caret: "down" as CaretVariant,
+  modalOptions: {},
+};
+
 /** A menu with a down caret that opens a modal below */
 export const ModalDropdown: FunctionComponent<{
   children: ReactNode;
-  color?: string;
-  size?: string;
+  color?: DropdownColorVariant;
+  size?: DropdownSizeVariant;
   modalWidth?: number;
-  caret?: string;
+  caret?: CaretVariant;
   callback?: () => void;
   modal?: FunctionComponent<{
     closeClick?: () => void;
-    options?: any;
+    options?: Record<string, unknown>;
     display?: boolean;
   }>;
-  modalOptions?: any;
+  modalOptions?: Record<string, unknown>;
 }> = ({ children, ...options }) => {
   const opts = { ...modalDefaults, ...options };
   const [isOpen, setIsOpen] = useState(false);
+  const [modalTop, setModalTop] = useState<number | null>(null);
 
   const modalRef = useRef<HTMLInputElement>(null);
   const labelRef = useRef<HTMLButtonElement>(null);
+
+  // Update modal position when dropdown opens
+  useEffect(() => {
+    if (isOpen && labelRef.current) {
+      setModalTop(labelRef.current.getBoundingClientRect().bottom + 4);
+    }
+  }, [isOpen]);
 
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
@@ -51,17 +82,14 @@ export const ModalDropdown: FunctionComponent<{
     }
   };
 
-  let caretStyle = styles[opts.caret];
-  if (isOpen) {
-    caretStyle = styles[oppositeCarets[opts.caret]];
-  }
-
-  const colorClass = styles[opts.color];
-  const sizeClass = styles[opts.size];
+  const caretKey = isOpen ? oppositeCarets[opts.caret] : opts.caret;
+  const caretStyle = caretClasses[caretKey];
+  const colorClass = colorClasses[opts.color];
+  const sizeClass = sizeClasses[opts.size];
   const modalStyle = {
     display: isOpen ? "block" : "none",
     width: opts.modalWidth ? opts.modalWidth + "px" : null,
-    top: isOpen ? `${labelRef.current?.getBoundingClientRect().bottom + 4}px` : null,
+    top: isOpen && modalTop ? `${modalTop}px` : null,
   };
 
   return (

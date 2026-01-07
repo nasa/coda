@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { initialPhotoFileState, setActivePhoto } from "store/photos";
@@ -18,27 +18,26 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
 }) => {
   const dispatch = useAppDispatch();
 
-  const paneStateData: PhotoPaneStateData = useAppSelector(
+  const paneStateData = useAppSelector(
     (state) => state.framework.frames[frameID].paneStateData,
     deepEqual
-  );
+  ) as PhotoPaneStateData;
 
   const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
 
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  let datetimeTakenLabel = "";
-  let datetimeTakenValue = "";
-  let timeSinceTaken = "";
-  let currentlyActivePhoto = false;
+  const datetimeTakenLabel = "";
+  const datetimeTakenValue = "";
 
-  useEffect(() => {
-    currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";
-    if (currentlyActivePhoto) {
-      timeSinceTaken = `(${hhmmssFromSeconds(
-        Math.round(appSeconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
-      )} ago)`;
-    }
+  const { timeSinceTaken } = useMemo(() => {
+    const isActive = photos.activePhoto.datetimeTaken !== "";
+    const timeSince = isActive
+      ? `(${hhmmssFromSeconds(
+          Math.round(appSeconds - appSecondsFromDateString(photos.activePhoto.datetimeTaken))
+        )} ago)`
+      : "";
+    return { timeSinceTaken: timeSince };
   }, [photos, appSeconds]);
 
   return (
@@ -104,8 +103,8 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
 const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
-  const paneStateData: PhotoPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as PhotoPaneStateData,
     deepEqual
   );
 
@@ -148,6 +147,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch is stable
   useEffect(changePhoto, [appSeconds, photoFiles, photos]);
 
   const renderPhotoOverlay = () => {
@@ -159,7 +159,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     let dateAdded = "";
     let datetimeTaken = "";
     let openOnIOMessage = "";
-    let info = "";
+    const info = "";
     let infoDisplayClass = "";
     if (currentlyActivePhoto) {
       photoFilename = photos.activePhoto.id;
@@ -200,7 +200,12 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             <tr>
               <td>IO Asset Name</td>
               <td>
-                <a href={ioSearchLink} target="_blank" style={{ fontSize: "0.9em" }}>
+                <a
+                  href={ioSearchLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "0.9em" }}
+                >
                   {openOnIOMessage}
                 </a>
                 <td>{photoFilename}</td>
@@ -209,7 +214,12 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             <tr>
               <td>High Res</td>
               <td>
-                <a href={ioHighResURL} target="_blank" style={{ fontSize: "0.9em" }}>
+                <a
+                  href={ioHighResURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "0.9em" }}
+                >
                   {openURLMessage}
                 </a>
                 <br />
@@ -238,6 +248,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               className={styles.photoLink}
               href={photos.activePhoto.mediaHighResURL}
               target="_blank"
+              rel="noopener noreferrer"
             >
               <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
             </a>
@@ -268,15 +279,27 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           <p>Displays the photo taken most recently relative to the time being viewed in CODA.</p>
           <p>
             Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
-            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
+            <a
+              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               ISS Collection
             </a>
             . Exploration Test Events usually pulls from the root{" "}
-            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"} target={"_blank"}>
+            <a
+              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               xEVA Collection
             </a>{" "}
             but can be overridden by editing the CODA entry for each event in the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               Exploration Wiki.
             </a>
           </p>

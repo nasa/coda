@@ -116,7 +116,8 @@ export async function getStats(): Promise<{
      ORDER BY year ASC`
   );
   const yearCounts: Array<{ year: number; count: string }> =
-    (yearCountsResult as any).rows || yearCountsResult;
+    (yearCountsResult as { rows?: Array<{ year: number; count: string }> }).rows ??
+    (yearCountsResult as Array<{ year: number; count: string }>);
 
   return {
     count,

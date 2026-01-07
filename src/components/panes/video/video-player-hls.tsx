@@ -1,7 +1,7 @@
 import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import styles from "./video-player.module.css";
+import styles from "./video-player-hls.module.css";
 import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { VideoHLSHelpContent } from "./video-help";
@@ -14,8 +14,8 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const paneStateData: VideoPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
     deepEqual
   );
   const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
@@ -69,7 +69,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     const hlsPlayingDate = hlsRef.current.playingDate;
     if (!hlsPlayingDate) return;
 
-    let secondsToSeek =
+    const secondsToSeek =
       Math.floor((playheadDateObj.getTime() - hlsPlayingDate.getTime()) / 1000) + 2; // add a fudge to the secondsToSee to make the video play at the correct time
     if (Math.abs(secondsToSeek) < 4) return;
 
@@ -172,9 +172,12 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       }
     }
     setHlsAvailable(hlsForThisChannel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- downlinkNumber is derived from paneStateData.channel which is stable
   }, [mtxHlsEndpoints]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative HLS player setup requires ref.current access
   useEffect(prepareHlsPlayer, [mtxHlsEndpoints, videoRef.current, paneStateData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative video sync requires ref.current access
   useEffect(syncToPlayhead, [hlsRef.current, appSeconds]);
   useEffect(playOrPause, [isRunning, appSeconds]);
 

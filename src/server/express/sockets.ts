@@ -334,7 +334,7 @@ const fetchAndEmitAllData = async ({
   socket,
   visitorData,
 }: {
-  socket: any;
+  socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, object>;
   visitorData: VisitorData;
 }): Promise<void> => {
   // Create an array to store promises for parallel execution

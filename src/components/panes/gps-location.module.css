@@ -22,8 +22,8 @@
   padding: 2px;
 
   font-size: 0.9rem;
-  color: #222;
-  background-color: #fff;
+  color: #222222;
+  background-color: #ffffff;
   border: 1px solid black;
   border-radius: var(--radius);
   z-index: 10;
@@ -40,10 +40,6 @@
 .infoSectionTitle {
   display: flex;
   align-items: center;
-}
-
-.infoSectionTitleIcon {
-  margin-top: 5px;
 }
 
 .valueTable {
@@ -130,4 +126,16 @@
 .buttonLabel {
   display: flex;
   justify-content: space-between;
+}
+
+.selections {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.dlLabel {
+  font-weight: 400;
+  font-size: 15px;
+  padding-left: 8px;
 }

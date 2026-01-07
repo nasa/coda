@@ -60,50 +60,19 @@
 }
 
 .loading {
-  background-image: url(/images/icon_status_loading.svg);
+  background-image: url("/images/icon_status_loading.svg");
 }
 
 .noError {
-  background-image: url(/images/icon_status_check_green.svg);
+  background-image: url("/images/icon_status_check_green.svg");
 }
 
 .error {
-  background-image: url(/images/icon_status_error.svg);
+  background-image: url("/images/icon_status_error.svg");
 }
 
 .unneeded {
-  background-image: url(/images/icon_status_no_assets.svg);
-}
-
-.stale {
-  background-image: url(/images/icon_status_check_yellow.svg);
-}
-
-.loadingLargeWrapper {
-  position: absolute;
-  background: #0f0f0f;
-  border: 2px solid #eeeeee;
-  border-radius: 15px;
-  box-sizing: border-box;
-  padding: 20px;
-  width: 380px;
-  top: 50%;
-  left: 50%;
-  right: auto;
-  bottom: auto;
-  margin-right: -50%;
-  transform: translate(-50%, -50%);
-  outline: none;
-}
-
-.largeOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgb(0, 0, 0, 0.8);
-  z-index: 10;
+  background-image: url("/images/icon_status_no_assets.svg");
 }
 
 .largeStatusGrid {

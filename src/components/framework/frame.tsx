@@ -11,7 +11,7 @@ import { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/vi
 import PhotoPane, { PhotoControls } from "components/panes/photo";
 import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
-import { useLayoutEffect, useEffect, useRef, useState, FunctionComponent } from "react";
+import { useLayoutEffect, useEffect, useRef, useState, FunctionComponent, ReactNode } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 import CommPane, { CommControls } from "components/panes/comm";
 import Graph, { GraphControls } from "components/panes/graph/graph";
@@ -20,7 +20,7 @@ import Graph, { GraphControls } from "components/panes/graph/graph";
 export const FrameHeader: FunctionComponent<{
   frameID: number;
   paneType: string;
-  children?: any;
+  children?: ReactNode;
   frameDimensions?: number[];
 }> = ({ frameID, paneType, children, frameDimensions = [] }) => {
   let labelSize: "S" | "M" | "L" = "S";

@@ -87,7 +87,7 @@ describe("dataRetrievalScheduler", () => {
       enableCacheUse: true,
     };
 
-    const mockSuccessResponse: FetchResponse<any> = {
+    const mockSuccessResponse: FetchResponse<unknown> = {
       data: { videos: [{ id: "video1", title: "Test Video" }] },
       fetchMetadata: {
         success: true,
@@ -95,7 +95,7 @@ describe("dataRetrievalScheduler", () => {
       },
     };
 
-    const mockFailureResponse: FetchResponse<any> = {
+    const mockFailureResponse: FetchResponse<unknown> = {
       data: null,
       fetchMetadata: {
         success: false,
@@ -115,7 +115,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
 
       const result = await getSourceDateDataType({
         source: "ISS",
@@ -144,7 +144,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      const newSuccessResponse: FetchResponse<any> = {
+      const newSuccessResponse: FetchResponse<unknown> = {
         data: { videos: [{ id: "video2", title: "New Video" }] },
         fetchMetadata: {
           success: true,
@@ -152,7 +152,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(newSuccessResponse);
 
       const result = await getSourceDateDataType({
@@ -276,7 +276,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       await getSourceDateDataType({
@@ -314,7 +314,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(oldCachedData as any);
+      getCacheEntryMock.mockResolvedValue(oldCachedData as CacheRecord_db_type);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockFailureResponse);
 
       await getSourceDateDataType({
@@ -360,7 +360,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(newData);
 
       await getSourceDateDataType({
@@ -398,7 +398,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(sameData);
 
       await getSourceDateDataType({
@@ -427,7 +427,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -456,7 +456,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as any);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -482,7 +482,7 @@ describe("dataRetrievalScheduler", () => {
         metadata: { expiration: new Date(Date.now() - 10000).toISOString() },
       };
 
-      getCacheEntryMock.mockResolvedValue(expiredCache as any);
+      getCacheEntryMock.mockResolvedValue(expiredCache as CacheRecord_db_type);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       await getSourceDateDataType({
@@ -564,11 +564,11 @@ describe("dataRetrievalScheduler", () => {
               Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
             ).toISOString(),
           },
-        } as any)
+        } as CacheRecord_db_type)
         .mockResolvedValueOnce({
           data: { videos: [] },
           metadata: { expiration: new Date(Date.now() - 10000).toISOString() },
-        } as any);
+        } as CacheRecord_db_type);
 
       getVideoDataMock.mockResolvedValue({
         data: [],
@@ -591,7 +591,7 @@ describe("dataRetrievalScheduler", () => {
       const result = await forceRefreshDataType({
         source: "ISS",
         dateWanted: "2025-01-01",
-        dataType: "invalidType" as any,
+        dataType: "invalidType" as StoreDataType,
       });
 
       expect(result.success).toBe(false);

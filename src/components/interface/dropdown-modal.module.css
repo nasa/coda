@@ -6,19 +6,11 @@
   width: 100%;
   padding: 0;
   margin: 0;
-  background-color: #000;
+  background-color: #000000;
 }
 
 .main:active {
   border: none;
-}
-
-.select {
-  appearance: none;
-  font-family: inherit;
-  font-size: inherit;
-  border-width: 0;
-  /* background-color: var(--grey); */
 }
 
 .verticalCenter {
@@ -64,10 +56,6 @@
   display: flex;
   padding-right: 6px;
   align-items: center;
-}
-
-.none {
-  display: none;
 }
 
 .modal {

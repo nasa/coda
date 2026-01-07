@@ -22,7 +22,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 export default router;
 
 // TODO: currently unused but could be used to restrict access to API endpoints
-export const allowAccess = (req: Request) => {
+export const allowAccess = (req: Request): boolean => {
   const user = getUser(req);
   if (user instanceof Error) {
     const msg = "Unable to decode JWT";

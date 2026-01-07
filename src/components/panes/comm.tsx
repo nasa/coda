@@ -32,14 +32,16 @@ export const channelColors = [
 ];
 
 type ChannelAudioTiming = {
-  file: TbAudioFile;
+  file: TbAudioFileConverted;
   startSeconds: number;
   endSeconds: number;
   timeLabel: string;
 };
 
 /** Precompute channel timings to avoid repeated date/appSeconds conversions */
-function buildChannelTimingMap(audioFiles: TbAudioFile[] = []): Map<string, ChannelAudioTiming[]> {
+function buildChannelTimingMap(
+  audioFiles: TbAudioFileConverted[] = []
+): Map<string, ChannelAudioTiming[]> {
   const channelMap = new Map<string, ChannelAudioTiming[]>();
 
   for (const file of audioFiles) {
@@ -68,10 +70,10 @@ export const CommControls: FunctionComponent<{
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const minWidth = 470; // minimum width of the transcript pane before breaking into dropdown for downlinks
+  const minWidth = 480; // minimum width of the transcript pane before breaking into dropdown for downlinks
 
-  const paneStateData: CommPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as CommPaneStateData,
     deepEqual
   );
   const audioFiles = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
@@ -283,7 +285,7 @@ export const CommControls: FunctionComponent<{
 
 /** Represents an audio file that's currently active for playback */
 type ActiveAudioFile = {
-  file: TbAudioFile | null;
+  file: TbAudioFileConverted | null;
   playOffset: number;
 };
 
@@ -293,6 +295,7 @@ type DisplayUtterance = {
   secs: number;
   time: string;
   text: string;
+  textOriginalLanguage?: string;
   duration: number;
   channel: string;
 };
@@ -302,8 +305,8 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const hasAudioFiles = audioFiles && audioFiles.length > 0;
   const channelTimingMap = useMemo(() => buildChannelTimingMap(audioFiles), [audioFiles]);
 
-  const paneStateData: CommPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as CommPaneStateData,
     deepEqual
   );
 
@@ -316,8 +319,6 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   // Transcript state
   const [filterText, setFilterText] = useState("");
-  const [filteredUtterances, setFilteredUtterances] = useState<DisplayUtterance[]>([]);
-  const [activeUtteranceSecs, setActiveUtteranceSecs] = useState(0);
 
   // Clock state from Redux
   const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
@@ -352,6 +353,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       secs: timing.startSeconds,
       time: timing.timeLabel,
       text: timing.file.text || "",
+      textOriginalLanguage: timing.file?.textOriginalLanguage,
       duration: timing.file.duration,
       channel: timing.file.channel,
     }));
@@ -403,6 +405,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       });
       setSrcUrl("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- srcUrl intentionally excluded to prevent infinite loops; effect sets srcUrl based on playhead position
   }, [allChannelTimings, appSeconds, paneStateData.isMuted, paneStateData.sgChannels]);
 
   // Cue the audio and figure out whether to play or pause
@@ -437,6 +440,38 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     }
   }, [srcUrl, audioPlayerRef, isRunning, activeAudioFile.playOffset, paneStateData.ready]);
 
+  // Derive filtered utterances from utterances and filter criteria
+  const filteredUtterances = useMemo((): DisplayUtterance[] => {
+    if (!utterances.length) {
+      return [];
+    }
+    if (paneStateData.filterActive && filterText !== "") {
+      return utterances.filter((utterance) => {
+        return utterance.text.toLowerCase().includes(filterText.toLowerCase());
+      });
+    }
+    return utterances;
+  }, [utterances, paneStateData.filterActive, filterText]);
+
+  // Find the most recent utterance that has started (accounting for ClockInterval's Math.floor)
+  const activeUtteranceSecs = useMemo((): number => {
+    if (!filteredUtterances.length) {
+      return 0;
+    }
+
+    // Find the last utterance where floor(utterance.secs) <= appSeconds
+    // ClockInterval floors appSeconds, so we floor utterance times for comparison
+    let activeUtterance = filteredUtterances[0];
+
+    for (const utterance of filteredUtterances) {
+      if (Math.floor(utterance.secs) <= appSeconds) {
+        activeUtterance = utterance;
+      }
+    }
+
+    return activeUtterance.secs;
+  }, [appSeconds, filteredUtterances]);
+
   // Scroll to the active utterance when scroll lock is enabled
   useEffect(() => {
     const hasValidPlayhead = typeof appSeconds === "number";
@@ -452,55 +487,19 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     activeUtteranceRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [activeUtteranceSecs, paneStateData.lockScroll, appSeconds]);
 
-  // Update the filtered utterances
+  // Show the help panel if there are no audio files (only update if value needs to change)
   useEffect(() => {
-    if (!utterances.length) {
-      setFilteredUtterances([]);
-      return;
-    }
-    let filtered = utterances;
-    if (paneStateData.filterActive && filterText !== "") {
-      filtered = utterances.filter((utterance) => {
-        return utterance.text.toLowerCase().includes(filterText.toLowerCase());
-      });
-    }
-    setFilteredUtterances(filtered);
-  }, [utterances, paneStateData.filterActive, filterText]);
-
-  // Find the most recent utterance that has started (accounting for ClockInterval's Math.floor)
-  useEffect(() => {
-    if (!filteredUtterances.length) {
-      setActiveUtteranceSecs(0);
-      return;
-    }
-
-    // Find the last utterance where floor(utterance.secs) <= appSeconds
-    // ClockInterval floors appSeconds, so we floor utterance times for comparison
-    let activeUtterance = filteredUtterances[0];
-
-    for (const utterance of filteredUtterances) {
-      if (Math.floor(utterance.secs) <= appSeconds) {
-        activeUtterance = utterance;
-      }
-    }
-
-    if (activeUtteranceSecs !== activeUtterance.secs) {
-      setActiveUtteranceSecs(activeUtterance.secs);
-    }
-  }, [appSeconds, filteredUtterances, activeUtteranceSecs]);
-
-  // Show the help panel if there are no audio files
-  useEffect(() => {
-    if (hasAudioFiles) {
+    const shouldShowHelp = !hasAudioFiles;
+    if (paneStateData.showHelp !== shouldShowHelp) {
       dispatch(
-        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: false })
-      );
-    } else {
-      dispatch(
-        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: true })
+        setPaneStateDataValue({
+          frameID,
+          paneStateProperty: "showHelp",
+          paneStateValue: shouldShowHelp,
+        })
       );
     }
-  }, [hasAudioFiles, dispatch, frameID]);
+  }, [hasAudioFiles, paneStateData.showHelp, dispatch, frameID]);
 
   // Get sorted channels for consistent color mapping
   const sortedChannels = useMemo(() => {
@@ -528,7 +527,12 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         <span></span>
       </div>
     ) : (
-      utterance.text
+      <>
+        <span className={styles.utteranceTextMain}>{utterance.text}</span>
+        {utterance.textOriginalLanguage && (
+          <span className={styles.utteranceTextOriginal}>{utterance.textOriginalLanguage}</span>
+        )}
+      </>
     );
 
     // Get color based on channel's position in sorted list
@@ -697,7 +701,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             <h4>Controls</h4>
             <ul>
               <li>
-                <strong>Channels:</strong> Select S/G loops via dropdown
+                <strong>Channels:</strong> Select S/G channels via dropdown
               </li>
               <li>
                 <strong>Filter:</strong> Search for specific text in transcripts

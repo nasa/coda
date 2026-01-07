@@ -10,7 +10,7 @@
 
 /* Inter - Variable Font (weights 100-900) */
 @font-face {
-  font-family: "Inter";
+  font-family: Inter;
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
@@ -64,7 +64,7 @@
 
 /* Aldrich - Regular (400) */
 @font-face {
-  font-family: "Aldrich";
+  font-family: Aldrich;
   font-style: normal;
   font-weight: 400;
   font-display: swap;

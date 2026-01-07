@@ -275,7 +275,7 @@ const fetchData = async ({
   config: FetchConfig;
   dateWanted: string;
   source: Source;
-}): Promise<FetchResponse<any>> => {
+}): Promise<FetchResponse<unknown>> => {
   if (!dateWanted || !source) {
     ConsoleLogger.error(`No dateWanted or source provided for ${config.type} fetchData`);
     return null;
@@ -289,11 +289,11 @@ const fetchData = async ({
     fetchStartedAt: fetchStartedAt.toISOString(),
   });
 
-  let dataResponse: FetchResponse<any>;
+  let dataResponse: FetchResponse<unknown>;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   try {
     // call the actual fetch function and get the data, race this against a timeout promise to avoid hanging
-    const timeoutPromise = new Promise<FetchResponse<any>>((_, reject) => {
+    const timeoutPromise = new Promise<FetchResponse<unknown>>((_, reject) => {
       timeoutId = setTimeout(
         () => reject(new Error(`Timeout after ${config.fetchTimeoutMs}ms`)),
         config.fetchTimeoutMs
@@ -364,7 +364,7 @@ export const getSourceDateDataType = async ({
   dateWanted: string;
   dataFetchConfig: FetchConfig;
   autoRefresh?: boolean;
-}): Promise<FetchResponse<any>> => {
+}): Promise<FetchResponse<unknown>> => {
   const dataType = dataFetchConfig.type;
 
   // Check if this data type is valid for this source and date (e.g., mtxvideo not valid for dates > 7 days ago)
@@ -481,9 +481,10 @@ export const getSourceDateDataType = async ({
     );
     updateFetchTracker(source, dateWanted, dataType, {
       lastCacheHitAt: new Date().toISOString(),
-      lastOperationSuccess: (cacheEntry.data as any)?.metadata?.success ?? true,
+      lastOperationSuccess:
+        (cacheEntry.data as FetchResponse<unknown>)?.fetchMetadata?.success ?? true,
     });
-    return cacheEntry.data as FetchResponse<any>;
+    return cacheEntry.data as FetchResponse<unknown>;
   }
 
   // No cache available
@@ -588,7 +589,7 @@ const performBackgroundFetch = async ({
   }
 
   // Emit to all clients only if data changed
-  const previousData = (currentCacheEntry?.data as FetchResponse<any>)?.data;
+  const previousData = (currentCacheEntry?.data as FetchResponse<unknown>)?.data;
   if (!isEqual(dataResponse?.data, previousData)) {
     ConsoleLogger.debug(
       `${dataFetchConfig.type} Emitting data update to room for ${source}_${dateWanted}`
@@ -623,7 +624,7 @@ export const forceRefreshDataType = async ({
   source: Source;
   dateWanted: string;
   dataType: StoreDataType;
-}): Promise<{ success: boolean; data?: FetchResponse<any>; error?: string }> => {
+}): Promise<{ success: boolean; data?: FetchResponse<unknown>; error?: string }> => {
   try {
     // Check if this data type is valid for this source and date
     if (

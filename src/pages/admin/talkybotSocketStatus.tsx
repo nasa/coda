@@ -21,7 +21,7 @@ const TalkybotSocketStatus: FunctionComponent = () => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [currentTime, setCurrentTime] = useState<number>(() => Date.now());
 
   // Authorization check and socket connection
   useEffect(() => {

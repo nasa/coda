@@ -142,3 +142,12 @@
   flex-direction: column;
   justify-content: space-around;
 }
+
+.presets {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--lightest-grey);
+}
+
+.saveUserPreset {
+  padding-top: 10px;
+}

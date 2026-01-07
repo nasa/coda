@@ -115,7 +115,7 @@ const makeGPSTracks = (gpxTrackRecords: GPXTrackRecord[]): GPSTrack[] => {
     const parsed = parser.parse(gpxXml);
 
     const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map(
-      (point: { lat: string; lon: string; ele: any; time: any }) => ({
+      (point: { lat: string; lon: string; ele: string; time: string }) => ({
         lat: parseFloat(point.lat),
         lon: parseFloat(point.lon),
         ele: point.ele,

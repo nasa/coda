@@ -15,6 +15,10 @@
   justify-content: space-around;
 }
 
+.icon {
+  cursor: pointer;
+}
+
 .rightButtons {
   display: flex;
 }
@@ -120,6 +124,17 @@
   padding: 2px 0 0 0;
 }
 
+.utteranceTextMain {
+  display: block;
+}
+
+.utteranceTextOriginal {
+  display: block;
+  color: #888888;
+  margin-top: 2px;
+  font-size: 0.9em;
+}
+
 /* buttons */
 
 .lockButton {
@@ -178,52 +193,6 @@
   display: none;
 }
 
-.selectContainer {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0;
-  width: 90px;
-}
-
-.selectContainer select {
-  font-family: "Inter", sans-serif;
-  font-weight: 400;
-  font-size: 15px;
-  cursor: pointer;
-  padding-left: 8px;
-  padding-right: 15px;
-  height: 27px;
-  border: none;
-  border-radius: var(--radius);
-  color: white;
-  background-color: var(--lightest-grey);
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  text-overflow: ellipsis;
-  outline: 0;
-}
-.selectContainer select::-ms-expand {
-  display: none;
-}
-.selectContainer select:hover,
-.selectContainer select:focus {
-  outline: 0;
-}
-.selectContainer select:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-.nonDlSelect_arrow {
-  position: absolute;
-  pointer-events: none;
-  font-size: 0.9em;
-  top: 5px;
-  right: 6px;
-}
-
 /* Channel filter dropdown */
 .channelDropdown {
   position: relative;
@@ -233,12 +202,12 @@
 }
 
 .channelDropdownButton {
-  font-family: "Inter", sans-serif;
+  font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 15px;
   cursor: pointer;
   padding-left: 8px;
-  padding-right: 25px;
+  width: 115px;
   height: 27px;
   border: none;
   border-radius: var(--radius);
@@ -280,11 +249,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   cursor: pointer;
   font-size: 14px;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgb(255 255 255 / 30%);
   margin: 2px 4px;
   border-radius: 3px;
 }
@@ -303,15 +272,6 @@
   flex: 1;
 }
 
-.channelColorLabel {
-  cursor: pointer;
-  flex: 1;
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
 /* Typing ellipsis animation for utterances being captured */
 .typingIndicator {
   display: inline-flex;
@@ -325,7 +285,7 @@
   height: 5px;
   background-color: var(--even-greyer);
   border-radius: 50%;
-  animation: typingBounce 1.4s infinite ease-in-out both;
+  animation: typing-bounce 1.4s infinite ease-in-out both;
 }
 
 .typingIndicator span:nth-child(1) {
@@ -340,7 +300,7 @@
   animation-delay: 0.4s;
 }
 
-@keyframes typingBounce {
+@keyframes typing-bounce {
   0%,
   80%,
   100% {
@@ -382,7 +342,7 @@
 
 .helpTitle {
   margin: 0;
-  font-family: "Aldrich", sans-serif;
+  font-family: Aldrich, sans-serif;
   font-weight: 400;
   font-size: 1.5em;
   color: white;
@@ -430,6 +390,10 @@
   text-decoration: none;
 }
 
+.helpCalloutContent a {
+  font-weight: 500;
+}
+
 .helpBody a:hover {
   text-decoration: underline;
 }
@@ -438,18 +402,11 @@
   text-decoration: none;
 }
 
-.helpInlineIcon {
-  height: 1em;
-  width: auto;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
 .helpCallout {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(255 255 255 / 5%);
   padding: 10px 14px;
   border-radius: var(--radius);
   border: 1px solid var(--lightest-grey);
@@ -462,7 +419,7 @@
 }
 
 .helpCallout:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgb(255 255 255 / 10%);
   border-color: var(--even-greyer);
   text-decoration: none;
 }
@@ -484,17 +441,13 @@
   color: var(--link-blue, #6ba3ff);
 }
 
-.helpCalloutContent a {
-  font-weight: 500;
-}
-
 .helpCalloutSubtext {
   font-size: 0.85em;
   color: var(--even-greyer);
 }
 
 .helpTip {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgb(255 255 255 / 5%);
   padding: 10px 12px;
   border-radius: var(--radius);
   font-size: 0.9em;

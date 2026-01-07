@@ -63,7 +63,7 @@
 }
 
 .usersTable tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(255 255 255 / 3%);
 }
 
 .userName {
@@ -120,7 +120,7 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .usersTable th,
   .usersTable td {
     padding: 8px 10px;

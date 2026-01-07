@@ -44,15 +44,27 @@ export const VideoIOHelpContent: FunctionComponent = () => (
     <p>Displays videos from Imagery Online, synced to CODA's playback time.</p>
     <p>
       Videos are all pulled from Imagery Online collections. ISS displays videos in the{" "}
-      <a href="https://io.jsc.nasa.gov/app/collections.cfm?cid=4" target="_blank">
+      <a
+        href="https://io.jsc.nasa.gov/app/collections.cfm?cid=4"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         ISS Collection
       </a>
       . Exploration Test Events usually pulls from the root{" "}
-      <a href="https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928" target="_blank">
+      <a
+        href="https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         xEVA Collection
       </a>{" "}
       but this can be overridden by editing the CODA entry for each event in the{" "}
-      <a href="https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page" target="_blank">
+      <a
+        href="https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         Exploration Wiki.
       </a>
     </p>

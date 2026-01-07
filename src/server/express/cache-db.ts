@@ -1,3 +1,4 @@
+import type { FilterQuery } from "@mikro-orm/core";
 import { globalValues } from "server/express/global";
 import { Cache_db } from "../database/models/cache.model";
 import ConsoleLogger from "utils/logging/consoleLogger";
@@ -118,7 +119,7 @@ export async function evictLruCacheEntries({
 }): Promise<number> {
   const em = globalValues.orm.em;
   try {
-    const filter: any = {
+    const filter: FilterQuery<Cache_db> = {
       lastAccessedAt: { $lt: olderThanDate },
     };
     if (folder) {

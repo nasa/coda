@@ -1,19 +1,8 @@
 # .sastignore - SAST Findings Suppression File
-# This file is used to suppress SAST (Static Application Security Testing) findings
-# that have been reviewed and determined to be false positives or acceptable risks.
 #
-# Format: Each line should contain a rule ID or file pattern to ignore
-# Lines starting with # are comments
+# Format: Each line should contain the exact finding name from the SAST report.
+# Example: If the report shows "Generic Object Injection Sink, in file X on line Y"
+#          Add just: Generic Object Injection Sink
 #
-# Examples:
-#   - Ignore a specific rule: eslint/detect-object-injection
-#   - Ignore findings in a file: src/test/**
-#   - Ignore a specific finding: semgrep:javascript.lang.security.audit.detect-non-literal-regexp
-#
-# Documentation: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-
-# Test files - security findings in test code are generally lower risk
-src/**/*.spec.ts
-# Add specific rule suppressions below after reviewing findings
-# Example: semgrep:javascript.lang.security.audit.path-traversal
-
+# Note: This tool does NOT support file path patterns - only finding names.
+# To suppress findings in test files, you must suppress each finding type by name.

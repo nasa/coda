@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react";
 import styles from "./gps-location-marker.module.css";
 
-const GPSMarker: FunctionComponent<{ type: string; id: any }> = ({ type, id }) => {
+const GPSMarker: FunctionComponent<{ type: string; id: string | number }> = ({ type, id }) => {
   let markerClass = "";
   if (type === "EV1") {
     markerClass = styles.ev1Marker;

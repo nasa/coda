@@ -4,11 +4,18 @@ import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout, allLayouts } from "store/framework";
 import styles from "./layout-picker.module.css";
-import layoutStyles from "/components/framework/frames.module.css";
+import {
+  frameGridClasses,
+  layoutClasses,
+  largeIconRowClasses,
+  containerClasses,
+  type FrameNumber,
+  type LayoutKey,
+} from "./frames";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
-const LayoutPicker = ({ closeClick }: { closeClick?: () => void }) => {
+const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
   const frameworkState = useAppSelector((state) => state.framework, deepEqual);
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
@@ -25,28 +32,30 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }) => {
   };
 
   const drawLayoutLargeIcon = (layout: string) => {
-    const layoutGrid = layoutStyles[`layout_${layout}`];
+    const layoutKey = `layout_${layout}` as LayoutKey;
+    const layoutGrid = layoutClasses[layoutKey];
 
     const layoutDefinition = allLayouts[layout];
     const mainStyleName =
       layoutDefinition.cssGridRows === 9
-        ? layoutStyles.largeIcon_9Rows
-        : layoutStyles.largeIcon_10Rows;
+        ? largeIconRowClasses.largeIcon_9Rows
+        : largeIconRowClasses.largeIcon_10Rows;
     const frames = [];
     for (let i = 1; i <= layoutDefinition.frameCount; i++) {
       // CSS Grid definitions
-      const gridAreaName = layoutStyles[`f${i}`];
+      const frameKey = `f${i}` as FrameNumber;
+      const gridAreaName = frameGridClasses[frameKey];
       frames.push(
         <div
-          className={`${layoutStyles.largeIconFrameContainer} ${gridAreaName}`}
+          className={`${containerClasses.largeIconFrameContainer} ${gridAreaName}`}
           key={`FRAME__${i}`}
         >
-          <div className={layoutStyles.largeIconFrameBackground}></div>
+          <div className={containerClasses.largeIconFrameBackground}></div>
         </div>
       );
     }
     return (
-      <div className={layoutStyles.layoutlargeIconContainer}>
+      <div className={containerClasses.layoutLargeIconContainer}>
         <div className={`${mainStyleName} ${layoutGrid}`}>{frames}</div>
       </div>
     );

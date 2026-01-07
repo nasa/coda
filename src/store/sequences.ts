@@ -41,9 +41,9 @@ export const { addSequences, clearSequences, fetchError } = sequencesSlice.actio
  */
 export const idFromDate = (date: string): string => {
   const d = new Date(date);
-  let yyyy = d.getUTCFullYear();
-  let mm = d.getUTCMonth() + 1;
-  let dd = d.getUTCDate();
+  const yyyy = d.getUTCFullYear();
+  const mm = d.getUTCMonth() + 1;
+  const dd = d.getUTCDate();
   return `${yyyy}-${padZeros(mm, 2)}-${padZeros(dd, 2)}`;
 };
 
@@ -60,7 +60,7 @@ export const getAsPerformedMissionTime = (
   asExecuted: Activity[],
   SequenceDate: string,
   activityStartUTCMilliseconds: number
-) => {
+): Activity[] => {
   const res: Activity[] = [];
 
   // get activity times in the mission timeframe
