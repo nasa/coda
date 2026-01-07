@@ -106,7 +106,6 @@ export const emitCelestrakInspectorUpdate = (): void => {
 export const setupSocketIO = (): void => {
   // initialize the global object that will store the visitor tracking data
   const visitorsData: VisitorData[] = globalValues.serverSocketStatus.visitorsData;
-  let socketInterval: NodeJS.Timeout = null;
   const io = globalValues.socketio;
 
   // Listen for connection events
@@ -217,8 +216,9 @@ export const setupSocketIO = (): void => {
       });
 
       // send visitor counts to all clients every 10 seconds
-      if (!socketInterval) {
-        socketInterval = setInterval(() => {
+      // Only create the interval once and store it globally for cleanup during shutdown
+      if (!globalValues.socketInterval) {
+        globalValues.socketInterval = setInterval(() => {
           const statusFromServer = getStatusFromServer();
           io.emit("statusFromServer", statusFromServer);
         }, 10000);
