@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { appSecondsFromDateString } from "utils/formatting";
 
 /** Ensure every audio file carries its derived appSeconds value */
-function withAppSeconds(file: TbAudioFile): TbAudioFile {
+function withAppSeconds(file: TbAudioFileConverted): TbAudioFileConverted {
   if (typeof file.appSeconds === "number") {
     return file;
   }
@@ -28,8 +28,8 @@ export const talkybotSlice = createSlice({
   initialState,
   reducers: {
     /** Set talkybot audio files in the store */
-    setTalkybotAudioFiles: (state, action: { payload: FetchResponse<TbDateResponse> }) => {
-      const incomingAudioFiles = action.payload.data?.audioFiles ?? [];
+    setTalkybotAudioFiles: (state, action: { payload: FetchResponse<TbAudioFileConverted[]> }) => {
+      const incomingAudioFiles = action.payload.data ?? [];
       state.audioFiles = incomingAudioFiles.map(withAppSeconds);
       state.metadata = action.payload.fetchMetadata;
     },
@@ -38,16 +38,17 @@ export const talkybotSlice = createSlice({
       state.metadata = null;
     },
     /** Add or update a single audio file (upsert from talkybotS2sSocket updates) */
-    upsertTalkybotAudioFile: (state, action: { payload: TbAudioFile }) => {
+    upsertTalkybotAudioFile: (state, action: { payload: TbAudioFileConverted }) => {
       const newFile = withAppSeconds(action.payload);
       // Check if audioFile record already exists (by fileUuid)
       const existingIndex = state.audioFiles.findIndex(
-        (audioFile) => audioFile.fileUuid === newFile.fileUuid
+        (audioFile: TbAudioFileConverted) => audioFile.fileUuid === newFile.fileUuid
       );
       if (existingIndex === -1) {
         // Insert in sorted order by startTime
         const insertIndex = state.audioFiles.findIndex(
-          (audioFile) => new Date(audioFile.startTime) > new Date(newFile.startTime)
+          (audioFile: TbAudioFileConverted) =>
+            new Date(audioFile.startTime) > new Date(newFile.startTime)
         );
         if (insertIndex === -1) {
           state.audioFiles.push(newFile);

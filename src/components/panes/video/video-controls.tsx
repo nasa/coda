@@ -5,7 +5,7 @@ import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { faChevronDown, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Button from "components/interface/button";
+import Button, { type ColorVariant, type RoundedVariant } from "components/interface/button";
 import { visibleVideosBySecond } from "utils/video";
 import { cleanCollectionsString } from "utils/formatting";
 import { calculateChannelAvailability, determineVideoPlayerType } from "utils/video";
@@ -55,7 +55,7 @@ export const MuteButton: FunctionComponent<{
   clickHandler: () => void;
   muted: boolean;
 }> = ({ clickHandler, muted }) => (
-  <button className={styles.clearTextButton} onClick={clickHandler}>
+  <button className={styles.muteButton} onClick={clickHandler}>
     <FontAwesomeIcon icon={muted ? faVolumeMute : faVolumeUp} />
   </button>
 );
@@ -181,7 +181,7 @@ const getChannelButtonColor = (
   isAvailable: boolean,
   isSelected: boolean,
   isSelectedByOthers: boolean
-): string => {
+): ColorVariant => {
   if (isSelected) {
     return isAvailable ? "active_selected" : "disabled_selected";
   }
@@ -194,13 +194,13 @@ const getChannelButtonColor = (
 /**
  * Determines button corner rounding based on position.
  */
-const getButtonRounding = (index: number, total: number): string => {
+const getButtonRounding = (index: number, total: number): RoundedVariant => {
   if (index === 0) return "left";
   if (index === total - 1) return "right";
   return "none";
 };
 
-const getDropdownButtonRounding = (index: number, total: number): string => {
+const getDropdownButtonRounding = (index: number, total: number): RoundedVariant => {
   if (index === 0) return "top";
   if (index === total - 1) return "bottom";
   return "none";
@@ -223,7 +223,7 @@ export const ChannelSelectorLarge: FunctionComponent<{
     const channels = new Set<number>();
     for (const [key, value] of Object.entries(state.framework.frames)) {
       if (value.paneType.includes("video") && parseInt(key) !== frameID) {
-        channels.add(value.paneStateData.channel);
+        channels.add((value.paneStateData as VideoPaneStateData).channel);
       }
     }
     return channels;
@@ -292,7 +292,7 @@ const ChannelDropdownModal: FunctionComponent<{
     const channels = new Set<number>();
     for (const [key, value] of Object.entries(state.framework.frames)) {
       if (value.paneType.includes("video") && parseInt(key) !== frameID) {
-        channels.add(value.paneStateData.channel);
+        channels.add((value.paneStateData as VideoPaneStateData).channel);
       }
     }
     return channels;
@@ -446,6 +446,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing derived state from visibleVideos Map which cannot be memoized directly
     setNonDlVideoIDs(visibleVideos.get(`${appSeconds}/-1`) || []);
   }, [visibleVideos, appSeconds]);
 

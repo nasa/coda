@@ -1,6 +1,5 @@
 import styles from "./about-overlay.module.css";
 import StatusArea from "./status";
-import { useEffect, useState } from "react";
 import { faEnvelope, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { deepEqual, useAppSelector, refEqual } from "utils/useAppSelector";
 import { diff } from "utils/date";
@@ -16,7 +15,7 @@ const AboutOverlay = ({
 }: {
   modalIsOpen: boolean;
   setModalIsOpen: Function;
-}) => {
+}): React.JSX.Element => {
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const clockDate = useAppSelector((state) => state.clock.date, refEqual);
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
@@ -27,87 +26,71 @@ const AboutOverlay = ({
   const graphs: GraphsState = useAppSelector((state) => state.graphs, deepEqual);
   const talkybot: TalkybotState = useAppSelector((state) => state.talkybot, deepEqual);
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Check if date is too old for MTX video
+  const mtxVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
 
-  useEffect(() => {
-    // Check if date is too old for MTX video
-    const mtxVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
+  // Check if data type is valid for source, or if it's skipped due to date
+  const isMtxVideoLoaded =
+    !isDataTypeValidForSource(source, "mtxvideo") ||
+    mtxVideoDateTooOld ||
+    videos.metadataMtx !== null ||
+    videos.metadataMtx?.unneeded;
 
-    // Check if data type is valid for source, or if it's skipped due to date
-    const isMtxVideoLoaded =
-      !isDataTypeValidForSource(source, "mtxvideo") ||
-      mtxVideoDateTooOld ||
-      videos.metadataMtx !== null ||
-      videos.metadataMtx?.unneeded;
+  const isIoVideoLoaded =
+    !isDataTypeValidForSource(source, "videos") ||
+    videos.metadataIo !== null ||
+    videos.metadataIo?.unneeded;
 
-    const isIoVideoLoaded =
-      !isDataTypeValidForSource(source, "videos") ||
-      videos.metadataIo !== null ||
-      videos.metadataIo?.unneeded;
+  const isPhotosLoaded =
+    !isDataTypeValidForSource(source, "photos") ||
+    photos.metadata !== null ||
+    photos.metadata?.unneeded;
 
-    const isPhotosLoaded =
-      !isDataTypeValidForSource(source, "photos") ||
-      photos.metadata !== null ||
-      photos.metadata?.unneeded;
+  const isSequencesLoaded =
+    (!isDataTypeValidForSource(source, "wikiEvas") &&
+      !isDataTypeValidForSource(source, "wikiTestEvents")) ||
+    sequences.metadata !== null ||
+    sequences.metadata?.unneeded;
 
-    const isSequencesLoaded =
-      (!isDataTypeValidForSource(source, "wikiEvas") &&
-        !isDataTypeValidForSource(source, "wikiTestEvents")) ||
-      sequences.metadata !== null ||
-      sequences.metadata?.unneeded;
+  const isGpsLoaded =
+    !isDataTypeValidForSource(source, "gpstracks") ||
+    gps.metadata !== null ||
+    gps.metadata?.unneeded;
 
-    const isGpsLoaded =
-      !isDataTypeValidForSource(source, "gpstracks") ||
-      gps.metadata !== null ||
-      gps.metadata?.unneeded;
+  const isEphemeraLoaded =
+    !isDataTypeValidForSource(source, "ephemeris") ||
+    ephemera.metadata !== null ||
+    ephemera.metadata?.unneeded;
 
-    const isEphemeraLoaded =
-      !isDataTypeValidForSource(source, "ephemeris") ||
-      ephemera.metadata !== null ||
-      ephemera.metadata?.unneeded;
+  const isTalkybotLoaded =
+    !isDataTypeValidForSource(source, "talkybot") ||
+    talkybot.metadata !== null ||
+    talkybot.metadata?.unneeded;
 
-    const isTalkybotLoaded =
-      !isDataTypeValidForSource(source, "talkybot") ||
-      talkybot.metadata !== null ||
-      talkybot.metadata?.unneeded;
+  const isGraphsLoaded =
+    !isDataTypeValidForSource(source, "graph") ||
+    graphs.metadata !== null ||
+    graphs.metadata?.unneeded;
 
-    const isGraphsLoaded =
-      !isDataTypeValidForSource(source, "graph") ||
-      graphs.metadata !== null ||
-      graphs.metadata?.unneeded;
-
-    const allLoaded =
-      isMtxVideoLoaded &&
-      isIoVideoLoaded &&
-      isPhotosLoaded &&
-      isSequencesLoaded &&
-      isGpsLoaded &&
-      isEphemeraLoaded &&
-      isTalkybotLoaded &&
-      isGraphsLoaded;
-
-    setIsLoaded(allLoaded);
-  }, [
-    source,
-    clockDate,
-    videos.metadataIo,
-    videos.metadataMtx,
-    photos.metadata,
-    sequences.metadata,
-    gps.metadata,
-    ephemera.metadata,
-    talkybot.metadata,
-    graphs.metadata,
-  ]);
+  const isLoaded =
+    isMtxVideoLoaded &&
+    isIoVideoLoaded &&
+    isPhotosLoaded &&
+    isSequencesLoaded &&
+    isGpsLoaded &&
+    isEphemeraLoaded &&
+    isTalkybotLoaded &&
+    isGraphsLoaded;
 
   const earliestCutoff = new Date("2013-03-30");
   const windowURL = window.location;
-  let paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  const paramDate = String(windowURL).match(/\d{4}-\d{2}-\d{2}/);
+  let isBeforeRecording = false;
   if (paramDate) {
     let [year, month, day] = paramDate[0].split("-");
     [year, month, day] = [year, month, String(parseInt(day) + 1)];
     const urlDate = new Date(`${year}-${month}-${day}`);
-    var isBeforeRecording = diff(urlDate, earliestCutoff) < 0 ? true : false;
+    isBeforeRecording = diff(urlDate, earliestCutoff) < 0;
   }
 
   const titleText = isLoaded ? "Loading complete." : "Loading external data...";
@@ -163,7 +146,11 @@ const AboutOverlay = ({
               <div className={styles.aboutSectionTitle}>Email for help</div>
               <ul>
                 <li>
-                  <a href={"mailto:JSC-DL-EMSS-CODA@mail.nasa.gov"} target={"_blank"}>
+                  <a
+                    href={"mailto:JSC-DL-EMSS-CODA@mail.nasa.gov"}
+                    target={"_blank"}
+                    rel="noopener noreferrer"
+                  >
                     <FontAwesomeIcon
                       className={styles.emailIconDistro}
                       icon={faEnvelope}
@@ -176,7 +163,11 @@ const AboutOverlay = ({
               <div className={styles.aboutSectionTitle}>Useful Links</div>
               <ul>
                 <li>
-                  <a href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA"} target={"_blank"}>
+                  <a
+                    href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA"}
+                    target={"_blank"}
+                    rel="noopener noreferrer"
+                  >
                     About CODA
                   </a>
                 </li>
@@ -184,6 +175,7 @@ const AboutOverlay = ({
                   <a
                     href={"https://wiki.jsc.nasa.gov/fod/index.php/EVA_Mission_Systems_Software"}
                     target={"_blank"}
+                    rel="noopener noreferrer"
                   >
                     About the EMSS effort
                   </a>
@@ -192,6 +184,7 @@ const AboutOverlay = ({
                   <a
                     href={"https://wiki.jsc.nasa.gov/fod/index.php/CODA/Awesome_Moments"}
                     target={"_blank"}
+                    rel="noopener noreferrer"
                   >
                     CODA Links to awesome moments
                   </a>

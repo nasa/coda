@@ -26,7 +26,7 @@ const createPhotoDoc = (id: string) => ({
   collections_string: ["collectionRoot", `collection-${id}`],
 });
 
-const createIoResponse = (docs: any[], numfound?: number) => ({
+const createIoResponse = (docs: unknown[], numfound?: number) => ({
   results: {
     response: {
       numfound: numfound ?? docs.length,
@@ -35,7 +35,7 @@ const createIoResponse = (docs: any[], numfound?: number) => ({
   },
 });
 
-const mockFetchResponse = (payload: any): Response =>
+const mockFetchResponse = (payload: unknown): Response =>
   ({
     json: () => Promise.resolve(payload),
   }) as unknown as Response;
@@ -172,161 +172,167 @@ describe("services/io-api", () => {
 
   describe("isDownlinkVideo()", () => {
     /**
-     * NASA ID format: issaaambbcccdddd or stsaaambbcccdddd
+     * NASA ID format: iss<exp>m<source><day><time> or sts<mission>m<source><day><time>
      * Where:
      *   - iss/sts = mission type prefix
-     *   - aaa = zero-padded expedition/mission number (e.g., 060)
-     *   - m = single digit (often indicates realtime vs LOS)
-     *   - bb = video source ID (01-99)
-     *   - ccc = GMT day
-     *   - dddd = GMT start time
+     *   - <exp> = zero-padded expedition/mission number (e.g., 060)
+     *   - m = literal 'm' for moving imagery (video)
+     *   - <source> = video source ID (2 digits, 01-99)
+     *     - First digit: 0-4 = realtime, 5 = LOS (Loss of Signal)
+     *     - Second digit: channel number
+     *   - <day> = GMT day (3 digits)
+     *   - <time> = GMT start time (4 digits)
      *
-     * Example: iss060001231234
+     * Example: iss060m012311234
      *   - iss = ISS mission
      *   - 060 = Expedition 60
-     *   - 0 = realtime indicator
-     *   - 01 = SD Downlink channel 1
+     *   - m = moving imagery
+     *   - 01 = SD Downlink channel 1 (realtime)
      *   - 231 = GMT day 231
      *   - 1234 = start time 12:34 GMT
      */
 
     describe("SD Downlink (source IDs 01-10)", () => {
-      // iss060001231234: source ID "01" = SD Downlink channel 1
+      // iss060m012311234: source ID "01" = SD Downlink channel 1
       it("should return true for SD Downlink channel 01", () => {
-        expect(isDownlinkVideo("iss060001231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m012311234")).toBe(true);
       });
 
-      // iss060005231234: source ID "05" = SD Downlink channel 5
+      // iss060m052311234: source ID "05" = SD Downlink channel 5
       it("should return true for SD Downlink channel 05", () => {
-        expect(isDownlinkVideo("iss060005231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m052311234")).toBe(true);
       });
 
-      // iss060010231234: source ID "10" = SD Downlink channel 10 (upper bound)
+      // iss060m102311234: source ID "10" = SD Downlink channel 10 (upper bound)
       it("should return true for SD Downlink channel 10", () => {
-        expect(isDownlinkVideo("iss060010231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m102311234")).toBe(true);
+      });
+
+      it("should handle IDs with letters in the 7th position (e.g. 'm' for LOS)", () => {
+        expect(isDownlinkVideo("iss060m01231234")).toBe(true);
       });
     });
 
     describe("HD Downlink (source IDs 11-20)", () => {
-      // iss060011231234: source ID "11" = HD Downlink channel 1
+      // iss060m112311234: source ID "11" = HD Downlink channel 1
       it("should return true for HD Downlink channel 11", () => {
-        expect(isDownlinkVideo("iss060011231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m112311234")).toBe(true);
       });
 
-      // iss060015231234: source ID "15" = HD Downlink channel 5
+      // iss060m152311234: source ID "15" = HD Downlink channel 5
       it("should return true for HD Downlink channel 15", () => {
-        expect(isDownlinkVideo("iss060015231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m152311234")).toBe(true);
       });
 
-      // iss060020231234: source ID "20" = HD Downlink channel 10 (upper bound)
+      // iss060m202311234: source ID "20" = HD Downlink channel 10 (upper bound)
       it("should return true for HD Downlink channel 20", () => {
-        expect(isDownlinkVideo("iss060020231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m202311234")).toBe(true);
       });
     });
 
     describe("Russian Downlink (source ID 31)", () => {
-      // iss060031231234: source ID "31" = Russian Downlink
+      // iss060m312311234: source ID "31" = Russian Downlink
       it("should return true for Russian Downlink", () => {
-        expect(isDownlinkVideo("iss060031231234")).toBe(true);
+        expect(isDownlinkVideo("iss060m312311234")).toBe(true);
       });
     });
 
     describe("Shuttle Downlink (source ID 60)", () => {
-      // sts120060231234: STS-120 mission, source ID "60" = Shuttle Downlink
+      // sts120m602311234: STS-120 mission, source ID "60" = Shuttle Downlink
       it("should return true for Shuttle Downlink", () => {
-        expect(isDownlinkVideo("sts120060231234")).toBe(true);
+        expect(isDownlinkVideo("sts120m602311234")).toBe(true);
       });
     });
 
     describe("non-downlink sources", () => {
-      // iss060021231234: source ID "21" = SD Onboards (not downlink)
+      // iss060m212311234: source ID "21" = SD Onboards (not downlink)
       it("should return false for SD Onboards (21)", () => {
-        expect(isDownlinkVideo("iss060021231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m212311234")).toBe(false);
       });
 
-      // iss060022231234: source ID "22" = HD Onboards (not downlink)
+      // iss060m222311234: source ID "22" = HD Onboards (not downlink)
       it("should return false for HD Onboards (22)", () => {
-        expect(isDownlinkVideo("iss060022231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m222311234")).toBe(false);
       });
 
-      // iss060023231234: source ID "23" = Hi-8 mm Onboards (not downlink)
+      // iss060m232311234: source ID "23" = Hi-8 mm Onboards (not downlink)
       it("should return false for Hi-8 mm Onboards (23)", () => {
-        expect(isDownlinkVideo("iss060023231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m232311234")).toBe(false);
       });
 
-      // iss060024231234: source ID "24" = MPC (not downlink)
+      // iss060m242311234: source ID "24" = MPC (not downlink)
       it("should return false for MPC (24)", () => {
-        expect(isDownlinkVideo("iss060024231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m242311234")).toBe(false);
       });
 
-      // iss060026231234: source ID "26" = NASA TV (not downlink)
+      // iss060m262311234: source ID "26" = NASA TV (not downlink)
       it("should return false for NASA TV (26)", () => {
-        expect(isDownlinkVideo("iss060026231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m262311234")).toBe(false);
       });
 
-      // iss060028231234: source ID "28" = HDEV (not downlink)
+      // iss060m282311234: source ID "28" = HDEV (not downlink)
       it("should return false for HDEV (28)", () => {
-        expect(isDownlinkVideo("iss060028231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m282311234")).toBe(false);
       });
 
-      // iss060032231234: source ID "32" = ISS MPEG Encoder (not downlink)
+      // iss060m322311234: source ID "32" = ISS MPEG Encoder (not downlink)
       it("should return false for ISS MPEG Encoder (32)", () => {
-        expect(isDownlinkVideo("iss060032231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m322311234")).toBe(false);
       });
 
-      // iss060033231234: source ID "33" = FCR Camera 1 (not downlink)
+      // iss060m332311234: source ID "33" = FCR Camera 1 (not downlink)
       it("should return false for FCR Camera 1 (33)", () => {
-        expect(isDownlinkVideo("iss060033231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m332311234")).toBe(false);
       });
 
-      // iss060041231234: source ID "41" = SD JAXA Live Video (not downlink)
+      // iss060m412311234: source ID "41" = SD JAXA Live Video (not downlink)
       it("should return false for SD JAXA Live Video (41)", () => {
-        expect(isDownlinkVideo("iss060041231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m412311234")).toBe(false);
       });
 
-      // iss060045231234: source ID "45" = Digital Imagery Files (not downlink)
+      // iss060m452311234: source ID "45" = Digital Imagery Files (not downlink)
       it("should return false for Digital Imagery Files (45)", () => {
-        expect(isDownlinkVideo("iss060045231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m452311234")).toBe(false);
       });
 
-      // iss060051231234: source ID "51" = GVS SD Video (not downlink)
-      it("should return false for GVS SD Video (51)", () => {
-        expect(isDownlinkVideo("iss060051231234")).toBe(false);
+      // iss060m002311234: source ID "00" is not a valid downlink (downlink starts at 01)
+      it("should return false for source ID 00", () => {
+        expect(isDownlinkVideo("iss060m002311234")).toBe(false);
       });
 
-      // iss060065231234: source ID "65" = Engineering Views KSC (not downlink)
+      // iss060m652311234: source ID "65" = Engineering Views KSC (not downlink)
       it("should return false for Engineering Views KSC (65)", () => {
-        expect(isDownlinkVideo("iss060065231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m652311234")).toBe(false);
       });
 
-      // iss060071231234: source ID "71" = HD JAXA Live Video (not downlink)
+      // iss060m712311234: source ID "71" = HD JAXA Live Video (not downlink)
       it("should return false for HD JAXA Live Video (71)", () => {
-        expect(isDownlinkVideo("iss060071231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m712311234")).toBe(false);
       });
 
-      // iss060075231234: source ID "75" = ISS Pre-Flight Hardware Closeout (not downlink)
+      // iss060m752311234: source ID "75" = ISS Pre-Flight Hardware Closeout (not downlink)
       it("should return false for ISS Pre-Flight Hardware Closeout (75)", () => {
-        expect(isDownlinkVideo("iss060075231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m752311234")).toBe(false);
       });
 
-      // iss060080231234: source ID "80" = Commercial Spacecraft (not downlink)
+      // iss060m802311234: source ID "80" = Commercial Spacecraft (not downlink)
       it("should return false for Commercial Spacecraft (80)", () => {
-        expect(isDownlinkVideo("iss060080231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m802311234")).toBe(false);
       });
 
-      // iss060085231234: source ID "85" = ATV/HTV Video (not downlink)
+      // iss060m852311234: source ID "85" = ATV/HTV Video (not downlink)
       it("should return false for ATV/HTV Video (85)", () => {
-        expect(isDownlinkVideo("iss060085231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m852311234")).toBe(false);
       });
 
-      // iss060091231234: source ID "91" = GVS HD Video (not downlink)
+      // iss060m912311234: source ID "91" = GVS HD Video (not downlink)
       it("should return false for GVS HD Video (91)", () => {
-        expect(isDownlinkVideo("iss060091231234")).toBe(false);
+        expect(isDownlinkVideo("iss060m912311234")).toBe(false);
       });
     });
 
     describe("edge cases", () => {
-      // "invalid-id" doesn't match pattern (iss|sts)aaambbcccdddd
+      // "invalid-id" doesn't match pattern iss<exp>m<source><day><time>
       it("should return false for invalid NASA ID format", () => {
         expect(isDownlinkVideo("invalid-id")).toBe(false);
       });
@@ -336,24 +342,41 @@ describe("services/io-api", () => {
         expect(isDownlinkVideo("")).toBe(false);
       });
 
-      // sts120005231234: STS prefix should work the same as ISS
+      // sts120m052311234: STS prefix should work the same as ISS
       it("should handle STS mission IDs", () => {
-        expect(isDownlinkVideo("sts120005231234")).toBe(true);
+        expect(isDownlinkVideo("sts120m052311234")).toBe(true);
       });
 
-      // ISS060005231234: uppercase ISS should match (case-insensitive)
+      // ISS060m052311234: uppercase ISS should match (case-insensitive)
       it("should handle case-insensitive ISS prefix", () => {
-        expect(isDownlinkVideo("ISS060005231234")).toBe(true);
+        expect(isDownlinkVideo("ISS060m052311234")).toBe(true);
       });
 
-      // STS120005231234: uppercase STS should match (case-insensitive)
+      // STS120m052311234: uppercase STS should match (case-insensitive)
       it("should handle case-insensitive STS prefix", () => {
-        expect(isDownlinkVideo("STS120005231234")).toBe(true);
+        expect(isDownlinkVideo("STS120m052311234")).toBe(true);
       });
 
-      // iss060000231234: source ID "00" is not a valid downlink (downlink starts at 01)
-      it("should return false for source ID 00", () => {
-        expect(isDownlinkVideo("iss060000231234")).toBe(false);
+      // IDs without 'm' marker should not match (old format)
+      it("should return false for NASA IDs without 'm' marker", () => {
+        expect(isDownlinkVideo("iss060012311234")).toBe(false);
+      });
+    });
+
+    describe("GVS and other 5x source IDs (not downlink)", () => {
+      // iss060m512311234: source ID "51" = GVS SD Video (not downlink per spec)
+      it("should return false for GVS SD Video (51)", () => {
+        expect(isDownlinkVideo("iss060m512311234")).toBe(false);
+      });
+
+      // iss060m532311234: source ID "53" = GVS SD Video
+      it("should return false for GVS SD Video (53)", () => {
+        expect(isDownlinkVideo("iss060m532311234")).toBe(false);
+      });
+
+      // iss060m592311234: source ID "59" = GVS SD Video (upper bound)
+      it("should return false for GVS SD Video (59)", () => {
+        expect(isDownlinkVideo("iss060m592311234")).toBe(false);
       });
     });
   });

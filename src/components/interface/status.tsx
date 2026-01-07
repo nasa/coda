@@ -1,7 +1,50 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./status.module.css";
-import { useEffect, useState, FunctionComponent } from "react";
+import { useMemo, FunctionComponent } from "react";
 import { isDataTypeValidForSource, isDateValidForMtxVideo } from "utils/sourceDataTypeMap";
+
+function createStatus(
+  metadata: FetchMetadata | null,
+  resultsReturned: boolean
+): { message: string; classname: string } {
+  const cacheTime = metadata?.timestamp ? new Date(metadata.timestamp).toLocaleString() : null;
+  let message: string;
+  let classname: string;
+
+  // If no metadata yet, we're still loading
+  if (!metadata) {
+    message = "data loading...";
+    classname = styles.loading;
+    return { message, classname };
+  }
+
+  // Check if this data type is not applicable for the current source
+  if (metadata.unneeded) {
+    message = "data not applicable";
+    classname = styles.unneeded;
+    return { message, classname };
+  }
+
+  // Check for errors
+  if (metadata && !metadata.success) {
+    message = "Error: " + (metadata.error || "unknown error");
+    classname = styles.error;
+    return { message, classname };
+  }
+
+  // If we have metadata and no error, but no results, data is empty
+  if (!resultsReturned) {
+    message = "data is empty";
+    classname = styles.unneeded;
+    return { message, classname };
+  }
+
+  // Have data and no error
+  message = cacheTime ? `data originally retrieved on ${cacheTime}` : "data available";
+  classname = styles.noError;
+
+  return { message, classname };
+}
 
 const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay }) => {
   const source = useAppSelector((state) => state.framework.source, refEqual);
@@ -15,86 +58,54 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
   const graphs: GraphsState = useAppSelector((state) => state.graphs, deepEqual);
   const talkybot: TalkybotState = useAppSelector((state) => state.talkybot, deepEqual);
 
-  const [videoStatusIo, setVideoStatusIo] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [videoStatusMtx, setVideoStatusMtx] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [photoStatus, setPhotoStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [sequenceStatus, setSequenceStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [gpsStatus, setGpsStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [ephemeraStatus, setEphemeraStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [graphStatus, setGraphStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [dayNightStatus, setDayNightStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [talkybotStatus, setTalkybotStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
+  const videoStatusIo = useMemo(
+    () => createStatus(videos.metadataIo, videos.videoFiles?.length > 0),
+    [videos.metadataIo, videos.videoFiles?.length]
+  );
 
-  useEffect(() => {
-    setVideoStatusIo(createStatus(videos.metadataIo, videos.videoFiles?.length > 0));
-  }, [videos.metadataIo]);
-
-  useEffect(() => {
-    setVideoStatusMtx(
+  const videoStatusMtx = useMemo(
+    () =>
       createStatus(
         videos.metadataMtx,
         videos.mtxHlsEndpoints?.length > 0 || Object.keys(videos.mtxPlaybackAvailability).length > 0
-      )
-    );
-  }, [videos.metadataMtx, videos.mtxHlsEndpoints, videos.mtxPlaybackAvailability]);
+      ),
+    [videos.metadataMtx, videos.mtxHlsEndpoints?.length, videos.mtxPlaybackAvailability]
+  );
 
-  useEffect(() => {
-    setPhotoStatus(createStatus(photos.metadata, photos.photoFiles?.length > 0));
-  }, [photos.metadata]);
+  const photoStatus = useMemo(
+    () => createStatus(photos.metadata, photos.photoFiles?.length > 0),
+    [photos.metadata, photos.photoFiles?.length]
+  );
 
-  useEffect(() => {
-    setSequenceStatus(createStatus(sequences.metadata, sequences.allSequences?.length > 0));
-  }, [sequences.metadata]);
+  const sequenceStatus = useMemo(
+    () => createStatus(sequences.metadata, sequences.allSequences?.length > 0),
+    [sequences.metadata, sequences.allSequences?.length]
+  );
 
-  useEffect(() => {
-    setGpsStatus(createStatus(gps.metadata, gps.gpsTracks.length > 0));
-  }, [gps.metadata]);
+  const gpsStatus = useMemo(
+    () => createStatus(gps.metadata, gps.gpsTracks.length > 0),
+    [gps.metadata, gps.gpsTracks.length]
+  );
 
-  useEffect(() => {
-    setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
-  }, [ephemera.metadata]);
+  const ephemeraStatus = useMemo(
+    () => createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0),
+    [ephemera.metadata, ephemera.ephemerisFiles?.length]
+  );
 
-  useEffect(() => {
-    const hasGraphs = graphs.graphsManifest?.graphs?.length > 0;
-    setGraphStatus(createStatus(graphs.metadata, hasGraphs));
-  }, [graphs.metadata]);
+  const graphStatus = useMemo(
+    () => createStatus(graphs.metadata, graphs.graphsManifest?.graphs?.length > 0),
+    [graphs.metadata, graphs.graphsManifest?.graphs?.length]
+  );
 
-  useEffect(() => {
-    const hasDayNight = dayNight.dayNight?.length > 0;
-    setDayNightStatus(createStatus(dayNight.metadata, hasDayNight));
-  }, [dayNight.metadata]);
+  const dayNightStatus = useMemo(
+    () => createStatus(dayNight.metadata, dayNight.dayNight?.length > 0),
+    [dayNight.metadata, dayNight.dayNight?.length]
+  );
 
-  useEffect(() => {
-    const hasTalkybot = talkybot.audioFiles?.length > 0;
-    setTalkybotStatus(createStatus(talkybot.metadata, hasTalkybot));
-  }, [talkybot.metadata]);
+  const talkybotStatus = useMemo(
+    () => createStatus(talkybot.metadata, talkybot.audioFiles?.length > 0),
+    [talkybot.metadata, talkybot.audioFiles?.length]
+  );
 
   if (!largeDisplay) {
     const dataTypes = [];
@@ -310,49 +321,6 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         </div>
       </>
     );
-  }
-
-  function createStatus(
-    metadata: FetchMetadata | null,
-    resultsReturned: boolean
-  ): { message: string; classname: string } {
-    const cacheTime = metadata?.timestamp ? new Date(metadata.timestamp).toLocaleString() : null;
-    let message: string;
-    let classname: string;
-
-    // If no metadata yet, we're still loading
-    if (!metadata) {
-      message = "data loading...";
-      classname = styles.loading;
-      return { message, classname };
-    }
-
-    // Check if this data type is not applicable for the current source
-    if (metadata.unneeded) {
-      message = "data not applicable";
-      classname = styles.unneeded;
-      return { message, classname };
-    }
-
-    // Check for errors
-    if (metadata && !metadata.success) {
-      message = "Error: " + (metadata.error || "unknown error");
-      classname = styles.error;
-      return { message, classname };
-    }
-
-    // If we have metadata and no error, but no results, data is empty
-    if (!resultsReturned) {
-      message = "data is empty";
-      classname = styles.unneeded;
-      return { message, classname };
-    }
-
-    // Have data and no error
-    message = cacheTime ? `data originally retrieved on ${cacheTime}` : "data available";
-    classname = styles.noError;
-
-    return { message, classname };
   }
 };
 

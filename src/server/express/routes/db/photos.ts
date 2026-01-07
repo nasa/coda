@@ -124,8 +124,7 @@ export default router;
 
 async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord[]> {
   const em = globalValues.orm.em;
-  let photoRecords_db: Loaded<PhotoRecord, never>[];
-  photoRecords_db = await em.find(
+  const photoRecords_db: Loaded<PhotoRecord, never>[] = await em.find(
     PhotoTimeShifts_db,
     { date: date },
     { orderBy: { source: "ASC" } }

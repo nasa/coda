@@ -5,10 +5,6 @@
 node_modules/
 coverage/
 
-# nextjs
-.next/
-out/
-
 # production
 dist/
 

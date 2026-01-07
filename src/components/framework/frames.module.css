@@ -8,13 +8,11 @@
 .icon_9Rows {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
-
   grid-auto-rows: minmax(calc((16px / 9)), auto);
 }
 .largeIcon_9Rows {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
-
   grid-auto-rows: minmax(calc((56px / 9)), auto);
 }
 
@@ -27,13 +25,11 @@
 .icon_10Rows {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
-  /* 50px for header and the rest for timeline because these elements are fixed height */
   grid-auto-rows: minmax(calc((16px / 10)), auto);
 }
 .largeIcon_10Rows {
   display: grid;
   grid-template-columns: repeat(24, 6fr);
-  /* 50px for header and the rest for timeline because these elements are fixed height */
   grid-auto-rows: minmax(calc((56px / 10)), auto);
 }
 

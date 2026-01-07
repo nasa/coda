@@ -1,6 +1,5 @@
-import get from "lodash/get";
 import isNil from "lodash/isNil";
-import { useEffect, useState, FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
@@ -34,17 +33,14 @@ const EventDropdown: FunctionComponent<{
   const selectedEVA = allSequences.find((eva) =>
     isSameDate(new Date(eva.startDate), new Date(date))
   );
-  const evaName = get(selectedEVA, "name", "");
 
-  const [value, setValue] = useState("");
-  useEffect(() => setValue(get(selectedEVA, "startDate", "")), [evaName]);
+  const value = selectedEVA?.startDate ?? "";
 
   /**
    * Navigate to another Event
    */
   const handleEVASelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.preventDefault();
-    setValue(e.target.value);
     if (e.target.value !== "") {
       const [year, month, day] = e.target.value.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;

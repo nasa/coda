@@ -2,7 +2,7 @@ import styles from "./index.module.css";
 import isNull from "lodash/isNull";
 import isNil from "lodash/isNil";
 
-import { useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { idFromDate } from "store/sequences";
 import { sourceShortVal } from "utils/consts";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
@@ -24,13 +24,13 @@ import { isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
 import { appSecondsFromDateString } from "utils/formatting";
 
-export function V2() {
+export function V2(): JSX.Element {
   const [searchParams, _setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const sequences = useAppSelector((state) => state.sequences, deepEqual);
-  let allEVAs = sequences.allSequences;
+  const allEVAs = sequences.allSequences;
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
   const [frameworkReady, setFrameworkReady] = useState(false);
@@ -64,6 +64,7 @@ export function V2() {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
       dispatch(setDate(userDate.toISOString()));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect for initial date setup
   }, []);
 
   useEffect(() => {
@@ -86,14 +87,15 @@ export function V2() {
     } else if (!hasInitializedTime.current) {
       // Only look for EVA start times on initial load
       // change the time if the sequence has a PET start time
+      let filteredEVAs = allEVAs;
       if (urlState.frameworkState.source === "NBL") {
         // Show only NBL sequences
-        allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
+        filteredEVAs = filteredEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
       } else if (urlState.frameworkState.source === "TEST_EVENTS") {
         // Filter out all NBL sequences
-        allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
+        filteredEVAs = filteredEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
       }
-      const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
+      const sequence = filteredEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
       let evaStartSec = null as number;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
       if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
@@ -108,6 +110,7 @@ export function V2() {
       dispatch(setAppSeconds(userTime));
       hasInitializedTime.current = true;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when sequences change for EVA start time lookup
   }, [sequences]);
 
   useEffect(() => {
@@ -117,6 +120,7 @@ export function V2() {
     }
     // Mark framework as ready after URL state has been applied
     setFrameworkReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect for framework initialization
   }, []);
 
   return (
@@ -149,7 +153,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
   let date = validatedDate;
   let gmt = validatedGmt;
 
-  let fState: FrameworkState = { ...initialFrameworkState };
+  const fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
     if (source === sourceShortVal.ISS) {
       fState.source = "ISS";

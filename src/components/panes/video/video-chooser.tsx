@@ -20,7 +20,8 @@ import { VideoPosterPane } from "./video-poster";
 const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const downlinkNumber = useAppSelector(
-    (state) => (state.framework.frames[frameID].paneStateData.channel + 1) as number,
+    (state) =>
+      ((state.framework.frames[frameID].paneStateData as VideoPaneStateData).channel + 1) as number,
     refEqual
   );
   const mtxPlaybackRecordsForDownlink = useAppSelector(

@@ -5,7 +5,7 @@ import { addMs } from "./date";
  * Return a zero padded string of a number
  */
 export function padZeros(num: number, size: number): string {
-  let s = num.toString();
+  const s = num.toString();
   return s.padStart(size, "0");
 }
 
@@ -78,7 +78,7 @@ export function hhmmssFromSeconds(secondsParam: number): string {
 export function hhmmssmmmFromSeconds(secondsParam: number): string {
   const hours = Math.abs(Math.trunc(secondsParam / 3600));
   const minutes = (Math.abs(Math.trunc(secondsParam / 60)) % 60) % 60;
-  let seconds = Math.abs(Math.trunc(secondsParam)) % 60;
+  const seconds = Math.abs(Math.trunc(secondsParam)) % 60;
   const milliseconds = (secondsParam - Math.trunc(secondsParam)).toFixed(3);
   let timeStr =
     padZeros(hours, 2) +
@@ -123,14 +123,14 @@ export function isoStringFromAnyDateString(dateString: string): string {
   return tempDate.toISOString(); // guaranteed to have an ISO string. safe to string parse it
 }
 
-export function getPlayheadISOString(playheadDate: string, playheadSeconds: number) {
+export function getPlayheadISOString(playheadDate: string, playheadSeconds: number): string {
   const date = new Date(playheadDate);
   const withSeconds = addMs(date, playheadSeconds * 1000);
   return withSeconds.toISOString();
 }
 
 /** Nicely format an IO collections string for display */
-export function cleanCollectionsString(colStr: string) {
+export function cleanCollectionsString(colStr: string): string {
   const fullTree = colStr.split("|");
 
   let cleaned = fullTree[fullTree.length - 1];
@@ -202,7 +202,7 @@ export const formatEVADisplayTitle = ({
 export function lightColor(color: string): boolean {
   try {
     // Variables for red, green, blue values
-    let r: number, g: number, b: number, hsp: number;
+    let r: number, g: number, b: number;
 
     // Check the format of the color, HEX or RGB?
     if (color.match(/^rgb/)) {
@@ -216,13 +216,15 @@ export function lightColor(color: string): boolean {
       // If hex --> Convert it to RGB: http://gist.github.com/983661
       const newColor = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
 
+      /* eslint-disable no-bitwise */
       r = newColor >> 16;
       g = (newColor >> 8) & 255;
       b = newColor & 255;
+      /* eslint-enable no-bitwise */
     }
 
     // HSP (Highly Sensitive Perceived brightness) equation from http://alienryderflex.com/hsp.html
-    hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
 
     // Using the HSP value, determine whether the color is light or dark
     if (hsp > 127.5) {
@@ -251,7 +253,7 @@ export function isNearRealTime(ms: number, col: Collection): boolean {
 /**
  *
  */
-export const queryStringFromObject = (queryParams: Record<string, any>): string => {
+export const queryStringFromObject = (queryParams: Record<string, string>): string => {
   const str = new URLSearchParams(queryParams).toString();
   return str;
 };

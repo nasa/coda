@@ -60,7 +60,7 @@ export const photoSlice = createSlice({
 export const { addPhotos, clearPhotos, setActivePhoto, fetchError, setCollectionFilters } =
   photoSlice.actions;
 
-export function buildPhotoCollections(photos: PhotoFile[]) {
+export function buildPhotoCollections(photos: PhotoFile[]): PhotoCollectionFilters[] {
   const collections: PhotoCollectionFilters[] = [];
   const uniqueList: string[] = [];
   for (let i = 0; i <= photos?.length; i++) {

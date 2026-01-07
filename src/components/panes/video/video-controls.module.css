@@ -22,10 +22,6 @@
   width: 40px;
 }
 
-.dlButton:not(:last-of-type) {
-  margin-right: 1px;
-}
-
 .rightButtonsContainer {
   align-items: baseline;
 }
@@ -64,14 +60,14 @@
 
 .iconAdjustmentLong {
   position: relative;
-  top: "-2px";
+  top: -2px;
   font-size: 9px;
 }
 
 .iconAdjustmentShort {
   left: 4px;
   position: relative;
-  top: "-0.5px";
+  top: -0.5px;
   font-size: 10px;
 }
 
@@ -90,16 +86,17 @@
   left: -2px;
 }
 
-.clearTextButton {
+.muteButton {
   display: block;
   padding: 0;
   border: none;
   color: var(--even-greyer);
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgb(0 0 0 / 0%);
   font-size: 14px;
+  cursor: pointer;
 }
 
-.clearTextButton:active {
+.muteButton:active {
   border: none;
 }
 
@@ -113,14 +110,8 @@
   flex-direction: column;
 }
 
-.active_selected {
-  background: var(--lightest-grey);
-  color: white;
-}
-
-.disabled_selected {
-  background: var(--lightest-grey);
-  color: var(--extremely-grey);
+.selectActive {
+  background-color: var(--even-greyer);
 }
 
 /* Non-DL Video Select */
@@ -140,7 +131,7 @@
 }
 
 .selectContainer select {
-  font-family: "Inter", sans-serif;
+  font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 15px;
   cursor: pointer;
@@ -152,8 +143,6 @@
   color: white;
   background-color: var(--lightest-grey);
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   text-overflow: ellipsis;
   outline: 0;
 }
@@ -170,13 +159,6 @@
 .selectContainer select:disabled {
   opacity: 0.5;
   pointer-events: none;
-}
-
-.nonDlSelect_arrow {
-  position: absolute;
-  pointer-events: none;
-  top: 3px;
-  right: 6px;
 }
 
 .nonDlSelect_arrow {

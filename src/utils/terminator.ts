@@ -46,7 +46,7 @@ export default class Terminator {
     return this._toGeoJSON(latLngs);
   }
 
-  setTime(date: Date) {
+  setTime(date: Date): FeatureCollection<Geometry> {
     this.options.time = date;
     const latLngs = this._compute();
     return this._toGeoJSON(latLngs);

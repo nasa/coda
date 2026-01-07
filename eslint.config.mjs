@@ -1,9 +1,24 @@
+import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
 import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import prettier from "eslint-plugin-prettier";
 import packageJson from "eslint-plugin-package-json";
+import cssModules from "eslint-plugin-css-modules";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import js from "@eslint/js";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all,
+});
 
 // Clean the browser globals to remove any keys with leading/trailing whitespace
 const originalBrowserGlobals = globals.browser;
@@ -17,14 +32,40 @@ for (const key in originalBrowserGlobals) {
 
 export default [
   {
-    ignores: ["**/public/**/*", ".local/**/*", "node_modules/**/*", ".cache/**/*", "coverage/**/*"],
+    ignores: [
+      "**/public/**/*",
+      ".local/**/*",
+      "node_modules/**/*",
+      ".cache/**/*",
+      "coverage/**/*",
+      "**/suncalc.js",
+    ],
   },
+  ...fixupConfigRules(compat.extends("prettier", "plugin:react-hooks/recommended")),
+
+  // Configuration specifically for package.json files
   {
+    ...packageJson.configs.recommended,
+    files: ["**/package.json"],
+    rules: {
+      "package-json/restrict-dependency-ranges": [
+        "error",
+        {
+          rangeType: "pin", // require that packages have pinned versions
+        },
+      ],
+    },
+  },
+
+  // Configuration for JavaScript and TypeScript files
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
     plugins: {
       react,
+      "react-hooks": fixupPluginRules(reactHooks),
       "@typescript-eslint": typescriptEslint,
       prettier,
-      "package-json": packageJson,
+      "css-modules": cssModules,
     },
 
     languageOptions: {
@@ -53,17 +94,35 @@ export default [
     rules: {
       "no-warning-comments": ["error", { terms: ["fixme", "tbd", "xxx"], location: "anywhere" }],
 
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrors: "none",
-        },
-      ],
+      "no-implied-eval": "error",
+      "no-bitwise": "error",
+      "no-eval": "error",
+      "no-extend-native": "error",
+      "no-array-constructor": "error",
+      "no-caller": "error",
 
-      "no-import-assign": "error",
-      "no-unreachable": "error",
+      "no-constant-condition": ["error", { checkLoops: false }],
+
+      "no-empty": ["error", { allowEmptyCatch: true }],
+
+      "no-extra-bind": "error",
+      "no-extra-label": "error",
+
+      "no-implicit-coercion": ["error", { string: true, boolean: false, number: false }],
+
+      "no-implicit-globals": "error",
+      "no-label-var": "error",
+      "no-loop-func": "error",
+      "no-multi-spaces": "error",
+      "no-multi-str": "error",
+      "no-new": "error",
+      "no-new-func": "error",
+      "no-new-object": "error",
+      "no-new-wrappers": "error",
+      "no-octal-escape": "error",
+      "no-proto": "error",
+      "no-prototype-builtins": "error",
+
       "no-restricted-imports": [
         "error",
         {
@@ -93,16 +152,50 @@ export default [
           ],
         },
       ],
-      "linebreak-style": ["error", "unix"], // enforce unix (lf) linebreaks
-      "package-json/restrict-dependency-ranges": [
+
+      "no-return-assign": "error",
+      "no-script-url": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "no-self-compare": "error",
+      "no-sequences": "error",
+      "no-shadow-restricted-names": "error",
+      "no-throw-literal": "error",
+      "no-unmodified-loop-condition": "error",
+
+      "no-unneeded-ternary": ["error", { defaultAssignment: false }],
+
+      "no-unused-expressions": "error",
+      "no-useless-call": "error",
+      "no-void": ["error", { allowAsStatement: true }],
+      "no-with": "error",
+      "prefer-numeric-literals": "error",
+      "unicode-bom": ["error"],
+      "no-misleading-character-class": "error",
+      "no-new-require": "error",
+      "no-useless-computed-key": "error",
+      "prefer-const": "error",
+      "no-var": "error",
+      "@typescript-eslint/explicit-module-boundary-types": "error",
+
+      "@typescript-eslint/no-unused-vars": [
         "error",
         {
-          rangeType: "pin", // require that packages have pinned versions
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrors: "none",
         },
       ],
+
+      "prettier/prettier": ["error", { endOfLine: "auto", trailingComma: "es5" }],
+
+      "no-import-assign": "error",
+      "no-unreachable": "error",
+      "react/jsx-no-target-blank": "error", // prevent security vulnerability: require rel="noopener noreferrer" with target="_blank"
+      "linebreak-style": ["error", "unix"], // enforce unix (lf) linebreaks
+
+      // CSS Modules rules
+      "css-modules/no-undef-class": ["error", { camelCase: true }],
+      "css-modules/no-unused-class": ["error", { camelCase: true }],
     },
-  },
-  {
-    files: ["**/*.{js,jsx,ts,tsx}"],
   },
 ];

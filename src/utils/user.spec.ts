@@ -9,7 +9,7 @@ describe("isSuperuser", () => {
     givenname: "Test",
     surname: "User",
     display_name: "User, Test (JSC-XX)",
-    roles: roles as any,
+    roles: roles as EmssUser["roles"],
     uscitizen: true,
     legal_permanent_resident: true,
     usperson: true,
@@ -51,7 +51,7 @@ describe("isSuperuser", () => {
 
   it("should return false for user with undefined roles", () => {
     const user = createUser(["AEGIS-Editor"]);
-    delete (user as any).roles;
+    delete (user as Partial<EmssUser>).roles;
     expect(isSuperuser(user)).toBe(false);
   });
 });

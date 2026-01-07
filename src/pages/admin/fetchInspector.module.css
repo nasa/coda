@@ -70,14 +70,14 @@
 }
 
 .dataTypeButtonUpdated {
-  animation: fadeToNormal 10s ease-out forwards;
+  animation: fade-to-normal 10s ease-out forwards;
 }
 
 .dataTypeButtonActive.dataTypeButtonUpdated {
-  animation: fadeToActive 10s ease-out forwards;
+  animation: fade-to-active 10s ease-out forwards;
 }
 
-@keyframes fadeToNormal {
+@keyframes fade-to-normal {
   0% {
     background: #1e3a5f;
     border-color: #3b82f6;
@@ -87,7 +87,7 @@
   }
 }
 
-@keyframes fadeToActive {
+@keyframes fade-to-active {
   0% {
     background: #1e3a5f;
     border-color: #60a5fa;
@@ -126,7 +126,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .dateRow {
     align-items: flex-start;
   }

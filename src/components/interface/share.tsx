@@ -44,6 +44,7 @@ const SharePanel = ({
     if (display) {
       handleRequestOpen();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleRequestOpen uses frequently-changing appSeconds; only regenerate when modal opens
   }, [display]);
 
   return (

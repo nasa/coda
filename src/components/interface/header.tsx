@@ -7,7 +7,14 @@ import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
 import PresetPicker from "components/framework/preset-picker";
 import styles from "./header.module.css";
-import layoutStyles from "/components/framework/frames.module.css";
+import {
+  frameGridClasses,
+  layoutClasses,
+  iconRowClasses,
+  containerClasses,
+  type FrameNumber,
+  type LayoutKey,
+} from "../framework/frames";
 import { appSecondsFromDateString, hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { collection, sourceShortVal } from "utils/consts";
 import StatusArea from "./status";
@@ -46,7 +53,7 @@ const LoaderHelpMenu: FunctionComponent<{
           setHelpLoaderOpen(!helpLoaderOpen);
         }}
       >
-        <div className={styles.verticalCenter}>
+        <div className={`${styles.verticalCenter} ${styles.horizontalCenter}`}>
           <FontAwesomeIcon icon={faQuestionCircle} />
         </div>
       </div>
@@ -60,22 +67,28 @@ const LayoutDropdown: FunctionComponent = () => {
 
   const layoutDefinition = allLayouts[layout];
   const mainStyleName =
-    layoutDefinition.cssGridRows === 9 ? layoutStyles.icon_9Rows : layoutStyles.icon_10Rows;
+    layoutDefinition.cssGridRows === 9 ? iconRowClasses.icon_9Rows : iconRowClasses.icon_10Rows;
   const frames = [];
   for (let i = 1; i <= layoutDefinition.frameCount; i++) {
     // CSS Grid definitions
-    const gridAreaName = layoutStyles[`f${i}`];
+    const frameKey = `f${i}` as FrameNumber;
+    const gridAreaName = frameGridClasses[frameKey];
     frames.push(
-      <div className={`${layoutStyles.iconFrameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
-        <div className={layoutStyles.iconFrameBackground}></div>
+      <div className={`${containerClasses.iconFrameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
+        <div className={containerClasses.iconFrameBackground}></div>
       </div>
     );
   }
 
+  const layoutKey = `layout_${layout}` as LayoutKey;
+
   return (
     <ModalDropdown modal={LayoutPicker} modalWidth={263} color="grey" caret="down">
-      <div className={layoutStyles.layoutIconContainer} title="Choose display layout configuration">
-        <div className={`${mainStyleName} ${layoutStyles[`layout_${layout}`]}`}>{frames}</div>
+      <div
+        className={containerClasses.layoutIconContainer}
+        title="Choose display layout configuration"
+      >
+        <div className={`${mainStyleName} ${layoutClasses[layoutKey]}`}>{frames}</div>
       </div>
     </ModalDropdown>
   );
@@ -231,7 +244,7 @@ const Clock: FunctionComponent = () => {
     setEditingTime(false);
   };
 
-  let timeButtonsDisplay = editingTime ? "grid" : "none";
+  const timeButtonsDisplay = editingTime ? "grid" : "none";
 
   return (
     <div className={styles.timeContainer}>

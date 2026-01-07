@@ -22,8 +22,8 @@ export const PhotoAllControls: FunctionComponent<{
 
   const minWidth = 470;
 
-  const paneStateData: PhotoAllPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as PhotoAllPaneStateData,
     deepEqual
   );
 
@@ -102,8 +102,8 @@ export const PhotoAllControls: FunctionComponent<{
 
 const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
-  const paneStateData: PhotoAllPaneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as PhotoAllPaneStateData,
     deepEqual
   );
 
@@ -132,7 +132,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   // function that displays thumbnails of all photos in photoFiles
   function photoThumbnails() {
-    let photoThumbnails = [];
+    const photoThumbnails = [];
 
     for (let i = 0; i < photoFiles.length; i++) {
       for (let j = 0; j < photos.collectionFilters.length; j++) {
@@ -208,15 +208,27 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           <p>Displays all of the photos on Imagery Online taken on the selected event date.</p>
           <p>
             Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
-            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
+            <a
+              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               ISS Collection
             </a>
             . Exploration Test Events usually pulls from the root{" "}
-            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"} target={"_blank"}>
+            <a
+              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               xEVA Collection
             </a>{" "}
             but can be overridden by editing the CODA entry for each event in the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               Exploration Wiki.
             </a>
           </p>

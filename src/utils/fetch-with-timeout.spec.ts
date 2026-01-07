@@ -21,6 +21,7 @@ vi.mock("undici", async (importOriginal) => {
     }
     return new Response(JSON.stringify({ testData: 123 }), { status: 200 });
   } finally {
+    // Ensures the try block completes before returning
   }
 });
 

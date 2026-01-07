@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import type { Mock } from "vitest";
 import { getUser } from "./getUser";
 import { getUserFromJWT } from "@emss/oauth2-proxy-backend";
+import { EmssUser } from "@emss/oauth2-proxy-common";
 import { Request } from "express";
 
 vi.mock("@emss/oauth2-proxy-backend");
@@ -39,7 +40,7 @@ describe("getUser", () => {
         ip_address: "10.0.0.1",
       };
 
-      getUserFromJWTMock.mockReturnValue(expectedUser as any);
+      getUserFromJWTMock.mockReturnValue(expectedUser as EmssUser);
 
       const result = getUser(mockRequest as Request);
 

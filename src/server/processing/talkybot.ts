@@ -7,9 +7,7 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 /**
  * Response type for Talkybot data fetch
  */
-export interface TalkybotResponse {
-  audioFiles: TbAudioFile[];
-}
+export type TalkybotResponse = TbAudioFileConverted[];
 
 /**
  * Legacy audio manifest format from override sources
@@ -31,6 +29,50 @@ interface LegacyActivityRange {
   sound_stop_secs: number;
   aacSegmentFilename: string;
 }
+
+/**
+ * Converts an TbAudioFileNative entity to TbAudioFileConverted format.
+ * Expects channel to be populated; transcription is optional.
+ * Duration is calculated from mediaInfo if available, otherwise from transcription segments (defaults to 0).
+ */
+export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConverted => {
+  // Calculate duration from mediaInfo, or fall back to last segment's end time, default 0
+  const duration =
+    af.mediaInfo?.duration ??
+    (af.transcription?.segments.length
+      ? Math.max(...af.transcription.segments.map((s) => s.end))
+      : 0);
+
+  // Concatenate text from segments of type "segment"
+  const text =
+    af.transcription?.segments
+      .filter((s) => s.type === "segment")
+      .map((s) => s.text)
+      .join(" ") ?? "";
+
+  // Concatenate text from nativeLanguageSegments if available
+  const textOriginalLanguage =
+    af.transcription?.nativeLanguageSegments
+      ?.filter((s) => s.type === "segment")
+      .map((s) => s.text)
+      .join(" ") || undefined;
+
+  return {
+    fileUuid: af.uuid,
+    startTime: new Date(
+      typeof af.startTime === "string"
+        ? af.startTime.endsWith("Z")
+          ? af.startTime
+          : `${af.startTime}Z`
+        : af.startTime
+    ),
+    duration,
+    channel: af.channel.slug,
+    text,
+    textOriginalLanguage,
+    language: af.transcription?.language ?? "",
+  };
+};
 
 /**
  * Legacy transcript format: [startTimeSecs, speaker, text]
@@ -85,9 +127,7 @@ export default async function getTalkybotData({
         });
 
         return {
-          data: {
-            audioFiles,
-          },
+          data: audioFiles,
           fetchMetadata: {
             success: true,
             timestamp: new Date().toISOString(),
@@ -102,15 +142,16 @@ export default async function getTalkybotData({
   }
 
   // Fetch Talkybot's native, combined audio/transcript data from Talkybot
-  const audioFiles = await fetchTalkybotAudioFiles({
+  const nativeAudioFiles = await fetchTalkybotAudioFiles({
     source,
     dateWanted,
   });
 
+  // Convert native audio files to the format expected by the UI
+  const audioFiles = nativeAudioFiles.map(toTbAudioFileConverted);
+
   return {
-    data: {
-      audioFiles,
-    },
+    data: audioFiles,
     fetchMetadata: {
       success: true,
       timestamp: new Date().toISOString(),
@@ -130,7 +171,7 @@ export async function fetchTalkybotAudioFiles({
 }: {
   source: Source;
   dateWanted: string;
-}): Promise<TbAudioFile[]> {
+}): Promise<TbAudioFileNative[]> {
   // Only ISS source is supported
   if (source !== "ISS") {
     return [];
@@ -142,7 +183,7 @@ export async function fetchTalkybotAudioFiles({
     return [];
   }
 
-  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/coda/${dateWanted}`;
+  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles?date=${dateWanted}`;
 
   try {
     const res = await fetchWithTimeout(url, {
@@ -156,6 +197,9 @@ export async function fetchTalkybotAudioFiles({
     }
 
     const data: TbDateResponse = await res.json();
+    ConsoleLogger.debug(
+      `talkybot Successfully fetched ${data.audioFiles.length} Talkybot audio files for ${dateWanted}`
+    );
     return data.audioFiles;
   } catch (e) {
     ConsoleLogger.error("Error fetching Talkybot audio files:", e);
@@ -176,7 +220,7 @@ async function fetchAndMergeLegacyOverrides({
   audioOverrideUrl?: string;
   transcriptOverrideUrl?: string;
   dateWanted: string;
-}): Promise<TbAudioFile[]> {
+}): Promise<TbAudioFileConverted[]> {
   // Fetch legacy audio manifest
   let legacyManifest: LegacyAudioManifest[] = [];
   if (audioOverrideUrl) {
@@ -209,7 +253,7 @@ async function fetchAndMergeLegacyOverrides({
     }
   }
 
-  const audioFiles: TbAudioFile[] = [];
+  const audioFiles: TbAudioFileConverted[] = [];
 
   // If we have audio manifest, merge with transcripts
   if (legacyManifest.length > 0) {
@@ -232,12 +276,13 @@ async function fetchAndMergeLegacyOverrides({
           const fullText = matchingTranscripts.map((entry) => entry[2]).join(" ");
 
           // Create AudioFile in Coda-compatible format
-          const audioFile: TbAudioFile = {
+          const audioFile: TbAudioFileConverted = {
             fileUuid: `override-${dateWanted}-ch${channelNum}-${startAppSeconds}`, // not used for anything. overrides use the audioUrl
             startTime: dateFromAppSeconds(startAppSeconds, dateWanted),
             duration: durationSecs,
             channel: `sg${channelNum}`,
-            text: fullText ? fullText : "",
+            text: fullText || "",
+            textOriginalLanguage: "",
             language: "en",
             override: true,
             audioUrl: `${audioOverrideUrl}/audio/${activityRange.aacSegmentFilename}`,
@@ -254,12 +299,13 @@ async function fetchAndMergeLegacyOverrides({
         const startAppSeconds = entry[0];
         const text = entry[2];
 
-        const audioFile: TbAudioFile = {
+        const audioFile: TbAudioFileConverted = {
           fileUuid: `override-${dateWanted}-ch${channelNum}-${startAppSeconds}`, // not used for anything. overrides use the audioUrl
           startTime: dateFromAppSeconds(startAppSeconds, dateWanted),
           duration: 0,
           channel: `sg${channelNum}`,
           text,
+          textOriginalLanguage: "",
           language: "en",
           override: true,
           audioUrl: undefined,

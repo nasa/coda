@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  scrollbar-width: auto;
+  scrollbar-color: #eeeeee #eeeeee10;
 }
 
 :root {
@@ -15,7 +17,6 @@
   --dark-grey: #313131;
   --very-dark-grey: #242424;
   --nearly-black: #19181b;
-
   --ruby: #950b5e;
   --orange: #ffa800;
   --mustard-green: #6e831a;
@@ -25,19 +26,12 @@
   --burnt-orange: #cc5500;
   --burnt-umber: #6e260e;
   --highlight-red: #f40000;
-
   --radius: 3px;
   --panelRadius: 6px;
-
   --homepage-background: "url(/images/earth_moon.jpg)"; /* Handled in ./pages/index.tsx */
 }
 
 /* ===== Scrollbar CSS ===== */
-/* Firefox */
-* {
-  scrollbar-width: auto;
-  scrollbar-color: #eeeeee #eeeeee10;
-}
 
 /* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {

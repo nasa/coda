@@ -125,8 +125,9 @@ export default router;
 
 async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promise<VideoRecord> {
   const em = globalValues.orm.em;
-  let videoRecord: Loaded<VideoRecord, never>;
-  videoRecord = await em.findOne(VideoStartTimeOverrides_db, { videoId: videoId });
+  const videoRecord: Loaded<VideoRecord, never> = await em.findOne(VideoStartTimeOverrides_db, {
+    videoId: videoId,
+  });
 
   if (videoRecord) {
     const videoRecordData: VideoRecord = videoRecord;

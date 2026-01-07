@@ -38,6 +38,12 @@ plugins:
   nodesecurity:
     enabled: true
 
+  # Disable ESLint and Stylelint - already running in test job
+  eslint:
+    enabled: false
+  stylelint:
+    enabled: false
+
 exclude_patterns:
   - "config/"
   - "db/"
@@ -56,3 +62,17 @@ exclude_patterns:
   - "**/docs"
   - "**/*.spec.js"
   - "**/*.spec.ts"
+  - ".local/**"
+  - "**/vite.config.*"
+  - "**/vitest.config.*"
+  - "**/esbuild.*"
+  - "**/*.mjs"
+  - "docker/**"
+  - "scripts/**"
+  - ".gitlab/**"
+  - "public/licenses/**"
+  - "public/fonts/**"
+  - "public/images/**"
+  - "public/clockcalc/**"
+  - "public/clocksync/**"
+  - "src/utils/suncalc.js"

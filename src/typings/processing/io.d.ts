@@ -3,8 +3,8 @@
  */
 interface IOResponse {
   results?: {
-    responseheader: any;
-    facet_counts: any;
+    responseheader: unknown;
+    facet_counts: unknown;
     response: {
       start: number;
       /** Info about videos from the search */

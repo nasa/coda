@@ -332,11 +332,12 @@ export const frameworkSlice = createSlice({
      */
     setPaneStateDataValue: (
       state,
-      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: any } }
+      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: unknown } }
     ) => {
       if (!state.frames[action.payload.frameID]) return;
-      state.frames[action.payload.frameID].paneStateData[action.payload.paneStateProperty] =
-        action.payload.paneStateValue;
+      (state.frames[action.payload.frameID].paneStateData as Record<string, unknown>)[
+        action.payload.paneStateProperty
+      ] = action.payload.paneStateValue;
     },
     /**
      * Change the overall data source (ISS, Test Events, NBL)

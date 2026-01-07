@@ -39,6 +39,7 @@ const SocketClient: FunctionComponent<{
       }
       setUser(thisUser as EmssUser);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect to fetch current user
   }, []);
 
   //Handle socketio events
@@ -168,7 +169,7 @@ const SocketClient: FunctionComponent<{
         const dataResponse = response as FetchResponse<GPSTrack[]>;
         dispatch(setGPSTracks(dataResponse));
       } else if (dataUpdate.type === "talkybot") {
-        const dataResponse = response as FetchResponse<TbDateResponse>;
+        const dataResponse = response as FetchResponse<TbAudioFileConverted[]>;
         dispatch(setTalkybotAudioFiles(dataResponse));
       } else if (dataUpdate.type === "graph") {
         const dataResponse = response as FetchResponse<GraphsManifest>;
@@ -179,7 +180,8 @@ const SocketClient: FunctionComponent<{
     // Incoming incremental data updates (e.g., new audio files from talkybotS2sSocket)
     socket.current.on("incrementalDataUpdate", (incrementalUpdate: IncrementalDataUpdate) => {
       if (incrementalUpdate.type === "talkybot") {
-        dispatch(upsertTalkybotAudioFile(incrementalUpdate.item as TbAudioFile));
+        // Server already converts to TbAudioFileConverted before emitting
+        dispatch(upsertTalkybotAudioFile(incrementalUpdate.item as TbAudioFileConverted));
       }
     });
 
@@ -196,6 +198,7 @@ const SocketClient: FunctionComponent<{
       socket.current.off("incrementalDataUpdate");
       socket.current.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- adding dispatch, setSocketStatus, socketStatus would cause infinite reconnection loops
   }, [socket, user, playheadDate, source]);
 
   return <></>;

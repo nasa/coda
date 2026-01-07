@@ -30,5 +30,9 @@ COPY . /app
 
 RUN npm run api:build
 
+# Set NODE_ENV to production for the production image
+# This enables Express production mode (better error handling, performance optimizations)
+ENV NODE_ENV=production
+
 # This image is intended to be run with docker-compose.
 CMD ["/bin/sh", "-c", "npm run migration:up; npm run api:prod"]

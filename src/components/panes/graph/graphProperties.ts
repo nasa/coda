@@ -45,7 +45,7 @@ export interface ChartLayout {
   };
 }
 
-export function getPlotlyChartLayout(height: number) {
+export function getPlotlyChartLayout(height: number): ChartLayout {
   const labelcolor = "#999999";
   const chartLayout: ChartLayout = {
     autosize: true,

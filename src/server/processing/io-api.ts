@@ -123,7 +123,7 @@ export async function fetchIoData({
   const data1 = parser(initialResponse, collection);
 
   // Construct an array of queryParams, one for each page required to reach numFound from first API call
-  let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
+  const queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
 
   // create an array of promises for async IO calls
   const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
@@ -137,7 +137,7 @@ export async function fetchIoData({
   });
 
   // Turn array of arrays into one enormous array
-  let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
+  const additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
 
   // Merge the additional objects with the objects from the first API call and return it
   const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
@@ -189,7 +189,7 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
  * Exported for testing.
  * @returns Negative if a comes first, positive if b comes first, 0 if equal
  */
-export const videoSorter = (a: VideoFile, b: VideoFile) => {
+export const videoSorter = (a: VideoFile, b: VideoFile): number => {
   const aDuration = a.end - a.start;
   const bDuration = b.end - b.start;
   // Standard sort comparator: <0 sorts a before b, >0 sorts a after b, 0 keeps original order
@@ -256,7 +256,7 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   const dateToUse = doc.vmd_start_gmt || doc.md_creation_date;
 
   // Parse ISO 8601 timestamp (YYYY-MM-DDTHH:MM:SSZ)
-  let dateArr = dateToUse
+  const dateArr = dateToUse
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     .slice(1) // Remove full match, keep only capture groups
     .map((n: string) => parseInt(n));
@@ -316,35 +316,36 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
 
 /**
  * Determine if a video is a downlink video based on its NASA ID.
- * NASA ID format: issaaambbcccdddd or stsaaambbcccdddd
- * Where bb is the video source number:
+ * NASA ID format: iss<exp>m<source><day><time> or sts<mission>m<source><day><time>
+ * Where <source> is the 2-digit video source number:
  * - 01-10: SD Downlink
  * - 11-20: HD Downlink
  * - 31: Russian Downlink
  * - 60: Shuttle Downlink
- * All other source IDs are non-downlink (onboards, NASA TV, etc.)
+ * All other source IDs are non-downlink (onboards, NASA TV, GVS, etc.)
  * Exported for testing purposes.
  * @param nasaId - NASA ID string from IO API doc
  * @returns true if the video is a downlink video, false otherwise
  */
 export function isDownlinkVideo(nasaId: string): boolean {
-  // Match ISS or STS video ID format: (iss|sts)aaambbcccdddd
-  // aaa = mission number (3 digits)
-  // m = single character (often a digit)
-  // bb = video source number (2 digits)
-  const match = nasaId.match(/^(?:iss|sts)(\d{3})(\d)(\d{2})/i);
+  // Match ISS or STS video ID format: (iss|sts)<exp>m<source><day><time>
+  // exp = mission/expedition number (3 digits)
+  // m = moving imagery marker (literal 'm')
+  // source = video source number (2 digits)
+  const match = nasaId.match(/^(?:iss|sts)(\d{3})m(\d{2})/i);
   if (!match) {
     // If the ID doesn't match the expected format, exclude it to be safe
     return false;
   }
 
-  const sourceId = parseInt(match[3], 10);
+  const sourceId = parseInt(match[2], 10);
 
-  // Downlink source IDs:
+  // Downlink source IDs per NASA spec:
   // 01-10: SD Downlink
   // 11-20: HD Downlink
   // 31: Russian Downlink
   // 60: Shuttle Downlink
+  // Note: 51-59 is GVS SD Video per spec, NOT downlink
   return (
     (sourceId >= 1 && sourceId <= 10) ||
     (sourceId >= 11 && sourceId <= 20) ||

@@ -25,7 +25,10 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
   const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
-  const audioFiles: TbAudioFile[] = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
+  const audioFiles: TbAudioFileConverted[] = useAppSelector(
+    (state) => state.talkybot.audioFiles,
+    deepEqual
+  );
   const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
@@ -161,6 +164,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       paper.project.remove();
     }
     installTimeline();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- installTimeline is stable and should not trigger re-renders
   }, [sequence, videos, photos.photoFiles, dayNight, photos, playheadDate, audioFiles]);
 
   useEffect(() => {

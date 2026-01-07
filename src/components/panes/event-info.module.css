@@ -3,14 +3,13 @@
   height: 0;
   width: 100%;
   min-height: 100%;
-  overflow: auto;
   background-color: var(--nearly-black);
   overflow: auto;
 }
 
 .dataTable {
   font-size: 0.8em;
-  background: rgb(15, 15, 15, 0.8);
+  background: rgb(15 15 15 / 80%);
   border-radius: 10px;
   border-spacing: 0;
   border-collapse: collapse;
@@ -23,20 +22,7 @@
 }
 
 .dataTable tr {
-  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
-}
-
-.dataTable td:first-child {
-  text-align: right;
-  width: 80px;
-  white-space: nowrap;
-  border-right: 2px solid rgba(150, 150, 150, 0.5);
-}
-
-.dataTable th {
-  text-align: "center";
-  font-weight: 300;
-  width: 50%;
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
 }
 
 .dataTable td {
@@ -44,23 +30,23 @@
   vertical-align: top;
   font-weight: 200;
   padding: 8px;
-  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
+}
+
+.dataTable td:first-child {
+  text-align: right;
+  width: 80px;
+  white-space: nowrap;
+  border-right: 2px solid rgb(150 150 150 / 50%);
+}
+
+.dataTable th {
+  text-align: "center";
+  font-weight: 300;
+  width: 50%;
 }
 .dataTable tr:last-child td {
   border-bottom: none;
-}
-.dataTable .tdNoBottomBorder {
-  border-bottom: none;
-}
-.dataTable .tdBorderTop {
-  border-top: 2px solid rgba(150, 150, 150, 0.5);
-}
-
-.dataTable .digiValue {
-  font-family: "Ubuntu Mono";
-  font-size: 1em;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
 .dataTable .labelValue {
@@ -127,9 +113,4 @@
 
 .rightButtons > *:not(:last-of-type) {
   margin-right: 5px;
-}
-
-.seqSourceName {
-  font-size: 0.8em;
-  float: right;
 }

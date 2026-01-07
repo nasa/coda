@@ -32,9 +32,14 @@ interface Panes {
   [key: string]: Pane;
 }
 
+interface PaneComponentProps {
+  frameID: number;
+  frameDimensions?: number[];
+}
+
 type PaneTypeComponentSet = {
-  controls: React.ComponentType<any>;
-  pane: React.ComponentType<any>;
+  controls: React.ComponentType<PaneComponentProps>;
+  pane: React.ComponentType<PaneComponentProps>;
 };
 
 type PaneTypeComponentSets = {
@@ -55,9 +60,20 @@ interface FrameState {
   [key: string]: PaneState;
 }
 
+type AllPaneStateData =
+  | EmptyPaneStateData
+  | VideoPaneStateData
+  | PhotoPaneStateData
+  | PhotoAllPaneStateData
+  | LocationPaneStateData
+  | GpsTrackPaneStateData
+  | EventPaneStateData
+  | CommPaneStateData
+  | GraphPaneStateData;
+
 interface PaneState {
   paneType: string;
-  paneStateData: any;
+  paneStateData: AllPaneStateData;
 }
 
 type EmptyPaneStateData = {

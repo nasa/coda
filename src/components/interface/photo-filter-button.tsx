@@ -37,13 +37,13 @@ export const RenderPhotoFilter: FunctionComponent = () => {
   const photos = useAppSelector((state) => state.photos, deepEqual);
 
   const changeFilter = (index: number, value: boolean) => {
-    let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
+    const filters = JSON.parse(JSON.stringify(photos.collectionFilters));
     filters[index].selected = value;
     dispatch(setCollectionFilters(filters));
   };
 
   const changeAllFilters = (value: boolean) => {
-    let filters = JSON.parse(JSON.stringify(photos.collectionFilters));
+    const filters = JSON.parse(JSON.stringify(photos.collectionFilters));
     for (let i = 0; i < filters.length; i++) {
       filters[i].selected = value;
     }

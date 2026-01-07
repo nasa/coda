@@ -35,14 +35,8 @@
   justify-content: flex-start;
   height: 35px;
   background-color: var(--nearly-black);
-  padding: 4px 6px 4px 0px;
+  padding: 4px 6px 4px 0;
   overflow-x: clip;
-}
-
-.verticalCenter {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
 }
 
 .dropdown {

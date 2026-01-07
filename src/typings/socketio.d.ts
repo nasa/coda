@@ -14,7 +14,7 @@ type StoreDataType =
 
 interface DataUpdate {
   type: StoreDataType;
-  response: FetchResponse<any>;
+  response: FetchResponse<unknown>;
 }
 
 interface DataFetchCallContext {
@@ -25,7 +25,7 @@ interface DataFetchCallContext {
 // Define a configuration for each data type
 interface FetchConfig {
   type: StoreDataType;
-  getDataFunction: (params: DataFetchCallContext) => Promise<FetchResponse<any>>;
+  getDataFunction: (params: DataFetchCallContext) => Promise<FetchResponse<unknown>>;
   fetchTimeoutMs: number; // custom fetch timeout in milliseconds, defaults to DEFAULT_DATA_FETCH_TIMEOUT_MS
   refreshIntervalMs: number | null; // custom refresh interval for non-today data, null means no scheduled refresh
   refreshIntervalTodayMs: number | null; // custom refresh interval for today's data, null means no scheduled refresh

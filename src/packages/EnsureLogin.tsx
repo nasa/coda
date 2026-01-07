@@ -16,7 +16,7 @@ export const EnsureLogin: FC<{ fqdn?: string }> = ({ fqdn = "" }) => {
       console.log(`Welcome, ${user.display_name || "unknown user"}`);
       dispatch(setUser(user));
     });
-  }, [fqdn]);
+  }, [fqdn, dispatch]);
 
   // component has no display, just ensures login
   return null;

@@ -13,7 +13,7 @@ import LZUTF8 from "lzutf8";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
-const PresetPicker = ({ closeClick }: { closeClick?: () => void }) => {
+const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
   const dispatch = useAppDispatch();
 
@@ -80,6 +80,7 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }) => {
         console.error(e);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on mount to load from cookie
   }, []);
 
   return (

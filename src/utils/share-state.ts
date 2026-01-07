@@ -94,36 +94,40 @@ export function generateShareURL(
     switch (element.paneType) {
       case "video_downlink":
         paneStateString = getStateStringForVideo(
-          element.paneStateData,
+          element.paneStateData as VideoPaneStateData,
           paneTypeShortVal.video_downlink
         );
         break;
       case "video_non_downlink":
         paneStateString = getStateStringForVideo(
-          element.paneStateData,
+          element.paneStateData as VideoPaneStateData,
           paneTypeShortVal.video_non_downlink
         );
         break;
       case "photo":
-        paneStateString = getStateStringForPhoto(element.paneStateData);
+        paneStateString = getStateStringForPhoto(element.paneStateData as PhotoPaneStateData);
         break;
       case "photo_all":
-        paneStateString = getStateStringForPhotoAll(element.paneStateData);
+        paneStateString = getStateStringForPhotoAll(element.paneStateData as PhotoAllPaneStateData);
         break;
       case "event_info":
         paneStateString = getStateStringForEventInfo();
         break;
       case "iss_location":
-        paneStateString = getStateStringforISSLocation(element.paneStateData);
+        paneStateString = getStateStringforISSLocation(
+          element.paneStateData as LocationPaneStateData
+        );
         break;
       case "gps_location":
-        paneStateString = getStateStringforGPSLocation(element.paneStateData);
+        paneStateString = getStateStringforGPSLocation(
+          element.paneStateData as GpsTrackPaneStateData
+        );
         break;
       case "comm":
-        paneStateString = getStateStringForComm(element.paneStateData);
+        paneStateString = getStateStringForComm(element.paneStateData as CommPaneStateData);
         break;
       case "graph":
-        paneStateString = getStateStringForGraph(element.paneStateData);
+        paneStateString = getStateStringForGraph(element.paneStateData as GraphPaneStateData);
         break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
@@ -366,7 +370,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         };
       } else {
         const enabledTracks = frameString.substring(3).split(",");
-        for (let name of enabledTracks) {
+        for (const name of enabledTracks) {
           gpsTrackToggles[name] = true;
         }
       }

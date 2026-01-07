@@ -49,6 +49,7 @@ const PlotlyComponent: FunctionComponent<{
         }
       }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch is stable, frameID doesn't change after mount
   }, [plotlyChartRef, chartData]);
 
   useEffect(() => {
