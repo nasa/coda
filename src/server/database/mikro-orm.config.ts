@@ -52,6 +52,6 @@ export default defineConfig({
     Ephemeris_db,
   ],
   debug: process.env.DEBUG === "true" || process.env.DEBUG?.includes("db"),
-  allowGlobalContext: true,
+  allowGlobalContext: false,
   extensions: [Migrator, SeedManager],
 });

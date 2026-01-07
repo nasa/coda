@@ -37,7 +37,7 @@ export default [
       ".local/**/*",
       "node_modules/**/*",
       ".cache/**/*",
-      "coverage/**/*",
+      "**/coverage/**/*",
       "**/suncalc.js",
     ],
   },

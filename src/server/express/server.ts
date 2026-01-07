@@ -63,6 +63,13 @@ const gracefulShutdown = async () => {
   // Stop Celestrak scheduler
   stopCelestrakScheduler();
 
+  // Stop socket status interval
+  if (globalValues.socketInterval) {
+    clearInterval(globalValues.socketInterval);
+    globalValues.socketInterval = null;
+    ConsoleLogger.info("Socket status interval stopped");
+  }
+
   // Disconnect TalkybotS2s socket to Talkybot
   disconnectTalkybotS2sSocket();
   globalValues.talkybotS2sSocket = null;
