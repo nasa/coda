@@ -143,7 +143,7 @@ export async function getMediaOverridesByDate(date: string): Promise<MediaOverri
 }
 
 export async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const mediaOverrides_db = await em.find(
     MediaOverride_db,
     {},
