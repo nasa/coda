@@ -487,15 +487,14 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     activeUtteranceRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [activeUtteranceSecs, paneStateData.lockScroll, appSeconds]);
 
-  // Show the help panel if there are no audio files (only update if value needs to change)
+  // Auto-show the help panel if there are no audio files
   useEffect(() => {
-    const shouldShowHelp = !hasAudioFiles;
-    if (paneStateData.showHelp !== shouldShowHelp) {
+    if (!hasAudioFiles && !paneStateData.showHelp) {
       dispatch(
         setPaneStateDataValue({
           frameID,
           paneStateProperty: "showHelp",
-          paneStateValue: shouldShowHelp,
+          paneStateValue: true,
         })
       );
     }
