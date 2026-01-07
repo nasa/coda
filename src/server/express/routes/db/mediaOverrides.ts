@@ -124,8 +124,8 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
 
 export default router;
 
-export async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
-  const em = globalValues.orm.em;
+async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
+  const em = globalValues.orm.em.fork();
   const mediaOverrides_db: Loaded<MediaOverride_db, never>[] = await em.find(
     MediaOverride_db,
     { date: date },
