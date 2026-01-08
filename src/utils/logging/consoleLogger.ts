@@ -57,12 +57,8 @@ export class ConsoleLogger {
   }
 
   private static getTimestamp(): string {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, "0");
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    const seconds = now.getSeconds().toString().padStart(2, "0");
-    const ms = now.getMilliseconds().toString().padStart(3, "0");
-    return `[${hours}:${minutes}:${seconds}.${ms}]`;
+    const iso = new Date().toISOString(); // "2026-01-08T19:30:45.123Z"
+    return `[${iso.slice(5, 10)} ${iso.slice(11, 23)}]`; // "[01-08 19:30:45.123]"
   }
 
   /**
