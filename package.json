@@ -19,7 +19,7 @@
     "lint:js:fix": "eslint . --fix --color",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:css:fix": "stylelint \"src/**/*.css\" --fix",
-    "postinstall": "rimraf node_modules/paper/dist/docs",
+    "postinstall": "rimraf node_modules/paper/dist/paperjs/docs && rimraf node_modules/paper/dist/docs",
     "docker:preview": "bash ./appcompose preview up -d",
     "docker:preview:rebuild": "bash ./appcompose preview build",
     "docker:preview:rebuild:nocache": "bash ./appcompose preview build --no-cache",
