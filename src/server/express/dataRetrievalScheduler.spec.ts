@@ -118,7 +118,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
 
       const result = await getSourceDateDataType({
         source: "ISS",
@@ -155,7 +155,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(newSuccessResponse);
 
       const result = await getSourceDateDataType({
@@ -281,7 +281,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       await getSourceDateDataType({
@@ -319,7 +319,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(oldCachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(oldCachedData as CacheRecord);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockFailureResponse);
 
       await getSourceDateDataType({
@@ -365,7 +365,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(newData);
 
       await getSourceDateDataType({
@@ -403,7 +403,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(sameData);
 
       await getSourceDateDataType({
@@ -432,7 +432,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -461,7 +461,7 @@ describe("dataRetrievalScheduler", () => {
         },
       };
 
-      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(cachedData as CacheRecord);
 
       await getSourceDateDataType({
         source: "ISS",
@@ -487,7 +487,7 @@ describe("dataRetrievalScheduler", () => {
         metadata: { expiration: new Date(Date.now() - 10000).toISOString() },
       };
 
-      getCacheEntryMock.mockResolvedValue(expiredCache as CacheRecord_db_type);
+      getCacheEntryMock.mockResolvedValue(expiredCache as CacheRecord);
       (mockDataFetchConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
 
       await getSourceDateDataType({
@@ -569,11 +569,11 @@ describe("dataRetrievalScheduler", () => {
               Date.now() + dayjs.duration(10, "minutes").asMilliseconds()
             ).toISOString(),
           },
-        } as CacheRecord_db_type)
+        } as CacheRecord)
         .mockResolvedValueOnce({
           data: { videos: [] },
           metadata: { expiration: new Date(Date.now() - 10000).toISOString() },
-        } as CacheRecord_db_type);
+        } as CacheRecord);
 
       getVideoDataMock.mockResolvedValue({
         data: [],

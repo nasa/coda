@@ -1,6 +1,6 @@
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
-import { GPXTracks_db } from "server/database/models/_allModels";
+import { GPXTracks_db } from "server/database/models/gpxTracks.model";
 import { XMLParser } from "fast-xml-parser";
 
 export default async function getGpsTrackData({

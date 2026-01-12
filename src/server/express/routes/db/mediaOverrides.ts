@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
-import { MediaOverride_db } from "server/database/models/_allModels";
+import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import ConsoleLogger from "utils/logging/consoleLogger";
 

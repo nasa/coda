@@ -1,12 +1,12 @@
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
-import { Ephemeris_db } from "server/database/models/_allModels";
+import { Ephemeris_db } from "server/database/models/ephemera.model";
 
 /**
  * Get ISS TLE records around a specific date
  * Returns: 1 record from previous day (latest), all records from target day, 1 record from next day (earliest)
  */
-export async function getEphemerisByDate(date: string): Promise<Ephemeris_db_type[]> {
+export async function getEphemerisByDate(date: string): Promise<Ephemeris_db[]> {
   const em = globalValues.orm.em.fork();
   const targetDate = new Date(date);
 

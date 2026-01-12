@@ -1,13 +1,17 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/postgresql";
-import { types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-export class VideoStartTimeOverrides_db implements VideoRecord_db_type {
-  @PrimaryKey({ type: MikroTypes.integer })
+export class VideoStartTimeOverrides_db implements VideoRecord {
   id!: number;
-
-  @Property({ type: MikroTypes.string })
   videoId!: string;
-  @Property({ type: MikroTypes.string })
   startTime!: string;
 }
+
+export const VideoStartTimeOverrides_dbSchema = new EntitySchema<VideoStartTimeOverrides_db>({
+  class: VideoStartTimeOverrides_db,
+  tableName: "video_start_time_overrides_db",
+  properties: {
+    id: { type: MikroTypes.integer, primary: true, autoincrement: true },
+    videoId: { type: MikroTypes.string },
+    startTime: { type: MikroTypes.string },
+  },
+});

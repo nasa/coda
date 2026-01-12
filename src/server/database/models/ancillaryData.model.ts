@@ -1,17 +1,21 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/postgresql";
-import { types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-export class AncillaryDataSource_db implements AncillaryDataSource_db_type {
-  @PrimaryKey({ type: MikroTypes.integer })
+export class AncillaryDataSource_db implements AncillaryDataSource {
   id!: number;
-
-  @Property({ type: MikroTypes.text })
   date!: string;
-  @Property({ type: MikroTypes.text })
   source!: Source;
-  @Property({ type: MikroTypes.text })
   type!: "graphs";
-  @Property({ type: MikroTypes.text })
   url!: string;
 }
+
+export const AncillaryDataSource_dbSchema = new EntitySchema<AncillaryDataSource_db>({
+  class: AncillaryDataSource_db,
+  tableName: "ancillary_data_source_db",
+  properties: {
+    id: { type: MikroTypes.integer, primary: true, autoincrement: true },
+    date: { type: MikroTypes.text },
+    source: { type: MikroTypes.text },
+    type: { type: MikroTypes.text },
+    url: { type: MikroTypes.text },
+  },
+});

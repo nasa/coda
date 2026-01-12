@@ -4,8 +4,6 @@ type VideoRecord = {
   startTime: string;
 };
 
-type VideoRecord_db_type = VideoRecord;
-
 type VideoPlayerType = "IO" | "MTX" | "HLS" | "NONE";
 
 // Video Poster Types
