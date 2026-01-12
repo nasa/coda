@@ -18,18 +18,19 @@ interface DataUpdate {
 }
 
 interface DataFetchCallContext {
-  dateWanted: string;
-  source: Source;
+  dateWanted?: string;
+  source?: Source;
 }
 
 // Define a configuration for each data type
 interface FetchConfig {
   type: StoreDataType;
-  getDataFunction: (params: DataFetchCallContext) => Promise<FetchResponse<unknown>>;
+  getDataFunction: (params?: DataFetchCallContext) => Promise<FetchResponse<unknown>>;
   fetchTimeoutMs: number; // custom fetch timeout in milliseconds, defaults to DEFAULT_DATA_FETCH_TIMEOUT_MS
   refreshIntervalMs: number | null; // custom refresh interval for non-today data, null means no scheduled refresh
   refreshIntervalTodayMs: number | null; // custom refresh interval for today's data, null means no scheduled refresh
   enableCacheUse: boolean; // whether to enable the use of cache for this data type
+  isDateDependent?: boolean; // if true, data varies by date and uses per-date cache entries; if false, data is the same for all dates and uses a global cache entry
 }
 
 /** Incremental data updates for single items (e.g., new audio file from talkybotS2sSocket) */

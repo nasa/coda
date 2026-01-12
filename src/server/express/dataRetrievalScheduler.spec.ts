@@ -18,7 +18,8 @@ import "server/processing/io-photos";
 import "server/processing/gps";
 import "server/processing/mediaMtx";
 import "server/processing/graphs";
-import "server/processing/wikiData";
+import "server/processing/wiki/evaData";
+import "server/processing/wiki/testEventData";
 
 vi.mock("server/express/cache-db");
 vi.mock("./sockets");
@@ -29,7 +30,8 @@ vi.mock("server/processing/io-photos");
 vi.mock("server/processing/gps");
 vi.mock("server/processing/mediaMtx");
 vi.mock("server/processing/graphs");
-vi.mock("server/processing/wikiData");
+vi.mock("server/processing/wiki/evaData");
+vi.mock("server/processing/wiki/testEventData");
 vi.mock("./global", () => ({
   globalValues: {
     socketio: null,
@@ -85,6 +87,7 @@ describe("dataRetrievalScheduler", () => {
       refreshIntervalTodayMs: dayjs.duration(2, "minutes").asMilliseconds(),
       fetchTimeoutMs: dayjs.duration(30, "seconds").asMilliseconds(),
       enableCacheUse: true,
+      isDateDependent: true,
     };
 
     const mockSuccessResponse: FetchResponse<unknown> = {
@@ -202,6 +205,7 @@ describe("dataRetrievalScheduler", () => {
       const noCacheConfig: FetchConfig = {
         ...mockDataFetchConfig,
         enableCacheUse: false,
+        isDateDependent: true,
       };
 
       (noCacheConfig.getDataFunction as Mock).mockResolvedValue(mockSuccessResponse);
@@ -246,6 +250,7 @@ describe("dataRetrievalScheduler", () => {
 
       // Flush microtasks to start background fetch
       await vi.advanceTimersByTimeAsync(0);
+      await Promise.resolve();
 
       // Second call while first background fetch is still in progress (hasn't reached 5s yet)
       const result2 = await getSourceDateDataType({
@@ -611,6 +616,7 @@ describe("dataRetrievalScheduler", () => {
         refreshIntervalMs: dayjs.duration(60, "minutes").asMilliseconds(),
         refreshIntervalTodayMs: dayjs.duration(2, "minutes").asMilliseconds(),
         enableCacheUse: true,
+        isDateDependent: true,
       };
 
       getCacheEntryMock.mockResolvedValue(null);
