@@ -78,8 +78,8 @@ export const config: DotenvConfig<typeof environments> = {
     default: "/etc/pki/tls/private",
   },
   //# Unlikely these ever need to change
-  // VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
-  VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
+  VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
+  // VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
 
   // Although this would seem to change between envs, it is only the origin
   // header passed along with IO requests, and it is simpler to just always
