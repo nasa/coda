@@ -304,6 +304,10 @@ const AdminFetchStatuses: FunctionComponent = () => {
     return dayjs(timestamp).fromNow();
   };
 
+  const formatDateLabel = (date: string) => {
+    return date === "notDateDependent" ? "Not Date Dependent" : date;
+  };
+
   const handleForceRefresh = async (source: string, date: string, dataType: string) => {
     const refreshKey = `${source}::${date}::${dataType}`;
     setRefreshing((prev) => ({ ...prev, [refreshKey]: true }));
@@ -441,11 +445,11 @@ const AdminFetchStatuses: FunctionComponent = () => {
                   return (
                     <div key={`${source}-${date}`} className={styles.dateSection}>
                       <div className={styles.dateRow}>
-                        <h3 className={styles.dateTitle}>{date}</h3>
+                        <h3 className={styles.dateTitle}>{formatDateLabel(date)}</h3>
                         <div
                           className={styles.dataTypeButtons}
                           role="group"
-                          aria-label={`Data types for ${date}`}
+                          aria-label={`Data types for ${formatDateLabel(date)}`}
                         >
                           {typeEntries.length === 0 ? (
                             <span className={styles.noDataTypes}>

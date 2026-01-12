@@ -2,7 +2,7 @@ import remove from "lodash/remove";
 import find from "lodash/find";
 import isEqual from "lodash/isEqual";
 import { globalValues } from "./global";
-import { dataFetchConfigs, getSourceDateDataType } from "./dataRetrievalScheduler";
+import { dataFetchConfigs, getSourceDateDataType, ALL_DATES_KEY } from "./dataRetrievalScheduler";
 import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
@@ -248,6 +248,33 @@ export const emitDataUpdate = ({
 };
 
 /**
+ * Emit a data update to ALL clients viewing any date for a specific source.
+ * Used for non-date-dependent data like wiki data that's the same for all dates.
+ */
+export const emitDataUpdateToSource = ({
+  source,
+  dataUpdate,
+}: {
+  source: Source;
+  dataUpdate: DataUpdate;
+}): void => {
+  // Get all unique dates being viewed for this source
+  const datesForSource = globalValues.serverSocketStatus.visitorsData
+    .filter((visitor) => visitor.source === source)
+    .map((visitor) => visitor.dateViewing);
+  const uniqueDates = Array.from(new Set(datesForSource));
+
+  // Emit to all rooms for this source
+  uniqueDates.forEach((date) => {
+    globalValues.socketio.to(`${source}_${date}`).emit("dataUpdate", dataUpdate);
+  });
+
+  ConsoleLogger.debug(
+    `Emitted ${dataUpdate.type} update to ${uniqueDates.length} rooms for source ${source}`
+  );
+};
+
+/**
  * Emit an incremental data update to clients viewing a specific source and date.
  * Used for real-time updates (e.g., new audio files from talkybotS2sSocket).
  */
@@ -281,6 +308,11 @@ const updateServerFetchTrackers = () => {
     )
   );
 
+  // Get unique sources being viewed (for non-date-dependent data)
+  const uniqueSources = Array.from(
+    new Set(globalValues.serverSocketStatus.visitorsData.map((visitor) => visitor.source))
+  );
+
   //Create new source_date values for new dates being viewed
   uniqueSourceDateKeys.forEach((key) => {
     const [source, date] = key.split("_");
@@ -292,8 +324,31 @@ const updateServerFetchTrackers = () => {
     }
 
     dataFetchConfigs.forEach((config) => {
+      // Skip non-date-dependent configs here - they use the global key
+      if (!config.isDateDependent) return;
+
       if (!globalValues.fetchTrackers[source][date][config.type]) {
         globalValues.fetchTrackers[source][date][config.type] = {
+          isFetching: false,
+        };
+      }
+    });
+  });
+
+  // Create global tracker entries for non-date-dependent data (e.g., wiki data)
+  uniqueSources.forEach((source) => {
+    if (!globalValues.fetchTrackers[source]) {
+      globalValues.fetchTrackers[source] = {};
+    }
+    if (!globalValues.fetchTrackers[source][ALL_DATES_KEY]) {
+      globalValues.fetchTrackers[source][ALL_DATES_KEY] = {};
+    }
+
+    dataFetchConfigs.forEach((config) => {
+      if (config.isDateDependent) return;
+
+      if (!globalValues.fetchTrackers[source][ALL_DATES_KEY][config.type]) {
+        globalValues.fetchTrackers[source][ALL_DATES_KEY][config.type] = {
           isFetching: false,
         };
       }
@@ -303,7 +358,13 @@ const updateServerFetchTrackers = () => {
   // Clean up the server fetch trackers: remove any source_date values that are no longer being viewed and dispose of timeouts
   Object.keys(globalValues.fetchTrackers).forEach((source) => {
     Object.keys(globalValues.fetchTrackers[source]).forEach((date) => {
-      if (!uniqueSourceDateKeys.includes(`${source}_${date}`)) {
+      // For all-dates key, keep it as long as any visitor is viewing this source
+      const shouldKeep =
+        date === ALL_DATES_KEY
+          ? uniqueSources.includes(source as Source)
+          : uniqueSourceDateKeys.includes(`${source}_${date}`);
+
+      if (!shouldKeep) {
         Object.keys(globalValues.fetchTrackers[source][date]).forEach((type) => {
           const status = globalValues.fetchTrackers[source][date][type];
           if (status?.timeoutObject) {

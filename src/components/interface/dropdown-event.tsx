@@ -9,6 +9,18 @@ import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 
+/**
+ * Format display title for test events by adding event number in brackets
+ * Example: "Test Event:757" -> "2021-10-23 TEST_EVENTS / Unknown (757)"
+ */
+const formatTestEventDisplayTitle = (sequence: Sequence): string => {
+  const eventNumberMatch = sequence.name.match(/Test Event:(\d+)/);
+  if (eventNumberMatch && eventNumberMatch[1]) {
+    return `${sequence.displayTitle} (${eventNumberMatch[1]})`;
+  }
+  return sequence.displayTitle;
+};
+
 const EventDropdown: FunctionComponent<{
   collection: Collection;
 }> = ({ collection }) => {
@@ -120,12 +132,15 @@ const EventDropdown: FunctionComponent<{
                 const dateOfEVA = new Date(Date.UTC(year, month - 1, day));
                 return diff(today, dateOfEVA) > 0 && diff(earliestCutoff, dateOfEVA) < 0;
               })
-              // sort most recent to oldest
-              .reverse()
+              // Data is already sorted newest to oldest from the server
               .map((eva, index) => {
+                const displayText =
+                  collection === collectionEnum.TEST_EVENTS
+                    ? formatTestEventDisplayTitle(eva)
+                    : eva.displayTitle;
                 return (
                   <option key={`${eva.name}-${eva.startDate}-${index}`} value={eva.startDate}>
-                    {eva.displayTitle}
+                    {displayText}
                   </option>
                 );
               })
