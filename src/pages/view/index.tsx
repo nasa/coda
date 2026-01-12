@@ -1,10 +1,8 @@
 import styles from "./index.module.css";
 import isNull from "lodash/isNull";
-import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
 
-import { useEffect, useState } from "react";
-import { RootState } from "store/index";
+import { JSX, useEffect, useRef, useState } from "react";
 import { idFromDate } from "store/sequences";
 import { sourceShortVal } from "utils/consts";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
@@ -14,27 +12,28 @@ import {
   initialState as initialFrameworkState,
   setAllFrameworkState,
 } from "store/framework";
-import { interpretFramestateQueryString } from "utils/share-state";
+import { setDate, setAppSeconds } from "store/clock";
+import { interpretFramestateQueryString, validateShareLinkDateTime } from "utils/share-state";
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import Viewer from "components/framework/frames";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
-import { diff, isSameDate, midnightZulu } from "../../utils/date";
+import { isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
 import { appSecondsFromDateString } from "utils/formatting";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
 
-export function V2() {
+export function V2(): JSX.Element {
   const [searchParams, _setSearchParams] = useSearchParams();
   const urlState: QueryParams = getURLParams(searchParams);
 
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const sequences = useAppSelector((state: RootState) => state.sequences, deepEqual);
-  let allEVAs = sequences.allSequences;
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const sequences = useAppSelector((state) => state.sequences, deepEqual);
+  const allEVAs = sequences.allSequences;
 
   const [helpLoaderOpen, setHelpLoaderOpen] = useState(true);
+  const [frameworkReady, setFrameworkReady] = useState(false);
   const [socketStatus, setSocketStatus] = useState<ClientSocketStatus>({
     connectionStatus: "disconnected",
     lastStatusFromServer: {
@@ -50,64 +49,53 @@ export function V2() {
 
   const dispatch = useAppDispatch();
 
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
 
-  const playheadDate = playhead.date;
+  // Track whether initial time setup has been done (to distinguish page load from date rollover)
+  const hasInitializedTime = useRef(false);
 
   // make sure the application is running on the correct date
-  let userDate = null;
+  // urlState.date is already validated by validateShareLinkDateTime
+  const userDate = !isNull(urlState.date)
+    ? midnightZulu(new Date(urlState.date))
+    : midnightZulu(new Date());
 
-  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
-  if (!isNull(urlState.date) && !isNull(urlState.date.match(yyyymmdd))) {
-    // change the date if the user set the `date` query param
-    userDate = midnightZulu(new Date(urlState.date));
-  } else {
-    // default the date to today
-    userDate = midnightZulu(new Date());
-  }
-
-  // we will ignore the datetime if it is in the future! (CODA doesn't have precogs yet!)
-  // https://youtu.be/m_0s8IZWkBg
-  const isFutureDate = diff(userDate, new Date()) > 0;
-
-  // we will ignore the datetime if it is invalid
-  const isMalformedDate = isNaN(userDate.valueOf());
-
-  if (isFutureDate || isMalformedDate) {
-    // set the date today
-    const today = new Date();
-    userDate = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, today.getUTCDate())
-    );
-  }
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
-      dispatchPlayhead({ type: "SET_DATE", payload: userDate.toISOString() });
+      dispatch(setDate(userDate.toISOString()));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect for initial date setup
   }, []);
 
   useEffect(() => {
     // make sure the application is running on the correct time
-    // default the time to 10:30:00Z
-    const isToday = isSameDate(new Date(), new Date(playheadDate));
+    // Only apply "jump to live" logic on initial page load, not on date rollover/calendar changes
+    // Use userDate (from URL or default today) since playheadDate might be null initially
+    const isToday = isSameDate(new Date(), userDate);
 
-    let userTime = isToday ? appSecondsFromDateString(new Date().toISOString()) : 10.5 * 60 * 60;
+    // Default time: if today and this is initial load, use current time; otherwise 10:30:00Z
+    let userTime =
+      isToday && !hasInitializedTime.current
+        ? appSecondsFromDateString(new Date().toISOString())
+        : 10.5 * 60 * 60;
 
     const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d:[0-9]\d))$/; // matches valid hh:mm:ss times
     // change the time if the user set the `gmt` query param and it's in a valid format
     if (!isNil(urlState.gmt) && !isNil(urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
-    } else {
+    } else if (!hasInitializedTime.current) {
+      // Only look for EVA start times on initial load
       // change the time if the sequence has a PET start time
+      let filteredEVAs = allEVAs;
       if (urlState.frameworkState.source === "NBL") {
         // Show only NBL sequences
-        allEVAs = allEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
+        filteredEVAs = filteredEVAs.filter((eva) => eva.displayTitle.includes("NBL"));
       } else if (urlState.frameworkState.source === "TEST_EVENTS") {
         // Filter out all NBL sequences
-        allEVAs = allEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
+        filteredEVAs = filteredEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
       }
-      const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playhead.date));
+      const sequence = filteredEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
       let evaStartSec = null as number;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
       if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
@@ -117,7 +105,12 @@ export function V2() {
       }
     }
 
-    dispatchPlayhead({ type: "SET_APP_SECONDS", payload: userTime });
+    // Only set time on initial load, not when sequences update after rollover
+    if (!hasInitializedTime.current) {
+      dispatch(setAppSeconds(userTime));
+      hasInitializedTime.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when sequences change for EVA start time lookup
   }, [sequences]);
 
   useEffect(() => {
@@ -125,6 +118,9 @@ export function V2() {
     if (!isNull(urlState.frameworkState)) {
       dispatch(setAllFrameworkState(urlState.frameworkState));
     }
+    // Mark framework as ready after URL state has been applied
+    setFrameworkReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect for framework initialization
   }, []);
 
   return (
@@ -136,9 +132,7 @@ export function V2() {
         socketStatus={socketStatus}
       />
       <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
-      <div className={styles.body}>
-        <Viewer />
-      </div>
+      <div className={styles.body}>{frameworkReady && <Viewer />}</div>
       <Timeline source={source} />
       <PlaybackControls />
     </div>
@@ -149,12 +143,17 @@ export default V2;
 
 function getURLParams(query: URLSearchParams): QueryParams {
   const version = query?.get("v") || "1.0"; //version of share URL being received
-  let date = query?.get("date");
-  let gmt = query?.get("gmt");
+  const rawDate = query?.get("date");
+  const rawGmt = query?.get("gmt");
   const source = parseInt(query?.get("s"));
   const layout = query?.get("l");
 
-  let fState: FrameworkState = { ...initialFrameworkState };
+  // Validate share link date/time - future dates go to today, future times go to now
+  const { validatedDate, validatedGmt } = validateShareLinkDateTime(rawDate, rawGmt);
+  let date = validatedDate;
+  let gmt = validatedGmt;
+
+  const fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
     if (source === sourceShortVal.ISS) {
       fState.source = "ISS";

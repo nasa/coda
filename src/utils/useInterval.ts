@@ -7,11 +7,7 @@ import { useEffect, useRef } from "react";
 /**
  * Create an interval hook
  */
-export default function useInterval(callback: () => void, delay_ms: number) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
+export default function useInterval(callback: () => void, delay_ms: number): void {
   const savedCallback = useRef(() => {});
 
   // Remember the latest callback.

@@ -1,0 +1,645 @@
+/* Shared Admin Page Styles */
+
+/* Page Layout - Uses normal document flow for proper scrolling */
+.page {
+  min-height: 100vh;
+  padding: 32px 24px 48px;
+  background: var(--nearly-black);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Navigation */
+.backLink {
+  width: fit-content;
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 160ms ease;
+}
+
+.backLink:hover,
+.backLink:focus {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+/* Typography */
+.pageTitle {
+  margin: 0;
+  font-size: 1.95rem;
+  color: #f1f5f9;
+  font-weight: 700;
+}
+
+.introText {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+/* Status Panel */
+.infoPanel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 14px 18px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--panelRadius);
+  background: var(--light-grey);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
+}
+
+.infoItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.infoValue {
+  font-weight: 600;
+}
+
+/* Connection Status Colors */
+.statusConnected {
+  color: #4ade80;
+}
+
+.statusConnecting {
+  color: #fbbf24;
+}
+
+.statusDisconnected {
+  color: #f87171;
+}
+
+.statusErrorMessage {
+  color: #f87171;
+  font-weight: 500;
+}
+
+/* Empty State */
+.emptyState {
+  margin-top: 12px;
+  padding: 20px;
+  border: 1px dashed var(--lighter-grey);
+  border-radius: var(--panelRadius);
+  background: var(--light-grey);
+  color: #93c5fd;
+  font-weight: 500;
+}
+
+/* Section Panels */
+.section {
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--panelRadius);
+  padding: 20px 24px;
+  background: var(--light-grey);
+  box-shadow: 0 18px 24px -20px rgb(0 0 0 / 50%);
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 1.25rem;
+  color: white;
+}
+
+.sectionHeadingMuted {
+  color: var(--greyish);
+}
+
+/* Details Container */
+.details {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: var(--panelRadius);
+  border: 1px solid var(--lighter-grey);
+  background: var(--nearly-black);
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* Grid Layout for Key-Value Pairs */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 20px;
+}
+
+.gridSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gridSectionHeader {
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--greyish);
+  background: var(--light-grey);
+  border-radius: var(--panelRadius);
+}
+
+/* Definition List for Key-Value Pairs */
+.definitionList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.definitionRow {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 10px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--dark-grey);
+}
+
+.definitionRow:last-child {
+  border-bottom: none;
+}
+
+.definitionTerm {
+  font-weight: 600;
+  color: #cbd5e1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.definitionValue {
+  color: #94a3b8;
+  overflow-wrap: break-word;
+}
+
+.definitionValueError {
+  color: #f87171;
+  font-weight: 600;
+}
+
+/* Status Badge Styles */
+.badgeNeutral {
+  color: #cbd5e1;
+}
+
+.badgeFetching {
+  color: #fbbf24;
+}
+
+.badgeSuccess {
+  color: #4ade80;
+}
+
+.badgeError {
+  color: #f87171;
+}
+
+/* Glowing Status Indicators */
+.statusIndicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusIndicator.badgeNeutral {
+  background: #64748b;
+  box-shadow: 0 0 8px rgb(100 116 139 / 60%);
+}
+
+.statusIndicator.badgeFetching {
+  background: #fbbf24;
+  box-shadow:
+    0 0 12px rgb(251 191 36 / 80%),
+    0 0 24px rgb(251 191 36 / 40%);
+  animation: pulse-yellow 2s ease-in-out infinite;
+}
+
+.statusIndicator.badgeSuccess {
+  background: #4ade80;
+  box-shadow:
+    0 0 12px rgb(74 222 128 / 80%),
+    0 0 24px rgb(74 222 128 / 40%);
+}
+
+.statusIndicator.badgeError {
+  background: #f87171;
+  box-shadow:
+    0 0 12px rgb(248 113 113 / 80%),
+    0 0 24px rgb(248 113 113 / 40%);
+}
+
+@keyframes pulse-yellow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 12px rgb(251 191 36 / 80%),
+      0 0 24px rgb(251 191 36 / 40%);
+  }
+  50% {
+    box-shadow:
+      0 0 16px rgb(251 191 36 / 100%),
+      0 0 32px rgb(251 191 36 / 60%);
+  }
+}
+
+/* Buttons */
+.button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--lighter-grey);
+  background: var(--light-grey);
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--lighter-grey);
+}
+
+.buttonPrimary {
+  padding: 8px 16px;
+}
+
+/* Action Buttons Group */
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Timestamp with Relative Time */
+.timestamp {
+  display: inline;
+}
+
+.timestampRelative {
+  margin-left: 8px;
+  opacity: 0.6;
+  font-size: 0.9em;
+}
+
+/* Textarea for Logs/Progress */
+.logTextarea {
+  width: 100%;
+  max-width: 800px;
+  height: 200px;
+  margin-top: 12px;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 8px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 4px;
+  background-color: var(--nearly-black);
+  color: #e2e8f0;
+  resize: vertical;
+  overflow: auto;
+}
+
+/* Result Message */
+.resultMessage {
+  margin-top: 12px;
+  color: #94a3b8;
+}
+
+.descriptionText {
+  margin: 0 0 12px;
+  color: #94a3b8;
+}
+
+/* Form Styles */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.formHint {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  padding: 10px 12px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--panelRadius);
+  background: var(--nearly-black);
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.formSelect {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.formTextarea {
+  min-height: 150px;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgb(96 165 250 / 20%);
+}
+
+.formInput::placeholder,
+.formTextarea::placeholder {
+  color: #64748b;
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.buttonSubmit {
+  padding: 10px 24px;
+  border-radius: var(--panelRadius);
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 80ms ease;
+}
+
+.buttonSubmit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.buttonSubmit:hover:not(:disabled) {
+  background: #3b82f6;
+}
+
+.buttonSubmit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.buttonCancel {
+  padding: 10px 24px;
+  border-radius: var(--panelRadius);
+  border: 1px solid var(--lighter-grey);
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.buttonCancel:hover {
+  background: var(--light-grey);
+  color: #e2e8f0;
+}
+
+/* Record List Styles */
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--panelRadius);
+  background: var(--nearly-black);
+}
+
+.recordItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 1px solid var(--dark-grey);
+  border-radius: 0;
+  background: transparent;
+  transition: background 100ms ease;
+}
+
+.recordItem:last-child {
+  border-bottom: none;
+}
+
+.recordItem:hover {
+  background: var(--dark-grey);
+}
+
+.recordLink {
+  flex: 1;
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: color 100ms ease;
+}
+
+.recordLink:hover {
+  color: #93c5fd;
+}
+
+.recordMeta {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--panelRadius);
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition:
+    background 100ms ease,
+    color 100ms ease;
+}
+
+.deleteButton:hover {
+  background: rgb(248 113 113 / 10%);
+  color: #f87171;
+}
+
+/* Grouped Records by Date */
+.dateGroup {
+  margin-bottom: 12px;
+}
+
+.dateGroup:last-child {
+  margin-bottom: 0;
+}
+
+.dateGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+  background: var(--light-grey);
+  border-radius: var(--panelRadius) var(--panelRadius) 0 0;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+
+.dateGroupRecords {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--lighter-grey);
+  border-top: none;
+  border-radius: 0 0 var(--panelRadius) var(--panelRadius);
+  background: var(--nearly-black);
+}
+
+/* Create Record Button */
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--panelRadius);
+  border: 1px dashed var(--lighter-grey);
+  background: transparent;
+  color: #60a5fa;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.createButton:hover {
+  background: var(--dark-grey);
+  border-color: #60a5fa;
+  color: #93c5fd;
+}
+
+/* External Link Styles */
+.externalLink {
+  color: #60a5fa;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.externalLink:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (width <= 768px) {
+  .page {
+    padding: 24px 16px 40px;
+  }
+
+  .pageTitle {
+    font-size: 1.7rem;
+  }
+
+  .infoPanel {
+    gap: 10px 16px;
+    padding: 12px 14px;
+  }
+
+  .section {
+    padding: 18px 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .definitionRow {
+    grid-template-columns: 140px 1fr;
+  }
+}

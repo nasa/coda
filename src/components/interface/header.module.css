@@ -15,7 +15,7 @@
   width: 300px;
 }
 
-@media (max-width: 1530px) {
+@media (width <= 1530px) {
   .eventDropdownWrapper {
     width: 100px;
   }
@@ -26,6 +26,14 @@
   justify-content: flex-end;
   margin-left: 3px;
   align-items: center;
+}
+
+.item > * {
+  height: 40px;
+}
+
+.item:not(:first-of-type) {
+  margin-left: 3px;
 }
 
 .right > *:not(:last-of-type) {
@@ -62,18 +70,10 @@
 }
 
 .wordMark {
-  font-family: "Aldrich";
+  font-family: Aldrich, sans-serif;
   font-weight: 400;
   font-size: 30px;
   cursor: pointer;
-}
-
-.item > * {
-  height: 40px;
-}
-
-.item:not(:first-of-type) {
-  margin-left: 3px;
 }
 
 .mono {
@@ -94,7 +94,7 @@
   padding-right: 2px;
 }
 
-.verticalCenter {
+.horizontalCenter {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
@@ -128,7 +128,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  font-family: "Inter", sans-serif;
+  font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 16px;
   padding-right: 25px;
@@ -138,8 +138,6 @@
   color: white;
   background-color: var(--lightest-grey);
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   text-overflow: ellipsis;
   outline: 0;
 }
@@ -151,9 +149,9 @@
 .timeField {
   font-size: 16px;
   font-weight: 300;
-  border-width: 0px;
+  border-width: 0;
   background-color: var(--lightest-grey);
-  color: #fff;
+  color: #ffffff;
   border-style: solid;
   text-align: center;
   width: 75px;
@@ -174,8 +172,8 @@
   position: relative;
   background-color: var(--lightest-grey);
   width: 100%;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   z-index: 5;
 }
 
@@ -202,7 +200,7 @@
   width: 100%;
 }
 .select select {
-  font-family: "Inter", sans-serif;
+  font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 16px;
   cursor: pointer;
@@ -214,8 +212,6 @@
   color: white;
   background-color: var(--lightest-grey);
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   text-overflow: ellipsis;
   outline: 0;
 }
@@ -248,7 +244,7 @@
 .shareButton .svgShare {
   width: 15px;
   height: 15px;
-  background: url(/images/share.svg) no-repeat center;
+  background: url("/images/share.svg") no-repeat center;
   background-size: 15px 15px;
   margin-left: 0;
   margin-right: 0;
@@ -258,19 +254,21 @@
   background-color: var(--lightest-grey);
   width: 80px;
   height: 40px;
-  padding-top: 10px;
+  border: 1px solid var(--highlight-red);
   border-radius: var(--radius);
   cursor: pointer;
   user-select: none;
+  text-align: center;
 }
 
 .liveIndicator {
-  background-color: var(--grey);
+  background-color: var(--lightest-grey);
   display: flex;
   justify-content: space-evenly;
   width: 80px;
   height: 40px;
   padding-top: 10px;
+  border: 1px solid var(--lightest-grey);
   border-radius: var(--radius);
   user-select: none;
 }

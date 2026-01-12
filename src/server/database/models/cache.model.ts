@@ -1,27 +1,29 @@
-import { Entity, PrimaryKey, Property, Index, types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-export class Cache_db implements CacheRecord_db_type {
-  @PrimaryKey({ type: MikroTypes.integer, autoincrement: true })
+export class Cache_db implements CacheRecord {
   id!: number;
-
-  @Property({ type: MikroTypes.text })
-  @Index()
   folder!: string;
-
-  @Property({ type: MikroTypes.text })
-  @Index()
   cacheKey!: string;
-
-  @Property({ type: MikroTypes.json, nullable: true })
   data!: unknown;
-
-  @Property({ type: MikroTypes.json })
   metadata!: CacheMetadata;
-
-  @Property({ type: MikroTypes.datetime, length: 3 })
   createdAt!: Date;
-
-  @Property({ type: MikroTypes.datetime, length: 3 })
   lastAccessedAt!: Date;
 }
+
+export const Cache_dbSchema = new EntitySchema<Cache_db>({
+  class: Cache_db,
+  tableName: "cache_db",
+  indexes: [
+    { properties: ["folder"], name: "cache_db_folder_index" },
+    { properties: ["cacheKey"], name: "cache_db_cache_key_index" },
+  ],
+  properties: {
+    id: { type: MikroTypes.integer, primary: true, autoincrement: true },
+    folder: { type: MikroTypes.text },
+    cacheKey: { type: MikroTypes.text },
+    data: { type: MikroTypes.json, nullable: true },
+    metadata: { type: MikroTypes.json },
+    createdAt: { type: MikroTypes.datetime, length: 3 },
+    lastAccessedAt: { type: MikroTypes.datetime, length: 3 },
+  },
+});

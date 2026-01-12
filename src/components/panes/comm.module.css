@@ -15,6 +15,10 @@
   justify-content: space-around;
 }
 
+.icon {
+  cursor: pointer;
+}
+
 .rightButtons {
   display: flex;
 }
@@ -74,11 +78,11 @@
 .utterance {
   display: flex;
   font-size: 0.8em;
-  padding-top: 1.5px;
-  padding-bottom: 1.5px;
+  font-weight: 300;
   cursor: pointer;
-  color: var(--even-greyer);
-  border: 1px solid var(--nearly-black);
+  color: var(--greyish);
+  padding: 4px 0 4px 0;
+  border: 1px solid black;
 }
 
 .utterance:hover {
@@ -93,13 +97,42 @@
   background-color: black;
 }
 
-.time {
-  color: var(--extremely-grey);
-  padding-right: 5px;
+.channelTime {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0 5px 0 0;
+  min-width: 66px;
 }
 
-.speaker {
-  padding: 0px 5px 0px 5px;
+.channelLabel {
+  font-size: 0.9em;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--greyish);
+  padding: 3px 5px 3px 3px;
+  border-radius: var(--radius);
+  text-align: right;
+}
+
+.time {
+  color: var(--greyish);
+  font-weight: 300 !important;
+}
+
+.utteranceText {
+  padding: 2px 0 0 0;
+}
+
+.utteranceTextMain {
+  display: block;
+}
+
+.utteranceTextOriginal {
+  display: block;
+  color: #888888;
+  margin-top: 2px;
+  font-size: 0.9em;
 }
 
 /* buttons */
@@ -131,10 +164,12 @@
 
 .buttonLong {
   width: 55px;
+  padding: 0 6px;
 }
 
 .buttonShort {
   width: 20px;
+  padding: 0;
 }
 
 .buttonSelected {
@@ -150,59 +185,271 @@
 
 .selections {
   display: flex;
-}
-
-.dlLabel {
-  width: 19px;
+  align-items: center;
+  padding: 0 10px;
 }
 
 .player {
   display: none;
 }
 
-.selectContainer {
+/* Channel filter dropdown */
+.channelDropdown {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.selectContainerNarrow {
-  width: 40px;
-}
-
-.selectContainer select {
-  font-family: "Inter", sans-serif;
+.channelDropdownButton {
+  font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 15px;
   cursor: pointer;
   padding-left: 8px;
-  padding-right: 15px;
+  width: 115px;
   height: 27px;
   border: none;
   border-radius: var(--radius);
   color: white;
   background-color: var(--lightest-grey);
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  text-overflow: ellipsis;
-  outline: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 100px;
 }
-.selectContainer select::-ms-expand {
-  display: none;
+
+.channelDropdownButton:hover {
+  background-color: var(--even-greyer);
 }
-.selectContainer select:hover,
-.selectContainer select:focus {
-  outline: 0;
-}
-.selectContainer select:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-.nonDlSelect_arrow {
+
+.channelDropdownArrow {
   position: absolute;
   pointer-events: none;
-  top: 3px;
-  right: 6px;
+  font-size: 0.9em;
+  top: 6px;
+  right: 8px;
+}
+
+.channelDropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  background-color: var(--grey);
+  border: 1px solid var(--lightest-grey);
+  border-radius: var(--radius);
+  min-width: 120px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+
+.channelDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+  border: 1px solid rgb(255 255 255 / 30%);
+  margin: 2px 4px;
+  border-radius: 3px;
+}
+
+.channelDropdownItem:hover {
+  filter: brightness(1.2);
+}
+
+.channelDropdownItem input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--lightest-grey);
+}
+
+.channelDropdownItem label {
+  cursor: pointer;
+  flex: 1;
+}
+
+/* Typing ellipsis animation for utterances being captured */
+.typingIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 0;
+}
+
+.typingIndicator span {
+  width: 5px;
+  height: 5px;
+  background-color: var(--even-greyer);
+  border-radius: 50%;
+  animation: typing-bounce 1.4s infinite ease-in-out both;
+}
+
+.typingIndicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typingIndicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingIndicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Help overlay content */
+.helpContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.helpHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--lightest-grey);
+}
+
+.helpTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.helpMascot {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.helpTitle {
+  margin: 0;
+  font-family: Aldrich, sans-serif;
+  font-weight: 400;
+  font-size: 1.5em;
+  color: white;
+  text-transform: uppercase;
+}
+
+.helpSubtitle {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--even-greyer);
+}
+
+.helpBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.helpBody p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.helpBody h4 {
+  margin: 8px 0 4px 0;
+  font-size: 1em;
+  font-weight: 600;
+  color: white;
+}
+
+.helpBody ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.helpBody li {
+  line-height: 1.4;
+}
+
+.helpBody a {
+  color: var(--link-blue, #6ba3ff);
+  text-decoration: none;
+}
+
+.helpCalloutContent a {
+  font-weight: 500;
+}
+
+.helpBody a:hover {
+  text-decoration: underline;
+}
+
+.helpBody a.helpCallout:hover {
+  text-decoration: none;
+}
+
+.helpCallout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: rgb(255 255 255 / 5%);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--lightest-grey);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.helpCallout:hover {
+  background-color: rgb(255 255 255 / 10%);
+  border-color: var(--even-greyer);
+  text-decoration: none;
+}
+
+.helpCalloutIcon {
+  height: 32px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.helpCalloutContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.helpCalloutTitle {
+  font-weight: 500;
+  color: var(--link-blue, #6ba3ff);
+}
+
+.helpCalloutSubtext {
+  font-size: 0.85em;
+  color: var(--even-greyer);
+}
+
+.helpTip {
+  background-color: rgb(255 255 255 / 5%);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 0.9em;
+  border-left: 3px solid var(--lightest-grey);
 }

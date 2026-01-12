@@ -44,6 +44,7 @@ export default class DrawNav {
   gColorBarBorder = new paper.Color("#2a282e");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
+  gColorVideoLive = new paper.Color("#737373");
   gColorSgAudio = new paper.Color("#cc5500"); // Burnt orange
   gColorPhotoTicks = new paper.Color("#28B463");
   gColorPhotoTicksFiltered = new paper.Color("#0c331c");
@@ -58,7 +59,7 @@ export default class DrawNav {
   readonly asPerformed: { [x: string]: Activity[] };
   readonly dateRendered: Date;
   readonly evaStartSec: number;
-  readonly sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][];
+  readonly audioFiles: TbAudioFileConverted[];
 
   constructor({
     videoFiles,
@@ -71,7 +72,7 @@ export default class DrawNav {
     asPerformed,
     dateRendered,
     evaStartSec,
-    sgActivityFullPathRangeRecords,
+    audioFiles,
   }: {
     videoFiles: VideoFile[];
     mtxPlaybackAvailability: MTXPlaybackAvailability;
@@ -84,7 +85,7 @@ export default class DrawNav {
     /** Keep track of dates for bookkeeping purposes */
     dateRendered: Date;
     evaStartSec: number;
-    sgActivityFullPathRangeRecords: SgActivityRangeFullUrlRecord[][];
+    audioFiles: TbAudioFileConverted[];
   }) {
     this.videoFiles = videoFiles;
     this.mtxPlaybackAvailability = mtxPlaybackAvailability;
@@ -96,10 +97,10 @@ export default class DrawNav {
     this.asPerformed = asPerformed;
     this.dateRendered = dateRendered;
     this.evaStartSec = evaStartSec;
-    this.sgActivityFullPathRangeRecords = sgActivityFullPathRangeRecords;
+    this.audioFiles = audioFiles;
   }
 
-  initGroups() {
+  initGroups(): void {
     if (typeof this.gTier1Group !== "undefined") {
       this.gTier1Group.removeChildren();
       this.gTier1NavGroup.removeChildren();
@@ -121,7 +122,7 @@ export default class DrawNav {
     missionTimeSeconds: number,
     mouseMoveCb: (thisHoverSeconds: number) => void,
     mouseLeaveCb: () => void
-  ) => {
+  ): void => {
     // scram if hovering over play pause controls area or on the nav cursor area
     if (
       (event.point.y > this.gTier1Top && event.point.x < this.gTier1Left) ||
@@ -158,7 +159,7 @@ export default class DrawNav {
   handleMouseUp = (
     event: { point: { y: number; x: number } },
     cb: (hh: number, mm: number, ss: number) => void
-  ) => {
+  ): void => {
     // ignore clicks in the nav cursor area
     if (event.point.y < this.gTier2Top) {
       return;
@@ -183,19 +184,19 @@ export default class DrawNav {
     cb(hh, mm, ss);
   };
 
-  mouseLeaveActions = () => {
+  mouseLeaveActions = (): void => {
     this.setDynamicWidthVariables();
     this.drawTier1();
     this.drawTier2();
     this.gNavCursorGroup.removeChildren();
   };
 
-  handleMouseLeave = (event: paper.MouseEvent, mouseLeaveCb: () => void) => {
+  handleMouseLeave = (event: paper.MouseEvent, mouseLeaveCb: () => void): void => {
     this.mouseLeaveActions();
     mouseLeaveCb();
   };
 
-  setDynamicWidthVariables = () => {
+  setDynamicWidthVariables = (): void => {
     this.gNavigatorWidth = paper.view.size.width;
     this.gNavigatorHeight = paper.view.size.height;
 
@@ -225,18 +226,18 @@ export default class DrawNav {
     this.gTier1Top = this.gTier2Top + this.gTier2Height + this.gTierSpacing;
   };
 
-  drawCursor = (seconds: number) => {
+  drawCursor = (seconds: number): void => {
     this.gCursorGroup.removeChildren();
     this.gCursorGroup.addChild(this.getCursorElement(seconds, this.gColorCursor));
   };
 
-  drawNavCursor = (seconds: number) => {
+  drawNavCursor = (seconds: number): void => {
     this.gNavCursorGroup.removeChildren();
     this.gNavCursorGroup.addChild(this.getCursorElement(seconds, this.gColorNavCursor));
   };
 
-  getCursorElement = (seconds: number, color: paper.Color) => {
-    let cursorElementGroup = new paper.Group();
+  getCursorElement = (seconds: number, color: paper.Color): paper.Group => {
+    const cursorElementGroup = new paper.Group();
 
     // tier1
     let cursorLocX = 0.5 + seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
@@ -264,10 +265,10 @@ export default class DrawNav {
     let timeTextRectHeightNudge = 5;
     let timeTextRectTopNudge = -2;
 
-    let timeTextGroup = new paper.Group();
+    const timeTextGroup = new paper.Group();
     // if this is an EVA day, then show PET in the cursor value
     if (!isNull(this.evaStartSec)) {
-      let petText = new paper.PointText({
+      const petText = new paper.PointText({
         justification: "left",
         fontWeight: "normal",
         fontFamily: this.gNavigatorFontFamilyActivity,
@@ -287,7 +288,7 @@ export default class DrawNav {
       timeTextRectTopNudge = -5;
     }
 
-    let timeText = new paper.PointText({
+    const timeText = new paper.PointText({
       justification: "left",
       fontWeight: "normal",
       fontFamily: timeTextFontFamily,
@@ -299,7 +300,7 @@ export default class DrawNav {
     const cornerSize = new paper.Size(4, 4);
     timeTextGroup.addChild(timeText);
 
-    let timeTextRect = new paper.Rectangle(timeTextGroup.bounds);
+    const timeTextRect = new paper.Rectangle(timeTextGroup.bounds);
     //center rectangle behind text
     timeTextRect.width = timeTextRectWidth;
     timeTextRect.height += timeTextRectHeightNudge;
@@ -310,7 +311,7 @@ export default class DrawNav {
       timeTextGroup.position.x = this.gNavigatorWidth - timeTextGroup.bounds.width / 2;
     }
     timeTextRect.left = timeTextGroup.position.x - timeTextRectWidth / 2 + 3;
-    let timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
+    const timeTextRectPath = new paper.Path.Rectangle(timeTextRect, cornerSize);
     timeTextRectPath.fillColor = color;
     timeTextRectPath.opacity = 0.7;
     cursorElementGroup.addChild(timeTextRectPath);
@@ -337,20 +338,20 @@ export default class DrawNav {
         parseInt(hhmmssFromSeconds(i).substring(3, 5)) % (10 * 60) === 0 &&
         hhmmssFromSeconds(i).substring(6, 8) === "00"
       ) {
-        let itemSecondsFromLeft = i - param.secondsStart;
-        let itemLocX = param.leftPx + itemSecondsFromLeft * param.pixelsPerSecond;
+        const itemSecondsFromLeft = i - param.secondsStart;
+        const itemLocX = param.leftPx + itemSecondsFromLeft * param.pixelsPerSecond;
 
         //draw full height faint line
-        let tierTopPoint = new paper.Point(itemLocX, param.tierTop);
-        let tierBottomPoint = new paper.Point(itemLocX, param.tierTop + param.tierTickHeight);
-        let faintLine = new paper.Path.Line(tierTopPoint, tierBottomPoint);
+        const tierTopPoint = new paper.Point(itemLocX, param.tierTop);
+        const tierBottomPoint = new paper.Point(itemLocX, param.tierTop + param.tierTickHeight);
+        const faintLine = new paper.Path.Line(tierTopPoint, tierBottomPoint);
         faintLine.strokeColor = new paper.Color("#505050");
         group.addChild(faintLine);
 
         //draw brighter tick next to hour number
-        let textTopPoint = new paper.Point(itemLocX, param.textTop);
-        let textBottomPoint = new paper.Point(itemLocX, param.textTop + param.textTickHeight);
-        let textLine = new paper.Path.Line(textTopPoint, textBottomPoint);
+        const textTopPoint = new paper.Point(itemLocX, param.textTop);
+        const textBottomPoint = new paper.Point(itemLocX, param.textTop + param.textTickHeight);
+        const textLine = new paper.Path.Line(textTopPoint, textBottomPoint);
         textLine.strokeColor = new paper.Color("#7b7b7b");
         group.addChild(textLine);
 
@@ -387,11 +388,12 @@ export default class DrawNav {
       const lighting: SunLighting = this.dayNight[i].daylight;
 
       if (startSeconds <= param.secondsEnd && endSeconds >= param.secondsStart) {
-        let startLocX = param.leftPx + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
-        let endLocX = param.leftPx + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
+        const startLocX =
+          param.leftPx + (startSeconds - param.secondsStart) * param.pixelsPerSecond;
+        const endLocX = param.leftPx + (endSeconds - param.secondsStart) * param.pixelsPerSecond;
 
-        let startLocY = param.barTop;
-        let endLocY = startLocY + param.barHeight;
+        const startLocY = param.barTop;
+        const endLocY = startLocY + param.barHeight;
 
         let fillColor: string | object = "#dbc275";
         let activityTextContent = "";
@@ -431,7 +433,7 @@ export default class DrawNav {
             throw new Error("never-check reached on sunLighting value: " + exhaustiveCheck);
         }
 
-        let activityLine = new paper.Path.Rectangle({
+        const activityLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           fillColor,
@@ -439,13 +441,13 @@ export default class DrawNav {
         group.addChild(activityLine);
 
         if (param.drawLabels) {
-          let activityText = new paper.PointText({
+          const activityText = new paper.PointText({
             justification: "left",
             fontFamily: this.gNavigatorFontFamilyActivity,
             fontSize: 9,
             fillColor: lightColor(fillColor as string) ? "#000000" : "#dddddd",
           });
-          let textTop = startLocY + 8;
+          const textTop = startLocY + 8;
           activityText.point = new paper.Point(startLocX + 2, textTop);
           activityText.content = activityTextContent;
           group.addChild(activityText);
@@ -466,6 +468,94 @@ export default class DrawNav {
   }): paper.Group {
     const group = new paper.Group();
     const startOfDay = this.dateRendered.valueOf() / 1000;
+
+    // draw the MTX playback availability lines first (only if live streams are enabled)
+    if (import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED !== "false") {
+      for (let dl = 1; dl <= 8; dl++) {
+        const mtxPlaybackRecords = this.mtxPlaybackAvailability[dl.toString()];
+        if (!mtxPlaybackRecords) break;
+
+        for (let i = 0; i < mtxPlaybackRecords.length; i++) {
+          const mtxPlaybackRecord = mtxPlaybackRecords[i];
+
+          // start is an ISO time. convert this to a unix timestamp
+          const startUnix = new Date(mtxPlaybackRecord.start).valueOf() / 1000;
+          if (
+            startUnix - startOfDay <= param.secondsEnd &&
+            startUnix + mtxPlaybackRecord.duration - startOfDay >= param.secondsStart
+          ) {
+            const startLocX =
+              param.leftPx +
+              (Math.max(startUnix - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
+            const endLocX =
+              param.leftPx +
+              (Math.min(startUnix + mtxPlaybackRecord.duration - startOfDay, 86399) -
+                param.secondsStart) *
+                param.pixelsPerSecond;
+
+            const startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
+            const endLocY = startLocY + param.vidBarHeight + 1;
+
+            const name = "mtxItem_" + i.toString();
+
+            const mtxLine = new paper.Path.Rectangle({
+              from: [startLocX, startLocY],
+              to: [endLocX, endLocY],
+              strokeWidth: 1,
+              strokeColor: this.gColorBarBorder,
+              name: name,
+            });
+            mtxLine.fillColor = this.gColorVideoLive;
+            group.addChild(mtxLine);
+          }
+        }
+      }
+
+      // draw the livestream HLS availability second (only if live streams are enabled)
+      const now = new Date();
+      const nowSeconds = now.valueOf() / 1000;
+
+      for (let dl = 1; dl <= 8; dl++) {
+        // search the mtxHlsEndpointNames for the HLS endpoint name for this downlink
+        const sourceAbbr = this.source === "ISS" ? "ISS" : "TE";
+        const streamEndpointName = `DL${dl}_${sourceAbbr}` as MTXHlsEndpointName;
+        const mtxHlsEndpoint = this.mtxHlsEndpoints?.find(
+          (endpoint) => endpoint.name === streamEndpointName
+        );
+        if (!mtxHlsEndpoint) continue;
+
+        const startSeconds = nowSeconds - mtxHlsEndpoint.secondsAvailable;
+
+        if (
+          startSeconds - startOfDay <= param.secondsEnd &&
+          nowSeconds - startOfDay >= param.secondsStart
+        ) {
+          const startLocX =
+            param.leftPx +
+            (Math.max(startSeconds - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
+          const endLocX =
+            param.leftPx +
+            (Math.min(nowSeconds - startOfDay, 86399) - param.secondsStart) * param.pixelsPerSecond;
+
+          const startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
+          const endLocY = startLocY + param.vidBarHeight + 1;
+
+          const name = "mtxItem_live_" + dl.toString();
+
+          const mtxLine = new paper.Path.Rectangle({
+            from: [startLocX, startLocY],
+            to: [endLocX, endLocY],
+            strokeWidth: 1,
+            strokeColor: this.gColorBarBorder,
+            name: name,
+          });
+          mtxLine.fillColor = this.gColorVideoLive;
+          group.addChild(mtxLine);
+        }
+      }
+    }
+
+    // draw videoFiles on top last (always)
     for (let i = 0; i < this.videoFiles.length; i++) {
       const downlink = this.videoFiles[i].downlink === -1 ? 8 : this.videoFiles[i].downlink; // -1 means non downlink, put it on the 8th row
       if (
@@ -473,21 +563,22 @@ export default class DrawNav {
         this.videoFiles[i].start - startOfDay <= param.secondsEnd &&
         this.videoFiles[i].end - startOfDay >= param.secondsStart
       ) {
-        let startLocX =
+        const startLocX =
           param.leftPx +
           (Math.max(this.videoFiles[i].start - startOfDay, 0) - param.secondsStart) *
             param.pixelsPerSecond;
-        let endLocX =
+        const endLocX =
           param.leftPx +
           (Math.min(this.videoFiles[i].end - startOfDay, 86399) - param.secondsStart) *
             param.pixelsPerSecond;
 
-        let startLocY = param.vidBarsTop + downlink * (param.vidBarHeight + param.vidBarGapHeight);
-        let endLocY = startLocY + param.vidBarHeight + 1;
+        const startLocY =
+          param.vidBarsTop + downlink * (param.vidBarHeight + param.vidBarGapHeight);
+        const endLocY = startLocY + param.vidBarHeight + 1;
 
-        let name = "vidItem_" + i.toString();
+        const name = "vidItem_" + i.toString();
 
-        let vidLine = new paper.Path.Rectangle({
+        const vidLine = new paper.Path.Rectangle({
           from: [startLocX, startLocY],
           to: [endLocX, endLocY],
           strokeWidth: 1,
@@ -504,102 +595,24 @@ export default class DrawNav {
       }
     }
 
-    // stop drawing here if live streams are disabled
-    if (import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "false") {
-      return group;
-    }
-
-    // draw the MTX playback availability lines on top of the video segments
-
-    for (let dl = 1; dl <= 8; dl++) {
-      const mtxPlaybackRecords = this.mtxPlaybackAvailability[dl.toString()];
-      if (!mtxPlaybackRecords) break;
-
-      for (let i = 0; i < mtxPlaybackRecords.length; i++) {
-        const mtxPlaybackRecord = mtxPlaybackRecords[i];
-
-        // start is an ISO time. convert this to a unix timestamp
-        const startUnix = new Date(mtxPlaybackRecord.start).valueOf() / 1000;
-        if (
-          startUnix - startOfDay <= param.secondsEnd &&
-          startUnix + mtxPlaybackRecord.duration - startOfDay >= param.secondsStart
-        ) {
-          let startLocX =
-            param.leftPx +
-            (Math.max(startUnix - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
-          let endLocX =
-            param.leftPx +
-            (Math.min(startUnix + mtxPlaybackRecord.duration - startOfDay, 86399) -
-              param.secondsStart) *
-              param.pixelsPerSecond;
-
-          let startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
-          let endLocY = startLocY + param.vidBarHeight + 1;
-
-          let name = "mtxItem_" + i.toString();
-
-          let mtxLine = new paper.Path.Rectangle({
-            from: [startLocX, startLocY],
-            to: [endLocX, endLocY],
-            strokeWidth: 1,
-            strokeColor: this.gColorBarBorder,
-            name: name,
-          });
-          mtxLine.fillColor = new paper.Color(this.gColorVideo);
-          group.addChild(mtxLine);
-        }
-      }
-    }
-
-    // draw the livestream HLS availability, represented as yellow lines on top of the video segments
-    // use the MTX playback records to determine which HLS streams are available
-    // times are derived. Start time is 15 minutes before the current time, end time is the current time
-    const now = new Date();
-    const nowSeconds = now.valueOf() / 1000;
-
-    for (let dl = 1; dl <= 8; dl++) {
-      // search the mtxHlsEndpointNames for the HLS endpoint name for this downlink
-      const sourceAbbr = this.source === "ISS" ? "ISS" : "TE";
-      const streamEndpointName = `DL${dl}_${sourceAbbr}` as MTXHlsEndpointName;
-      const mtxHlsEndpoint = this.mtxHlsEndpoints?.find(
-        (endpoint) => endpoint.name === streamEndpointName
-      );
-      if (!mtxHlsEndpoint) continue;
-
-      const startSeconds = nowSeconds - mtxHlsEndpoint.secondsAvailable;
-
-      if (
-        startSeconds - startOfDay <= param.secondsEnd &&
-        nowSeconds - startOfDay >= param.secondsStart
-      ) {
-        let startLocX =
-          param.leftPx +
-          (Math.max(startSeconds - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
-        let endLocX =
-          param.leftPx +
-          (Math.min(nowSeconds - startOfDay, 86399) - param.secondsStart) * param.pixelsPerSecond;
-
-        let startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
-        let endLocY = startLocY + param.vidBarHeight + 1;
-
-        let name = "mtxItem_live_" + dl.toString();
-
-        let mtxLine = new paper.Path.Rectangle({
-          from: [startLocX, startLocY],
-          to: [endLocX, endLocY],
-          strokeWidth: 1,
-          strokeColor: this.gColorBarBorder,
-          name: name,
-        });
-        mtxLine.fillColor = new paper.Color(this.gColorVideo);
-        group.addChild(mtxLine);
-      }
-    }
-
     return group;
   }
 
-  drawSgAudioSegments(param: {
+  /** Derive channel index (0-3) from channel string like "1-SG-1" or "1_SG_1".
+   * Uses the last digit if present, otherwise defaults to channel 4 (index 3).
+   */
+  private getChannelIndex(channel: string): number {
+    const match = channel.match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      // Clamp to 1-4 range, then convert to 0-3 index
+      return Math.min(Math.max(num, 1), 4) - 1;
+    }
+    // Default to channel 4 (index 3) if no trailing digit
+    return 3;
+  }
+
+  drawTalkybotSegments(param: {
     secondsStart: number;
     secondsEnd: number;
     pixelsPerSecond: number;
@@ -610,48 +623,45 @@ export default class DrawNav {
     compress: boolean;
   }): paper.Group {
     const group = new paper.Group();
-    if (!this.sgActivityFullPathRangeRecords || this.sgActivityFullPathRangeRecords?.length < 4) {
-      return;
+    if (!this.audioFiles || this.audioFiles.length === 0) {
+      return group;
     }
-    for (let sgChannel = 0; sgChannel <= 3; sgChannel++) {
-      const activityRanges = this.sgActivityFullPathRangeRecords[sgChannel];
 
-      for (let i = 0; i < activityRanges.length; i++) {
-        const range = activityRanges[i];
-        if (
-          // if video starts before the end of the tier display and ends after the start of the tier display, then draw a bar
-          range.sound_start_secs <= param.secondsEnd &&
-          range.sound_stop_secs >= param.secondsStart
-        ) {
-          let startLocX =
-            param.leftPx +
-            (Math.max(range.sound_start_secs, 0) - param.secondsStart) * param.pixelsPerSecond;
-          let endLocX =
-            param.leftPx +
-            (Math.min(range.sound_stop_secs, 86399) - param.secondsStart) * param.pixelsPerSecond;
+    for (let i = 0; i < this.audioFiles.length; i++) {
+      const file = this.audioFiles[i];
+      const startSecs = file.appSeconds ?? 0;
+      const endSecs = startSecs + file.duration;
 
-          let startLocY = null;
-          let endLocY = null;
-          if (param.compress) {
-            startLocY = param.barsTop;
-            endLocY = startLocY + param.barHeight + 0.5;
-          } else {
-            startLocY = param.barsTop + sgChannel * (param.barHeight + param.barGapHeight);
-            endLocY = startLocY + param.barHeight + 1;
-          }
+      // if audio starts before the end of the tier display and ends after the start of the tier display, then draw a bar
+      if (startSecs <= param.secondsEnd && endSecs >= param.secondsStart) {
+        const sgChannel = this.getChannelIndex(file.channel);
 
-          let name = `sg${sgChannel}Item_${i}`;
+        const startLocX =
+          param.leftPx + (Math.max(startSecs, 0) - param.secondsStart) * param.pixelsPerSecond;
+        const endLocX =
+          param.leftPx + (Math.min(endSecs, 86399) - param.secondsStart) * param.pixelsPerSecond;
 
-          let line = new paper.Path.Rectangle({
-            from: [startLocX, startLocY],
-            to: [endLocX, endLocY],
-            strokeWidth: param.compress ? 0.1 : 1,
-            strokeColor: param.compress ? this.gColorSgAudio : this.gColorBarBorder,
-            name: name,
-          });
-          line.fillColor = this.gColorSgAudio;
-          group.addChild(line);
+        let startLocY: number;
+        let endLocY: number;
+        if (param.compress) {
+          startLocY = param.barsTop;
+          endLocY = startLocY + param.barHeight + 0.5;
+        } else {
+          startLocY = param.barsTop + sgChannel * (param.barHeight + param.barGapHeight);
+          endLocY = startLocY + param.barHeight + 1;
         }
+
+        const name = `sg${sgChannel}Item_${i}`;
+
+        const line = new paper.Path.Rectangle({
+          from: [startLocX, startLocY],
+          to: [endLocX, endLocY],
+          strokeWidth: param.compress ? 0.1 : 1,
+          strokeColor: param.compress ? this.gColorSgAudio : this.gColorBarBorder,
+          name: name,
+        });
+        line.fillColor = this.gColorSgAudio;
+        group.addChild(line);
       }
     }
     return group;
@@ -682,12 +692,12 @@ export default class DrawNav {
           }
         }
 
-        let itemLocX =
+        const itemLocX =
           param.leftPx +
           (this.photoFiles[i].datetimeTakenAppSeconds - param.secondsStart) * param.pixelsPerSecond;
-        let topPoint = new paper.Point(itemLocX, param.ticksTop + 0.5);
-        let bottomPoint = new paper.Point(itemLocX, param.ticksTop + param.tickHeight);
-        let aLine = new paper.Path.Line(topPoint, bottomPoint);
+        const topPoint = new paper.Point(itemLocX, param.ticksTop + 0.5);
+        const bottomPoint = new paper.Point(itemLocX, param.ticksTop + param.tickHeight);
+        const aLine = new paper.Path.Line(topPoint, bottomPoint);
         if (showThisPhoto) {
           aLine.strokeColor = this.gColorPhotoTicks;
         } else {
@@ -722,17 +732,17 @@ export default class DrawNav {
           evActivityArray[i].startTimeSeconds <= param.secondsEnd &&
           evActivityArray[i].endTimeSeconds >= param.secondsStart
         ) {
-          let startLocX =
+          const startLocX =
             param.leftPx +
             (evActivityArray[i].startTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
-          let endLocX =
+          const endLocX =
             param.leftPx +
             (evActivityArray[i].endTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
 
-          let startLocY = param.barTop + rowCounter * param.barHeight;
-          let endLocY = startLocY + param.barHeight;
+          const startLocY = param.barTop + rowCounter * param.barHeight;
+          const endLocY = startLocY + param.barHeight;
 
-          let activityLine = new paper.Path.Rectangle({
+          const activityLine = new paper.Path.Rectangle({
             from: [startLocX, startLocY],
             to: [endLocX, endLocY],
             strokeWidth: 0.5,
@@ -744,14 +754,14 @@ export default class DrawNav {
           group.addChild(activityLine);
 
           if (param.drawLabels) {
-            let activityText = new paper.PointText({
+            const activityText = new paper.PointText({
               justification: "left",
               fontFamily: this.gNavigatorFontFamilyActivity,
               //fontWeight: 'bold',
               fontSize: 9,
               fillColor: lightColor(evActivityArray[i].color) ? "black" : "white",
             });
-            let textTop = startLocY + 8;
+            const textTop = startLocY + 8;
             activityText.point = new paper.Point(startLocX + 2, textTop);
             activityText.content = evActivityArray[i].content;
             if (evActivityArray[i].content === "Insolation") {
@@ -780,9 +790,9 @@ export default class DrawNav {
     // if there is an EVA today, show PET marker
     if (!isNull(this.evaStartSec)) {
       const itemLocX = param.leftPx + (param.petTime - param.secondsStart) * param.pixelsPerSecond;
-      let tierTopPoint = new paper.Point(itemLocX, param.tierTop);
-      let tierBottomPoint = new paper.Point(itemLocX, param.tierBottom);
-      let petLine = new paper.Path.Line(tierTopPoint, tierBottomPoint);
+      const tierTopPoint = new paper.Point(itemLocX, param.tierTop);
+      const tierBottomPoint = new paper.Point(itemLocX, param.tierBottom);
+      const petLine = new paper.Path.Line(tierTopPoint, tierBottomPoint);
       petLine.strokeColor = new paper.Color("#ffffff");
       group.addChild(petLine);
 
@@ -805,7 +815,7 @@ export default class DrawNav {
       }
       petText.rotate(-90);
 
-      let textRect = new paper.Rectangle(petText.bounds);
+      const textRect = new paper.Rectangle(petText.bounds);
       textRect.height = param.tierBottom - param.tierTop;
       textRect.top = param.tierTop;
       if (param.largeLabel) {
@@ -814,7 +824,7 @@ export default class DrawNav {
       } else {
         textRect.left += -1;
       }
-      let textRectPath = new paper.Path.Rectangle(textRect);
+      const textRectPath = new paper.Path.Rectangle(textRect);
       textRectPath.fillColor = new paper.Color("black");
       textRectPath.opacity = 0.4;
       group.addChild(textRectPath);
@@ -884,11 +894,11 @@ export default class DrawNav {
     return group;
   };
 
-  drawNavBox = (seconds: number) => {
+  drawNavBox = (seconds: number): void => {
     this.gTier1NavGroup.removeChildren();
 
-    let locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
-    let navBoxWidth = (this.gNavigatorWidth - this.gTier1Left) / this.gNavZoomFactor;
+    const locX = seconds * this.gTier1PixelsPerSecond + this.gTier1Left;
+    const navBoxWidth = (this.gNavigatorWidth - this.gTier1Left) / this.gNavZoomFactor;
     this.gNavBoxLocX = locX - navBoxWidth / 2;
     if (this.gNavBoxLocX < this.gTier1Left) {
       this.gNavBoxLocX = this.gTier1Left;
@@ -899,9 +909,9 @@ export default class DrawNav {
 
     const navBoxTop = this.gTier1Top;
     const navBoxHeight = this.gTier1Height;
-    let navBoxRect = new paper.Rectangle(this.gNavBoxLocX, navBoxTop, navBoxWidth, navBoxHeight);
+    const navBoxRect = new paper.Rectangle(this.gNavBoxLocX, navBoxTop, navBoxWidth, navBoxHeight);
     const cornerSize = new paper.Size(3, 3);
-    let navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
+    const navBoxRectPath = new paper.Path.Rectangle(navBoxRect, cornerSize);
     navBoxRectPath.strokeColor = this.gColorNavBox;
     navBoxRectPath.strokeWidth = 2;
     this.gTier1NavGroup.addChild(navBoxRectPath);
@@ -910,7 +920,7 @@ export default class DrawNav {
     const effectHeight = 20;
     let startPoint = new paper.Point(this.gNavBoxLocX, this.gTier1Top + effectHeight);
     const effectSideWidth = 20;
-    let navBoxEffectLeft = new paper.Path({
+    const navBoxEffectLeft = new paper.Path({
       strokeColor: this.gColorNavBox,
       closed: false,
       fillColor: "#efefef",
@@ -926,7 +936,7 @@ export default class DrawNav {
 
     //right navBoxEffect
     startPoint = new paper.Point(this.gNavBoxLocX + navBoxWidth, this.gTier1Top + effectHeight);
-    let navBoxEffectRight = new paper.Path({
+    const navBoxEffectRight = new paper.Path({
       strokeColor: this.gColorNavBox,
       closed: false,
       fillColor: this.gColorNavBox,
@@ -950,7 +960,7 @@ export default class DrawNav {
     this.gTier1NavGroup.addChild(navBoxEffectBar);
   };
 
-  drawTier1() {
+  drawTier1(): void {
     this.gTier1Group.removeChildren();
 
     const drawingTop = this.gTier1Top + 0.5;
@@ -975,7 +985,7 @@ export default class DrawNav {
     );
 
     this.gTier1Group.addChild(
-      this.drawSgAudioSegments({
+      this.drawTalkybotSegments({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,
@@ -1062,7 +1072,7 @@ export default class DrawNav {
     );
   }
 
-  drawTier2() {
+  drawTier2(): void {
     this.gTier2Group.removeChildren();
 
     const drawingBottom = this.gTier2Top + this.gTier2Height + 0.5;
@@ -1089,7 +1099,7 @@ export default class DrawNav {
     );
 
     this.gTier2Group.addChild(
-      this.drawSgAudioSegments({
+      this.drawTalkybotSegments({
         secondsStart,
         secondsEnd,
         pixelsPerSecond,

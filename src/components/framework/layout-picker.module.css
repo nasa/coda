@@ -13,7 +13,7 @@
 .top {
   display: flex;
   justify-content: space-between;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgb(255 255 255 / 40%);
   font-size: 18px;
   font-weight: 400;
   line-height: 18px;
@@ -36,11 +36,11 @@
 }
 
 .layout:hover {
-  outline: 1px solid #fff;
+  outline: 1px solid #ffffff;
 }
 
 .layoutselected {
-  outline: 1px solid #fff;
+  outline: 1px solid #ffffff;
 }
 
 .layout:last-of-type {
@@ -52,4 +52,10 @@
   color: var(--light-grey);
   cursor: pointer;
   width: 100px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }

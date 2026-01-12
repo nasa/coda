@@ -1,10 +1,24 @@
-import { useEffect, useState, FunctionComponent } from "react";
+import { useMemo, FunctionComponent } from "react";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { allPanes, setPaneType } from "store/framework";
 import styles from "./pane-picker.module.css";
-import { RootState } from "store/index";
 import { useAppDispatch } from "utils/useAppDispatch";
+import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
+
+// Mapping object for pane colors - static class resolution
+const paneColorClasses = {
+  teal: styles.teal,
+  ruby: styles.ruby,
+  purple: styles.purple,
+  grey: styles.grey,
+  mustardGreen: styles.mustardGreen,
+  burntOrange: styles.burntOrange,
+  burntUmber: styles.burntUmber,
+  none: "",
+} as const;
+
+export type PaneColorVariant = keyof typeof paneColorClasses;
 
 /**
  * Renders the label for a type of frame
@@ -22,10 +36,12 @@ export const PaneLabel: FunctionComponent<{
     displayTitle = "";
   }
 
+  const colorClass = paneColorClasses[color as PaneColorVariant] || "";
+
   return (
     <div className={styles.item}>
       {icon !== null ? (
-        <div className={`${styles.icon} ${styles[color]}`}>
+        <div className={`${styles.icon} ${colorClass}`}>
           <FontAwesomeIcon icon={icon} />
         </div>
       ) : (
@@ -41,22 +57,21 @@ export const PanePickerModal: FunctionComponent<{
   closeClick: () => void;
   options: { frameID: number };
 }> = ({ closeClick, options: { frameID } }) => {
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const [availablePanes, setAvailablePanes] = useState([]);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
 
   const dispatch = useAppDispatch();
+
+  const allPaneTypes = Object.keys(allPanes);
+  const availablePanes = useMemo(
+    () => getAvailablePanesForSource(source, allPaneTypes),
+    [source, allPaneTypes]
+  );
 
   const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     dispatch(setPaneType({ frameID, paneType }));
     closeClick();
   };
-
-  useEffect(() => {
-    const availablePanes = Object.keys(allPanes);
-
-    setAvailablePanes(availablePanes);
-  }, [source]);
 
   return (
     <div className={styles.main}>

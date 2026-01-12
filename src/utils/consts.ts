@@ -29,7 +29,7 @@ export const paneTypeShortVal: Record<PaneTypeKey, PaneTypeShortVal> = {
   iss_location: 5,
   gps_location: 6,
   photo_all: 7,
-  transcript: 8,
-  sgAudio: 9,
+  talkybot: 8,
+  // 9 was sg-audio for some reason --- IGNORE ---
   graph: 10,
 };

@@ -4,8 +4,11 @@
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
 variables:
-  CURRENT_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:24.11.1-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_REGISTRY/emss/docker-images/node:25.2.1-alpine"
+  # Node images pulled via GitLab dependency proxy (caches from Docker Hub)
+  CURRENT_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:24.11.1-alpine"
+  FUTURE_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:25.2.1-alpine"
+  # Kaniko uses the dependency proxy as a registry mirror for rate limiting and caching
+  KANIKO_REGISTRY_MIRROR: "${CI_SERVER_HOST}/emss/dependency_proxy/containers"
 
 # Default image unless otherwise specified
 image: "$CURRENT_NODE_VERSION_IMAGE"
@@ -38,6 +41,7 @@ include:
 
   # Adds jobs to export db, and dump logs
   - local: .gitlab/includes/server-jobs.yml
+  - local: .gitlab/includes/db-import.yml
 
 # Override some properties on FIT jobs.
 yaml-lint:
@@ -75,7 +79,7 @@ dependency-check:
 
 npm-audit:
   stage: stageless
-  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit
+  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit # custom image, not on Docker Hub
   when: manual
   needs: []
   tags: ["openshift"]
@@ -102,7 +106,7 @@ node-sbom:
   stage: stageless
   tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
   needs: ["install_dependencies"]
-  image: $CI_REGISTRY/emss/docker-images/node-ci:sbom
+  image: $CI_REGISTRY/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
   script:
     - /make-sbom.sh
   artifacts:
@@ -164,9 +168,14 @@ node-sbom:
     - export IMAGE_VERSION
 
     - make-dotenv $MAKE_DOTENV_ENVIRONMENT
+    # Extract DOCKER_IMAGE_DATABASE from .env and export it without quotes for GitLab CI services
+    # GitLab services are initialized before before_script, so we need the variable in dotenv artifact
+    - source .env
+    - echo "DOCKER_IMAGE_DATABASE=${DOCKER_IMAGE_DATABASE//\"/}" >> pipelineVariables.env
   artifacts:
     reports:
-      dotenv: pipelineVariables.env
+      dotenv:
+        - pipelineVariables.env
     paths:
       - .env
     expire_in: 1 day
@@ -197,7 +206,9 @@ test:
     POSTGRES_DB: coda
   services:
     # image should match database used in docker-compose.yml
-    - name: $CI_REGISTRY/emss/docker-images/postgres:postgis-14-alpine
+    # DOCKER_IMAGE_DATABASE comes from pipelineVariables.env dotenv artifact (without quotes)
+    # Using dependency proxy for caching and rate limiting
+    - name: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/$DOCKER_IMAGE_DATABASE
       alias: postgres-test-container
   tags: ["docker", "linux"]
   before_script:
@@ -260,17 +271,15 @@ docker:build:nginx:
   variables:
     SERVICE_NAME: nginx
     MULTISTAGE_TARGET: prod
-    NGINX_BASE_IMAGE: eegitlabregistry.fit.nasa.gov/emss/docker-images/nginx:1.23.0-alpine
-    NODE_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     GIT_COMMIT: $CI_COMMIT_SHORT_SHA
     MAP_ENV_VARS_TO_BUILD_ARGS: |
-      NGINX_BASE_IMAGE
-      NODE_BASE_IMAGE
       VITE_PUBLIC_MAPBOX_KEY
+      VITE_PUBLIC_TALKYBOT_URL
       VITE_PUBLIC_LIVE_STREAMS_ENABLED
       VITE_PUBLIC_MEDIA_MTX_CONTROL_URL
       VITE_PUBLIC_MEDIA_MTX_HLS_URL
       VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL
+      VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS
       VITE_PUBLIC_MAPLIBRE_BASE_URL
       VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME
       GIT_COMMIT
@@ -280,10 +289,8 @@ docker:build:apiv1:
   variables:
     SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
-    APIV1_BASE_IMAGE: $CURRENT_NODE_VERSION_IMAGE
     GIT_COMMIT: $CI_COMMIT_SHORT_SHA
     MAP_ENV_VARS_TO_BUILD_ARGS: |
-      APIV1_BASE_IMAGE
       GIT_COMMIT
 
 #
@@ -315,6 +322,7 @@ deploy:artifactize-committed-files:
     paths:
       - .fitdock.yml
       - docker-compose.yml
+      - scripts/upgrade-db.sh
     expire_in: 1 day
 
 .deploy-template:
@@ -325,6 +333,9 @@ deploy:artifactize-committed-files:
     - deploy:artifactize-committed-files
   stage: stageless
   timeout: 10 minutes
+  before_script:
+    # Remove static and cache dirs if they exist. Remove this if this branch is on prod.
+    - rm -rf /d1/coda/static /d1/coda/cache || true
 
 deploy:carbon:
   extends:
@@ -332,6 +343,7 @@ deploy:carbon:
     - .carbon-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/carbon/g" .env
@@ -342,6 +354,7 @@ deploy:gold:
     - .gold-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
 
@@ -351,6 +364,7 @@ deploy:iron:
     - .iron-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/iron-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/iron/g" .env
 
@@ -360,6 +374,7 @@ deploy:neon:
     - .neon-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/neon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/neon/g" .env
 
@@ -369,8 +384,24 @@ deploy:oxygen:
     - .oxygen-deploy
   when: manual
   before_script:
+    - !reference [.deploy-template, before_script]
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
+
+test-db-upgrade:gold:
+  extends:
+    - .deploy-template
+    - .gold-deploy
+  when: manual
+  needs:
+    - make-dotenv
+    - deploy:artifactize-committed-files
+  script:
+    - chmod +x ./scripts/upgrade-db.sh
+    - ./scripts/upgrade-db.sh
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
 
 deploy:int:
   extends: .deploy-template
@@ -384,6 +415,10 @@ deploy:int:
   only:
     - int
   before_script:
+    - !reference [.deploy-template, before_script]
+    # Run DB upgrade script if needed
+    - chmod +x ./scripts/upgrade-db.sh
+    - ./scripts/upgrade-db.sh
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/int/g" .env
@@ -395,95 +430,21 @@ deploy:prod:
   environment:
     name: production
     url: https://coda.fit.nasa.gov
+  needs:
+    - make-dotenv
+    - docker:retag
+    - deploy:artifactize-committed-files
+    - z:db-export:prod
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
   when: manual
   only:
     - prod
   before_script:
+    - !reference [.deploy-template, before_script]
+    # Run DB upgrade script if needed
+    - chmod +x ./scripts/upgrade-db.sh
+    - ./scripts/upgrade-db.sh
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/prod/g" .env
-
-#
-# Delete cache folder jobs
-#
-.delete-cache-template:
-  stage: stageless
-  image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
-  when: manual
-  needs: []
-  script:
-    # init sudo ability
-    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
-    - echo "Cache folder size (human-readable):"
-    - sudo du -sh /d1/coda/cache || echo "Cache folder does not exist"
-    - echo "Deleting cache folder at /d1/coda/cache"
-    - sudo rm -rf /d1/coda/cache
-    - echo "Cache folder deleted successfully"
-
-delete-cache:carbon:
-  extends:
-    - .delete-cache-template
-    - .carbon-deploy
-  environment:
-    name: carbon-dev
-    action: prepare
-
-delete-cache:gold:
-  extends:
-    - .delete-cache-template
-    - .gold-deploy
-  environment:
-    name: gold-dev
-    action: prepare
-
-delete-cache:iron:
-  extends:
-    - .delete-cache-template
-    - .iron-deploy
-  environment:
-    name: iron-dev
-    action: prepare
-
-delete-cache:neon:
-  extends:
-    - .delete-cache-template
-    - .neon-deploy
-  environment:
-    name: neon-dev
-    action: prepare
-
-delete-cache:oxygen:
-  extends:
-    - .delete-cache-template
-    - .oxygen-deploy
-  environment:
-    name: oxygen-dev
-    action: prepare
-
-delete-cache:int:
-  extends: .delete-cache-template
-  tags: ["emss-coda-int"]
-  resource_group: int
-  environment:
-    name: integration
-    url: https://coda-int.fit.nasa.gov
-    action: prepare
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
-  only:
-    - int
-
-delete-cache:prod:
-  extends: .delete-cache-template
-  tags: ["emss-coda-prod"]
-  resource_group: prod
-  environment:
-    name: production
-    url: https://coda.fit.nasa.gov
-    action: prepare
-  variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
-  only:
-    - prod

@@ -4,6 +4,69 @@ import clone from "lodash/clone";
 import { fetchMTXHlsEndpoints } from "./mediaMtx-hls";
 
 /**
+ * Maximum gap (in seconds) between segments that will be merged into a single time range.
+ * MediaMTX segments recordings into files, and there can be small gaps between segments
+ * due to file finalization, network hiccups, or source stream interruptions.
+ * Segments with gaps smaller than this threshold are merged to provide smoother playback.
+ */
+export const MAX_SEGMENT_GAP_SECONDS = 15;
+
+/**
+ * Merges consecutive MTX recording segments that are close together (within MAX_SEGMENT_GAP_SECONDS).
+ * This helps smooth over small gaps caused by MediaMTX's segment-based recording.
+ *
+ * MediaMTX returns individual segment files, each with their own start time and duration.
+ * When there are small gaps between segments (e.g., during file finalization), the raw
+ * segment list can cause choppy playback or false "no video available" states.
+ *
+ * This function merges segments that are close together into larger continuous time ranges.
+ */
+export const mergeConsecutiveSegments = (
+  segments: MTXRecordingTimeRange[]
+): MTXRecordingTimeRange[] => {
+  if (!segments || segments.length === 0) return [];
+
+  // Sort segments by start time
+  const sortedSegments = [...segments].sort(
+    (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+  );
+
+  const mergedSegments: MTXRecordingTimeRange[] = [];
+  let currentMerged: MTXRecordingTimeRange | null = null;
+
+  for (const segment of sortedSegments) {
+    const segmentStartMs = new Date(segment.start).getTime();
+    const segmentEndMs = segmentStartMs + segment.duration * 1000;
+
+    if (!currentMerged) {
+      // Start a new merged segment
+      currentMerged = { ...segment };
+    } else {
+      const currentEndMs = new Date(currentMerged.start).getTime() + currentMerged.duration * 1000;
+      const gapMs = segmentStartMs - currentEndMs;
+
+      if (gapMs <= MAX_SEGMENT_GAP_SECONDS * 1000) {
+        // Merge this segment into the current one
+        // The new duration extends from the original start to the end of this segment
+        const newDurationMs = segmentEndMs - new Date(currentMerged.start).getTime();
+        currentMerged.duration = newDurationMs / 1000;
+      } else {
+        // Gap too large, save current merged segment and start a new one
+        mergedSegments.push(currentMerged);
+        currentMerged = { ...segment };
+      }
+    }
+  }
+
+  // Don't forget the last merged segment
+  if (currentMerged) {
+    mergedSegments.push(currentMerged);
+  }
+
+  return mergedSegments;
+};
+
+/**
  * Adjusts MTX playback records to fit within a single day boundary.
  * Playback records can span multiple days, but CODA can only play one day at a time.
  * This function modifies the playback ranges to only show the portion available for the current day.
@@ -67,6 +130,7 @@ export const adjustPlaybackRangesForDay = ({
 
 /**
  * Fetches MTX playback availability for all channels.
+ * Merges consecutive segments with small gaps to provide smoother playback.
  */
 const fetchMTXPlaybackAvailability = async ({
   sourceAbbr,
@@ -91,7 +155,8 @@ const fetchMTXPlaybackAvailability = async ({
           duration,
         })) || [];
 
-      mtxPlaybackAvailability[channel.toString()] = mtxPlaybackRecords;
+      // Merge consecutive segments with small gaps to smooth over recording fragmentation
+      mtxPlaybackAvailability[channel.toString()] = mergeConsecutiveSegments(mtxPlaybackRecords);
     } catch (e) {
       mtxPlaybackAvailability[channel.toString()] = [];
     }

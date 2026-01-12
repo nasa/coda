@@ -1,17 +1,20 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import { fetchMTXHlsEndpoints } from "./mediaMtx-hls";
 
 describe("mediaMtx-hls", () => {
   describe("fetchMTXHlsEndpoints", () => {
     beforeEach(() => {
-      global.fetch = jest.fn();
+      global.fetch = vi.fn();
       process.env.MEDIAMTX_USERNAME = "testuser";
       process.env.MEDIAMTX_PASSWORD = "testpass";
       process.env.VITE_PUBLIC_MEDIA_MTX_CONTROL_URL = "http://localhost:9997/";
       process.env.VITE_PUBLIC_MEDIA_MTX_HLS_URL = "http://localhost:8888/";
+      process.env.HLS_BUFFER_DURATION_SECONDS = "900";
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it("should fetch HLS endpoints for specified source", async () => {
@@ -23,30 +26,17 @@ describe("mediaMtx-hls", () => {
         ],
       };
 
-      const mockIndexM3u8 = `#EXTM3U
-#EXT-X-STREAM-INF:BANDWIDTH=1000000
-stream.m3u8`;
-
-      const mockStreamM3u8 = `#EXTM3U
-#EXTINF:10.0,
-segment1.ts`;
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          json: async () => mockPathsResponse,
-        })
-        .mockResolvedValue({
-          text: async () => mockIndexM3u8,
-        })
-        .mockResolvedValue({
-          text: async () => mockStreamM3u8,
-        });
+      (global.fetch as Mock).mockResolvedValueOnce({
+        json: async () => mockPathsResponse,
+      });
 
       const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
 
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe("DL1_ISS");
       expect(result[1].name).toBe("DL2_ISS");
+      expect(result[0].secondsAvailable).toBe(900);
+      expect(result[1].secondsAvailable).toBe(900);
     });
 
     it("should filter by source abbreviation", async () => {
@@ -58,20 +48,8 @@ segment1.ts`;
         ],
       };
 
-      const mockIndexM3u8 = `#EXTM3U
-stream.m3u8`;
-      const mockStreamM3u8 = `#EXTM3U
-#EXTINF:5.0,
-segment1.ts`;
-
-      (global.fetch as jest.Mock).mockImplementation((url) => {
-        if (url.includes("v3/paths/list")) {
-          return Promise.resolve({ json: async () => mockPathsResponse });
-        }
-        if (url.includes("index.m3u8")) {
-          return Promise.resolve({ text: async () => mockIndexM3u8 });
-        }
-        return Promise.resolve({ text: async () => mockStreamM3u8 });
+      (global.fetch as Mock).mockResolvedValueOnce({
+        json: async () => mockPathsResponse,
       });
 
       const result = await fetchMTXHlsEndpoints({ sourceAbbr: "TE" });
@@ -90,20 +68,8 @@ segment1.ts`;
         ],
       };
 
-      const mockIndexM3u8 = `#EXTM3U
-stream.m3u8`;
-      const mockStreamM3u8 = `#EXTM3U
-#EXTINF:10.0,
-segment1.ts`;
-
-      (global.fetch as jest.Mock).mockImplementation((url) => {
-        if (url.includes("v3/paths/list")) {
-          return Promise.resolve({ json: async () => mockPathsResponse });
-        }
-        if (url.includes("index.m3u8")) {
-          return Promise.resolve({ text: async () => mockIndexM3u8 });
-        }
-        return Promise.resolve({ text: async () => mockStreamM3u8 });
+      (global.fetch as Mock).mockResolvedValueOnce({
+        json: async () => mockPathsResponse,
       });
 
       const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
@@ -112,33 +78,40 @@ segment1.ts`;
       expect(result.find((e) => e.name === "DL2_ISS")).toBeUndefined();
     });
 
-    it("should include duration for each endpoint", async () => {
+    it("should use configured HLS buffer duration for each endpoint", async () => {
       const mockPathsResponse = {
         items: [{ name: "DL1_ISS", ready: true }],
       };
 
-      const mockIndexM3u8 = `#EXTM3U
-stream.m3u8`;
-      const mockStreamM3u8 = `#EXTM3U
-#EXTINF:15.5,
-segment1.ts
-#EXTINF:20.3,
-segment2.ts`;
+      (global.fetch as Mock).mockResolvedValueOnce({
+        json: async () => mockPathsResponse,
+      });
 
-      (global.fetch as jest.Mock).mockImplementation((url) => {
-        if (url.includes("v3/paths/list")) {
-          return Promise.resolve({ json: async () => mockPathsResponse });
-        }
-        if (url.includes("index.m3u8")) {
-          return Promise.resolve({ text: async () => mockIndexM3u8 });
-        }
-        return Promise.resolve({ text: async () => mockStreamM3u8 });
+      // Use default configured duration (900 seconds = 15 minutes)
+      const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].secondsAvailable).toBe(900);
+    });
+
+    it("should use custom HLS buffer duration from env var", async () => {
+      process.env.HLS_BUFFER_DURATION_SECONDS = "600";
+
+      const mockPathsResponse = {
+        items: [{ name: "DL1_ISS", ready: true }],
+      };
+
+      (global.fetch as Mock).mockResolvedValueOnce({
+        json: async () => mockPathsResponse,
       });
 
       const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
 
       expect(result).toHaveLength(1);
-      expect(result[0].secondsAvailable).toBeCloseTo(35.8, 1);
+      expect(result[0].secondsAvailable).toBe(600);
+
+      // Clean up
+      delete process.env.HLS_BUFFER_DURATION_SECONDS;
     });
 
     it("should use Basic auth header", async () => {
@@ -146,7 +119,7 @@ segment2.ts`;
         items: [],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
+      (global.fetch as Mock).mockResolvedValueOnce({
         json: async () => mockPathsResponse,
       });
 

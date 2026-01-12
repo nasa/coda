@@ -2,8 +2,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
-import { RootState } from "store/index";
+import { setPaneStateDataValue } from "store/framework";
 import { setActivePhoto } from "store/photos";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
@@ -13,7 +12,7 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { setAppSeconds } from "store/clock";
 
 export const PhotoAllControls: FunctionComponent<{
   frameID: number;
@@ -23,8 +22,8 @@ export const PhotoAllControls: FunctionComponent<{
 
   const minWidth = 470;
 
-  const paneStateData: PhotoAllPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as PhotoAllPaneStateData,
     deepEqual
   );
 
@@ -43,21 +42,40 @@ export const PhotoAllControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Scroll automatically to the current photo`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "lockScroll", !paneStateData.lockScroll);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockScroll",
+                  paneStateValue: !paneStateData.lockScroll,
+                })
+              );
             }}
           >
-            <span className={styles.buttonLabel}>
-              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
-              <div>
-                <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
-              </div>
-            </span>
+            {frameDimensions[0] > minWidth ? (
+              <span className={styles.buttonLabel}>
+                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>
+                  <FontAwesomeIcon
+                    icon={paneStateData.lockScroll ? faLock : faLockOpen}
+                    size="sm"
+                  />
+                </div>
+              </span>
+            ) : (
+              <FontAwesomeIcon icon={paneStateData.lockScroll ? faLock : faLockOpen} size="sm" />
+            )}
           </button>
         </div>
         <div className={styles.verticalCenter}>
           <FilterButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showFilter", !paneStateData.showFilter);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showFilter",
+                  paneStateValue: !paneStateData.showFilter,
+                })
+              );
             }}
             selected={paneStateData.showFilter}
             frameDimensions={frameDimensions}
@@ -66,7 +84,13 @@ export const PhotoAllControls: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -77,9 +101,9 @@ export const PhotoAllControls: FunctionComponent<{
 };
 
 const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-  const paneStateData: PhotoAllPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as PhotoAllPaneStateData,
     deepEqual
   );
 
@@ -88,10 +112,14 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
 
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
-
   const handleScroll = () => {
-    setPaneStateValue(dispatch, frameID, "lockPhotosScroll", false);
+    dispatch(
+      setPaneStateDataValue({
+        frameID,
+        paneStateProperty: "lockPhotosScroll",
+        paneStateValue: false,
+      })
+    );
   };
 
   useEffect(() => {
@@ -100,11 +128,11 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         behavior: "smooth",
       });
     }
-  }, [photos.activePhoto, activePhotoRef, playhead, paneStateData.lockScroll]);
+  }, [photos.activePhoto, activePhotoRef, paneStateData.lockScroll]);
 
   // function that displays thumbnails of all photos in photoFiles
   function photoThumbnails() {
-    let photoThumbnails = [];
+    const photoThumbnails = [];
 
     for (let i = 0; i < photoFiles.length; i++) {
       for (let j = 0; j < photos.collectionFilters.length; j++) {
@@ -128,10 +156,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               key={photoFiles[i].id}
               {...activeRefOnly}
               onClick={() => {
-                dispatchPlayhead({
-                  type: "SET_APP_SECONDS",
-                  payload: photoFiles[i].datetimeTakenAppSeconds,
-                });
+                dispatch(setAppSeconds(photoFiles[i].datetimeTakenAppSeconds));
                 dispatch(setActivePhoto(photoFiles[i]));
               }}
               title={photoTitle}
@@ -170,22 +195,40 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>
           <p>Displays all of the photos on Imagery Online taken on the selected event date.</p>
           <p>
             Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
-            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"} target={"_blank"}>
+            <a
+              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               ISS Collection
             </a>
             . Exploration Test Events usually pulls from the root{" "}
-            <a href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"} target={"_blank"}>
+            <a
+              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               xEVA Collection
             </a>{" "}
             but can be overridden by editing the CODA entry for each event in the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               Exploration Wiki.
             </a>
           </p>

@@ -1,17 +1,17 @@
 import isNil from "lodash/isNil";
 import styles from "./frame.module.css";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { RootState } from "store";
 
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import PanePickerModal, { PaneLabel } from "./pane-picker";
 
 import EventInfo, { EventInfoControls } from "components/panes/event-info";
-import VideoPane, { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video";
+import VideoPaneChooser from "components/panes/video/video-chooser";
+import { VideoDLPaneControls, VideoOtherPaneControls } from "components/panes/video/video-controls";
 import PhotoPane, { PhotoControls } from "components/panes/photo";
 import PhotoAllPane, { PhotoAllControls } from "components/panes/photo-all";
 import { ISSLocation, ISSLocationControls } from "components/panes/iss-location";
-import { useLayoutEffect, useEffect, useRef, useState, FunctionComponent } from "react";
+import { useLayoutEffect, useEffect, useRef, useState, FunctionComponent, ReactNode } from "react";
 import GPSLocation, { GPSLocationControls } from "components/panes/gps-location";
 import CommPane, { CommControls } from "components/panes/comm";
 import Graph, { GraphControls } from "components/panes/graph/graph";
@@ -20,7 +20,7 @@ import Graph, { GraphControls } from "components/panes/graph/graph";
 export const FrameHeader: FunctionComponent<{
   frameID: number;
   paneType: string;
-  children?: any;
+  children?: ReactNode;
   frameDimensions?: number[];
 }> = ({ frameID, paneType, children, frameDimensions = [] }) => {
   let labelSize: "S" | "M" | "L" = "S";
@@ -65,11 +65,11 @@ const frameTypeIDsToPanes: PaneTypeComponentSets = {
   },
   video_downlink: {
     controls: VideoDLPaneControls,
-    pane: VideoPane,
+    pane: VideoPaneChooser,
   },
   video_non_downlink: {
     controls: VideoOtherPaneControls,
-    pane: VideoPane,
+    pane: VideoPaneChooser,
   },
   photo: {
     controls: PhotoControls,
@@ -105,10 +105,7 @@ const headerContainerHeight = 35;
 
 /** Renders a frame in the viewer */
 const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
-  const frameState = useAppSelector(
-    (state: RootState) => state.framework.frames[frameId],
-    shallowEqual
-  );
+  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
 
   let paneType: string = null;
   if (frameState) {

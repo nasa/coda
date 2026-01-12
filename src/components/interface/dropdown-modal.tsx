@@ -1,70 +1,99 @@
-import {
-  FunctionComponent,
-  MutableRefObject,
-  useRef,
-  useState,
-  MouseEvent,
-  ReactNode,
-} from "react";
+import { FunctionComponent, useRef, MouseEvent, ReactNode, useState, useEffect } from "react";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-modal.module.css";
 
-const modalDefaults = {
-  color: "white",
-  size: "default",
-  caret: "down",
-  modalOptions: {},
-};
+// Mapping objects for static class resolution
+const colorClasses = {
+  white: styles.white,
+  grey: styles.grey,
+} as const;
 
-const oppositeCarets: { [key: string]: string } = {
+const sizeClasses = {
+  default: styles.default,
+  skinny: styles.skinny,
+  medium: styles.medium,
+} as const;
+
+const caretClasses = {
+  up: styles.up,
+  down: styles.down,
+  left: styles.left,
+  right: styles.right,
+} as const;
+
+export type DropdownColorVariant = keyof typeof colorClasses;
+export type DropdownSizeVariant = keyof typeof sizeClasses;
+export type CaretVariant = keyof typeof caretClasses;
+
+const oppositeCarets: Record<CaretVariant, CaretVariant> = {
   down: "up",
   up: "down",
   left: "right",
   right: "left",
 };
 
+const modalDefaults = {
+  color: "white" as DropdownColorVariant,
+  size: "default" as DropdownSizeVariant,
+  caret: "down" as CaretVariant,
+  modalOptions: {},
+};
+
 /** A menu with a down caret that opens a modal below */
 export const ModalDropdown: FunctionComponent<{
   children: ReactNode;
-  color?: string;
-  size?: string;
+  color?: DropdownColorVariant;
+  size?: DropdownSizeVariant;
   modalWidth?: number;
-  caret?: string;
+  caret?: CaretVariant;
   callback?: () => void;
   modal?: FunctionComponent<{
     closeClick?: () => void;
-    options?: any;
+    options?: Record<string, unknown>;
     display?: boolean;
   }>;
-  modalOptions?: any;
+  modalOptions?: Record<string, unknown>;
 }> = ({ children, ...options }) => {
   const opts = { ...modalDefaults, ...options };
-  const [display, setDisplay] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [modalTop, setModalTop] = useState<number | null>(null);
 
-  const modalRef = useRef(null) as MutableRefObject<HTMLInputElement>;
-  const labelRef = useRef(null) as MutableRefObject<HTMLButtonElement>;
+  const modalRef = useRef<HTMLInputElement>(null);
+  const labelRef = useRef<HTMLButtonElement>(null);
+
+  // Update modal position when dropdown opens
+  useEffect(() => {
+    if (isOpen && labelRef.current) {
+      setModalTop(labelRef.current.getBoundingClientRect().bottom + 4);
+    }
+  }, [isOpen]);
 
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
-    setDisplay(!display);
+    e.stopPropagation();
+    setIsOpen(!isOpen);
   };
 
-  let caretStyle = styles[opts.caret];
-  if (display) {
-    caretStyle = styles[oppositeCarets[opts.caret]];
-  }
+  const handleBlur = (e: React.FocusEvent) => {
+    // Only close if focus moves outside the entire dropdown container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsOpen(false);
+    }
+  };
 
-  const colorClass = styles[opts.color];
-  const sizeClass = styles[opts.size];
+  const caretKey = isOpen ? oppositeCarets[opts.caret] : opts.caret;
+  const caretStyle = caretClasses[caretKey];
+  const colorClass = colorClasses[opts.color];
+  const sizeClass = sizeClasses[opts.size];
   const modalStyle = {
-    display: display ? "block" : "none",
+    display: isOpen ? "block" : "none",
     width: opts.modalWidth ? opts.modalWidth + "px" : null,
-    top: display ? `${labelRef.current?.getBoundingClientRect().bottom + 4}px` : null,
+    top: isOpen && modalTop ? `${modalTop}px` : null,
   };
 
   return (
-    <div>
+    <div tabIndex={-1} onBlur={handleBlur}>
       <button className={styles.main} ref={labelRef}>
         <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={handleClick}>
           <div className={styles.verticalCenter}>{children}</div>
@@ -79,9 +108,9 @@ export const ModalDropdown: FunctionComponent<{
       </button>
       <div className={styles.modal} style={modalStyle} ref={modalRef}>
         <opts.modal
-          closeClick={() => setDisplay(!display)}
+          closeClick={() => setIsOpen(false)}
           options={opts.modalOptions}
-          display={display}
+          display={isOpen}
         />
       </div>
     </div>

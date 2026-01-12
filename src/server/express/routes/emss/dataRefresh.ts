@@ -1,8 +1,7 @@
 import { asError } from "@emss/utils";
 import express, { Request, Response } from "express";
-import { getUser } from "packages/getUser";
-import serverLogger from "utils/serverLogger";
-import { isSuperuser } from "utils/user";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import serverLogger from "utils/logging/serverLogger";
 import { forceRefreshDataType } from "server/express/dataRetrievalScheduler";
 
 /**
@@ -20,22 +19,8 @@ interface DataRefreshRequestBody {
 }
 
 // POST - force refresh
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = getUser(req);
-    if (user instanceof Error) {
-      const msg = "Unable to decode JWT";
-      serverLogger.error(user, { logId: msg });
-      res.status(500).send({ msg });
-      return;
-    }
-
-    if (!isSuperuser(user)) {
-      serverLogger.warn({ logId: "Unauthorized access to dataRefresh route" }, user);
-      res.status(403).send({ msg: "Unauthorized" });
-      return;
-    }
-
     const { source, dateWanted, dataType } = req.body as DataRefreshRequestBody;
 
     if (!source || !dateWanted || !dataType) {
@@ -43,7 +28,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    serverLogger.info({ logId: "Force refresh initiated", source, dateWanted, dataType }, user);
+    serverLogger.info({ logId: "Force refresh initiated", source, dateWanted, dataType });
 
     // Call the force refresh function
     const result = await forceRefreshDataType({ source, dateWanted, dataType });

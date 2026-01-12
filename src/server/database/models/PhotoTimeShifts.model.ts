@@ -1,15 +1,19 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/postgresql";
-import { types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-export class PhotoTimeShifts_db implements PhotoRecord_db_type {
-  @PrimaryKey({ type: MikroTypes.integer })
+export class PhotoTimeShifts_db implements PhotoRecord {
   id!: number;
-
-  @Property({ type: MikroTypes.text })
   date!: string;
-  @Property({ type: MikroTypes.text })
   source!: string;
-  @Property({ type: MikroTypes.text })
   timeOffset!: string;
 }
+
+export const PhotoTimeShifts_dbSchema = new EntitySchema<PhotoTimeShifts_db>({
+  class: PhotoTimeShifts_db,
+  tableName: "photo_time_shifts_db",
+  properties: {
+    id: { type: MikroTypes.integer, primary: true, autoincrement: true },
+    date: { type: MikroTypes.text },
+    source: { type: MikroTypes.text },
+    timeOffset: { type: MikroTypes.text },
+  },
+});

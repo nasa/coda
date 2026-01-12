@@ -1,0 +1,8 @@
+# .sastignore - SAST Findings Suppression File
+#
+# Format: Each line should contain the exact finding name from the SAST report.
+# Example: If the report shows "Generic Object Injection Sink, in file X on line Y"
+#          Add just: Generic Object Injection Sink
+#
+# Note: This tool does NOT support file path patterns - only finding names.
+# To suppress findings in test files, you must suppress each finding type by name.

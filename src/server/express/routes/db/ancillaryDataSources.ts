@@ -7,6 +7,8 @@ import {
   getAncillaryDataSourcesByDate,
   upsertAncillaryDataSource,
 } from "server/processing/ancillaryDataSources";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Get Ancillary Data Source URLs from CODA DB for a given date
@@ -45,7 +47,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       res.status(200).json(records);
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
@@ -62,13 +64,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "ancillary data source not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url } = req.body as AncillaryDataUpsertRequest;
 
   try {
@@ -83,13 +85,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     const message = isNew ? "ancillary data source inserted" : "ancillary data source updated";
     res.status(statusCode).json({ status: "success", message, data: record });
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
   }
 });
 
 // delete
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
 
   try {
@@ -100,7 +102,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "ancillary data source not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the DELETE request ${e}` });
   }
 });

@@ -1,9 +1,9 @@
 import { Loaded } from "@mikro-orm/postgresql";
-import { AncillaryDataSource_db } from "server/database/models/_allModels";
+import { AncillaryDataSource_db } from "server/database/models/ancillaryData.model";
 import { globalValues } from "server/express/global";
 
 export async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDataSource[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
 
   const ancillaryDataSource_db: Loaded<AncillaryDataSource_db, never>[] = await em.find(
     AncillaryDataSource_db,
@@ -19,7 +19,7 @@ export async function getAncillaryDataSourcesByDate(date: string): Promise<Ancil
 }
 
 export async function getAncillaryDataSourceList(): Promise<AncillaryDataSourceList[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
 
   const ancillaryDataSource_db = await em.find(
     AncillaryDataSource_db,
@@ -31,7 +31,7 @@ export async function getAncillaryDataSourceList(): Promise<AncillaryDataSourceL
 }
 
 export async function getAncillaryDataSourceById(id: number): Promise<AncillaryDataSource | null> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   return em.findOne(AncillaryDataSource_db, { id });
 }
 
@@ -42,7 +42,7 @@ export async function upsertAncillaryDataSource({
   type,
   url,
 }: AncillaryDataUpsertRequest): Promise<{ record: AncillaryDataSource; isNew: boolean } | null> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
 
   if (id) {
     const existing = await em.findOne(AncillaryDataSource_db, { id: Number(id) });
@@ -69,7 +69,7 @@ export async function upsertAncillaryDataSource({
 }
 
 export async function deleteAncillaryDataSourceById(id: number): Promise<boolean> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const existing = await em.findOne(AncillaryDataSource_db, { id });
   if (!existing) {
     return false;

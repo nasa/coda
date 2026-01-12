@@ -1,18 +1,18 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import { getAncillaryDataSourceList } from "server/processing/ancillaryDataSources";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import getGraphManifest from "./graphs";
 
-jest.mock("server/processing/ancillaryDataSources");
-jest.mock("utils/fetch-with-timeout");
+vi.mock("server/processing/ancillaryDataSources");
+vi.mock("utils/fetch-with-timeout");
 
-const mockGetAncillaryDataSourceList = getAncillaryDataSourceList as jest.MockedFunction<
-  typeof getAncillaryDataSourceList
->;
-const mockFetchWithTimeout = fetchWithTimeout as jest.MockedFunction<typeof fetchWithTimeout>;
+const mockGetAncillaryDataSourceList = getAncillaryDataSourceList as Mock;
+const mockFetchWithTimeout = fetchWithTimeout as Mock;
 
 describe("graphs", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("getGraphManifest", () => {
@@ -29,13 +29,13 @@ describe("graphs", () => {
           source,
           type: "graphs",
           url: "https://example.com/manifest.json",
-        } as any,
+        } as AncillaryDataSource,
       ]);
 
       const mockResponse = {
-        json: jest.fn().mockResolvedValue(mockManifest),
+        json: vi.fn().mockResolvedValue(mockManifest),
       };
-      mockFetchWithTimeout.mockResolvedValue(mockResponse as any);
+      mockFetchWithTimeout.mockResolvedValue(mockResponse as unknown as Response);
 
       const result = await getGraphManifest({ source, dateWanted });
 
@@ -64,7 +64,7 @@ describe("graphs", () => {
           source: "source1" as Source,
           type: "graphs",
           url: "https://example.com/manifest.json",
-        } as any,
+        } as AncillaryDataSource,
       ]);
 
       mockFetchWithTimeout.mockRejectedValue(new Error(errorMessage));
@@ -86,7 +86,7 @@ describe("graphs", () => {
           source: "source1" as Source,
           type: "graphs",
           url: "https://example.com/manifest.json",
-        } as any,
+        } as AncillaryDataSource,
       ]);
 
       mockFetchWithTimeout.mockRejectedValue("Unknown error");

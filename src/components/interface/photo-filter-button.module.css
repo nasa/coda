@@ -1,14 +1,11 @@
 .buttonLong {
   width: 55px;
+  padding: 0 6px;
 }
 
 .buttonShort {
   width: 20px;
-}
-
-.buttonLabel {
-  display: flex;
-  justify-content: space-between;
+  padding: 0;
 }
 
 .filterLabel {
@@ -51,7 +48,7 @@
 .overlayTable {
   width: 100%;
   font-size: 0.9em;
-  background: rgb(15, 15, 15, 0.8);
+  background: rgb(15 15 15 / 80%);
   border: 2px solid #eeeeee;
   border-radius: 10px;
   border-spacing: 0;
@@ -62,15 +59,7 @@
 }
 
 .overlayTable tr {
-  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
-}
-
-.overlayTable td:first-child {
-  text-align: right;
-  width: 40px;
-  font-weight: 400;
-  white-space: nowrap;
-  border-right: 2px solid rgba(150, 150, 150, 0.5);
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
 }
 
 .overlayTable td {
@@ -79,21 +68,41 @@
   vertical-align: top;
   font-weight: 200;
   padding: 5px;
-  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
+}
+
+.overlayTable td:first-child {
+  text-align: right;
+  width: 40px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgb(150 150 150 / 50%);
 }
 .overlayTable tr:last-child td {
   border-bottom: none;
-}
-
-.overlayTable .digiValue {
-  font-family: "Ubuntu Mono";
-  font-size: 1em;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
 .selected {
   border: none;
   background-color: #eeeeee;
   color: var(--lighter-grey);
+}
+
+.overlayTableRow {
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
+}
+
+.overlayTableCell {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.titleRow {
+  text-align: right;
+  width: 40px;
+  font-weight: 400;
+}
+
+.tableInput {
+  cursor: pointer;
 }

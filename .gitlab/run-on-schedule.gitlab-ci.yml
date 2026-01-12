@@ -39,7 +39,7 @@ npm-audit:
     - if: $SCHEDULE_TYPE == "audit"
       when: always
   tags: ["openshift"]
-  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit
+  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit  # custom image, not on Docker Hub
   allow_failure: true
   script:
     # Run this without --json to make a pretty-print for the job log, plus will pass/fail the job

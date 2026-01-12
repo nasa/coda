@@ -1,17 +1,21 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/postgresql";
-import { types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-export class MediaOverride_db implements MediaOverride_db_type {
-  @PrimaryKey({ type: MikroTypes.integer })
+export class MediaOverride_db implements MediaOverride {
   id!: number;
-
-  @Property({ type: MikroTypes.text })
   date!: string;
-  @Property({ type: MikroTypes.text })
   source!: Source;
-  @Property({ type: MikroTypes.text })
   type!: MediaMedium;
-  @Property({ type: MikroTypes.text })
   url!: string;
 }
+
+export const MediaOverride_dbSchema = new EntitySchema<MediaOverride_db>({
+  class: MediaOverride_db,
+  tableName: "media_override_db",
+  properties: {
+    id: { type: MikroTypes.integer, primary: true, autoincrement: true },
+    date: { type: MikroTypes.text },
+    source: { type: MikroTypes.text },
+    type: { type: MikroTypes.text },
+    url: { type: MikroTypes.text },
+  },
+});

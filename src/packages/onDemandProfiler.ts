@@ -2,7 +2,7 @@ import { Response } from "express";
 import * as inspector from "node:inspector/promises";
 import { EmssUser } from "@emss/oauth2-proxy-common";
 import { asError } from "@emss/utils";
-import serverLogger from "utils/serverLogger";
+import serverLogger from "utils/logging/serverLogger";
 
 let session: inspector.Session | undefined;
 let profilingTimeoutId: NodeJS.Timeout;

@@ -1,10 +1,9 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FunctionComponent, useEffect, useState } from "react";
-import { shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
-import { RootState } from "store/index";
+import { setPaneStateDataValue } from "store/framework";
 import { ChartLayout, getPlotlyChartLayout } from "./graphProperties";
 import { setGraphsData, clearGraphsData } from "store/graphs";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
@@ -14,9 +13,8 @@ import DynPlotlyChart from "./plotly";
 import styles from "./graph.module.css";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 
-import Button from "components/interface/button";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
+import Button, { type ColorVariant, type RoundedVariant } from "components/interface/button";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
   frameID,
@@ -26,21 +24,26 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
 
   const minWidth = 500; // minimum width of the graph pane before shortening the dropdown
 
-  const paneStateData: GraphPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GraphPaneStateData,
     shallowEqual
   );
   const graphs: Graph[] = useAppSelector(
-    (state: RootState) => state.graphs.graphsManifest?.graphs,
+    (state) => state.graphs.graphsManifest?.graphs,
     shallowEqual
   );
 
   useEffect(() => {
     if (!graphs && !paneStateData.showHelp) {
-      setPaneStateValue(dispatch, frameID, "showHelp", true);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: true })
+      );
     } else {
-      setPaneStateValue(dispatch, frameID, "showHelp", false);
+      dispatch(
+        setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: false })
+      );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch/frameID are stable, paneStateData.showHelp would cause loops
   }, [graphs]);
 
   return (
@@ -61,7 +64,13 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -76,13 +85,13 @@ const GraphSelectorDropdown: FunctionComponent<{
   frameDimensions: number[];
   minWidth: number;
 }> = ({ frameID, frameDimensions, minWidth }) => {
-  const paneStateData: GraphPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GraphPaneStateData,
     shallowEqual
   );
   const dispatch = useAppDispatch();
   const graphs: Graph[] = useAppSelector(
-    (state: RootState) => state.graphs.graphsManifest?.graphs,
+    (state) => state.graphs.graphsManifest?.graphs,
     shallowEqual
   );
 
@@ -98,7 +107,13 @@ const GraphSelectorDropdown: FunctionComponent<{
           className={styles.selectActive}
           value={selectedGraphId}
           onChange={(event) => {
-            setPaneStateValue(dispatch, frameID, "selectedGraphId", event.target.value);
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "selectedGraphId",
+                paneStateValue: event.target.value,
+              })
+            );
           }}
         >
           <option value="">Select a graph</option>
@@ -139,14 +154,14 @@ const GraphDurationSelector: FunctionComponent<{
   return (
     <div className={styles.durationItemsContainer}>
       {durationItems.map((item, index) => {
-        let rounded = "none";
+        let rounded: RoundedVariant = "none";
         if (index === 0) {
           rounded = "left";
         } else if (index === durationItems.length - 1) {
           rounded = "right";
         }
 
-        let color = "active";
+        let color: ColorVariant = "active";
         if (durationSelection === item.value) {
           color = "active_selected";
         }
@@ -158,7 +173,13 @@ const GraphDurationSelector: FunctionComponent<{
             size="medium"
             rounded={rounded}
             callback={() => {
-              setPaneStateValue(dispatch, frameID, "durationSelection", item.value);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "durationSelection",
+                  paneStateValue: item.value,
+                })
+              );
             }}
           >
             <div className={styles.dlLabel}>{item.label}</div>
@@ -173,11 +194,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   frameID,
   frameDimensions,
 }) => {
-  const paneStateData: GraphPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GraphPaneStateData,
     shallowEqual
   );
-  const graphs: GraphsState = useAppSelector((state: RootState) => state.graphs, shallowEqual);
+  const graphs: GraphsState = useAppSelector((state) => state.graphs, shallowEqual);
 
   const [graphDataIsBad, setGraphDataIsBad] = useState<false | "unauthorized" | "invalid-data">(
     false
@@ -207,8 +228,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
 
   const [chartProps, setChartProps] = useState(initialChartProps);
   const [graphDataTimestampsInSeconds, setGraphDataTimestampsInSeconds] = useState<number[]>([]);
-  const { playhead } = usePlayheadContext();
-  const { hoverPlayhead } = useHoverPlayheadContext();
+
+  // Clock state from Redux
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const dispatch = useAppDispatch();
 
@@ -248,11 +272,14 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   useEffect(() => {
     if (graphs.metadata === null || !paneStateData.selectedGraphId) return;
 
-    setPaneStateValue(dispatch, frameID, "showHelp", false);
+    dispatch(
+      setPaneStateDataValue({ frameID, paneStateProperty: "showHelp", paneStateValue: false })
+    );
 
     dispatch(clearGraphsData());
 
     localAsyncFetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch/frameID are stable, localAsyncFetchData changes on every render
   }, [paneStateData.selectedGraphId, graphs.metadata]);
 
   // Peroiodically update the graph data depending on the graphs.graphManifest.updateFrequency value. If not value, default to 10 seconds. If -1 don't refresh.
@@ -273,6 +300,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     }, updateFrequency * 1000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- localAsyncFetchData changes on every render; graphs.graphsManifest?.updateFrequency is part of graphs.metadata and doesn't change independently
   }, [graphs.metadata, paneStateData.selectedGraphId]);
 
   const findPlotIndexToHighlight = (seconds: number): number => {
@@ -301,9 +329,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
         (badData as Record<string, unknown>).authorized === false
       ) {
         console.error("Unauthorized graph data:", { graphData });
+
         setGraphDataIsBad("unauthorized");
       } else {
         console.error("graphData not an array. Received:", { graphData });
+
         setGraphDataIsBad("invalid-data");
       }
       return;
@@ -320,12 +350,13 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       name: "test",
     };
 
-    const plotIndexToHighlight = findPlotIndexToHighlight(playhead.appSeconds);
+    const plotIndexToHighlight = findPlotIndexToHighlight(appSeconds);
 
     const chartLayout = getPlotlyChartLayout(graphHeight);
 
     setTimeout(() => {
       // delay 500ms before updating chart to allow for the chart to be rendered
+
       setChartProps({
         frameID,
         plotIndexToHighlight,
@@ -335,6 +366,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
         },
       });
     }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- appSeconds, findPlotIndexToHighlight, frameID, graphHeight are stable or would cause excessive re-renders
   }, [graphData, frameDimensions]);
 
   // update the graph ranges and hover when the time changes
@@ -348,11 +380,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       const duration = paneStateData.durationSelection;
       const halfDuration = duration / 2;
 
-      const startSeconds = playhead.appSeconds - halfDuration;
-      const endSeconds = playhead.appSeconds + halfDuration;
+      const startSeconds = appSeconds - halfDuration;
+      const endSeconds = appSeconds + halfDuration;
 
-      startDateString = dateFromAppSeconds(startSeconds, playhead.date).toISOString();
-      endDateString = dateFromAppSeconds(endSeconds, playhead.date).toISOString();
+      startDateString = dateFromAppSeconds(startSeconds, playheadDate).toISOString();
+      endDateString = dateFromAppSeconds(endSeconds, playheadDate).toISOString();
     }
 
     const chartLayout = getPlotlyChartLayout(graphHeight);
@@ -365,9 +397,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       chartLayout.xaxis.range = null;
     }
 
-    const plotIndexToHighlight = findPlotIndexToHighlight(
-      hoverPlayhead.hoverSeconds || playhead.appSeconds
-    );
+    const plotIndexToHighlight = findPlotIndexToHighlight(hoverSeconds || appSeconds);
 
     const updatedChartProps = {
       ...chartProps,
@@ -379,15 +409,14 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     };
 
     setChartProps(updatedChartProps);
-  }, [graphData, paneStateData.durationSelection, playhead]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chartProps, findPlotIndexToHighlight, graphHeight, hoverSeconds would cause infinite loops
+  }, [graphData, paneStateData.durationSelection, playheadDate, appSeconds]);
 
   // handle hover over graph
   useEffect(() => {
     if (!graphData) return;
 
-    const plotIndexToHighlight = findPlotIndexToHighlight(
-      hoverPlayhead.hoverSeconds || playhead.appSeconds
-    );
+    const plotIndexToHighlight = findPlotIndexToHighlight(hoverSeconds || appSeconds);
 
     const updatedChartProps = {
       ...chartProps,
@@ -395,7 +424,8 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     };
 
     setChartProps(updatedChartProps);
-  }, [graphData, playhead, hoverPlayhead]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chartProps, findPlotIndexToHighlight would cause infinite loops
+  }, [graphData, appSeconds, hoverSeconds]);
 
   if (graphDataIsBad === "unauthorized") {
     return <div>Unauthorized</div>;
@@ -405,6 +435,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
 
   return (
     <div className={styles.main}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {selectedGraph && <div>{selectedGraph?.title}</div>}
       <div style={{ width: "100%" }}>
         {selectedGraph && <DynPlotlyChart {...chartProps}></DynPlotlyChart>}
@@ -413,7 +444,13 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>

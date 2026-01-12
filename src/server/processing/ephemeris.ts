@@ -1,13 +1,13 @@
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
-import { Ephemeris_db } from "server/database/models/_allModels";
+import { Ephemeris_db } from "server/database/models/ephemera.model";
 
 /**
  * Get ISS TLE records around a specific date
  * Returns: 1 record from previous day (latest), all records from target day, 1 record from next day (earliest)
  */
-export async function getEphemerisByDate(date: string): Promise<Ephemeris_db_type[]> {
-  const em = globalValues.orm.em;
+export async function getEphemerisByDate(date: string): Promise<Ephemeris_db[]> {
+  const em = globalValues.orm.em.fork();
   const targetDate = new Date(date);
 
   // Calculate start and end of the target day
@@ -50,7 +50,7 @@ export async function upsertEphemerisRecords({
   records,
   origin,
 }: EphemerisUpsertRequest): Promise<{ inserted: number; skipped: number }> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   let inserted = 0;
   let skipped = 0;
 
@@ -104,19 +104,21 @@ export async function getStats(): Promise<{
   latestEpoch: Date | null;
   yearCounts: Array<{ year: number; count: number }>;
 }> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const count = await em.count(Ephemeris_db);
   const latestRecords = await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 });
 
-  // Get counts per year
-  const yearCountsResult = await em.getConnection().execute(
+  // Get counts per year using raw SQL for aggregation
+  const connection = em.getConnection();
+  const yearCountsResult = await connection.execute(
     `SELECT EXTRACT(YEAR FROM epoch)::int as year, COUNT(*) as count 
      FROM ephemeris_db 
      GROUP BY EXTRACT(YEAR FROM epoch) 
      ORDER BY year ASC`
   );
   const yearCounts: Array<{ year: number; count: string }> =
-    (yearCountsResult as any).rows || yearCountsResult;
+    (yearCountsResult as { rows?: Array<{ year: number; count: string }> }).rows ??
+    (yearCountsResult as Array<{ year: number; count: string }>);
 
   return {
     count,
@@ -126,6 +128,20 @@ export async function getStats(): Promise<{
       count: parseInt(yc.count, 10),
     })),
   };
+}
+
+/**
+ * Get the created_at timestamp of the most recently created ephemeris record
+ * Used to determine if we should fetch from Celestrak on startup
+ */
+export async function getLatestRecordCreatedAt(): Promise<Date | null> {
+  const em = globalValues.orm.em.fork();
+  const latestRecords = await em.find(
+    Ephemeris_db,
+    {},
+    { orderBy: { createdAt: "DESC" }, limit: 1 }
+  );
+  return latestRecords[0]?.createdAt || null;
 }
 
 /**

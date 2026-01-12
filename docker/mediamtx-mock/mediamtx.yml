@@ -12,6 +12,8 @@ logLevel: info
 logDestinations: [stdout]
 # If "file" is in logDestinations, this is the file which will receive the logs.
 logFile: mediamtx.log
+# If "syslog" is in logDestinations, use prefix for logs.
+sysLogPrefix: mediamtx
 
 # Timeout of read operations.
 readTimeout: 10s
@@ -19,17 +21,21 @@ readTimeout: 10s
 writeTimeout: 10s
 # Size of the queue of outgoing packets.
 # A higher value allows to increase throughput, a lower value allows to save RAM.
-writeQueueSize: 512
+writeQueueSize: 1024
 # Maximum size of outgoing UDP packets.
 # This can be decreased to avoid fragmentation on networks with a low UDP MTU.
 udpMaxPayloadSize: 1472
+# Size of the read buffer of every UDP socket.
+# This can be increased to decrease packet losses.
+# It defaults to the default value of the operating system.
+udpReadBufferSize: 0
 
 # Command to run when a client connects to the server.
 # This is terminated with SIGINT when a client disconnects from the server.
 # The following environment variables are available:
-# * RTSP_PORT: RTSP server port
 # * MTX_CONN_TYPE: connection type
 # * MTX_CONN_ID: connection ID
+# * RTSP_PORT: RTSP server port
 runOnConnect:
 # Restart the command if it exits.
 runOnConnectRestart: no
@@ -69,9 +75,9 @@ authInternalUsers:
       - action: playback
         path:
 
-    # Default administrator.
-    # This allows to use API, metrics and PPROF without authentication,
-    # if the IP is localhost.
+  # Default administrator.
+  # This allows to use API, metrics and PPROF without authentication,
+  # if the IP is localhost.
   - user: any
     pass:
     ips: ["127.0.0.1", "::1"]
@@ -111,6 +117,7 @@ authHTTPAddress:
 # Actions to exclude from HTTP-based authentication.
 # Format is the same as the one of user permissions.
 authHTTPExclude:
+  - action: api
   - action: metrics
   - action: pprof
 
@@ -119,7 +126,6 @@ authHTTPExclude:
 # This JWT must contain the claim "mediamtx_permissions" with permissions,
 # for instance:
 # {
-#  ...
 #  "mediamtx_permissions": [
 #     {
 #       "action": "publish",
@@ -127,10 +133,24 @@ authHTTPExclude:
 #     }
 #   ]
 # }
-# Users are then expected to pass the JWT as a query parameter, i.e. ?jwt=...
+# Users are expected to pass the JWT in the Authorization header or as password.
 # This is the JWKS URL that will be used to pull (once) the public key that allows
 # to validate JWTs.
 authJWTJWKS:
+# If the JWKS URL has a self-signed or invalid certificate,
+# you can provide the fingerprint of the certificate in order to
+# validate it anyway. It can be obtained by running:
+# openssl s_client -connect jwt_jwks_domain:443 </dev/null 2>/dev/null | sed -n '/BEGIN/,/END/p' > server.crt
+# openssl x509 -in server.crt -noout -fingerprint -sha256 | cut -d "=" -f2 | tr -d ':'
+authJWTJWKSFingerprint:
+# name of the claim that contains permissions.
+authJWTClaimKey: mediamtx_permissions
+# Actions to exclude from JWT-based authentication.
+# Format is the same as the one of user permissions.
+authJWTExclude: []
+# allow passing the JWT through query parameters of HTTP requests (i.e. ?jwt=JWT).
+# This is a security risk and will be disabled by default in the future.
+authJWTInHTTPQuery: true
 
 ###############################################
 # Global settings -> Control API
@@ -148,8 +168,9 @@ apiEncryption: no
 apiServerKey: server.key
 # Path to the server certificate.
 apiServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-apiAllowOrigin: "*"
+# List of allowed CORS origins.
+# Supports wildcards: ['http://*.example.com']
+apiAllowOrigins: ["*"]
 # List of IPs or CIDRs of proxies placed before the HTTP server.
 # If the server receives a request from one of these entries, IP in logs
 # will be taken from the X-Forwarded-For header.
@@ -171,8 +192,9 @@ metricsEncryption: no
 metricsServerKey: server.key
 # Path to the server certificate.
 metricsServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-metricsAllowOrigin: "*"
+# List of allowed CORS origins.
+# Supports wildcards: ['http://*.example.com']
+metricsAllowOrigins: ["*"]
 # List of IPs or CIDRs of proxies placed before the HTTP server.
 # If the server receives a request from one of these entries, IP in logs
 # will be taken from the X-Forwarded-For header.
@@ -194,8 +216,9 @@ pprofEncryption: no
 pprofServerKey: server.key
 # Path to the server certificate.
 pprofServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-pprofAllowOrigin: "*"
+# List of allowed CORS origins.
+# Supports wildcards: ['http://*.example.com']
+pprofAllowOrigins: ["*"]
 # List of IPs or CIDRs of proxies placed before the HTTP server.
 # If the server receives a request from one of these entries, IP in logs
 # will be taken from the X-Forwarded-For header.
@@ -217,8 +240,9 @@ playbackEncryption: no
 playbackServerKey: server.key
 # Path to the server certificate.
 playbackServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-playbackAllowOrigin: "*"
+# List of allowed CORS origins.
+# Supports wildcards: ['http://*.example.com']
+playbackAllowOrigins: ["*"]
 # List of IPs or CIDRs of proxies placed before the HTTP server.
 # If the server receives a request from one of these entries, IP in logs
 # will be taken from the X-Forwarded-For header.
@@ -231,28 +255,36 @@ playbackTrustedProxies: []
 rtsp: yes
 # List of enabled RTSP transport protocols.
 # UDP is the most performant, but doesn't work when there's a NAT/firewall between
-# server and clients, and doesn't support encryption.
+# server and clients.
 # UDP-multicast allows to save bandwidth when clients are all in the same LAN.
-# TCP is the most versatile, and does support encryption.
+# TCP is the most versatile.
 # The handshake is always performed with TCP.
-rtspTransports: [udp, multicast, tcp]
-# Encrypt handshakes and TCP streams with TLS (RTSPS).
+rtspTransports: [tcp]
+# Use secure protocol variants (RTSPS, TLS, SRTP).
 # Available values are "no", "strict", "optional".
 rtspEncryption: "no"
 # Address of the TCP/RTSP listener. This is needed only when encryption is "no" or "optional".
 rtspAddress: :8554
 # Address of the TCP/TLS/RTSPS listener. This is needed only when encryption is "strict" or "optional".
 rtspsAddress: :8322
-# Address of the UDP/RTP listener. This is needed only when "udp" is in protocols.
+# Address of the UDP/RTP listener. This is needed only when "udp" is in rtspTransports.
 rtpAddress: :8000
-# Address of the UDP/RTCP listener. This is needed only when "udp" is in protocols.
+# Address of the UDP/RTCP listener. This is needed only when "udp" is in rtspTransports.
 rtcpAddress: :8001
-# IP range of all UDP-multicast listeners. This is needed only when "multicast" is in protocols.
+# IP range of all UDP-multicast listeners. This is needed only when "multicast" is in rtspTransports.
 multicastIPRange: 224.1.0.0/16
-# Port of all UDP-multicast/RTP listeners. This is needed only when "multicast" is in protocols.
+# Port of all UDP-multicast/RTP listeners. This is needed only when "multicast" is in rtspTransports.
 multicastRTPPort: 8002
-# Port of all UDP-multicast/RTCP listeners. This is needed only when "multicast" is in protocols.
+# Port of all UDP-multicast/RTCP listeners. This is needed only when "multicast" is in rtspTransports.
 multicastRTCPPort: 8003
+# Address of the UDP/SRTP listener. This is needed only when "udp" is in rtspTransports and encryption is enabled.
+srtpAddress: :8004
+# Address of the UDP/SRTCP listener. This is needed only when "udp" is in rtspTransports and encryption is enabled.
+srtcpAddress: :8005
+# Port of all UDP-multicast/SRTP listeners. This is needed only when "multicast" is in rtspTransports and encryption is enabled.
+multicastSRTPPort: 8006
+# Port of all UDP-multicast/SRTCP listeners. This is needed only when "multicast" is in rtspTransports and encryption is enabled.
+multicastSRTCPPort: 8007
 # Path to the server key. This is needed only when encryption is "strict" or "optional".
 # This can be generated with:
 # openssl genrsa -out server.key 2048
@@ -301,9 +333,9 @@ hlsEncryption: no
 hlsServerKey: server.key
 # Path to the server certificate.
 hlsServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-# This allows to play the HLS stream from an external website.
-hlsAllowOrigin: "*"
+# List of allowed CORS origins.
+# Supports wildcards: ['http://*.example.com']
+hlsAllowOrigins: ["*"]
 # List of IPs or CIDRs of proxies placed before the HLS server.
 # If the server receives a request from one of these entries, IP in logs
 # will be taken from the X-Forwarded-For header.
@@ -319,7 +351,7 @@ hlsVariant: lowLatency
 # Number of HLS segments to keep on the server.
 # Segments allow to seek through the stream.
 # Their number doesn't influence latency.
-hlsSegmentCount: 60 # 60 at 5s = 5 minutes
+hlsSegmentCount: 180
 # Minimum duration of each segment.
 # A player usually puts 3 segments in a buffer before reproducing the stream.
 # The final segment duration is also influenced by the interval between IDR frames,
@@ -334,11 +366,14 @@ hlsSegmentDuration: 5s
 hlsPartDuration: 1s
 # Maximum size of each segment.
 # This prevents RAM exhaustion.
-hlsSegmentMaxSize: 10M
+hlsSegmentMaxSize: 50M
 # Directory in which to save segments, instead of keeping them in the RAM.
 # This decreases performance, since reading from disk is less performant than
 # reading from RAM, but allows to save RAM.
-hlsDirectory: "/hls"
+hlsDirectory: ""
+# The muxer will be closed when there are no
+# reader requests and this amount of time has passed.
+hlsMuxerCloseAfter: 60s
 
 ###############################################
 # Global settings -> WebRTC server
@@ -356,9 +391,9 @@ webrtcEncryption: no
 webrtcServerKey: server.key
 # Path to the server certificate.
 webrtcServerCert: server.crt
-# Value of the Access-Control-Allow-Origin header provided in every HTTP response.
-# This allows to play the WebRTC stream from an external website.
-webrtcAllowOrigin: "*"
+# List of allowed CORS origins.
+# Supports wildcards: ['http://*.example.com']
+webrtcAllowOrigins: ["*"]
 # List of IPs or CIDRs of proxies placed before the WebRTC server.
 # If the server receives a request from one of these entries, IP in logs
 # will be taken from the X-Forwarded-For header.
@@ -381,14 +416,19 @@ webrtcAdditionalHosts: []
 # ICE servers. Needed only when local listeners can't be reached by clients.
 # STUN servers allows to obtain and share the public IP of the server.
 # TURN/TURNS servers forces all traffic through them.
-webrtcICEServers2:
-  []
+webrtcICEServers2: []
   # - url: stun:stun.l.google.com:19302
   # if user is "AUTH_SECRET", then authentication is secret based.
   # the secret must be inserted into the password field.
   # username: ''
   # password: ''
   # clientOnly: false
+# Time to wait for the WebRTC handshake to complete.
+webrtcHandshakeTimeout: 10s
+# Maximum time to gather video tracks.
+webrtcTrackGatherTimeout: 2s
+# The maximum time to gather STUN candidates.
+webrtcSTUNGatherTimeout: 5s
 
 ###############################################
 # Global settings -> SRT server
@@ -411,20 +451,29 @@ pathDefaults:
   # * publisher -> the stream is provided by a RTSP, RTMP, WebRTC or SRT client
   # * rtsp://existing-url -> the stream is pulled from another RTSP server / camera
   # * rtsps://existing-url -> the stream is pulled from another RTSP server / camera with RTSPS
+  # * rtsp+http://existing-url -> the stream is pulled from another RTSP server / camera, with HTTP tunneling
+  # * rtsps+http://existing-url -> the stream is pulled from another RTSP server / camera, with HTTPS tunneling
+  # * rtsp+ws://existing-url -> the stream is pulled from another RTSP server / camera, with WebSocket tunneling
+  # * rtsps+ws://existing-url -> the stream is pulled from another RTSP server / camera, with secure WebSocket tunneling
   # * rtmp://existing-url -> the stream is pulled from another RTMP server / camera
   # * rtmps://existing-url -> the stream is pulled from another RTMP server / camera with RTMPS
   # * http://existing-url/stream.m3u8 -> the stream is pulled from another HLS server / camera
   # * https://existing-url/stream.m3u8 -> the stream is pulled from another HLS server / camera with HTTPS
-  # * udp://ip:port -> the stream is pulled with UDP, by listening on the specified IP and port
+  # * udp+mpegts://ip:port -> the stream is pulled from MPEG-TS over UDP, by listening on the specified address
+  # * unix+mpegts://socket -> the stream is pulled from MPEG-TS over Unix socket, by using the socket
+  # * udp+rtp://ip:port -> the stream is pulled from RTP over UDP, by listening on the specified address
+  # * unix+rtp://socket -> the stream is pulled from RTP over Unix socket, by using the socket
   # * srt://existing-url -> the stream is pulled from another SRT server / camera
   # * whep://existing-url -> the stream is pulled from another WebRTC server / camera
   # * wheps://existing-url -> the stream is pulled from another WebRTC server / camera with HTTPS
   # * redirect -> the stream is provided by another path or server
   # * rpiCamera -> the stream is provided by a Raspberry Pi Camera
-  # If path name is a regular expression, $G1, G2, etc will be replaced
-  # with regular expression groups.
+  # The following variables can be used in the source string:
+  # * $MTX_QUERY: query parameters (passed by first reader)
+  # * $G1, $G2, ...: regular expression groups, if path name is
+  #   a regular expression.
   source: publisher
-  # If the source is a URL, and the source certificate is self-signed
+  # If the source is a URL, and the source TLS certificate is self-signed
   # or invalid, you can provide the fingerprint of the certificate in order to
   # validate it anyway. It can be obtained by running:
   # openssl s_client -connect source_ip:source_port </dev/null 2>/dev/null | sed -n '/BEGIN/,/END/p' > server.crt
@@ -446,6 +495,8 @@ pathDefaults:
   # If the stream is not available, redirect readers to this path.
   # It can be can be a relative path (i.e. /otherstream) or an absolute RTSP URL.
   fallback:
+  # Use absolute timestamp of frames, instead of replacing them with the current time.
+  useAbsoluteTimestamp: false
 
   ###############################################
   # Default path settings -> Record
@@ -454,9 +505,9 @@ pathDefaults:
   record: yes
   # Path of recording segments.
   # Extension is added automatically.
-  # Available variables are %path (path name), %Y %m %d %H %M %S %f %s (time in strftime format)
-  # recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
-  recordPath: ./recordings/%path-%Y-%m-%d/%Y-%m-%d_%H-%M-%S-%f
+  # Available variables are %path (path name), %Y %m %d (year, month, day),
+  # %H %M %S (hours, minutes, seconds), %f (microseconds), %z (time zone), %s (unix epoch).
+  recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
   # Format of recorded segments.
   # Available formats are "fmp4" (fragmented MP4) and "mpegts" (MPEG-TS).
   recordFormat: fmp4
@@ -464,13 +515,14 @@ pathDefaults:
   # MPEG-TS segments are concatenation of 188-bytes packets, flushed to disk with this period.
   # When a system failure occurs, the last part gets lost.
   # Therefore, the part duration is equal to the RPO (recovery point objective).
-  recordPartDuration: 1s
+  recordPartDuration: 2s
+  # This prevents RAM exhaustion.
+  recordMaxPartSize: 50M
   # Minimum duration of each segment.
   recordSegmentDuration: 90s
   # Delete segments after this timespan.
   # Set to 0s to disable automatic deletion.
-  # recordDeleteAfter: 0s
-  recordDeleteAfter: 24h
+  recordDeleteAfter: 168h # 7 days
 
   ###############################################
   # Default path settings -> Publisher source (when source is "publisher")
@@ -501,80 +553,76 @@ pathDefaults:
   rtspRangeStart:
 
   ###############################################
+  # Default path settings -> RTP source (when source is RTP)
+
+  # session description protocol (SDP) of the RTP stream.
+  rtpSDP:
+
+  ###############################################
   # Default path settings -> Redirect source (when source is "redirect")
 
-  # RTSP URL which clients will be redirected to.
+  # path which clients will be redirected to.
+  # It can be can be a relative path (i.e. /otherstream) or an absolute RTSP URL.
   sourceRedirect:
 
   ###############################################
   # Default path settings -> Raspberry Pi Camera source (when source is "rpiCamera")
 
-  # ID of the camera
+  # ID of the camera.
   rpiCameraCamID: 0
-  # width of frames
+  # Whether this is a secondary stream.
+  rpiCameraSecondary: false
+  # Width of frames.
   rpiCameraWidth: 1920
-  # height of frames
+  # Height of frames.
   rpiCameraHeight: 1080
-  # flip horizontally
+  # Flip horizontally.
   rpiCameraHFlip: false
-  # flip vertically
+  # Flip vertically.
   rpiCameraVFlip: false
-  # brightness [-1, 1]
+  # Brightness [-1, 1].
   rpiCameraBrightness: 0
-  # contrast [0, 16]
+  # Contrast [0, 16].
   rpiCameraContrast: 1
-  # saturation [0, 16]
+  # Saturation [0, 16].
   rpiCameraSaturation: 1
-  # sharpness [0, 16]
+  # Sharpness [0, 16].
   rpiCameraSharpness: 1
-  # exposure mode.
-  # values: normal, short, long, custom
+  # Exposure mode.
+  # values: normal, short, long, custom.
   rpiCameraExposure: normal
-  # auto-white-balance mode.
-  # values: auto, incandescent, tungsten, fluorescent, indoor, daylight, cloudy, custom
+  # Auto-white-balance mode.
+  # (auto, incandescent, tungsten, fluorescent, indoor, daylight, cloudy or custom).
   rpiCameraAWB: auto
-  # auto-white-balance fixed gains. This can be used in place of rpiCameraAWB.
-  # format: [red,blue]
+  # Auto-white-balance fixed gains. This can be used in place of rpiCameraAWB.
+  # format: [red,blue].
   rpiCameraAWBGains: [0, 0]
-  # denoise operating mode.
-  # values: off, cdn_off, cdn_fast, cdn_hq
+  # Denoise operating mode (off, cdn_off, cdn_fast, cdn_hq).
   rpiCameraDenoise: "off"
-  # fixed shutter speed, in microseconds.
+  # Fixed shutter speed, in microseconds.
   rpiCameraShutter: 0
-  # metering mode of the AEC/AGC algorithm.
-  # values: centre, spot, matrix, custom
+  # Metering mode of the AEC/AGC algorithm (centre, spot, matrix or custom).
   rpiCameraMetering: centre
-  # fixed gain
+  # Fixed gain.
   rpiCameraGain: 0
-  # EV compensation of the image [-10, 10]
+  # EV compensation of the image in range [-10, 10].
   rpiCameraEV: 0
-  # Region of interest, in format x,y,width,height
+  # Region of interest, in format x,y,width,height (all normalized between 0 and 1).
   rpiCameraROI:
-  # whether to enable HDR on Raspberry Camera 3.
+  # Whether to enable HDR on Raspberry Camera 3.
   rpiCameraHDR: false
-  # tuning file
+  # Tuning file.
   rpiCameraTuningFile:
-  # sensor mode, in format [width]:[height]:[bit-depth]:[packing]
+  # Sensor mode, in format [width]:[height]:[bit-depth]:[packing]
   # bit-depth and packing are optional.
   rpiCameraMode:
-  # frames per second
+  # frames per second.
   rpiCameraFPS: 30
-  # period between IDR frames
-  rpiCameraIDRPeriod: 60
-  # bitrate
-  rpiCameraBitrate: 1000000
-  # H264 profile
-  rpiCameraProfile: main
-  # H264 level
-  rpiCameraLevel: "4.1"
-  # Autofocus mode
-  # values: auto, manual, continuous
+  # Autofocus mode (auto, manual or continuous).
   rpiCameraAfMode: continuous
-  # Autofocus range
-  # values: normal, macro, full
+  # Autofocus range (normal, macro or full).
   rpiCameraAfRange: normal
-  # Autofocus speed
-  # values: normal, fast
+  # Autofocus speed (normal or fast).
   rpiCameraAfSpeed: normal
   # Lens position (for manual autofocus only), will be set to focus to a specific distance
   # calculated by the following formula: d = 1 / value
@@ -582,14 +630,34 @@ pathDefaults:
   #           0.5 moves the lens to focus on objects 2m away.
   #           2 moves the lens to focus on objects 50cm away.
   rpiCameraLensPosition: 0.0
-  # Specifies the autofocus window, in the form x,y,width,height where the coordinates
+  # Autofocus window, in the form x,y,width,height where the coordinates
   # are given as a proportion of the entire image.
   rpiCameraAfWindow:
-  # enables printing text on each frame.
+  # Manual flicker correction period, in microseconds.
+  rpiCameraFlickerPeriod: 0
+  # Enables printing text on each frame.
   rpiCameraTextOverlayEnable: false
-  # text that is printed on each frame.
+  # Text that is printed on each frame.
   # format is the one of the strftime() function.
   rpiCameraTextOverlay: "%Y-%m-%d %H:%M:%S - MediaMTX"
+  # Codec (auto, hardwareH264, softwareH264 or mjpeg).
+  # When is "auto" and stream is primary, it defaults to hardwareH264 (if available) or softwareH264.
+  # When is "auto" and stream is secondary, it defaults to mjpeg.
+  rpiCameraCodec: auto
+  # Period between IDR frames (when codec is hardwareH264 or softwareH264).
+  rpiCameraIDRPeriod: 60
+  # Bitrate (when codec is hardwareH264 or softwareH264).
+  rpiCameraBitrate: 5000000
+  # Hardware H264 profile (baseline, main or high) (when codec is hardwareH264).
+  rpiCameraHardwareH264Profile: main
+  # Hardware H264 level (4.0, 4.1 or 4.2) (when codec is hardwareH264).
+  rpiCameraHardwareH264Level: "4.1"
+  # Software H264 profile (baseline, main or high) (when codec is softwareH264).
+  rpiCameraSoftwareH264Profile: baseline
+  # Software H264 level (4.0, 4.1 or 4.2) (when codec is softwareH264).
+  rpiCameraSoftwareH264Level: "4.1"
+  # M-JPEG JPEG quality (when codec is mjpeg).
+  rpiCameraMJPEGQuality: 60
 
   ###############################################
   # Default path settings -> Hooks
@@ -680,6 +748,7 @@ pathDefaults:
   # * G1, G2, ...: regular expression groups, if path name is
   #   a regular expression.
   # * MTX_SEGMENT_PATH: segment file path
+  # * MTX_SEGMENT_DURATION: segment duration
   runOnRecordSegmentComplete:
 
 ###############################################
@@ -692,8 +761,6 @@ pathDefaults:
 # for example "~^(test1|test2)$" will match both "test1" and "test2",
 # for example "~^prefix" will match all paths that start with "prefix".
 paths:
-  # COMMENT OUT the EV1/EV2 settings if TCP streaming fails
-
   # These initiate re-streaming the TCP video using FFMPEG, since MediaMTX can't read TCP directly.
   # The streams will be continually retried if they fail.
   # DL5_EV1-Realtime:
@@ -753,7 +820,7 @@ paths:
 
   # iss
   DL1_ISS:
-    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_ISS_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -c:v libx264 -preset fast -b:v 1.2M -maxrate 1.2M -bufsize 2.4M -g 60 -keyint_min 60 -bf 0 -flags +cgop -pix_fmt yuv420p -an -muxdelay 0.1 -f rtsp -rtsp_transport tcp rtsp://localhost:$RTSP_PORT/$MTX_PATH
     runOnInitRestart: yes
 
   # DL2_ISS:
@@ -762,7 +829,7 @@ paths:
 
   # test event
   DL1_TE:
-    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -vcodec libx264 -preset veryfast -pix_fmt yuv420p -an -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -c:v libx264 -preset fast -b:v 1.2M -maxrate 1.2M -bufsize 2.4M -g 60 -keyint_min 60 -bf 0 -flags +cgop -pix_fmt yuv420p -an -muxdelay 0.1 -f rtsp -rtsp_transport tcp rtsp://localhost:$RTSP_PORT/$MTX_PATH
     runOnInitRestart: yes
 
   # Settings under path "all_others" are applied to all paths that

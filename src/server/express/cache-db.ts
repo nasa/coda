@@ -1,5 +1,7 @@
+import type { FilterQuery } from "@mikro-orm/core";
 import { globalValues } from "server/express/global";
 import { Cache_db } from "../database/models/cache.model";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Retrieves a cache entry from the database and updates its lastAccessedAt timestamp.
@@ -11,7 +13,7 @@ export async function getCacheEntry({
   folder: string;
   identifier: string;
 }): Promise<Cache_db | null> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   try {
     const entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
     if (entry) {
@@ -20,7 +22,7 @@ export async function getCacheEntry({
     }
     return entry;
   } catch (error) {
-    console.error(`Error getting cache entry for ${folder}/${identifier}:`, error);
+    ConsoleLogger.error(`Error getting cache entry for ${folder}/${identifier}:`, error);
     return null;
   }
 }
@@ -42,7 +44,7 @@ export async function putCacheEntry({
   data: Object | null;
   metadata: CacheMetadata;
 }): Promise<Cache_db | null> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   try {
     let entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
     const now = new Date();
@@ -66,7 +68,7 @@ export async function putCacheEntry({
     await em.persistAndFlush(entry);
     return entry;
   } catch (error) {
-    console.error(`Error putting cache entry for ${folder}/${identifier}:`, error);
+    ConsoleLogger.error(`Error putting cache entry for ${folder}/${identifier}:`, error);
     return null;
   }
 }
@@ -81,7 +83,7 @@ export async function removeCacheEntry({
   folder: string;
   identifier?: string;
 }): Promise<boolean> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   try {
     if (identifier) {
       // If identifier is provided, remove a specific entry
@@ -97,7 +99,7 @@ export async function removeCacheEntry({
       return numDeleted > 0;
     }
   } catch (error) {
-    console.error(`Error removing cache entry for ${folder}/${identifier ?? "all"}:`, error);
+    ConsoleLogger.error(`Error removing cache entry for ${folder}/${identifier ?? "all"}:`, error);
     return false;
   }
 }
@@ -115,9 +117,9 @@ export async function evictLruCacheEntries({
   olderThanDate: Date;
   folder?: string;
 }): Promise<number> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   try {
-    const filter: any = {
+    const filter: FilterQuery<Cache_db> = {
       lastAccessedAt: { $lt: olderThanDate },
     };
     if (folder) {
@@ -126,7 +128,7 @@ export async function evictLruCacheEntries({
     const numDeleted = await em.nativeDelete(Cache_db, filter);
     return numDeleted;
   } catch (error) {
-    console.error(
+    ConsoleLogger.error(
       `Error removing LRU entries ${folder ? `for folder ${folder} ` : ""}older than ${olderThanDate.toISOString()}:`,
       error
     );

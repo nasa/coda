@@ -1,15 +1,88 @@
-import { hhmmssFromSeconds, shortdateFromDateString } from "utils/formatting";
+import {
+  appSecondsFromDateString,
+  hhmmssFromSeconds,
+  shortdateFromDateString,
+} from "utils/formatting";
 import { paneTypeShortVal, sourceShortVal } from "utils/consts";
+import { diff, isSameDate, midnightZulu } from "utils/date";
+import isNull from "lodash/isNull";
+import isNaN from "lodash/isNaN";
+import isNil from "lodash/isNil";
+
+/**
+ * Validates share link date/time parameters.
+ * - Dates in the future are changed to today's date
+ * - Times in the future (when date is today) are changed to now
+ * @returns Validated date and gmt values, plus a flag indicating if the date was validated to today
+ */
+export function validateShareLinkDateTime(
+  date: string | null,
+  gmt: string | null
+): { validatedDate: string | null; validatedGmt: string | null; isToday: boolean } {
+  const now = new Date();
+  const todayMidnight = midnightZulu(now);
+  const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
+  // Match HH:MM:SS with either literal colons or URL-encoded colons (%3A)
+  const reHHMMSS = /^(?:(?:([01]?\d|2[0-3])(?::|%3A)[0-5]\d(?::|%3A)[0-9]\d))$/i;
+
+  let validatedDate = date;
+  let validatedGmt = gmt;
+  let isToday = false;
+
+  // Validate date
+  if (!isNull(date) && !isNull(date.match(yyyymmdd))) {
+    const parsedDate = midnightZulu(new Date(date));
+    const isFutureDate = diff(parsedDate, todayMidnight) > 0;
+    const isMalformedDate = isNaN(parsedDate.valueOf());
+
+    if (isFutureDate || isMalformedDate) {
+      // Future or malformed date - set to today
+      validatedDate = now.toISOString().split("T")[0];
+      isToday = true;
+    } else {
+      isToday = isSameDate(parsedDate, now);
+    }
+  } else {
+    // No date provided - defaults to today
+    isToday = true;
+  }
+
+  // Validate time - only check for future time if the date is today
+  if (isToday && !isNil(gmt) && !isNil(gmt.match(reHHMMSS))) {
+    // Decode URL-encoded colons before parsing
+    const decodedGmt = gmt.replace(/%3A/gi, ":");
+    const [hh, mm, ss = 0] = decodedGmt.split(":").map(Number);
+    const gmtSeconds = hh * 3600 + mm * 60 + ss;
+    const currentSeconds = appSecondsFromDateString(now.toISOString());
+
+    if (gmtSeconds > currentSeconds) {
+      // Time is in the future - set to current time
+      const currentHH = Math.floor(currentSeconds / 3600);
+      const currentMM = Math.floor((currentSeconds % 3600) / 60);
+      const currentSS = Math.floor(currentSeconds % 60);
+      validatedGmt = `${String(currentHH).padStart(2, "0")}:${String(currentMM).padStart(2, "0")}:${String(currentSS).padStart(2, "0")}`;
+    }
+  }
+
+  return { validatedDate, validatedGmt, isToday };
+}
 
 /**
  * Generates a URL string that represents the state of the application.
+ * @param framework - The framework state
+ * @param date - The current date string
+ * @param appSeconds - The current app seconds
  * @returns {string}
  */
-export function generateShareURL(framework: FrameworkState, playhead: Playhead): string {
-  const dt = new Date(playhead.date);
+export function generateShareURL(
+  framework: FrameworkState,
+  date: string,
+  appSeconds: number
+): string {
+  const dt = new Date(date);
 
   const missionDate = shortdateFromDateString(dt.toISOString());
-  const missionTime = hhmmssFromSeconds(playhead.appSeconds);
+  const missionTime = hhmmssFromSeconds(appSeconds);
 
   const layout = framework.layout;
   const shortSource = sourceShortVal[framework.source];
@@ -21,36 +94,40 @@ export function generateShareURL(framework: FrameworkState, playhead: Playhead):
     switch (element.paneType) {
       case "video_downlink":
         paneStateString = getStateStringForVideo(
-          element.paneStateData,
+          element.paneStateData as VideoPaneStateData,
           paneTypeShortVal.video_downlink
         );
         break;
       case "video_non_downlink":
         paneStateString = getStateStringForVideo(
-          element.paneStateData,
+          element.paneStateData as VideoPaneStateData,
           paneTypeShortVal.video_non_downlink
         );
         break;
       case "photo":
-        paneStateString = getStateStringForPhoto(element.paneStateData);
+        paneStateString = getStateStringForPhoto(element.paneStateData as PhotoPaneStateData);
         break;
       case "photo_all":
-        paneStateString = getStateStringForPhotoAll(element.paneStateData);
+        paneStateString = getStateStringForPhotoAll(element.paneStateData as PhotoAllPaneStateData);
         break;
       case "event_info":
         paneStateString = getStateStringForEventInfo();
         break;
       case "iss_location":
-        paneStateString = getStateStringforISSLocation(element.paneStateData);
+        paneStateString = getStateStringforISSLocation(
+          element.paneStateData as LocationPaneStateData
+        );
         break;
       case "gps_location":
-        paneStateString = getStateStringforGPSLocation(element.paneStateData);
+        paneStateString = getStateStringforGPSLocation(
+          element.paneStateData as GpsTrackPaneStateData
+        );
         break;
       case "comm":
-        paneStateString = getStateStringForComm(element.paneStateData);
+        paneStateString = getStateStringForComm(element.paneStateData as CommPaneStateData);
         break;
       case "graph":
-        paneStateString = getStateStringForGraph(element.paneStateData);
+        paneStateString = getStateStringForGraph(element.paneStateData as GraphPaneStateData);
         break;
     }
     stateUrlParams += "&f" + i + "=" + paneStateString;
@@ -151,12 +228,11 @@ function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
 /**
  * @returns {string}
  * Chars 0,1 digits: pane type
- * Char 2: S/G channel number - 1
+ * No channel info - all channels selected by default
  */
-function getStateStringForComm(state: CommPaneStateData) {
-  const paneTypeString = "0" + paneTypeShortVal.transcript;
-  const sgChannel = state.sgChannel.toString();
-  return `${paneTypeString}${sgChannel}`;
+function getStateStringForComm(_state: CommPaneStateData) {
+  const paneTypeString = "0" + paneTypeShortVal.talkybot;
+  return `${paneTypeString}`;
 }
 
 /**
@@ -294,7 +370,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         };
       } else {
         const enabledTracks = frameString.substring(3).split(",");
-        for (let name of enabledTracks) {
+        for (const name of enabledTracks) {
           gpsTrackToggles[name] = true;
         }
       }
@@ -308,8 +384,8 @@ function interpretFrameQueryParam(frameString: string): PaneState {
         },
       };
       return gpsLocationReturnVal;
-    case paneTypeShortVal.transcript:
-      /* Char 2: sgChannel number
+    case paneTypeShortVal.talkybot:
+      /* Channel info ignored - all channels selected by default
        */
       const commReturnVal: { paneType: string; paneStateData: CommPaneStateData } = {
         paneType: "comm",
@@ -317,7 +393,7 @@ function interpretFrameQueryParam(frameString: string): PaneState {
           ready: true,
           lockScroll: true,
           filterActive: false,
-          sgChannel: parseInt(frameString.substring(2, 3)),
+          sgChannels: [],
           isMuted: false,
           showHelp: true,
         },

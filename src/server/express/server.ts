@@ -4,139 +4,134 @@ import app from "./restApi";
 import { Server as SocketServer } from "socket.io";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
-import serverLogger from "utils/serverLogger";
-import { ConsoleLogger } from "../../utils/consoleLogger";
+import { initTalkybotS2sSocket, disconnectTalkybotS2sSocket } from "./talkybotS2sSocket";
+import { startCelestrakScheduler, stopCelestrakScheduler } from "./celestrakScheduler";
+import serverLogger from "utils/logging/serverLogger";
+import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import config from "server/database/mikro-orm.config";
 import { MikroORM } from "@mikro-orm/postgresql";
-import { updateFromCelestrak } from "server/processing/ephemeris-celestrak";
 
-// enable console logging on the server side based on the environment variable
-if (process.env.SHOW_CLG === "true") ConsoleLogger.enable();
+// start the database connection
+globalValues.orm = await MikroORM.init(config);
 
-// Wrap in async IIFE to handle top-level await
-(async () => {
-  // start the database connection
-  globalValues.orm = await MikroORM.init(config);
+// Create server
+const server = createServer();
 
-  // Create server
-  const server = createServer();
-
-  // Start Socket.IO
-  console.log("*Starting Socket.IO");
-  globalValues.socketio = new SocketServer<
-    ClientToServerEvents,
-    ServerToClientEvents,
-    InterServerEvents,
-    {}
-  >(server, {
-    transports: ["websocket"],
-    path: "/api/v1/socketio",
-    addTrailingSlash: false,
-  });
-
-  // these values are defined in esbuild.mjs and populated at build time
-  globalValues.appVersion = {
-    version: typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "unknown",
-    gitCommit: typeof __GIT_COMMIT__ !== "undefined" ? __GIT_COMMIT__ : "unknown",
-  };
-
-  setupSocketIO();
-
-  // express request handler
-  server.on("request", app);
-
-  // Celestrak TLE update scheduler - runs regardless of user activity
-  const CELESTRAK_UPDATE_INTERVAL_MS = 120 * 60 * 1000; // 120 minutes (Celestrak itself updates every 2 hours)
-  let celestrakInterval: NodeJS.Timeout | null = null;
-
-  const startCelestrakScheduler = () => {
-    // Initial update on startup. "void" on this "fire and forget" call to explicitly ignore returned Promise
-    void updateFromCelestrak();
-
-    celestrakInterval = setInterval(() => {
-      void updateFromCelestrak();
-    }, CELESTRAK_UPDATE_INTERVAL_MS);
-
-    ConsoleLogger.log("Celestrak TLE update scheduler started (120 minute interval)");
-  };
-
-  // Start the server
-  server.listen(3001, () => {
-    serverLogger.info({ logId: "api-restart" });
-    startCelestrakScheduler();
-  });
-
-  // Simple shutdown handler
-  const gracefulShutdown = async () => {
-    console.log("Gracefully shutting down server...");
-
-    // Stop Celestrak scheduler
-    if (celestrakInterval) {
-      clearInterval(celestrakInterval);
-      console.log("Celestrak scheduler stopped");
-    }
-
-    // Close Socket.IO first
-    if (globalValues.socketio) {
-      await new Promise<void>((resolve) => {
-        globalValues.socketio.close(() => {
-          console.log("Socket.IO server closed");
-          resolve();
-        });
-      });
-    }
-
-    // Close the HTTP server
-    try {
-      await new Promise<void>((resolve, reject) => {
-        server.close((err) => {
-          if (err) {
-            // Check for ERR_SERVER_NOT_RUNNING with proper type checking
-            if (err instanceof Error && "code" in err && err.code === "ERR_SERVER_NOT_RUNNING") {
-              console.log("Server was already closed");
-              resolve();
-            } else {
-              console.error("Error closing HTTP server:", err);
-              reject(err);
-            }
-          } else {
-            console.log("HTTP server closed");
-            resolve();
-          }
-        });
-      });
-    } catch (err) {
-      // Just log the error, but continue shutdown
-      console.log("Server might already be closed:", err);
-    }
-
-    // Close database connections
-    try {
-      if (globalValues.orm) {
-        await globalValues.orm.close();
-        console.log("Database connections closed");
-      }
-    } catch (err) {
-      console.error("Error closing database connection:", err);
-    }
-
-    console.log("Shutdown complete");
-  };
-
-  // Handle process events
-  if (typeof process !== "undefined") {
-    process.on("message", (msg) => {
-      if (msg === "shutdown") {
-        gracefulShutdown().catch(console.error);
-      }
-    });
-
-    // Handle termination signals
-    process.on("SIGINT", gracefulShutdown);
-    process.on("SIGTERM", gracefulShutdown);
-    process.on("SIGUSR2", gracefulShutdown);
-  }
-})().catch((err) => {
-  console.error("Failed to start server:", err);
-  process.exit(1);
+// Start Socket.IO
+ConsoleLogger.info("*Starting Socket.IO");
+globalValues.socketio = new SocketServer<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  {}
+>(server, {
+  transports: ["websocket"],
+  path: "/api/v1/socketio",
+  addTrailingSlash: false,
 });
+
+// these values are defined in esbuild.mjs and populated at build time
+globalValues.appVersion = {
+  version: typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "unknown",
+  gitCommit: typeof __GIT_COMMIT__ !== "undefined" ? __GIT_COMMIT__ : "unknown",
+};
+
+setupSocketIO();
+
+// express request handler
+server.on("request", app);
+
+// Start the server
+server.listen(3001, () => {
+  serverLogger.info({ logId: "api-restart" });
+
+  // Start Celestrak TLE update scheduler
+  void startCelestrakScheduler();
+
+  // Initialize server-to-server socket connection to Talkybot
+  const talkybotS2sSocket = initTalkybotS2sSocket();
+  if (talkybotS2sSocket) {
+    globalValues.talkybotS2sSocket = talkybotS2sSocket;
+    ConsoleLogger.info("TalkybotS2s Socket to Talkybot initialized");
+  }
+});
+
+// Simple shutdown handler
+const gracefulShutdown = async () => {
+  ConsoleLogger.info("Gracefully shutting down server...");
+
+  // Stop Celestrak scheduler
+  stopCelestrakScheduler();
+
+  // Stop socket status interval
+  if (globalValues.socketInterval) {
+    clearInterval(globalValues.socketInterval);
+    globalValues.socketInterval = null;
+    ConsoleLogger.info("Socket status interval stopped");
+  }
+
+  // Disconnect TalkybotS2s socket to Talkybot
+  disconnectTalkybotS2sSocket();
+  globalValues.talkybotS2sSocket = null;
+  ConsoleLogger.info("TalkybotS2s Socket disconnected");
+
+  // Close Socket.IO first
+  if (globalValues.socketio) {
+    await new Promise<void>((resolve) => {
+      globalValues.socketio.close(() => {
+        ConsoleLogger.info("Socket.IO server closed");
+        resolve();
+      });
+    });
+  }
+
+  // Close the HTTP server
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => {
+        if (err) {
+          // Check for ERR_SERVER_NOT_RUNNING with proper type checking
+          if (err instanceof Error && "code" in err && err.code === "ERR_SERVER_NOT_RUNNING") {
+            ConsoleLogger.warn("Server was already closed");
+            resolve();
+          } else {
+            ConsoleLogger.error("Error closing HTTP server:", err);
+            reject(err);
+          }
+        } else {
+          ConsoleLogger.info("HTTP server closed");
+          resolve();
+        }
+      });
+    });
+  } catch (err) {
+    // Just log the error, but continue shutdown
+    ConsoleLogger.warn("Server might already be closed:", err);
+  }
+
+  // Close database connections
+  try {
+    if (globalValues.orm) {
+      await globalValues.orm.close();
+      ConsoleLogger.info("Database connections closed");
+    }
+  } catch (err) {
+    ConsoleLogger.error("Error closing database connection:", err);
+  }
+
+  ConsoleLogger.info("Shutdown complete");
+};
+
+// Handle process events
+if (typeof process !== "undefined") {
+  process.on("message", (msg) => {
+    if (msg === "shutdown") {
+      gracefulShutdown().catch(ConsoleLogger.error);
+    }
+  });
+
+  // Handle termination signals
+  process.on("SIGINT", gracefulShutdown);
+  process.on("SIGTERM", gracefulShutdown);
+  process.on("SIGUSR2", gracefulShutdown);
+}

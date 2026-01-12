@@ -1,203 +1,72 @@
-/* inter-100 - latin */
+/*
+ * Self-hosted Google Fonts (for offline/air-gapped environments)
+ *
+ * Available fonts:
+ * - Inter: weights 100-900 (variable font)
+ * - Ubuntu Mono: weights 400, 700 (normal and italic)
+ * - Aldrich: weight 400
+ * - Roboto Mono: weights 300-500 (variable font)
+ */
+
+/* Inter - Variable Font (weights 100-900) */
 @font-face {
-  font-family: "Inter";
+  font-family: Inter;
   font-style: normal;
-  font-weight: 100;
-  src: url("../fonts/inter-v3-latin-100.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-100.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-100.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-100.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-100.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-100.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-200 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 200;
-  src: url("../fonts/inter-v3-latin-200.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-200.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-200.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-200.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-200.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-200.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-300 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 300;
-  src: url("../fonts/inter-v3-latin-300.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-300.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-300.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-300.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-300.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-300.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-regular - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 400;
-  src: url("../fonts/inter-v3-latin-regular.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-regular.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-regular.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-regular.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-regular.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-regular.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-500 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 500;
-  src: url("../fonts/inter-v3-latin-500.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-500.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-500.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-500.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-500.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-500.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-600 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 600;
-  src: url("../fonts/inter-v3-latin-600.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-600.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-600.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-600.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-600.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-600.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-700 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 700;
-  src: url("../fonts/inter-v3-latin-700.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-700.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-700.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-700.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-700.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-700.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-900 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 900;
-  src: url("../fonts/inter-v3-latin-900.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-900.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-900.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-900.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-900.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-900.svg#Inter") format("svg"); /* Legacy iOS */
-}
-/* inter-800 - latin */
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 800;
-  src: url("../fonts/inter-v3-latin-800.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/inter-v3-latin-800.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/inter-v3-latin-800.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/inter-v3-latin-800.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/inter-v3-latin-800.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/inter-v3-latin-800.svg#Inter") format("svg"); /* Legacy iOS */
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Inter-Variable.woff2") format("woff2");
 }
 
-/* ubuntu-mono-regular - latin */
+/* Roboto Mono - Variable Font (weights 300-500) */
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url("/fonts/RobotoMono-Variable.woff2") format("woff2");
+}
+
+/* Ubuntu Mono - Regular (400) */
 @font-face {
   font-family: "Ubuntu Mono";
   font-style: normal;
   font-weight: 400;
-  src: url("../fonts/ubuntu-mono-v10-latin-regular.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/ubuntu-mono-v10-latin-regular.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/ubuntu-mono-v10-latin-regular.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/ubuntu-mono-v10-latin-regular.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/ubuntu-mono-v10-latin-regular.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/ubuntu-mono-v10-latin-regular.svg#UbuntuMono")
-      format("svg"); /* Legacy iOS */
+  font-display: swap;
+  src: url("/fonts/UbuntuMono-Regular.woff2") format("woff2");
 }
 
-/* aldrich-regular - latin */
+/* Ubuntu Mono - Bold (700) */
 @font-face {
-  font-family: "Aldrich";
+  font-family: "Ubuntu Mono";
   font-style: normal;
-  font-weight: 400;
-  src: url("../fonts/aldrich-v11-latin-regular.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/aldrich-v11-latin-regular.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/aldrich-v11-latin-regular.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/aldrich-v11-latin-regular.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/aldrich-v11-latin-regular.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/aldrich-v11-latin-regular.svg#Aldrich") format("svg"); /* Legacy iOS */
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/UbuntuMono-Bold.woff2") format("woff2");
 }
 
-/* roboto-mono-300 - latin */
+/* Ubuntu Mono - Italic (400) */
 @font-face {
-  font-family: "Roboto Mono";
-  font-style: normal;
-  font-weight: 300;
-  src: url("../fonts/roboto-mono-v13-latin-300.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/roboto-mono-v13-latin-300.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/roboto-mono-v13-latin-300.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/roboto-mono-v13-latin-300.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/roboto-mono-v13-latin-300.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/roboto-mono-v13-latin-300.svg#RobotoMono")
-      format("svg"); /* Legacy iOS */
+  font-family: "Ubuntu Mono";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/UbuntuMono-Italic.woff2") format("woff2");
 }
-/* roboto-mono-regular - latin */
+
+/* Ubuntu Mono - Bold Italic (700) */
 @font-face {
-  font-family: "Roboto Mono";
+  font-family: "Ubuntu Mono";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/UbuntuMono-BoldItalic.woff2") format("woff2");
+}
+
+/* Aldrich - Regular (400) */
+@font-face {
+  font-family: Aldrich;
   font-style: normal;
   font-weight: 400;
-  src: url("../fonts/roboto-mono-v13-latin-regular.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/roboto-mono-v13-latin-regular.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/roboto-mono-v13-latin-regular.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/roboto-mono-v13-latin-regular.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/roboto-mono-v13-latin-regular.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/roboto-mono-v13-latin-regular.svg#RobotoMono")
-      format("svg"); /* Legacy iOS */
-}
-/* roboto-mono-500 - latin */
-@font-face {
-  font-family: "Roboto Mono";
-  font-style: normal;
-  font-weight: 500;
-  src: url("../fonts/roboto-mono-v13-latin-500.eot"); /* IE9 Compat Modes */
-  src:
-    local(""),
-    url("../fonts/roboto-mono-v13-latin-500.eot?#iefix") format("embedded-opentype"),
-    /* IE6-IE8 */ url("../fonts/roboto-mono-v13-latin-500.woff2") format("woff2"),
-    /* Super Modern Browsers */ url("../fonts/roboto-mono-v13-latin-500.woff") format("woff"),
-    /* Modern Browsers */ url("../fonts/roboto-mono-v13-latin-500.ttf") format("truetype"),
-    /* Safari, Android, iOS */ url("../fonts/roboto-mono-v13-latin-500.svg#RobotoMono")
-      format("svg"); /* Legacy iOS */
+  font-display: swap;
+  src: url("/fonts/Aldrich-Regular.woff2") format("woff2");
 }

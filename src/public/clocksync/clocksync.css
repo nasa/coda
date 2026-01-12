@@ -72,7 +72,7 @@ body {
 .NASALogo {
   width: 4vw;
   height: 50px;
-  background: url(img/logo_NASA.svg) no-repeat center;
+  background: url("img/logo_NASA.svg") no-repeat center;
   background-size: 4vw 50px;
   margin-left: 0;
   margin-right: 0;
@@ -81,13 +81,13 @@ body {
   margin-left: auto;
   width: 6vw;
   height: 50px;
-  background: url(img/EMSS_wordmark.svg) no-repeat center;
+  background: url("img/EMSS_wordmark.svg") no-repeat center;
   background-size: 6vw 50px;
 }
 .CODALogo {
   margin-left: 1vw;
   width: 6vw;
   height: 50px;
-  background: url(img/CODA_wordmark.svg) no-repeat center;
+  background: url("img/CODA_wordmark.svg") no-repeat center;
   background-size: 6vw 50px;
 }

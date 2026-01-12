@@ -33,7 +33,6 @@ services:
       - apiv1
     <<: *send_container_logs_to_syslog
     volumes:
-      - ${DOCKER_HOST_HTTP_STATIC_DIR}:/usr/share/nginx/static:ro
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
     ports:
@@ -55,19 +54,6 @@ services:
       # First the .env file is used to SET environment variables on the container. The .env file is
       # NOT actually moved over onto the container, just the variables are set.
       - ./.env
-    environment:
-      # This happens after `env_file` above. It overrides the value of CACHE_ROOT that is set in
-      # .env, such that it's always /cache in the container.
-      - CACHE_ROOT=/cache
-    volumes:
-      # Here CACHE_ROOT is whatever is specified in the .env file, because creating the volume
-      # happens on the host before the container is fully running. In contrast, the `env_file` and
-      # `environment` properties above happen after the container is running.
-      #
-      # The end result of `env_file`, `environment`, and this volume is that when using Docker,
-      # the CACHE_ROOT variable in your .env file is for setting the location of the cache ONLY on
-      # the host. The container's cache location is hard-coded here as `/cache`.
-      - ${CACHE_ROOT}:/cache
 
   oauth2-proxy:
     container_name: "${LOG_DATA_APP_ID}--oauth2"
@@ -119,7 +105,7 @@ services:
 
   database:
     container_name: "${LOG_DATA_APP_ID}--database"
-    image: postgis/postgis:14-3.2-alpine
+    image: ${DOCKER_IMAGE_DATABASE} # from env.config.ts
     restart: always
     <<: *send_container_logs_to_syslog
     environment:

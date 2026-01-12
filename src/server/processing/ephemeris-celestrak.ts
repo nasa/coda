@@ -3,14 +3,15 @@
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getEpochTimestamp } from "tle.js";
-import ConsoleLogger from "utils/consoleLogger";
+import ConsoleLogger from "utils/logging/consoleLogger";
 import { upsertEphemerisRecords } from "./ephemeris";
 
 /**
  * Fetch latest TLE from Celestrak and update database
  * Skips update if epoch matches latest record in database
+ * Returns the epoch from the fetched TLE data
  */
-export async function updateFromCelestrak(): Promise<void> {
+export async function updateFromCelestrak(): Promise<CelestrakUpdateResult> {
   const queryURL = `https://celestrak.org/NORAD/elements/gp.php?CATNR=25544`;
 
   try {
@@ -29,29 +30,34 @@ ${lines[2].trim()}`;
     if (!epochMs || isNaN(epochMs) || !isFinite(epochMs)) {
       const msg = `Invalid epoch timestamp from TLE: ${epochMs}`;
       ConsoleLogger.error(msg);
-      return;
+      return { success: false, errorMessage: msg };
     }
 
     const epochDate = new Date(epochMs);
     if (isNaN(epochDate.getTime())) {
       const msg = `Unable to create valid Date from epoch: ${epochMs}`;
       ConsoleLogger.error(msg);
-      return;
+      return { success: false, errorMessage: msg };
     }
+
+    const epochIso = epochDate.toISOString();
 
     // Insert new TLE into database (upsert will skip if duplicate)
     await upsertEphemerisRecords({
       records: [
         {
-          epoch: epochDate.toISOString(),
+          epoch: epochIso,
           tle_line1: lines[1].trim(),
           tle_line2: lines[2].trim(),
         },
       ],
       origin: "celestrak",
     });
+
+    return { success: true, epoch: epochIso };
   } catch (e) {
     const msg = `Error fetching/updating Celestrak ephemeris: ${e}`;
     ConsoleLogger.error(msg);
+    return { success: false, errorMessage: msg };
   }
 }

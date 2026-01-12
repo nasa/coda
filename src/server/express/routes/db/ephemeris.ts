@@ -2,6 +2,12 @@ import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { getEphemerisByDate, upsertEphemerisRecords, getStats } from "server/processing/ephemeris";
 import { seedMissingData } from "server/processing/ephemeris-seed";
+import { triggerCelestrakUpdate } from "server/express/celestrakScheduler";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import { getUser } from "packages/getUser";
+import { globalValues } from "server/express/global";
+import ConsoleLogger from "utils/logging/consoleLogger";
+import { Ephemeris_db } from "server/database/models/ephemera.model";
 
 /**
  * Get ISS TLE records from CODA DB
@@ -34,16 +40,16 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const records: Ephemeris_db_type[] = await getEphemerisByDate(queryObj.dateWanted);
+    const records: Ephemeris_db[] = await getEphemerisByDate(queryObj.dateWanted);
     res.status(200).json(records);
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post (bulk insert)
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { records, origin } = req.body as EphemerisUpsertRequest;
 
   try {
@@ -83,7 +89,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       data: result,
     });
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
   }
 });
@@ -94,13 +100,13 @@ router.get("/stats", async (req: Request, res: Response): Promise<void> => {
     const stats = await getStats();
     res.status(200).json(stats);
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error fetching stats ${e}` });
   }
 });
 
 // Seed database from remote source
-router.post("/seed", async (req: Request, res: Response): Promise<void> => {
+router.post("/seed", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   try {
     // Set headers for streaming response (newline-delimited JSON)
     res.setHeader("Content-Type", "application/x-ndjson");
@@ -124,12 +130,34 @@ router.post("/seed", async (req: Request, res: Response): Promise<void> => {
     );
     res.end();
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.write(
       JSON.stringify({ error: true, message: `Error processing the seed request ${e}` }) + "\n"
     );
     res.end();
   }
 });
+
+// Trigger manual Celestrak update (resets the interval)
+router.post(
+  "/celestrak/trigger",
+  requireSuperuser,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const user = getUser(req);
+      const username = user instanceof Error ? "unknown" : user.email || user.auid || "unknown";
+      await triggerCelestrakUpdate(username);
+
+      res.status(200).json({
+        status: "success",
+        message: "Celestrak update triggered successfully",
+        data: { ...globalValues.celestrakTrackerData },
+      });
+    } catch (e) {
+      ConsoleLogger.error(e);
+      res.status(500).json({ status: "error", message: `Error triggering Celestrak update ${e}` });
+    }
+  }
+);
 
 export default router;

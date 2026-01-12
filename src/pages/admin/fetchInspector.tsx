@@ -7,10 +7,13 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
-import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
+import adminCommon from "./adminCommon.module.css";
 import styles from "./fetchInspector.module.css";
 
 dayjs.extend(relativeTime);
+
+const mtxVideoMaxAgeDays = parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS, 10);
 
 const SOCKET_PATH = "/api/v1/socketio";
 const HIGHLIGHT_DURATION_MS = 10000;
@@ -27,40 +30,39 @@ const deriveStatusBadge = (
   if (!status) {
     return {
       label: "N/A",
-      className: styles.dataTypeBadgeNeutral,
+      className: adminCommon.badgeNeutral,
     };
   }
 
   if (status.isFetching) {
     return {
       label: "Fetching",
-      className: styles.dataTypeBadgeFetching,
+      className: adminCommon.badgeFetching,
     };
   }
 
-  if (status.lastResultWasSuccess === false) {
+  if (status.lastOperationSuccess === false) {
     return {
       label: "Error",
-      className: styles.dataTypeBadgeError,
+      className: adminCommon.badgeError,
     };
   }
 
-  if (status.lastResultWasSuccess) {
+  if (status.lastOperationSuccess) {
     return {
       label: "Success",
-      className: styles.dataTypeBadgeSuccess,
+      className: adminCommon.badgeSuccess,
     };
   }
 
   return {
     label: "Ready",
-    className: styles.dataTypeBadgeNeutral,
+    className: adminCommon.badgeNeutral,
   };
 };
 
 const AdminFetchStatuses: FunctionComponent = () => {
   const navigate = useNavigate();
-  const [isAuthorized, setIsAuthorized] = useState(false);
   const [statuses, setStatuses] = useState<FetchTrackersSanitized>({});
   const [selectedTypes, setSelectedTypes] = useState<Record<string, string | null>>({});
   const [recentlyUpdated, setRecentlyUpdated] = useState<Record<string, number>>({});
@@ -79,105 +81,100 @@ const AdminFetchStatuses: FunctionComponent = () => {
         navigate("/");
         return;
       }
-      setIsAuthorized(true);
-    })();
-  }, [navigate]);
 
-  useEffect(() => {
-    if (!isAuthorized) return;
-
-    setConnectionStatus("connecting");
-    setConnectionError(null);
-    previousStatusesRef.current = {};
-
-    const socketUrl = window.location.origin;
-    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(socketUrl, {
-      transports: ["websocket"],
-      upgrade: true,
-      path: SOCKET_PATH,
-    });
-
-    const handleFetchInspectorUpdate = (payload: FetchInspectorUpdate) => {
-      const nextStatuses = payload?.fetchTrackersSanitized ?? {};
-      const previous = previousStatusesRef.current ?? {};
-      const updatedEntries: string[] = [];
-
-      Object.entries(nextStatuses).forEach(([source, dateMap]) => {
-        Object.entries(dateMap ?? {}).forEach(([date, typeMap]) => {
-          Object.entries(typeMap ?? {}).forEach(([dataType, status]) => {
-            const key = getStatusKey(source, date, dataType);
-            const previousStatus = previous?.[source]?.[date]?.[dataType];
-            if (!previousStatus || !isEqual(previousStatus, status)) {
-              updatedEntries.push(key);
-            }
-          });
-        });
-      });
-
-      previousStatusesRef.current = nextStatuses;
-      setStatuses(nextStatuses);
-      setLastUpdatedAt(payload?.updatedAt ?? null);
-      setConnectionStatus("connected");
+      setConnectionStatus("connecting");
       setConnectionError(null);
-
-      if (updatedEntries.length > 0) {
-        setRecentlyUpdated((prev) => {
-          const next = { ...prev };
-          updatedEntries.forEach((key) => {
-            // Clear any existing timeout for this key
-            if (updateTimeoutsRef.current[key]) {
-              window.clearTimeout(updateTimeoutsRef.current[key]);
-            }
-
-            // Set the update marker
-            next[key] = Date.now();
-
-            // Create new timeout to remove the marker
-            updateTimeoutsRef.current[key] = window.setTimeout(() => {
-              setRecentlyUpdated((current) => {
-                const { [key]: _, ...rest } = current;
-                return rest;
-              });
-              delete updateTimeoutsRef.current[key];
-            }, HIGHLIGHT_DURATION_MS);
-          });
-          return next;
-        });
-      }
-    };
-
-    socket.on("connect", () => {
-      setConnectionStatus("connected");
-      socket.emit("joinFetchInspector");
-    });
-
-    socket.on("disconnect", () => {
-      setConnectionStatus("disconnected");
-    });
-
-    socket.on("connect_error", (error) => {
-      setConnectionStatus("failed");
-      setConnectionError(error?.message ?? "Socket connection error");
-    });
-
-    socket.on("fetchInspectorUpdate", handleFetchInspectorUpdate);
-
-    return () => {
-      socket.emit("leaveFetchInspector");
-      socket.off("fetchInspectorUpdate", handleFetchInspectorUpdate);
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("connect_error");
-      socket.disconnect();
       previousStatusesRef.current = {};
 
-      // Clear all pending timeouts
-      Object.values(updateTimeoutsRef.current).forEach((timeoutId) => {
-        window.clearTimeout(timeoutId);
+      const socketUrl = window.location.origin;
+      const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(socketUrl, {
+        transports: ["websocket"],
+        upgrade: true,
+        path: SOCKET_PATH,
       });
-      updateTimeoutsRef.current = {};
-    };
-  }, [isAuthorized]);
+
+      const handleFetchInspectorUpdate = (payload: FetchInspectorUpdate) => {
+        const nextStatuses = payload?.fetchTrackersSanitized ?? {};
+        const previous = previousStatusesRef.current ?? {};
+        const updatedEntries: string[] = [];
+
+        Object.entries(nextStatuses).forEach(([source, dateMap]) => {
+          Object.entries(dateMap ?? {}).forEach(([date, typeMap]) => {
+            Object.entries(typeMap ?? {}).forEach(([dataType, status]) => {
+              const key = getStatusKey(source, date, dataType);
+              const previousStatus = previous?.[source]?.[date]?.[dataType];
+              if (!previousStatus || !isEqual(previousStatus, status)) {
+                updatedEntries.push(key);
+              }
+            });
+          });
+        });
+
+        previousStatusesRef.current = nextStatuses;
+        setStatuses(nextStatuses);
+        setLastUpdatedAt(payload?.updatedAt ?? null);
+        setConnectionStatus("connected");
+        setConnectionError(null);
+
+        if (updatedEntries.length > 0) {
+          setRecentlyUpdated((prev) => {
+            const next = { ...prev };
+            updatedEntries.forEach((key) => {
+              // Clear any existing timeout for this key
+              if (updateTimeoutsRef.current[key]) {
+                window.clearTimeout(updateTimeoutsRef.current[key]);
+              }
+
+              // Set the update marker
+              next[key] = Date.now();
+
+              // Create new timeout to remove the marker
+              updateTimeoutsRef.current[key] = window.setTimeout(() => {
+                setRecentlyUpdated((current) => {
+                  const { [key]: _, ...rest } = current;
+                  return rest;
+                });
+                delete updateTimeoutsRef.current[key];
+              }, HIGHLIGHT_DURATION_MS);
+            });
+            return next;
+          });
+        }
+      };
+
+      socket.on("connect", () => {
+        setConnectionStatus("connected");
+        socket.emit("joinInspector");
+      });
+
+      socket.on("disconnect", () => {
+        setConnectionStatus("disconnected");
+      });
+
+      socket.on("connect_error", (error) => {
+        setConnectionStatus("failed");
+        setConnectionError(error?.message ?? "Socket connection error");
+      });
+
+      socket.on("fetchInspectorUpdate", handleFetchInspectorUpdate);
+
+      return () => {
+        socket.emit("leaveInspector");
+        socket.off("fetchInspectorUpdate", handleFetchInspectorUpdate);
+        socket.off("connect");
+        socket.off("disconnect");
+        socket.off("connect_error");
+        socket.disconnect();
+        previousStatusesRef.current = {};
+
+        // Clear all pending timeouts
+        Object.values(updateTimeoutsRef.current).forEach((timeoutId) => {
+          window.clearTimeout(timeoutId);
+        });
+        updateTimeoutsRef.current = {};
+      };
+    })();
+  }, [navigate]);
 
   useEffect(() => {
     const validDateKeys = new Set<string>();
@@ -307,6 +304,10 @@ const AdminFetchStatuses: FunctionComponent = () => {
     return dayjs(timestamp).fromNow();
   };
 
+  const formatDateLabel = (date: string) => {
+    return date === "notDateDependent" ? "Not Date Dependent" : date;
+  };
+
   const handleForceRefresh = async (source: string, date: string, dataType: string) => {
     const refreshKey = `${source}::${date}::${dataType}`;
     setRefreshing((prev) => ({ ...prev, [refreshKey]: true }));
@@ -376,282 +377,317 @@ const AdminFetchStatuses: FunctionComponent = () => {
 
   const connectionClass =
     connectionStatus === "connected"
-      ? styles.statusConnected
+      ? adminCommon.statusConnected
       : connectionStatus === "connecting" || connectionStatus === "reconnecting"
-        ? styles.statusConnecting
-        : styles.statusDisconnected;
+        ? adminCommon.statusConnecting
+        : adminCommon.statusDisconnected;
 
   return (
-    <div className={styles.container}>
-      <Link to="/admin" className={styles.breadcrumb}>
-        Admin Home
-      </Link>
-      <h1 className={styles.pageTitle}>Data Fetching Inspector</h1>
-      <p className={styles.introText}>Real-time view of backend data retrieval activity.</p>
+    <main className={adminCommon.page}>
+      <div className={adminCommon.container}>
+        <Link to="/admin" className={adminCommon.backLink}>
+          ← Admin
+        </Link>
+        <h1 className={adminCommon.pageTitle}>Data Fetching Inspector</h1>
+        <p className={adminCommon.introText}>Real-time view of backend data retrieval activity.</p>
 
-      <div className={styles.infoPanel}>
-        <div className={styles.infoItem}>
-          <span className={styles.infoLabel}>Socket status:</span>
-          <span className={`${styles.infoValue} ${connectionClass}`}>{connectionStatus}</span>
-          {connectionError ? (
-            <span className={styles.statusErrorMessage}>({connectionError})</span>
-          ) : null}
+        <div className={adminCommon.infoPanel} role="status" aria-live="polite">
+          <div className={adminCommon.infoItem}>
+            <span className={adminCommon.infoLabel}>Socket status:</span>
+            <span className={`${adminCommon.infoValue} ${connectionClass}`}>
+              {connectionStatus}
+            </span>
+            {connectionError ? (
+              <span className={adminCommon.statusErrorMessage}>({connectionError})</span>
+            ) : null}
+          </div>
+          <div className={adminCommon.infoItem}>
+            <span className={adminCommon.infoLabel}>Last update:</span>
+            <span className={adminCommon.infoValue}>
+              {lastUpdatedAt ? formatTimestamp(lastUpdatedAt) : "None"}
+            </span>
+          </div>
         </div>
-        <div className={styles.infoItem}>
-          <span className={styles.infoLabel}>Last update:</span>
-          <span className={styles.infoValue}>
-            {lastUpdatedAt ? formatTimestamp(lastUpdatedAt) : "None"}
-          </span>
-        </div>
-      </div>
 
-      {sortedSources.length === 0 ? (
-        <div className={styles.emptyState}>No active users causing data fetch activity.</div>
-      ) : (
-        sortedSources.map(([source, dateMap]) => (
-          <section key={source} className={styles.sourceSection}>
-            <h2 className={styles.sourceHeading}>
-              <span style={{ color: "var(--greyish)" }}>Source:</span> {source}
-            </h2>
-            {Object.entries(dateMap ?? {})
-              .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
-              .map(([date, typeMap]) => {
-                const dateKey = getDateKey(source, date);
-                const typeEntries = Object.entries(typeMap ?? {})
-                  .filter(([dataType]) =>
-                    isDataTypeValidForSource(source as Source, dataType as StoreDataType)
-                  )
-                  .sort(([a], [b]) => a.localeCompare(b));
-                const selectedType =
-                  selectedTypes[dateKey] && typeMap?.[selectedTypes[dateKey] as string]
-                    ? (selectedTypes[dateKey] as string)
-                    : null;
-                const selectedStatus = selectedType && typeMap ? typeMap[selectedType] : undefined;
+        {sortedSources.length === 0 ? (
+          <div className={adminCommon.emptyState}>No active users causing data fetch activity.</div>
+        ) : (
+          sortedSources.map(([source, dateMap]) => (
+            <section
+              key={source}
+              className={adminCommon.section}
+              aria-labelledby={`source-${source}`}
+            >
+              <h2 id={`source-${source}`} className={adminCommon.sectionHeading}>
+                <span className={adminCommon.sectionHeadingMuted}>Source:</span> {source}
+              </h2>
+              {Object.entries(dateMap ?? {})
+                .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+                .map(([date, typeMap]) => {
+                  const dateKey = getDateKey(source, date);
+                  const typeEntries = Object.entries(typeMap ?? {})
+                    .filter(([dataType]) =>
+                      isDataTypeValidForSourceAndDate(
+                        source as Source,
+                        dataType as StoreDataType,
+                        date,
+                        mtxVideoMaxAgeDays
+                      )
+                    )
+                    .sort(([a], [b]) => a.localeCompare(b));
+                  const selectedType =
+                    selectedTypes[dateKey] && typeMap?.[selectedTypes[dateKey] as string]
+                      ? (selectedTypes[dateKey] as string)
+                      : null;
+                  const selectedStatus =
+                    selectedType && typeMap ? typeMap[selectedType] : undefined;
 
-                return (
-                  <div key={`${source}-${date}`} className={styles.dateSection}>
-                    <div className={styles.dateRow}>
-                      <h3 className={styles.dateTitle}>{date}</h3>
-                      <div className={styles.dataTypeButtons}>
-                        {typeEntries.length === 0 ? (
-                          <span className={styles.noDataTypes}>
-                            No data types tracked for this date yet.
-                          </span>
-                        ) : (
-                          typeEntries.map(([dataType, status]) => {
-                            const statusKey = getStatusKey(source, date, dataType);
-                            const buttonClasses = [styles.dataTypeButton];
-                            if (selectedType === dataType) {
-                              buttonClasses.push(styles.dataTypeButtonActive);
-                            }
-                            if (recentlyUpdated[statusKey] !== undefined) {
-                              buttonClasses.push(styles.dataTypeButtonUpdated);
-                            }
-                            const badge = deriveStatusBadge(status);
-                            const countdown = formatCountdown(status?.nextTimeoutTriggerAt);
+                  return (
+                    <div key={`${source}-${date}`} className={styles.dateSection}>
+                      <div className={styles.dateRow}>
+                        <h3 className={styles.dateTitle}>{formatDateLabel(date)}</h3>
+                        <div
+                          className={styles.dataTypeButtons}
+                          role="group"
+                          aria-label={`Data types for ${formatDateLabel(date)}`}
+                        >
+                          {typeEntries.length === 0 ? (
+                            <span className={styles.noDataTypes}>
+                              No data types tracked for this date yet.
+                            </span>
+                          ) : (
+                            typeEntries.map(([dataType, status]) => {
+                              const statusKey = getStatusKey(source, date, dataType);
+                              const buttonClasses = [styles.dataTypeButton];
+                              if (selectedType === dataType) {
+                                buttonClasses.push(styles.dataTypeButtonActive);
+                              }
+                              if (recentlyUpdated[statusKey] !== undefined) {
+                                buttonClasses.push(styles.dataTypeButtonUpdated);
+                              }
+                              const badge = deriveStatusBadge(status);
+                              const countdown = formatCountdown(status?.nextTimeoutTriggerAt);
 
-                            return (
+                              return (
+                                <button
+                                  key={statusKey}
+                                  type="button"
+                                  className={buttonClasses.join(" ")}
+                                  onClick={() =>
+                                    setSelectedTypes((prev) => ({
+                                      ...prev,
+                                      [dateKey]: prev[dateKey] === dataType ? null : dataType,
+                                    }))
+                                  }
+                                  aria-pressed={selectedType === dataType}
+                                >
+                                  {badge ? (
+                                    <span
+                                      className={`${adminCommon.statusIndicator} ${badge.className}`}
+                                      aria-hidden="true"
+                                    />
+                                  ) : null}
+                                  <span className={styles.buttonLabel}>{dataType}</span>
+                                  {countdown && (
+                                    <span className={styles.countdown}>{countdown}</span>
+                                  )}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+
+                      {selectedType && selectedStatus && (
+                        <div className={adminCommon.details}>
+                          <header className={adminCommon.detailsHeader}>
+                            <h4 className={styles.detailsHeading}>
+                              <span className={adminCommon.sectionHeadingMuted}>Status:</span>{" "}
+                              {selectedType}
+                            </h4>
+                            <div className={adminCommon.actionButtons}>
                               <button
-                                key={statusKey}
                                 type="button"
-                                className={buttonClasses.join(" ")}
-                                onClick={() =>
-                                  setSelectedTypes((prev) => ({
-                                    ...prev,
-                                    [dateKey]: prev[dateKey] === dataType ? null : dataType,
-                                  }))
+                                className={adminCommon.button}
+                                onClick={() => handleDownloadData(source, date, selectedType)}
+                              >
+                                Download Data
+                              </button>
+                              <button
+                                type="button"
+                                className={adminCommon.button}
+                                onClick={() => handleForceRefresh(source, date, selectedType)}
+                                disabled={
+                                  refreshing[getStatusKey(source, date, selectedType)] ||
+                                  selectedStatus.isFetching
+                                }
+                                aria-busy={
+                                  refreshing[getStatusKey(source, date, selectedType)] ||
+                                  selectedStatus.isFetching
                                 }
                               >
-                                {badge ? (
-                                  <span
-                                    className={`${styles.statusIndicator} ${badge.className}`}
-                                  />
-                                ) : null}
-                                <span className={styles.buttonLabel}>{dataType}</span>
-                                {countdown && <span className={styles.countdown}>{countdown}</span>}
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-
-                    {selectedType && selectedStatus && (
-                      <div className={styles.statusDetails}>
-                        <div className={styles.detailsHeader}>
-                          <h4 className={styles.detailsHeading}>
-                            <span style={{ color: "var(--greyish)" }}> Status:</span> {selectedType}
-                          </h4>
-                          <div className={styles.actionButtons}>
-                            <button
-                              type="button"
-                              className={styles.downloadButton}
-                              onClick={() => handleDownloadData(source, date, selectedType)}
-                            >
-                              Download Data
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.forceRefreshButton}
-                              onClick={() => handleForceRefresh(source, date, selectedType)}
-                              disabled={
-                                refreshing[getStatusKey(source, date, selectedType)] ||
+                                {refreshing[getStatusKey(source, date, selectedType)] ||
                                 selectedStatus.isFetching
-                              }
-                            >
-                              {refreshing[getStatusKey(source, date, selectedType)] ||
-                              selectedStatus.isFetching
-                                ? "Refreshing..."
-                                : "Force Cache Refresh"}
-                            </button>
+                                  ? "Refreshing..."
+                                  : "Force Cache Refresh"}
+                              </button>
+                            </div>
+                          </header>
+                          <div className={adminCommon.grid}>
+                            {/* Current State */}
+                            <div className={adminCommon.gridSection}>
+                              <h5 className={adminCommon.gridSectionHeader}>Current State</h5>
+                              <dl className={adminCommon.definitionList}>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Is Fetching</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatBoolean(selectedStatus.isFetching, "No")}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Fetching Since</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.fetchStartedAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Timeout Created At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.timeoutCreatedAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Timeout Delay</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimeout(selectedStatus.timeoutDelayMs)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>
+                                    Next Timeout Will Trigger At
+                                  </dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.nextTimeoutTriggerAt)}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
+
+                            {/* Last Fetch Cycle */}
+                            <div className={adminCommon.gridSection}>
+                              <h5 className={adminCommon.gridSectionHeader}>Last Fetch Cycle</h5>
+                              <dl className={adminCommon.definitionList}>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Fetch Successful</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatBoolean(selectedStatus.lastOperationSuccess)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Started At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastOperationStartedAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Completed At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastOperationCompletedAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Duration</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatDuration(selectedStatus.lastOperationDurationMs)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Last Successful At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastSuccessAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Last Error At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastErrorAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Last Error Message</dt>
+                                  <dd
+                                    className={`${adminCommon.definitionValue} ${adminCommon.definitionValueError}`}
+                                  >
+                                    {selectedStatus.lastErrorMessage}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>
+                                    Last Timeout Triggered At
+                                  </dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastTimeoutTriggeredAt)}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
+
+                            {/* Cache Status */}
+                            <div className={adminCommon.gridSection}>
+                              <h5 className={adminCommon.gridSectionHeader}>Cache Status</h5>
+                              <dl className={adminCommon.definitionList}>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Cache Expiration</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.cacheExpiration)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Last Hit At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastCacheHitAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Last Miss At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastCacheMissAt)}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
+
+                            {/* Socket Emissions */}
+                            <div className={adminCommon.gridSection}>
+                              <h5 className={adminCommon.gridSectionHeader}>Socket Emissions</h5>
+                              <dl className={adminCommon.definitionList}>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>Last Emit At</dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastEmitAt)}
+                                  </dd>
+                                </div>
+                                <div className={adminCommon.definitionRow}>
+                                  <dt className={adminCommon.definitionTerm}>
+                                    Last Emit Skipped At
+                                  </dt>
+                                  <dd className={adminCommon.definitionValue}>
+                                    {formatTimestamp(selectedStatus.lastEmitSkippedAt)}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
                           </div>
                         </div>
-                        <div className={styles.statusGrid}>
-                          {/* Current State */}
-                          <div className={styles.gridSection}>
-                            <h5 className={styles.sectionHeader}>Current State</h5>
-                            <div className={styles.gridRows}>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Is Fetching</span>
-                                <span className={styles.valueCell}>
-                                  {formatBoolean(selectedStatus.isFetching, "No")}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Fetching Since</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.fetchStartedAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Timeout Created At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.timeoutCreatedAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Timeout Delay</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimeout(selectedStatus.timeoutDelayMs)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className={styles.gridRow}>
-                              <span className={styles.labelCell}>Next Timeout Will Trigger At</span>
-                              <span className={styles.valueCell}>
-                                {formatTimestamp(selectedStatus.nextTimeoutTriggerAt)}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Last Fetch Cycle */}
-                          <div className={styles.gridSection}>
-                            <h5 className={styles.sectionHeader}>Last Fetch Cycle</h5>
-                            <div className={styles.gridRows}>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Fetch Successful</span>
-                                <span className={styles.valueCell}>
-                                  {formatBoolean(selectedStatus.lastResultWasSuccess)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Started At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastFetchStartedAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Completed At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastFetchCompletedAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Duration</span>
-                                <span className={styles.valueCell}>
-                                  {formatDuration(selectedStatus.lastFetchDurationMs)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Successful At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastSuccessAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Error At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastErrorAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Error Message</span>
-                                <span className={`${styles.valueCell} ${styles.valueCellError}`}>
-                                  {selectedStatus.lastErrorMessage}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Timeout Triggered At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastTimeoutTriggeredAt)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Cache Status */}
-                          <div className={styles.gridSection}>
-                            <h5 className={styles.sectionHeader}>Cache Status</h5>
-                            <div className={styles.gridRows}>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Cache Expiration</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.cacheExpiration)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Hit At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastCacheHitAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Miss At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastCacheMissAt)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Socket Emissions */}
-                          <div className={styles.gridSection}>
-                            <h5 className={styles.sectionHeader}>Socket Emissions</h5>
-                            <div className={styles.gridRows}>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Emit At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastEmitAt)}
-                                </span>
-                              </div>
-                              <div className={styles.gridRow}>
-                                <span className={styles.labelCell}>Last Emit Skipped At</span>
-                                <span className={styles.valueCell}>
-                                  {formatTimestamp(selectedStatus.lastEmitSkippedAt)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-          </section>
-        ))
-      )}
-    </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </section>
+          ))
+        )}
+      </div>
+    </main>
   );
 };
 

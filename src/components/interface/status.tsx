@@ -1,140 +1,132 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./status.module.css";
-import { RootState } from "store/index";
-import { useEffect, useState, FunctionComponent } from "react";
-import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { useMemo, FunctionComponent } from "react";
+import { isDataTypeValidForSource, isDateValidForMtxVideo } from "utils/sourceDataTypeMap";
+
+function createStatus(
+  metadata: FetchMetadata | null,
+  resultsReturned: boolean
+): { message: string; classname: string } {
+  const cacheTime = metadata?.timestamp ? new Date(metadata.timestamp).toLocaleString() : null;
+  let message: string;
+  let classname: string;
+
+  // If no metadata yet, we're still loading
+  if (!metadata) {
+    message = "data loading...";
+    classname = styles.loading;
+    return { message, classname };
+  }
+
+  // Check if this data type is not applicable for the current source
+  if (metadata.unneeded) {
+    message = "data not applicable";
+    classname = styles.unneeded;
+    return { message, classname };
+  }
+
+  // Check for errors
+  if (metadata && !metadata.success) {
+    message = "Error: " + (metadata.error || "unknown error");
+    classname = styles.error;
+    return { message, classname };
+  }
+
+  // If we have metadata and no error, but no results, data is empty
+  if (!resultsReturned) {
+    message = "data is empty";
+    classname = styles.unneeded;
+    return { message, classname };
+  }
+
+  // Have data and no error
+  message = cacheTime ? `data originally retrieved on ${cacheTime}` : "data available";
+  classname = styles.noError;
+
+  return { message, classname };
+}
 
 const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay }) => {
-  const source = useAppSelector((state: RootState) => state.framework.source, refEqual);
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
+  const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
+  const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
+  const gps: GPSState = useAppSelector((state) => state.gps, deepEqual);
+  const ephemera: EphemeraState = useAppSelector((state) => state.ephemera, deepEqual);
+  const dayNight: DayNightState = useAppSelector((state) => state.dayNight, deepEqual);
+  const graphs: GraphsState = useAppSelector((state) => state.graphs, deepEqual);
+  const talkybot: TalkybotState = useAppSelector((state) => state.talkybot, deepEqual);
+
+  const videoStatusIo = useMemo(
+    () => createStatus(videos.metadataIo, videos.videoFiles?.length > 0),
+    [videos.metadataIo, videos.videoFiles?.length]
   );
-  const videos: VideosState = useAppSelector((state: RootState) => state.videos, deepEqual);
-  const photos: PhotosState = useAppSelector((state: RootState) => state.photos, deepEqual);
-  const gps: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
-  const ephemera: EphemeraState = useAppSelector((state: RootState) => state.ephemera, deepEqual);
-  const dayNight: DayNightState = useAppSelector((state: RootState) => state.dayNight, deepEqual);
-  const transcript: TranscriptState = useAppSelector(
-    (state: RootState) => state.transcript,
-    deepEqual
-  );
-  const sgAudio: SgAudioState = useAppSelector((state: RootState) => state.sgAudio, deepEqual);
-  const graphs: GraphsState = useAppSelector((state: RootState) => state.graphs, deepEqual);
 
-  const [videoStatusIo, setVideoStatusIo] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [videoStatusMtx, setVideoStatusMtx] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [photoStatus, setPhotoStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [sequenceStatus, setSequenceStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [gpsStatus, setGpsStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [ephemeraStatus, setEphemeraStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [transcriptStatus, setTranscriptStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [sgAudioStatus, setSgAudioStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [graphStatus, setGraphStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-  const [dayNightStatus, setDayNightStatus] = useState({
-    message: "",
-    classname: styles.loading,
-  });
-
-  useEffect(() => {
-    setVideoStatusIo(createStatus(videos.metadataIo, videos.videoFiles?.length > 0));
-  }, [videos.metadataIo]);
-
-  useEffect(() => {
-    setVideoStatusMtx(
+  const videoStatusMtx = useMemo(
+    () =>
       createStatus(
         videos.metadataMtx,
         videos.mtxHlsEndpoints?.length > 0 || Object.keys(videos.mtxPlaybackAvailability).length > 0
-      )
-    );
-  }, [videos.metadataMtx, videos.mtxHlsEndpoints, videos.mtxPlaybackAvailability]);
+      ),
+    [videos.metadataMtx, videos.mtxHlsEndpoints?.length, videos.mtxPlaybackAvailability]
+  );
 
-  useEffect(() => {
-    setPhotoStatus(createStatus(photos.metadata, photos.photoFiles?.length > 0));
-  }, [photos.metadata]);
+  const photoStatus = useMemo(
+    () => createStatus(photos.metadata, photos.photoFiles?.length > 0),
+    [photos.metadata, photos.photoFiles?.length]
+  );
 
-  useEffect(() => {
-    setSequenceStatus(createStatus(sequences.metadata, sequences.allSequences?.length > 0));
-  }, [sequences.metadata]);
+  const sequenceStatus = useMemo(
+    () => createStatus(sequences.metadata, sequences.allSequences?.length > 0),
+    [sequences.metadata, sequences.allSequences?.length]
+  );
 
-  useEffect(() => {
-    setGpsStatus(createStatus(gps.metadata, gps.gpsTracks.length > 0));
-  }, [gps.metadata]);
+  const gpsStatus = useMemo(
+    () => createStatus(gps.metadata, gps.gpsTracks.length > 0),
+    [gps.metadata, gps.gpsTracks.length]
+  );
 
-  useEffect(() => {
-    setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
-  }, [ephemera.metadata]);
-  useEffect(() => {
-    setGpsStatus(createStatus(gps.metadata, gps.gpsTracks.length > 0));
-  }, [gps.metadata]);
+  const ephemeraStatus = useMemo(
+    () => createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0),
+    [ephemera.metadata, ephemera.ephemerisFiles?.length]
+  );
 
-  useEffect(() => {
-    setEphemeraStatus(createStatus(ephemera.metadata, ephemera.ephemerisFiles?.length > 0));
-  }, [ephemera.metadata]);
-  useEffect(() => {
-    let hasTranscripts = false;
-    transcript.transcripts.forEach((transcript) => {
-      if (transcript.utterances.length > 0) {
-        hasTranscripts = true;
-      }
-    });
+  const graphStatus = useMemo(
+    () => createStatus(graphs.metadata, graphs.graphsManifest?.graphs?.length > 0),
+    [graphs.metadata, graphs.graphsManifest?.graphs?.length]
+  );
 
-    setTranscriptStatus(createStatus(transcript.metadata, hasTranscripts));
-  }, [transcript.metadata]);
+  const dayNightStatus = useMemo(
+    () => createStatus(dayNight.metadata, dayNight.dayNight?.length > 0),
+    [dayNight.metadata, dayNight.dayNight?.length]
+  );
 
-  useEffect(() => {
-    const hasSgAudio =
-      sgAudio.sgActivityFullUrlRecord?.sgActivityRangeFullUrlRecords?.some(
-        (channelArray) => channelArray?.length > 0
-      ) ?? false;
-    setSgAudioStatus(createStatus(sgAudio.metadata, hasSgAudio));
-  }, [sgAudio.metadata]);
-
-  useEffect(() => {
-    const hasGraphs = graphs.graphsManifest?.graphs?.length > 0;
-    setGraphStatus(createStatus(graphs.metadata, hasGraphs));
-  }, [graphs.metadata]);
-
-  useEffect(() => {
-    const hasDayNight = dayNight.dayNight?.length > 0;
-    setDayNightStatus(createStatus(dayNight.metadata, hasDayNight));
-  }, [dayNight.metadata]);
+  const talkybotStatus = useMemo(
+    () => createStatus(talkybot.metadata, talkybot.audioFiles?.length > 0),
+    [talkybot.metadata, talkybot.audioFiles?.length]
+  );
 
   if (!largeDisplay) {
     const dataTypes = [];
 
+    // Status for date being too old for live video
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(
+      clockDate,
+      parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+    );
+    const liveVideoUnneededStatus = {
+      message: "not available for dates > 7 days ago",
+      classname: styles.unneeded,
+    };
+
     if (isDataTypeValidForSource(source, "mtxvideo")) {
       dataTypes.push({
-        label: "Live Video",
-        status: videoStatusMtx,
-        title: "Live Video " + videoStatusMtx.message,
+        label: "EMSS Video",
+        status: liveVideoDateTooOld ? liveVideoUnneededStatus : videoStatusMtx,
+        title:
+          "EMSS Video " +
+          (liveVideoDateTooOld ? liveVideoUnneededStatus.message : videoStatusMtx.message),
       });
     }
     if (isDataTypeValidForSource(source, "videos")) {
@@ -182,18 +174,11 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         title: "Day/Night " + dayNightStatus.message,
       });
     }
-    if (isDataTypeValidForSource(source, "transcript")) {
+    if (isDataTypeValidForSource(source, "talkybot")) {
       dataTypes.push({
-        label: "Transcript",
-        status: transcriptStatus,
-        title: "Transcript " + transcriptStatus.message,
-      });
-    }
-    if (isDataTypeValidForSource(source, "sgaudio")) {
-      dataTypes.push({
-        label: "SG Audio",
-        status: sgAudioStatus,
-        title: "SG Audio " + sgAudioStatus.message,
+        label: "Talkybot",
+        status: talkybotStatus,
+        title: "Talkybot " + talkybotStatus.message,
       });
     }
     if (isDataTypeValidForSource(source, "graph")) {
@@ -232,18 +217,30 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
   } else {
     const dataTypes = [];
 
+    // Status for date being too old for live video
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(
+      clockDate,
+      parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+    );
+    const liveVideoUnneededStatus = {
+      message: "not available for dates > 7 days ago",
+      classname: styles.unneeded,
+    };
+
     if (isDataTypeValidForSource(source, "mtxvideo")) {
       dataTypes.push({
-        label: "Live Video",
-        status: videoStatusMtx,
-        title: "Live Video " + videoStatusMtx.message,
+        label: "EMSS Video",
+        status: liveVideoDateTooOld ? liveVideoUnneededStatus : videoStatusMtx,
+        title:
+          "EMSS Video " +
+          (liveVideoDateTooOld ? liveVideoUnneededStatus.message : videoStatusMtx.message),
       });
     }
     if (isDataTypeValidForSource(source, "videos")) {
       dataTypes.push({
         label: "IO Video",
         status: videoStatusIo,
-        title: "Video " + videoStatusIo.message,
+        title: "IO Video " + videoStatusIo.message,
       });
     }
     if (isDataTypeValidForSource(source, "photos")) {
@@ -284,18 +281,11 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         title: "Day/Night " + dayNightStatus.message,
       });
     }
-    if (isDataTypeValidForSource(source, "transcript")) {
+    if (isDataTypeValidForSource(source, "talkybot")) {
       dataTypes.push({
-        label: "Transcript",
-        status: transcriptStatus,
-        title: "Transcript " + transcriptStatus.message,
-      });
-    }
-    if (isDataTypeValidForSource(source, "sgaudio")) {
-      dataTypes.push({
-        label: "SG Audio",
-        status: sgAudioStatus,
-        title: "SG Audio " + sgAudioStatus.message,
+        label: "Talkybot",
+        status: talkybotStatus,
+        title: "Talkybot " + talkybotStatus.message,
       });
     }
     if (isDataTypeValidForSource(source, "graph")) {
@@ -331,49 +321,6 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         </div>
       </>
     );
-  }
-
-  function createStatus(
-    metadata: FetchMetadata | null,
-    resultsReturned: boolean
-  ): { message: string; classname: string } {
-    const cacheTime = metadata?.timestamp ? new Date(metadata.timestamp).toLocaleString() : null;
-    let message: string;
-    let classname: string;
-
-    // If no metadata yet, we're still loading
-    if (!metadata) {
-      message = "data loading...";
-      classname = styles.loading;
-      return { message, classname };
-    }
-
-    // Check if this data type is not applicable for the current source
-    if (metadata.unneeded) {
-      message = "data not applicable";
-      classname = styles.unneeded;
-      return { message, classname };
-    }
-
-    // Check for errors
-    if (metadata && !metadata.success) {
-      message = "Error: " + (metadata.error || "unknown error");
-      classname = styles.error;
-      return { message, classname };
-    }
-
-    // If we have metadata and no error, but no results, data is empty
-    if (!resultsReturned) {
-      message = "data is empty";
-      classname = styles.unneeded;
-      return { message, classname };
-    }
-
-    // Have data and no error
-    message = cacheTime ? `data originally retrieved on ${cacheTime}` : "data available";
-    classname = styles.noError;
-
-    return { message, classname };
   }
 };
 

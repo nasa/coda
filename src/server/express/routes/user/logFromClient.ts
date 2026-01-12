@@ -2,7 +2,7 @@ import { sendClientLogsToLogstash } from "@emss/logger";
 import { handleUnableToDecodeJWT } from "@emss/oauth2-proxy-backend";
 import express, { Request, Response } from "express";
 import { getUser } from "packages/getUser";
-import serverLogger from "utils/serverLogger";
+import serverLogger from "utils/logging/serverLogger";
 
 const router = express.Router();
 

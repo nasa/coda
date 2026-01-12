@@ -20,11 +20,6 @@
   min-height: 250px;
 }
 
-.tourText > p {
-  font-size: 15px;
-  line-height: 18px;
-}
-
 .description {
   line-height: 1.1em;
   text-align: right;
@@ -35,7 +30,7 @@
   color: var(--even-greyer);
 }
 
-.description .strong {
+.strong {
   line-height: 1.7em;
   font-weight: 600;
   color: white;
@@ -58,7 +53,7 @@
 }
 
 .wordMark {
-  font-family: "Aldrich";
+  font-family: Aldrich, sans-serif;
   font-weight: 400;
   font-size: 40px;
 }
@@ -75,10 +70,10 @@
 }
 
 .sourcesHeader {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgb(255 255 255 / 40%);
   padding-left: 11px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgb(255 255 255 / 20%);
 }
 
 .ul {

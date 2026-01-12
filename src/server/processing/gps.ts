@@ -1,6 +1,6 @@
 import { globalValues } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
-import { GPXTracks_db } from "server/database/models/_allModels";
+import { GPXTracks_db } from "server/database/models/gpxTracks.model";
 import { XMLParser } from "fast-xml-parser";
 
 export default async function getGpsTrackData({
@@ -35,7 +35,7 @@ export default async function getGpsTrackData({
 }
 
 export async function getGpxTrackRecordsByDate(date: string): Promise<GPXTrackRecord[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
 
   const gpxTracks_db: Loaded<GPXTracks_db, never>[] = await em.find(
     GPXTracks_db,
@@ -51,7 +51,7 @@ export async function getGpxTrackRecordsByDate(date: string): Promise<GPXTrackRe
 }
 
 export async function getGpxTrackRecordsList(): Promise<GPXTrackListRecord[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const gpxTracks_db = await em.find(
     GPXTracks_db,
     {},
@@ -62,7 +62,7 @@ export async function getGpxTrackRecordsList(): Promise<GPXTrackListRecord[]> {
 }
 
 export async function getGpxTrackRecordById(id: number): Promise<GPXTrackRecord | null> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   return em.findOne(GPXTracks_db, { id });
 }
 
@@ -72,7 +72,7 @@ export async function upsertGpxTrackRecord({
   name,
   gpxData,
 }: GPSUpsertRequest): Promise<{ record: GPXTrackRecord; isNew: boolean } | null> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
 
   if (id) {
     const existing = await em.findOne(GPXTracks_db, { id: Number(id) });
@@ -93,7 +93,7 @@ export async function upsertGpxTrackRecord({
 }
 
 export async function deleteGpxTrackRecordById(id: number): Promise<boolean> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const existing = await em.findOne(GPXTracks_db, { id });
   if (!existing) {
     return false;
@@ -115,7 +115,7 @@ const makeGPSTracks = (gpxTrackRecords: GPXTrackRecord[]): GPSTrack[] => {
     const parsed = parser.parse(gpxXml);
 
     const gpsPoints: GPSPoint[] = parsed.gpx.trk.trkseg.trkpt.map(
-      (point: { lat: string; lon: string; ele: any; time: any }) => ({
+      (point: { lat: string; lon: string; ele: string; time: string }) => ({
         lat: parseFloat(point.lat),
         lon: parseFloat(point.lon),
         ele: point.ele,

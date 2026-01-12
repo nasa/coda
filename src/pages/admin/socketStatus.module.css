@@ -1,0 +1,132 @@
+/* Socket Status Page Specific Styles */
+
+/* Date subsection within a source */
+.dateSection {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: var(--panelRadius);
+  border: 1px solid var(--lighter-grey);
+  background: var(--nearly-black);
+}
+
+.dateHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dateTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.dateBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--light-grey);
+  border: 1px solid var(--lighter-grey);
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Users Table */
+.usersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  border-radius: var(--panelRadius);
+  overflow: hidden;
+}
+
+.usersTable th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: var(--greyish);
+  background: var(--light-grey);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.usersTable td {
+  padding: 10px 12px;
+  color: #cbd5e1;
+  border-top: 1px solid var(--dark-grey);
+  vertical-align: middle;
+}
+
+.usersTable tbody tr:hover {
+  background: rgb(255 255 255 / 3%);
+}
+
+.userName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.userNameRepeated {
+  color: #64748b;
+  font-size: 0.85em;
+}
+
+.connectionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--lighter-grey);
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Summary stats */
+.summaryStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive */
+@media (width <= 768px) {
+  .usersTable th,
+  .usersTable td {
+    padding: 8px 10px;
+  }
+
+  .usersTable {
+    font-size: 0.8rem;
+  }
+}

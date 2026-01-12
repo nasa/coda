@@ -3,6 +3,8 @@ import { Query } from "express-serve-static-core";
 import { Loaded } from "@mikro-orm/postgresql";
 import { globalValues } from "server/express/global";
 import { PhotoTimeShifts_db } from "server/database/models/PhotoTimeShifts.model";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Get photo datetime overrides from CODA DB for a given photo id
@@ -38,7 +40,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       res.status(200).json(records);
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
@@ -56,13 +58,13 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "photo record not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the GET request ${e}` });
   }
 });
 
 // create via post
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, timeOffset } = req.body as PhotoUpsertRequest;
   const em = globalValues.orm.em;
 
@@ -92,13 +94,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
   }
 });
 
 // delete
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
   const em = globalValues.orm.em;
 
@@ -113,7 +115,7 @@ router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ status: "error", message: "photo time shift not found" });
     }
   } catch (e) {
-    console.error(e);
+    ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the DELETE request ${e}` });
   }
 });
@@ -122,8 +124,7 @@ export default router;
 
 async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord[]> {
   const em = globalValues.orm.em;
-  let photoRecords_db: Loaded<PhotoRecord, never>[];
-  photoRecords_db = await em.find(
+  const photoRecords_db: Loaded<PhotoRecord, never>[] = await em.find(
     PhotoTimeShifts_db,
     { date: date },
     { orderBy: { source: "ASC" } }
@@ -140,7 +141,7 @@ async function getPhotoTimeshiftRecordsByDate(date: string): Promise<PhotoRecord
 }
 
 export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
-  const em = globalValues.orm.em;
+  const em = globalValues.orm.em.fork();
   const photos_db = await em.find(
     PhotoTimeShifts_db,
     {},

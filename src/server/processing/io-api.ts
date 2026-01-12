@@ -18,6 +18,10 @@ import fetchWithTimeout from "../../utils/fetch-with-timeout";
 import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
+import ConsoleLogger from "utils/logging/consoleLogger";
+
+const IO_HOST = "https://io.jsc.nasa.gov";
+const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
 
 /**
  * Perform a request against the Imagery Online (IO) API with the given parameters.
@@ -25,7 +29,7 @@ import { addMs } from "../../utils/date";
  * @returns Promise resolving to IO API response with docs array
  */
 async function fetchIO(params: string): Promise<IOResponse> {
-  const url = `${process.env.IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
+  const url = `${IO_API_URL}&${params}?key=${process.env.IO_KEY}&format=json`;
   const options = {
     headers: {
       Accept: "application/json, text/javascript, */*; q=0.01",
@@ -40,7 +44,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
     const res = await fetchWithTimeout(url, options);
     return res.json();
   } catch (e) {
-    console.error("Error fetching IO data", e);
+    ConsoleLogger.error("Error fetching IO data", e);
     throw e; // Re-throw to allow caller to handle the error
   }
 }
@@ -48,11 +52,11 @@ async function fetchIO(params: string): Promise<IOResponse> {
 /** Fetch an override manifest for video, photo, or transcript sources. */
 export async function fetchForgedIoManifest(
   override: MediaOverride
-): Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]> {
+): Promise<VideoFile[] | PhotoFile[]> {
   const dataPath = `${override.url}/${override.type}Manifest.json`;
 
   const res = await fetchWithTimeout(dataPath);
-  return res.json() as Promise<VideoFile[] | PhotoFile[] | UnprocessedTranscript[]>;
+  return res.json() as Promise<VideoFile[] | PhotoFile[]>;
 }
 
 /**
@@ -119,7 +123,7 @@ export async function fetchIoData({
   const data1 = parser(initialResponse, collection);
 
   // Construct an array of queryParams, one for each page required to reach numFound from first API call
-  let queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
+  const queryParamsArray: string[] = buildQueryArray(queryParams, callsRequired, limit);
 
   // create an array of promises for async IO calls
   const promiseArray = queryParamsArray.map(async (queryParams) => await fetchIO(queryParams));
@@ -133,7 +137,7 @@ export async function fetchIoData({
   });
 
   // Turn array of arrays into one enormous array
-  let additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
+  const additionalData = additionalDataArray.flat(1) as PhotoFile[] | VideoFile[];
 
   // Merge the additional objects with the objects from the first API call and return it
   const allData = [...data1, ...additionalData] as PhotoFile[] | VideoFile[];
@@ -185,7 +189,7 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection) {
  * Exported for testing.
  * @returns Negative if a comes first, positive if b comes first, 0 if equal
  */
-export const videoSorter = (a: VideoFile, b: VideoFile) => {
+export const videoSorter = (a: VideoFile, b: VideoFile): number => {
   const aDuration = a.end - a.start;
   const bDuration = b.end - b.start;
   // Standard sort comparator: <0 sorts a before b, >0 sorts a after b, 0 keeps original order
@@ -203,9 +207,14 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   let downlink = -1; // -1 indicates no specific downlink channel
   let LOS = false; // LOS (Loss of Signal) = video recorded during communication blackout, downlinked later
 
+  // Only assign downlink channel if this is actually a downlink video (based on NASA ID source code)
+  // Non-downlink videos (onboards, NASA TV, HDEV, etc.) will remain with downlink=-1
+  // so they appear in the "Video Other" component
+  const videoIsDownlink = isDownlinkVideo(doc.nasa_id);
+
   // Determine downlink channel based on collection type
   // Different collections store channel information in different metadata fields
-  if (col === collection.ISS) {
+  if (videoIsDownlink && col === collection.ISS) {
     const channel = getISSChannel(doc.collections_string);
     // ISS has 8 downlink channels (01-08), convert to 0-indexed
     if (["01", "02", "03", "04", "05", "06", "07", "08"].indexOf(channel) > -1) {
@@ -247,7 +256,7 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   const dateToUse = doc.vmd_start_gmt || doc.md_creation_date;
 
   // Parse ISO 8601 timestamp (YYYY-MM-DDTHH:MM:SSZ)
-  let dateArr = dateToUse
+  const dateArr = dateToUse
     .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
     .slice(1) // Remove full match, keep only capture groups
     .map((n: string) => parseInt(n));
@@ -277,9 +286,9 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   const duration_ms = (doc.duration_seconds || 0) * 1000;
   const UTCend = new Date(UTCstartMilliseconds + duration_ms);
 
-  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  const dataURL = `${IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  const mediaLowResURL = `${process.env.IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
+  const mediaLowResURL = `${IO_HOST}${doc.webpath}/video/${doc.nasa_id}.${doc.file_extension_video}`;
 
   const videoFile: VideoFile = {
     id: doc.nasa_id,
@@ -303,6 +312,46 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   videoFile.startDateTime = doc.vmd_start_gmt || doc.md_creation_date;
 
   return videoFile;
+}
+
+/**
+ * Determine if a video is a downlink video based on its NASA ID.
+ * NASA ID format: iss<exp>m<source><day><time> or sts<mission>m<source><day><time>
+ * Where <source> is the 2-digit video source number:
+ * - 01-10: SD Downlink
+ * - 11-20: HD Downlink
+ * - 31: Russian Downlink
+ * - 60: Shuttle Downlink
+ * All other source IDs are non-downlink (onboards, NASA TV, GVS, etc.)
+ * Exported for testing purposes.
+ * @param nasaId - NASA ID string from IO API doc
+ * @returns true if the video is a downlink video, false otherwise
+ */
+export function isDownlinkVideo(nasaId: string): boolean {
+  // Match ISS or STS video ID format: (iss|sts)<exp>m<source><day><time>
+  // exp = mission/expedition number (3 digits)
+  // m = moving imagery marker (literal 'm')
+  // source = video source number (2 digits)
+  const match = nasaId.match(/^(?:iss|sts)(\d{3})m(\d{2})/i);
+  if (!match) {
+    // If the ID doesn't match the expected format, exclude it to be safe
+    return false;
+  }
+
+  const sourceId = parseInt(match[2], 10);
+
+  // Downlink source IDs per NASA spec:
+  // 01-10: SD Downlink
+  // 11-20: HD Downlink
+  // 31: Russian Downlink
+  // 60: Shuttle Downlink
+  // Note: 51-59 is GVS SD Video per spec, NOT downlink
+  return (
+    (sourceId >= 1 && sourceId <= 10) ||
+    (sourceId >= 11 && sourceId <= 20) ||
+    sourceId === 31 ||
+    sourceId === 60
+  );
 }
 
 /**
@@ -362,11 +411,11 @@ function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFil
  * @returns Parsed PhotoFile object ready for application use
  */
 function parsePhotoResultMetadata(doc: Doc, collection: Collection): PhotoFile {
-  const dataURL = `${process.env.IO_HOST}/app/info.cfm?pid=${doc.id}`;
+  const dataURL = `${IO_HOST}/app/info.cfm?pid=${doc.id}`;
 
-  const mediaLowResURL = `${process.env.IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const mediaHighResURL = `${process.env.IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
-  const mediaThumbURL = `${process.env.IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaLowResURL = `${IO_HOST}${doc.webpath}/lores/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaHighResURL = `${IO_HOST}${doc.webpath}/hires/${doc.nasa_id}.${doc.file_extension_lores}`;
+  const mediaThumbURL = `${IO_HOST}${doc.webpath}/thumb/${doc.nasa_id}.${doc.file_extension_lores}`;
 
   const photoFile: PhotoFile = {
     id: doc.nasa_id,

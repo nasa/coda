@@ -1,13 +1,15 @@
+import { vi } from "vitest";
+import type { Mock } from "vitest";
 import { getNextPosition, updateOrbitLine } from "./map";
 import { getAppropriateTLE } from "store/ephemera";
 import { getLatLngObj } from "tle.js";
 
 // Mock dependencies
-jest.mock("store/ephemera");
-jest.mock("tle.js");
+vi.mock("store/ephemera");
+vi.mock("tle.js");
 
-const mockGetAppropriateTLE = getAppropriateTLE as jest.MockedFunction<typeof getAppropriateTLE>;
-const mockGetLatLngObj = getLatLngObj as jest.MockedFunction<typeof getLatLngObj>;
+const mockGetAppropriateTLE = getAppropriateTLE as Mock<typeof getAppropriateTLE>;
+const mockGetLatLngObj = getLatLngObj as Mock<typeof getLatLngObj>;
 
 describe("getNextPosition", () => {
   const mockEphemeraItems: EphemerisEntry[] = [
@@ -23,7 +25,7 @@ describe("getNextPosition", () => {
 2 25544  51.6442 339.8014 0001976  94.8340 265.2864 15.54225995123456`;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("should calculate position for a given datetime and increment", () => {
@@ -103,7 +105,7 @@ describe("updateOrbitLine", () => {
 2 25544  51.6442 339.8014 0001976  94.8340 265.2864 15.54225995123456`;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockGetAppropriateTLE.mockReturnValue(mockTLE);
   });
 

@@ -8,7 +8,7 @@ import {
   faSatellite,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-import { Dispatch, UnknownAction, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 /**
  * Supporting information about each layout defined in components/layouts.modules.css.
@@ -200,7 +200,7 @@ export const allPanes: Panes = {
       ready: true,
       lockScroll: true,
       filterActive: false,
-      sgChannel: 0,
+      sgChannels: [],
       isMuted: false,
       showHelp: true,
     } as CommPaneStateData,
@@ -276,7 +276,7 @@ export const defaultFrames: FrameState = {
       ready: true,
       lockScroll: true,
       filterActive: false,
-      sgChannel: 0,
+      sgChannels: [],
       isMuted: false,
       showHelp: true,
     } as CommPaneStateData,
@@ -332,11 +332,12 @@ export const frameworkSlice = createSlice({
      */
     setPaneStateDataValue: (
       state,
-      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: any } }
+      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: unknown } }
     ) => {
       if (!state.frames[action.payload.frameID]) return;
-      state.frames[action.payload.frameID].paneStateData[action.payload.paneStateProperty] =
-        action.payload.paneStateValue;
+      (state.frames[action.payload.frameID].paneStateData as Record<string, unknown>)[
+        action.payload.paneStateProperty
+      ] = action.payload.paneStateValue;
     },
     /**
      * Change the overall data source (ISS, Test Events, NBL)
@@ -369,19 +370,4 @@ function getEventInfoTitleBySource(source: Source): string {
   } else {
     throw new Error(source);
   }
-}
-
-export function setPaneStateValue(
-  dispatch: Dispatch<UnknownAction>,
-  frameID: number,
-  propertyName: string,
-  propertyValue: any
-) {
-  dispatch(
-    setPaneStateDataValue({
-      frameID,
-      paneStateProperty: propertyName,
-      paneStateValue: propertyValue,
-    })
-  );
 }

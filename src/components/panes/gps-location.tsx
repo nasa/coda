@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, FunctionComponent } from "react";
 import type { Dispatch, SetStateAction, MutableRefObject } from "react";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { RootState } from "store/index";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
 
 import styles from "./gps-location.module.css";
@@ -12,15 +11,14 @@ import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import type { FeatureCollection, LineString } from "geojson";
-import { setPaneStateValue } from "store/framework";
+import { setPaneStateDataValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
-import Button from "components/interface/button";
+import Button, { RoundedVariant } from "components/interface/button";
 import { createRoot } from "react-dom/client";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
-import { useHoverPlayheadContext } from "store/contextProviders/hoverPlayheadContext";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const GPSLocationControls: FunctionComponent<{
   frameID: number;
@@ -30,12 +28,12 @@ export const GPSLocationControls: FunctionComponent<{
 
   const minWidth = 470;
 
-  const paneStateData: GpsTrackPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GpsTrackPaneStateData,
     deepEqual
   );
 
-  const gpsTracks = useAppSelector((state: RootState) => state.gps.gpsTracks, deepEqual);
+  const gpsTracks = useAppSelector((state) => state.gps.gpsTracks, deepEqual);
 
   const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
@@ -48,7 +46,7 @@ export const GPSLocationControls: FunctionComponent<{
       <div className={styles.controlsLeft}>
         <div className={styles.selections}>
           {gpsTracks.map((track, index) => {
-            let rounded = "none";
+            let rounded: RoundedVariant = "none";
             if (index === 0) {
               rounded = "left";
             } else if (index === gpsTracks.length - 1) {
@@ -70,7 +68,13 @@ export const GPSLocationControls: FunctionComponent<{
 
                   const newTogglesData = { ...paneStateData.gpsTrackToggles, [track.name]: onOff };
 
-                  setPaneStateValue(dispatch, frameID, "gpsTrackToggles", newTogglesData);
+                  dispatch(
+                    setPaneStateDataValue({
+                      frameID,
+                      paneStateProperty: "gpsTrackToggles",
+                      paneStateValue: newTogglesData,
+                    })
+                  );
                 }}
               >
                 <div className={styles.dlLabel}>{track.name}</div>
@@ -85,21 +89,37 @@ export const GPSLocationControls: FunctionComponent<{
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
             onClick={() => {
-              setPaneStateValue(dispatch, frameID, "lockMap", !paneStateData.lockMap);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "lockMap",
+                  paneStateValue: !paneStateData.lockMap,
+                })
+              );
             }}
           >
-            <span className={styles.buttonLabel}>
-              <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
-              <div>
-                <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
-              </div>
-            </span>
+            {frameDimensions[0] > minWidth ? (
+              <span className={styles.buttonLabel}>
+                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>
+                  <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+                </div>
+              </span>
+            ) : (
+              <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
+            )}
           </button>
         </div>
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -144,7 +164,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     ],
   };
 
-  let trackFeatures: Record<string, FeatureCollection<LineString>> = {
+  const trackFeatures: Record<string, FeatureCollection<LineString>> = {
     EV1: { ...initialTrackFeature },
     EV2: { ...initialTrackFeature },
     EV3: { ...initialTrackFeature },
@@ -154,18 +174,17 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     Staff: { ...initialTrackFeature },
   };
 
-  const gpsState: GPSState = useAppSelector((state: RootState) => state.gps, deepEqual);
-  const layoutLastChanged = useAppSelector(
-    (state: RootState) => state.framework.layoutLastChanged,
-    deepEqual
-  );
-  const paneStateData: GpsTrackPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const gpsState: GPSState = useAppSelector((state) => state.gps, deepEqual);
+  const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, deepEqual);
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as GpsTrackPaneStateData,
     deepEqual
   );
 
-  const { playhead } = usePlayheadContext();
-  const { hoverPlayhead } = useHoverPlayheadContext();
+  // Clock state from Redux
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
+  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const mapContainer = useRef(null);
 
@@ -205,6 +224,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_KEY;
 
     if (!map) initializeMap(setMap, mapContainer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeMap is a stable module-level function
   }, [map]);
 
   //redraw the map when the frame dimension change due to window resize or a layout change
@@ -212,6 +232,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     if (map) {
       map.resize();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- map instance doesn't change, only need to react to dimension changes
   }, [frameDimensions, layoutLastChanged]);
 
   useEffect(() => {
@@ -221,7 +242,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   //update map GPS markers and tracks
   useEffect(() => {
-    if (!map || !playhead.date || gpsState.gpsTracks.length === 0) return;
+    if (!map || !playheadDate || gpsState.gpsTracks.length === 0) return;
 
     // set eventType to DRATS if EV1 is present, set as GANDALF if Staff is present
     if (gpsState.gpsTracks.filter((track) => track.name === "EV1").length > 0) {
@@ -231,7 +252,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     }
 
     // hide all markers
-    for (let key in mapMarkers) {
+    for (const key in mapMarkers) {
       const marker = mapMarkers[key as keyof MapMarkers];
       marker.markerNode.style.visibility = "hidden";
     }
@@ -255,9 +276,9 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
       let markerIndex = 0;
 
-      let isoDate = hoverPlayhead.hoverSeconds
-        ? getPlayheadISOString(playhead.date, hoverPlayhead.hoverSeconds)
-        : getPlayheadISOString(playhead.date, playhead.appSeconds);
+      const isoDate = hoverSeconds
+        ? getPlayheadISOString(playheadDate, hoverSeconds)
+        : getPlayheadISOString(playheadDate, appSeconds);
 
       //Look for the point in each GPS track closest to the playheadTime
       for (let i = 0; i < gpsTracks[track].points.length; i++) {
@@ -322,7 +343,8 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         setZoomLevel(1);
       }
     }
-  }, [map, playhead, hoverPlayhead, gpsState.gpsTracks, paneStateData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- houstonLatLng, infoDisplay, mapMarkers, sortedEnabledTracks, zoomLevel are stable or would cause infinite loops
+  }, [map, playheadDate, appSeconds, hoverSeconds, gpsState.gpsTracks, paneStateData]);
 
   //Display GPS tracks on map
   useEffect(() => {
@@ -348,6 +370,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         map.getSource(`track${trackName}Source`).setData(trackFeatures[trackName]);
       }
     }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trackFeatures is defined inline and adding it would cause infinite loops
   }, [map, gpsState.gpsTracks]);
 
   useEffect(() => {
@@ -477,7 +500,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   function initializeMap(
     setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
-    mapContainer: MutableRefObject<any>
+    mapContainer: MutableRefObject<HTMLDivElement | null>
   ) {
     mapContainer.current.innerHTML = ""; // Clear the container
     const thisMap = new mapboxgl.Map({
@@ -512,7 +535,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     });
   }
 
-  function addMapMarker(thisMap: any, typeName: string): MapMarker {
+  function addMapMarker(thisMap: mapboxgl.Map, typeName: string): MapMarker {
     const markerNode = document.createElement("div");
     markerNode.style.visibility = "hidden";
     const root = createRoot(markerNode);
@@ -525,19 +548,32 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
 
   return (
     <>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.container}>
         <div
           ref={mapContainer}
           className={styles.mapContainer}
           onMouseDown={() => {
-            setPaneStateValue(dispatch, frameID, "lockMap", false);
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "lockMap",
+                paneStateValue: false,
+              })
+            );
           }}
         ></div>
         {gpsState.gpsTracks.length > 0 ? showInfo() : <></>}
         <HelpOverlay
           isModalOpen={paneStateData.showHelp}
           closeHandler={() => {
-            setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "showHelp",
+                paneStateValue: !paneStateData.showHelp,
+              })
+            );
           }}
         >
           <div>
@@ -546,6 +582,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
               <a
                 href={"https://wiki.jsc.nasa.gov/exploration/index.php/CODA/External_Data"}
                 target={"_blank"}
+                rel="noopener noreferrer"
               >
                 Exploration Wiki
               </a>{" "}

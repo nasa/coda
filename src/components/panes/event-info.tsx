@@ -1,23 +1,23 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import isNil from "lodash/isNil";
-import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { setPaneStateValue } from "store/framework";
-import { RootState } from "store/index";
+import { setPaneStateDataValue } from "store/framework";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
 import { sequenceType } from "utils/consts";
 import { appSecondsFromDateString, hhmmFromSeconds } from "utils/formatting";
 import styles from "./event-info.module.css";
 import { FunctionComponent, useState } from "react";
 import { isSameDate } from "../../utils/date";
-import { usePlayheadContext } from "store/contextProviders/playheadContext";
+import { setAppSeconds } from "store/clock";
+import ClockInterval from "components/framework/ClockInterval";
 
 export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
 
-  const paneStateData: EventPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as EventPaneStateData,
     deepEqual
   );
 
@@ -28,7 +28,13 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
         <div className={styles.verticalCenter}>
           <HelpButton
             clickHandler={() => {
-              setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "showHelp",
+                  paneStateValue: !paneStateData.showHelp,
+                })
+              );
             }}
             selected={paneStateData.showHelp}
           />
@@ -39,20 +45,19 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 };
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
-  const { playhead, dispatchPlayhead } = usePlayheadContext();
+  // Clock state from Redux
+  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const [_appSeconds, setLocalAppSeconds] = useState(0);
 
-  const sequences: SequencesState = useAppSelector(
-    (state: RootState) => state.sequences,
-    deepEqual
-  );
-  const paneStateData: EventPaneStateData = useAppSelector(
-    (state: RootState) => state.framework.frames[frameID].paneStateData,
+  const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
+  const paneStateData = useAppSelector(
+    (state) => state.framework.frames[frameID].paneStateData as EventPaneStateData,
     deepEqual
   );
 
   const allSequences = sequences.allSequences;
   const seq = allSequences.find((seq) =>
-    isSameDate(new Date(seq.startDate), new Date(playhead.date))
+    isSameDate(new Date(seq.startDate), new Date(playheadDate))
   );
   const dispatch = useAppDispatch();
   const [seqSourceName] = useState<"Wiki">("Wiki");
@@ -89,10 +94,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             key={asPerformed[evNum][i].startTimeSeconds}
             className={styles.taskContainer}
             onClick={() => {
-              dispatchPlayhead({
-                type: "SET_APP_SECONDS",
-                payload: asPerformed[evNum][i].startTimeSeconds,
-              });
+              dispatch(setAppSeconds(asPerformed[evNum][i].startTimeSeconds));
             }}
           >
             <div className={styles.taskTime}>
@@ -110,6 +112,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   return (
     <div className={styles.main}>
+      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {!isNil(seq) && seq.type === sequenceType.EVA ? (
         <>
           <table className={styles.dataTable}>
@@ -127,10 +130,11 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                   <span
                     className={`${styles.labelValue} ${styles.leftPadded} ${styles.petValue}`}
                     onClick={() => {
-                      dispatchPlayhead({
-                        type: "SET_APP_SECONDS",
-                        payload: appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`),
-                      });
+                      dispatch(
+                        setAppSeconds(
+                          appSecondsFromDateString(`${seq.startDate}T${seq.startTime}Z`)
+                        )
+                      );
                     }}
                   >
                     {seq.startTime}Z
@@ -179,17 +183,31 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
         closeHandler={() => {
-          setPaneStateValue(dispatch, frameID, "showHelp", !paneStateData.showHelp);
+          dispatch(
+            setPaneStateDataValue({
+              frameID,
+              paneStateProperty: "showHelp",
+              paneStateValue: !paneStateData.showHelp,
+            })
+          );
         }}
       >
         <div>
           <p>
             Displays details housed in the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/iss/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/iss/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               ISS Wiki
             </a>{" "}
             (for ISS events) or the{" "}
-            <a href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"} target={"_blank"}>
+            <a
+              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+              target={"_blank"}
+              rel="noopener noreferrer"
+            >
               Exploration Wiki
             </a>{" "}
             (for test events).
@@ -202,6 +220,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                 "https://wiki.jsc.nasa.gov/iss/index.php/US_EVA_41/As-executed_Summary_Timeline"
               }
               target={"_blank"}
+              rel="noopener noreferrer"
             >
               example
             </a>

@@ -3,7 +3,6 @@
   height: 0;
   width: 100%;
   min-height: 100%;
-  overflow: auto;
   background-color: var(--nearly-black);
   overflow: auto;
 }
@@ -53,7 +52,7 @@
 }
 
 .selectContainer select {
-  font-family: "Inter", sans-serif;
+  font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 15px;
   cursor: pointer;
@@ -65,8 +64,6 @@
   color: white;
   background-color: var(--lightest-grey);
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   text-overflow: ellipsis;
   outline: 0;
 }
@@ -86,4 +83,14 @@
   pointer-events: none;
   top: 3px;
   right: 6px;
+}
+
+.selectActive {
+  background-color: var(--even-greyer);
+}
+
+.dlLabel {
+  font-weight: 400;
+  font-size: 15px;
+  padding-left: 8px;
 }

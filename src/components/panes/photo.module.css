@@ -23,30 +23,6 @@
   margin-right: 5px;
 }
 
-/* Filter button */
-
-.filterButton {
-  display: inline-block;
-  height: 18px;
-  background-color: var(--even-greyer);
-  color: var(--lighter-grey);
-  border: none;
-  border-radius: var(--radius);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.filterButton:hover {
-  background-color: #eeeeee;
-}
-
-.selected {
-  border: none;
-  background-color: #eeeeee;
-  color: var(--lighter-grey);
-}
-
 /* v1 styles  */
 
 .mediaPanel {
@@ -78,7 +54,7 @@
 .overlayTable {
   width: 100%;
   font-size: 0.9em;
-  background: rgb(15, 15, 15, 0.8);
+  background: rgb(15 15 15 / 80%);
   border: 2px solid #eeeeee;
   border-radius: 10px;
   border-spacing: 0;
@@ -89,15 +65,7 @@
 }
 
 .overlayTable tr {
-  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
-}
-
-.overlayTable td:first-child {
-  text-align: right;
-  width: 40px;
-  font-weight: 400;
-  white-space: nowrap;
-  border-right: 2px solid rgba(150, 150, 150, 0.5);
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
 }
 
 .overlayTable td {
@@ -106,22 +74,25 @@
   vertical-align: top;
   font-weight: 200;
   padding: 5px;
-  border-bottom: 2px solid rgba(150, 150, 150, 0.5);
+  border-bottom: 2px solid rgb(150 150 150 / 50%);
+}
+
+.overlayTable td:first-child {
+  text-align: right;
+  width: 40px;
+  font-weight: 400;
+  white-space: nowrap;
+  border-right: 2px solid rgb(150 150 150 / 50%);
 }
 .overlayTable tr:last-child td {
   border-bottom: none;
 }
 
 .overlayTable .digiValue {
-  font-family: "Ubuntu Mono";
+  font-family: "Ubuntu Mono", monospace;
   font-size: 1em;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-.photoInfo {
-  font-size: 0.9rem;
-  color: #ffffff;
 }
 
 .photoPoster {
@@ -172,38 +143,6 @@
   white-space: nowrap;
 }
 
-.dimText {
-  color: #9b9b9b;
-}
-
-.tableButton {
-  font-size: 0.9rem;
-  font-weight: 400;
-
-  background-color: #2b2a2d;
-  border: 1px #ffc000 solid;
-  border-radius: 4px;
-  color: white;
-  padding: 5px;
-  margin-bottom: 2px;
-  margin-right: 5px;
-  margin-left: 5px;
-  user-select: none;
-  cursor: pointer;
-}
-.tableButton:hover {
-  border: 2px #ffc000 solid;
-  padding: 4px;
-}
-
 .overlayVisible {
   display: block;
-}
-
-.infoText {
-  font-size: 1.1rem;
-  font-weight: 400;
-  margin-right: 5px;
-  margin-left: 5px;
-  user-select: none;
 }

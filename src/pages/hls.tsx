@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 
 const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
-  const [availableDuration, setAvailableDuration] = React.useState(0);
-  const [startTime, setStartTime] = React.useState("");
+  const [availableDuration, setAvailableDuration] = useState(0);
+  const [startTime, setStartTime] = useState("");
 
   const secondsToHHMMSS = (d: number) => {
     // output format: HH:MM:SS
@@ -101,7 +101,7 @@ const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
   );
 };
 
-export default function Page() {
+export default function Page(): React.ReactElement {
   return (
     <div>
       <h1>HLS Live stream with MediaMTX</h1>

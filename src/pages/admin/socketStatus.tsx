@@ -1,222 +1,336 @@
-import {
-  faArrowRotateRight,
-  faCaretDown,
-  faCaretRight,
-  faEye,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import isEqual from "lodash/isEqual";
 import uniq from "lodash/uniq";
 import { getCurrentUser } from "packages/getCurrentUser";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { io, Socket } from "socket.io-client";
 import { isSuperuser } from "utils/user";
+import adminCommon from "./adminCommon.module.css";
+import styles from "./socketStatus.module.css";
+
+dayjs.extend(relativeTime);
+
+const SOCKET_PATH = "/api/v1/socketio";
+
+interface SourceData {
+  source: string;
+  dates: DateData[];
+  totalVisitors: number;
+}
+
+interface DateData {
+  date: string;
+  users: UserData[];
+  totalConnections: number;
+}
+
+interface UserData {
+  uupic: string | undefined;
+  displayName: string;
+  connections: VisitorData[];
+}
 
 const ServerSocketStatus: FunctionComponent = () => {
   const navigate = useNavigate();
-  const [serverSocketStatus, setServerSocketStatus] = useState<ServerSocketStatus>({
-    visitorsData: [],
-  });
+  const [visitorsData, setVisitorsData] = useState<VisitorData[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [serverVersion, setServerVersion] = useState<AppVersion | null>(null);
+  const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     (async () => {
-      //check permissions
       const user = await getCurrentUser();
+      if (!mounted) return;
+
       if (user instanceof Error || !isSuperuser(user)) {
-        navigate("/"); //Redirect to homepage
+        navigate("/");
+        return;
       }
-      const res = await fetch(`/api/v1/socketStatus`);
-      const socketStatus: ServerSocketStatus = await res.json();
-      setServerSocketStatus(socketStatus);
-    })();
-  }, []);
 
-  return (
-    <div>
-      <Link to="/admin">Admin Home</Link>
-      <div style={{ display: "flex", alignItems: "center", columnGap: "10px" }}>
-        <h2>Visitor Connections</h2>
-        <FontAwesomeIcon
-          icon={faArrowRotateRight}
-          onClick={() => {
-            (async () => {
-              const res = await fetch(`/api/v1/socketStatus`);
-              setServerSocketStatus(await res.json());
-            })();
-          }}
-          style={{ cursor: "pointer" }}
-        />
-      </div>
-      {serverSocketStatus?.visitorsData?.length} total visitors connected
-      {!serverSocketStatus?.visitorsData?.length ? (
-        <p>No visitors connected.</p>
-      ) : (
-        <PrintUsers visitorsData={serverSocketStatus.visitorsData} />
-      )}
-    </div>
-  );
-};
-
-const PrintUsers: FunctionComponent<{
-  visitorsData: VisitorData[];
-}> = ({ visitorsData }) => {
-  // Get unique sources and sort them
-  const sources = uniq(visitorsData.map((visitor) => visitor.source)).sort();
-
-  // Track expanded - initialize all to expanded
-  const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
-  const [expandedDatesViewing, setExpandedDatesViewing] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    // Initialize state when visitorData changes
-    const initialSourceState: Record<string, boolean> = {};
-    const initialDateState: Record<string, boolean> = {};
-    const uniqSources = uniq(visitorsData.map((visitor) => visitor.source));
-    uniqSources.forEach((source) => {
-      initialSourceState[source] = true; // Set all sources to expanded by default
-      const uniqDatesViewingForSource = uniq(
-        visitorsData.filter((v) => v.source === source).map((visitor) => visitor.dateViewing)
-      );
-      uniqDatesViewingForSource.forEach((date) => {
-        initialDateState[`${source}-${date}`] = true; // Set all dates viewing to expanded by default
+      // Initialize socket connection
+      const socketUrl = window.location.origin;
+      const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(socketUrl, {
+        transports: ["websocket"],
+        upgrade: true,
+        path: SOCKET_PATH,
       });
+      socketRef.current = socket;
+
+      socket.on("connect", () => {
+        if (!mounted) return;
+        setConnectionStatus("connected");
+        socket.emit("joinInspector");
+      });
+
+      socket.on("version", (version: AppVersion) => {
+        if (!mounted) return;
+        setServerVersion(version);
+      });
+
+      socket.on("disconnect", () => {
+        if (!mounted) return;
+        setConnectionStatus("disconnected");
+      });
+
+      socket.on("connect_error", (error) => {
+        if (!mounted) return;
+        setConnectionStatus("failed");
+        setConnectionError(error?.message ?? "Socket connection error");
+      });
+
+      socket.on("visitorInspectorUpdate", (update: VisitorInspectorUpdate) => {
+        if (!mounted) return;
+        setVisitorsData(update.visitorsData);
+        setLastUpdatedAt(update.updatedAt);
+      });
+    })();
+
+    return () => {
+      mounted = false;
+      if (socketRef.current) {
+        socketRef.current.emit("leaveInspector");
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [navigate]);
+
+  // Transform flat visitor data into hierarchical structure: Source -> Date -> Users
+  const organizedData = useMemo((): SourceData[] => {
+    if (visitorsData.length === 0) return [];
+
+    const sources = uniq(visitorsData.map((v) => v.source)).sort();
+
+    return sources.map((source): SourceData => {
+      const sourceVisitors = visitorsData.filter((v) => v.source === source);
+      const dates = uniq(sourceVisitors.map((v) => v.dateViewing)).sort((a, b) =>
+        b.localeCompare(a)
+      );
+
+      const dateData: DateData[] = dates.map((date): DateData => {
+        const dateVisitors = sourceVisitors.filter((v) => v.dateViewing === date);
+
+        // Group by user
+        const userMap = new Map<string | undefined, UserData>();
+        dateVisitors.forEach((visitor) => {
+          const key = visitor.user?.uupic;
+          if (!userMap.has(key)) {
+            const displayName =
+              visitor.user?.display_name ||
+              (visitor.user?.surname && visitor.user?.givenname
+                ? `${visitor.user.surname}, ${visitor.user.givenname}`
+                : "Unknown User");
+            userMap.set(key, {
+              uupic: key,
+              displayName,
+              connections: [],
+            });
+          }
+          userMap.get(key)!.connections.push(visitor);
+        });
+
+        // Sort users by name
+        const users = Array.from(userMap.values()).sort((a, b) =>
+          a.displayName.localeCompare(b.displayName)
+        );
+
+        return {
+          date,
+          users,
+          totalConnections: dateVisitors.length,
+        };
+      });
+
+      return {
+        source,
+        dates: dateData,
+        totalVisitors: sourceVisitors.length,
+      };
     });
-    setExpandedSources(initialSourceState);
-    setExpandedDatesViewing(initialDateState);
   }, [visitorsData]);
 
-  const toggleSource = (source: string) => {
-    setExpandedSources((prev) => ({
-      ...prev,
-      [source]: !prev[source],
-    }));
+  const totalVisitors = visitorsData.length;
+  const totalSources = organizedData.length;
+  const totalUniqueDates = uniq(visitorsData.map((v) => v.dateViewing)).length;
+
+  const formatTimestamp = (value?: string | null) => {
+    if (!value) return "None";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    const timeAgo = dayjs(value).fromNow();
+    return (
+      <>
+        {date.toLocaleString()}
+        <span style={{ marginLeft: "8px", opacity: 0.6, fontSize: "0.9em" }}>({timeAgo})</span>
+      </>
+    );
   };
-  const toggleDateViewing = (dateAndSource: string) => {
-    setExpandedDatesViewing((prev) => ({
-      ...prev,
-      [dateAndSource]: !prev[dateAndSource],
-    }));
-  };
+
+  const connectionClass =
+    connectionStatus === "connected"
+      ? adminCommon.statusConnected
+      : connectionStatus === "connecting"
+        ? adminCommon.statusConnecting
+        : adminCommon.statusDisconnected;
 
   return (
-    <div>
-      {sources.map((source) => {
-        // Filter data for this source
-        const sourceVisitorData = visitorsData.filter((visitor) => visitor.source === source);
-        // Get unique dates for this source
-        const sourceDates = uniq(sourceVisitorData.map((visitor) => visitor.dateViewing)).sort(
-          (a, b) => (a < b ? 1 : -1)
-        );
+    <main className={adminCommon.page}>
+      <div className={adminCommon.container}>
+        <Link to="/admin" className={adminCommon.backLink}>
+          ← Admin
+        </Link>
+        <h1 className={adminCommon.pageTitle}>Visitor Activity Monitor</h1>
+        <p className={adminCommon.introText}>
+          Real-time view of all connected visitors organized by source and viewing date.
+        </p>
 
-        return (
-          <div key={source}>
-            <div
-              onClick={() => toggleSource(source)}
-              style={{
-                cursor: "pointer",
-                marginTop: "10px",
-                userSelect: "none",
-              }}
-            >
-              <h3>
-                {expandedSources[source] ? (
-                  <FontAwesomeIcon icon={faCaretDown} size="lg" style={{ paddingRight: 5 }} />
-                ) : (
-                  <FontAwesomeIcon icon={faCaretRight} size="lg" style={{ paddingRight: 5 }} />
-                )}
-                Source: {source || "Unknown"} ({sourceVisitorData.length}{" "}
-                <FontAwesomeIcon icon={faEye} />)
-              </h3>
-            </div>
-
-            {expandedSources[source] && (
-              <div style={{ paddingLeft: "20px" }}>
-                {sourceDates.map((date) => {
-                  // Filter data for this date within this source
-                  const dateVisitorData = sourceVisitorData.filter(
-                    (visitor) => visitor.dateViewing === date
-                  );
-
-                  // Get sorted unique users in this date
-                  const launchpadUsers = dateVisitorData.map((visitor) => visitor.user);
-                  const uniqueUsers = launchpadUsers.filter(
-                    (user, index) =>
-                      launchpadUsers.findIndex((visitor) => visitor?.uupic === user?.uupic) ===
-                      index
-                  );
-                  uniqueUsers.sort((a, b) => {
-                    const sa = a?.surname || "";
-                    const sb = b?.surname || "";
-                    return sa.localeCompare(sb);
-                  });
-
-                  return (
-                    <div key={`${source}-${date}`}>
-                      <div
-                        onClick={() => toggleDateViewing(`${source}-${date}`)}
-                        style={{
-                          cursor: "pointer",
-                          marginTop: "10px",
-                          userSelect: "none",
-                        }}
-                      >
-                        <h3>
-                          {expandedDatesViewing[`${source}-${date}`] ? (
-                            <FontAwesomeIcon
-                              icon={faCaretDown}
-                              size="lg"
-                              style={{ paddingRight: 5 }}
-                            />
-                          ) : (
-                            <FontAwesomeIcon
-                              icon={faCaretRight}
-                              size="lg"
-                              style={{ paddingRight: 5 }}
-                            />
-                          )}
-                          {date}: ({dateVisitorData.length} <FontAwesomeIcon icon={faEye} />)
-                        </h3>
-                      </div>
-
-                      {expandedDatesViewing[`${source}-${date}`] && (
-                        <ul>
-                          {uniqueUsers.map((user) => {
-                            const allVisitorRecords = dateVisitorData.filter(
-                              (visitor) => visitor.user?.uupic === user?.uupic
-                            );
-                            const displayName =
-                              user?.display_name || `${user?.surname}, ${user?.givenname}`;
-                            return (
-                              <li key={`${source}-${date}-${user?.uupic}`}>
-                                ({allVisitorRecords.length}) {displayName}
-                                {allVisitorRecords.map((record, index) => {
-                                  return (
-                                    <div key={`${record.socketId}-${index}`}>
-                                      {index > 0 ? <br /> : ""}
-                                      <div
-                                        style={{ paddingLeft: "20px" }}
-                                        key={`${record.socketId}-${index}`}
-                                      >
-                                        Version: {record?.appVersion?.version} -{" "}
-                                        {record?.appVersion?.gitCommit} <br />
-                                        Connected At: {new Date(record?.connectedAt).toUTCString()}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        {/* Connection Status Panel */}
+        <div className={adminCommon.infoPanel} role="status" aria-live="polite">
+          <div className={adminCommon.infoItem}>
+            <span className={adminCommon.infoLabel}>Socket status:</span>
+            <span className={`${adminCommon.infoValue} ${connectionClass}`}>
+              {connectionStatus}
+            </span>
+            {connectionError ? (
+              <span className={adminCommon.statusErrorMessage}>({connectionError})</span>
+            ) : null}
           </div>
-        );
-      })}
-    </div>
+          <div className={adminCommon.infoItem}>
+            <span className={adminCommon.infoLabel}>Last update:</span>
+            <span className={adminCommon.infoValue}>
+              {lastUpdatedAt ? formatTimestamp(lastUpdatedAt) : "None"}
+            </span>
+          </div>
+        </div>
+
+        {/* Summary Stats */}
+        <div className={adminCommon.infoPanel}>
+          <div className={styles.summaryStats}>
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{totalVisitors}</span>
+              <span className={styles.statLabel}>Total Connections</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{totalSources}</span>
+              <span className={styles.statLabel}>Sources</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{totalUniqueDates}</span>
+              <span className={styles.statLabel}>Dates Being Viewed</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        {totalVisitors === 0 ? (
+          <div className={adminCommon.emptyState}>No visitors currently connected.</div>
+        ) : (
+          organizedData.map((sourceData) => (
+            <section
+              key={sourceData.source}
+              className={adminCommon.section}
+              aria-labelledby={`source-${sourceData.source}`}
+            >
+              <h2 id={`source-${sourceData.source}`} className={adminCommon.sectionHeading}>
+                <span className={adminCommon.sectionHeadingMuted}>Source:</span>{" "}
+                {sourceData.source || "Unknown"}
+                <span
+                  className={adminCommon.badgeSuccess}
+                  style={{ marginLeft: 12, fontSize: "0.9rem" }}
+                >
+                  {sourceData.totalVisitors} connection
+                  {sourceData.totalVisitors !== 1 ? "s" : ""}
+                </span>
+              </h2>
+
+              {sourceData.dates.map((dateData) => (
+                <div key={`${sourceData.source}-${dateData.date}`} className={styles.dateSection}>
+                  <div className={styles.dateHeader}>
+                    <h3 className={styles.dateTitle}>
+                      <span className={adminCommon.sectionHeadingMuted}>Viewing:</span>{" "}
+                      {dateData.date}
+                    </h3>
+                    <span className={styles.dateBadge}>
+                      {dateData.users.length} user{dateData.users.length !== 1 ? "s" : ""} •{" "}
+                      {dateData.totalConnections} connection
+                      {dateData.totalConnections !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+
+                  <table className={styles.usersTable}>
+                    <thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Connected</th>
+                        <th>Version</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dateData.users.flatMap((userData) =>
+                        userData.connections.map((conn, connIndex) => (
+                          <tr key={conn.socketId}>
+                            <td>
+                              {connIndex === 0 ? (
+                                <span className={styles.userName}>
+                                  {userData.displayName}
+                                  {userData.connections.length > 1 && (
+                                    <span className={styles.connectionCount}>
+                                      {userData.connections.length}
+                                    </span>
+                                  )}
+                                </span>
+                              ) : (
+                                <span className={styles.userNameRepeated}>
+                                  {userData.displayName}
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <time
+                                dateTime={new Date(conn.connectedAt).toISOString()}
+                                title={dayjs(conn.connectedAt).format("YYYY-MM-DD HH:mm:ss")}
+                              >
+                                {dayjs(conn.connectedAt).fromNow()}
+                              </time>
+                            </td>
+                            <td>
+                              {conn.appVersion ? (
+                                <span
+                                  className={
+                                    serverVersion && !isEqual(conn.appVersion, serverVersion)
+                                      ? adminCommon.badgeError
+                                      : undefined
+                                  }
+                                  title={
+                                    serverVersion && !isEqual(conn.appVersion, serverVersion)
+                                      ? `Outdated - Server version: ${serverVersion.version}/${serverVersion.gitCommit}`
+                                      : undefined
+                                  }
+                                >
+                                  {`${conn.appVersion.version}/${conn.appVersion.gitCommit}`}
+                                </span>
+                              ) : (
+                                "N/A"
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </section>
+          ))
+        )}
+      </div>
+    </main>
   );
 };
 

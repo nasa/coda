@@ -1,82 +1,104 @@
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import styles from "./admin.module.css";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
+import adminCommon from "./adminCommon.module.css";
 
-const AdminIndex: FunctionComponent = () => {
+const AdminPhotoTimeShifts: FunctionComponent = () => {
   const navigate = useNavigate();
-  useEffect(() => {
-    (async () => {
-      //check permissions
-      const user = await getCurrentUser();
-      if (user instanceof Error || !isSuperuser(user)) {
-        navigate("/"); //Redirect to homepage
-      }
-    })();
-  }, []);
-
-  return (
-    <div>
-      <Link to="/admin">Admin Home</Link>
-      <h1>Photos Time Shifts</h1>
-      <p>
-        We need to identify the time offset that the still cameras were set to for some test events.
-        These offsets can be a result of: The camera being set to a local timezone instead of UTC.
-        The clock itself being set incorrectly, or having drifted over a long period of time without
-        being reset Both (Test Event 50 is an example of "both") The "testEventID" is the test event
-        ID in this wiki. The "timeoffset" is the (incorrect) set time of the cameras in hh:mm:ss
-        from UTC.
-      </p>
-      <h3>
-        <Link to={`/admin/photoTimeShiftUpsert`}>Create Record</Link>
-      </h3>
-      <h3>Records</h3>
-      <ListRecords />
-    </div>
-  );
-};
-
-export default AdminIndex;
-
-const ListRecords: FunctionComponent = () => {
   const [records, setRecords] = useState<PhotoRecord[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
+      const user = await getCurrentUser();
+      if (user instanceof Error || !isSuperuser(user)) {
+        navigate("/");
+        return;
+      }
       const response = await fetch("/api/v1/db/photoTimeShifts");
       const data: PhotoRecord[] = await response.json();
       setRecords(data);
-    };
-    fetchData();
-  }, []);
+    })();
+  }, [navigate]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/v1/db/photoTimeShifts/${id}`, {
-      method: "DELETE",
-    });
-    setRecords(records?.filter((record) => record.id !== id));
+    if (!confirm("Are you sure you want to delete this record?")) return;
+    await fetch(`/api/v1/db/photoTimeShifts/${id}`, { method: "DELETE" });
+    setRecords(records.filter((record) => record.id !== id));
   };
 
+  // Group records by date
+  const groupedRecords = useMemo(() => {
+    const groups: Record<string, PhotoRecord[]> = {};
+    records.forEach((record) => {
+      if (!groups[record.date]) {
+        groups[record.date] = [];
+      }
+      groups[record.date].push(record);
+    });
+    // Sort dates descending
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+  }, [records]);
+
   return (
-    <div>
-      <ul>
-        {records?.map((record) => (
-          <li key={record.id} className={styles.listItem}>
-            <Link to={`/admin/photoTimeShiftUpsert?id=${record.id}`}>
-              {record.date} - {record.source} - {record.timeOffset}
+    <main className={adminCommon.page}>
+      <div className={adminCommon.container}>
+        <Link to="/admin" className={adminCommon.backLink}>
+          ← Admin
+        </Link>
+        <h1 className={adminCommon.pageTitle}>Photo Time Shifts</h1>
+        <p className={adminCommon.introText}>
+          Configure time offset corrections for still camera timestamps. These offsets account for
+          cameras set to local timezone instead of UTC, incorrect clock settings, or clock drift
+          over time.
+        </p>
+
+        <section className={adminCommon.section}>
+          <h2 className={adminCommon.sectionHeading}>Records</h2>
+          <div className={adminCommon.details}>
+            <Link to="/admin/photoTimeShiftUpsert" className={adminCommon.createButton}>
+              + Create Record
             </Link>
-            <FontAwesomeIcon
-              onClick={() => {
-                confirm("Are you sure you want to delete this record?") && handleDelete(record.id);
-              }}
-              icon={faTrashAlt}
-            />
-          </li>
-        ))}
-      </ul>
-    </div>
+
+            {records.length === 0 ? (
+              <p className={adminCommon.emptyState}>No photo time shift records found.</p>
+            ) : (
+              <div style={{ marginTop: "12px" }}>
+                {groupedRecords.map(([date, dateRecords]) => (
+                  <div key={date} className={adminCommon.dateGroup}>
+                    <h3 className={adminCommon.dateGroupHeader}>{date}</h3>
+                    <ul className={adminCommon.dateGroupRecords}>
+                      {dateRecords.map((record) => (
+                        <li key={record.id} className={adminCommon.recordItem}>
+                          <Link
+                            to={`/admin/photoTimeShiftUpsert?id=${record.id}`}
+                            className={adminCommon.recordLink}
+                          >
+                            {record.source}
+                            <span className={adminCommon.recordMeta}> — {record.timeOffset}</span>
+                          </Link>
+                          <button
+                            type="button"
+                            className={adminCommon.deleteButton}
+                            onClick={() => handleDelete(record.id)}
+                            aria-label={`Delete ${record.source}`}
+                          >
+                            <FontAwesomeIcon icon={faTrashAlt} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 };
+
+export default AdminPhotoTimeShifts;

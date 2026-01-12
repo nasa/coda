@@ -2,7 +2,7 @@ import { addMs, diff, isSameDate, midnightZulu, mmddyy } from "./date";
 
 describe("date functions", () => {
   it("should return mmddyy", () => {
-    let testDate = new Date(Date.UTC(2015, 0, 3));
+    const testDate = new Date(Date.UTC(2015, 0, 3));
     expect(mmddyy(testDate)).toEqual("010315");
 
     testDate.setUTCDate(25);

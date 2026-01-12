@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import styles from "./index.module.css";
 
@@ -13,14 +14,16 @@ const codaHomeBackgrounds: string[] = [
   "sun_earth.jpg",
 ];
 
-export default function Index() {
+export default function Index(): React.ReactElement {
   const navigate = useNavigate();
-  const randomImage: string =
-    codaHomeBackgrounds[Math.floor(Math.random() * codaHomeBackgrounds.length)];
-  document.documentElement.style.setProperty(
-    "--homepage-background",
-    `url(/images/${randomImage})`
-  );
+
+  useEffect(() => {
+    const randomImage = codaHomeBackgrounds[Math.floor(Math.random() * codaHomeBackgrounds.length)];
+    document.documentElement.style.setProperty(
+      "--homepage-background",
+      `url(/images/${randomImage})`
+    );
+  }, []);
 
   return (
     <div className={styles.main}>

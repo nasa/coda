@@ -1,10 +1,9 @@
 import { asError } from "@emss/utils";
 import express, { Request, Response } from "express";
-import { getUser } from "packages/getUser";
-import serverLogger from "utils/serverLogger";
-import { isSuperuser } from "utils/user";
+import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import serverLogger from "utils/logging/serverLogger";
 import { dataFetchConfigs, getSourceDateDataType } from "server/express/dataRetrievalScheduler";
-import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 
 const router = express.Router();
 
@@ -15,22 +14,8 @@ interface DataViewRequestQuery {
 }
 
 // GET - download data as JSON
-router.get("/", async (req: Request, res: Response): Promise<void> => {
+router.get("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = getUser(req);
-    if (user instanceof Error) {
-      const msg = "Unable to decode JWT";
-      serverLogger.error(user, { logId: msg });
-      res.status(500).send({ msg });
-      return;
-    }
-
-    if (!isSuperuser(user)) {
-      serverLogger.warn({ logId: "Unauthorized access to dataView route" }, user);
-      res.status(403).send({ msg: "Unauthorized" });
-      return;
-    }
-
     const { source, date, dataType } = req.query as unknown as DataViewRequestQuery;
 
     if (!source || !date || !dataType) {
@@ -38,7 +23,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    serverLogger.info({ logId: "Data view download initiated", source, date, dataType }, user);
+    serverLogger.info({ logId: "Data view download initiated", source, date, dataType });
 
     // Find the config for the requested data type
     const dataFetchConfig = dataFetchConfigs.find((c) => c.type === dataType);
@@ -48,9 +33,18 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check if the data type is valid for this source
-    if (!isDataTypeValidForSource(source, dataType)) {
-      res.status(400).send({ msg: `Data type ${dataType} is not available for source ${source}` });
+    // Check if the data type is valid for this source and date
+    if (
+      !isDataTypeValidForSourceAndDate(
+        source,
+        dataType,
+        date,
+        parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+      )
+    ) {
+      res
+        .status(400)
+        .send({ msg: `Data type ${dataType} is not available for source ${source} on ${date}` });
       return;
     }
 

@@ -57,6 +57,4 @@ type AncillaryDataSource = {
   url: string;
 };
 
-type AncillaryDataSource_db_type = AncillaryDataSource;
-
 type AncillaryDataSourceList = Omit<AncillaryDataSource, "ancillaryDataSource">;
