@@ -22,6 +22,4 @@ type GPXTrackRecord = {
   gpxData: string;
 };
 
-type GPXTrackRecord_db_type = GPXTrackRecord;
-
 type GPXTrackListRecord = Omit<GPXTrackRecord, "gpxData">;

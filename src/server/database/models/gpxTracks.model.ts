@@ -1,15 +1,19 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/postgresql";
-import { types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-export class GPXTracks_db implements GPXTrackRecord_db_type {
-  @PrimaryKey({ type: MikroTypes.integer })
+export class GPXTracks_db implements GPXTrackRecord {
   id!: number;
-
-  @Property({ type: MikroTypes.text })
   date!: string;
-  @Property({ type: MikroTypes.text })
   name!: string;
-  @Property({ type: MikroTypes.text })
   gpxData!: string;
 }
+
+export const GPXTracks_dbSchema = new EntitySchema<GPXTracks_db>({
+  class: GPXTracks_db,
+  tableName: "gpxtracks_db",
+  properties: {
+    id: { type: MikroTypes.integer, primary: true, autoincrement: true },
+    date: { type: MikroTypes.text },
+    name: { type: MikroTypes.text },
+    gpxData: { type: MikroTypes.text },
+  },
+});

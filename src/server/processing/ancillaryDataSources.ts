@@ -1,5 +1,5 @@
 import { Loaded } from "@mikro-orm/postgresql";
-import { AncillaryDataSource_db } from "server/database/models/_allModels";
+import { AncillaryDataSource_db } from "server/database/models/ancillaryData.model";
 import { globalValues } from "server/express/global";
 
 export async function getAncillaryDataSourcesByDate(date: string): Promise<AncillaryDataSource[]> {

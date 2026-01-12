@@ -19,10 +19,6 @@ export const config: UserConfig = {
   root: "./src",
   envDir: "../",
   plugins: [react()],
-  // Enable esbuild decorators for the server-side code (MikroORM entities)
-  esbuild: {
-    target: "esnext",
-  },
 
   resolve: {
     //alias paths so that the import statements are shorter and start from the src folder

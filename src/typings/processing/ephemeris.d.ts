@@ -8,7 +8,7 @@ interface EphemerisEntry {
   tle_line2: string;
 }
 
-interface Ephemeris_db_type {
+interface EphemerisRecord {
   epoch: Date;
   tle_line1: string;
   tle_line2: string;

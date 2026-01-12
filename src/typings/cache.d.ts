@@ -20,7 +20,7 @@ type CacheMetadata = {
   expiration: string;
 };
 
-type CacheRecord_db_type = {
+type CacheRecord = {
   id: number;
   folder: string;
   cacheKey: string;

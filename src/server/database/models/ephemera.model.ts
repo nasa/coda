@@ -1,21 +1,22 @@
-import { Entity, PrimaryKey, Property, Index } from "@mikro-orm/postgresql";
-import { types as MikroTypes } from "@mikro-orm/postgresql";
+import { EntitySchema, types as MikroTypes } from "@mikro-orm/postgresql";
 
-@Entity()
-@Index({ properties: ["epoch"] })
-export class Ephemeris_db implements Ephemeris_db_type {
-  @PrimaryKey({ type: MikroTypes.datetime, length: 3 })
+export class Ephemeris_db implements EphemerisRecord {
   epoch!: Date;
-
-  @Property({ type: MikroTypes.text })
   tle_line1!: string;
-
-  @Property({ type: MikroTypes.text })
   tle_line2!: string;
-
-  @Property({ type: MikroTypes.string, length: 20 })
   origin!: "celestrak" | "seed";
-
-  @Property({ type: MikroTypes.datetime, length: 3, defaultRaw: "now()" })
   createdAt!: Date;
 }
+
+export const Ephemeris_dbSchema = new EntitySchema<Ephemeris_db>({
+  class: Ephemeris_db,
+  tableName: "ephemeris_db",
+  indexes: [{ properties: ["epoch"], name: "ephemeris_db_epoch_index" }],
+  properties: {
+    epoch: { type: MikroTypes.datetime, primary: true, length: 3 },
+    tle_line1: { type: MikroTypes.text },
+    tle_line2: { type: MikroTypes.text },
+    origin: { type: MikroTypes.string, length: 20 },
+    createdAt: { type: MikroTypes.datetime, length: 3, defaultRaw: "now()" },
+  },
+});

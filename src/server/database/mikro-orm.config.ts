@@ -7,15 +7,13 @@ import { PostgreSqlDriver, defineConfig } from "@mikro-orm/postgresql";
 import { Migrator } from "@mikro-orm/migrations";
 import { SeedManager } from "@mikro-orm/seeder";
 
-import {
-  AncillaryDataSource_db,
-  GPXTracks_db,
-  MediaOverride_db,
-  PhotoTimeShifts_db,
-  VideoStartTimeOverrides_db,
-  Cache_db,
-  Ephemeris_db,
-} from "./models/_allModels.js";
+import { GPXTracks_dbSchema } from "./models/gpxTracks.model";
+import { MediaOverride_dbSchema } from "./models/mediaOverride.model";
+import { AncillaryDataSource_dbSchema } from "./models/ancillaryData.model";
+import { VideoStartTimeOverrides_dbSchema } from "./models/VideoStartTimeOverrides.model";
+import { PhotoTimeShifts_dbSchema } from "./models/PhotoTimeShifts.model";
+import { Cache_dbSchema } from "./models/cache.model";
+import { Ephemeris_dbSchema } from "./models/ephemera.model";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,23 +31,14 @@ export default defineConfig({
   seeder: {
     path: path.join(__dirname, "./seeds"), // path to the folder with seed files
   },
-  entitiesTs: [
-    GPXTracks_db,
-    MediaOverride_db,
-    AncillaryDataSource_db,
-    VideoStartTimeOverrides_db,
-    PhotoTimeShifts_db,
-    Cache_db,
-    Ephemeris_db,
-  ],
   entities: [
-    GPXTracks_db,
-    MediaOverride_db,
-    AncillaryDataSource_db,
-    VideoStartTimeOverrides_db,
-    PhotoTimeShifts_db,
-    Cache_db,
-    Ephemeris_db,
+    GPXTracks_dbSchema,
+    MediaOverride_dbSchema,
+    AncillaryDataSource_dbSchema,
+    VideoStartTimeOverrides_dbSchema,
+    PhotoTimeShifts_dbSchema,
+    Cache_dbSchema,
+    Ephemeris_dbSchema,
   ],
   debug: process.env.DEBUG === "true" || process.env.DEBUG?.includes("db"),
   allowGlobalContext: false,

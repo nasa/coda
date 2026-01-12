@@ -7,6 +7,7 @@ import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import { getUser } from "packages/getUser";
 import { globalValues } from "server/express/global";
 import ConsoleLogger from "utils/logging/consoleLogger";
+import { Ephemeris_db } from "server/database/models/ephemera.model";
 
 /**
  * Get ISS TLE records from CODA DB
@@ -39,7 +40,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const records: Ephemeris_db_type[] = await getEphemerisByDate(queryObj.dateWanted);
+    const records: Ephemeris_db[] = await getEphemerisByDate(queryObj.dateWanted);
     res.status(200).json(records);
   } catch (e) {
     ConsoleLogger.error(e);

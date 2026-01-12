@@ -4,5 +4,3 @@ type PhotoRecord = {
   source: string;
   timeOffset: string;
 };
-
-type PhotoRecord_db_type = PhotoRecord;
