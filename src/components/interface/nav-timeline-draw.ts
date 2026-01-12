@@ -44,6 +44,7 @@ export default class DrawNav {
   gColorBarBorder = new paper.Color("#2a282e");
   gColorVideo = new paper.Color("#999999");
   gColorVideoLOS = new paper.Color("#4e4e4e");
+  gColorVideoLive = new paper.Color("#737373");
   gColorSgAudio = new paper.Color("#cc5500"); // Burnt orange
   gColorPhotoTicks = new paper.Color("#28B463");
   gColorPhotoTicksFiltered = new paper.Color("#0c331c");
@@ -467,6 +468,94 @@ export default class DrawNav {
   }): paper.Group {
     const group = new paper.Group();
     const startOfDay = this.dateRendered.valueOf() / 1000;
+
+    // draw the MTX playback availability lines first (only if live streams are enabled)
+    if (import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED !== "false") {
+      for (let dl = 1; dl <= 8; dl++) {
+        const mtxPlaybackRecords = this.mtxPlaybackAvailability[dl.toString()];
+        if (!mtxPlaybackRecords) break;
+
+        for (let i = 0; i < mtxPlaybackRecords.length; i++) {
+          const mtxPlaybackRecord = mtxPlaybackRecords[i];
+
+          // start is an ISO time. convert this to a unix timestamp
+          const startUnix = new Date(mtxPlaybackRecord.start).valueOf() / 1000;
+          if (
+            startUnix - startOfDay <= param.secondsEnd &&
+            startUnix + mtxPlaybackRecord.duration - startOfDay >= param.secondsStart
+          ) {
+            const startLocX =
+              param.leftPx +
+              (Math.max(startUnix - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
+            const endLocX =
+              param.leftPx +
+              (Math.min(startUnix + mtxPlaybackRecord.duration - startOfDay, 86399) -
+                param.secondsStart) *
+                param.pixelsPerSecond;
+
+            const startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
+            const endLocY = startLocY + param.vidBarHeight + 1;
+
+            const name = "mtxItem_" + i.toString();
+
+            const mtxLine = new paper.Path.Rectangle({
+              from: [startLocX, startLocY],
+              to: [endLocX, endLocY],
+              strokeWidth: 1,
+              strokeColor: this.gColorBarBorder,
+              name: name,
+            });
+            mtxLine.fillColor = this.gColorVideoLive;
+            group.addChild(mtxLine);
+          }
+        }
+      }
+
+      // draw the livestream HLS availability second (only if live streams are enabled)
+      const now = new Date();
+      const nowSeconds = now.valueOf() / 1000;
+
+      for (let dl = 1; dl <= 8; dl++) {
+        // search the mtxHlsEndpointNames for the HLS endpoint name for this downlink
+        const sourceAbbr = this.source === "ISS" ? "ISS" : "TE";
+        const streamEndpointName = `DL${dl}_${sourceAbbr}` as MTXHlsEndpointName;
+        const mtxHlsEndpoint = this.mtxHlsEndpoints?.find(
+          (endpoint) => endpoint.name === streamEndpointName
+        );
+        if (!mtxHlsEndpoint) continue;
+
+        const startSeconds = nowSeconds - mtxHlsEndpoint.secondsAvailable;
+
+        if (
+          startSeconds - startOfDay <= param.secondsEnd &&
+          nowSeconds - startOfDay >= param.secondsStart
+        ) {
+          const startLocX =
+            param.leftPx +
+            (Math.max(startSeconds - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
+          const endLocX =
+            param.leftPx +
+            (Math.min(nowSeconds - startOfDay, 86399) - param.secondsStart) * param.pixelsPerSecond;
+
+          const startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
+          const endLocY = startLocY + param.vidBarHeight + 1;
+
+          const name = "mtxItem_live_" + dl.toString();
+
+          const mtxLine = new paper.Path.Rectangle({
+            from: [startLocX, startLocY],
+            to: [endLocX, endLocY],
+            strokeWidth: 1,
+            strokeColor: this.gColorBarBorder,
+            name: name,
+          });
+          mtxLine.fillColor = this.gColorVideoLive;
+          group.addChild(mtxLine);
+        }
+      }
+    }
+
+    // draw videoFiles on top last (always)
     for (let i = 0; i < this.videoFiles.length; i++) {
       const downlink = this.videoFiles[i].downlink === -1 ? 8 : this.videoFiles[i].downlink; // -1 means non downlink, put it on the 8th row
       if (
@@ -503,98 +592,6 @@ export default class DrawNav {
           vidLine.opacity = 0.4;
         }
         group.addChild(vidLine);
-      }
-    }
-
-    // stop drawing here if live streams are disabled
-    if (import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "false") {
-      return group;
-    }
-
-    // draw the MTX playback availability lines on top of the video segments
-
-    for (let dl = 1; dl <= 8; dl++) {
-      const mtxPlaybackRecords = this.mtxPlaybackAvailability[dl.toString()];
-      if (!mtxPlaybackRecords) break;
-
-      for (let i = 0; i < mtxPlaybackRecords.length; i++) {
-        const mtxPlaybackRecord = mtxPlaybackRecords[i];
-
-        // start is an ISO time. convert this to a unix timestamp
-        const startUnix = new Date(mtxPlaybackRecord.start).valueOf() / 1000;
-        if (
-          startUnix - startOfDay <= param.secondsEnd &&
-          startUnix + mtxPlaybackRecord.duration - startOfDay >= param.secondsStart
-        ) {
-          const startLocX =
-            param.leftPx +
-            (Math.max(startUnix - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
-          const endLocX =
-            param.leftPx +
-            (Math.min(startUnix + mtxPlaybackRecord.duration - startOfDay, 86399) -
-              param.secondsStart) *
-              param.pixelsPerSecond;
-
-          const startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
-          const endLocY = startLocY + param.vidBarHeight + 1;
-
-          const name = "mtxItem_" + i.toString();
-
-          const mtxLine = new paper.Path.Rectangle({
-            from: [startLocX, startLocY],
-            to: [endLocX, endLocY],
-            strokeWidth: 1,
-            strokeColor: this.gColorBarBorder,
-            name: name,
-          });
-          mtxLine.fillColor = new paper.Color(this.gColorVideo);
-          group.addChild(mtxLine);
-        }
-      }
-    }
-
-    // draw the livestream HLS availability, represented as yellow lines on top of the video segments
-    // use the MTX playback records to determine which HLS streams are available
-    // times are derived. Start time is 15 minutes before the current time, end time is the current time
-    const now = new Date();
-    const nowSeconds = now.valueOf() / 1000;
-
-    for (let dl = 1; dl <= 8; dl++) {
-      // search the mtxHlsEndpointNames for the HLS endpoint name for this downlink
-      const sourceAbbr = this.source === "ISS" ? "ISS" : "TE";
-      const streamEndpointName = `DL${dl}_${sourceAbbr}` as MTXHlsEndpointName;
-      const mtxHlsEndpoint = this.mtxHlsEndpoints?.find(
-        (endpoint) => endpoint.name === streamEndpointName
-      );
-      if (!mtxHlsEndpoint) continue;
-
-      const startSeconds = nowSeconds - mtxHlsEndpoint.secondsAvailable;
-
-      if (
-        startSeconds - startOfDay <= param.secondsEnd &&
-        nowSeconds - startOfDay >= param.secondsStart
-      ) {
-        const startLocX =
-          param.leftPx +
-          (Math.max(startSeconds - startOfDay, 0) - param.secondsStart) * param.pixelsPerSecond;
-        const endLocX =
-          param.leftPx +
-          (Math.min(nowSeconds - startOfDay, 86399) - param.secondsStart) * param.pixelsPerSecond;
-
-        const startLocY = param.vidBarsTop + dl * (param.vidBarHeight + param.vidBarGapHeight);
-        const endLocY = startLocY + param.vidBarHeight + 1;
-
-        const name = "mtxItem_live_" + dl.toString();
-
-        const mtxLine = new paper.Path.Rectangle({
-          from: [startLocX, startLocY],
-          to: [endLocX, endLocY],
-          strokeWidth: 1,
-          strokeColor: this.gColorBarBorder,
-          name: name,
-        });
-        mtxLine.fillColor = new paper.Color(this.gColorVideo);
-        group.addChild(mtxLine);
       }
     }
 
