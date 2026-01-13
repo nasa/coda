@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { getEphemerisByDate, upsertEphemerisRecords, getStats } from "server/processing/ephemeris";
 import { seedMissingData } from "server/processing/ephemeris-seed";
-import { triggerCelestrakUpdate } from "server/express/celestrakScheduler";
+import { triggerSpacetrackUpdate } from "server/express/spacetrackScheduler";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import { getUser } from "packages/getUser";
 import { globalValues } from "server/express/global";
@@ -58,8 +58,8 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       return;
     }
 
-    if (!origin || !["celestrak", "seed"].includes(origin)) {
-      res.status(400).json({ status: "error", message: "origin must be 'celestrak' or 'seed'" });
+    if (!origin || !["spacetrack", "seed"].includes(origin)) {
+      res.status(400).json({ status: "error", message: "origin must be 'spacetrack' or 'seed'" });
       return;
     }
 
@@ -138,24 +138,26 @@ router.post("/seed", requireSuperuser, async (req: Request, res: Response): Prom
   }
 });
 
-// Trigger manual Celestrak update (resets the interval)
+// Trigger manual Space-Track update (resets the interval)
 router.post(
-  "/celestrak/trigger",
+  "/spacetrack/trigger",
   requireSuperuser,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const user = getUser(req);
       const username = user instanceof Error ? "unknown" : user.email || user.auid || "unknown";
-      await triggerCelestrakUpdate(username);
+      await triggerSpacetrackUpdate(username);
 
       res.status(200).json({
         status: "success",
-        message: "Celestrak update triggered successfully",
-        data: { ...globalValues.celestrakTrackerData },
+        message: "Space-Track update triggered successfully",
+        data: { ...globalValues.spacetrackTrackerData },
       });
     } catch (e) {
       ConsoleLogger.error(e);
-      res.status(500).json({ status: "error", message: `Error triggering Celestrak update ${e}` });
+      res
+        .status(500)
+        .json({ status: "error", message: `Error triggering Space-Track update ${e}` });
     }
   }
 );

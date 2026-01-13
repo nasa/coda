@@ -89,18 +89,18 @@ export const emitVisitorInspectorUpdate = (): void => {
     .emit("visitorInspectorUpdate", buildVisitorInspectorUpdate());
 };
 
-// Emit Celestrak inspector update to all clients in the inspector room
-export const emitCelestrakInspectorUpdate = (): void => {
+// Emit SpaceTrack inspector update to all clients in the inspector room
+export const emitSpacetrackInspectorUpdate = (): void => {
   const socketio = globalValues?.socketio;
   if (!socketio) return;
 
   const room = socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room?.size) return;
 
-  socketio.to(INSPECTOR_ROOM).emit("celestrakInspectorUpdate", {
-    status: { ...globalValues.celestrakTrackerData },
+  socketio.to(INSPECTOR_ROOM).emit("spacetrackInspectorUpdate", {
+    status: { ...globalValues.spacetrackTrackerData },
     updatedAt: new Date().toISOString(),
-  } as CelestrakTrackerDataUpdate);
+  } as SpaceTrackTrackerDataUpdate);
 };
 
 export const setupSocketIO = (): void => {
@@ -169,10 +169,10 @@ export const setupSocketIO = (): void => {
             status: getTalkybotS2sSocketTrackerData(),
             updatedAt: new Date().toISOString(),
           });
-          socket.emit("celestrakInspectorUpdate", {
-            status: { ...globalValues.celestrakTrackerData },
+          socket.emit("spacetrackInspectorUpdate", {
+            status: { ...globalValues.spacetrackTrackerData },
             updatedAt: new Date().toISOString(),
-          } as CelestrakTrackerDataUpdate);
+          } as SpaceTrackTrackerDataUpdate);
           socket.emit("visitorInspectorUpdate", buildVisitorInspectorUpdate());
         } catch (error) {
           ConsoleLogger.error("SocketIO - joinInspector: ", error);
