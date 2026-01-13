@@ -388,21 +388,6 @@ deploy:oxygen:
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
 
-test-db-upgrade:gold:
-  extends:
-    - .deploy-template
-    - .gold-deploy
-  when: manual
-  needs:
-    - make-dotenv
-    - deploy:artifactize-committed-files
-  script:
-    - chmod +x ./scripts/upgrade-db.sh
-    - ./scripts/upgrade-db.sh
-  before_script:
-    - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
-    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
-
 deploy:int:
   extends: .deploy-template
   tags: ["emss-coda-int"]

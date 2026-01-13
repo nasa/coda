@@ -144,3 +144,61 @@ z:logs:prod:
   resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
   variables:
     DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+
+#
+# Add jobs to restart all containers on a given environment.
+#
+
+.restart-containers-template:
+  when: manual
+  needs: []
+  stage: stageless
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: none
+  script:
+    # init sudo ability
+    - echo "${DEPLOY_SUDO_PASS}" | sudo -S touch /tmp/somefile
+    - cd /opt/coda
+    # cannot use docker compose restart because that does not clear the containers internal storage
+    - sudo docker compose down
+    - sudo docker compose up -d
+
+z:restart-containers:carbon:
+  extends:
+    - .restart-containers-template
+    - .carbon-access
+
+z:restart-containers:gold:
+  extends:
+    - .restart-containers-template
+    - .gold-access
+
+z:restart-containers:iron:
+  extends:
+    - .restart-containers-template
+    - .iron-access
+
+z:restart-containers:neon:
+  extends:
+    - .restart-containers-template
+    - .neon-access
+
+z:restart-containers:oxygen:
+  extends:
+    - .restart-containers-template
+    - .oxygen-access
+
+z:restart-containers:int:
+  extends: .restart-containers-template
+  tags: ["emss-coda-int"]
+  resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+
+z:restart-containers:prod:
+  extends: .restart-containers-template
+  tags: ["emss-coda-prod"]
+  resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
+  variables:
+    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
