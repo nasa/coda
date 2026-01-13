@@ -102,6 +102,7 @@ services:
     image: redis:7.2.4-alpine3.19
     restart: always
     <<: *send_container_logs_to_syslog
+    command: redis-server --stop-writes-on-bgsave-error no
     volumes:
       - ${REDIS_CACHE_DIR}:/data
 
