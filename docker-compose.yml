@@ -101,6 +101,7 @@ services:
     container_name: "${LOG_DATA_APP_ID}--redis"
     image: redis:7.2.4-alpine3.19
     restart: always
+    <<: *send_container_logs_to_syslog
     volumes:
       - ${REDIS_CACHE_DIR}:/data
 
