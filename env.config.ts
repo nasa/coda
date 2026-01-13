@@ -211,6 +211,16 @@ export const config: DotenvConfig<typeof environments> = {
       type: "required-from-secret",
     },
   },
+  SPACETRACK_USERNAME: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
+  SPACETRACK_PASSWORD: {
+    default: {
+      type: "required-from-secret",
+    },
+  },
   // Generate passwords if there weren't any sourced from the env.secret.ts
   DB_PASS: {
     local: {

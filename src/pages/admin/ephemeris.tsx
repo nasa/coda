@@ -31,8 +31,8 @@ const AdminEphemeris: FunctionComponent = () => {
   const [seedResult, setSeedResult] = useState<string | null>(null);
   const [seedProgress, setSeedProgress] = useState<string[]>([]);
 
-  // Celestrak status state
-  const [celestrakStatus, setCelestrakStatus] = useState<CelestrakTrackerData | null>(null);
+  // SpaceTrack status state
+  const [spacetrackStatus, setSpacetrackStatus] = useState<SpaceTrackTrackerData | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -60,8 +60,8 @@ const AdminEphemeris: FunctionComponent = () => {
       });
       socketRef.current = socket;
 
-      const handleCelestrakInspectorUpdate = (payload: CelestrakTrackerDataUpdate) => {
-        setCelestrakStatus(payload?.status ?? null);
+      const handleSpacetrackInspectorUpdate = (payload: SpaceTrackTrackerDataUpdate) => {
+        setSpacetrackStatus(payload?.status ?? null);
         setLastUpdatedAt(payload?.updatedAt ?? null);
         setConnectionStatus("connected");
         setConnectionError(null);
@@ -82,11 +82,11 @@ const AdminEphemeris: FunctionComponent = () => {
         setConnectionError(error?.message ?? "Socket connection error");
       });
 
-      socket.on("celestrakInspectorUpdate", handleCelestrakInspectorUpdate);
+      socket.on("spacetrackInspectorUpdate", handleSpacetrackInspectorUpdate);
 
       return () => {
         socket.emit("leaveInspector");
-        socket.off("celestrakInspectorUpdate", handleCelestrakInspectorUpdate);
+        socket.off("spacetrackInspectorUpdate", handleSpacetrackInspectorUpdate);
         socket.off("connect");
         socket.off("disconnect");
         socket.off("connect_error");
@@ -196,22 +196,22 @@ const AdminEphemeris: FunctionComponent = () => {
     }
   };
 
-  // Trigger manual Celestrak update via API
-  const handleTriggerCelestrakUpdate = async () => {
+  // Trigger manual Space-Track update via API
+  const handleTriggerSpacetrackUpdate = async () => {
     if (isTriggering) return;
     setIsTriggering(true);
     try {
-      const response = await fetch("/api/v1/db/ephemeris/celestrak/trigger", {
+      const response = await fetch("/api/v1/db/ephemeris/spacetrack/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) {
         const data = await response.json();
-        console.error("Error triggering Celestrak update:", data.message);
+        console.error("Error triggering Space-Track update:", data.message);
       }
       // Status update will come via socket
     } catch (e) {
-      console.error("Error triggering Celestrak update:", e);
+      console.error("Error triggering Space-Track update:", e);
       setIsTriggering(false);
     }
   };
@@ -242,34 +242,34 @@ const AdminEphemeris: FunctionComponent = () => {
   };
 
   const getTimeUntilNextUpdate = () => {
-    if (!celestrakStatus?.nextOperationAt) return null;
-    const nextTime = new Date(celestrakStatus.nextOperationAt).getTime();
+    if (!spacetrackStatus?.nextOperationAt) return null;
+    const nextTime = new Date(spacetrackStatus.nextOperationAt).getTime();
     const remaining = nextTime - currentTime;
     if (remaining <= 0) return "Imminent";
     return formatDuration(remaining);
   };
 
   const getSchedulerStatusBadge = () => {
-    if (!celestrakStatus) {
+    if (!spacetrackStatus) {
       return { label: "Unknown", className: adminCommon.badgeNeutral };
     }
-    if (!celestrakStatus.isActive) {
+    if (!spacetrackStatus.isActive) {
       return { label: "Stopped", className: adminCommon.badgeError };
     }
     // Check if an update is currently in progress (attempt started but not completed yet)
     if (
-      celestrakStatus.lastOperationStartedAt &&
-      (!celestrakStatus.lastOperationCompletedAt ||
-        new Date(celestrakStatus.lastOperationStartedAt) >
-          new Date(celestrakStatus.lastOperationCompletedAt))
+      spacetrackStatus.lastOperationStartedAt &&
+      (!spacetrackStatus.lastOperationCompletedAt ||
+        new Date(spacetrackStatus.lastOperationStartedAt) >
+          new Date(spacetrackStatus.lastOperationCompletedAt))
     ) {
       return { label: "Fetching", className: adminCommon.badgeFetching };
     }
     // No updates have completed yet
-    if (celestrakStatus.lastOperationSuccess === null) {
+    if (spacetrackStatus.lastOperationSuccess === null) {
       return { label: "Starting", className: adminCommon.badgeFetching };
     }
-    if (celestrakStatus.lastOperationSuccess) {
+    if (spacetrackStatus.lastOperationSuccess) {
       return { label: "Running", className: adminCommon.badgeSuccess };
     }
     return { label: "Error", className: adminCommon.badgeError };
@@ -296,11 +296,11 @@ const AdminEphemeris: FunctionComponent = () => {
           seeded from historical data and can be used for orbit calculations and position tracking.
         </p>
 
-        {/* Celestrak Scheduler Status Section */}
-        <section className={adminCommon.section} aria-labelledby="celestrak-heading">
+        {/* Space-Track Scheduler Status Section */}
+        <section className={adminCommon.section} aria-labelledby="spacetrack-heading">
           <header className={adminCommon.detailsHeader}>
-            <h2 id="celestrak-heading" className={adminCommon.sectionHeading}>
-              <span className={adminCommon.sectionHeadingMuted}>Celestrak TLE Scheduler:</span>{" "}
+            <h2 id="spacetrack-heading" className={adminCommon.sectionHeading}>
+              <span className={adminCommon.sectionHeadingMuted}>Space-Track TLE Scheduler:</span>{" "}
               <span className={schedulerStatusBadge.className} style={{ marginLeft: 8 }}>
                 <span
                   className={`${adminCommon.statusIndicator} ${schedulerStatusBadge.className}`}
@@ -331,9 +331,9 @@ const AdminEphemeris: FunctionComponent = () => {
             </div>
           </div>
 
-          {!celestrakStatus ? (
+          {!spacetrackStatus ? (
             <div className={adminCommon.emptyState}>
-              Waiting for Celestrak scheduler status data...
+              Waiting for Space-Track scheduler status data...
             </div>
           ) : (
             <div className={adminCommon.details}>
@@ -345,29 +345,29 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Status</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.isActive ? "Running" : "Stopped"}
+                        {spacetrackStatus.isActive ? "Running" : "Stopped"}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Interval</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatDuration(celestrakStatus.intervalMs)}
+                        {formatDuration(spacetrackStatus.intervalMs)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Scheduler Started</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(celestrakStatus.startedAt)}
+                        {formatTimestamp(spacetrackStatus.startedAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Next Update</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.nextOperationAt ? (
+                        {spacetrackStatus.nextOperationAt ? (
                           <>
                             {getTimeUntilNextUpdate()}
                             <span className={adminCommon.timestampRelative}>
-                              ({new Date(celestrakStatus.nextOperationAt).toLocaleTimeString()})
+                              ({new Date(spacetrackStatus.nextOperationAt).toLocaleTimeString()})
                             </span>
                           </>
                         ) : (
@@ -385,35 +385,35 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Attempt</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(celestrakStatus.lastOperationStartedAt)}
+                        {formatTimestamp(spacetrackStatus.lastOperationStartedAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Completed</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(celestrakStatus.lastOperationCompletedAt)}
+                        {formatTimestamp(spacetrackStatus.lastOperationCompletedAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Duration</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatDuration(celestrakStatus.lastOperationDurationMs)}
+                        {formatDuration(spacetrackStatus.lastOperationDurationMs)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Result</dt>
                       <dd
                         className={
-                          celestrakStatus.lastOperationSuccess === null
+                          spacetrackStatus.lastOperationSuccess === null
                             ? adminCommon.definitionValue
-                            : celestrakStatus.lastOperationSuccess
+                            : spacetrackStatus.lastOperationSuccess
                               ? adminCommon.statusConnected
                               : adminCommon.statusDisconnected
                         }
                       >
-                        {celestrakStatus.lastOperationSuccess === null
+                        {spacetrackStatus.lastOperationSuccess === null
                           ? "N/A"
-                          : celestrakStatus.lastOperationSuccess
+                          : spacetrackStatus.lastOperationSuccess
                             ? "Success"
                             : "Failed"}
                       </dd>
@@ -421,9 +421,21 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>TLE Epoch</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.lastFetchedEpoch
-                          ? formatTimestamp(celestrakStatus.lastFetchedEpoch)
+                        {spacetrackStatus.lastFetchedEpoch
+                          ? formatTimestamp(spacetrackStatus.lastFetchedEpoch)
                           : "N/A"}
+                      </dd>
+                    </div>
+                    <div className={adminCommon.definitionRow}>
+                      <dt className={adminCommon.definitionTerm}>Records Inserted</dt>
+                      <dd className={adminCommon.definitionValue}>
+                        {spacetrackStatus.lastRecordsInserted ?? "N/A"}
+                      </dd>
+                    </div>
+                    <div className={adminCommon.definitionRow}>
+                      <dt className={adminCommon.definitionTerm}>Records Skipped</dt>
+                      <dd className={adminCommon.definitionValue}>
+                        {spacetrackStatus.lastRecordsSkipped ?? "N/A"}
                       </dd>
                     </div>
                   </dl>
@@ -438,26 +450,26 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Total Updates</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.totalOperations}
+                        {spacetrackStatus.totalOperations}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Successful</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.successfulOperations}
+                        {spacetrackStatus.successfulOperations}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Failed</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.failedOperations}
+                        {spacetrackStatus.failedOperations}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Success Rate</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.totalOperations > 0
-                          ? `${((celestrakStatus.successfulOperations / celestrakStatus.totalOperations) * 100).toFixed(1)}%`
+                        {spacetrackStatus.totalOperations > 0
+                          ? `${((spacetrackStatus.successfulOperations / spacetrackStatus.totalOperations) * 100).toFixed(1)}%`
                           : "N/A"}
                       </dd>
                     </div>
@@ -472,18 +484,18 @@ const AdminEphemeris: FunctionComponent = () => {
                       <dt className={adminCommon.definitionTerm}>Last Error</dt>
                       <dd
                         className={
-                          celestrakStatus.lastErrorMessage
+                          spacetrackStatus.lastErrorMessage
                             ? adminCommon.definitionValueError
                             : adminCommon.definitionValue
                         }
                       >
-                        {celestrakStatus.lastErrorMessage || "None"}
+                        {spacetrackStatus.lastErrorMessage || "None"}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Error At</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(celestrakStatus.lastErrorAt)}
+                        {formatTimestamp(spacetrackStatus.lastErrorAt)}
                       </dd>
                     </div>
                   </dl>
@@ -496,13 +508,13 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Manual Trigger</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(celestrakStatus.lastManualTriggerAt)}
+                        {formatTimestamp(spacetrackStatus.lastManualTriggerAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Triggered By</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {celestrakStatus.lastManualTriggerBy || "N/A"}
+                        {spacetrackStatus.lastManualTriggerBy || "N/A"}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
@@ -510,7 +522,7 @@ const AdminEphemeris: FunctionComponent = () => {
                       <dd className={adminCommon.definitionValue}>
                         <button
                           type="button"
-                          onClick={handleTriggerCelestrakUpdate}
+                          onClick={handleTriggerSpacetrackUpdate}
                           disabled={isTriggering || connectionStatus !== "connected"}
                           className={adminCommon.button}
                           aria-busy={isTriggering}

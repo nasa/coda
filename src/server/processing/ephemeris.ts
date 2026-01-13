@@ -146,7 +146,7 @@ export async function getStats(): Promise<{
 
 /**
  * Get the created_at timestamp of the most recently created ephemeris record
- * Used to determine if we should fetch from Celestrak on startup
+ * Used to determine if we should fetch from Space-Track on startup
  */
 export async function getLatestRecordCreatedAt(): Promise<Date | null> {
   const em = globalValues.orm.em.fork();

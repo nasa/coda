@@ -4,7 +4,7 @@ export class Ephemeris_db implements EphemerisRecord {
   epoch!: Date;
   tle_line1!: string;
   tle_line2!: string;
-  origin!: "celestrak" | "seed";
+  origin!: "spacetrack" | "celestrak" | "seed";
   createdAt!: Date;
 }
 

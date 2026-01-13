@@ -1,6 +1,6 @@
-const createInitialCelestrakState = (): CelestrakTrackerData => ({
+const createInitialSpacetrackState = (): SpaceTrackTrackerData => ({
   isActive: false,
-  intervalMs: 3 * 60 * 60 * 1000,
+  intervalMs: 6 * 60 * 60 * 1000, // 6 hours
   startedAt: null,
   nextOperationAt: null,
   lastOperationStartedAt: null,
@@ -9,6 +9,8 @@ const createInitialCelestrakState = (): CelestrakTrackerData => ({
   lastOperationSuccess: null,
   lastSuccessAt: null,
   lastFetchedEpoch: null,
+  lastRecordsInserted: null,
+  lastRecordsSkipped: null,
   lastErrorMessage: null,
   lastErrorAt: null,
   totalOperations: 0,
@@ -28,6 +30,6 @@ export const globalValues: GlobalValues = {
   appVersion: null,
   fetchTrackers: {},
   talkybotS2sSocket: null,
-  celestrakInterval: null,
-  celestrakTrackerData: createInitialCelestrakState(),
+  spacetrackInterval: null,
+  spacetrackTrackerData: createInitialSpacetrackState(),
 };

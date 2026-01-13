@@ -28,7 +28,7 @@ interface EphemerisQueryParams {
 
 type EphemerisUpsertRequest = {
   records: Array<EphemerisEntry>;
-  origin: "celestrak" | "seed";
+  origin: "spacetrack" | "seed";
 };
 
 type MediaOverrideUpsertRequest = MediaOverride;

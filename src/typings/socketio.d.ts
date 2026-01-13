@@ -149,11 +149,11 @@ interface TalkybotS2sSocketTrackerDataUpdate {
 }
 
 // ============================================================================
-// Celestrak TLE Scheduler Tracker
+// SpaceTrack TLE Scheduler Tracker
 // ============================================================================
 
-/** Celestrak TLE Update Scheduler Tracker Data for admin monitoring */
-interface CelestrakTrackerData {
+/** SpaceTrack TLE Update Scheduler Tracker Data for admin monitoring */
+interface SpaceTrackTrackerData {
   // Error tracking
   lastErrorAt: string | null;
   lastErrorMessage: string | null;
@@ -176,30 +176,36 @@ interface CelestrakTrackerData {
   successfulOperations: number;
   failedOperations: number;
 
-  // Celestrak-specific: last fetched epoch from TLE data
+  // SpaceTrack-specific: last fetched epoch from TLE data
   lastFetchedEpoch: string | null;
+
+  // SpaceTrack-specific: records inserted/skipped in last operation
+  lastRecordsInserted: number | null;
+  lastRecordsSkipped: number | null;
 
   // Manual trigger info
   lastManualTriggerAt: string | null;
   lastManualTriggerBy: string | null;
 }
 
-interface CelestrakTrackerDataUpdate {
-  status: CelestrakTrackerData;
+interface SpaceTrackTrackerDataUpdate {
+  status: SpaceTrackTrackerData;
   updatedAt: string;
 }
 
-/** Last fetch result from Celestrak (the actual response data) */
-interface CelestrakLastFetchResult {
+/** Last fetch result from SpaceTrack (the actual response data) */
+interface SpaceTrackLastFetchResult {
   attemptedAt: string;
   completedAt?: string;
   success?: boolean;
   epoch?: string | null;
   errorMessage?: string | null;
+  recordsInserted?: number;
+  recordsSkipped?: number;
 }
 
 /** Cumulative statistics that persist across restarts */
-interface CelestrakPersistedStats {
+interface SpaceTrackPersistedStats {
   totalOperations: number;
   successfulOperations: number;
   failedOperations: number;
@@ -207,8 +213,8 @@ interface CelestrakPersistedStats {
   lastManualTriggerBy: string | null;
 }
 
-/** Result of determining whether to fetch from Celestrak */
-interface CelestrakFetchDecision {
+/** Result of determining whether to fetch from SpaceTrack */
+interface SpaceTrackFetchDecision {
   shouldFetch: boolean;
   skipReason: string;
 }
@@ -228,7 +234,7 @@ interface ServerToClientEvents {
   version: (version: AppVersion) => void; // server version sent to client
   fetchInspectorUpdate: (payload: FetchInspectorUpdate) => void;
   talkybotS2sSocketInspectorUpdate: (payload: TalkybotS2sSocketTrackerDataUpdate) => void;
-  celestrakInspectorUpdate: (payload: CelestrakTrackerDataUpdate) => void;
+  spacetrackInspectorUpdate: (payload: SpaceTrackTrackerDataUpdate) => void;
   visitorInspectorUpdate: (payload: VisitorInspectorUpdate) => void;
 }
 
