@@ -11,8 +11,8 @@ type GlobalValues = {
   appVersion: AppVersion | null;
   fetchTrackers: FetchTrackers;
   talkybotS2sSocket: import("socket.io-client").Socket | null;
-  celestrakInterval: NodeJS.Timeout | null;
-  celestrakTrackerData: CelestrakTrackerData;
+  spacetrackInterval: NodeJS.Timeout | null;
+  spacetrackTrackerData: SpaceTrackTrackerData;
 };
 
 // these are defined in esbuild.mjs and vite.config.mts

@@ -4,37 +4,9 @@
  * and populates the database with accurate epoch calculations from TLE line1
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
-import { getEpochTimestamp } from "tle.js";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import { upsertEphemerisRecords } from "./ephemeris";
-
-/**
- * Parse precise epoch from TLE line1
- * TLE epoch is more accurate than the JSON epoch field - recalculate from line1
- */
-function calculateEpochFromTLE(line1: string, line2: string): Date | null {
-  try {
-    // Create a minimal 3-line TLE format (name can be anything)
-    const tle = `ISS (ZARYA)\n${line1}\n${line2}`;
-    const epochMs = getEpochTimestamp(tle);
-
-    if (!epochMs || isNaN(epochMs) || !isFinite(epochMs)) {
-      ConsoleLogger.error(`Invalid epoch from TLE: ${epochMs}`);
-      return null;
-    }
-
-    const epochDate = new Date(epochMs);
-    if (isNaN(epochDate.getTime())) {
-      ConsoleLogger.error(`Unable to create valid Date from epoch: ${epochMs}`);
-      return null;
-    }
-
-    return epochDate;
-  } catch (e) {
-    ConsoleLogger.error(`Error calculating epoch from TLE: ${e}`);
-    return null;
-  }
-}
+import { calculateEpochFromTLE } from "./ephemeris-spacetrack";
 
 /**
  * Fetch a single month's TLE data from the remote source

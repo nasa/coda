@@ -1,73 +1,77 @@
 /**
- * Celestrak TLE Update Scheduler
+ * Space-Track TLE Update Scheduler
  *
- * This module manages the scheduled fetching of TLE data from Celestrak.
+ * This module manages the scheduled fetching of TLE data from Space-Track.org.
  * It provides status tracking and exposes functions for the admin monitoring page.
+ *
+ * IMPORTANT: Space-Track has strict rate limiting. The scheduler runs every 6 hours
+ * and fetches 30 days of TLE data in a single API call. Do not increase the frequency.
  */
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { updateFromCelestrak } from "server/processing/ephemeris-celestrak";
+import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
 import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { globalValues } from "./global";
 import { getCacheEntry, putCacheEntry } from "./cache-db";
-import { emitCelestrakInspectorUpdate, emitDataUpdate } from "./sockets";
+import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 dayjs.extend(duration);
 
-// Celestrak updates every 2 hours, so we check every 3 hours to be nice
-const CELESTRAK_UPDATE_INTERVAL_MS = 3 * 60 * 60 * 1000;
+// Space-Track provides comprehensive TLE data. We fetch 30 days at a time
+// Run every 6 hours to be respectful of their API limits
+const SPACETRACK_UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 /** Skip initial fetch if latest record was created less than this threshold */
-export const SKIP_FETCH_THRESHOLD_MS = 3 * 60 * 60 * 1000;
+export const SKIP_FETCH_THRESHOLD_MS = 6 * 60 * 60 * 1000;
 /** Cache folder and keys for persisted state */
-const CELESTRAK_CACHE_FOLDER = "celestrak";
-const CELESTRAK_LAST_FETCH_KEY = "lastFetchResult";
-const CELESTRAK_STATS_KEY = "persistedStats";
+const SPACETRACK_CACHE_FOLDER = "spacetrack";
+const SPACETRACK_LAST_FETCH_KEY = "lastFetchResult";
+const SPACETRACK_STATS_KEY = "persistedStats";
 
-const updateState = (updates: Partial<CelestrakTrackerData>): void => {
-  globalValues.celestrakTrackerData = { ...globalValues.celestrakTrackerData, ...updates };
+const updateState = (updates: Partial<SpaceTrackTrackerData>): void => {
+  globalValues.spacetrackTrackerData = { ...globalValues.spacetrackTrackerData, ...updates };
 };
 
 const calculateNextUpdateTime = (): string | null =>
-  globalValues.celestrakTrackerData.isActive
-    ? new Date(Date.now() + CELESTRAK_UPDATE_INTERVAL_MS).toISOString()
+  globalValues.spacetrackTrackerData.isActive
+    ? new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString()
     : null;
 
 /** Cache operations - two separate entries for fetch results and stats */
 
-const getLastFetchResult = async (): Promise<CelestrakLastFetchResult | null> => {
+const getLastFetchResult = async (): Promise<SpaceTrackLastFetchResult | null> => {
   try {
     const entry = await getCacheEntry({
-      folder: CELESTRAK_CACHE_FOLDER,
-      identifier: CELESTRAK_LAST_FETCH_KEY,
+      folder: SPACETRACK_CACHE_FOLDER,
+      identifier: SPACETRACK_LAST_FETCH_KEY,
     });
-    return (entry?.data as CelestrakLastFetchResult) ?? null;
+    return (entry?.data as SpaceTrackLastFetchResult) ?? null;
   } catch (error) {
     ConsoleLogger.warn("Could not retrieve last fetch result:", error);
     return null;
   }
 };
 
-const saveLastFetchResult = async (result: CelestrakLastFetchResult): Promise<void> => {
+const saveLastFetchResult = async (result: SpaceTrackLastFetchResult): Promise<void> => {
   try {
     await putCacheEntry({
-      folder: CELESTRAK_CACHE_FOLDER,
-      identifier: CELESTRAK_LAST_FETCH_KEY,
+      folder: SPACETRACK_CACHE_FOLDER,
+      identifier: SPACETRACK_LAST_FETCH_KEY,
       data: result,
-      metadata: { expiration: new Date(Date.now() + CELESTRAK_UPDATE_INTERVAL_MS).toISOString() },
+      metadata: { expiration: new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString() },
     });
   } catch (error) {
     ConsoleLogger.warn("Could not save last fetch result:", error);
   }
 };
 
-const getPersistedStats = async (): Promise<CelestrakPersistedStats | null> => {
+const getPersistedStats = async (): Promise<SpaceTrackPersistedStats | null> => {
   try {
     const entry = await getCacheEntry({
-      folder: CELESTRAK_CACHE_FOLDER,
-      identifier: CELESTRAK_STATS_KEY,
+      folder: SPACETRACK_CACHE_FOLDER,
+      identifier: SPACETRACK_STATS_KEY,
     });
-    return (entry?.data as CelestrakPersistedStats) ?? null;
+    return (entry?.data as SpaceTrackPersistedStats) ?? null;
   } catch (error) {
     ConsoleLogger.warn("Could not retrieve persisted stats:", error);
     return null;
@@ -75,17 +79,17 @@ const getPersistedStats = async (): Promise<CelestrakPersistedStats | null> => {
 };
 
 const savePersistedStats = async (): Promise<void> => {
-  const stats: CelestrakPersistedStats = {
-    totalOperations: globalValues.celestrakTrackerData.totalOperations,
-    successfulOperations: globalValues.celestrakTrackerData.successfulOperations,
-    failedOperations: globalValues.celestrakTrackerData.failedOperations,
-    lastManualTriggerAt: globalValues.celestrakTrackerData.lastManualTriggerAt,
-    lastManualTriggerBy: globalValues.celestrakTrackerData.lastManualTriggerBy,
+  const stats: SpaceTrackPersistedStats = {
+    totalOperations: globalValues.spacetrackTrackerData.totalOperations,
+    successfulOperations: globalValues.spacetrackTrackerData.successfulOperations,
+    failedOperations: globalValues.spacetrackTrackerData.failedOperations,
+    lastManualTriggerAt: globalValues.spacetrackTrackerData.lastManualTriggerAt,
+    lastManualTriggerBy: globalValues.spacetrackTrackerData.lastManualTriggerBy,
   };
   try {
     await putCacheEntry({
-      folder: CELESTRAK_CACHE_FOLDER,
-      identifier: CELESTRAK_STATS_KEY,
+      folder: SPACETRACK_CACHE_FOLDER,
+      identifier: SPACETRACK_STATS_KEY,
       data: stats,
       // Long expiration for cumulative stats (1 year)
       metadata: { expiration: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() },
@@ -104,6 +108,8 @@ const restoreStateFromCache = async (): Promise<void> => {
       lastOperationCompletedAt: lastFetch.completedAt ?? null,
       lastOperationSuccess: lastFetch.success ?? null,
       lastFetchedEpoch: lastFetch.epoch ?? null,
+      lastRecordsInserted: lastFetch.recordsInserted ?? null,
+      lastRecordsSkipped: lastFetch.recordsSkipped ?? null,
       lastErrorMessage: lastFetch.errorMessage ?? null,
       lastErrorAt: lastFetch.success === false ? (lastFetch.completedAt ?? null) : null,
     });
@@ -129,12 +135,12 @@ const isWithinThreshold = (timestamp: string | Date): boolean => {
   return Date.now() - date.getTime() < SKIP_FETCH_THRESHOLD_MS;
 };
 
-const checkLastAttemptAge = (): CelestrakFetchDecision | null => {
-  if (!globalValues.celestrakTrackerData.lastOperationStartedAt) return null;
+const checkLastAttemptAge = (): SpaceTrackFetchDecision | null => {
+  if (!globalValues.spacetrackTrackerData.lastOperationStartedAt) return null;
 
-  if (isWithinThreshold(globalValues.celestrakTrackerData.lastOperationStartedAt)) {
+  if (isWithinThreshold(globalValues.spacetrackTrackerData.lastOperationStartedAt)) {
     const ageMs =
-      Date.now() - new Date(globalValues.celestrakTrackerData.lastOperationStartedAt).getTime();
+      Date.now() - new Date(globalValues.spacetrackTrackerData.lastOperationStartedAt).getTime();
     return {
       shouldFetch: false,
       skipReason: `last fetch attempt was ${dayjs.duration(ageMs).asMinutes().toFixed(0)} minutes ago`,
@@ -143,7 +149,7 @@ const checkLastAttemptAge = (): CelestrakFetchDecision | null => {
   return null;
 };
 
-const checkLatestRecordAge = async (): Promise<CelestrakFetchDecision | null> => {
+const checkLatestRecordAge = async (): Promise<SpaceTrackFetchDecision | null> => {
   try {
     const latestCreatedAt = await getLatestRecordCreatedAt();
     if (latestCreatedAt && isWithinThreshold(latestCreatedAt)) {
@@ -154,23 +160,23 @@ const checkLatestRecordAge = async (): Promise<CelestrakFetchDecision | null> =>
       };
     }
   } catch (error) {
-    ConsoleLogger.warn("Could not check latest record age, will fetch from Celestrak:", error);
+    ConsoleLogger.warn("Could not check latest record age, will fetch from Space-Track:", error);
   }
   return null;
 };
 
 /**
- * Determine if we should fetch from Celestrak on startup.
+ * Determine if we should fetch from Space-Track on startup.
  *
  * This is primarily a precaution for local development environments where the server
  * may restart frequently (e.g., during active development). Without this check, we could
- * hammer Celestrak's servers with excessive requests and risk getting our IP banned.
+ * hammer Space-Track's servers with excessive requests and risk getting our IP banned.
  *
  * Checks in order:
  * 1. Last fetch attempt time (prevents hammering on dev restarts)
  * 2. Latest database record age (fallback check)
  */
-const determineShouldFetch = async (): Promise<CelestrakFetchDecision> => {
+const determineShouldFetch = async (): Promise<SpaceTrackFetchDecision> => {
   const lastAttemptCheck = checkLastAttemptAge();
   if (lastAttemptCheck) return lastAttemptCheck;
 
@@ -182,7 +188,7 @@ const determineShouldFetch = async (): Promise<CelestrakFetchDecision> => {
 
 /**
  * Emit updated ephemeris data to all ISS clients viewing today's date.
- * Called after a successful Celestrak TLE update to push fresh data.
+ * Called after a successful Space-Track TLE update to push fresh data.
  */
 const emitEphemerisToTodayClients = async (): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
@@ -219,22 +225,22 @@ const emitEphemerisToTodayClients = async (): Promise<void> => {
 
 // Update execution
 
-const performCelestrakUpdate = async (isManual: boolean = false): Promise<void> => {
+const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void> => {
   const startTime = Date.now();
   const attemptedAt = new Date(startTime).toISOString();
 
   updateState({
     lastOperationStartedAt: attemptedAt,
-    totalOperations: globalValues.celestrakTrackerData.totalOperations + 1,
+    totalOperations: globalValues.spacetrackTrackerData.totalOperations + 1,
   });
 
   // Record attempt before starting (persists across restarts)
   await saveLastFetchResult({ attemptedAt });
   await savePersistedStats();
-  emitCelestrakInspectorUpdate();
+  emitSpacetrackInspectorUpdate();
 
   // Execute the update
-  const result = await updateFromCelestrak();
+  const result = await updateFromSpaceTrack();
 
   const endTime = Date.now();
   const completedAt = new Date(endTime).toISOString();
@@ -251,20 +257,24 @@ const performCelestrakUpdate = async (isManual: boolean = false): Promise<void> 
       lastOperationSuccess: true,
       lastSuccessAt: completedAt,
       lastFetchedEpoch: result.epoch ?? null,
-      successfulOperations: globalValues.celestrakTrackerData.successfulOperations + 1,
+      lastRecordsInserted: result.recordsInserted ?? null,
+      lastRecordsSkipped: result.recordsSkipped ?? null,
+      successfulOperations: globalValues.spacetrackTrackerData.successfulOperations + 1,
     });
     await saveLastFetchResult({
       attemptedAt,
       completedAt,
       success: true,
       epoch: result.epoch ?? null,
+      recordsInserted: result.recordsInserted,
+      recordsSkipped: result.recordsSkipped,
     });
   } else {
     updateState({
       lastOperationSuccess: false,
       lastErrorMessage: result.errorMessage ?? "Unknown error",
       lastErrorAt: completedAt,
-      failedOperations: globalValues.celestrakTrackerData.failedOperations + 1,
+      failedOperations: globalValues.spacetrackTrackerData.failedOperations + 1,
     });
     await saveLastFetchResult({
       attemptedAt,
@@ -279,25 +289,25 @@ const performCelestrakUpdate = async (isManual: boolean = false): Promise<void> 
   const prefix = isManual ? "(manual) " : "";
   if (result.success) {
     ConsoleLogger.debug(
-      `Celestrak TLE update ${prefix}completed successfully in ${durationMs}ms, epoch: ${result.epoch}`
+      `Space-Track TLE update ${prefix}completed successfully in ${durationMs}ms, epoch: ${result.epoch}, inserted: ${result.recordsInserted}, skipped: ${result.recordsSkipped}`
     );
     // Emit updated ephemeris data to all clients viewing today
     await emitEphemerisToTodayClients();
   } else {
-    ConsoleLogger.error(`Celestrak TLE update ${prefix}failed: ${result.errorMessage}`);
+    ConsoleLogger.error(`Space-Track TLE update ${prefix}failed: ${result.errorMessage}`);
   }
 
   // Finalize state and notify clients
   updateState({ nextOperationAt: calculateNextUpdateTime() });
-  emitCelestrakInspectorUpdate();
+  emitSpacetrackInspectorUpdate();
 };
 
 // Scheduler control
 
-export const startCelestrakScheduler = async (): Promise<void> => {
-  if (globalValues.celestrakInterval) {
-    ConsoleLogger.warn("Celestrak scheduler already running, stopping first");
-    stopCelestrakScheduler();
+export const startSpacetrackScheduler = async (): Promise<void> => {
+  if (globalValues.spacetrackInterval) {
+    ConsoleLogger.warn("Space-Track scheduler already running, stopping first");
+    stopSpacetrackScheduler();
   }
 
   updateState({
@@ -312,40 +322,40 @@ export const startCelestrakScheduler = async (): Promise<void> => {
   const { shouldFetch, skipReason } = await determineShouldFetch();
 
   if (shouldFetch) {
-    ConsoleLogger.debug("Starting initial Celestrak TLE update");
-    void performCelestrakUpdate(false);
+    ConsoleLogger.debug("Starting initial Space-Track TLE update");
+    void performSpaceTrackUpdate(false);
   } else {
     ConsoleLogger.notice(
-      `Skipping initial Celestrak fetch - ${skipReason} (threshold: ${dayjs.duration(SKIP_FETCH_THRESHOLD_MS).asMinutes().toFixed(0)} minutes)`
+      `Skipping initial Space-Track fetch - ${skipReason} (threshold: ${dayjs.duration(SKIP_FETCH_THRESHOLD_MS).asMinutes().toFixed(0)} minutes)`
     );
     updateState({ nextOperationAt: calculateNextUpdateTime() });
-    emitCelestrakInspectorUpdate();
+    emitSpacetrackInspectorUpdate();
   }
 
-  globalValues.celestrakInterval = setInterval(() => {
-    ConsoleLogger.debug("Running scheduled Celestrak TLE update");
-    void performCelestrakUpdate(false);
-  }, CELESTRAK_UPDATE_INTERVAL_MS);
+  globalValues.spacetrackInterval = setInterval(() => {
+    ConsoleLogger.debug("Running scheduled Space-Track TLE update");
+    void performSpaceTrackUpdate(false);
+  }, SPACETRACK_UPDATE_INTERVAL_MS);
   ConsoleLogger.info(
-    `Celestrak TLE update scheduler started (${dayjs.duration(CELESTRAK_UPDATE_INTERVAL_MS).asMinutes().toFixed(0)} minute interval)`
+    `Space-Track TLE update scheduler started (${dayjs.duration(SPACETRACK_UPDATE_INTERVAL_MS).asHours().toFixed(0)} hour interval)`
   );
 };
 
-export const stopCelestrakScheduler = (): void => {
-  if (globalValues.celestrakInterval) {
-    clearInterval(globalValues.celestrakInterval);
-    globalValues.celestrakInterval = null;
+export const stopSpacetrackScheduler = (): void => {
+  if (globalValues.spacetrackInterval) {
+    clearInterval(globalValues.spacetrackInterval);
+    globalValues.spacetrackInterval = null;
   }
   updateState({
     isActive: false,
     nextOperationAt: null,
   });
-  ConsoleLogger.info("Celestrak scheduler stopped");
-  emitCelestrakInspectorUpdate();
+  ConsoleLogger.info("Space-Track scheduler stopped");
+  emitSpacetrackInspectorUpdate();
 };
 
-export const triggerCelestrakUpdate = async (username: string): Promise<void> => {
-  ConsoleLogger.notice(`Manual Celestrak update triggered by ${username}`);
+export const triggerSpacetrackUpdate = async (username: string): Promise<void> => {
+  ConsoleLogger.notice(`Manual Space-Track update triggered by ${username}`);
 
   updateState({
     lastManualTriggerAt: new Date().toISOString(),
@@ -353,15 +363,15 @@ export const triggerCelestrakUpdate = async (username: string): Promise<void> =>
   });
 
   await savePersistedStats();
-  if (globalValues.celestrakInterval) {
-    clearInterval(globalValues.celestrakInterval);
-    globalValues.celestrakInterval = null;
+  if (globalValues.spacetrackInterval) {
+    clearInterval(globalValues.spacetrackInterval);
+    globalValues.spacetrackInterval = null;
   }
-  if (globalValues.celestrakTrackerData.isActive) {
-    globalValues.celestrakInterval = setInterval(() => {
-      ConsoleLogger.debug("Running scheduled Celestrak TLE update");
-      void performCelestrakUpdate(false);
-    }, CELESTRAK_UPDATE_INTERVAL_MS);
+  if (globalValues.spacetrackTrackerData.isActive) {
+    globalValues.spacetrackInterval = setInterval(() => {
+      ConsoleLogger.debug("Running scheduled Space-Track TLE update");
+      void performSpaceTrackUpdate(false);
+    }, SPACETRACK_UPDATE_INTERVAL_MS);
   }
-  await performCelestrakUpdate(true);
+  await performSpaceTrackUpdate(true);
 };

@@ -5,7 +5,7 @@ import { Server as SocketServer } from "socket.io";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
 import { initTalkybotS2sSocket, disconnectTalkybotS2sSocket } from "./talkybotS2sSocket";
-import { startCelestrakScheduler, stopCelestrakScheduler } from "./celestrakScheduler";
+import { startSpacetrackScheduler, stopSpacetrackScheduler } from "./spacetrackScheduler";
 import serverLogger from "utils/logging/serverLogger";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import config from "server/database/mikro-orm.config";
@@ -45,8 +45,8 @@ server.on("request", app);
 server.listen(3001, () => {
   serverLogger.info({ logId: "api-restart" });
 
-  // Start Celestrak TLE update scheduler
-  void startCelestrakScheduler();
+  // Start Space-Track TLE update scheduler
+  void startSpacetrackScheduler();
 
   // Initialize server-to-server socket connection to Talkybot
   const talkybotS2sSocket = initTalkybotS2sSocket();
@@ -60,8 +60,8 @@ server.listen(3001, () => {
 const gracefulShutdown = async () => {
   ConsoleLogger.info("Gracefully shutting down server...");
 
-  // Stop Celestrak scheduler
-  stopCelestrakScheduler();
+  // Stop Space-Track scheduler
+  stopSpacetrackScheduler();
 
   // Stop socket status interval
   if (globalValues.socketInterval) {

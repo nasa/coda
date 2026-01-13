@@ -39,7 +39,7 @@ export const dataFetchConfigs: FetchConfig[] = [
   {
     type: "ephemeris",
     getDataFunction: getEphemera,
-    refreshIntervalTodayMs: null, // No polling - updates pushed via celestrakScheduler after TLE fetch
+    refreshIntervalTodayMs: null, // No polling - updates pushed via spacetrackScheduler after TLE fetch
     refreshIntervalMs: null,
     fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
     enableCacheUse: false, // Data retrieved from local database (no caching needed)
