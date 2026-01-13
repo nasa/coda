@@ -63,6 +63,7 @@ services:
       - 0.0.0.0:4180
     depends_on:
       - redis
+    <<: *send_container_logs_to_syslog
     restart: always
     environment:
       OAUTH2_PROXY_PROVIDER: adfs
