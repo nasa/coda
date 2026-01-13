@@ -58,8 +58,22 @@ export async function upsertEphemerisRecords({
     return { inserted: 0, skipped: 0 };
   }
 
+  // Deduplicate records within the batch by epoch (keep first occurrence)
+  const seenEpochs = new Set<number>();
+  const uniqueRecords = records.filter((r) => {
+    const epochTime = new Date(r.epoch).getTime();
+    if (seenEpochs.has(epochTime)) {
+      return false;
+    }
+    seenEpochs.add(epochTime);
+    return true;
+  });
+
+  const batchDuplicates = records.length - uniqueRecords.length;
+  skipped += batchDuplicates;
+
   // Optimization: Fetch all existing epochs in one query instead of N+1
-  const epochsToCheck = records.map((r) => new Date(r.epoch));
+  const epochsToCheck = uniqueRecords.map((r) => new Date(r.epoch));
 
   const existingRecords = await em.find(
     Ephemeris_db,
@@ -69,7 +83,7 @@ export async function upsertEphemerisRecords({
 
   const existingEpochs = new Set(existingRecords.map((r) => r.epoch.getTime()));
 
-  for (const record of records) {
+  for (const record of uniqueRecords) {
     const epoch = new Date(record.epoch);
 
     // Check if record already exists
