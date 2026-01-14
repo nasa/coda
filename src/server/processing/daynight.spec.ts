@@ -20,7 +20,7 @@ describe("function getTopoURL()", () => {
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 7)
     );
     const url = getTopoURL(requestDate).url;
-    expect(url.includes("/data/stp/")).toBeTruthy();
+    expect(url?.includes("/data/stp/")).toBeTruthy();
     expect(getTopoURL(requestDate).state).toEqual("predicted");
   });
   it("should return historic (best estimated trajectory) url", () => {
@@ -28,7 +28,7 @@ describe("function getTopoURL()", () => {
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, now.getUTCDate())
     );
     const url = getTopoURL(requestDate).url;
-    expect(url.includes("/data/bet/")).toBeTruthy();
+    expect(url?.includes("/data/bet/")).toBeTruthy();
     expect(getTopoURL(requestDate).state).toEqual("historic");
   });
   it("should use .cff.txt extension for historic dates before 2015-01-05", () => {

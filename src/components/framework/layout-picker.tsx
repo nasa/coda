@@ -28,7 +28,7 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
     e.preventDefault();
     // clientLogger.info({ logId: "user-select-layout", selectedLayout: index });
     dispatch(changeLayout(index));
-    closeClick();
+    closeClick?.();
   };
 
   const drawLayoutLargeIcon = (layout: string) => {
@@ -81,7 +81,7 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
         )}
       </div>
       <div className={styles.layouts}>
-        {map(allLayouts, (layout, index) => (
+        {map(allLayouts, (_layout, index) => (
           <div
             className={`${styles.layout} ${
               index === frameworkState.layout ? styles.layoutselected : ""

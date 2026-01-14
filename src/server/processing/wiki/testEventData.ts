@@ -16,7 +16,6 @@ import { parseAsExecuted } from "./parsers";
  *
  * This fetches test event metadata and as-executed timelines,
  * then combines them into the Sequence[] format used by the app.
- * Note: This function doesn't use dateWanted/source params since test event data is not date-dependent.
  */
 export async function getTestEventsData(): Promise<FetchResponse<Sequence[]>> {
   try {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject, FunctionComponent } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -241,10 +241,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
 
   const updateTerminator = useCallback((thisMap: maplibregl.Map, isoDate: string) => {
     const terminatorObj = new Terminator({ resolution: 1, time: new Date(isoDate) });
-    const terminatorGeoJSON: FeatureCollection<
-      Geometry,
-      Record<string, unknown>
-    > = terminatorObj.getTerminator();
+    const terminatorGeoJSON: FeatureCollection<Geometry> = terminatorObj.getTerminator();
 
     // complex override due to typescript types not being correct in npm library
     const terminator: maplibregl.GeoJSONSource = thisMap.getSource(
@@ -278,14 +275,14 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
 
         // if crossing date line, start drawing the second line
         // (this avoids a segment that wraps around the earth)
-        if (prevIncrement !== -1 && lngStepSize > 100) {
+        if (prevIncrement !== -1 && lngStepSize !== undefined && lngStepSize > 100) {
           dateLineHit = true;
           dateLineIncNum = i;
           break;
         }
         coordinates1.push([nextPosition.lng, nextPosition.lat]);
         prevLng = nextPosition.lng;
-        prevIncrement = lngIncrement;
+        prevIncrement = lngIncrement ?? 0;
       }
 
       // draw second line that continues across the date line if path crosses date line
@@ -326,7 +323,8 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   );
 
   const initializeMap = useCallback(
-    (mapContainerRef: MutableRefObject<HTMLDivElement>) => {
+    (mapContainerRef: React.RefObject<HTMLDivElement | null>) => {
+      if (!mapContainerRef.current) return;
       mapContainerRef.current.innerHTML = ""; // Clear the container
 
       const protocol = new Protocol();
@@ -405,22 +403,26 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
       playheadMarkerRef.current.markerNode.style.visibility = "visible";
     }
     if (!isNaN(playheadLatLonObj.lat) && !isNaN(playheadLatLonObj.lng)) {
-      playheadMarkerRef.current.marker.setLngLat(playheadLatLonObj);
+      playheadMarkerRef.current.marker?.setLngLat(playheadLatLonObj);
     }
 
     if (hoverSeconds) {
-      hoverMarkerRef.current.markerNode.style.visibility = "visible";
+      if (hoverMarkerRef.current.markerNode) {
+        hoverMarkerRef.current.markerNode.style.visibility = "visible";
+      }
       const hoverISODate = getPlayheadISOString(playheadDate, hoverSeconds);
       const hoverTle = getAppropriateTLE(todayEphemera, hoverISODate);
 
       const hoverLatLonObj = getLatLngObj(hoverTle, new Date(hoverISODate).getTime());
       if (!isNaN(hoverLatLonObj.lat) && !isNaN(hoverLatLonObj.lng)) {
-        hoverMarkerRef.current.marker.setLngLat(hoverLatLonObj);
+        hoverMarkerRef.current.marker?.setLngLat(hoverLatLonObj);
       }
 
       updateTerminator(mapRef.current, hoverISODate);
     } else {
-      hoverMarkerRef.current.markerNode.style.visibility = "hidden";
+      if (hoverMarkerRef.current.markerNode) {
+        hoverMarkerRef.current.markerNode.style.visibility = "hidden";
+      }
     }
 
     updateOrbitLine(mapRef.current, playHeadISODate);

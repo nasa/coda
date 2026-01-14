@@ -20,6 +20,10 @@ const paneColorClasses = {
 
 export type PaneColorVariant = keyof typeof paneColorClasses;
 
+interface PanePickerModalOptions {
+  frameID: number;
+}
+
 /**
  * Renders the label for a type of frame
  */
@@ -40,7 +44,7 @@ export const PaneLabel: FunctionComponent<{
 
   return (
     <div className={styles.item}>
-      {icon !== null ? (
+      {icon ? (
         <div className={`${styles.icon} ${colorClass}`}>
           <FontAwesomeIcon icon={icon} />
         </div>
@@ -54,9 +58,10 @@ export const PaneLabel: FunctionComponent<{
 
 /** Renders a modal with a list of frame types to choose from */
 export const PanePickerModal: FunctionComponent<{
-  closeClick: () => void;
-  options: { frameID: number };
-}> = ({ closeClick, options: { frameID } }) => {
+  closeClick?: () => void;
+  options?: PanePickerModalOptions;
+}> = ({ closeClick, options }) => {
+  const frameID = options?.frameID ?? 0;
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
   const dispatch = useAppDispatch();
@@ -70,7 +75,7 @@ export const PanePickerModal: FunctionComponent<{
   const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     dispatch(setPaneType({ frameID, paneType }));
-    closeClick();
+    closeClick?.();
   };
 
   return (

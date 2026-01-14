@@ -53,7 +53,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const playheadDateObj = new Date(playheadDate);
+  const playheadDateObj = new Date(playheadDate || "");
   const startOfDay = playheadDateObj.valueOf() / 1000;
 
   const videoFiles = videos.videoFiles;
@@ -123,7 +123,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (visibleVideos.size === 0) return;
     const videoID = Number(paneStateData.activeVideoFileID);
     const videoStart = videoFiles[videoID]?.start || 0;
-    if (videoID || !isSameDate(new Date(playheadDate), new Date(videoStart))) {
+    if (videoID || !isSameDate(new Date(playheadDate || ""), new Date(videoStart))) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing metadata on date change is a legitimate side effect
       setMetadata(null);
     }

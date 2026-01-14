@@ -310,7 +310,7 @@ const fetchData = async ({
   config: FetchConfig;
   dateWanted: string;
   source: Source;
-}): Promise<FetchResponse<unknown>> => {
+}): Promise<FetchResponse<unknown> | null> => {
   if (!dateWanted || !source) {
     ConsoleLogger.error(`No dateWanted or source provided for ${config.type} fetchData`);
     return null;
@@ -399,18 +399,11 @@ export const getSourceDateDataType = async ({
   dateWanted: string;
   dataFetchConfig: FetchConfig;
   autoRefresh?: boolean;
-}): Promise<FetchResponse<unknown>> => {
+}): Promise<FetchResponse<unknown> | null> => {
   const dataType = dataFetchConfig.type;
 
   // Check if this data type is valid for this source and date (e.g., mtxvideo not valid for dates > 7 days ago)
-  if (
-    !isDataTypeValidForSourceAndDate(
-      source,
-      dataType,
-      dateWanted,
-      parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
-    )
-  ) {
+  if (!isDataTypeValidForSourceAndDate(source, dataType, dateWanted)) {
     ConsoleLogger.debug(
       `${dataType} Skipping for ${source}_${dateWanted} (not valid for this source/date combination)`
     );
@@ -579,7 +572,7 @@ const performBackgroundFetch = async ({
   const shouldScheduleRefresh = baseRefreshInterval !== null && autoRefresh;
 
   let expirationISO: string | undefined;
-  if (shouldScheduleRefresh) {
+  if (shouldScheduleRefresh && baseRefreshInterval !== null) {
     const randomFactor = 0.8 + Math.random() * 0.4; // ±20% randomness
     const randomizedInterval = Math.floor(baseRefreshInterval * randomFactor);
     expirationISO = new Date(Date.now() + randomizedInterval).toISOString();
@@ -589,12 +582,14 @@ const performBackgroundFetch = async ({
   await putCacheEntry({
     folder: cachePath,
     identifier: dataType,
-    data: dataResponse?.fetchMetadata?.success ? dataResponse : currentCacheEntry?.data,
+    data: (dataResponse?.fetchMetadata?.success ? dataResponse : currentCacheEntry?.data) as
+      | object
+      | null,
     metadata: {
       expiration:
         dataResponse?.fetchMetadata?.success && expirationISO
           ? expirationISO
-          : currentCacheEntry?.metadata?.expiration,
+          : (currentCacheEntry?.metadata?.expiration ?? ""),
     },
   });
 
@@ -626,11 +621,11 @@ const performBackgroundFetch = async ({
     );
   }
 
-  // Emit to all clients only if data changed
+  // Emit to all clients only if data changed and response is valid
   const previousData = (currentCacheEntry?.data as FetchResponse<unknown>)?.data;
   if (!isEqual(dataResponse?.data, previousData)) {
     // For non-date-dependent data, emit to all rooms for this source
-    if (!isDateDependent) {
+    if (!isDateDependent && dataResponse) {
       ConsoleLogger.debug(
         `${dataFetchConfig.type} Emitting data update to all rooms for source ${source}`
       );
@@ -638,7 +633,7 @@ const performBackgroundFetch = async ({
         source,
         dataUpdate: { type: dataFetchConfig.type, response: dataResponse },
       });
-    } else {
+    } else if (dataResponse) {
       ConsoleLogger.debug(
         `${dataFetchConfig.type} Emitting data update to room for ${source}_${trackerDateKey}`
       );
@@ -651,6 +646,10 @@ const performBackgroundFetch = async ({
     updateFetchTracker(source, trackerDateKey, dataType, {
       lastEmitAt: new Date().toISOString(),
     });
+  } else if (!dataResponse) {
+    ConsoleLogger.debug(
+      `${dataFetchConfig.type} No data response for ${source}_${dateWanted}, skipping emit`
+    );
   } else {
     ConsoleLogger.debug(
       `${dataFetchConfig.type} Data unchanged for ${source}_${trackerDateKey}, skipping emit`
@@ -675,14 +674,7 @@ export const forceRefreshDataType = async ({
 }): Promise<{ success: boolean; data?: FetchResponse<unknown>; error?: string }> => {
   try {
     // Check if this data type is valid for this source and date
-    if (
-      !isDataTypeValidForSourceAndDate(
-        source,
-        dataType,
-        dateWanted,
-        parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
-      )
-    ) {
+    if (!isDataTypeValidForSourceAndDate(source, dataType, dateWanted)) {
       const errorMsg = `Data type ${dataType} is not available for source ${source} on ${dateWanted}`;
       ConsoleLogger.error(errorMsg);
       return { success: false, error: errorMsg };
@@ -707,7 +699,7 @@ export const forceRefreshDataType = async ({
         dataFetchConfig: config,
         autoRefresh: false,
       });
-      return { success: true, data: dataResponse };
+      return { success: true, data: dataResponse ?? undefined };
     }
 
     ConsoleLogger.debug(
@@ -729,7 +721,7 @@ export const forceRefreshDataType = async ({
       await putCacheEntry({
         folder: cachePath,
         identifier: dataType,
-        data: currentCacheEntry.data,
+        data: currentCacheEntry.data as object | null,
         metadata,
       });
       ConsoleLogger.debug(`${dataType} Expired cache entry for ${source}_${trackerDateKey}`);
@@ -755,7 +747,7 @@ export const forceRefreshDataType = async ({
       `${dataType} Force refresh completed for ${source}_${dateWanted}. Success: ${dataResponse?.fetchMetadata?.success}`
     );
 
-    return { success: true, data: dataResponse };
+    return { success: true, data: dataResponse ?? undefined };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error during force refresh";
     ConsoleLogger.error(`${dataType} Error during force refresh: ${message}`);

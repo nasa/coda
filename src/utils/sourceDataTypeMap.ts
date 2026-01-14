@@ -1,4 +1,35 @@
 /**
+ * MTX video max age in days - loaded from environment variable.
+ * If this is not defined, it indicates a critical env loading failure.
+ * Server-side: process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS
+ * Client-side: import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS
+ */
+const getMaxAgeDays = (): number => {
+  // Use process.env for server-side, import.meta.env for client-side
+  const envValue =
+    typeof process !== "undefined" && process.env
+      ? process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS
+      : (import.meta?.env?.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS as string | undefined);
+
+  if (!envValue) {
+    throw new Error(
+      "VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS is not defined. This indicates a critical environment loading failure."
+    );
+  }
+
+  const parsed = parseInt(envValue);
+  if (isNaN(parsed) || parsed < 0) {
+    throw new Error(
+      `VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS must be a non-negative integer, got: ${envValue}`
+    );
+  }
+
+  return parsed;
+};
+
+export const mtxVideoMaxAgeDays = getMaxAgeDays();
+
+/**
  * Define which data types are available for each source.
  * This mapping is used by both client and server code to ensure consistency.
  */
@@ -20,12 +51,12 @@ export const isDataTypeValidForSource = (source: Source, dataType: StoreDataType
  * Check if a date is within the valid range for mtxvideo data.
  * MTX video is only available for dates within the last N days.
  * @param dateWanted - The date to check (ISO string format YYYY-MM-DD or full ISO date)
- * @param maxAgeDays - Maximum age in days. REQUIRED - client-side should pass import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS, server-side uses process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS
+ * @param maxAgeDays - Maximum age in days (defaults to MTX_VIDEO_MAX_AGE_DAYS constant)
  * @returns true if the date is within maxAgeDays of today (or if date is null/undefined), false otherwise
  */
 export const isDateValidForMtxVideo = (
   dateWanted: string | null | undefined,
-  maxAgeDays: number
+  maxAgeDays: number = mtxVideoMaxAgeDays
 ): boolean => {
   const mtxVideoMaxAgeDays = maxAgeDays;
   // If no date provided, assume it's valid (loading state)
@@ -58,14 +89,14 @@ export const isDateValidForMtxVideo = (
  * @param source - The data source
  * @param dataType - The type of data
  * @param dateWanted - Optional date to check (ISO string format). If not provided, only source validation is done.
- * @param maxAgeDays - Maximum age in days for mtxvideo. REQUIRED when dateWanted is provided and dataType is 'mtxvideo'. Client-side should pass import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS, server-side uses process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS
+ * @param maxAgeDays - Maximum age in days for mtxvideo (defaults to MTX_VIDEO_MAX_AGE_DAYS constant)
  * @returns true if the data type is valid for the source and date
  */
 export const isDataTypeValidForSourceAndDate = (
   source: Source,
   dataType: StoreDataType,
   dateWanted?: string,
-  maxAgeDays?: number
+  maxAgeDays: number = mtxVideoMaxAgeDays
 ): boolean => {
   // First check if data type is valid for the source
   if (!isDataTypeValidForSource(source, dataType)) {

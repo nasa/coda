@@ -11,7 +11,7 @@ export const initialPhotoFileState: PhotoFile = {
   dateAdded: "",
   datetimeTaken: "",
   datetimeTakenAppSeconds: 0,
-  collection: null,
+  collection: 4,
   collections: "",
 };
 

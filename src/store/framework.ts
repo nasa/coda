@@ -100,7 +100,7 @@ export const allPanes: Panes = {
   empty: {
     title: "Select display type",
     shortTitle: "None",
-    icon: null,
+    icon: undefined,
     color: "none",
     defaultPaneStateData: {
       ready: true,
@@ -214,7 +214,7 @@ export const allPanes: Panes = {
       ready: true,
       lockScroll: true,
       showHelp: false,
-      selectedGraphId: null,
+      selectedGraphId: "",
     } as GraphPaneStateData,
   },
 };

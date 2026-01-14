@@ -64,7 +64,7 @@ function buildChannelTimingMap(
 
 export const CommControls: FunctionComponent<{
   frameID: number;
-  frameDimensions: [number, number];
+  frameDimensions: number[];
 }> = ({ frameID, frameDimensions }) => {
   const dispatch = useAppDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);

@@ -1,11 +1,4 @@
-import {
-  FunctionComponent,
-  MutableRefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import styles from "./video-player-mtx.module.css";
 import { setPaneStateDataValue } from "store/framework";
@@ -32,14 +25,14 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     ).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
   }, deepEqual);
-  const videoRef = useRef(null) as MutableRefObject<HTMLVideoElement>;
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [currVidMTXPlaybackRecord, setCurrVidMTXPlaybackRecord] =
-    useState<MTXRecordingTimeRange>(null);
-  const [currChannel, setCurrChannel] = useState(null);
+    useState<MTXRecordingTimeRange | null>(null);
+  const [currChannel, setCurrChannel] = useState<number | null>(null);
 
-  const [lastURLStartTime, setLastURLStartTime] = useState(null);
+  const [lastURLStartTime, setLastURLStartTime] = useState<string | null>(null);
 
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
@@ -47,6 +40,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
 
   const playOrPause = () => {
     const asyncFunc = async () => {
+      if (!videoRef.current) return;
       try {
         if (isRunning) {
           // make sure the video is playing when the playhead is running
@@ -69,7 +63,8 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
   };
 
   const getMtxPlaybackRecordForPlayhead = useCallback(
-    (queryAppSeconds: number): MTXRecordingTimeRange => {
+    (queryAppSeconds: number): MTXRecordingTimeRange | null => {
+      if (!playheadDate) return null;
       for (const mtxPlaybackRecord of mtxPlaybackRecordsForDownlink) {
         // check that the mtxPlaybackRecord is for today. Remember that these records were modifed
         // when they were fetched to look like they started at midnight if they started before today
@@ -89,8 +84,8 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
   );
 
   const playVideoAtPlayhead = useCallback(
-    (mtxRecordingTimeRange: MTXRecordingTimeRange) => {
-      if (!mtxRecordingTimeRange) return;
+    (mtxRecordingTimeRange: MTXRecordingTimeRange | null) => {
+      if (!mtxRecordingTimeRange || !videoRef.current || !playheadDate) return;
       // add x seconds to counteract the delay in the video starting
       const playheadStart = dateFromAppSeconds(appSeconds + 2, playheadDate)
         .toISOString()
@@ -137,7 +132,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
 
   const syncToPlayhead = () => {
     // bail if no video element is loaded
-    if (!videoRef.current || !currVidMTXPlaybackRecord) return;
+    if (!videoRef.current || !currVidMTXPlaybackRecord || !lastURLStartTime) return;
 
     const { currentTime: currentVidSeconds } = videoRef.current;
 
@@ -179,7 +174,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
 
   const toggleFullScreen = () => {
     const el = videoRef.current;
-    if (el.requestFullscreen) {
+    if (el?.requestFullscreen) {
       el.requestFullscreen();
     }
   };
@@ -229,11 +224,11 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
         }}
         onError={(e) => {
           const vidElement = e.target as HTMLVideoElement;
-          if (!vidElement.error.message.includes("mpty")) {
+          if (!vidElement.error?.message.includes("mpty")) {
             //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
             setStatus("error");
             console.error(
-              `video ${frameID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+              `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
             );
           } else {
             setStatus("novid");

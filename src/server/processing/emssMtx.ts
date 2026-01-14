@@ -1,6 +1,7 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { midnightZulu } from "utils/date";
 import clone from "lodash/clone";
+import { getHlsBufferDuration } from "./mediaMtx-hls";
 
 export const getMTXAPIResponses = async ({
   dateWanted,
@@ -27,9 +28,8 @@ export const getMTXAPIResponses = async ({
 
       const mtxApiBaseUrl = process.env.VITE_PUBLIC_MEDIA_MTX_CONTROL_URL;
 
-      // Use configured HLS buffer duration (default: 900 seconds = 15 minutes)
-      // This matches MediaMTX config: hlsSegmentCount (180) * hlsSegmentDuration (5s)
-      const hlsBufferDuration = parseInt(process.env.HLS_BUFFER_DURATION_SECONDS);
+      // Use configured HLS buffer duration
+      const hlsBufferDuration = getHlsBufferDuration();
 
       const response = await fetch(`${mtxApiBaseUrl}v3/paths/list`, {
         headers: {

@@ -33,9 +33,10 @@ export const isAutoplayError = (e: unknown): boolean => {
   const safari_autoplay_error =
     /The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission/i;
 
-  const isChromeError = !isNull(e.toString().match(chrome_autoplay_error));
-  const isFirefoxError = !isNull(e.toString().match(firefox_autoplay_error));
-  const isSafariError = !isNull(e.toString().match(safari_autoplay_error));
+  const errorString = String(e);
+  const isChromeError = !isNull(errorString.match(chrome_autoplay_error));
+  const isFirefoxError = !isNull(errorString.match(firefox_autoplay_error));
+  const isSafariError = !isNull(errorString.match(safari_autoplay_error));
 
   return isChromeError || isFirefoxError || isSafariError;
 };

@@ -44,7 +44,10 @@ vi.mock("./global", () => ({
     socketInterval: null,
     appVersion: null,
     fetchTrackers: {},
-  } as GlobalValues,
+    talkybotS2sSocket: null,
+    celestrakInterval: null,
+    celestrakTrackerData: {},
+  } as unknown as GlobalValues,
 }));
 
 const getCacheEntryMock = getCacheEntry as Mock;

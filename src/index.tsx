@@ -9,7 +9,7 @@ import { CookiesProvider } from "react-cookie";
 import "./styles.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
-const root = createRoot(document.getElementById("root"));
+const root = createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
     <Provider store={store}>

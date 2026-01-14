@@ -34,14 +34,7 @@ router.get("/", requireSuperuser, async (req: Request, res: Response): Promise<v
     }
 
     // Check if the data type is valid for this source and date
-    if (
-      !isDataTypeValidForSourceAndDate(
-        source,
-        dataType,
-        date,
-        parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
-      )
-    ) {
+    if (!isDataTypeValidForSourceAndDate(source, dataType, date)) {
       res
         .status(400)
         .send({ msg: `Data type ${dataType} is not available for source ${source} on ${date}` });
@@ -71,12 +64,12 @@ router.get("/", requireSuperuser, async (req: Request, res: Response): Promise<v
         source,
         date,
       });
-      res.status(500).json({ error: error.toString() });
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
       return;
     }
   } catch (e) {
     serverLogger.error(asError(e), { logId: "error in dataView route" });
-    res.status(400).json({ error: e.toString() });
+    res.status(400).json({ error: e instanceof Error ? e.message : String(e) });
     return;
   }
 });

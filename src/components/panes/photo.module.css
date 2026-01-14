@@ -139,8 +139,12 @@
 }
 
 .photoHeaderText {
-  font-size: 1em;
+  font-family: "Roboto Mono", monospace;
+  font-size: 0.8em;
+  color: var(--even-greyer);
   white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .overlayVisible {

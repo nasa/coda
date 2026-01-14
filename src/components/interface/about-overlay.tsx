@@ -5,9 +5,11 @@ import { deepEqual, useAppSelector, refEqual } from "utils/useAppSelector";
 import { diff } from "utils/date";
 import Modal from "react-modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isDataTypeValidForSource, isDateValidForMtxVideo } from "utils/sourceDataTypeMap";
-
-const mtxVideoMaxAgeDays = parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS, 10);
+import {
+  isDataTypeValidForSource,
+  isDateValidForMtxVideo,
+  mtxVideoMaxAgeDays,
+} from "utils/sourceDataTypeMap";
 
 const AboutOverlay = ({
   modalIsOpen,
@@ -33,44 +35,26 @@ const AboutOverlay = ({
   const isMtxVideoLoaded =
     !isDataTypeValidForSource(source, "mtxvideo") ||
     mtxVideoDateTooOld ||
-    videos.metadataMtx !== null ||
-    videos.metadataMtx?.unneeded;
+    videos.metadataMtx !== null;
 
-  const isIoVideoLoaded =
-    !isDataTypeValidForSource(source, "videos") ||
-    videos.metadataIo !== null ||
-    videos.metadataIo?.unneeded;
+  const isIoVideoLoaded = !isDataTypeValidForSource(source, "videos") || videos.metadataIo !== null;
 
-  const isPhotosLoaded =
-    !isDataTypeValidForSource(source, "photos") ||
-    photos.metadata !== null ||
-    photos.metadata?.unneeded;
+  const isPhotosLoaded = !isDataTypeValidForSource(source, "photos") || photos.metadata !== null;
 
   const isSequencesLoaded =
     (!isDataTypeValidForSource(source, "wikiEvas") &&
       !isDataTypeValidForSource(source, "wikiTestEvents")) ||
-    sequences.metadata !== null ||
-    sequences.metadata?.unneeded;
+    sequences.metadata !== null;
 
-  const isGpsLoaded =
-    !isDataTypeValidForSource(source, "gpstracks") ||
-    gps.metadata !== null ||
-    gps.metadata?.unneeded;
+  const isGpsLoaded = !isDataTypeValidForSource(source, "gpstracks") || gps.metadata !== null;
 
   const isEphemeraLoaded =
-    !isDataTypeValidForSource(source, "ephemeris") ||
-    ephemera.metadata !== null ||
-    ephemera.metadata?.unneeded;
+    !isDataTypeValidForSource(source, "ephemeris") || ephemera.metadata !== null;
 
   const isTalkybotLoaded =
-    !isDataTypeValidForSource(source, "talkybot") ||
-    talkybot.metadata !== null ||
-    talkybot.metadata?.unneeded;
+    !isDataTypeValidForSource(source, "talkybot") || talkybot.metadata !== null;
 
-  const isGraphsLoaded =
-    !isDataTypeValidForSource(source, "graph") ||
-    graphs.metadata !== null ||
-    graphs.metadata?.unneeded;
+  const isGraphsLoaded = !isDataTypeValidForSource(source, "graph") || graphs.metadata !== null;
 
   const isLoaded =
     isMtxVideoLoaded &&

@@ -13,7 +13,7 @@ import logFromClient from "./routes/user/logFromClient";
 import profiler from "./routes/profiler/profiler";
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
-import { globalValues } from "./global";
+import { getORM, globalValues } from "./global";
 import timeRoute from "./routes/time/time";
 
 const app: Application = express();
@@ -26,15 +26,15 @@ app.use(express.urlencoded({ extended: true }));
 // https://mikro-orm.io/docs/identity-map#request-context
 // use Mikro-ORM RequestContext for express and socketio handlers
 app.use((_req, _res, next) => {
-  RequestContext.create(globalValues.orm.em, next);
+  RequestContext.create(getORM().em, next);
 });
 
 // Serve a successful response. For use with wait-on
-app.get("/api/v1/health", (req, res) => {
+app.get("/api/v1/health", (_req, res) => {
   res.send({ status: "ok" });
 });
 
-app.get("/api/v1/version", (req, res) => {
+app.get("/api/v1/version", (_req, res) => {
   res.send(globalValues.appVersion);
 });
 

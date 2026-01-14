@@ -28,7 +28,7 @@ export const GraphControls: FunctionComponent<{ frameID: number; frameDimensions
     (state) => state.framework.frames[frameID].paneStateData as GraphPaneStateData,
     shallowEqual
   );
-  const graphs: Graph[] = useAppSelector(
+  const graphs: Graph[] | undefined = useAppSelector(
     (state) => state.graphs.graphsManifest?.graphs,
     shallowEqual
   );
@@ -90,7 +90,7 @@ const GraphSelectorDropdown: FunctionComponent<{
     shallowEqual
   );
   const dispatch = useAppDispatch();
-  const graphs: Graph[] = useAppSelector(
+  const graphs: Graph[] | undefined = useAppSelector(
     (state) => state.graphs.graphsManifest?.graphs,
     shallowEqual
   );
@@ -117,7 +117,7 @@ const GraphSelectorDropdown: FunctionComponent<{
           }}
         >
           <option value="">Select a graph</option>
-          {graphs.map((graph) => {
+          {graphs?.map((graph) => {
             return (
               <option key={graph.id} value={graph.id}>
                 {graph.title}
@@ -216,7 +216,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     plotlyChartTraces: PlotlyChartTrace[];
     plotlyChartLayout: ChartLayout;
   } = {
-    plotlyChartTraces: null,
+    plotlyChartTraces: [],
     plotlyChartLayout: getPlotlyChartLayout(graphHeight),
   };
 
@@ -288,7 +288,8 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
     if (
       graphs.metadata === null ||
       !paneStateData.selectedGraphId ||
-      graphs.graphsManifest?.updateFrequency < 1
+      (graphs.graphsManifest?.updateFrequency !== undefined &&
+        graphs.graphsManifest.updateFrequency < 1)
     )
       return;
 
@@ -371,11 +372,11 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
 
   // update the graph ranges and hover when the time changes
   useEffect(() => {
-    if (!graphData) return;
+    if (!graphData || !playheadDate) return;
 
     // create isoDate strings for the start and end times of the desired graph range
-    let startDateString: string = null;
-    let endDateString: string = null;
+    let startDateString: string | undefined = undefined;
+    let endDateString: string | undefined = undefined;
     if (paneStateData.durationSelection && paneStateData.durationSelection !== -1) {
       const duration = paneStateData.durationSelection;
       const halfDuration = duration / 2;
@@ -394,7 +395,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
       chartLayout.xaxis.range = [startDateString, endDateString];
     } else {
       chartLayout.xaxis.autorange = true;
-      chartLayout.xaxis.range = null;
+      chartLayout.xaxis.range = undefined;
     }
 
     const plotIndexToHighlight = findPlotIndexToHighlight(hoverSeconds || appSeconds);

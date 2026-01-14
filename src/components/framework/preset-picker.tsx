@@ -30,7 +30,7 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       frames: preset.frames,
     };
     dispatch(setAllFrameworkState(newFrameworkState));
-    closeClick();
+    closeClick?.();
   };
 
   const saveUserPreset = () => (e: React.MouseEvent) => {

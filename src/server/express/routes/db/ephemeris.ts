@@ -95,7 +95,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
 });
 
 // Get database statistics
-router.get("/stats", async (req: Request, res: Response): Promise<void> => {
+router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
   try {
     const stats = await getStats();
     res.status(200).json(stats);
@@ -106,7 +106,7 @@ router.get("/stats", async (req: Request, res: Response): Promise<void> => {
 });
 
 // Seed database from remote source
-router.post("/seed", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
+router.post("/seed", requireSuperuser, async (_req: Request, res: Response): Promise<void> => {
   try {
     // Set headers for streaming response (newline-delimited JSON)
     res.setHeader("Content-Type", "application/x-ndjson");

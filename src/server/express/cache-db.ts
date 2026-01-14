@@ -1,5 +1,5 @@
 import type { FilterQuery } from "@mikro-orm/core";
-import { globalValues } from "server/express/global";
+import { getORM } from "server/express/global";
 import { Cache_db } from "../database/models/cache.model";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
@@ -13,7 +13,7 @@ export async function getCacheEntry({
   folder: string;
   identifier: string;
 }): Promise<Cache_db | null> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   try {
     const entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
     if (entry) {
@@ -41,10 +41,10 @@ export async function putCacheEntry({
 }: {
   folder: string;
   identifier: string;
-  data: Object | null;
+  data: object | null;
   metadata: CacheMetadata;
 }): Promise<Cache_db | null> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   try {
     let entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
     const now = new Date();
@@ -83,7 +83,7 @@ export async function removeCacheEntry({
   folder: string;
   identifier?: string;
 }): Promise<boolean> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   try {
     if (identifier) {
       // If identifier is provided, remove a specific entry
@@ -117,7 +117,7 @@ export async function evictLruCacheEntries({
   olderThanDate: Date;
   folder?: string;
 }): Promise<number> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   try {
     const filter: FilterQuery<Cache_db> = {
       lastAccessedAt: { $lt: olderThanDate },

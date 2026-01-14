@@ -1,10 +1,10 @@
 import { getAncillaryDataSourceList } from "server/processing/ancillaryDataSources";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 
-const buildResponse = (
-  data: GraphsManifest | null,
+const buildResponse = <T extends GraphsManifest | null>(
+  data: T,
   options: { success: boolean; error?: string }
-): FetchResponse<GraphsManifest> => ({
+): FetchResponse<T> => ({
   data,
   fetchMetadata: {
     success: options.success,
@@ -19,7 +19,7 @@ export const getGraphManifest = async ({
 }: {
   source: Source;
   dateWanted: string;
-}): Promise<FetchResponse<GraphsManifest>> => {
+}): Promise<FetchResponse<GraphsManifest | null>> => {
   const ancillaryDataSources = await getAncillaryDataSourceList();
 
   const ancillaryDataSource = ancillaryDataSources?.find((ancillaryDataSourceList) => {

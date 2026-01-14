@@ -1,4 +1,4 @@
-import { globalValues } from "server/express/global";
+import { getORM } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { Ephemeris_db } from "server/database/models/ephemera.model";
 
@@ -7,7 +7,7 @@ import { Ephemeris_db } from "server/database/models/ephemera.model";
  * Returns: 1 record from previous day (latest), all records from target day, 1 record from next day (earliest)
  */
 export async function getEphemerisByDate(date: string): Promise<Ephemeris_db[]> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   const targetDate = new Date(date);
 
   // Calculate start and end of the target day
@@ -50,7 +50,7 @@ export async function upsertEphemerisRecords({
   records,
   origin,
 }: EphemerisUpsertRequest): Promise<{ inserted: number; skipped: number }> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   let inserted = 0;
   let skipped = 0;
 
@@ -98,6 +98,7 @@ export async function upsertEphemerisRecords({
       tle_line1: record.tle_line1,
       tle_line2: record.tle_line2,
       origin,
+      createdAt: new Date(),
     });
 
     inserted++;
@@ -118,7 +119,7 @@ export async function getStats(): Promise<{
   latestEpoch: Date | null;
   yearCounts: Array<{ year: number; count: number }>;
 }> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   const count = await em.count(Ephemeris_db);
   const latestRecords = await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 });
 
@@ -149,7 +150,7 @@ export async function getStats(): Promise<{
  * Used to determine if we should fetch from Space-Track on startup
  */
 export async function getLatestRecordCreatedAt(): Promise<Date | null> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   const latestRecords = await em.find(
     Ephemeris_db,
     {},

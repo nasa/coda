@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, FunctionComponent } from "react";
-import type { Dispatch, SetStateAction, MutableRefObject } from "react";
+import type { Dispatch, SetStateAction, RefObject } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
@@ -186,9 +186,9 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const mapContainer = useRef(null);
+  const mapContainer = useRef<HTMLDivElement | null>(null);
 
-  const [map, setMap] = useState<Map>(null);
+  const [map, setMap] = useState<Map | null>(null);
   const [mapMarkers, setMapMarkers] = useState(initialMarkers);
   const [eventType, setEventType] = useState<"DRATS" | "GANDALF">("DRATS");
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -254,23 +254,28 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
     // hide all markers
     for (const key in mapMarkers) {
       const marker = mapMarkers[key as keyof MapMarkers];
-      marker.markerNode.style.visibility = "hidden";
+      if (marker?.markerNode) {
+        marker.markerNode.style.visibility = "hidden";
+      }
     }
 
     const gpsTracks = gpsState.gpsTracks;
 
     //loop through the gps track objects
     for (let track = 0; track < gpsTracks.length; track++) {
-      let markerGPSPoint: GPSPoint = null;
+      let markerGPSPoint: GPSPoint | undefined = undefined;
 
       // make visible the marker for the current track
+      const currentMarker = mapMarkers[gpsTracks[track].name as keyof MapMarkers];
       if (paneStateData.gpsTrackToggles[gpsTracks[track].name]) {
-        mapMarkers[gpsTracks[track].name as keyof MapMarkers].markerNode.style.visibility =
-          "visible";
+        if (currentMarker?.markerNode) {
+          currentMarker.markerNode.style.visibility = "visible";
+        }
         map.setLayoutProperty(`track${gpsTracks[track].name}Layer`, "visibility", "visible");
       } else {
-        mapMarkers[gpsTracks[track].name as keyof MapMarkers].markerNode.style.visibility =
-          "hidden";
+        if (currentMarker?.markerNode) {
+          currentMarker.markerNode.style.visibility = "hidden";
+        }
         map.setLayoutProperty(`track${gpsTracks[track].name}Layer`, "visibility", "none");
       }
 
@@ -294,10 +299,11 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
       markerGPSPoint = gpsTracks[track].points[markerIndex];
 
       //move the marker to the found point
-      mapMarkers[gpsTracks[track].name as keyof MapMarkers].marker.setLngLat([
-        markerGPSPoint.lon,
-        markerGPSPoint.lat,
-      ]);
+      if (markerGPSPoint && currentMarker?.marker) {
+        currentMarker.marker.setLngLat([markerGPSPoint.lon, markerGPSPoint.lat]);
+      }
+
+      if (!markerGPSPoint) continue;
 
       //update infoDisplay
       const timestampArr = (
@@ -329,7 +335,10 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
         // if the track is selected
         if (paneStateData.gpsTrackToggles[key]) {
           // pan to the track
-          map.panTo(mapMarkers[key as keyof MapMarkers].marker.getLngLat());
+          const panMarker = mapMarkers[key as keyof MapMarkers];
+          if (panMarker?.marker) {
+            map.panTo(panMarker.marker.getLngLat());
+          }
           somethingSelected = true;
           if (zoomLevel === 1) {
             setZoomLevel(15);
@@ -499,9 +508,10 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
   }
 
   function initializeMap(
-    setMap: Dispatch<SetStateAction<mapboxgl.Map>>,
-    mapContainer: MutableRefObject<HTMLDivElement | null>
+    setMap: Dispatch<SetStateAction<mapboxgl.Map | null>>,
+    mapContainer: RefObject<HTMLDivElement | null>
   ) {
+    if (!mapContainer.current) return;
     mapContainer.current.innerHTML = ""; // Clear the container
     const thisMap = new mapboxgl.Map({
       container: mapContainer.current,
@@ -628,25 +638,25 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
                   <tr>
                     <td>Latitude:</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].lat}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay]?.lat}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Longitude:</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].lng}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay]?.lng}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Elevation (m):</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].ele}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay]?.ele}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>Timestamp:</td>
                     {sortedEnabledTracks.map((key) => {
-                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay].time}</td>;
+                      return <td key={key}>{infoDisplay[key as keyof MapInfoDisplay]?.time}</td>;
                     })}
                   </tr>
                 </tbody>

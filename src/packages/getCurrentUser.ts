@@ -14,7 +14,7 @@ export const getCurrentUser = async (): Promise<EmssUser | Error> => {
     const json = await fetchJsonWithAuth<{ user: EmssUser }>("/api/v1/user/current");
     if (json instanceof Error) {
       console.error("Unable to get current user", json);
-      return;
+      return json;
     }
     currentUser = json.user;
 

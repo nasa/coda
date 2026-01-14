@@ -47,7 +47,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
     return;
   } catch (e) {
     serverLogger.error(asError(e), { logId: "error in dataRefresh route" });
-    res.status(400).json({ error: e.toString() });
+    res.status(400).json({ error: e instanceof Error ? e.message : String(e) });
     return;
   }
 });

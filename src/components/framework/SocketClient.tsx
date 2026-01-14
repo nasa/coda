@@ -15,13 +15,14 @@ import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
 import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { usePlayheadDate } from "store/hooks";
 
 const SocketClient: FunctionComponent<{
   socketStatus: ClientSocketStatus;
   setSocketStatus: Dispatch<SetStateAction<ClientSocketStatus>>;
 }> = ({ socketStatus, setSocketStatus }) => {
   const dispatch = useAppDispatch();
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
 
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
@@ -59,15 +60,16 @@ const SocketClient: FunctionComponent<{
     }
 
     socket.current.on("connect", () => {
+      const currentSocket = socket.current!; // non-null assertion
       const visitorData: VisitorData = {
-        socketId: socket.current.id,
+        socketId: currentSocket.id ?? "",
         dateViewing: playheadDate.split("T")[0],
         source: source,
         user: user,
         appVersion: socketStatus.clientVersion,
         connectedAt: Date.now(),
       };
-      socket.current.emit("visitorJoin", visitorData);
+      currentSocket.emit("visitorJoin", visitorData);
 
       // Set metadata to "unneeded" for data types not valid for this source
       const unneededMetadata: FetchMetadata = {
@@ -187,6 +189,7 @@ const SocketClient: FunctionComponent<{
 
     // Clean up the socket connection on unmount
     return () => {
+      if (!socket.current) return;
       socket.current.off("connect");
       socket.current.off("disconnect");
       socket.current.io.off("reconnect_attempt");

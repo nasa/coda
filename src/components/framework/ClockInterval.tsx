@@ -34,7 +34,9 @@ const ClockInterval: FunctionComponent<{
     if (isRunning) {
       if (!intervalRef.current) {
         intervalRef.current = setInterval(() => {
-          const secondsSinceStarted = (Date.now() - Date.parse(startStopTimestamp)) / 1000;
+          const secondsSinceStarted = startStopTimestamp
+            ? (Date.now() - Date.parse(startStopTimestamp)) / 1000
+            : 0;
           const newAppSeconds = Math.floor(appSecondsAtStartStop + secondsSinceStarted);
           // Cap at 86401 to prevent race conditions while allowing day rollover at 86400
           setAppSeconds(Math.min(newAppSeconds, 86401));
@@ -52,14 +54,18 @@ const ClockInterval: FunctionComponent<{
         setAppSeconds(appSecondsAtStartStop);
       }
 
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
     return () => {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, [appSecondsAtStartStop, isRunning, startStopTimestamp, setAppSeconds]);
 

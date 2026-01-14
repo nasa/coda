@@ -10,7 +10,7 @@ export const graphSlice = createSlice({
   initialState,
   reducers: {
     /** Add new graph manifest to the store */
-    setGraphsManifest: (state, action: { payload: FetchResponse<GraphsManifest> }) => {
+    setGraphsManifest: (state, action: { payload: FetchResponse<GraphsManifest | null> }) => {
       state.graphsManifest = action.payload.data;
       state.metadata = action.payload.fetchMetadata;
     },
@@ -19,7 +19,9 @@ export const graphSlice = createSlice({
       state.metadata = null;
     },
     setGraphsData: (state, action: { payload: { graphId: string; graphData: GraphData[] } }) => {
-      const graph = state.graphsManifest?.graphs.find((g) => g.id === action.payload.graphId);
+      if (!state.graphsManifest) return;
+      const graph = state.graphsManifest.graphs.find((g) => g.id === action.payload.graphId);
+      if (!graph) return;
       graph.data = action.payload.graphData;
       state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
         if (stateGraph.id === graph.id) {
@@ -32,7 +34,7 @@ export const graphSlice = createSlice({
     clearGraphsData: (state) => {
       if (!state.graphsManifest) return;
       state.graphsManifest.graphs = state.graphsManifest.graphs.map((stateGraph) => {
-        return { ...stateGraph, data: null as GraphData[] | null };
+        return { ...stateGraph, data: undefined };
       });
     },
     graphsFetchError: (state, action: { payload: string }) => {

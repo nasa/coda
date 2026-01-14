@@ -21,9 +21,10 @@ const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
 
   const seekToLive = () => {
     const video = videoRef.current;
+    if (!video || !hlsRef.current) return;
     const liveEdge = hlsRef.current.liveSyncPosition;
 
-    video.currentTime = liveEdge;
+    video.currentTime = liveEdge ?? 0;
   };
 
   useEffect(() => {
@@ -45,7 +46,8 @@ const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
         });
 
         hlsRef.current.on(Hls.Events.LEVEL_UPDATED, () => {
-          const availableSegments = hlsRef.current.levels[0].details?.fragments;
+          const availableSegments = hlsRef.current?.levels[0].details?.fragments;
+          if (!availableSegments) return;
           let totalDuration = 0;
           // Sum up the duration of all available segments
           availableSegments.forEach((fragment) => {
@@ -55,7 +57,7 @@ const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
 
           // Set the start time of the stream
           const unixTime = availableSegments[0].programDateTime;
-          setStartTime(new Date(unixTime).toISOString());
+          setStartTime(unixTime ? new Date(unixTime).toISOString() : "");
         });
       }
     } else if (videoRef.current && videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
@@ -63,13 +65,13 @@ const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
       console.log("fallback");
       videoRef.current.src = streamUrl;
       videoRef.current.addEventListener("loadedmetadata", () => {
-        videoRef.current.play();
+        videoRef.current?.play();
       });
     }
 
     // Cleanup the Hls instance when the component is unmounted
     return () => {
-      hlsRef.current.destroy();
+      hlsRef.current?.destroy();
     };
   }, [streamUrl]);
 
@@ -80,9 +82,10 @@ const HLSPlayer: React.FC<{ streamUrl: string }> = ({ streamUrl }) => {
       <div>Start time available UTC: {startTime}</div>
       <button
         onClick={() => {
-          const availableSegments = hlsRef.current.levels[0].details?.fragments;
+          const availableSegments = hlsRef.current?.levels[0].details?.fragments;
+          if (!availableSegments || !videoRef.current) return;
           // subtract 5 seconds from the start time because that's how long the hls buffer is
-          const startTime = availableSegments[0].programDateTime - 5000;
+          const startTime = (availableSegments[0].programDateTime ?? 0) - 5000;
           const targetTime = new Date("2024-11-02T21:55:00Z");
           const diffSeconds = (targetTime.getTime() - startTime) / 1000;
           videoRef.current.currentTime = diffSeconds;

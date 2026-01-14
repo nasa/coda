@@ -21,8 +21,8 @@ export const FrameHeader: FunctionComponent<{
   frameID: number;
   paneType: string;
   children?: ReactNode;
-  frameDimensions?: number[];
-}> = ({ frameID, paneType, children, frameDimensions = [] }) => {
+  frameDimensions: number[];
+}> = ({ frameID, paneType, children, frameDimensions }) => {
   let labelSize: "S" | "M" | "L" = "S";
   let dropdownStyle = styles.dropdownSmallest;
   if (frameDimensions[0] > 470) {
@@ -35,7 +35,7 @@ export const FrameHeader: FunctionComponent<{
 
   let label = <>&nbsp;Select display type</>;
 
-  if (!isNil(paneType)) {
+  if (paneType) {
     label = <PaneLabel paneType={paneType} labelSize={labelSize} />;
   }
 
@@ -107,21 +107,21 @@ const headerContainerHeight = 35;
 const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
   const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
 
-  let paneType: string = null;
+  let paneType: string = "";
   if (frameState) {
     paneType = frameState.paneType;
   }
 
-  let FrameRender = null;
-  let FrameControls = null;
-  if (!isNil(paneType)) {
+  let FrameRender: React.ComponentType<PaneComponentProps> | null = null;
+  let FrameControls: React.ComponentType<PaneComponentProps> | null = null;
+  if (paneType) {
     FrameRender = frameTypeIDsToPanes[paneType].pane;
     FrameControls = frameTypeIDsToPanes[paneType].controls;
   }
 
   /** get component width and pass it to the frame controls */
-  const [frameDimensions, setFrameDimensions] = useState([]);
-  const frameRef = useRef(null);
+  const [frameDimensions, setFrameDimensions] = useState<number[]>([]);
+  const frameRef = useRef<HTMLDivElement>(null);
 
   function handleResize() {
     setFrameDimensions(
@@ -148,6 +148,7 @@ const Frame: FunctionComponent<{ frameId: number }> = ({ frameId }) => {
         clearInterval(interval);
       };
     }
+    return undefined;
   }, [frameRef]);
 
   return (
