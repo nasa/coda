@@ -11,7 +11,7 @@ import styles from "./video-player-mtx.module.css";
 import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { VideoMTXHelpContent } from "./video-help";
-import { isAutoplayError } from "utils/video";
+import { isAutoplayError, getSourceSuffix } from "utils/video";
 import { isSameDate } from "utils/date";
 import isEqual from "lodash/isEqual";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -97,10 +97,10 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
         .replace(/.000Z/, "Z");
 
       const mtxRecordingsBaseUrl = import.meta.env.VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL;
-      const sourceAbbr = source === "ISS" ? "ISS" : "TE";
+      const sourceSuffix = getSourceSuffix(source);
       const channel = (paneStateData.channel + 1).toString();
       setCurrChannel(parseInt(channel));
-      const path = `DL${channel}_${sourceAbbr}`;
+      const path = `DL${channel}_${sourceSuffix}`;
 
       const url = new URL("get", mtxRecordingsBaseUrl);
       url.searchParams.append("path", path);

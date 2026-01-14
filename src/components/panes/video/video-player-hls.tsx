@@ -9,6 +9,7 @@ import Hls from "hls.js";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import ClockInterval from "components/framework/ClockInterval";
+import { getSourceSuffix } from "utils/video";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -82,7 +83,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     if (!videoRef.current || !mtxHlsEndpoints || mtxHlsEndpoints.length === 0) return;
 
     const downlinkNumber = (paneStateData.channel + 1).toString();
-    const sourceSuffix = source === "ISS" ? "ISS" : "TE";
+    const sourceSuffix = getSourceSuffix(source);
 
     const streamEndpointName = `DL${downlinkNumber}_${sourceSuffix}` as MTXHlsEndpointName;
 
