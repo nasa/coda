@@ -7,6 +7,7 @@ import {
   visibleVideosBySecond,
   filterVisibleVideos,
   determineVideoPlayerType,
+  getSourceSuffix,
 } from "./video";
 
 /**
@@ -15,6 +16,24 @@ import {
  * Jest cannot parse without additional babel configuration.
  * The test implementations mirror the source exactly.
  */
+
+describe("getSourceSuffix", () => {
+  test("returns ISS for ISS source", () => {
+    expect(getSourceSuffix("ISS")).toBe("ISS");
+  });
+
+  test("returns ART for ARTEMIS source", () => {
+    expect(getSourceSuffix("ARTEMIS")).toBe("ART");
+  });
+
+  test("returns TE for TEST_EVENTS source", () => {
+    expect(getSourceSuffix("TEST_EVENTS")).toBe("TE");
+  });
+
+  test("returns TE for NBL source", () => {
+    expect(getSourceSuffix("NBL")).toBe("TE");
+  });
+});
 
 describe("isAutoplayError", () => {
   test("returns true for Chrome autoplay error", () => {

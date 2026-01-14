@@ -5,6 +5,22 @@ import { isSameDate } from "utils/date";
 import memoize from "lodash/memoize";
 
 /**
+ * Converts a Source type to its abbreviated suffix for MediaMTX stream naming.
+ * - ISS → "ISS"
+ * - ARTEMIS → "ART"
+ * - TEST_EVENTS/NBL → "TE"
+ */
+export function getSourceSuffix(source: Source): string {
+  if (source === "ISS") {
+    return "ISS";
+  } else if (source === "ARTEMIS") {
+    return "ART";
+  } else {
+    return "TE";
+  }
+}
+
+/**
  * Check whether the error is the browser blocking autoplay of unmuted videos.
  * See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
  */
@@ -58,8 +74,8 @@ export function hasHlsAvailable(
     return false;
   }
 
-  const suffix = source === "ISS" ? "ISS" : "TE";
-  const endpointName = `DL${downlinkNumber}_${suffix}` as MTXHlsEndpointName;
+  const sourceSuffix = getSourceSuffix(source as Source);
+  const endpointName = `DL${downlinkNumber}_${sourceSuffix}` as MTXHlsEndpointName;
   const hlsEndpoint = mtxHlsEndpoints.find((e) => e.name === endpointName);
   const duration = hlsEndpoint?.secondsAvailable ?? 0;
 

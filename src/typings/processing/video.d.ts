@@ -55,4 +55,12 @@ type MTXHlsEndpointName =
   | "DL5_TE"
   | "DL6_TE"
   | "DL7_TE"
-  | "DL8_TE";
+  | "DL8_TE"
+  | "DL1_ART"
+  | "DL2_ART"
+  | "DL3_ART"
+  | "DL4_ART"
+  | "DL5_ART"
+  | "DL6_ART"
+  | "DL7_ART"
+  | "DL8_ART";

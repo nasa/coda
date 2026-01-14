@@ -5,9 +5,9 @@
  * for a live stream) rather than the full configured buffer duration.
  */
 export const fetchMTXHlsEndpoints = async ({
-  sourceAbbr,
+  sourceSuffix,
 }: {
-  sourceAbbr: string;
+  sourceSuffix: string;
 }): Promise<MTXHlsEndpoint[]> => {
   const mtxHlsEndpoints: MTXHlsEndpoint[] = [];
   const auth = `Basic ${Buffer.from(
@@ -33,7 +33,7 @@ export const fetchMTXHlsEndpoints = async ({
     const streamNameSuffix = item.name.split("_")[1];
 
     // If the stream is ready, use the configured HLS buffer duration
-    if (item.ready && sourceAbbr === streamNameSuffix) {
+    if (item.ready && sourceSuffix === streamNameSuffix) {
       mtxHlsEndpoints.push({ name: item.name, secondsAvailable: hlsBufferDuration });
     }
   }
