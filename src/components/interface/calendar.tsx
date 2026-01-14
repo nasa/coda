@@ -1,5 +1,6 @@
 import { FunctionComponent, useMemo, useState } from "react";
-import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { ModalDropdown } from "./dropdown-modal";
 import { getYearDayNumber, padZeros } from "utils/formatting";
@@ -22,7 +23,7 @@ interface DateDescription {
   /** Is a date in the future */
   isLater: boolean;
   /** The EVA happening on a date (when applicable; `undefined` otherwise) */
-  EVA: Sequence;
+  EVA?: Sequence;
 }
 
 const monthOnly: Intl.DateTimeFormatOptions = {
@@ -47,6 +48,11 @@ const allMonths = [
   "DECEMBER",
 ];
 
+interface YearMonthModalOptions {
+  visibleYearMonth: string;
+  setVisibleYearMonth: (ym: string) => void;
+}
+
 const handleDateChange = (description: DateDescription, dispatch: AppDispatch) => {
   const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
     description.date.getUTCMonth() + 1,
@@ -70,11 +76,10 @@ const handleDateChange = (description: DateDescription, dispatch: AppDispatch) =
 
 export const MonthsModal: FunctionComponent<{
   closeClick?: () => void;
-  options: {
-    visibleYearMonth: string;
-    setVisibleYearMonth: (ym: string) => void;
-  };
-}> = ({ closeClick, options: { visibleYearMonth, setVisibleYearMonth } }) => {
+  options?: YearMonthModalOptions;
+}> = ({ closeClick, options }) => {
+  const visibleYearMonth = options?.visibleYearMonth ?? "";
+  const setVisibleYearMonth = options?.setVisibleYearMonth;
   const [yyyy, mm] = visibleYearMonth.split("-");
   const zeroIndexedMonth = +mm - 1;
 
@@ -87,8 +92,8 @@ export const MonthsModal: FunctionComponent<{
             className={styles.option}
             onClick={(e) => {
               e.preventDefault();
-              setVisibleYearMonth(`${yyyy}-${padZeros(index + 1, 2)}`);
-              closeClick();
+              setVisibleYearMonth?.(`${yyyy}-${padZeros(index + 1, 2)}`);
+              closeClick?.();
             }}
           >
             <span className={styles.checkbox}>
@@ -104,11 +109,10 @@ export const MonthsModal: FunctionComponent<{
 
 export const YearsModal: FunctionComponent<{
   closeClick?: () => void;
-  options: {
-    visibleYearMonth: string;
-    setVisibleYearMonth: (ym: string) => void;
-  };
-}> = ({ closeClick, options: { visibleYearMonth, setVisibleYearMonth } }) => {
+  options?: YearMonthModalOptions;
+}> = ({ closeClick, options }) => {
+  const visibleYearMonth = options?.visibleYearMonth ?? "";
+  const setVisibleYearMonth = options?.setVisibleYearMonth;
   const [yyyy, mm] = visibleYearMonth.split("-");
 
   const now = new Date();
@@ -132,8 +136,8 @@ export const YearsModal: FunctionComponent<{
             className={styles.option}
             onClick={(e) => {
               e.preventDefault();
-              setVisibleYearMonth(`${year}-${mm}`);
-              closeClick();
+              setVisibleYearMonth?.(`${year}-${mm}`);
+              closeClick?.();
             }}
           >
             <span className={styles.checkbox}>
@@ -147,10 +151,10 @@ export const YearsModal: FunctionComponent<{
   );
 };
 
-const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick: () => void }> = ({
-  description,
-  closeClick,
-}) => {
+const CalendarDate: FunctionComponent<{
+  description: DateDescription;
+  closeClick?: () => void;
+}> = ({ description, closeClick }) => {
   const dispatch = useAppDispatch();
 
   let dayOfYearColor = "var(--even-greyer)";
@@ -189,7 +193,7 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
     e.preventDefault();
     if (!description.isLater) {
       handleDateChange(description, dispatch);
-      closeClick();
+      closeClick?.();
     }
   };
 
@@ -224,7 +228,7 @@ const CalendarDate: FunctionComponent<{ description: DateDescription; closeClick
 
 const DayOfYearPicker: FunctionComponent = () => {
   const dispatch = useAppDispatch();
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
 
   const allSequences = useAppSelector((state) => state.sequences.allSequences, deepEqual);
 
@@ -341,7 +345,8 @@ const DayOfYearPicker: FunctionComponent = () => {
 export const Calendar: FunctionComponent<{ closeClick?: () => void }> = ({ closeClick }) => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
   const sequences = useAppSelector((state) => state.sequences, deepEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
+  const playheadDay = usePlayheadDateAsDate();
 
   const source = framework.source;
 
@@ -358,7 +363,6 @@ export const Calendar: FunctionComponent<{ closeClick?: () => void }> = ({ close
   }
 
   const today = new Date();
-  const playheadDay = new Date(playheadDate);
 
   // Derive year-month from playheadDate
   const playheadYearMonth = useMemo(() => {

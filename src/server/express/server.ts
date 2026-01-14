@@ -77,8 +77,9 @@ const gracefulShutdown = async () => {
 
   // Close Socket.IO first
   if (globalValues.socketio) {
+    const socketio = globalValues.socketio;
     await new Promise<void>((resolve) => {
-      globalValues.socketio.close(() => {
+      socketio.close(() => {
         ConsoleLogger.info("Socket.IO server closed");
         resolve();
       });

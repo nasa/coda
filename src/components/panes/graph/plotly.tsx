@@ -1,4 +1,4 @@
-import { FunctionComponent, MutableRefObject, useEffect, useRef } from "react";
+import { FunctionComponent, useEffect, useRef } from "react";
 
 import PlotlyClass from "components/panes/graph/plotly-class";
 import { appSecondsFromDateString } from "utils/formatting";
@@ -20,15 +20,15 @@ const PlotlyComponent: FunctionComponent<{
 }> = ({ frameID, chartData, plotIndexToHighlight }) => {
   const dispatch = useAppDispatch();
 
-  const plotlyClass: MutableRefObject<PlotlyClass> = useRef(null);
-  const plotlyChartRef: MutableRefObject<HTMLDivElementExtended> = useRef(null);
+  const plotlyClass = useRef<PlotlyClass | null>(null);
+  const plotlyChartRef = useRef<HTMLDivElementExtended | null>(null);
 
   useEffect(() => {
     plotlyClass.current = new PlotlyClass();
   }, []);
 
   useEffect(() => {
-    if (!plotlyChartRef.current) return;
+    if (!plotlyChartRef.current || !plotlyClass.current) return;
 
     plotlyClass.current.drawChart(
       `plotlyChart${frameID}`,
@@ -53,7 +53,7 @@ const PlotlyComponent: FunctionComponent<{
   }, [plotlyChartRef, chartData]);
 
   useEffect(() => {
-    plotlyClass.current.hoverPoint(plotlyChartRef, plotIndexToHighlight);
+    plotlyClass.current?.hoverPoint(plotlyChartRef, plotIndexToHighlight);
   }, [plotlyClass, plotIndexToHighlight]);
 
   return (

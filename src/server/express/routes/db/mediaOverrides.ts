@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { globalValues } from "server/express/global";
+import { getORM } from "server/express/global";
 import { Loaded } from "@mikro-orm/postgresql";
 import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
@@ -49,10 +49,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
-  const em = globalValues.orm.em;
+  const em = getORM().em;
 
   try {
-    const mediaOverride: MediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
+    const mediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
     if (mediaOverride) {
       res.status(200).json(mediaOverride);
     } else {
@@ -67,7 +67,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url } = req.body as MediaOverrideUpsertRequest;
-  const em = globalValues.orm.em;
+  const em = getORM().em;
 
   try {
     if (id) {
@@ -106,10 +106,10 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
 // delete
 router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
-  const em = globalValues.orm.em;
+  const em = getORM().em;
 
   try {
-    const mediaOverride: MediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
+    const mediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
     if (mediaOverride) {
       await em.removeAndFlush(mediaOverride);
       res.status(200).json({ status: "success", message: "media override deleted" });
@@ -125,7 +125,7 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
 export default router;
 
 async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   const mediaOverrides_db: Loaded<MediaOverride_db, never>[] = await em.find(
     MediaOverride_db,
     { date: date },
@@ -143,7 +143,7 @@ async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
 }
 
 export async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   const mediaOverrides_db = await em.find(
     MediaOverride_db,
     {},

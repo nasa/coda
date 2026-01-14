@@ -15,10 +15,10 @@ describe("store/sequences", () => {
     startTime: "21:39",
     startDate: "2022-07-27",
     endDate: "",
-    duration: null,
-    crew: null,
-    asPerformed: null,
-    asPlanned: null,
+    duration: 0,
+    crew: undefined,
+    asPerformed: {},
+    asPlanned: undefined,
   };
 
   it("idFromDate() - converts UTC string date to yyyy-mm-dd string", () => {

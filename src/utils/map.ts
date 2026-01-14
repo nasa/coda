@@ -40,8 +40,8 @@ export const updateOrbitLine = (
     const fullDateTime = `${dateTime}T${timeStr}Z`;
     const nextPosition = getNextPosition(fullDateTime, i, ephemeraItems);
 
-    let lngIncrement;
-    let lngStepSize;
+    let lngIncrement = 0;
+    let lngStepSize = 0;
     if (prevLng !== -1) {
       lngIncrement = Math.abs(nextPosition.lng - prevLng);
       lngStepSize = Math.abs(lngIncrement - prevIncrement);

@@ -79,6 +79,6 @@ test("getMoonIllumination returns fraction and angle of moon's illuminated limb 
 test("getMoonTimes returns moon rise and set times", () => {
   const moonTimes = SunCalc.getMoonTimes(new Date("2013-03-04UTC"), lat, lng, true);
 
-  expect(moonTimes.rise.toUTCString()).toEqual("Mon, 04 Mar 2013 23:54:29 GMT");
-  expect(moonTimes.set.toUTCString()).toEqual("Mon, 04 Mar 2013 07:47:58 GMT");
+  expect(moonTimes.rise?.toUTCString()).toEqual("Mon, 04 Mar 2013 23:54:29 GMT");
+  expect(moonTimes.set?.toUTCString()).toEqual("Mon, 04 Mar 2013 07:47:58 GMT");
 });

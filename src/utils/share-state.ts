@@ -256,9 +256,12 @@ export function interpretFramestateQueryString(query: URLSearchParams): FrameSta
   const frameState: FrameState = {};
   for (let i = 1; i <= 10; i++) {
     // 10 is the max number of frames
-    if (query?.get("f" + i)) {
-      const paneState = interpretFrameQueryParam(query.get("f" + i));
-      frameState[i.toString()] = paneState;
+    const frameParam = query?.get("f" + i);
+    if (frameParam) {
+      const paneState = interpretFrameQueryParam(frameParam);
+      if (paneState) {
+        frameState[i.toString()] = paneState;
+      }
     }
   }
   return frameState;
@@ -269,7 +272,7 @@ export function interpretFramestateQueryString(query: URLSearchParams): FrameSta
  * @param frameString A shortened string representing the state of a frame received as a query parameter
  * @returns
  */
-function interpretFrameQueryParam(frameString: string): PaneState {
+function interpretFrameQueryParam(frameString: string): PaneState | undefined {
   if (!frameString) {
     return undefined;
   }

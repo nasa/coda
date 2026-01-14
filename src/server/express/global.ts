@@ -33,3 +33,35 @@ export const globalValues: GlobalValues = {
   spacetrackInterval: null,
   spacetrackTrackerData: createInitialSpacetrackState(),
 };
+
+/**
+ * Gets the ORM instance, throwing if not initialized.
+ * Use this in route handlers where the server must be fully initialized.
+ */
+export function getORM(): import("@mikro-orm/postgresql").MikroORM {
+  if (!globalValues.orm) {
+    throw new Error("ORM not initialized");
+  }
+  return globalValues.orm;
+}
+
+/**
+ * Gets the Socket.IO server instance, throwing if not initialized.
+ * Use this in code that requires Socket.IO to be ready (e.g., setupSocketIO).
+ */
+export function getSocketIO(): NonNullable<GlobalValues["socketio"]> {
+  if (!globalValues.socketio) {
+    throw new Error("Socket.IO server not initialized");
+  }
+  return globalValues.socketio;
+}
+
+/**
+ * Gets the app version, throwing if not initialized.
+ */
+export function getAppVersion(): AppVersion {
+  if (!globalValues.appVersion) {
+    throw new Error("App version not initialized");
+  }
+  return globalValues.appVersion;
+}

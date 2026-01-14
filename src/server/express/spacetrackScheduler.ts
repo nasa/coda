@@ -12,7 +12,7 @@ import duration from "dayjs/plugin/duration";
 import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
 import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { globalValues } from "./global";
+import { globalValues, getSocketIO } from "./global";
 import { getCacheEntry, putCacheEntry } from "./cache-db";
 import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
@@ -209,7 +209,8 @@ const emitEphemerisToTodayClients = async (): Promise<void> => {
 
   // Check if any clients are viewing today for ISS
   const roomName = `${source}_${today}`;
-  const room = globalValues.socketio?.sockets?.adapter?.rooms?.get(roomName);
+  const io = getSocketIO();
+  const room = io.sockets.adapter.rooms.get(roomName);
 
   if (!room?.size) {
     return; // No clients viewing ISS/today

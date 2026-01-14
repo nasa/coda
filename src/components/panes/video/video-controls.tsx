@@ -2,6 +2,7 @@ import isNil from "lodash/isNil";
 import { FunctionComponent, useEffect, useState } from "react";
 import ClockInterval from "components/framework/ClockInterval";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { faChevronDown, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -73,7 +74,7 @@ const RightButtons: FunctionComponent<{
   const frames = useAppSelector((state) => state.framework.frames, deepEqual);
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
 
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
@@ -177,7 +178,6 @@ const RightButtons: FunctionComponent<{
  * Determines the button styling based on channel state.
  */
 const getChannelButtonColor = (
-  channel: number,
   isAvailable: boolean,
   isSelected: boolean,
   isSelectedByOthers: boolean
@@ -246,7 +246,6 @@ export const ChannelSelectorLarge: FunctionComponent<{
           <Button
             key={`DLBUTTON_${channel}_${frameID}`}
             color={getChannelButtonColor(
-              channel,
               channelAvailability[channel],
               paneStateData.channel === channel,
               channelsSelectedByOthers.has(channel)
@@ -268,6 +267,12 @@ export const ChannelSelectorLarge: FunctionComponent<{
   );
 };
 
+interface ChannelDropdownModalOptions {
+  frameID: number;
+  channelAvailability: boolean[];
+  channelSelected: number;
+}
+
 const ChannelDropdownLabel: FunctionComponent<{
   dlNumber: number;
   isAvailable: boolean;
@@ -282,9 +287,12 @@ const ChannelDropdownLabel: FunctionComponent<{
 };
 
 const ChannelDropdownModal: FunctionComponent<{
-  closeClick: () => void;
-  options: { frameID: number; channelAvailability: boolean[]; channelSelected: number };
-}> = ({ closeClick, options: { frameID, channelAvailability, channelSelected } }) => {
+  closeClick?: () => void;
+  options?: ChannelDropdownModalOptions;
+}> = ({ closeClick, options }) => {
+  const frameID = options?.frameID ?? 0;
+  const channelAvailability = options?.channelAvailability ?? [];
+  const channelSelected = options?.channelSelected ?? 0;
   const dispatch = useAppDispatch();
 
   // Get channels selected by other video panes
@@ -306,7 +314,7 @@ const ChannelDropdownModal: FunctionComponent<{
         paneStateValue: channel,
       })
     );
-    closeClick();
+    closeClick?.();
   };
 
   if (!channelAvailability) return null;
@@ -320,7 +328,6 @@ const ChannelDropdownModal: FunctionComponent<{
         >
           <Button
             color={getChannelButtonColor(
-              channel,
               channelAvailability[channel],
               channelSelected === channel,
               channelsSelectedByOthers.has(channel)
@@ -377,7 +384,8 @@ export const VideoDLPaneControls: FunctionComponent<{
   frameDimensions: number[];
 }> = ({ frameID, frameDimensions }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
+  const playheadDateObj = usePlayheadDateAsDate();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const mtxPlaybackAvailability = useAppSelector(
@@ -391,7 +399,7 @@ export const VideoDLPaneControls: FunctionComponent<{
     deepEqual
   );
 
-  const visibleVideos = visibleVideosBySecond(videos.videoFiles, new Date(playheadDate));
+  const visibleVideos = visibleVideosBySecond(videos.videoFiles, playheadDateObj);
   const liveEnabled = import.meta.env.VITE_PUBLIC_LIVE_STREAMS_ENABLED === "true";
   const channelAvailability = calculateChannelAvailability(
     playheadDate,
@@ -425,7 +433,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
 }> = ({ frameID, frameDimensions }) => {
   const dispatch = useAppDispatch();
   const videos = useAppSelector((state) => state.videos, deepEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDateObj = usePlayheadDateAsDate();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const paneStateData = useAppSelector(
@@ -434,7 +442,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
   );
 
   const videoFiles = videos.videoFiles;
-  const visibleVideos = visibleVideosBySecond(videoFiles, new Date(playheadDate));
+  const visibleVideos = visibleVideosBySecond(videoFiles, playheadDateObj);
 
   const [nonDlVideoIDs, setNonDlVideoIDs] = useState<string[]>([]);
 

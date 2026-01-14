@@ -81,7 +81,7 @@ const AdminMediaOverrides: FunctionComponent = () => {
                           <button
                             type="button"
                             className={adminCommon.deleteButton}
-                            onClick={() => handleDelete(record.id)}
+                            onClick={() => record.id !== undefined && handleDelete(record.id)}
                             aria-label={`Delete ${record.source} ${record.type}`}
                           >
                             <FontAwesomeIcon icon={faTrashAlt} />

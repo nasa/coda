@@ -18,14 +18,17 @@ interface DataUpdate {
 }
 
 interface DataFetchCallContext {
-  dateWanted?: string;
-  source?: Source;
+  dateWanted: string;
+  source: Source;
 }
 
 // Define a configuration for each data type
 interface FetchConfig {
   type: StoreDataType;
-  getDataFunction: (params?: DataFetchCallContext) => Promise<FetchResponse<unknown>>;
+  getDataFunction:
+    | ((params: { dateWanted: string; source: Source }) => Promise<FetchResponse<unknown>>)
+    | ((params: { dateWanted: string }) => Promise<FetchResponse<unknown>>)
+    | (() => Promise<FetchResponse<unknown>>);
   fetchTimeoutMs: number; // custom fetch timeout in milliseconds, defaults to DEFAULT_DATA_FETCH_TIMEOUT_MS
   refreshIntervalMs: number | null; // custom refresh interval for non-today data, null means no scheduled refresh
   refreshIntervalTodayMs: number | null; // custom refresh interval for today's data, null means no scheduled refresh

@@ -1,8 +1,9 @@
 import get from "lodash/get";
 import isNil from "lodash/isNil";
 import paper from "paper";
-import { MutableRefObject, useEffect, useRef, useState, FunctionComponent } from "react";
+import { useEffect, useRef, useState, FunctionComponent } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import {
   getAsPerformedMissionTime,
@@ -29,7 +30,8 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     (state) => state.talkybot.audioFiles,
     deepEqual
   );
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
+  const playheadDateObj = usePlayheadDateAsDate();
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
@@ -45,22 +47,23 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   }
 
   const sequence = allEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
-  const time: MutableRefObject<number> = useRef(0);
-  const drawNav: MutableRefObject<DrawNav> = useRef(null);
-  const canvas: MutableRefObject<HTMLCanvasElement> = useRef(null);
-  const canvasContainer: MutableRefObject<HTMLDivElement> = useRef(null);
-  const mouseOnNavigator: MutableRefObject<boolean> = useRef(false);
-  const navReady: MutableRefObject<boolean> = useRef(false);
+  const time = useRef<number>(0);
+  const drawNav = useRef<DrawNav | null>(null);
+  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const canvasContainer = useRef<HTMLDivElement | null>(null);
+  const mouseOnNavigator = useRef<boolean>(false);
+  const navReady = useRef<boolean>(false);
 
-  let evaStartSec = null as number;
+  let evaStartSec: number | null = null;
   const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-  if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+  if (!isNil(sequence) && sequence.startTime && !isNil(sequence.startTime.match(reHHMM))) {
     const [hh, mm] = sequence.startTime.split(":");
     evaStartSec = 3600 * +hh + 60 * +mm;
   }
 
   /** Draw the timeline on the canvas from scratch */
   const installTimeline = () => {
+    if (!canvas.current) return;
     if (isNil(paper.project) && typeof window !== "undefined") {
       paper.setup(canvas.current);
     }
@@ -86,8 +89,6 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       }
     }
 
-    const playheadDateObj = new Date(playheadDate);
-
     drawNav.current = new DrawNav({
       videoFiles: filterVisibleVideos(videos.videoFiles, playheadDateObj),
       mtxPlaybackAvailability: videos.mtxPlaybackAvailability,
@@ -98,9 +99,11 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       dayNight: dayNight,
       asPerformed: asPerformed,
       dateRendered: playheadDateObj,
-      evaStartSec: evaStartSec,
+      evaStartSec: evaStartSec ?? 0,
       audioFiles: audioFiles,
     });
+
+    if (!drawNav.current) return;
 
     drawNav.current.initGroups();
     drawNav.current.setDynamicWidthVariables();
@@ -110,6 +113,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     drawNav.current.drawCursor(time.current);
 
     paper.view.onResize = function () {
+      if (!drawNav.current) return;
       drawNav.current.setDynamicWidthVariables();
       drawNav.current.drawTier1();
       drawNav.current.drawNavBox(time.current);
@@ -120,7 +124,9 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
       if (!mouseOnNavigator.current) {
         mouseOnNavigator.current = true;
         // Make the canvas receive click events
-        canvasContainer.current.style.pointerEvents = "auto";
+        if (canvasContainer.current) {
+          canvasContainer.current.style.pointerEvents = "auto";
+        }
       }
       if (hoverSeconds !== thisHoverSeconds) {
         dispatch(setHoverSeconds(thisHoverSeconds));
@@ -132,26 +138,30 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     };
     const mouseLeaveCb = () => {
       mouseOnNavigator.current = false;
-      drawNav.current.drawNavBox(time.current);
-      drawNav.current.drawTier2();
-      drawNav.current.drawCursor(time.current);
+      if (drawNav.current) {
+        drawNav.current.drawNavBox(time.current);
+        drawNav.current.drawTier2();
+        drawNav.current.drawCursor(time.current);
+      }
 
       // put null in hoverSeconds to disable them across components
       dispatch(setHoverSeconds(null));
 
       // Make the canvas ignore click events (but still receive mousemove events--somehow).
       // Hover events still work for Paper reason which is super handy for us)
-      canvasContainer.current.style.pointerEvents = "none";
+      if (canvasContainer.current) {
+        canvasContainer.current.style.pointerEvents = "none";
+      }
     };
 
     paper.view.onMouseMove = (event: paper.MouseEvent) => {
-      drawNav.current.handleMouseMove(event, time.current, mouseMoveCb, mouseLeaveCb);
+      drawNav.current?.handleMouseMove(event, time.current, mouseMoveCb, mouseLeaveCb);
     };
     paper.view.onMouseUp = (event: paper.MouseEvent) => {
-      drawNav.current.handleMouseUp(event, mouseUpCb);
+      drawNav.current?.handleMouseUp(event, mouseUpCb);
     };
     paper.view.onMouseLeave = (event: paper.MouseEvent) => {
-      drawNav.current.handleMouseLeave(event, mouseLeaveCb);
+      drawNav.current?.handleMouseLeave(event, mouseLeaveCb);
     };
 
     if (!navReady.current) {
@@ -170,7 +180,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
   useEffect(() => {
     time.current = appSeconds;
 
-    if (!navReady.current) {
+    if (!navReady.current || !drawNav.current) {
       // nothing to update if the paperjs timeline hasn't been instantiated
       return;
     }

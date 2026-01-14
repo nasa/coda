@@ -80,7 +80,7 @@ interface TalkybotState {
  * Graph Store
  */
 type GraphsState = {
-  graphsManifest: GraphsManifest;
+  graphsManifest: GraphsManifest | null;
   metadata: FetchMetadata | null;
 };
 

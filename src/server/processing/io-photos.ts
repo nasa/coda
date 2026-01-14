@@ -90,6 +90,7 @@ export default async function getPhotoData({
         } catch (overrideError) {
           // don't block photo results if we can't find overrides
           ConsoleLogger.warn("Error fetching photo timeshift overrides:", overrideError);
+          return undefined;
         }
       })(),
     ]);

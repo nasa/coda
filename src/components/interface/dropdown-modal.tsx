@@ -1,4 +1,12 @@
-import { FunctionComponent, useRef, MouseEvent, ReactNode, useState, useEffect } from "react";
+import {
+  FunctionComponent,
+  useRef,
+  MouseEvent,
+  ReactNode,
+  useState,
+  useEffect,
+  ReactElement,
+} from "react";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-modal.module.css";
@@ -41,7 +49,10 @@ const modalDefaults = {
 };
 
 /** A menu with a down caret that opens a modal below */
-export const ModalDropdown: FunctionComponent<{
+export const ModalDropdown = <T extends Record<string, unknown> = Record<string, unknown>>({
+  children,
+  ...options
+}: {
   children: ReactNode;
   color?: DropdownColorVariant;
   size?: DropdownSizeVariant;
@@ -50,11 +61,11 @@ export const ModalDropdown: FunctionComponent<{
   callback?: () => void;
   modal?: FunctionComponent<{
     closeClick?: () => void;
-    options?: Record<string, unknown>;
+    options?: T;
     display?: boolean;
   }>;
-  modalOptions?: Record<string, unknown>;
-}> = ({ children, ...options }) => {
+  modalOptions?: T;
+}): ReactElement => {
   const opts = { ...modalDefaults, ...options };
   const [isOpen, setIsOpen] = useState(false);
   const [modalTop, setModalTop] = useState<number | null>(null);
@@ -86,10 +97,10 @@ export const ModalDropdown: FunctionComponent<{
   const caretStyle = caretClasses[caretKey];
   const colorClass = colorClasses[opts.color];
   const sizeClass = sizeClasses[opts.size];
-  const modalStyle = {
+  const modalStyle: React.CSSProperties = {
     display: isOpen ? "block" : "none",
-    width: opts.modalWidth ? opts.modalWidth + "px" : null,
-    top: isOpen && modalTop ? `${modalTop}px` : null,
+    width: opts.modalWidth ? opts.modalWidth + "px" : undefined,
+    top: isOpen && modalTop ? `${modalTop}px` : undefined,
   };
 
   return (
@@ -107,11 +118,13 @@ export const ModalDropdown: FunctionComponent<{
         </div>
       </button>
       <div className={styles.modal} style={modalStyle} ref={modalRef}>
-        <opts.modal
-          closeClick={() => setIsOpen(false)}
-          options={opts.modalOptions}
-          display={isOpen}
-        />
+        {opts.modal && (
+          <opts.modal
+            closeClick={() => setIsOpen(false)}
+            options={opts.modalOptions as T}
+            display={isOpen}
+          />
+        )}
       </div>
     </div>
   );

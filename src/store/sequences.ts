@@ -49,7 +49,7 @@ export const idFromDate = (date: string): string => {
 
 /** Start time of an Sequence in UTC milliseconds */
 export const getSequenceStartMilliseconds = (Sequence: Sequence): number => {
-  const { startDate, startTime } = Sequence;
+  const { startDate, startTime = "00:00" } = Sequence;
   const [Y, M, D] = startDate.split("-").map(Number);
   const [hh, mm] = startTime.split(/:/).map(Number);
   return Date.UTC(Y, M - 1, D, hh, mm);

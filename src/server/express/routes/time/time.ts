@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from "express";
 
 const router: Router = express.Router();
 
-router.get("/", (req: Request, res: Response) => {
+router.get("/", (_req: Request, res: Response) => {
   try {
     const currentTime = new Date().toISOString();
     res.json({ time: currentTime });

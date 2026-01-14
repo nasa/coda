@@ -1,7 +1,11 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./status.module.css";
 import { useMemo, FunctionComponent } from "react";
-import { isDataTypeValidForSource, isDateValidForMtxVideo } from "utils/sourceDataTypeMap";
+import {
+  isDataTypeValidForSource,
+  isDateValidForMtxVideo,
+  mtxVideoMaxAgeDays,
+} from "utils/sourceDataTypeMap";
 
 function createStatus(
   metadata: FetchMetadata | null,
@@ -93,7 +97,7 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
   );
 
   const graphStatus = useMemo(
-    () => createStatus(graphs.metadata, graphs.graphsManifest?.graphs?.length > 0),
+    () => createStatus(graphs.metadata, (graphs.graphsManifest?.graphs?.length ?? 0) > 0),
     [graphs.metadata, graphs.graphsManifest?.graphs?.length]
   );
 
@@ -111,10 +115,7 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     const dataTypes = [];
 
     // Status for date being too old for live video
-    const liveVideoDateTooOld = !isDateValidForMtxVideo(
-      clockDate,
-      parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
-    );
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
     const liveVideoUnneededStatus = {
       message: "not available for dates > 7 days ago",
       classname: styles.unneeded,
@@ -218,10 +219,7 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     const dataTypes = [];
 
     // Status for date being too old for live video
-    const liveVideoDateTooOld = !isDateValidForMtxVideo(
-      clockDate,
-      parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
-    );
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
     const liveVideoUnneededStatus = {
       message: "not available for dates > 7 days ago",
       classname: styles.unneeded,

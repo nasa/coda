@@ -1,5 +1,6 @@
 import { FunctionComponent, useState } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDate } from "store/hooks";
 import { determineVideoPlayerType } from "utils/video";
 import ClockInterval from "components/framework/ClockInterval";
 import VideoMTXPlaybackPane from "./video-player-mtx";
@@ -17,7 +18,9 @@ import { VideoPosterPane } from "./video-poster";
  * 3. MTX (MediaMTX recordings) - for recorded playback
  * 4. Falls back to poster pane if nothing is available
  */
-const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const VideoPaneChooser: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+}) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const downlinkNumber = useAppSelector(
     (state) =>
@@ -29,7 +32,7 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number }> = ({ frameID }) =
     deepEqual
   );
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
 
   const [appSeconds, setLocalAppSeconds] = useState(0);
 

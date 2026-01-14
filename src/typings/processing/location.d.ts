@@ -1,6 +1,6 @@
 type MapMarker = {
-  marker: import("mapbox-gl").Marker; //the MapBox marker reference
-  markerNode: HTMLDivElement; //the real DOM id of the marker
+  marker: import("mapbox-gl").Marker | null; //the MapBox marker reference
+  markerNode: HTMLDivElement | null; //the real DOM id of the marker
 };
 
 type MapMarkers = {
