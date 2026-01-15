@@ -21,7 +21,7 @@ export const getHlsBufferDuration = (): number => {
     );
   }
 
-  const parsed = parseInt(envValue);
+  const parsed = parseInt(envValue, 10);
   if (isNaN(parsed) || parsed <= 0) {
     throw new Error(`HLS_BUFFER_DURATION_SECONDS must be a positive integer, got: ${envValue}`);
   }

@@ -110,8 +110,8 @@ describe("mediaMtx-hls", () => {
       expect(result).toHaveLength(1);
       expect(result[0].secondsAvailable).toBe(600);
 
-      // Clean up
-      delete process.env.HLS_BUFFER_DURATION_SECONDS;
+      // Reset to default for other tests
+      process.env.HLS_BUFFER_DURATION_SECONDS = "900";
     });
 
     it("should use Basic auth header", async () => {

@@ -13,7 +13,6 @@ import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
 import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { globalValues, getSocketIO } from "./global";
-import { getCacheEntry, putCacheEntry } from "./cache-db";
 import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 dayjs.extend(duration);
@@ -23,10 +22,6 @@ dayjs.extend(duration);
 const SPACETRACK_UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 /** Skip initial fetch if latest record was created less than this threshold */
 export const SKIP_FETCH_THRESHOLD_MS = 6 * 60 * 60 * 1000;
-/** Cache folder and keys for persisted state */
-const SPACETRACK_CACHE_FOLDER = "spacetrack";
-const SPACETRACK_LAST_FETCH_KEY = "lastFetchResult";
-const SPACETRACK_STATS_KEY = "persistedStats";
 
 const updateState = (updates: Partial<SpaceTrackTrackerData>): void => {
   globalValues.spacetrackTrackerData = { ...globalValues.spacetrackTrackerData, ...updates };
@@ -36,97 +31,6 @@ const calculateNextUpdateTime = (): string | null =>
   globalValues.spacetrackTrackerData.isActive
     ? new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString()
     : null;
-
-/** Cache operations - two separate entries for fetch results and stats */
-
-const getLastFetchResult = async (): Promise<SpaceTrackLastFetchResult | null> => {
-  try {
-    const entry = await getCacheEntry({
-      folder: SPACETRACK_CACHE_FOLDER,
-      identifier: SPACETRACK_LAST_FETCH_KEY,
-    });
-    return (entry?.data as SpaceTrackLastFetchResult) ?? null;
-  } catch (error) {
-    ConsoleLogger.warn("Could not retrieve last fetch result:", error);
-    return null;
-  }
-};
-
-const saveLastFetchResult = async (result: SpaceTrackLastFetchResult): Promise<void> => {
-  try {
-    await putCacheEntry({
-      folder: SPACETRACK_CACHE_FOLDER,
-      identifier: SPACETRACK_LAST_FETCH_KEY,
-      data: result,
-      metadata: { expiration: new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString() },
-    });
-  } catch (error) {
-    ConsoleLogger.warn("Could not save last fetch result:", error);
-  }
-};
-
-const getPersistedStats = async (): Promise<SpaceTrackPersistedStats | null> => {
-  try {
-    const entry = await getCacheEntry({
-      folder: SPACETRACK_CACHE_FOLDER,
-      identifier: SPACETRACK_STATS_KEY,
-    });
-    return (entry?.data as SpaceTrackPersistedStats) ?? null;
-  } catch (error) {
-    ConsoleLogger.warn("Could not retrieve persisted stats:", error);
-    return null;
-  }
-};
-
-const savePersistedStats = async (): Promise<void> => {
-  const stats: SpaceTrackPersistedStats = {
-    totalOperations: globalValues.spacetrackTrackerData.totalOperations,
-    successfulOperations: globalValues.spacetrackTrackerData.successfulOperations,
-    failedOperations: globalValues.spacetrackTrackerData.failedOperations,
-    lastManualTriggerAt: globalValues.spacetrackTrackerData.lastManualTriggerAt,
-    lastManualTriggerBy: globalValues.spacetrackTrackerData.lastManualTriggerBy,
-  };
-  try {
-    await putCacheEntry({
-      folder: SPACETRACK_CACHE_FOLDER,
-      identifier: SPACETRACK_STATS_KEY,
-      data: stats,
-      // Long expiration for cumulative stats (1 year)
-      metadata: { expiration: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() },
-    });
-  } catch (error) {
-    ConsoleLogger.warn("Could not save persisted stats:", error);
-  }
-};
-
-const restoreStateFromCache = async (): Promise<void> => {
-  // Restore last fetch result
-  const lastFetch = await getLastFetchResult();
-  if (lastFetch) {
-    updateState({
-      lastOperationStartedAt: lastFetch.attemptedAt,
-      lastOperationCompletedAt: lastFetch.completedAt ?? null,
-      lastOperationSuccess: lastFetch.success ?? null,
-      lastFetchedEpoch: lastFetch.epoch ?? null,
-      lastRecordsInserted: lastFetch.recordsInserted ?? null,
-      lastRecordsSkipped: lastFetch.recordsSkipped ?? null,
-      lastErrorMessage: lastFetch.errorMessage ?? null,
-      lastErrorAt: lastFetch.success === false ? (lastFetch.completedAt ?? null) : null,
-    });
-  }
-
-  // Restore cumulative stats
-  const stats = await getPersistedStats();
-  if (stats) {
-    updateState({
-      totalOperations: stats.totalOperations,
-      successfulOperations: stats.successfulOperations,
-      failedOperations: stats.failedOperations,
-      lastManualTriggerAt: stats.lastManualTriggerAt,
-      lastManualTriggerBy: stats.lastManualTriggerBy,
-    });
-  }
-};
 
 // Fetch decision helpers
 
@@ -235,9 +139,6 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
     totalOperations: globalValues.spacetrackTrackerData.totalOperations + 1,
   });
 
-  // Record attempt before starting (persists across restarts)
-  await saveLastFetchResult({ attemptedAt });
-  await savePersistedStats();
   emitSpacetrackInspectorUpdate();
 
   // Execute the update
@@ -262,14 +163,6 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
       lastRecordsSkipped: result.recordsSkipped ?? null,
       successfulOperations: globalValues.spacetrackTrackerData.successfulOperations + 1,
     });
-    await saveLastFetchResult({
-      attemptedAt,
-      completedAt,
-      success: true,
-      epoch: result.epoch ?? null,
-      recordsInserted: result.recordsInserted,
-      recordsSkipped: result.recordsSkipped,
-    });
   } else {
     updateState({
       lastOperationSuccess: false,
@@ -277,14 +170,7 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
       lastErrorAt: completedAt,
       failedOperations: globalValues.spacetrackTrackerData.failedOperations + 1,
     });
-    await saveLastFetchResult({
-      attemptedAt,
-      completedAt,
-      success: false,
-      errorMessage: result.errorMessage ?? "Unknown error",
-    });
   }
-  await savePersistedStats();
 
   // Log result
   const prefix = isManual ? "(manual) " : "";
@@ -315,9 +201,6 @@ export const startSpacetrackScheduler = async (): Promise<void> => {
     isActive: true,
     startedAt: new Date().toISOString(),
   });
-
-  // Restore previous state from cache
-  await restoreStateFromCache();
 
   // Determine if initial fetch is needed
   const { shouldFetch, skipReason } = await determineShouldFetch();
@@ -363,7 +246,6 @@ export const triggerSpacetrackUpdate = async (username: string): Promise<void> =
     lastManualTriggerBy: username,
   });
 
-  await savePersistedStats();
   if (globalValues.spacetrackInterval) {
     clearInterval(globalValues.spacetrackInterval);
     globalValues.spacetrackInterval = null;
