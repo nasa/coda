@@ -42,6 +42,7 @@
   font-size: 0.85rem;
   border-radius: var(--panelRadius);
   overflow: hidden;
+  table-layout: fixed;
 }
 
 .usersTable th {
@@ -53,6 +54,18 @@
   text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.05em;
+}
+
+.usersTable th:nth-child(1) {
+  width: auto; /* User column takes remaining space */
+}
+
+.usersTable th:nth-child(2) {
+  width: 150px; /* Connected column - fixed width */
+}
+
+.usersTable th:nth-child(3) {
+  width: 180px; /* Version column - fixed width */
 }
 
 .usersTable td {
