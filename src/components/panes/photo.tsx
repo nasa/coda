@@ -164,7 +164,7 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     if (currentlyActivePhoto) {
       photoFilename = photos.activePhoto.id;
       ioSearchLink = photos.activePhoto.dataURL;
-      ioHighResURL = photos.activePhoto.mediaHighResURL;
+      ioHighResURL = photos.activePhoto.mediaHighResURL ?? "";
       openURLMessage = `Open high res`;
       openOnIOMessage = `Open on IO`;
       dateAdded =

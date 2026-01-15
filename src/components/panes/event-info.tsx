@@ -1,7 +1,8 @@
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import isNil from "lodash/isNil";
-import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDateAsDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateDataValue } from "store/framework";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
@@ -46,7 +47,7 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   // Clock state from Redux
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDateObj = usePlayheadDateAsDate();
   const [_appSeconds, setLocalAppSeconds] = useState(0);
 
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
@@ -56,13 +57,12 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   );
 
   const allSequences = sequences.allSequences;
-  const seq = allSequences.find((seq) =>
-    isSameDate(new Date(seq.startDate), new Date(playheadDate))
-  );
+  const seq = allSequences.find((seq) => isSameDate(new Date(seq.startDate), playheadDateObj));
   const dispatch = useAppDispatch();
   const [seqSourceName] = useState<"Wiki">("Wiki");
 
   function asExecutedTable(evNum: string) {
+    if (!seq) return null;
     const asPerformed: { [key: string]: Activity[] } = { EV1: [], EV2: [] };
     const activityStartUTCMilliseconds = getSequenceStartMilliseconds(seq);
 
@@ -94,11 +94,11 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             key={asPerformed[evNum][i].startTimeSeconds}
             className={styles.taskContainer}
             onClick={() => {
-              dispatch(setAppSeconds(asPerformed[evNum][i].startTimeSeconds));
+              dispatch(setAppSeconds(asPerformed[evNum][i].startTimeSeconds ?? 0));
             }}
           >
             <div className={styles.taskTime}>
-              {hhmmFromSeconds(asPerformed[evNum][i].startTimeSeconds)}{" "}
+              {hhmmFromSeconds(asPerformed[evNum][i].startTimeSeconds ?? 0)}{" "}
             </div>
             <div className={styles.taskName} style={{ color: color }}>
               {asPerformed[evNum][i].content}
@@ -160,13 +160,13 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                 <th>
                   <>
                     <span style={{ fontWeight: 300 }}>EV1: </span>
-                    <span className={styles.labelValue}>{seq.crew.EV1}</span>
+                    <span className={styles.labelValue}>{seq.crew?.EV1}</span>
                   </>
                 </th>
                 <th>
                   <>
                     <span style={{ fontWeight: 300 }}>EV2: </span>
-                    <span className={styles.labelValue}>{seq.crew.EV2}</span>
+                    <span className={styles.labelValue}>{seq.crew?.EV2}</span>
                   </>
                 </th>
               </tr>

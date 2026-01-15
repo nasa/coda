@@ -13,8 +13,6 @@ import styles from "./fetchInspector.module.css";
 
 dayjs.extend(relativeTime);
 
-const mtxVideoMaxAgeDays = parseInt(import.meta.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS, 10);
-
 const SOCKET_PATH = "/api/v1/socketio";
 const HIGHLIGHT_DURATION_MS = 10000;
 const KEY_SEPARATOR = "::";
@@ -244,7 +242,7 @@ const AdminFetchStatuses: FunctionComponent = () => {
     return Object.entries(statuses).sort(([sourceA], [sourceB]) => sourceA.localeCompare(sourceB));
   }, [statuses]);
 
-  const formatTimestamp = (value?: string) => {
+  const formatTimestamp = (value?: string | null) => {
     if (!value) return "None";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
@@ -261,8 +259,8 @@ const AdminFetchStatuses: FunctionComponent = () => {
     );
   };
 
-  const formatBoolean = (value: boolean | undefined, fallback: string = "None") => {
-    if (value === undefined) return fallback;
+  const formatBoolean = (value: boolean | undefined | null, fallback: string = "None") => {
+    if (value === undefined || value === null) return fallback;
     return value ? "Yes" : "No";
   };
 
@@ -430,8 +428,7 @@ const AdminFetchStatuses: FunctionComponent = () => {
                       isDataTypeValidForSourceAndDate(
                         source as Source,
                         dataType as StoreDataType,
-                        date,
-                        mtxVideoMaxAgeDays
+                        date
                       )
                     )
                     .sort(([a], [b]) => a.localeCompare(b));

@@ -55,7 +55,7 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
     af.transcription?.nativeLanguageSegments
       ?.filter((s) => s.type === "segment")
       .map((s) => s.text)
-      .join(" ") || undefined;
+      .join(" ") ?? "";
 
   return {
     fileUuid: af.uuid,

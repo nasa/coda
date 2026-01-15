@@ -1,5 +1,4 @@
 import * as Plotly from "plotly.js-basic-dist";
-import { MutableRefObject } from "react";
 
 declare module "plotly.js" {
   namespace Fx {
@@ -20,7 +19,8 @@ export default class PlotlyClass {
     });
   }
 
-  hoverPoint(chartRef: MutableRefObject<HTMLDivElement>, pointNumber: number): void {
+  hoverPoint(chartRef: { current: HTMLDivElement | null }, pointNumber: number): void {
+    if (!chartRef.current) return;
     Plotly.Fx.hover(chartRef.current, [{ curveNumber: 0, pointNumber: pointNumber }]);
   }
 }

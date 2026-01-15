@@ -4,34 +4,34 @@ import { midnightZulu } from "utils/date";
 import { appSecondsFromDateString, hhmmssFromSeconds, lightColor } from "utils/formatting";
 
 export default class DrawNav {
-  gTier1Group: paper.Group;
-  gTier1NavGroup: paper.Group;
-  gNavBoxLocX: number;
+  gTier1Group: paper.Group = new paper.Group();
+  gTier1NavGroup: paper.Group = new paper.Group();
+  gNavBoxLocX: number = 0;
 
-  gTier2Group: paper.Group;
-  gTier2BoarderGroup: paper.Group;
-  gTier2StartSeconds: number;
+  gTier2Group: paper.Group = new paper.Group();
+  gTier2BoarderGroup: paper.Group = new paper.Group();
+  gTier2StartSeconds: number = 0;
 
-  gCursorGroup: paper.Group;
-  gNavCursorGroup: paper.Group;
+  gCursorGroup: paper.Group = new paper.Group();
+  gNavCursorGroup: paper.Group = new paper.Group();
 
-  gNavigatorWidth: number;
-  gNavigatorHeight: number;
+  gNavigatorWidth: number = 0;
+  gNavigatorHeight: number = 0;
 
-  gCanvasHeight: number;
+  gCanvasHeight: number = 0;
   gNavZoomFactor = 50;
-  gTier1Height: number;
+  gTier1Height: number = 0;
   navigatorCollapsed: boolean = false;
-  gTier2Height: number;
-  gTier1PixelsPerSecond: number;
-  gTier1SecondsPerPixel: number;
-  gTier2PixelsPerSecond: number;
-  gTier2SecondsPerPixel: number;
-  gTierSpacing: number;
-  gTier1Top: number;
-  gTier2Top: number;
-  gTier1Left: number;
-  gTier2Left: number;
+  gTier2Height: number = 0;
+  gTier1PixelsPerSecond: number = 0;
+  gTier1SecondsPerPixel: number = 0;
+  gTier2PixelsPerSecond: number = 0;
+  gTier2SecondsPerPixel: number = 0;
+  gTierSpacing: number = 0;
+  gTier1Top: number = 0;
+  gTier2Top: number = 0;
+  gTier1Left: number = 0;
+  gTier2Left: number = 0;
 
   cSecondsIn24Hours = 86400;
 
@@ -191,7 +191,7 @@ export default class DrawNav {
     this.gNavCursorGroup.removeChildren();
   };
 
-  handleMouseLeave = (event: paper.MouseEvent, mouseLeaveCb: () => void): void => {
+  handleMouseLeave = (_event: paper.MouseEvent, mouseLeaveCb: () => void): void => {
     this.mouseLeaveActions();
     mouseLeaveCb();
   };
@@ -728,16 +728,21 @@ export default class DrawNav {
     for (const key of Object.keys(this.asPerformed)) {
       const evActivityArray = this.asPerformed[key];
       for (let i = 0; i < evActivityArray.length; i++) {
+        const activity = evActivityArray[i];
         if (
-          evActivityArray[i].startTimeSeconds <= param.secondsEnd &&
-          evActivityArray[i].endTimeSeconds >= param.secondsStart
+          !activity ||
+          activity.startTimeSeconds === undefined ||
+          activity.endTimeSeconds === undefined
+        )
+          continue;
+        if (
+          activity.startTimeSeconds <= param.secondsEnd &&
+          activity.endTimeSeconds >= param.secondsStart
         ) {
           const startLocX =
-            param.leftPx +
-            (evActivityArray[i].startTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
+            param.leftPx + (activity.startTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
           const endLocX =
-            param.leftPx +
-            (evActivityArray[i].endTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
+            param.leftPx + (activity.endTimeSeconds - param.secondsStart) * param.pixelsPerSecond;
 
           const startLocY = param.barTop + rowCounter * param.barHeight;
           const endLocY = startLocY + param.barHeight;
@@ -748,7 +753,7 @@ export default class DrawNav {
             strokeWidth: 0.5,
             strokeColor: this.gColorBarBorder,
             // fillColor: gActivityBackgroundColor,
-            fillColor: evActivityArray[i].color,
+            fillColor: activity.color,
             name: name,
           });
           group.addChild(activityLine);
@@ -759,12 +764,12 @@ export default class DrawNav {
               fontFamily: this.gNavigatorFontFamilyActivity,
               //fontWeight: 'bold',
               fontSize: 9,
-              fillColor: lightColor(evActivityArray[i].color) ? "black" : "white",
+              fillColor: lightColor(activity.color) ? "black" : "white",
             });
             const textTop = startLocY + 8;
             activityText.point = new paper.Point(startLocX + 2, textTop);
-            activityText.content = evActivityArray[i].content;
-            if (evActivityArray[i].content === "Insolation") {
+            activityText.content = activity.content;
+            if (activity.content === "Insolation") {
               activityText.fillColor = new paper.Color("#000000");
             }
             group.addChild(activityText);

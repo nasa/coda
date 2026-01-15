@@ -89,6 +89,7 @@ export default async function getVideoData({
         } catch (timeOverrideError) {
           // don't block video results if we can't find overrides
           ConsoleLogger.warn("Error fetching video time overrides:", timeOverrideError);
+          return undefined;
         }
       })(),
     ]);

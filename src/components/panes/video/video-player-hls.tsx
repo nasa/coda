@@ -1,4 +1,4 @@
-import { FunctionComponent, MutableRefObject, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./video-player-hls.module.css";
@@ -9,6 +9,7 @@ import Hls from "hls.js";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import ClockInterval from "components/framework/ClockInterval";
+import { getSourceSuffix } from "utils/video";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -27,12 +28,13 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const hlsRef = useRef<Hls | null>(null);
-  const videoRef = useRef(null) as MutableRefObject<HTMLVideoElement>;
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const downlinkNumber = (paneStateData.channel + 1).toString();
 
   const playOrPause = () => {
     const asyncFunc = async () => {
+      if (!videoRef.current) return;
       try {
         if (isRunning) {
           // if the video is not playing, try to play it
@@ -54,13 +56,13 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   };
 
   const syncToPlayhead = () => {
-    if (!hlsRef.current) return;
+    if (!hlsRef.current || !videoRef.current || !playheadDate) return;
 
     // if the appSeconds is within 10 second of the current time, just go to the live edge of the hls stream
     if (Math.abs(appSeconds - appSecondsFromDateString(new Date().toISOString())) < 5) {
-      if (hlsRef.current.liveSyncPosition - videoRef.current.currentTime < 3) return; // don't sync if we're already close to the live edge
-      const liveEdge = hlsRef.current.liveSyncPosition;
-      videoRef.current.currentTime = liveEdge;
+      const liveSyncPosition = hlsRef.current.liveSyncPosition;
+      if (liveSyncPosition === null || liveSyncPosition - videoRef.current.currentTime < 3) return; // don't sync if we're already close to the live edge
+      videoRef.current.currentTime = liveSyncPosition;
       return;
     }
 
@@ -82,7 +84,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     if (!videoRef.current || !mtxHlsEndpoints || mtxHlsEndpoints.length === 0) return;
 
     const downlinkNumber = (paneStateData.channel + 1).toString();
-    const sourceSuffix = source === "ISS" ? "ISS" : "TE";
+    const sourceSuffix = getSourceSuffix(source);
 
     const streamEndpointName = `DL${downlinkNumber}_${sourceSuffix}` as MTXHlsEndpointName;
 
@@ -137,9 +139,11 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       // Fallback for Safari browser which supports HLS natively
       console.log("fallback for safari");
       try {
-        videoRef.current.src = `${mtxHlsBaseUrl}${streamEndpointName}/index.m3u8`;
-        videoRef.current.addEventListener("loadedmetadata", () => {
-          videoRef.current.play();
+        const videoElement = videoRef.current;
+        if (!videoElement) return;
+        videoElement.src = `${mtxHlsBaseUrl}${streamEndpointName}/index.m3u8`;
+        videoElement.addEventListener("loadedmetadata", () => {
+          videoElement.play();
         });
       } catch (e) {
         console.error(e);
@@ -156,7 +160,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   const toggleFullScreen = () => {
     const el = videoRef.current;
-    if (el.requestFullscreen) {
+    if (el?.requestFullscreen) {
       el.requestFullscreen();
     }
   };
@@ -195,9 +199,9 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         className={styles.player}
         onError={(e) => {
           const vidElement = e.target as HTMLVideoElement;
-          if (!vidElement.error.message.includes("mpty")) {
+          if (!vidElement.error?.message.includes("mpty")) {
             console.error(
-              `video ${frameID} has thrown an error ${vidElement.error.code} - ${vidElement.error.message}`
+              `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
             );
           }
         }}

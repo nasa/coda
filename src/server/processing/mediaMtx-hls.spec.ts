@@ -30,7 +30,7 @@ describe("mediaMtx-hls", () => {
         json: async () => mockPathsResponse,
       });
 
-      const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
+      const result = await fetchMTXHlsEndpoints({ sourceSuffix: "ISS" });
 
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe("DL1_ISS");
@@ -39,7 +39,7 @@ describe("mediaMtx-hls", () => {
       expect(result[1].secondsAvailable).toBe(900);
     });
 
-    it("should filter by source abbreviation", async () => {
+    it("should filter by source suffix", async () => {
       const mockPathsResponse = {
         items: [
           { name: "DL1_ISS", ready: true },
@@ -52,7 +52,7 @@ describe("mediaMtx-hls", () => {
         json: async () => mockPathsResponse,
       });
 
-      const result = await fetchMTXHlsEndpoints({ sourceAbbr: "TE" });
+      const result = await fetchMTXHlsEndpoints({ sourceSuffix: "TE" });
 
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe("DL2_TE");
@@ -72,7 +72,7 @@ describe("mediaMtx-hls", () => {
         json: async () => mockPathsResponse,
       });
 
-      const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
+      const result = await fetchMTXHlsEndpoints({ sourceSuffix: "ISS" });
 
       expect(result).toHaveLength(2);
       expect(result.find((e) => e.name === "DL2_ISS")).toBeUndefined();
@@ -88,7 +88,7 @@ describe("mediaMtx-hls", () => {
       });
 
       // Use default configured duration (900 seconds = 15 minutes)
-      const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
+      const result = await fetchMTXHlsEndpoints({ sourceSuffix: "ISS" });
 
       expect(result).toHaveLength(1);
       expect(result[0].secondsAvailable).toBe(900);
@@ -105,13 +105,13 @@ describe("mediaMtx-hls", () => {
         json: async () => mockPathsResponse,
       });
 
-      const result = await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
+      const result = await fetchMTXHlsEndpoints({ sourceSuffix: "ISS" });
 
       expect(result).toHaveLength(1);
       expect(result[0].secondsAvailable).toBe(600);
 
-      // Clean up
-      delete process.env.HLS_BUFFER_DURATION_SECONDS;
+      // Reset to default for other tests
+      process.env.HLS_BUFFER_DURATION_SECONDS = "900";
     });
 
     it("should use Basic auth header", async () => {
@@ -123,7 +123,7 @@ describe("mediaMtx-hls", () => {
         json: async () => mockPathsResponse,
       });
 
-      await fetchMTXHlsEndpoints({ sourceAbbr: "ISS" });
+      await fetchMTXHlsEndpoints({ sourceSuffix: "ISS" });
 
       const expectedAuth = `Basic ${Buffer.from("testuser:testpass").toString("base64")}`;
 

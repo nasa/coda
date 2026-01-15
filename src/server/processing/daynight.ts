@@ -11,7 +11,7 @@ type TopoState = "outOfRange_historic" | "historic" | "predicted" | "outOfRange_
 
 type TopoURL = {
   state: TopoState;
-  url: string;
+  url: string | null;
 };
 
 /**
@@ -73,7 +73,7 @@ export async function getDayNight({
       );
 
       const queryDate = getPreviousTuesday(weekDate);
-      let topoData: string | null = null;
+      let topoData = "";
 
       // Try each day of the week (normally succeeds on Tuesday)
       for (let dayAttempt = 0; dayAttempt < 7; dayAttempt++) {
@@ -93,7 +93,7 @@ export async function getDayNight({
         const client = NtlmClient(credentials);
 
         try {
-          const response = await client.get(topoURL.url, {
+          const response = await client.get(topoURL.url!, {
             validateStatus: (status: number) => status === 200 || status === 404,
           });
 
@@ -365,9 +365,9 @@ export function getTopoState(requestDate: Date): TopoState {
 /**
  * Translates the sun acquisition flags from the topo raw data to the SunLighting type for day/night
  * @param sunAcquisition string representing a sun acquisition state from topo
- * @returns the SunLighting value for day night
+ * @returns the SunLighting value for day night, or null if the state is not tracked
  */
-function getSunLighting(sunAcquisition: string): SunLighting {
+function getSunLighting(sunAcquisition: string): SunLighting | null {
   switch (sunAcquisition) {
     case "Effective_Sunset":
       return "sunset";
@@ -378,7 +378,7 @@ function getSunLighting(sunAcquisition: string): SunLighting {
     case "Start_Effective_Sunrise":
       return "day";
     default:
-      return null; //this is a sun acquisition state we don't track.
+      return null; //this is a sun acquisition state we don't track
   }
 }
 

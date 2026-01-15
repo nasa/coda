@@ -38,7 +38,7 @@ interface MediaOverrideQueryParams {
 }
 
 type AncillaryDataUpsertRequest = {
-  id: number;
+  id?: number;
   date: string;
   source: Source;
   type: "graphs";

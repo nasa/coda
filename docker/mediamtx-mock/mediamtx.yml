@@ -832,6 +832,11 @@ paths:
     runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_TE_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -c:v libx264 -preset fast -b:v 1.2M -maxrate 1.2M -bufsize 2.4M -g 60 -keyint_min 60 -bf 0 -flags +cgop -pix_fmt yuv420p -an -muxdelay 0.1 -f rtsp -rtsp_transport tcp rtsp://localhost:$RTSP_PORT/$MTX_PATH
     runOnInitRestart: yes
 
+  # artemis
+  DL1_ART:
+    runOnInit: ffmpeg -loglevel error -re -f lavfi -i testsrc=r=30:s=480x360 -vf drawtext="fontfile=monofonto.ttf:fontsize=36:box=1:boxcolor=black@0.75:boxborderw=5:fontcolor=white:x=(w-text_w)/2:y=((h-text_h)/2)+((h-text_h)/3)+5:text='DL1_ART_%{gmtime\:%H\\\\\:%M\\\\\:%S}'" -c:v libx264 -preset fast -b:v 1.2M -maxrate 1.2M -bufsize 2.4M -g 60 -keyint_min 60 -bf 0 -flags +cgop -pix_fmt yuv420p -an -muxdelay 0.1 -f rtsp -rtsp_transport tcp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInitRestart: yes
+
   # Settings under path "all_others" are applied to all paths that
   # do not match another entry.
   all_others:

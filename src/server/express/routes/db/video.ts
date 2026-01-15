@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { globalValues } from "server/express/global";
-import { Loaded } from "@mikro-orm/postgresql";
+import { getORM } from "server/express/global";
 import { VideoStartTimeOverrides_db } from "server/database/models/VideoStartTimeOverrides.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import ConsoleLogger from "utils/logging/consoleLogger";
@@ -30,7 +29,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
         res.status(400).json({ status: "error", message: "Invalid video ID format" });
         return;
       }
-      const record: VideoRecord = await getVideoStartTimeOverridesRecordByVideoId(queryObj.videoId);
+      const record = await getVideoStartTimeOverridesRecordByVideoId(queryObj.videoId);
       res.status(200).json(record);
     } else {
       const records: VideoRecord[] = await getVideoStartTimeOverridesRecordsList();
@@ -45,10 +44,10 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 // get by id
 router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
-  const em = globalValues.orm.em;
+  const em = getORM().em;
 
   try {
-    const videoRecord: VideoRecord = await em.findOne(VideoStartTimeOverrides_db, {
+    const videoRecord = await em.findOne(VideoStartTimeOverrides_db, {
       id: Number(id),
     });
     if (videoRecord) {
@@ -65,7 +64,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 // create via post
 router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, videoId, startTime } = req.body as VideoUpsertRequest;
-  const em = globalValues.orm.em;
+  const em = getORM().em;
 
   try {
     if (id) {
@@ -103,10 +102,10 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
 // delete
 router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
-  const em = globalValues.orm.em;
+  const em = getORM().em;
 
   try {
-    const videoRecord: VideoRecord = await em.findOne(VideoStartTimeOverrides_db, {
+    const videoRecord = await em.findOne(VideoStartTimeOverrides_db, {
       id: Number(id),
     });
     if (videoRecord) {
@@ -123,22 +122,23 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
 
 export default router;
 
-async function getVideoStartTimeOverridesRecordByVideoId(videoId: string): Promise<VideoRecord> {
-  const em = globalValues.orm.em;
-  const videoRecord: Loaded<VideoRecord, never> = await em.findOne(VideoStartTimeOverrides_db, {
+async function getVideoStartTimeOverridesRecordByVideoId(
+  videoId: string
+): Promise<VideoRecord | null> {
+  const em = getORM().em;
+  const videoRecord = await em.findOne(VideoStartTimeOverrides_db, {
     videoId: videoId,
   });
 
   if (videoRecord) {
-    const videoRecordData: VideoRecord = videoRecord;
-    return videoRecordData;
+    return videoRecord;
   } else {
     return null;
   }
 }
 
 export async function getVideoStartTimeOverridesRecordsList(): Promise<VideoRecord[]> {
-  const em = globalValues.orm.em.fork();
+  const em = getORM().em.fork();
   const videos_db = await em.find(
     VideoStartTimeOverrides_db,
     {},

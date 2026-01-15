@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect, JSX } from "react";
 import styles from "./share.module.css";
 import { generateShareURL } from "utils/share-state";
-import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDate } from "store/hooks";
 import { HelpButton } from "./pane-help-control-button";
 import HelpOverlay from "./pane-help-overlay";
 import ClockInterval from "components/framework/ClockInterval";
 
 const SharePanel = ({
   closeClick,
-  display,
+  display = false,
 }: {
   closeClick?: () => void;
-  display: boolean;
+  display?: boolean;
 }): JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
 
@@ -19,10 +20,10 @@ const SharePanel = ({
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
   const [shareURLtextValue, setShareURLtextValue] = useState("");
 
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const shareURLtextarea = useRef(null);
+  const shareURLtextarea = useRef<HTMLTextAreaElement>(null);
 
   function handleRequestOpen() {
     setCopyButtonText("Copy Link");
@@ -32,7 +33,7 @@ const SharePanel = ({
   }
 
   function handleCopyToClipboard(e: React.MouseEvent<HTMLButtonElement>) {
-    shareURLtextarea.current.select();
+    shareURLtextarea.current?.select();
     // navigator.clipboard.writeText(shareURLtextarea.current.value);
     document.execCommand("copy");
     (e.target as HTMLButtonElement).focus();

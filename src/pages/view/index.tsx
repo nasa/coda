@@ -6,6 +6,7 @@ import { JSX, useEffect, useRef, useState } from "react";
 import { idFromDate } from "store/sequences";
 import { sourceShortVal } from "utils/consts";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
+import { usePlayheadDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import {
   allPanes,
@@ -39,7 +40,10 @@ export function V2(): JSX.Element {
     lastStatusFromServer: {
       timestamp: 0,
       visitorCount: 0,
-      serverVersion: null,
+      serverVersion: {
+        version: "",
+        gitCommit: "",
+      },
     },
     clientVersion: {
       version: __APP_VERSION__,
@@ -49,16 +53,23 @@ export function V2(): JSX.Element {
 
   const dispatch = useAppDispatch();
 
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
 
   // Track whether initial time setup has been done (to distinguish page load from date rollover)
   const hasInitializedTime = useRef(false);
 
   // make sure the application is running on the correct date
   // urlState.date is already validated by validateShareLinkDateTime
-  const userDate = !isNull(urlState.date)
-    ? midnightZulu(new Date(urlState.date))
-    : midnightZulu(new Date());
+  const getUserDate = (): Date => {
+    if (!isNull(urlState.date)) {
+      const parsedDate = new Date(urlState.date);
+      if (!isNaN(parsedDate.valueOf())) {
+        return midnightZulu(parsedDate);
+      }
+    }
+    return midnightZulu(new Date());
+  };
+  const userDate = getUserDate();
 
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
@@ -96,9 +107,9 @@ export function V2(): JSX.Element {
         filteredEVAs = filteredEVAs.filter((eva) => !eva.displayTitle.includes("NBL"));
       }
       const sequence = filteredEVAs.find((eva) => eva.startDate === idFromDate(playheadDate));
-      let evaStartSec = null as number;
+      let evaStartSec: number | null = null;
       const reHHMM = /^(?:(?:([01]?\d|2[0-3]):[0-5]\d))$/; // matches valid hh:mm times
-      if (!isNil(sequence) && !isNil(sequence.startTime.match(reHHMM))) {
+      if (!isNil(sequence) && sequence.startTime && !isNil(sequence.startTime.match(reHHMM))) {
         const [hh, mm] = sequence.startTime.split(":");
         evaStartSec = 3600 * +hh + 60 * +mm;
         userTime = evaStartSec;
@@ -145,7 +156,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
   const version = query?.get("v") || "1.0"; //version of share URL being received
   const rawDate = query?.get("date");
   const rawGmt = query?.get("gmt");
-  const source = parseInt(query?.get("s"));
+  const source = parseInt(query?.get("s") ?? "");
   const layout = query?.get("l");
 
   // Validate share link date/time - future dates go to today, future times go to now
@@ -218,8 +229,8 @@ function getURLParams(query: URLSearchParams): QueryParams {
     fState.frames = interpretFramestateQueryString(query);
   }
   const urlState: QueryParams = {
-    date,
-    gmt,
+    date: date ?? "",
+    gmt: gmt ?? "",
     frameworkState: fState,
   };
 

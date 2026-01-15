@@ -12,7 +12,7 @@ vi.mock("undici", async (importOriginal) => {
   };
 });
 
-(fetch as Mock).mockImplementation(async (url: RequestInfo, init?: RequestInit) => {
+(fetch as Mock).mockImplementation(async (_url: RequestInfo, init?: RequestInit) => {
   const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   try {
     await wait(50); // 50 ms timeout for this test

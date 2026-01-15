@@ -16,7 +16,7 @@ interface Preset {
 interface Pane {
   title: string;
   shortTitle: string;
-  icon: import("@fortawesome/fontawesome-svg-core").IconProp;
+  icon?: import("@fortawesome/fontawesome-svg-core").IconProp;
   color: string;
   defaultPaneStateData:
     | EmptyPaneStateData
@@ -34,12 +34,12 @@ interface Panes {
 
 interface PaneComponentProps {
   frameID: number;
-  frameDimensions?: number[];
+  frameDimensions: number[];
 }
 
 type PaneTypeComponentSet = {
-  controls: React.ComponentType<PaneComponentProps>;
-  pane: React.ComponentType<PaneComponentProps>;
+  controls: React.ComponentType<PaneComponentProps> | null;
+  pane: React.ComponentType<PaneComponentProps> | null;
 };
 
 type PaneTypeComponentSets = {

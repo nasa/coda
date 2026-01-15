@@ -9,7 +9,7 @@ import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 
 const router = express.Router();
 
-router.get("/", requireSuperuser, async (req, res) => {
+router.get("/", requireSuperuser, async (_req, res) => {
   expressProfilingUI(res);
 });
 

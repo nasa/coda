@@ -2,6 +2,7 @@ import fetchWithTimeout from "utils/fetch-with-timeout";
 import { midnightZulu } from "utils/date";
 import clone from "lodash/clone";
 import { fetchMTXHlsEndpoints } from "./mediaMtx-hls";
+import { getSourceSuffix } from "utils/video";
 
 /**
  * Maximum gap (in seconds) between segments that will be merged into a single time range.
@@ -133,9 +134,9 @@ export const adjustPlaybackRangesForDay = ({
  * Merges consecutive segments with small gaps to provide smoother playback.
  */
 const fetchMTXPlaybackAvailability = async ({
-  sourceAbbr,
+  sourceSuffix,
 }: {
-  sourceAbbr: string;
+  sourceSuffix: string;
 }): Promise<MTXPlaybackAvailability> => {
   const mtxRecordingsBaseUrl = process.env.VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL;
   const mtxPlaybackAvailability: MTXPlaybackAvailability = {};
@@ -145,7 +146,7 @@ const fetchMTXPlaybackAvailability = async ({
   }
 
   for (let channel = 1; channel <= 8; channel++) {
-    const mtxPlaybackUrl = `${mtxRecordingsBaseUrl}list?path=DL${channel}_${sourceAbbr}`;
+    const mtxPlaybackUrl = `${mtxRecordingsBaseUrl}list?path=DL${channel}_${sourceSuffix}`;
     try {
       const res = await fetchWithTimeout(mtxPlaybackUrl, {}, 20000);
       const rawJson: MtxRecordingTimeRangeResponse[] = await res.json();
@@ -173,12 +174,12 @@ export const getMTXAPIResponses = async ({
   source: Source;
 }): Promise<FetchResponse<MTXApiResponses>> => {
   try {
-    const sourceAbbr = source === "ISS" ? "ISS" : "TE";
+    const sourceSuffix = getSourceSuffix(source);
 
     // Fetch MTX HLS endpoints
     let mtxHlsEndpoints: MTXHlsEndpoint[] = [];
     try {
-      mtxHlsEndpoints = await fetchMTXHlsEndpoints({ sourceAbbr });
+      mtxHlsEndpoints = await fetchMTXHlsEndpoints({ sourceSuffix });
     } catch (e) {
       // If the MTX API is down, return an empty object
       return {
@@ -195,7 +196,7 @@ export const getMTXAPIResponses = async ({
     }
 
     // Fetch MTX playback availability for all channels
-    const mtxPlaybackAvailability = await fetchMTXPlaybackAvailability({ sourceAbbr });
+    const mtxPlaybackAvailability = await fetchMTXPlaybackAvailability({ sourceSuffix });
 
     // Adjust playback ranges to fit within the requested day
     const newMtxPlaybackAvailability = adjustPlaybackRangesForDay({

@@ -1,7 +1,7 @@
 import remove from "lodash/remove";
 import find from "lodash/find";
 import isEqual from "lodash/isEqual";
-import { globalValues } from "./global";
+import { globalValues, getSocketIO } from "./global";
 import { dataFetchConfigs, getSourceDateDataType, ALL_DATES_KEY } from "./dataRetrievalScheduler";
 import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
@@ -52,20 +52,18 @@ const buildFetchInspectorUpdate = (): FetchInspectorUpdate => {
 };
 
 export const emitFetchInspectorUpdate = (): void => {
-  if (!globalValues?.socketio) return;
-  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  const io = getSocketIO();
+  const room = io.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room || room.size === 0) return;
-  globalValues.socketio
-    .to(INSPECTOR_ROOM)
-    .emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
+  io.to(INSPECTOR_ROOM).emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
 };
 
 // Emit TalkybotS2sSocket inspector update to all clients in the inspector room
 export const emitTalkybotS2sSocketInspectorUpdate = (): void => {
-  if (!globalValues?.socketio) return;
-  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  const io = getSocketIO();
+  const room = io.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room || room.size === 0) return;
-  globalValues.socketio.to(INSPECTOR_ROOM).emit("talkybotS2sSocketInspectorUpdate", {
+  io.to(INSPECTOR_ROOM).emit("talkybotS2sSocketInspectorUpdate", {
     status: getTalkybotS2sSocketTrackerData(),
     updatedAt: new Date().toISOString(),
   });
@@ -81,23 +79,19 @@ const buildVisitorInspectorUpdate = (): VisitorInspectorUpdate => {
 
 // Emit visitor inspector update to all clients in the inspector room
 export const emitVisitorInspectorUpdate = (): void => {
-  if (!globalValues?.socketio) return;
-  const room = globalValues.socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  const io = getSocketIO();
+  const room = io.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room || room.size === 0) return;
-  globalValues.socketio
-    .to(INSPECTOR_ROOM)
-    .emit("visitorInspectorUpdate", buildVisitorInspectorUpdate());
+  io.to(INSPECTOR_ROOM).emit("visitorInspectorUpdate", buildVisitorInspectorUpdate());
 };
 
 // Emit SpaceTrack inspector update to all clients in the inspector room
 export const emitSpacetrackInspectorUpdate = (): void => {
-  const socketio = globalValues?.socketio;
-  if (!socketio) return;
-
-  const room = socketio.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
+  const io = getSocketIO();
+  const room = io.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room?.size) return;
 
-  socketio.to(INSPECTOR_ROOM).emit("spacetrackInspectorUpdate", {
+  io.to(INSPECTOR_ROOM).emit("spacetrackInspectorUpdate", {
     status: { ...globalValues.spacetrackTrackerData },
     updatedAt: new Date().toISOString(),
   } as SpaceTrackTrackerDataUpdate);
@@ -106,19 +100,24 @@ export const emitSpacetrackInspectorUpdate = (): void => {
 export const setupSocketIO = (): void => {
   // initialize the global object that will store the visitor tracking data
   const visitorsData: VisitorData[] = globalValues.serverSocketStatus.visitorsData;
-  const io = globalValues.socketio;
+  const io = getSocketIO();
 
   // Listen for connection events
   io.on(
     "connection",
     (socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, {}>) => {
       // emit app version to client that just connected
-      socket.emit("version", globalValues.appVersion);
+      if (globalValues.appVersion) {
+        socket.emit("version", globalValues.appVersion);
+      }
 
       socket.on("visitorJoin", (visitorData: VisitorData) => {
         try {
           // check app version and git commit
-          if (!isEqual(visitorData.appVersion, globalValues.appVersion)) {
+          if (
+            globalValues.appVersion &&
+            !isEqual(visitorData.appVersion, globalValues.appVersion)
+          ) {
             ConsoleLogger.debug(
               `SocketIO - visitorJoin: appVersion mismatch between client and server
           client: ${JSON.stringify(visitorData.appVersion)}
@@ -231,7 +230,7 @@ const getStatusFromServer = (): StatusFromServer => {
   return {
     visitorCount: globalValues.serverSocketStatus.visitorsData?.length,
     timestamp: Date.now(),
-    serverVersion: globalValues.appVersion,
+    serverVersion: globalValues.appVersion ?? { version: "", gitCommit: "" },
   };
 };
 
@@ -244,7 +243,7 @@ export const emitDataUpdate = ({
   dataDate: string;
   dataUpdate: DataUpdate;
 }): void => {
-  globalValues.socketio.to(`${source}_${dataDate}`).emit("dataUpdate", dataUpdate);
+  getSocketIO().to(`${source}_${dataDate}`).emit("dataUpdate", dataUpdate);
 };
 
 /**
@@ -265,8 +264,9 @@ export const emitDataUpdateToSource = ({
   const uniqueDates = Array.from(new Set(datesForSource));
 
   // Emit to all rooms for this source
+  const io = getSocketIO();
   uniqueDates.forEach((date) => {
-    globalValues.socketio.to(`${source}_${date}`).emit("dataUpdate", dataUpdate);
+    io.to(`${source}_${date}`).emit("dataUpdate", dataUpdate);
   });
 
   ConsoleLogger.debug(
@@ -290,9 +290,7 @@ export const emitIncrementalDataUpdate = ({
   ConsoleLogger.debug(
     `Emitting incremental ${incrementalUpdate.type} update to room ${source}_${dataDate}`
   );
-  globalValues.socketio
-    .to(`${source}_${dataDate}`)
-    .emit("incrementalDataUpdate", incrementalUpdate);
+  getSocketIO().to(`${source}_${dataDate}`).emit("incrementalDataUpdate", incrementalUpdate);
 };
 
 /**
@@ -408,8 +406,7 @@ const fetchAndEmitAllData = async ({
       !isDataTypeValidForSourceAndDate(
         visitorData.source,
         dataFetchConfig.type,
-        visitorData.dateViewing,
-        parseInt(process.env.VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS)
+        visitorData.dateViewing
       )
     ) {
       ConsoleLogger.debug(

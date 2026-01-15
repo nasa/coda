@@ -208,13 +208,15 @@ export function lightColor(color: string): boolean {
     if (color.match(/^rgb/)) {
       // If RGB --> store the red, green, blue values in separate variables
       const colorReg = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/);
-
+      if (!colorReg) {
+        return false;
+      }
       r = +colorReg[1];
       g = +colorReg[2];
       b = +colorReg[3];
     } else {
       // If hex --> Convert it to RGB: http://gist.github.com/983661
-      const newColor = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
+      const newColor = +("0x" + color.slice(1).replace(color.length < 5 ? /./g : "", "$&$&"));
 
       /* eslint-disable no-bitwise */
       r = newColor >> 16;

@@ -43,7 +43,7 @@ const EventDropdown: FunctionComponent<{
   }
 
   const selectedEVA = allSequences.find((eva) =>
-    isSameDate(new Date(eva.startDate), new Date(date))
+    isSameDate(new Date(eva.startDate), new Date(date ?? ""))
   );
 
   const value = selectedEVA?.startDate ?? "";
@@ -56,7 +56,7 @@ const EventDropdown: FunctionComponent<{
     if (e.target.value !== "") {
       const [year, month, day] = e.target.value.split("-");
       const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      let URL = generateShareURL(framework, date, appSeconds);
+      let URL = generateShareURL(framework, date ?? "", appSeconds);
       // replace the datestring in URL with selected calendar date
       URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
       window.location.assign(URL);
@@ -87,7 +87,7 @@ const EventDropdown: FunctionComponent<{
           name="EVAsDropdown"
           id="EVAsDropdown"
           onChange={handleEVASelect}
-          value={date.split("T")[0]}
+          value={(date ?? "").split("T")[0]}
         >
           <option key="" value="">
             {selectText}

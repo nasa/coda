@@ -116,6 +116,9 @@ export async function fetchIoData({
 
   const initialResponse = await fetchIO(queryParams);
   const limit = 500; // limit on results per call for IO API
+  if (!initialResponse.results) {
+    return [];
+  }
   const { numfound } = initialResponse.results.response;
   const callsRequired = Math.ceil(numfound / limit);
 
@@ -168,6 +171,9 @@ export function buildQueryArray(
 }
 
 function parseIOVideoResponse(res: IOResponse, collection: Collection) {
+  if (!res.results) {
+    return [];
+  }
   const { docs } = res.results.response;
   const videos: VideoFile[] = [];
 
@@ -256,8 +262,11 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
   const dateToUse = doc.vmd_start_gmt || doc.md_creation_date;
 
   // Parse ISO 8601 timestamp (YYYY-MM-DDTHH:MM:SSZ)
-  const dateArr = dateToUse
-    .match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/)
+  const dateMatch = dateToUse.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/);
+  if (!dateMatch) {
+    throw new Error(`Invalid date format: ${dateToUse}`);
+  }
+  const dateArr = dateMatch
     .slice(1) // Remove full match, keep only capture groups
     .map((n: string) => parseInt(n));
 
@@ -392,6 +401,9 @@ export function getArtemisChannel(collectionStrings: string[]): string {
 }
 
 function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFile[] {
+  if (!res.results) {
+    return [];
+  }
   const { docs } = res.results.response;
   const photos: PhotoFile[] = [];
 

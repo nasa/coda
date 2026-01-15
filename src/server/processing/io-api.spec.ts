@@ -83,18 +83,18 @@ describe("services/io-api", () => {
   describe("videoSorter()", () => {
     const videos: VideoFile[] = Array.from({ length: 3 }, () => {
       return {
-        id: null as string | null,
-        description: null as string | null,
-        collection: null as Collection | null,
-        collections: null as string | null,
-        dataURL: null as string | null,
-        mediaLowResURL: null as string | null,
+        id: "",
+        description: "",
+        collection: 4,
+        collections: "",
+        dataURL: "",
+        mediaLowResURL: "",
         start: 0,
         end: 0,
         downlink: 0,
         LOS: false,
         priority: 0,
-        startDateTime: null as string | null,
+        startDateTime: "",
       };
     });
 
