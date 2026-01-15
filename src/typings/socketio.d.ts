@@ -196,26 +196,6 @@ interface SpaceTrackTrackerDataUpdate {
   updatedAt: string;
 }
 
-/** Last fetch result from SpaceTrack (the actual response data) */
-interface SpaceTrackLastFetchResult {
-  attemptedAt: string;
-  completedAt?: string;
-  success?: boolean;
-  epoch?: string | null;
-  errorMessage?: string | null;
-  recordsInserted?: number;
-  recordsSkipped?: number;
-}
-
-/** Cumulative statistics that persist across restarts */
-interface SpaceTrackPersistedStats {
-  totalOperations: number;
-  successfulOperations: number;
-  failedOperations: number;
-  lastManualTriggerAt: string | null;
-  lastManualTriggerBy: string | null;
-}
-
 /** Result of determining whether to fetch from SpaceTrack */
 interface SpaceTrackFetchDecision {
   shouldFetch: boolean;

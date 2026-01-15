@@ -4,7 +4,7 @@ import { useMemo, FunctionComponent } from "react";
 import {
   isDataTypeValidForSource,
   isDateValidForMtxVideo,
-  mtxVideoMaxAgeDays,
+  getMtxVideoMaxAgeDays,
 } from "utils/sourceDataTypeMap";
 
 function createStatus(
@@ -115,7 +115,7 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     const dataTypes = [];
 
     // Status for date being too old for live video
-    const liveVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(clockDate, getMtxVideoMaxAgeDays());
     const liveVideoUnneededStatus = {
       message: "not available for dates > 7 days ago",
       classname: styles.unneeded,
@@ -219,7 +219,7 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
     const dataTypes = [];
 
     // Status for date being too old for live video
-    const liveVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
+    const liveVideoDateTooOld = !isDateValidForMtxVideo(clockDate, getMtxVideoMaxAgeDays());
     const liveVideoUnneededStatus = {
       message: "not available for dates > 7 days ago",
       classname: styles.unneeded,

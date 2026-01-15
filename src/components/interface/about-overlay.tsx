@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   isDataTypeValidForSource,
   isDateValidForMtxVideo,
-  mtxVideoMaxAgeDays,
+  getMtxVideoMaxAgeDays,
 } from "utils/sourceDataTypeMap";
 
 const AboutOverlay = ({
@@ -29,7 +29,7 @@ const AboutOverlay = ({
   const talkybot: TalkybotState = useAppSelector((state) => state.talkybot, deepEqual);
 
   // Check if date is too old for MTX video
-  const mtxVideoDateTooOld = !isDateValidForMtxVideo(clockDate, mtxVideoMaxAgeDays);
+  const mtxVideoDateTooOld = !isDateValidForMtxVideo(clockDate, getMtxVideoMaxAgeDays());
 
   // Check if data type is valid for source, or if it's skipped due to date
   const isMtxVideoLoaded =
