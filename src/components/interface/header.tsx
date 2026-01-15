@@ -1,4 +1,4 @@
-import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faChevronDown, faEye, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
@@ -334,8 +334,8 @@ const Header: FunctionComponent<{
   socketStatus: ClientSocketStatus;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen, socketStatus }) => {
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const clock = useAppSelector((state) => state.clock, shallowEqual);
-  const isToday = clock.date ? isSameDate(new Date(clock.date), new Date()) : false;
+  const playheadDateObj = usePlayheadDateAsDate();
+  const isToday = isSameDate(playheadDateObj, new Date());
 
   return (
     <div className={styles.main}>
