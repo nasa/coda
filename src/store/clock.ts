@@ -31,8 +31,9 @@ export const clockSlice = createSlice({
 
       // Prevent setting time to the future if viewing today
       let newSeconds = action.payload;
-      if (state.date && isSameDate(new Date(state.date), now)) {
-        newSeconds = Math.min(action.payload, nowSeconds);
+      const isViewingToday = !state.date || isSameDate(new Date(state.date), now);
+      if (isViewingToday && action.payload > nowSeconds) {
+        newSeconds = nowSeconds; // Snap to current time
       }
 
       state.appSecondsAtStartStop = newSeconds;
