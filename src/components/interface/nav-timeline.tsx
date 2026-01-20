@@ -3,7 +3,7 @@ import isNil from "lodash/isNil";
 import paper from "paper";
 import { useEffect, useRef, useState, FunctionComponent } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
+import { usePlayheadDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import {
   getAsPerformedMissionTime,
@@ -31,7 +31,7 @@ const NavTimeline: FunctionComponent<{ source: Source }> = ({ source }) => {
     deepEqual
   );
   const playheadDate = usePlayheadDate();
-  const playheadDateObj = usePlayheadDateAsDate();
+  const playheadDateObj = new Date(playheadDate);
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 

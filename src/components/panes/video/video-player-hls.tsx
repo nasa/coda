@@ -10,6 +10,7 @@ import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import ClockInterval from "components/framework/ClockInterval";
 import { getSourceSuffix } from "utils/video";
+import { usePlayheadDate } from "store/hooks";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -24,7 +25,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const [hlsAvailable, setHlsAvailable] = useState(false);
 
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const hlsRef = useRef<Hls | null>(null);

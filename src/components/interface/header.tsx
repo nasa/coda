@@ -1,5 +1,5 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
+import { usePlayheadDate } from "store/hooks";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faChevronDown, faEye, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -119,7 +119,8 @@ const ShareDropdown: FunctionComponent = () => (
 
 const LiveButton: FunctionComponent = () => {
   const dispatch = useAppDispatch();
-  const playheadDateObj = usePlayheadDateAsDate();
+  const playheadDate = usePlayheadDate();
+  const playheadDateObj = new Date(playheadDate);
   const [appSeconds, setLocalAppSeconds] = useState(0);
   const LIVE_THRESHOLD_SECONDS = 5;
 
@@ -194,7 +195,8 @@ const SourcesDropdown: FunctionComponent = () => {
 };
 
 const DatetimeDropdown: FunctionComponent = () => {
-  const date = usePlayheadDateAsDate();
+  const playheadDate = usePlayheadDate();
+  const date = new Date(playheadDate);
   const year = date.getUTCFullYear();
   const month = padZeros(date.getUTCMonth() + 1, 2);
   const day = padZeros(date.getUTCDate(), 2);
@@ -334,7 +336,8 @@ const Header: FunctionComponent<{
   socketStatus: ClientSocketStatus;
 }> = ({ helpLoaderOpen, setHelpLoaderOpen, socketStatus }) => {
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const playheadDateObj = usePlayheadDateAsDate();
+  const playheadDate = usePlayheadDate();
+  const playheadDateObj = new Date(playheadDate);
   const isToday = isSameDate(playheadDateObj, new Date());
 
   return (

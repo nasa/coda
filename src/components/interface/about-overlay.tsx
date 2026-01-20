@@ -10,6 +10,7 @@ import {
   isDateValidForMtxVideo,
   getMtxVideoMaxAgeDays,
 } from "utils/sourceDataTypeMap";
+import { usePlayheadDate } from "store/hooks";
 
 const AboutOverlay = ({
   modalIsOpen,
@@ -19,7 +20,7 @@ const AboutOverlay = ({
   setModalIsOpen: Function;
 }): React.JSX.Element => {
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const clockDate = usePlayheadDate();
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
   const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
   const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);

@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction, RefObject } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { getPlayheadISOString, isoStringFromAnyDateString } from "utils/formatting";
+import { usePlayheadDate } from "store/hooks";
 
 import styles from "./gps-location.module.css";
 import TEMarker from "./gps-location-marker";
@@ -182,7 +183,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
   );
 
   // Clock state from Redux
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
