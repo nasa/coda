@@ -2,7 +2,7 @@ import isNil from "lodash/isNil";
 import { FunctionComponent, useEffect, useState } from "react";
 import ClockInterval from "components/framework/ClockInterval";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
-import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
+import { usePlayheadDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { faChevronDown, faInfo, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -385,7 +385,7 @@ export const VideoDLPaneControls: FunctionComponent<{
 }> = ({ frameID, frameDimensions }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const playheadDate = usePlayheadDate();
-  const playheadDateObj = usePlayheadDateAsDate();
+  const playheadDateObj = new Date(playheadDate);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const mtxPlaybackAvailability = useAppSelector(
@@ -433,7 +433,8 @@ export const VideoOtherPaneControls: FunctionComponent<{
 }> = ({ frameID, frameDimensions }) => {
   const dispatch = useAppDispatch();
   const videos = useAppSelector((state) => state.videos, deepEqual);
-  const playheadDateObj = usePlayheadDateAsDate();
+  const playheadDate = usePlayheadDate();
+  const playheadDateObj = new Date(playheadDate);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const paneStateData = useAppSelector(

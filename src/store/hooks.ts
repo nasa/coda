@@ -8,11 +8,3 @@ export const usePlayheadDate = (): string => {
   const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
   return playheadDate ?? new Date().toISOString().split("T")[0] + "T00:00:00.000Z";
 };
-
-/**
- * Hook to get the playhead date as a Date object, guaranteed non-null.
- */
-export const usePlayheadDateAsDate = (): Date => {
-  const playheadDate = usePlayheadDate();
-  return new Date(playheadDate);
-};

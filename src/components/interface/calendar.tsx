@@ -1,6 +1,6 @@
 import { FunctionComponent, useMemo, useState } from "react";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
-import { usePlayheadDate, usePlayheadDateAsDate } from "store/hooks";
+import { usePlayheadDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { ModalDropdown } from "./dropdown-modal";
 import { getYearDayNumber, padZeros } from "utils/formatting";
@@ -346,7 +346,7 @@ export const Calendar: FunctionComponent<{ closeClick?: () => void }> = ({ close
   const framework = useAppSelector((state) => state.framework, deepEqual);
   const sequences = useAppSelector((state) => state.sequences, deepEqual);
   const playheadDate = usePlayheadDate();
-  const playheadDay = usePlayheadDateAsDate();
+  const playheadDay = new Date(playheadDate);
 
   const source = framework.source;
 

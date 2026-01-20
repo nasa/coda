@@ -32,7 +32,7 @@ describe("validateShareLinkDateTime", () => {
 
     it("should handle null date input", () => {
       const result = validateShareLinkDateTime(null, null);
-      expect(result.validatedDate).toBe(null);
+      expect(result.validatedDate).toBe("2024-03-15"); // Now defaults to today
       expect(result.isToday).toBe(true);
     });
   });
@@ -87,7 +87,7 @@ describe("validateShareLinkDateTime", () => {
   describe("edge cases", () => {
     it("should handle both null date and null time", () => {
       const result = validateShareLinkDateTime(null, null);
-      expect(result.validatedDate).toBe(null);
+      expect(result.validatedDate).toBe("2024-03-15"); // Now defaults to today
       expect(result.validatedGmt).toBe(null);
       expect(result.isToday).toBe(true);
     });

@@ -10,6 +10,7 @@ import isEqual from "lodash/isEqual";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import ClockInterval from "components/framework/ClockInterval";
+import { usePlayheadDate } from "store/hooks";
 
 const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -35,7 +36,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
   const [lastURLStartTime, setLastURLStartTime] = useState<string | null>(null);
 
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const playOrPause = () => {

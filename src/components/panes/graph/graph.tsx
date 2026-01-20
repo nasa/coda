@@ -12,6 +12,7 @@ import DynPlotlyChart from "./plotly";
 
 import styles from "./graph.module.css";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
+import { usePlayheadDate } from "store/hooks";
 
 import Button, { type ColorVariant, type RoundedVariant } from "components/interface/button";
 import ClockInterval from "components/framework/ClockInterval";
@@ -230,7 +231,7 @@ const Graph: FunctionComponent<{ frameID: number; frameDimensions: number[] }> =
   const [graphDataTimestampsInSeconds, setGraphDataTimestampsInSeconds] = useState<number[]>([]);
 
   // Clock state from Redux
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 

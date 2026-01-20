@@ -7,6 +7,7 @@ import { thunkChangeViewingDate } from "store/thunk/clockThunk";
 import ClockInterval from "components/framework/ClockInterval";
 import { addMs, midnightZulu } from "utils/date";
 import { padZeros } from "utils/formatting";
+import { usePlayheadDate } from "store/hooks";
 
 const SECONDS_IN_DAY = 86400;
 
@@ -38,7 +39,7 @@ function updateURLDateParam(nextDate: Date): void {
 const PlaybackControls: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
-  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const clockDate = usePlayheadDate();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   // Track whether we've already triggered rollover to prevent double-triggers

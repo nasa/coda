@@ -13,6 +13,7 @@ import {
   faFilter,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
+import { usePlayheadDate } from "store/hooks";
 import { MuteButton } from "components/panes/video/video-controls";
 import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
@@ -321,7 +322,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const [filterText, setFilterText] = useState("");
 
   // Clock state from Redux
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
