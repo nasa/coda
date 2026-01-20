@@ -58,18 +58,8 @@ export function V2(): JSX.Element {
   // Track whether initial time setup has been done (to distinguish page load from date rollover)
   const hasInitializedTime = useRef(false);
 
-  // make sure the application is running on the correct date
-  // urlState.date is already validated by validateShareLinkDateTime
-  const getUserDate = (): Date => {
-    if (!isNull(urlState.date)) {
-      const parsedDate = new Date(urlState.date);
-      if (!isNaN(parsedDate.valueOf())) {
-        return midnightZulu(parsedDate);
-      }
-    }
-    return midnightZulu(new Date());
-  };
-  const userDate = getUserDate();
+  // urlState.date is already validated by validateShareLinkDateTime and guaranteed to be a valid date string
+  const userDate = midnightZulu(new Date(urlState.date));
 
   useEffect(() => {
     if (!playheadDate || !isSameDate(new Date(playheadDate), userDate)) {
@@ -229,7 +219,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
     fState.frames = interpretFramestateQueryString(query);
   }
   const urlState: QueryParams = {
-    date: date ?? "",
+    date: date, // date is now guaranteed to be a string from validateShareLinkDateTime
     gmt: gmt ?? "",
     frameworkState: fState,
   };

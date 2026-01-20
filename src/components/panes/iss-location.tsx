@@ -5,6 +5,7 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { getAppropriateTLE } from "store/ephemera";
 import { setPaneStateDataValue } from "store/framework";
 import { getPlayheadISOString } from "utils/formatting";
+import { usePlayheadDate } from "store/hooks";
 
 import styles from "./iss-location.module.css";
 import Marker from "./iss-location-marker";
@@ -123,7 +124,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   const hoverMarkerRef = useRef<MapMarker>(initialMarker);
 
   // Clock state from Redux
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const hoverSeconds = useAppSelector((state) => state.clock.hoverSeconds, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 

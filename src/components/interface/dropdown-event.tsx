@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { generateShareURL } from "utils/share-state";
 import { diff, isSameDate } from "../../utils/date";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { usePlayheadDate } from "store/hooks";
 
 /**
  * Format display title for test events by adding event number in brackets
@@ -27,7 +28,7 @@ const EventDropdown: FunctionComponent<{
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
   const framework = useAppSelector((state) => state.framework, shallowEqual);
 
-  const date = useAppSelector((state) => state.clock.date, refEqual);
+  const date = usePlayheadDate();
   const appSeconds = useAppSelector((state) => state.clock.appSecondsAtStartStop, refEqual);
 
   let allSequences = sequences.allSequences;

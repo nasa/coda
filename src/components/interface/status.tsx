@@ -6,6 +6,7 @@ import {
   isDateValidForMtxVideo,
   getMtxVideoMaxAgeDays,
 } from "utils/sourceDataTypeMap";
+import { usePlayheadDate } from "store/hooks";
 
 function createStatus(
   metadata: FetchMetadata | null,
@@ -52,7 +53,7 @@ function createStatus(
 
 const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay }) => {
   const source = useAppSelector((state) => state.framework.source, refEqual);
-  const clockDate = useAppSelector((state) => state.clock.date, refEqual);
+  const clockDate = usePlayheadDate();
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
   const videos: VideosState = useAppSelector((state) => state.videos, deepEqual);
   const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);

@@ -1,5 +1,5 @@
 import isNil from "lodash/isNil";
-import { FunctionComponent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
 import { isAutoplayError } from "utils/video";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -12,6 +12,7 @@ import { isSameDate, midnightZulu } from "../../../utils/date";
 import { VideoPoster, getPosterState } from "./video-poster";
 import { VideoIOHelpContent } from "./video-help";
 import ClockInterval from "components/framework/ClockInterval";
+import { usePlayheadDate } from "store/hooks";
 
 // ============================================================================
 // IO Video Player Component
@@ -44,7 +45,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
   const dispatch = useAppDispatch();
 
   const videos = useAppSelector((state) => state.videos, deepEqual);
-  const playheadDate = useAppSelector((state) => state.clock.date, refEqual);
+  const playheadDate = usePlayheadDate();
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const paneStateData = useAppSelector(
     (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
@@ -53,11 +54,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  // Handle race condition where playheadDate might be null on initial render
-  // Use today's date as fallback - memoized to avoid impure function during render
-  const todayFallback = useMemo(() => new Date().toISOString().split("T")[0], []);
-  const effectivePlayheadDate = playheadDate || todayFallback;
-  const playheadDateObj = new Date(effectivePlayheadDate);
+  const playheadDateObj = new Date(playheadDate);
   const startOfDay = playheadDateObj.valueOf() / 1000;
 
   const videoFiles = videos.videoFiles;
@@ -127,7 +124,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (visibleVideos.size === 0) return;
     const videoID = Number(paneStateData.activeVideoFileID);
     const videoStart = videoFiles[videoID]?.start || 0;
-    if (videoID || !isSameDate(new Date(playheadDate || ""), new Date(videoStart))) {
+    if (videoID || !isSameDate(new Date(playheadDate), new Date(videoStart))) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing metadata on date change is a legitimate side effect
       setMetadata(null);
     }

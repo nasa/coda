@@ -2,7 +2,7 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import isNil from "lodash/isNil";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
-import { usePlayheadDateAsDate } from "store/hooks";
+import { usePlayheadDate } from "store/hooks";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateDataValue } from "store/framework";
 import { getAsPerformedMissionTime, getSequenceStartMilliseconds } from "store/sequences";
@@ -47,7 +47,8 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
 
 const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   // Clock state from Redux
-  const playheadDateObj = usePlayheadDateAsDate();
+  const playheadDate = usePlayheadDate();
+  const playheadDateObj = new Date(playheadDate);
   const [_appSeconds, setLocalAppSeconds] = useState(0);
 
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);

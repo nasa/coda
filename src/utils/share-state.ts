@@ -13,19 +13,21 @@ import isNil from "lodash/isNil";
  * Validates share link date/time parameters.
  * - Dates in the future are changed to today's date
  * - Times in the future (when date is today) are changed to now
+ * - No date provided defaults to today
  * @returns Validated date and gmt values, plus a flag indicating if the date was validated to today
  */
 export function validateShareLinkDateTime(
   date: string | null,
   gmt: string | null
-): { validatedDate: string | null; validatedGmt: string | null; isToday: boolean } {
+): { validatedDate: string; validatedGmt: string | null; isToday: boolean } {
   const now = new Date();
   const todayMidnight = midnightZulu(now);
+  const todayDateString = now.toISOString().split("T")[0];
   const yyyymmdd = /^\d{4}-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
   // Match HH:MM:SS with either literal colons or URL-encoded colons (%3A)
   const reHHMMSS = /^(?:(?:([01]?\d|2[0-3])(?::|%3A)[0-5]\d(?::|%3A)[0-9]\d))$/i;
 
-  let validatedDate = date;
+  let validatedDate: string;
   let validatedGmt = gmt;
   let isToday = false;
 
@@ -37,13 +39,16 @@ export function validateShareLinkDateTime(
 
     if (isFutureDate || isMalformedDate) {
       // Future or malformed date - set to today
-      validatedDate = now.toISOString().split("T")[0];
+      validatedDate = todayDateString;
       isToday = true;
     } else {
+      // Valid date in the past or today - use it
+      validatedDate = date;
       isToday = isSameDate(parsedDate, now);
     }
   } else {
-    // No date provided - defaults to today
+    // No date provided or invalid format - default to today
+    validatedDate = todayDateString;
     isToday = true;
   }
 
