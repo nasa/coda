@@ -1,5 +1,5 @@
 import isNil from "lodash/isNil";
-import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isAutoplayError } from "utils/video";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -53,7 +53,11 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
 
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const playheadDateObj = new Date(playheadDate || "");
+  // Handle race condition where playheadDate might be null on initial render
+  // Use today's date as fallback - memoized to avoid impure function during render
+  const todayFallback = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const effectivePlayheadDate = playheadDate || todayFallback;
+  const playheadDateObj = new Date(effectivePlayheadDate);
   const startOfDay = playheadDateObj.valueOf() / 1000;
 
   const videoFiles = videos.videoFiles;
