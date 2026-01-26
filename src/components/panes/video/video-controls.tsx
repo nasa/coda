@@ -455,7 +455,6 @@ export const VideoOtherPaneControls: FunctionComponent<{
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing derived state from visibleVideos Map which cannot be memoized directly
     setNonDlVideoIDs(visibleVideos.get(`${appSeconds}/-1`) || []);
   }, [visibleVideos, appSeconds]);
 

@@ -1,0 +1,72 @@
+/* Live Video Disabled Overlay Styles */
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nearly-black);
+  z-index: 10;
+}
+
+.overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
+  background-size: 40%;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+  padding: 24px;
+  max-width: 500px;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--highlight-red);
+}
+
+.message {
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+  color: var(--even-greyer);
+  line-height: 1.5;
+}
+
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--even-greyer);
+  font-weight: 600;
+  text-decoration: underline;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.contactLink:hover,
+.contactLink:focus {
+  background: rgb(96 165 250 / 25%);
+  border-color: rgb(96 165 250 / 60%);
+  text-decoration: none;
+}

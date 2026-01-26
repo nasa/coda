@@ -91,10 +91,10 @@ const AdminIndex: FunctionComponent = () => {
           </div>
         </section>
 
-        {/* System Monitoring Section */}
-        <section className={adminCommon.section} aria-labelledby="system-monitoring-heading">
-          <h2 id="system-monitoring-heading" className={adminCommon.sectionHeading}>
-            System Monitoring
+        {/* System Management Section */}
+        <section className={adminCommon.section} aria-labelledby="system-management-heading">
+          <h2 id="system-management-heading" className={adminCommon.sectionHeading}>
+            System Management
           </h2>
           <div className={adminCommon.details}>
             <nav className={styles.navGrid} aria-label="System monitoring navigation">
@@ -105,8 +105,8 @@ const AdminIndex: FunctionComponent = () => {
               />
               <NavCard
                 to="/admin/socketStatus"
-                title="Visitor Activity Monitor"
-                description="Real-time view of all connected visitors organized by source and viewing date."
+                title="Visitor Activity"
+                description="Real-time management of all connected visitors organized by source and viewing date."
               />
               <NavCard
                 to="/admin/talkybotSocketStatus"
