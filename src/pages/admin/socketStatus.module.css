@@ -61,11 +61,19 @@
 }
 
 .usersTable th:nth-child(2) {
-  width: 150px; /* Connected column - fixed width */
+  width: 100px; /* Live Video column - fixed width */
 }
 
 .usersTable th:nth-child(3) {
-  width: 180px; /* Version column - fixed width */
+  width: 140px; /* IP Address column - fixed width */
+}
+
+.usersTable th:nth-child(4) {
+  width: 145px; /* Connected column - fixed width */
+}
+
+.usersTable th:nth-child(5) {
+  width: 160px; /* Version column - fixed width */
 }
 
 .usersTable td {
@@ -85,25 +93,6 @@
   gap: 8px;
   font-weight: 600;
   color: #e2e8f0;
-}
-
-.userNameRepeated {
-  color: #64748b;
-  font-size: 0.85em;
-}
-
-.connectionCount {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--lighter-grey);
-  color: #94a3b8;
-  font-size: 0.7rem;
-  font-weight: 600;
 }
 
 /* Summary stats */
@@ -142,4 +131,40 @@
   .usersTable {
     font-size: 0.8rem;
   }
+}
+
+/* Live Video Toggle Button */
+.liveVideoToggle {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.liveVideoEnabled {
+  background: rgb(74 222 128 / 15%);
+  border-color: rgb(74 222 128 / 40%);
+  color: #4ade80;
+}
+
+.liveVideoEnabled:hover {
+  background: rgb(74 222 128 / 25%);
+  border-color: rgb(74 222 128 / 60%);
+}
+
+.liveVideoDisabled {
+  background: rgb(248 113 113 / 15%);
+  border-color: rgb(248 113 113 / 40%);
+  color: #f87171;
+}
+
+.liveVideoDisabled:hover {
+  background: rgb(248 113 113 / 25%);
+  border-color: rgb(248 113 113 / 60%);
 }

@@ -136,7 +136,8 @@ export const setupSocketIO = (): void => {
           remove(visitorsData, (item) => {
             return item.socketId === visitorData.socketId;
           });
-          visitorsData.push(visitorData);
+          // Initialize liveVideoEnabled to true for new visitors
+          visitorsData.push({ ...visitorData, liveVideoEnabled: true });
 
           // update the server data refresh timeouts object to possibly add this source/day if this is the first visitor currently viewing it
           updateServerFetchTrackers();

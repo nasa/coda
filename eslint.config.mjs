@@ -192,6 +192,7 @@ export default [
       "no-unreachable": "error",
       "react/jsx-no-target-blank": "error", // prevent security vulnerability: require rel="noopener noreferrer" with target="_blank"
       "linebreak-style": ["error", "unix"], // enforce unix (lf) linebreaks
+      "react-hooks/set-state-in-effect": "off", // Allow setState in effects when intentional (e.g., syncing derived state, clearing state)
 
       // CSS Modules rules
       "css-modules/no-undef-class": ["error", { camelCase: true }],

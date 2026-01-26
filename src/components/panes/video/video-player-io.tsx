@@ -114,7 +114,6 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
           paneStateValue: currVideoID,
         })
       );
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing metadata when video changes is a legitimate side effect
       setMetadata(null);
     }
   }, [findCurrentVideoID, paneStateData.activeVideoFileID, dispatch, frameID]);
@@ -125,7 +124,6 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     const videoID = Number(paneStateData.activeVideoFileID);
     const videoStart = videoFiles[videoID]?.start || 0;
     if (videoID || !isSameDate(new Date(playheadDate), new Date(videoStart))) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing metadata on date change is a legitimate side effect
       setMetadata(null);
     }
   }, [playheadDate, paneStateData.activeVideoFileID, videoFiles, visibleVideos]);
@@ -185,7 +183,6 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (activeVideoFileID) {
       const currentVideo = getCurrentVideo();
       if (currentVideo) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- imperative video element control and state sync when active video changes
         setSourceURL(currentVideo.mediaLowResURL);
       }
     } else {

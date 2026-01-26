@@ -202,12 +202,6 @@ interface SpaceTrackFetchDecision {
   skipReason: string;
 }
 
-/** Visitor inspector update payload */
-interface VisitorInspectorUpdate {
-  visitorsData: VisitorData[];
-  updatedAt: string;
-}
-
 /** Socket.io Server instantiation types */
 interface ServerToClientEvents {
   noArg: () => void;
@@ -219,6 +213,7 @@ interface ServerToClientEvents {
   talkybotS2sSocketInspectorUpdate: (payload: TalkybotS2sSocketTrackerDataUpdate) => void;
   spacetrackInspectorUpdate: (payload: SpaceTrackTrackerDataUpdate) => void;
   visitorInspectorUpdate: (payload: VisitorInspectorUpdate) => void;
+  liveVideoRestrictionUpdate: (payload: LiveVideoRestrictionUpdate) => void; // sent to individual clients when their restriction status changes
 }
 
 interface ClientToServerEvents {
@@ -242,6 +237,22 @@ interface VisitorData {
   appVersion: AppVersion;
   user: LaunchpadUser;
   connectedAt: number;
+  liveVideoEnabled: boolean;
+}
+
+// ============================================================================
+// Live Video Restriction Events
+// ============================================================================
+
+/** Update sent to all clients about their live video restriction status */
+interface LiveVideoRestrictionUpdate {
+  disabled: boolean;
+}
+
+/** Visitor inspector update with live video restriction info */
+interface VisitorInspectorUpdate {
+  visitorsData: VisitorData[];
+  updatedAt: string;
 }
 
 type ConnectionStatus = "connected" | "disconnected" | "connecting" | "reconnecting" | "failed";

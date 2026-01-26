@@ -4,6 +4,7 @@ import { RequestContext } from "@mikro-orm/postgresql";
 import dayNightRoute from "./routes/daynight/daynight";
 import dataRefreshRoute from "./routes/emss/dataRefresh";
 import dataViewRoute from "./routes/emss/dataView";
+import liveVideoToggleRoute from "./routes/emss/liveVideoToggle";
 import gpsRoute from "./routes/db/gps";
 import ephemerisRoute from "./routes/db/ephemeris";
 import mediaOverridesRoute from "./routes/db/mediaOverrides";
@@ -41,6 +42,7 @@ app.get("/api/v1/version", (_req, res) => {
 app.use("/api/v1/external/daynight/daynight", dayNightRoute); // external endpoint for maestro
 app.use("/api/v1/emss/dataRefresh", dataRefreshRoute); // routed through launchpad
 app.use("/api/v1/emss/dataView", dataViewRoute); // routed through launchpad
+app.use("/api/v1/emss/liveVideoToggle", liveVideoToggleRoute); // routed through launchpad
 app.use("/api/v1/db/gps", gpsRoute);
 app.use("/api/v1/db/ephemeris", ephemerisRoute);
 app.use("/api/v1/db/mediaOverrides", mediaOverridesRoute);

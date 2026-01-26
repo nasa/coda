@@ -11,6 +11,7 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 import ClockInterval from "components/framework/ClockInterval";
 import { getSourceSuffix } from "utils/video";
 import { usePlayheadDate } from "store/hooks";
+import { VideoPlayerDisabledOverlay } from "./video-player-disabled-overlay";
 
 const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -21,8 +22,10 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     deepEqual
   );
   const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
+  const liveVideoEnabled = useAppSelector((state) => state.user.liveVideoEnabled, refEqual);
 
   const [hlsAvailable, setHlsAvailable] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const playheadDate = usePlayheadDate();
@@ -159,6 +162,20 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     };
   };
 
+  const destroyHlsPlayer = () => {
+    if (hlsRef.current) {
+      ConsoleLogger.debug("HLS: Destroying HLS player instance");
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+    // Also clear the video element for Safari fallback
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.removeAttribute("src");
+      videoRef.current.load();
+    }
+  };
+
   const toggleFullScreen = () => {
     const el = videoRef.current;
     if (el?.requestFullscreen) {
@@ -180,8 +197,21 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- downlinkNumber is derived from paneStateData.channel which is stable
   }, [mtxHlsEndpoints]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative HLS player setup requires ref.current access
-  useEffect(prepareHlsPlayer, [mtxHlsEndpoints, videoRef.current, paneStateData]);
+  // Destroy HLS player when video is disabled, reinitialize when re-enabled
+  useEffect(() => {
+    if (!liveVideoEnabled) {
+      destroyHlsPlayer();
+    } else {
+      // Reinitialize HLS player when video is re-enabled
+      prepareHlsPlayer();
+    }
+    // Cleanup on unmount
+    return () => {
+      destroyHlsPlayer();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally controlled by liveVideoEnabled, mtxHlsEndpoints, and channel/source changes
+  }, [liveVideoEnabled, mtxHlsEndpoints, paneStateData.channel, source]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative video sync requires ref.current access
   useEffect(syncToPlayhead, [hlsRef.current, appSeconds]);
   useEffect(playOrPause, [isRunning, appSeconds]);
@@ -193,23 +223,52 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       data-frame-id={"HLS Player"}
     >
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
-      {!hlsAvailable ? <div className={styles.playerPosterNovid}></div> : null}
-      <video
-        muted
-        ref={videoRef}
-        className={styles.player}
-        onError={(e) => {
-          const vidElement = e.target as HTMLVideoElement;
-          if (!vidElement.error?.message.includes("mpty")) {
-            console.error(
-              `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
-            );
-          }
-        }}
-        onClick={() => {
-          toggleFullScreen();
-        }}
-      />
+      {!liveVideoEnabled ? (
+        <VideoPlayerDisabledOverlay />
+      ) : (
+        <>
+          {!hlsAvailable ? <div className={styles.playerPosterNovid}></div> : null}
+          {status === "buffering" ? (
+            <>
+              <div className={styles.playerPosterNovid}></div>
+              <div className={styles.playerPosterBuffering}>
+                <div className={styles.loaderAnimation}></div>
+              </div>
+            </>
+          ) : null}
+          <video
+            muted
+            ref={videoRef}
+            className={styles.player}
+            onWaiting={() => {
+              if (paneStateData.ready) {
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "ready",
+                    paneStateValue: false,
+                  })
+                );
+                setStatus("buffering");
+              }
+            }}
+            onPlaying={() => {
+              setStatus("playing");
+            }}
+            onError={(e) => {
+              const vidElement = e.target as HTMLVideoElement;
+              if (!vidElement.error?.message.includes("mpty")) {
+                console.error(
+                  `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
+                );
+              }
+            }}
+            onClick={() => {
+              toggleFullScreen();
+            }}
+          />
+        </>
+      )}
 
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}
