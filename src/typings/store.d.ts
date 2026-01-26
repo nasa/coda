@@ -89,6 +89,8 @@ type GraphsState = {
  */
 type UserState = {
   user: EmssUser;
+  /** Whether live video (MTX/HLS) is enabled for this session (can be disabled by an admin) */
+  liveVideoEnabled: boolean;
 };
 
 /**

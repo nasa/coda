@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState: UserState = {
   user: {} as EmssUser,
+  liveVideoEnabled: true,
 };
 
 export const userSlice = createSlice({
@@ -11,7 +12,10 @@ export const userSlice = createSlice({
     setUser: (state, action: { payload: EmssUser }) => {
       state.user = action.payload;
     },
+    setLiveVideoEnabled: (state, action: { payload: boolean }) => {
+      state.liveVideoEnabled = action.payload;
+    },
   },
 });
 
-export const { setUser } = userSlice.actions;
+export const { setUser, setLiveVideoEnabled } = userSlice.actions;

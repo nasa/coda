@@ -11,6 +11,7 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import ClockInterval from "components/framework/ClockInterval";
 import { usePlayheadDate } from "store/hooks";
+import { VideoPlayerDisabledOverlay } from "./video-player-disabled-overlay";
 
 const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const dispatch = useAppDispatch();
@@ -26,6 +27,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     ).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
   }, deepEqual);
+  const liveVideoEnabled = useAppSelector((state) => state.user.liveVideoEnabled, refEqual);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [status, setStatus] = useState<string | null>(null);
@@ -152,7 +154,6 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     playVideoAtPlayhead(mtxPlaybackRecord);
   };
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- imperative video selection and loading when playback records or playhead changes
   useEffect(selectAndLoadVideo, [
     mtxPlaybackRecordsForDownlink,
     appSeconds,
@@ -162,7 +163,6 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     getMtxPlaybackRecordForPlayhead,
     playVideoAtPlayhead,
   ]);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- imperative video sync to playhead position
   useEffect(syncToPlayhead, [
     appSeconds,
     currVidMTXPlaybackRecord,
@@ -172,6 +172,18 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
     getMtxPlaybackRecordForPlayhead,
   ]);
   useEffect(playOrPause, [isRunning, appSeconds, playOrPause]);
+
+  // Stop video and clear source when live video is disabled
+  useEffect(() => {
+    if (!liveVideoEnabled && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.removeAttribute("src");
+      videoRef.current.load();
+      setCurrVidMTXPlaybackRecord(null);
+      setLastURLStartTime(null);
+      setStatus(null);
+    }
+  }, [liveVideoEnabled]);
 
   const toggleFullScreen = () => {
     const el = videoRef.current;
@@ -187,66 +199,88 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
       data-frame-id={"MTX Player"}
     >
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
-      {status === "buffering" ? (
+      {!liveVideoEnabled ? (
+        <VideoPlayerDisabledOverlay />
+      ) : (
         <>
-          <div className={styles.playerPosterNovid}></div>
-          <div className={styles.playerPosterBuffering}>
-            <div className={styles.loaderAnimation}></div>
-          </div>
+          {status === "buffering" ? (
+            <>
+              <div className={styles.playerPosterNovid}></div>
+              <div className={styles.playerPosterBuffering}>
+                <div className={styles.loaderAnimation}></div>
+              </div>
+            </>
+          ) : null}
+          <video
+            ref={videoRef}
+            className={styles.player}
+            onCanPlay={() => {
+              if (!paneStateData.ready) {
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "ready",
+                    paneStateValue: true,
+                  })
+                );
+              }
+            }}
+            onEnded={() => {
+              // ready up because we don't want a missing video to hold up the playhead
+              dispatch(
+                setPaneStateDataValue({
+                  frameID,
+                  paneStateProperty: "ready",
+                  paneStateValue: true,
+                })
+              );
+              setStatus(null);
+            }}
+            onWaiting={() => {
+              if (paneStateData.ready) {
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "ready",
+                    paneStateValue: false,
+                  })
+                );
+                setStatus("buffering");
+              }
+            }}
+            onPlaying={() => {
+              setStatus("playing");
+            }}
+            onError={(e) => {
+              const vidElement = e.target as HTMLVideoElement;
+              if (!vidElement.error?.message.includes("mpty")) {
+                //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
+                setStatus("error");
+                console.error(
+                  `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
+                );
+              } else {
+                setStatus("novid");
+              }
+              //unblocking playhead
+              if (paneStateData.ready !== true) {
+                dispatch(
+                  setPaneStateDataValue({
+                    frameID,
+                    paneStateProperty: "ready",
+                    paneStateValue: true,
+                  })
+                );
+              }
+            }}
+            onClick={() => {
+              if (paneStateData.activeVideoFileID !== "") {
+                toggleFullScreen();
+              }
+            }}
+          />
         </>
-      ) : null}
-      <video
-        ref={videoRef}
-        className={styles.player}
-        onCanPlay={() => {
-          if (!paneStateData.ready) {
-            dispatch(
-              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
-            );
-          }
-        }}
-        onEnded={() => {
-          // ready up because we don't want a missing video to hold up the playhead
-          dispatch(
-            setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
-          );
-          setStatus(null);
-        }}
-        onWaiting={() => {
-          if (paneStateData.ready) {
-            dispatch(
-              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: false })
-            );
-            setStatus("buffering");
-          }
-        }}
-        onPlaying={() => {
-          setStatus("playing");
-        }}
-        onError={(e) => {
-          const vidElement = e.target as HTMLVideoElement;
-          if (!vidElement.error?.message.includes("mpty")) {
-            //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
-            setStatus("error");
-            console.error(
-              `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
-            );
-          } else {
-            setStatus("novid");
-          }
-          //unblocking playhead
-          if (paneStateData.ready !== true) {
-            dispatch(
-              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
-            );
-          }
-        }}
-        onClick={() => {
-          if (paneStateData.activeVideoFileID !== "") {
-            toggleFullScreen();
-          }
-        }}
-      />
+      )}
 
       <HelpOverlay
         isModalOpen={paneStateData.showHelp}

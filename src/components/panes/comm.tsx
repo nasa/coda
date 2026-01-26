@@ -303,6 +303,7 @@ type DisplayUtterance = {
 
 const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const audioFiles = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
+  const talkybotMetadata = useAppSelector((state) => state.talkybot.metadata, deepEqual);
   const hasAudioFiles = audioFiles && audioFiles.length > 0;
   const channelTimingMap = useMemo(() => buildChannelTimingMap(audioFiles), [audioFiles]);
 
@@ -328,6 +329,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   const audioPlayerRef = useRef<HTMLAudioElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
+  const lastProcessedMetadataRef = useRef<FetchMetadata | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -488,19 +490,23 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
     activeUtteranceRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [activeUtteranceSecs, paneStateData.lockScroll, appSeconds]);
 
-  // Show the help panel if there are no audio files (only update if value needs to change)
+  // Set initial help state based on audio file presence when metadata loads
   useEffect(() => {
-    const shouldShowHelp = !hasAudioFiles;
-    if (paneStateData.showHelp !== shouldShowHelp) {
+    // Only run if we have metadata and haven't processed this specific metadata update yet
+    if (talkybotMetadata && lastProcessedMetadataRef.current !== talkybotMetadata) {
+      lastProcessedMetadataRef.current = talkybotMetadata;
+
+      // Auto-open help if no files, auto-close if files exist
+      // This resets the help state only when new data arrives
       dispatch(
         setPaneStateDataValue({
           frameID,
           paneStateProperty: "showHelp",
-          paneStateValue: shouldShowHelp,
+          paneStateValue: !hasAudioFiles,
         })
       );
     }
-  }, [hasAudioFiles, paneStateData.showHelp, dispatch, frameID]);
+  }, [talkybotMetadata, hasAudioFiles, dispatch, frameID]);
 
   // Get sorted channels for consistent color mapping
   const sortedChannels = useMemo(() => {

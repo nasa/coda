@@ -3,10 +3,12 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import isEqual from "lodash/isEqual";
 import uniq from "lodash/uniq";
 import { getCurrentUser } from "packages/getCurrentUser";
+import { fetchJsonWithAuth } from "packages/fetchFns";
 import { FunctionComponent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { io, Socket } from "socket.io-client";
 import { isSuperuser } from "utils/user";
+import ConsoleLogger from "utils/logging/consoleLogger";
 import adminCommon from "./adminCommon.module.css";
 import styles from "./socketStatus.module.css";
 
@@ -40,6 +42,32 @@ const ServerSocketStatus: FunctionComponent = () => {
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [serverVersion, setServerVersion] = useState<AppVersion | null>(null);
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
+
+  // Check if a date is within the past 7 days (MTX/HLS playback window)
+  const isWithinLiveVideoWindow = (dateString: string): boolean => {
+    const date = dayjs(dateString);
+    const today = dayjs();
+    const daysDiff = today.diff(date, "day");
+    return daysDiff >= 0 && daysDiff <= 7;
+  };
+
+  // Handle toggle of live video restriction for a session
+  const handleToggleLiveVideo = async (targetSocketId: string, currentlyDisabled: boolean) => {
+    try {
+      await fetchJsonWithAuth("/api/v1/emss/liveVideoToggle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetSocketId,
+          disabled: !currentlyDisabled,
+        }),
+      });
+    } catch (error) {
+      ConsoleLogger.error("Error toggling live video restriction:", error);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -185,9 +213,9 @@ const ServerSocketStatus: FunctionComponent = () => {
         <Link to="/admin" className={adminCommon.backLink}>
           ← Admin
         </Link>
-        <h1 className={adminCommon.pageTitle}>Visitor Activity Monitor</h1>
+        <h1 className={adminCommon.pageTitle}>Visitor Activity</h1>
         <p className={adminCommon.introText}>
-          Real-time view of all connected visitors organized by source and viewing date.
+          Real-time management of all connected visitors organized by source and viewing date.
         </p>
 
         {/* Connection Status Panel */}
@@ -267,60 +295,74 @@ const ServerSocketStatus: FunctionComponent = () => {
                     <thead>
                       <tr>
                         <th>User</th>
+                        <th>{isWithinLiveVideoWindow(dateData.date) && "Live Video"}</th>
+                        <th>IP Address</th>
                         <th>Connected</th>
                         <th>Version</th>
                       </tr>
                     </thead>
                     <tbody>
                       {dateData.users.flatMap((userData) =>
-                        userData.connections.map((conn, connIndex) => (
-                          <tr key={conn.socketId}>
-                            <td>
-                              {connIndex === 0 ? (
-                                <span className={styles.userName}>
-                                  {userData.displayName}
-                                  {userData.connections.length > 1 && (
-                                    <span className={styles.connectionCount}>
-                                      {userData.connections.length}
-                                    </span>
-                                  )}
+                        userData.connections.map((conn) => {
+                          const isVideoDisabled = !conn.liveVideoEnabled;
+                          return (
+                            <tr key={conn.socketId}>
+                              <td>
+                                <span className={styles.userName}>{userData.displayName}</span>
+                              </td>
+                              <td>
+                                {isWithinLiveVideoWindow(dateData.date) && (
+                                  <button
+                                    className={`${styles.liveVideoToggle} ${isVideoDisabled ? styles.liveVideoDisabled : styles.liveVideoEnabled}`}
+                                    onClick={() =>
+                                      handleToggleLiveVideo(conn.socketId, isVideoDisabled)
+                                    }
+                                    title={
+                                      isVideoDisabled
+                                        ? "Click to enable live video for this session"
+                                        : "Click to disable live video for this session"
+                                    }
+                                  >
+                                    {isVideoDisabled ? "Disabled" : "Enabled"}
+                                  </button>
+                                )}
+                              </td>
+                              <td>
+                                <span title={`Socket ID: ${conn.socketId}`}>
+                                  {conn.user?.ip_address || "N/A"}
                                 </span>
-                              ) : (
-                                <span className={styles.userNameRepeated}>
-                                  {userData.displayName}
-                                </span>
-                              )}
-                            </td>
-                            <td>
-                              <time
-                                dateTime={new Date(conn.connectedAt).toISOString()}
-                                title={dayjs(conn.connectedAt).format("YYYY-MM-DD HH:mm:ss")}
-                              >
-                                {dayjs(conn.connectedAt).fromNow()}
-                              </time>
-                            </td>
-                            <td>
-                              {conn.appVersion ? (
-                                <span
-                                  className={
-                                    serverVersion && !isEqual(conn.appVersion, serverVersion)
-                                      ? adminCommon.badgeError
-                                      : undefined
-                                  }
-                                  title={
-                                    serverVersion && !isEqual(conn.appVersion, serverVersion)
-                                      ? `Outdated - Server version: ${serverVersion.version}/${serverVersion.gitCommit}`
-                                      : undefined
-                                  }
+                              </td>
+                              <td>
+                                <time
+                                  dateTime={new Date(conn.connectedAt).toISOString()}
+                                  title={dayjs(conn.connectedAt).format("YYYY-MM-DD HH:mm:ss")}
                                 >
-                                  {`${conn.appVersion.version}/${conn.appVersion.gitCommit}`}
-                                </span>
-                              ) : (
-                                "N/A"
-                              )}
-                            </td>
-                          </tr>
-                        ))
+                                  {dayjs(conn.connectedAt).fromNow()}
+                                </time>
+                              </td>
+                              <td>
+                                {conn.appVersion ? (
+                                  <span
+                                    className={
+                                      serverVersion && !isEqual(conn.appVersion, serverVersion)
+                                        ? adminCommon.badgeError
+                                        : undefined
+                                    }
+                                    title={
+                                      serverVersion && !isEqual(conn.appVersion, serverVersion)
+                                        ? `Outdated - Server version: ${serverVersion.version}/${serverVersion.gitCommit}`
+                                        : undefined
+                                    }
+                                  >
+                                    {`${conn.appVersion.version}/${conn.appVersion.gitCommit}`}
+                                  </span>
+                                ) : (
+                                  "N/A"
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>

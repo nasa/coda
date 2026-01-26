@@ -11,6 +11,7 @@ import { setGraphsManifest } from "store/graphs";
 import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
 import { addSequences } from "store/sequences";
 import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
+import { setLiveVideoEnabled } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
@@ -68,6 +69,7 @@ const SocketClient: FunctionComponent<{
         user: user,
         appVersion: socketStatus.clientVersion,
         connectedAt: Date.now(),
+        liveVideoEnabled: true,
       };
       currentSocket.emit("visitorJoin", visitorData);
 
@@ -187,6 +189,11 @@ const SocketClient: FunctionComponent<{
       }
     });
 
+    // Incoming live video restriction updates (admin can disable live video per session)
+    socket.current.on("liveVideoRestrictionUpdate", (update: LiveVideoRestrictionUpdate) => {
+      dispatch(setLiveVideoEnabled(!update.disabled));
+    });
+
     // Clean up the socket connection on unmount
     return () => {
       if (!socket.current) return;
@@ -199,6 +206,7 @@ const SocketClient: FunctionComponent<{
       socket.current.off("statusFromServer");
       socket.current.off("dataUpdate");
       socket.current.off("incrementalDataUpdate");
+      socket.current.off("liveVideoRestrictionUpdate");
       socket.current.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- adding dispatch, setSocketStatus, socketStatus would cause infinite reconnection loops
