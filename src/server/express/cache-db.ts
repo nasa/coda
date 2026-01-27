@@ -19,8 +19,11 @@ export async function getCacheEntry({
     if (entry) {
       entry.lastAccessedAt = new Date();
       await em.flush(); // Persist the change to lastAccessedAt
+      return entry;
+    } else {
+      ConsoleLogger.debug(`Cache miss for ${folder}/${identifier}`);
+      return null;
     }
-    return entry;
   } catch (error) {
     ConsoleLogger.error(`Error getting cache entry for ${folder}/${identifier}:`, error);
     return null;
