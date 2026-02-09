@@ -66,7 +66,7 @@ export const dataFetchConfigs: FetchConfig[] = [
   {
     type: "wikiEvas",
     getDataFunction: getISSEvaData,
-    refreshIntervalTodayMs: dayjs.duration(1, "hour").asMilliseconds(), // Refresh wiki data hourly
+    refreshIntervalTodayMs: dayjs.duration(6, "hour").asMilliseconds(),
     refreshIntervalMs: null, // Not used for non-date-dependent data
     fetchTimeoutMs: dayjs.duration(60, "seconds").asMilliseconds(), // Allow more time for wiki API
     enableCacheUse: true, // Cache wiki data to reduce API calls
@@ -75,7 +75,7 @@ export const dataFetchConfigs: FetchConfig[] = [
   {
     type: "wikiTestEvents",
     getDataFunction: getTestEventsData,
-    refreshIntervalTodayMs: dayjs.duration(1, "hour").asMilliseconds(), // Refresh wiki data hourly
+    refreshIntervalTodayMs: dayjs.duration(6, "hour").asMilliseconds(),
     refreshIntervalMs: null, // Not used for non-date-dependent data
     fetchTimeoutMs: dayjs.duration(60, "seconds").asMilliseconds(), // Allow more time for wiki API
     enableCacheUse: true, // Cache wiki data to reduce API calls
