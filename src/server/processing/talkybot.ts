@@ -163,7 +163,7 @@ export default async function getTalkybotData({
 /**
  * Fetches audio files from Talkybot API.
  * Returns TbAudioFile[] which includes channel info and transcriptions.
- * Only returns data for ISS source.
+ * Supports ISS and ARTEMIS sources.
  */
 export async function fetchTalkybotAudioFiles({
   source,
@@ -172,8 +172,8 @@ export async function fetchTalkybotAudioFiles({
   source: Source;
   dateWanted: string;
 }): Promise<TbAudioFileNative[]> {
-  // Only ISS source is supported
-  if (source !== "ISS") {
+  // Only ISS and ARTEMIS sources are supported
+  if (source !== "ISS" && source !== "ARTEMIS") {
     return [];
   }
 
