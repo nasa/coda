@@ -270,16 +270,20 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
       lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
     });
 
-    // Emit incremental update to all clients viewing today's date for ISS source
+    // Emit incremental update to all clients viewing today's date for sources that support talkybot
     const today = new Date().toISOString().split("T")[0];
-    emitIncrementalDataUpdate({
-      source: "ISS",
-      dataDate: today,
-      incrementalUpdate: {
-        type: "talkybot",
-        item: audioFile,
-      },
-    });
+    const sourcesWithTalkybot: Source[] = ["ISS", "ARTEMIS"];
+
+    for (const source of sourcesWithTalkybot) {
+      emitIncrementalDataUpdate({
+        source,
+        dataDate: today,
+        incrementalUpdate: {
+          type: "talkybot",
+          item: audioFile,
+        },
+      });
+    }
   });
 
   return talkybotS2sSocket;
