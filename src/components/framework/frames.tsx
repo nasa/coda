@@ -37,6 +37,8 @@ export const layoutClasses = {
   layout_q: styles.layout_q,
   layout_r: styles.layout_r,
   layout_s: styles.layout_s,
+  layout_t: styles.layout_t,
+  layout_u: styles.layout_u,
 } as const;
 
 export const iconRowClasses = {
