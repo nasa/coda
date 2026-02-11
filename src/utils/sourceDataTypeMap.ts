@@ -43,6 +43,16 @@ export const isDataTypeValidForSource = (source: Source, dataType: StoreDataType
 };
 
 /**
+ * Get all sources that support a given data type
+ */
+export const getSourcesWithDataType = (dataType: StoreDataType): Source[] => {
+  return (Object.entries(SOURCE_DATA_TYPE_MAP) as [Source, StoreDataType[]][])
+    .filter(([, dataTypes]) => dataTypes.includes(dataType))
+    .map(([source]) => source);
+};
+
+/**
+
  * Check if a date is within the valid range for mtxvideo data.
  * MTX video is only available for dates within the last N days.
  * @param dateWanted - The date to check (ISO string format YYYY-MM-DD or full ISO date)

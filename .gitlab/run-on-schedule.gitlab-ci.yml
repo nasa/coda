@@ -17,7 +17,7 @@
     - cd /opt/coda
     - sudo docker compose exec database pg_dump -U postgres coda > "${PROJECT_DIR}/coda.sql"
   artifacts:
-    name: "$CI_JOB_STARTED_AT$-coda.sql"
+    name: "${CI_JOB_STARTED_AT}-coda.sql"
     paths:
       - coda.sql
     # hold on to this artifact longer than default (1 day). The latest for any branch never expires
@@ -26,20 +26,20 @@
 z:db-export:prod:
   extends: .db-export-template
   rules:
-    - if: $SCHEDULE_TYPE == "backup"
+    - if: ${SCHEDULE_TYPE} == "backup"
       when: always
   tags: ["emss-coda-prod"]
   resource_group: prod # prevents concurrent executions of this job when there are multiple pipelines
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_PROD} #CI/CD Variable
 
 npm-audit:
   stage: stageless
   rules:
-    - if: $SCHEDULE_TYPE == "audit"
+    - if: ${SCHEDULE_TYPE} == "audit"
       when: always
   tags: ["openshift"]
-  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit  # custom image, not on Docker Hub
+  image: ${CI_REGISTRY}/emss/docker-images/node-ci:npm-audit # custom image, not on Docker Hub
   allow_failure: true
   script:
     # Run this without --json to make a pretty-print for the job log, plus will pass/fail the job

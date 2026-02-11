@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
 import { toTbAudioFileConverted } from "../processing/talkybot";
+import { getSourcesWithDataType } from "../../utils/sourceDataTypeMap";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
@@ -272,9 +273,8 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
 
     // Emit incremental update to all clients viewing today's date for sources that support talkybot
     const today = new Date().toISOString().split("T")[0];
-    const sourcesWithTalkybot: Source[] = ["ISS", "ARTEMIS"];
 
-    for (const source of sourcesWithTalkybot) {
+    for (const source of getSourcesWithDataType("talkybot")) {
       emitIncrementalDataUpdate({
         source,
         dataDate: today,

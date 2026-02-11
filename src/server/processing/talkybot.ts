@@ -3,6 +3,7 @@ import leoProfanity from "leo-profanity";
 import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
+import { getSourcesWithDataType } from "utils/sourceDataTypeMap";
 
 /**
  * Response type for Talkybot data fetch
@@ -163,7 +164,7 @@ export default async function getTalkybotData({
 /**
  * Fetches audio files from Talkybot API.
  * Returns TbAudioFile[] which includes channel info and transcriptions.
- * Supports ISS and ARTEMIS sources.
+ * Supports sources defined in SOURCE_DATA_TYPE_MAP with "talkybot" data type.
  */
 export async function fetchTalkybotAudioFiles({
   source,
@@ -172,8 +173,8 @@ export async function fetchTalkybotAudioFiles({
   source: Source;
   dateWanted: string;
 }): Promise<TbAudioFileNative[]> {
-  // Only ISS and ARTEMIS sources are supported
-  if (source !== "ISS" && source !== "ARTEMIS") {
+  // Only sources with talkybot support are valid
+  if (!getSourcesWithDataType("talkybot").includes(source)) {
     return [];
   }
 
