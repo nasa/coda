@@ -4,14 +4,12 @@
 # https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
 
 variables:
-  # Node images pulled via GitLab dependency proxy (caches from Docker Hub)
-  CURRENT_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:24.11.1-alpine"
-  FUTURE_NODE_VERSION_IMAGE: "$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:25.2.1-alpine"
+  # Images are pulled via GitLab dependency proxy (caches from Docker Hub)
   # Kaniko uses the dependency proxy as a registry mirror for rate limiting and caching
   KANIKO_REGISTRY_MIRROR: "${CI_SERVER_HOST}/emss/dependency_proxy/containers"
 
-# Default image unless otherwise specified
-image: "$CURRENT_NODE_VERSION_IMAGE"
+# Default node image unless otherwise specified
+image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:24.11.1-alpine3.21"
 
 include:
   # A11y tests. Disabled for now.
@@ -79,7 +77,7 @@ dependency-check:
 
 npm-audit:
   stage: stageless
-  image: $CI_REGISTRY/emss/docker-images/node-ci:npm-audit # custom image, not on Docker Hub
+  image: ${CI_REGISTRY}/emss/docker-images/node-ci:npm-audit # custom image, not on Docker Hub
   when: manual
   needs: []
   tags: ["openshift"]
@@ -106,7 +104,7 @@ node-sbom:
   stage: stageless
   tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
   needs: ["install_dependencies"]
-  image: $CI_REGISTRY/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
+  image: ${CI_REGISTRY}/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
   script:
     - /make-sbom.sh
   artifacts:
@@ -117,7 +115,6 @@ node-sbom:
     expire_in: 1 day
 
 .make-dotenv-template:
-  image: "$CURRENT_NODE_VERSION_IMAGE"
   stage: stageless
   needs: []
   tags: ["docker", "linux"] # needs to do global install, so needs to be root
@@ -137,7 +134,7 @@ node-sbom:
     #      builds 1-4 minutes.
     #   2. We could have the emss/packages build a make-dotenv docker image tagged by its
     #      version number, and then this job could run using that image by specifying
-    #      `image: $CI_REGISTRY/emss/packages/make-dotenv:x.y.z`. That would save some
+    #      `image: ${CI_REGISTRY}/emss/packages/make-dotenv:x.y.z`. That would save some
     #      time since we wouldn't need to install global packages each time, but the job
     #      as-written runs in about 10 seconds, so we wouldn't be saving much. We would
     #      be causing ourselves some problems, though, since we'd have a version of
@@ -167,7 +164,7 @@ node-sbom:
     # Export the variable so it can be read inside the make-dotenv
     - export IMAGE_VERSION
 
-    - make-dotenv $MAKE_DOTENV_ENVIRONMENT
+    - make-dotenv ${MAKE_DOTENV_ENVIRONMENT}
     # Extract DOCKER_IMAGE_DATABASE from .env and export it without quotes for GitLab CI services
     # GitLab services are initialized before before_script, so we need the variable in dotenv artifact
     - source .env
@@ -208,7 +205,7 @@ test:
     # image should match database used in docker-compose.yml
     # DOCKER_IMAGE_DATABASE comes from pipelineVariables.env dotenv artifact (without quotes)
     # Using dependency proxy for caching and rate limiting
-    - name: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/$DOCKER_IMAGE_DATABASE
+    - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/${DOCKER_IMAGE_DATABASE}
       alias: postgres-test-container
   tags: ["docker", "linux"]
   before_script:
@@ -233,25 +230,12 @@ test:
       - ./coverage/*
     expire_in: 1 day
 
-# test against next version of node that CODA may use, but allow to fail
-test-node-next:
-  stage: stageless
-  image: "$FUTURE_NODE_VERSION_IMAGE"
-  needs:
-    - install_dependencies
-    - make-dotenv
-  tags: ["openshift"]
-  allow_failure: true
-  script:
-    - npm run lint
-    - npm run tsc
-    - npm t
-
 #
 # Build container images
 # Vite is not used in production, so we don't need to build it
 #
 
+# This build template uses a hard coded pattern path to find the Dockerfile for each service
 .kaniko-build-template:
   extends: .emss-kaniko-build # use job template from gitlab-templates repo
   stage: stageless
@@ -271,7 +255,7 @@ docker:build:nginx:
   variables:
     SERVICE_NAME: nginx
     MULTISTAGE_TARGET: prod
-    GIT_COMMIT: $CI_COMMIT_SHORT_SHA
+    GIT_COMMIT: ${CI_COMMIT_SHORT_SHA}
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       VITE_PUBLIC_MAPBOX_KEY
       VITE_PUBLIC_TALKYBOT_URL
@@ -289,7 +273,7 @@ docker:build:apiv1:
   variables:
     SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
-    GIT_COMMIT: $CI_COMMIT_SHORT_SHA
+    GIT_COMMIT: ${CI_COMMIT_SHORT_SHA}
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       GIT_COMMIT
 
@@ -312,7 +296,7 @@ docker:retag:
       apiv1
 
 deploy:artifactize-committed-files:
-  image: "$CI_REGISTRY/emss/docker-images:envsubst-bash-in-envsubst"
+  image: "${CI_REGISTRY}/emss/docker-images:envsubst-bash-in-envsubst"
   stage: stageless
   needs: []
   tags: ["openshift"]
@@ -388,7 +372,7 @@ deploy:int:
     name: integration
     url: https://coda-int.fit.nasa.gov
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_INT}
   only:
     - int
   before_script:
@@ -412,7 +396,7 @@ deploy:prod:
     - deploy:artifactize-committed-files
     - z:db-export:prod
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_PROD}
   when: manual
   only:
     - prod

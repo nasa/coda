@@ -4,7 +4,7 @@
 #
 # SUMMARY:
 # 1. Rather than pull images from a container registry as done in the main docker-compose.yml,
-#    instead build the images locally
+#    instead build the images locally using the Dockerfile.
 #
 services:
   database:

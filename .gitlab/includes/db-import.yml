@@ -59,7 +59,7 @@ z:db-import:int:
   resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
   environment:
     name: integration
-    url: $URL
+    url: ${URL}
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_INT} #CI/CD Variable
     URL: https://coda-int.fit.nasa.gov
