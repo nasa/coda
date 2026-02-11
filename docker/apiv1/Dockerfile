@@ -1,13 +1,10 @@
-# Get the base image. When building via kaniko in CI, the dependency proxy will cache images
-# from Docker Hub. For local builds, Docker pulls directly from Docker Hub.
-# ref: https://eegitlab.fit.nasa.gov/emss/docs/-/blob/main/docker.md#base-images-as-arg
-# hadolint global ignore=DL3006
-ARG APIV1_BASE_IMAGE=node:24.11.1-alpine
+# When building via kaniko in CI, the dependency proxy will cache image from Docker Hub.
+# For local builds, Docker pulls directly from Docker Hub
 
 # # # # # # # #
 # PROD image  #
 # # # # # # # #
-FROM $APIV1_BASE_IMAGE AS prod
+FROM node:24.11.1-alpine3.21 AS prod
 
 # CODA requires a special CA-cert in place to talk to Imagery Online.
 COPY .env.local.cert.pem /

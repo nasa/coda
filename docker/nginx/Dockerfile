@@ -1,8 +1,5 @@
-# Get the base images. When building via kaniko in CI, the dependency proxy will cache images
-# from Docker Hub. For local builds, Docker pulls directly from Docker Hub.
-# hadolint global ignore=DL3006
-ARG NGINX_BASE_IMAGE=nginx:1.28.0-alpine
-ARG NODE_BASE_IMAGE=node:24.11.1-alpine
+# When building via kaniko in CI, the dependency proxy will cache image from Docker Hub.
+# For local builds, Docker pulls directly from Docker Hub
 
 # # # # # # # #
 # BASE image  #
@@ -10,7 +7,7 @@ ARG NODE_BASE_IMAGE=node:24.11.1-alpine
 
 # This build doesn't actually need the "AS base" except that it simplifies our .gitlab-ci.yml by
 # allowing us to specify `--target base`
-FROM $NGINX_BASE_IMAGE AS base
+FROM nginx:1.28.0-alpine AS base
 
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
@@ -20,7 +17,7 @@ RUN mkdir -p /usr/share/nginx/static
 # # # # # # # # #
 
 ### Build the React client
-FROM $NODE_BASE_IMAGE AS builder
+FROM node:24.11.1-alpine3.21 AS builder
 
 RUN mkdir /clientsrc
 WORKDIR /clientsrc

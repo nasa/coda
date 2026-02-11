@@ -31,14 +31,14 @@ z:db-export:prod:
   resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
   tags: ["emss-coda-prod"]
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD #CI/CD Variable
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_PROD} #CI/CD Variable
 
 z:db-export:int:
   extends: .db-export-template
   tags: ["emss-coda-int"]
   resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT #CI/CD Variable
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_INT} #CI/CD Variable
 
 z:db-export:carbon:
   extends:
@@ -136,14 +136,14 @@ z:logs:int:
   tags: ["emss-coda-int"]
   resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_INT}
 
 z:logs:prod:
   extends: .container-logs-template
   tags: ["emss-coda-prod"]
   resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_PROD}
 
 #
 # Add jobs to restart all containers on a given environment.
@@ -194,11 +194,11 @@ z:restart-containers:int:
   tags: ["emss-coda-int"]
   resource_group: int # prevents concurrent executions on this environment when there are multiple pipelines
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_INT
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_INT}
 
 z:restart-containers:prod:
   extends: .restart-containers-template
   tags: ["emss-coda-prod"]
   resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
   variables:
-    DEPLOY_SUDO_PASS: $DEPLOY_SUDO_PASS_PROD
+    DEPLOY_SUDO_PASS: ${DEPLOY_SUDO_PASS_PROD}
