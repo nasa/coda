@@ -372,3 +372,16 @@
     "f3 f3 f3 f3 f3 f3 f3 f3 f4 f4 f4 f4 f4 f4 f4 f4 f4 f2 f2 f2 f2 f2 f2 f2"
     "f3 f3 f3 f3 f3 f3 f3 f3 f4 f4 f4 f4 f4 f4 f4 f4 f4 f2 f2 f2 f2 f2 f2 f2";
 }
+
+.layout_v {
+  grid-template-areas:
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2"
+    "f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f2 f2 f2 f2 f2 f2 f2";
+}

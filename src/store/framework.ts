@@ -102,6 +102,10 @@ export const allLayouts: Layouts = {
     frameCount: 4,
     cssGridRows: 9,
   },
+  v: {
+    frameCount: 2,
+    cssGridRows: 9,
+  },
 };
 
 export const allPanes: Panes = {
