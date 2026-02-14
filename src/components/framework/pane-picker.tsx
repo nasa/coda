@@ -60,7 +60,8 @@ export const PaneLabel: FunctionComponent<{
 export const PanePickerModal: FunctionComponent<{
   closeClick?: () => void;
   options?: PanePickerModalOptions;
-}> = ({ closeClick, options }) => {
+  onClosePanel?: () => void;
+}> = ({ closeClick, options, onClosePanel }) => {
   const frameID = options?.frameID ?? 0;
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
@@ -68,7 +69,7 @@ export const PanePickerModal: FunctionComponent<{
 
   const allPaneTypes = Object.keys(allPanes);
   const availablePanes = useMemo(
-    () => getAvailablePanesForSource(source, allPaneTypes),
+    () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
     [source, allPaneTypes]
   );
 
@@ -76,6 +77,12 @@ export const PanePickerModal: FunctionComponent<{
     e.preventDefault();
     dispatch(setPaneType({ frameID, paneType }));
     closeClick?.();
+  };
+
+  const handleClosePanel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    closeClick?.();
+    onClosePanel?.();
   };
 
   return (
@@ -92,6 +99,11 @@ export const PanePickerModal: FunctionComponent<{
         ))
       ) : (
         <span>No available sources</span>
+      )}
+      {onClosePanel && (
+        <div className={`${styles.option} ${styles.closeOption}`} onClick={handleClosePanel}>
+          <span className={styles.closeLabel}>Close Panel</span>
+        </div>
       )}
     </div>
   );

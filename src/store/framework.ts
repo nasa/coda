@@ -340,6 +340,25 @@ export const frameworkSlice = createSlice({
       ] = action.payload.paneStateValue;
     },
     /**
+     * Add a new frame with the "empty" pane type (used when adding panels via the + button)
+     */
+    addFrame: (state, action: { payload: number }) => {
+      if (!state.frames[action.payload]) {
+        state.frames[action.payload] = {
+          paneType: "empty",
+          paneStateData: allPanes["empty"].defaultPaneStateData,
+        };
+      }
+    },
+
+    /**
+     * Remove a frame from state (used when closing panels via the X button)
+     */
+    removeFrame: (state, action: { payload: number }) => {
+      delete state.frames[action.payload];
+    },
+
+    /**
      * Change the overall data source (ISS, Test Events, NBL)
      */
     changeSource: (state, action: { payload: Source }) => {
@@ -355,6 +374,8 @@ export const {
   setPaneType,
   setAllFrameworkState,
   setPaneStateDataValue,
+  addFrame,
+  removeFrame,
   changeSource,
 } = frameworkSlice.actions;
 

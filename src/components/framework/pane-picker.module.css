@@ -1,44 +1,44 @@
 .main {
-  width: 275px;
+  width: 200px;
   border-radius: var(--radius);
-  background-color: var(--lightest-grey);
+  background-color: var(--nearly-black);
   text-transform: uppercase;
+  font-size: 12px;
+  border: 1px solid var(--dark-grey);
 }
 
 .item {
   display: flex;
+  align-items: center;
   padding: 0;
 }
 
 .option {
-  height: 28px;
+  height: 24px;
   cursor: pointer;
-  font-size: 15px;
-  padding-left: 15px;
+  font-size: 12px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
 }
 
 .option:not(:last-of-type) {
-  border-bottom: 1px solid var(--nearly-black);
+  border-bottom: 1px solid var(--dark-grey);
 }
 
 .option:hover {
-  background-color: var(--extremely-grey);
+  background-color: var(--grey);
 }
 
 .icon {
-  border-radius: var(--radius);
-  height: 21px;
-  width: 22px;
-  margin: 3px 10px 3px 0;
-  padding-top: 3px;
   display: flex;
-  justify-content: space-around;
+  align-items: center;
+  margin-right: 6px;
+  font-size: 11px;
 }
 
 .noneIcon {
-  height: 21px;
-  padding-top: 3px;
-  margin: 3px 3px 3px 0;
+  display: none;
 }
 
 .icon > * {
@@ -47,34 +47,47 @@
 
 .verticalCenter {
   display: flex;
-  flex-direction: column;
-  justify-content: space-around;
+  align-items: center;
 }
 
 .teal {
-  background-color: var(--teal);
+  color: var(--teal);
 }
 
 .ruby {
-  background-color: var(--ruby);
+  color: var(--ruby);
 }
 
 .purple {
-  background-color: var(--purple);
+  color: var(--purple);
 }
 
 .grey {
-  background-color: var(--dark-grey);
+  color: var(--extremely-grey);
 }
 
 .mustardGreen {
-  background-color: var(--mustard-green);
+  color: var(--mustard-green);
 }
 
 .burntOrange {
-  background-color: var(--burnt-orange);
+  color: var(--burnt-orange);
 }
 
 .burntUmber {
-  background-color: var(--burnt-umber);
+  color: var(--burnt-umber);
+}
+
+.closeOption {
+  border-top: 1px solid var(--dark-grey);
+  color: #cc6666;
+  font-size: 11px;
+}
+
+.closeOption:hover {
+  background-color: #4a2020;
+}
+
+.closeLabel {
+  padding-left: 2px;
 }

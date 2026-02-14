@@ -1,20 +1,35 @@
-/* Styles for Dockview pane panel (empty pane placeholder) */
+/* Styles for Dockview pane panel — watermark pane picker */
 
-.bodyContainer {
-  flex: auto;
+.watermark {
   display: flex;
-  background-color: var(--nearly-black);
-  height: 100%;
-}
-
-.photoPoster {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  position: relative;
-  top: 0;
-  left: 0;
-  background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
-  background-size: 40%;
-  filter: grayscale(100%) contrast(0.75);
-  opacity: 0.3;
+  background-color: var(--nearly-black);
+  gap: 16px;
+}
+
+.watermarkGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 500px;
+  padding: 0 12px;
+}
+
+.watermarkOption {
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  background-color: var(--dark-grey);
+  font-size: 14px;
+  text-transform: uppercase;
+  transition: background-color 0.15s;
+}
+
+.watermarkOption:hover {
+  background-color: var(--grey);
 }

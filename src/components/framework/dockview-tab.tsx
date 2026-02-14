@@ -1,21 +1,28 @@
 /**
  * Custom Dockview tab component.
  *
- * Shows the pane icon and short title for each tab. Dockview handles the
- * drag-and-drop and activation behavior automatically.
+ * Shows the pane icon, short title, and a small chevron that opens the
+ * pane picker dropdown (which also contains a "Close" action).
+ * The rest of the tab is draggable by Dockview.
  */
 
-import { FunctionComponent } from "react";
+import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { IDockviewPanelHeaderProps } from "dockview-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { allPanes } from "store/framework";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { allPanes, removeFrame } from "store/framework";
+import PanePickerModal from "./pane-picker";
+import styles from "./dockview-tab.module.css";
 
 interface PanelParams {
   frameId: number;
 }
 
 export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelParams>> = ({
+  api,
   params,
 }) => {
   const frameId = params.frameId;
@@ -24,29 +31,74 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
   const paneType = frameState?.paneType ?? "empty";
   const paneInfo = allPanes[paneType];
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Prevent default only for middle-click to avoid closing
-    if (e.button === 1) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const chevronRef = useRef<HTMLSpanElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
+
+  const handleClose = useCallback(() => {
+    dispatch(removeFrame(frameId));
+    api.close();
+  }, [api, dispatch, frameId]);
+
+  const handleChevronClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
       e.preventDefault();
-    }
+      if (!menuOpen && chevronRef.current) {
+        const rect = chevronRef.current.getBoundingClientRect();
+        setMenuPos({ top: rect.bottom + 2, left: rect.left });
+      }
+      setMenuOpen((prev) => !prev);
+    },
+    [menuOpen]
+  );
+
+  // Close on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (chevronRef.current?.contains(target)) return;
+      if (overlayRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [menuOpen]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 1) e.preventDefault();
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 5,
-        padding: "0 8px",
-        height: "100%",
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-        fontSize: 12,
-      }}
-      onMouseDown={handleMouseDown}
-    >
-      {paneInfo?.icon && <FontAwesomeIcon icon={paneInfo.icon} style={{ fontSize: 11 }} />}
+    <div className={styles.tab} onMouseDown={handleMouseDown}>
+      {paneInfo?.icon && <FontAwesomeIcon icon={paneInfo.icon} className={styles.icon} />}
       <span>{paneInfo?.shortTitle ?? "None"}</span>
+      <span
+        ref={chevronRef}
+        className={styles.chevron}
+        onClick={handleChevronClick}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <FontAwesomeIcon icon={faChevronDown} />
+      </span>
+      {menuOpen &&
+        createPortal(
+          <div
+            ref={overlayRef}
+            className={styles.pickerOverlay}
+            style={{ top: menuPos.top, left: menuPos.left }}
+          >
+            <PanePickerModal
+              closeClick={() => setMenuOpen(false)}
+              options={{ frameID: frameId }}
+              onClosePanel={handleClose}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

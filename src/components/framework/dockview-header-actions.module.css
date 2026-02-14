@@ -1,19 +1,41 @@
-/* Styles for Dockview header action components */
+/* Styles for Dockview right header actions: controls + add-panel button */
 
-.dropdown {
-  width: 200px;
-}
-
-.dropdownSmall {
-  width: 125px;
-}
-
-.dropdownSmallest {
-  width: 60px;
+.rightActions {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 2px;
+  padding: 0 2px;
 }
 
 .controls {
-  width: 100%;
-  margin-left: 3px;
+  flex: 1;
+  min-width: 0;
   overflow-x: clip;
+  margin-left: 3px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #aaaaaa;
+  cursor: pointer;
+  font-size: 11px;
+  flex-shrink: 0;
+  padding: 0;
+  margin-left: auto;
+}
+
+.addButton:hover {
+  color: #ffffff;
+  background-color: rgb(255 255 255 / 12%);
 }

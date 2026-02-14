@@ -3,11 +3,20 @@
  *
  * Each Dockview panel renders one pane. The pane type and state are read from
  * Redux via the `frameId` passed in panel params.
+ *
+ * When the pane type is "empty" (or unset), a watermark pane picker is shown
+ * so the user can choose what to display in this panel.
+ *
+ * Pane controls are rendered in the header (right actions) — not here.
  */
 
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import type { IDockviewPanelProps } from "dockview-react";
-import { shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { shallowEqual, useAppSelector, refEqual } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { allPanes, setPaneType } from "store/framework";
+import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
+import { PaneLabel } from "./pane-picker";
 
 import EventInfo from "components/panes/event-info";
 import VideoPaneChooser from "components/panes/video/video-chooser";
@@ -43,6 +52,8 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
 }) => {
   const frameId = params.frameId;
   const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const dispatch = useAppDispatch();
 
   const paneType = frameState?.paneType ?? "";
   const PaneComponent = paneType ? (paneComponents[paneType] ?? null) : null;
@@ -56,10 +67,30 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
     return () => disposable.dispose();
   }, [api]);
 
+  const allPaneTypes = useMemo(() => Object.keys(allPanes), []);
+  const availablePanes = useMemo(
+    () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
+    [source, allPaneTypes]
+  );
+
+  const handleSelectPaneType = (selectedType: string) => {
+    dispatch(setPaneType({ frameID: frameId, paneType: selectedType }));
+  };
+
   if (!PaneComponent) {
     return (
-      <div className={styles.bodyContainer}>
-        <div className={styles.photoPoster}></div>
+      <div className={styles.watermark}>
+        <div className={styles.watermarkGrid}>
+          {availablePanes.map((pt) => (
+            <div
+              key={pt}
+              className={styles.watermarkOption}
+              onClick={() => handleSelectPaneType(pt)}
+            >
+              <PaneLabel paneType={pt} labelSize="L" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

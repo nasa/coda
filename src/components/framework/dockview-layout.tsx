@@ -7,14 +7,15 @@
  */
 
 import { FunctionComponent, useCallback, useEffect, useState } from "react";
-import { DockviewReact, DockviewApi, DockviewReadyEvent } from "dockview-react";
+import { DockviewReact, DockviewApi, DockviewReadyEvent, themeDark } from "dockview-react";
+import type { IWatermarkPanelProps } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
 
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { getPresetLayout } from "./dockview-presets";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
-import { DockviewLeftActions, DockviewRightActions } from "./dockview-header-actions";
+import { DockviewRightActions } from "./dockview-header-actions";
 import styles from "./dockview-layout.module.css";
 
 const components = {
@@ -23,6 +24,22 @@ const components = {
 
 const tabComponents = {
   paneTab: DockviewPaneTab,
+};
+
+/** Custom theme: dark base with visible gap between groups */
+const customTheme = {
+  ...themeDark,
+  name: "coda-dark",
+  gap: 3,
+};
+
+/** Watermark shown when a group has no panels (all were closed/moved) */
+const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = () => {
+  return (
+    <div className={styles.watermark}>
+      <span>Drop a panel here or use + to add one</span>
+    </div>
+  );
 };
 
 const DockviewLayout: FunctionComponent = () => {
@@ -49,10 +66,10 @@ const DockviewLayout: FunctionComponent = () => {
       <DockviewReact
         components={components}
         tabComponents={tabComponents}
-        leftHeaderActionsComponent={DockviewLeftActions}
         rightHeaderActionsComponent={DockviewRightActions}
+        watermarkComponent={DockviewWatermark}
         onReady={onReady}
-        className="dockview-theme-dark"
+        theme={customTheme}
       />
     </div>
   );

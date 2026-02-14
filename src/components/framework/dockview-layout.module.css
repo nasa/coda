@@ -7,7 +7,7 @@
 /* ---- dockview theme overrides ---- */
 
 /* stylelint-disable selector-class-pattern */
-.container :global(.dockview-theme-dark) {
+.container :global(.dv-dockview) {
   --dv-group-view-background-color: var(--nearly-black);
   --dv-tabs-and-actions-container-background-color: var(--nearly-black);
   --dv-activegroup-visiblepanel-tab-background-color: var(--grey);
@@ -16,10 +16,40 @@
   --dv-inactivegroup-hiddenpanel-tab-background-color: var(--nearly-black);
   --dv-tab-divider-color: transparent;
   --dv-activegroup-visiblepanel-tab-color: #ffffff;
-  --dv-activegroup-hiddenpanel-tab-color: #999999;
+  --dv-activegroup-hiddenpanel-tab-color: #bbbbbb;
   --dv-inactivegroup-visiblepanel-tab-color: #cccccc;
-  --dv-inactivegroup-hiddenpanel-tab-color: #777777;
+  --dv-inactivegroup-hiddenpanel-tab-color: #999999;
   --dv-separator-border: 1px solid var(--dark-grey);
   --dv-paneview-header-border-color: var(--dark-grey);
+  --dv-sash-color: var(--dark-grey);
+  --dv-active-sash-color: var(--grey);
+}
+
+/* Keep tabs compact; let right-actions (controls) fill remaining space */
+.container :global(.dv-void-container) {
+  flex-grow: 0;
+}
+
+.container :global(.dv-right-actions-container) {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Let header dropdowns (e.g. COM channels) render above panel content */
+.container :global(.dv-tabs-and-actions-container) {
+  position: relative;
+  z-index: 2;
 }
 /* stylelint-enable selector-class-pattern */
+
+/* Watermark placeholder for empty groups */
+.watermark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--nearly-black);
+  color: #666666;
+  font-size: 13px;
+}
