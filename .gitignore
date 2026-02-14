@@ -35,4 +35,4 @@ junit.xml
 
 # ai tool files
 tmpclaude-*
-.claude/**
+.claude/

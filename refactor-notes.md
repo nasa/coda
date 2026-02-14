@@ -2,7 +2,7 @@
 
 ## Current Milestone
 
-Controls moved back to tab row (same row as tabs). Close button removed from tab; "Close Panel" option added to pane picker dropdown. COM channels dropdown fixed. All checks passing.
+Responsive pane controls: when a panel's tab row is too narrow for inline controls (< 200px available), controls collapse into a single slider-icon button that opens a popover with the full controls. All checks passing.
 
 ## Decisions Made
 
@@ -99,6 +99,18 @@ Controls moved back to tab row (same row as tabs). Close button removed from tab
 - No changes needed. Still dispatches `changeLayout(letter)` to Redux.
 - Miniature layout icons still render via CSS grid classes from `frames.module.css`.
 - DockviewLayout watches `layout` + `layoutLastChanged` and applies preset via `fromJSON`.
+
+### 14. Responsive pane controls collapse
+
+- When a panel group has multiple tabs and limited horizontal space, inline pane controls would get crushed.
+- Added a `ResizeObserver` on the right-actions container that measures available width.
+- When available width (minus add-button) falls below 200px, inline controls are replaced with a single button (sliders icon).
+- Clicking the button opens a portal-based popover anchored below the button, containing the full controls component.
+- **Popover renders expanded controls**: fake `frameDimensions` of `[800, 600]` are passed to the controls inside the popover, ensuring they always render in their wide/expanded layout (labels visible, full button rows) regardless of actual panel size.
+- Popover `min-width: 400px`, no max-width cap, `overflow: visible` — wide enough for expanded controls, and allows nested dropdowns (e.g. comm channel selector) to render outside the popover boundaries without clipping.
+- Popover styled with `--nearly-black` background, dark-grey border, and drop shadow to match the tab styling.
+- Position computed in click handler (not render) to avoid ref-during-render lint issues.
+- Outside-click dismisses the popover.
 
 ## Files Created
 

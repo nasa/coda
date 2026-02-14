@@ -77,17 +77,3 @@
 .burntUmber {
   color: var(--burnt-umber);
 }
-
-.closeOption {
-  border-top: 1px solid var(--dark-grey);
-  color: #cc6666;
-  font-size: 11px;
-}
-
-.closeOption:hover {
-  background-color: #4a2020;
-}
-
-.closeLabel {
-  padding-left: 2px;
-}

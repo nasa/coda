@@ -39,3 +39,40 @@
   color: #ffffff;
   background-color: rgb(255 255 255 / 12%);
 }
+
+/* Collapsed controls button — replaces inline controls when space is tight */
+.collapseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: var(--grey);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.collapseButton:hover {
+  background-color: var(--lightest-grey);
+}
+
+/* Popover that contains the full controls when collapsed */
+.controlsPopover {
+  position: fixed;
+  z-index: 9999;
+  background-color: var(--nearly-black);
+  border: 1px solid var(--dark-grey);
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 50%);
+  display: flex;
+  align-items: center;
+  min-width: 400px;
+  /* overflow visible so nested dropdowns (e.g. comm channel selector) render outside */
+  overflow: visible;
+}

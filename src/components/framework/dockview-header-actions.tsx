@@ -5,12 +5,17 @@
  * Sits on the same row as tabs. The void-container flex-grow override in
  * dockview-layout.module.css keeps controls adjacent to tabs instead of
  * flushed to the far right.
+ *
+ * When the available width is too small for inline controls (e.g. multiple
+ * tabs in a narrow panel), controls collapse into a single button that opens
+ * a popover containing the full controls component.
  */
 
-import { FunctionComponent, useCallback, useEffect, useState } from "react";
+import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { IDockviewHeaderActionsProps, IDockviewPanel } from "dockview-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faSliders } from "@fortawesome/free-solid-svg-icons";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { addFrame } from "store/framework";
@@ -38,10 +43,87 @@ const controlComponents: Record<string, React.ComponentType<PaneComponentProps> 
   graph: GraphControls,
 };
 
+/** Width threshold (px) below which inline controls collapse into a button. */
+const COLLAPSE_THRESHOLD = 200;
+
 /** Extract the frameId from the active panel's params. */
 function getActiveFrameId(activePanel: IDockviewPanel | undefined): number {
   return (activePanel?.params?.frameId as number) ?? 0;
 }
+
+// ---------------------------------------------------------------------------
+// Collapsed controls popover — shown when inline controls won't fit
+// ---------------------------------------------------------------------------
+
+/**
+ * Large fake dimensions passed to controls inside the popover so they always
+ * render in their expanded / wide layout (labels visible, full button rows).
+ */
+const POPOVER_DIMENSIONS: number[] = [800, 600];
+
+interface CollapsedControlsProps {
+  ControlComponent: React.ComponentType<PaneComponentProps>;
+  frameId: number;
+}
+
+const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
+  ControlComponent,
+  frameId,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [popoverPos, setPopoverPos] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (buttonRef.current?.contains(target)) return;
+      if (popoverRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [open]);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPopoverPos({
+        top: rect.bottom + 4,
+        right: document.documentElement.clientWidth - rect.right,
+      });
+    }
+    setOpen((prev) => !prev);
+  }, []);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        className={styles.collapseButton}
+        onClick={handleClick}
+        title="Panel controls"
+      >
+        <FontAwesomeIcon icon={faSliders} />
+      </button>
+      {open &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            className={styles.controlsPopover}
+            style={{ top: popoverPos.top, right: popoverPos.right }}
+          >
+            <ControlComponent frameID={frameId} frameDimensions={POPOVER_DIMENSIONS} />
+          </div>,
+          document.body
+        )}
+    </>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Right header actions — controls + "+" button
@@ -53,6 +135,8 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
 }) => {
   const dispatch = useAppDispatch();
   const [frameId, setFrameId] = useState(() => getActiveFrameId(group.activePanel));
+  const [collapsed, setCollapsed] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setFrameId(getActiveFrameId(group.activePanel));
@@ -61,6 +145,21 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     });
     return () => disposable.dispose();
   }, [group]);
+
+  // Observe right-actions width to decide inline vs collapsed controls
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+        // Reserve ~28px for the add button; rest is available for controls
+        setCollapsed(width - 28 < COLLAPSE_THRESHOLD);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
   const paneType = frameState?.paneType ?? "";
@@ -85,12 +184,16 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   }, [containerApi, dispatch, group]);
 
   return (
-    <div className={styles.rightActions}>
-      {ControlComponent && frameId > 0 && (
-        <div className={styles.controls}>
-          <ControlComponent frameID={frameId} frameDimensions={dimensions} />
-        </div>
-      )}
+    <div ref={actionsRef} className={styles.rightActions}>
+      {ControlComponent &&
+        frameId > 0 &&
+        (collapsed ? (
+          <CollapsedControls ControlComponent={ControlComponent} frameId={frameId} />
+        ) : (
+          <div className={styles.controls}>
+            <ControlComponent frameID={frameId} frameDimensions={dimensions} />
+          </div>
+        ))}
       <button className={styles.addButton} onClick={handleAddPanel} title="Add panel">
         <FontAwesomeIcon icon={faPlus} />
       </button>
