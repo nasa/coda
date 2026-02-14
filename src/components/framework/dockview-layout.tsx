@@ -13,6 +13,7 @@ import "dockview-react/dist/styles/dockview.css";
 
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { getPresetLayout } from "./dockview-presets";
+import { setDockviewApi } from "./dockview-api-ref";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
 import { DockviewRightActions } from "./dockview-header-actions";
@@ -49,17 +50,28 @@ const DockviewLayout: FunctionComponent = () => {
     (state) => state.framework.layoutLastChanged,
     shallowEqual
   );
+  const dockviewLayout = useAppSelector(
+    (state) => state.framework.dockviewLayout ?? null,
+    shallowEqual
+  );
 
   const onReady = useCallback((event: DockviewReadyEvent) => {
     setApi(event.api);
+    setDockviewApi(event.api);
   }, []);
 
   // Apply layout whenever the API becomes available or the layout changes
   useEffect(() => {
     if (!api) return;
-    const preset = getPresetLayout(layout);
-    api.fromJSON(preset);
-  }, [api, layout, layoutLastChanged]);
+    // If a serialized Dockview layout is available (v3 share/preset), use it directly.
+    // Otherwise fall back to the preset letter system.
+    if (dockviewLayout) {
+      api.fromJSON(dockviewLayout);
+    } else {
+      const preset = getPresetLayout(layout);
+      api.fromJSON(preset);
+    }
+  }, [api, layout, layoutLastChanged, dockviewLayout]);
 
   return (
     <div className={styles.container}>

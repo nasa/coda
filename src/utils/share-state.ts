@@ -8,6 +8,9 @@ import { diff, isSameDate, midnightZulu } from "utils/date";
 import isNull from "lodash/isNull";
 import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
+import LZUTF8 from "lzutf8";
+import type { SerializedDockview } from "dockview-react";
+import { getDockviewApi } from "components/framework/dockview-api-ref";
 
 /**
  * Validates share link date/time parameters.
@@ -73,7 +76,32 @@ export function validateShareLinkDateTime(
 }
 
 /**
- * Generates a URL string that represents the state of the application.
+ * Compresses a SerializedDockview object into a URL-safe Base64 string.
+ */
+export function compressDockviewLayout(layout: SerializedDockview): string {
+  const json = JSON.stringify(layout);
+  return LZUTF8.compress(json, { outputEncoding: "Base64" });
+}
+
+/**
+ * Decompresses a URL-safe Base64 string back into a SerializedDockview object.
+ * Returns null if decompression or parsing fails.
+ */
+export function decompressDockviewLayout(encoded: string): SerializedDockview | null {
+  try {
+    const json = LZUTF8.decompress(encoded, { inputEncoding: "Base64" });
+    return JSON.parse(json) as SerializedDockview;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Generates a v3 URL string that represents the state of the application,
+ * capturing the exact Dockview layout (proportions, splits, panel arrangement).
+ *
+ * Falls back to v2 format if the DockviewApi is unavailable.
+ *
  * @param framework - The framework state
  * @param date - The current date string
  * @param appSeconds - The current app seconds
@@ -89,7 +117,6 @@ export function generateShareURL(
   const missionDate = shortdateFromDateString(dt.toISOString());
   const missionTime = hhmmssFromSeconds(appSeconds);
 
-  const layout = framework.layout;
   const shortSource = sourceShortVal[framework.source];
 
   let i = 1;
@@ -142,9 +169,22 @@ export function generateShareURL(
   const urlRoot = location.origin + location.pathname;
   let URL = `${urlRoot}?date=${missionDate}`;
   URL += `&gmt=${missionTime}`;
-  URL += `&v=2.0`; // version number used for tracking the format of share URLs, in case we need to change it in the future
-  URL += `&l=${layout}`;
   URL += `&s=${shortSource}`;
+
+  // Capture the live Dockview layout for a v3 share link
+  const dockviewApi = getDockviewApi();
+  if (dockviewApi) {
+    const serialized = dockviewApi.toJSON();
+    const compressedLayout = compressDockviewLayout(serialized);
+    URL += `&v=3.0`;
+    URL += `&dv=${encodeURIComponent(compressedLayout)}`;
+  } else {
+    // Fallback to v2 format when DockviewApi is not available
+    const layout = framework.layout;
+    URL += `&v=2.0`;
+    URL += `&l=${layout}`;
+  }
+
   URL += stateUrlParams;
 
   return URL;

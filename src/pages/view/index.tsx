@@ -14,7 +14,11 @@ import {
   setAllFrameworkState,
 } from "store/framework";
 import { setDate, setAppSeconds } from "store/clock";
-import { interpretFramestateQueryString, validateShareLinkDateTime } from "utils/share-state";
+import {
+  interpretFramestateQueryString,
+  validateShareLinkDateTime,
+  decompressDockviewLayout,
+} from "utils/share-state";
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
@@ -218,19 +222,33 @@ function getURLParams(query: URLSearchParams): QueryParams {
     }
   } else if (version === "2.0") {
     fState.frames = interpretFramestateQueryString(query);
+  } else if (version === "3.0") {
+    // v3: Dockview layout is serialized in the `dv` query param
+    const dvParam = query?.get("dv");
+    if (dvParam) {
+      const decoded = decompressDockviewLayout(decodeURIComponent(dvParam));
+      if (decoded) {
+        fState.dockviewLayout = decoded;
+      }
+    }
+    // Pane state is still encoded in f1, f2, ... params (same as v2)
+    fState.frames = interpretFramestateQueryString(query);
   }
 
   // Trim frames to match the layout's panel count so that dynamically
   // added panels (via "+") always start empty / show watermark.
-  const frameCount = getFrameCount(fState.layout);
-  if (frameCount > 0) {
-    const trimmed: FrameState = {};
-    for (const [key, value] of Object.entries(fState.frames)) {
-      if (Number(key) <= frameCount) {
-        trimmed[key] = value;
+  // Skip trimming for v3 links — the Dockview layout defines the panel count.
+  if (version !== "3.0") {
+    const frameCount = getFrameCount(fState.layout);
+    if (frameCount > 0) {
+      const trimmed: FrameState = {};
+      for (const [key, value] of Object.entries(fState.frames)) {
+        if (Number(key) <= frameCount) {
+          trimmed[key] = value;
+        }
       }
+      fState.frames = trimmed;
     }
-    fState.frames = trimmed;
   }
 
   const urlState: QueryParams = {

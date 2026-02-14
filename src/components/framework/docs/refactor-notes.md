@@ -63,8 +63,37 @@ Current-state reference for the Dockview-based layout system.
 ### Share links
 
 - v1.0 and v2.0 share links decode via `interpretFramestateQueryString` unchanged.
-- Share links encode the preset layout letter + per-frame pane state.
-- Custom drag rearrangements are not encoded.
+- v2.0 share links encode the preset layout letter (`&l=`) + per-frame pane state.
+- **v3.0 share links** capture the live Dockview layout via `api.toJSON()`, compressed with LZUTF8 and encoded as Base64 in the `&dv=` query parameter.
+  - Preserves exact panel splits, proportions, and arrangement — even after drag rearrangements.
+  - Proportionality is maintained across different screen resolutions (Dockview's `fromJSON()` scales sizes proportionally to the container).
+  - The layout letter (`&l=`) is omitted in v3; the `dv` param is the sole source of layout truth.
+  - Per-frame pane state (`f1`, `f2`, …) is encoded identically to v2.
+  - New share links default to v3 when the DockviewApi is available; fallback to v2 otherwise.
+- Custom drag rearrangements are now persisted in v3 share links.
+
+#### v3 URL format
+
+```
+?date=YYYY-MM-DD&gmt=HH:MM:SS&v=3.0&s=<source>&dv=<LZUTF8+Base64 SerializedDockview>&f1=...&f2=...
+```
+
+#### Key files for v3
+
+| File                   | Role                                                          |
+| ---------------------- | ------------------------------------------------------------- |
+| `dockview-api-ref.ts`  | Module-level getter/setter for the `DockviewApi` instance     |
+| `share-state.ts`       | `compressDockviewLayout` / `decompressDockviewLayout` helpers |
+| `pages/view/index.tsx` | Parses `dv` param in v3 URLs, sets `dockviewLayout` on state  |
+| `dockview-layout.tsx`  | Uses `dockviewLayout` from Redux if present; exposes API ref  |
+
+### Presets
+
+- User presets saved to cookies now include a `version` field (`2` or `3`).
+- v3 presets capture the serialized Dockview layout (`dockviewLayout` field) via `api.toJSON()` at save time.
+- v2 presets (without `version` field) are loaded using the legacy layout-letter system.
+- System presets in `framework-presets.ts` remain letter-based (v2).
+- When selecting a v3 preset, `dockviewLayout` is set on `FrameworkState`, and `DockviewLayout` applies it directly via `api.fromJSON()`.
 
 ## Store (`store/framework.ts`)
 
@@ -75,6 +104,7 @@ Current-state reference for the Dockview-based layout system.
 - Reducers: `changeLayout`, `setPaneType`, `setAllFrameworkState`, `setPaneStateDataValue`, `addFrame`, `removeFrame`
 - `changeLayout` now accepts `{ layout, frameCount }` and trims `state.frames` to 1–frameCount
 - `changeSource` has been removed (was dead code — never dispatched)
+- `FrameworkState.dockviewLayout` — optional `SerializedDockview | null`; when set, `DockviewLayout` uses it instead of the preset letter
 
 ### Frame dimensions
 
@@ -82,5 +112,4 @@ Current-state reference for the Dockview-based layout system.
 
 ## Known Issues / TODO
 
-- Dockview drag rearrangements are ephemeral (not persisted in share links). A v3.0 share link format could serialize Dockview layout state if needed.
 - Individual pane control components (comm, video-controls, etc.) retain their own internal CSS for dropdowns/buttons. These could be further unified to use `--nearly-black` backgrounds if desired.
