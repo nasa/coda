@@ -57,7 +57,7 @@ Current-state reference for the Dockview-based layout system.
 
 - `pane-picker.tsx` / `pane-picker.module.css` — dropdown list of available pane types.
 - "empty" type is filtered out of the dropdown (new panels start empty, close removes them).
-- "Close Panel" option at bottom of dropdown (styled with `closeOption`/`closeLabel` classes).
+- "Remove Panel" option at bottom of dropdown (styled with `closeOption`/`closeLabel` classes).
 - Styled with `--nearly-black` background, 12px font, colored icon text.
 
 ### Share links

@@ -134,9 +134,12 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   containerApi,
 }) => {
   const dispatch = useAppDispatch();
+
   const [frameId, setFrameId] = useState(() => getActiveFrameId(group.activePanel));
   const [collapsed, setCollapsed] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+
+  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
 
   useEffect(() => {
     setFrameId(getActiveFrameId(group.activePanel));
@@ -175,7 +178,6 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     return () => disposable.dispose();
   }, [group]);
 
-  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
   const paneType = frameState?.paneType ?? "";
   const ControlComponent = paneType ? (controlComponents[paneType] ?? null) : null;
 
@@ -198,6 +200,9 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
 
   return (
     <div ref={actionsRef} className={styles.rightActions}>
+      <button className={styles.addButton} onClick={handleAddPanel} title="Add panel">
+        <FontAwesomeIcon icon={faPlus} />
+      </button>
       {ControlComponent &&
         frameId > 0 &&
         (collapsed ? (
@@ -207,9 +212,6 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
             <ControlComponent frameID={frameId} frameDimensions={dimensions} />
           </div>
         ))}
-      <button className={styles.addButton} onClick={handleAddPanel} title="Add panel">
-        <FontAwesomeIcon icon={faPlus} />
-      </button>
     </div>
   );
 };

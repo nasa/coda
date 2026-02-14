@@ -22,7 +22,7 @@ export const allPanes: Panes = {
   },
   video_downlink: {
     title: "Video Channels",
-    shortTitle: "Live",
+    shortTitle: "Video",
     icon: faVideo,
     color: "teal",
     defaultPaneStateData: {

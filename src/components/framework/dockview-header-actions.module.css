@@ -12,7 +12,7 @@
   flex: 1;
   min-width: 0;
   overflow-x: clip;
-  margin-left: 3px;
+  margin-left: auto;
   display: flex;
   align-items: center;
   height: 100%;
@@ -22,17 +22,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border: none;
-  border-radius: 4px;
-  background: var(--dark-grey);
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+  background: var(--grey);
   color: #aaaaaa;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   flex-shrink: 0;
   padding: 0;
-  margin-left: auto;
+  margin: 0 4px 0 1px;
 }
 
 .addButton:hover {

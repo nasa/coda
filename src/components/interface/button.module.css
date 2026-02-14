@@ -3,6 +3,7 @@
   text-transform: uppercase;
   cursor: pointer;
   overflow-x: hidden;
+  line-height: 1;
 }
 
 .default {
@@ -11,13 +12,13 @@
 }
 
 .small {
-  height: 27px;
+  height: 28px;
   font-size: 14px;
   padding: 0;
 }
 
 .medium {
-  height: 27px;
+  height: 28px;
   width: 40px;
   font-size: 14px;
   padding: 0;

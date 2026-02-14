@@ -102,7 +102,7 @@ export const PanePickerModal: FunctionComponent<{
       )}
       {onClosePanel && (
         <div className={`${styles.option} ${styles.closeOption}`} onClick={handleClosePanel}>
-          <span className={styles.closeLabel}>Close Panel</span>
+          <span className={styles.closeLabel}>Remove Panel</span>
         </div>
       )}
     </div>
