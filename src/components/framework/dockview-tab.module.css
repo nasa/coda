@@ -4,11 +4,19 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 0 8px;
+  padding: 0 0 0 0;
   height: 100%;
   cursor: pointer;
   white-space: nowrap;
   font-size: 12px;
+}
+
+.gripIcon {
+  font-size: 12px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  margin-right: 0;
+  cursor: grab;
 }
 
 .icon {
@@ -25,7 +33,6 @@
   border-radius: 3px;
   cursor: pointer;
   opacity: 0.5;
-  font-size: 8px;
   flex-shrink: 0;
 }
 

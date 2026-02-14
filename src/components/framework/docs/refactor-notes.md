@@ -41,6 +41,11 @@ Current-state reference for the Dockview-based layout system.
 | `dockview-presets.ts`                | Tree DSL + all 19 serialized Dockview layouts                     |
 | `layout-icons.tsx`                   | Inline SVG layout icons for picker and header                     |
 
+**Visual customizations:**
+
+- Tab height reduced to 26px (via `--dv-tab-height`) to match control component heights
+- Grip icon (`faGripVertical`) added to the left of each tab for visual affordance
+
 ### Tab row controls
 
 - Pane-specific controls render in the right header actions area (next to the "+" button).

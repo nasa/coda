@@ -10,6 +10,7 @@
 .container :global(.dv-dockview) {
   --dv-group-view-background-color: var(--nearly-black);
   --dv-tabs-and-actions-container-background-color: var(--nearly-black);
+  --dv-tabs-and-actions-container-height: 28px;
   --dv-activegroup-visiblepanel-tab-background-color: var(--grey);
   --dv-activegroup-hiddenpanel-tab-background-color: var(--nearly-black);
   --dv-inactivegroup-visiblepanel-tab-background-color: var(--dark-grey);

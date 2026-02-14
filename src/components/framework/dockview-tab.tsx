@@ -10,7 +10,7 @@ import { FunctionComponent, useCallback, useEffect, useRef, useState } from "rea
 import { createPortal } from "react-dom";
 import type { IDockviewPanelHeaderProps } from "dockview-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faGripVertical } from "@fortawesome/free-solid-svg-icons";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { allPanes, removeFrame } from "store/framework";
@@ -74,6 +74,7 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
 
   return (
     <div className={styles.tab} onMouseDown={handleMouseDown}>
+      <FontAwesomeIcon icon={faGripVertical} className={styles.gripIcon} />
       {paneInfo?.icon && <FontAwesomeIcon icon={paneInfo.icon} className={styles.icon} />}
       <span>{paneInfo?.shortTitle ?? "None"}</span>
       <span
