@@ -18,7 +18,7 @@ import { interpretFramestateQueryString, validateShareLinkDateTime } from "utils
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
-import Viewer from "components/framework/frames";
+import DockviewLayout from "components/framework/dockview-layout";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
@@ -133,7 +133,7 @@ export function V2(): JSX.Element {
         socketStatus={socketStatus}
       />
       <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
-      <div className={styles.body}>{frameworkReady && <Viewer />}</div>
+      <div className={styles.body}>{frameworkReady && <DockviewLayout />}</div>
       <Timeline source={source} />
       <PlaybackControls />
     </div>

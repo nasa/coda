@@ -97,6 +97,7 @@
     "cors": "2.8.5",
     "cross-env": "10.1.0",
     "dayjs": "1.11.19",
+    "dockview-react": "4.13.1",
     "esbuild": "0.27.2",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",

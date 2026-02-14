@@ -1,0 +1,25 @@
+.container {
+  width: 100%;
+  height: calc(100vh - (50px + 122px));
+  /* 50px header + 122px timeline — matches the old CSS grid height */
+}
+
+/* ---- dockview theme overrides ---- */
+
+/* stylelint-disable selector-class-pattern */
+.container :global(.dockview-theme-dark) {
+  --dv-group-view-background-color: var(--nearly-black);
+  --dv-tabs-and-actions-container-background-color: var(--nearly-black);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--grey);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--nearly-black);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--dark-grey);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--nearly-black);
+  --dv-tab-divider-color: transparent;
+  --dv-activegroup-visiblepanel-tab-color: #ffffff;
+  --dv-activegroup-hiddenpanel-tab-color: #999999;
+  --dv-inactivegroup-visiblepanel-tab-color: #cccccc;
+  --dv-inactivegroup-hiddenpanel-tab-color: #777777;
+  --dv-separator-border: 1px solid var(--dark-grey);
+  --dv-paneview-header-border-color: var(--dark-grey);
+}
+/* stylelint-enable selector-class-pattern */
