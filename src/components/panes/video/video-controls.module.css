@@ -23,11 +23,13 @@
 }
 
 .rightButtonsContainer {
-  align-items: baseline;
+  display: flex;
+  align-items: center;
 }
 
 .rightButtons {
   display: flex;
+  align-items: center;
 }
 
 .rightButtons > *:not(:last-of-type) {

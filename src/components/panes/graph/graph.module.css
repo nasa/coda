@@ -31,6 +31,7 @@
 
 .rightButtons {
   display: flex;
+  align-items: center;
 }
 
 .rightButtons > *:not(:last-of-type) {

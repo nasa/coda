@@ -1,9 +1,14 @@
 .helpButton {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
+  height: 18px;
+  font-size: 16px;
   color: var(--even-greyer);
   border: none;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .helpButton:hover {
