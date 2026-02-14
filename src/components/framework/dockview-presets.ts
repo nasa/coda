@@ -264,18 +264,3 @@ export function getPresetLayout(letter: string): SerializedDockview {
   }
   return treeToSerialized(tree);
 }
-
-export function getFrameCount(letter: string): number {
-  const tree = presetTrees[letter];
-  if (!tree) return 0;
-  let count = 0;
-  function walk(node: TreeNode): void {
-    if (node.kind === "panel") {
-      count++;
-    } else {
-      node.children.forEach((c) => walk(c.node));
-    }
-  }
-  walk(tree);
-  return count;
-}

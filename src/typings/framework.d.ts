@@ -1,11 +1,3 @@
-/** Definition of all possible layouts */
-interface Layouts {
-  [key: string]: {
-    frameCount: number;
-    cssGridRows: number;
-  };
-}
-
 interface Preset {
   uuid?: string;
   name: string;

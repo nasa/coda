@@ -77,3 +77,13 @@
 .burntUmber {
   color: var(--burnt-umber);
 }
+
+.closeOption {
+  border-top: 1px solid var(--dark-grey);
+  margin-top: 2px;
+}
+
+.closeLabel {
+  color: var(--extremely-grey);
+  font-size: 11px;
+}
