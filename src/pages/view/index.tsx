@@ -19,6 +19,7 @@ import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import DockviewLayout from "components/framework/dockview-layout";
+import { getFrameCount } from "components/framework/dockview-presets";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
@@ -218,6 +219,20 @@ function getURLParams(query: URLSearchParams): QueryParams {
   } else if (version === "2.0") {
     fState.frames = interpretFramestateQueryString(query);
   }
+
+  // Trim frames to match the layout's panel count so that dynamically
+  // added panels (via "+") always start empty / show watermark.
+  const frameCount = getFrameCount(fState.layout);
+  if (frameCount > 0) {
+    const trimmed: FrameState = {};
+    for (const [key, value] of Object.entries(fState.frames)) {
+      if (Number(key) <= frameCount) {
+        trimmed[key] = value;
+      }
+    }
+    fState.frames = trimmed;
+  }
+
   const urlState: QueryParams = {
     date: date, // date is now guaranteed to be a string from validateShareLinkDateTime
     gmt: gmt ?? "",

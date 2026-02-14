@@ -296,10 +296,47 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     }
   };
 
-  const handleVideoClick = () => {
+  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
     if (paneStateData.activeVideoFileID) {
       const el = videoElement.current;
-      if (el?.requestFullscreen) {
+      if (!el?.requestFullscreen) return;
+
+      // Only trigger fullscreen if clicking on actual video content, not letterbox/pillarbox
+      const rect = el.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Calculate actual video content bounds (accounting for aspect ratio)
+      const videoAspect = el.videoWidth / el.videoHeight;
+      const containerAspect = rect.width / rect.height;
+
+      let videoDisplayWidth: number;
+      let videoDisplayHeight: number;
+      let videoLeft: number;
+      let videoTop: number;
+
+      if (containerAspect > videoAspect) {
+        // Pillarboxing (black bars on sides)
+        videoDisplayHeight = rect.height;
+        videoDisplayWidth = videoDisplayHeight * videoAspect;
+        videoLeft = (rect.width - videoDisplayWidth) / 2;
+        videoTop = 0;
+      } else {
+        // Letterboxing (black bars on top/bottom)
+        videoDisplayWidth = rect.width;
+        videoDisplayHeight = videoDisplayWidth / videoAspect;
+        videoLeft = 0;
+        videoTop = (rect.height - videoDisplayHeight) / 2;
+      }
+
+      // Check if click is within actual video content
+      const isWithinVideo =
+        clickX >= videoLeft &&
+        clickX <= videoLeft + videoDisplayWidth &&
+        clickY >= videoTop &&
+        clickY <= videoTop + videoDisplayHeight;
+
+      if (isWithinVideo) {
         el.requestFullscreen();
       }
     }

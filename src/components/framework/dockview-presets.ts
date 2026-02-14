@@ -257,10 +257,53 @@ const presetTrees: Record<string, TreeNode> = {
 // Public API
 // ---------------------------------------------------------------------------
 
+/**
+ * Ordered list of layout preset letters for display in the layout picker.
+ * Order here determines dropdown display order (not alphabetical).
+ * Letters must never change — shared links reference them.
+ */
+export const allLayoutLetters: string[] = [
+  "a",
+  "b",
+  "c",
+  "j",
+  "n",
+  "k",
+  "e",
+  "d",
+  "f",
+  "g",
+  "l",
+  "m",
+  "h",
+  "i",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+];
+
 export function getPresetLayout(letter: string): SerializedDockview {
   const tree = presetTrees[letter];
   if (!tree) {
     throw new Error(`Unknown layout preset: ${letter}`);
   }
   return treeToSerialized(tree);
+}
+
+/** Count the number of panels in a preset layout. */
+export function getFrameCount(letter: string): number {
+  const tree = presetTrees[letter];
+  if (!tree) return 0;
+  let count = 0;
+  function walk(node: TreeNode): void {
+    if (node.kind === "panel") {
+      count++;
+    } else {
+      node.children.forEach((c) => walk(c.node));
+    }
+  }
+  walk(tree);
+  return count;
 }

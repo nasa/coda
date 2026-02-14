@@ -213,11 +213,19 @@ export const frameworkSlice = createSlice({
   initialState,
   reducers: {
     /**
-     * Change the component layout
+     * Change the panel layout preset.
+     * Trims frames to only contain entries for panels 1–frameCount so that
+     * dynamically added panels (via "+") always start empty.
      */
-    changeLayout: (state, action: { payload: string }) => {
-      state.layout = action.payload;
+    changeLayout: (state, action: { payload: { layout: string; frameCount: number } }) => {
+      state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
+      // Remove frame entries beyond the preset's panel count
+      for (const key of Object.keys(state.frames)) {
+        if (Number(key) > action.payload.frameCount) {
+          delete state.frames[key];
+        }
+      }
     },
 
     /**
@@ -232,12 +240,14 @@ export const frameworkSlice = createSlice({
     },
 
     /**
-     * Set the state of all frames. Used when state is sent in on a query parameter
+     * Set the state of all frames. Used when state is sent in on a query parameter.
+     * The provided frames are used as-is — callers must pre-trim to match the layout.
      */
     setAllFrameworkState: (state, action: { payload: FrameworkState }) => {
       state.source = action.payload.source;
       allPanes["event_info"].title = getEventInfoTitleBySource(action.payload.source);
       state.layout = action.payload.layout;
+      state.layoutLastChanged = Date.now();
       state.frames = action.payload.frames;
     },
 
@@ -271,15 +281,6 @@ export const frameworkSlice = createSlice({
     removeFrame: (state, action: { payload: number }) => {
       delete state.frames[action.payload];
     },
-
-    /**
-     * Change the overall data source (ISS, Test Events, NBL)
-     */
-    changeSource: (state, action: { payload: Source }) => {
-      state.source = action.payload;
-      state.frames = defaultFrames;
-      allPanes["event_info"].title = getEventInfoTitleBySource(action.payload);
-    },
   },
 });
 
@@ -290,7 +291,6 @@ export const {
   setPaneStateDataValue,
   addFrame,
   removeFrame,
-  changeSource,
 } = frameworkSlice.actions;
 
 function getEventInfoTitleBySource(source: Source): string {

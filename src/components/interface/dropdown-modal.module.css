@@ -59,9 +59,8 @@
 }
 
 .modal {
-  position: absolute;
-  top: 1px;
-  z-index: 40; /* prevents dropdown carets from showing up on top of the modal */
+  position: fixed;
+  z-index: 9999;
 }
 
 @keyframes rotate-up {

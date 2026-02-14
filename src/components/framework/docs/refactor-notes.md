@@ -67,7 +67,9 @@ Current-state reference for the Dockview-based layout system.
 
 - `allLayoutLetters` — ordered list of preset letters (now in `dockview-presets.ts`)
 - `allPanes` — pane type → `{ title, shortTitle, icon, color, defaultPaneStateData }`
-- Reducers: `changeLayout`, `setPaneType`, `setAllFrameworkState`, `setPaneStateDataValue`, `addFrame`, `removeFrame`, `changeSource`
+- Reducers: `changeLayout`, `setPaneType`, `setAllFrameworkState`, `setPaneStateDataValue`, `addFrame`, `removeFrame`
+- `changeLayout` now accepts `{ layout, frameCount }` and trims `state.frames` to 1–frameCount
+- `changeSource` has been removed (was dead code — never dispatched)
 
 ### Frame dimensions
 
@@ -76,5 +78,4 @@ Current-state reference for the Dockview-based layout system.
 ## Known Issues / TODO
 
 - Dockview drag rearrangements are ephemeral (not persisted in share links). A v3.0 share link format could serialize Dockview layout state if needed.
-- Dynamically added panels (via "+") are not persisted across layout changes — switching presets resets to the preset's frame count.
 - Individual pane control components (comm, video-controls, etc.) retain their own internal CSS for dropdowns/buttons. These could be further unified to use `--nearly-black` backgrounds if desired.

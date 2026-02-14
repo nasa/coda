@@ -6,12 +6,12 @@ How the Redux `framework` slice and the Dockview panel renderer work together.
 
 The system has a clean separation of concerns between two state managers:
 
-| Concern | Owner | Location |
-|---|---|---|
-| **What** is displayed in each panel (pane type + pane settings) | Redux (`framework` slice) | `store/framework.ts` |
-| **Where** panels are positioned (grid structure, sizes, drag state) | Dockview (`DockviewApi`) | `dockview-layout.tsx` |
-| **Which** preset layouts exist (tree definitions, letter order) | Dockview presets | `dockview-presets.ts` |
-| **Encoding/decoding** state for share links | Share utilities | `utils/share-state.ts` |
+| Concern                                                             | Owner                     | Location               |
+| ------------------------------------------------------------------- | ------------------------- | ---------------------- |
+| **What** is displayed in each panel (pane type + pane settings)     | Redux (`framework` slice) | `store/framework.ts`   |
+| **Where** panels are positioned (grid structure, sizes, drag state) | Dockview (`DockviewApi`)  | `dockview-layout.tsx`  |
+| **Which** preset layouts exist (tree definitions, letter order)     | Dockview presets          | `dockview-presets.ts`  |
+| **Encoding/decoding** state for share links                         | Share utilities           | `utils/share-state.ts` |
 
 Redux never knows about panel positions or group splits. Dockview never knows about video channels, map lock toggles, or filter states. The bridge between them is the **`frameId`** — an integer identifier assigned to each panel at creation time and passed through Dockview's `params` mechanism.
 
@@ -38,15 +38,17 @@ Each panel's DockviewPanePanel reads state.framework.frames[frameId] to render t
 ### 2. User Picks a New Layout
 
 ```
-LayoutPicker dispatches changeLayout("e")
+LayoutPicker dispatches changeLayout({ layout: "e", frameCount: 4 })
     ↓
 Redux: layout="e", layoutLastChanged=Date.now()
+  + frames trimmed to keys 1–4 (keys 5+ deleted)
     ↓
 DockviewLayout effect fires → getPresetLayout("e") → api.fromJSON(preset)
     ↓
 Entire Dockview tree is replaced with the new preset's panel structure
     ↓
-Panels read their pane types from Redux frames (frame IDs 1-N match the preset)
+Panels 1–4 read their pane types from Redux frames (preserving existing selections)
+Any panel added later via "+" gets a fresh empty frame → watermark picker
 ```
 
 ### 3. User Changes a Pane Type (via tab dropdown or watermark picker)
@@ -130,13 +132,13 @@ The `frameId` is assigned by the preset layout definitions (frames 1–N for N-p
 
 The `layout` field in the Redux `framework` slice is a **preset identifier**, not an active layout manager. It records which layout letter was last selected, and serves these purposes:
 
-| Purpose | Consumer |
-|---|---|
+| Purpose                                                  | Consumer              |
+| -------------------------------------------------------- | --------------------- |
 | Initialize Dockview panels via `getPresetLayout(letter)` | `dockview-layout.tsx` |
-| Show the currently selected layout icon in the header | `header.tsx` |
-| Highlight the active layout in the layout picker | `layout-picker.tsx` |
-| Encode into share link URLs (`&l=j`) | `share-state.ts` |
-| Store/restore with user presets (cookies) | `preset-picker.tsx` |
+| Show the currently selected layout icon in the header    | `header.tsx`          |
+| Highlight the active layout in the layout picker         | `layout-picker.tsx`   |
+| Encode into share link URLs (`&l=j`)                     | `share-state.ts`      |
+| Store/restore with user presets (cookies)                | `preset-picker.tsx`   |
 
 Once Dockview has loaded a preset, the layout letter has no further effect on rendering. Users can drag panels to completely rearrange the visual layout without the letter changing.
 
@@ -155,7 +157,7 @@ useEffect(() => {
 }, [api]);
 
 // Passed to pane as frameDimensions prop
-<PaneComponent frameID={frameId} frameDimensions={dimensions} />
+<PaneComponent frameID={frameId} frameDimensions={dimensions} />;
 ```
 
 This replaces the old ResizeObserver approach. The `frameDimensions` prop is used by panes for responsive behavior (e.g., map resize invalidation, collapsed controls threshold).

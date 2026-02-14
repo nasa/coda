@@ -161,10 +161,23 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     return () => observer.disconnect();
   }, []);
 
+  // Track group dimensions reactively so controls switch display modes on resize
+  const [dimensions, setDimensions] = useState<number[]>(() => [
+    group.width ?? 0,
+    group.height ?? 0,
+  ]);
+
+  useEffect(() => {
+    setDimensions([group.width ?? 0, group.height ?? 0]);
+    const disposable = group.api.onDidDimensionsChange(({ width, height }) => {
+      setDimensions([width, height]);
+    });
+    return () => disposable.dispose();
+  }, [group]);
+
   const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
   const paneType = frameState?.paneType ?? "";
   const ControlComponent = paneType ? (controlComponents[paneType] ?? null) : null;
-  const dimensions = [group.width ?? 0, group.height ?? 0];
 
   const handleAddPanel = useCallback(() => {
     let maxId = 0;

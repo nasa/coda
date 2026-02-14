@@ -262,49 +262,49 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             </div>
           </div>
         )}
+        <HelpOverlay
+          isModalOpen={paneStateData.showHelp}
+          closeHandler={() => {
+            dispatch(
+              setPaneStateDataValue({
+                frameID,
+                paneStateProperty: "showHelp",
+                paneStateValue: !paneStateData.showHelp,
+              })
+            );
+          }}
+        >
+          <div>
+            <p>Displays the photo taken most recently relative to the time being viewed in CODA.</p>
+            <p>
+              Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
+              <a
+                href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
+                target={"_blank"}
+                rel="noopener noreferrer"
+              >
+                ISS Collection
+              </a>
+              . Exploration Test Events usually pulls from the root{" "}
+              <a
+                href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
+                target={"_blank"}
+                rel="noopener noreferrer"
+              >
+                xEVA Collection
+              </a>{" "}
+              but can be overridden by editing the CODA entry for each event in the{" "}
+              <a
+                href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+                target={"_blank"}
+                rel="noopener noreferrer"
+              >
+                Exploration Wiki.
+              </a>
+            </p>
+          </div>
+        </HelpOverlay>
       </div>
-      <HelpOverlay
-        isModalOpen={paneStateData.showHelp}
-        closeHandler={() => {
-          dispatch(
-            setPaneStateDataValue({
-              frameID,
-              paneStateProperty: "showHelp",
-              paneStateValue: !paneStateData.showHelp,
-            })
-          );
-        }}
-      >
-        <div>
-          <p>Displays the photo taken most recently relative to the time being viewed in CODA.</p>
-          <p>
-            Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
-            <a
-              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
-              target={"_blank"}
-              rel="noopener noreferrer"
-            >
-              ISS Collection
-            </a>
-            . Exploration Test Events usually pulls from the root{" "}
-            <a
-              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
-              target={"_blank"}
-              rel="noopener noreferrer"
-            >
-              xEVA Collection
-            </a>{" "}
-            but can be overridden by editing the CODA entry for each event in the{" "}
-            <a
-              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
-              target={"_blank"}
-              rel="noopener noreferrer"
-            >
-              Exploration Wiki.
-            </a>
-          </p>
-        </div>
-      </HelpOverlay>
     </div>
   );
 };
