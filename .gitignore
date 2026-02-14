@@ -32,7 +32,3 @@ tsconfig.tsbuildinfo
 
 # created by coverage reporter
 junit.xml
-
-# ai tool files
-tmpclaude-*
-.claude/
