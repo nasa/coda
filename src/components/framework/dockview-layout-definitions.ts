@@ -111,7 +111,7 @@ function treeToSerialized(root: TreeNode): SerializedDockview {
     };
   }
 
-  // Single panel edge case
+  // Single panel edge case - wrap in a branch to satisfy Dockview requirements
   if (root.kind === "panel") {
     groupCounter++;
     const groupId = `g-${groupCounter}`;
@@ -126,8 +126,14 @@ function treeToSerialized(root: TreeNode): SerializedDockview {
     return {
       grid: {
         root: {
-          type: "leaf",
-          data: { id: groupId, views: [panelId], activeView: panelId },
+          type: "branch",
+          data: [
+            {
+              type: "leaf",
+              data: { id: groupId, views: [panelId], activeView: panelId },
+              size: 1000,
+            },
+          ],
           size: 1000,
         },
         height: 1000,

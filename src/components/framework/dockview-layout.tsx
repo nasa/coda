@@ -10,8 +10,12 @@ import { FunctionComponent, useCallback, useEffect, useState } from "react";
 import { DockviewReact, DockviewApi, DockviewReadyEvent, themeDark } from "dockview-react";
 import type { IWatermarkPanelProps } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { addFrame } from "store/framework";
 import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
@@ -35,10 +39,34 @@ const customTheme = {
 };
 
 /** Watermark shown when a group has no panels (all were closed/moved) */
-const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = () => {
+const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = ({ containerApi }) => {
+  const dispatch = useAppDispatch();
+
+  const handleAddPanel = useCallback(() => {
+    if (!containerApi) return;
+
+    let maxId = 0;
+    for (const panel of containerApi.panels) {
+      const fId = (panel.params?.frameId as number) ?? 0;
+      if (fId > maxId) maxId = fId;
+    }
+    const newFrameId = maxId + 1;
+    dispatch(addFrame(newFrameId));
+    containerApi.addPanel({
+      id: `frame-${newFrameId}`,
+      component: "pane",
+      tabComponent: "paneTab",
+      params: { frameId: newFrameId },
+    });
+  }, [dispatch, containerApi]);
+
   return (
     <div className={styles.watermark}>
-      <span>Drop a panel here or use + to add one</span>
+      <span>Use</span>
+      <button className={styles.watermarkButton} onClick={handleAddPanel} title="Add panel">
+        <FontAwesomeIcon icon={faPlus} />
+      </button>
+      <span>to add a new panel</span>
     </div>
   );
 };
