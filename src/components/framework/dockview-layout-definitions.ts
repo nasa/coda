@@ -30,6 +30,9 @@ interface SplitNode {
 
 type TreeNode = PanelNode | SplitNode;
 
+/** [x, y, width, height] rectangle on the grid */
+export type LayoutRect = readonly [number, number, number, number];
+
 // ---------------------------------------------------------------------------
 // Helpers to build the tree
 // ---------------------------------------------------------------------------
@@ -258,6 +261,71 @@ const layoutTrees: Record<string, TreeNode> = {
     [hsplit([p(7), 333], [p(8), 333], [p(9), 334]), 334]
   ),
 };
+
+// ---------------------------------------------------------------------------
+// Compute SVG rectangles from layout tree
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute rectangles for SVG icon rendering from a layout tree.
+ * Recursively walks the tree and assigns positions based on split proportions.
+ *
+ * @param tree Layout tree to compute
+ * @param cols Number of columns in the grid (default 24)
+ * @param rows Number of rows in the grid (default 9)
+ * @returns Array of rectangles [x, y, width, height]
+ */
+export function computeLayoutRects(
+  tree: TreeNode,
+  cols: number = 24,
+  rows: number = 9
+): LayoutRect[] {
+  const rects: LayoutRect[] = [];
+
+  function walk(node: TreeNode, x: number, y: number, width: number, height: number): void {
+    if (node.kind === "panel") {
+      rects[node.frameId - 1] = [x, y, width, height];
+      return;
+    }
+
+    // Split node - distribute space among children
+    const totalSize = node.children.reduce((sum, c) => sum + c.size, 0);
+    let offset = 0;
+
+    for (const child of node.children) {
+      const proportion = child.size / totalSize;
+
+      if (node.direction === "h") {
+        // Horizontal split: divide width (left to right)
+        const childWidth = width * proportion;
+        walk(child.node, x + offset, y, childWidth, height);
+        offset += childWidth;
+      } else {
+        // Vertical split: divide height (top to bottom)
+        const childHeight = height * proportion;
+        walk(child.node, x, y + offset, width, childHeight);
+        offset += childHeight;
+      }
+    }
+  }
+
+  walk(tree, 0, 0, cols, rows);
+  return rects;
+}
+
+/**
+ * Get the icon definition (rectangles + row count) for a layout letter.
+ * Layout 'g' uses 10 rows for a more balanced 2×3 grid; all others use 9.
+ */
+export function getLayoutIconDef(letter: string): { rows: number; rects: LayoutRect[] } {
+  const tree = layoutTrees[letter];
+  if (!tree) {
+    throw new Error(`Unknown layout: ${letter}`);
+  }
+  // Layout 'g' is a 2×3 grid that looks better with 10 rows (5 per row)
+  const rows = letter === "g" ? 10 : 9;
+  return { rows, rects: computeLayoutRects(tree, 24, rows) };
+}
 
 // ---------------------------------------------------------------------------
 // Public API
