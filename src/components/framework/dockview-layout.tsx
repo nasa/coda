@@ -12,12 +12,24 @@ import type { IWatermarkPanelProps } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
 
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { getLayout } from "./dockview-layouts";
-import { setDockviewApi } from "./dockview-api-ref";
+import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
 import { DockviewRightActions } from "./dockview-header-actions";
 import styles from "./dockview-layout.module.css";
+
+// Module-level reference to the DockviewApi instance
+// Used by preset picker and share utilities to capture the current Dockview layout state
+// without prop-drilling the API through the component tree
+let _api: DockviewApi | null = null;
+
+export function getDockviewApi(): DockviewApi | null {
+  return _api;
+}
+
+export function setDockviewApiRef(api: DockviewApi | null): void {
+  _api = api;
+}
 
 const components = {
   pane: DockviewPanePanel,
@@ -57,7 +69,7 @@ const DockviewLayout: FunctionComponent = () => {
 
   const onReady = useCallback((event: DockviewReadyEvent) => {
     setApi(event.api);
-    setDockviewApi(event.api);
+    setDockviewApiRef(event.api);
   }, []);
 
   // Apply layout whenever the API becomes available or the layout changes

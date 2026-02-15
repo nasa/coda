@@ -132,13 +132,13 @@ The `frameId` is assigned by the layout definitions (frames 1–N for N-panel la
 
 The `layout` field in the Redux `framework` slice is a **layout identifier**, not an active layout manager. It records which layout letter was last selected, and serves these purposes:
 
-| Purpose                                              | Consumer              |
-| ---------------------------------------------------- | --------------------- |
-| Initialize Dockview panels via `getLayout(letter)`   | `dockview-layout.tsx` |
+| Purpose                                               | Consumer              |
+| ----------------------------------------------------- | --------------------- |
+| Initialize Dockview panels via `getLayout(letter)`    | `dockview-layout.tsx` |
 | Show the currently selected layout icon in the header | `header.tsx`          |
-| Highlight the active layout in the layout picker         | `layout-picker.tsx`   |
-| Encode into share link URLs (`&l=j`)                     | `share-state.ts`      |
-| Store/restore with user presets (cookies)                | `preset-picker.tsx`   |
+| Highlight the active layout in the layout picker      | `layout-picker.tsx`   |
+| Encode into share link URLs (`&l=j`)                  | `share-state.ts`      |
+| Store/restore with user presets (cookies)             | `preset-picker.tsx`   |
 
 Once Dockview has loaded a layout, the layout letter has no further effect on rendering. Users can drag panels to completely rearrange the visual layout without the letter changing.
 

@@ -23,7 +23,7 @@ import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import DockviewLayout from "components/framework/dockview-layout";
-import { getFrameCount } from "components/framework/dockview-layouts";
+import { getFrameCount } from "components/framework/dockview-layout-definitions";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
