@@ -95,6 +95,15 @@ export const ModalDropdown = <T extends Record<string, unknown> = Record<string,
       const target = e.target as Node;
       if (labelRef.current?.contains(target)) return;
       if (modalRef.current?.contains(target)) return;
+
+      // Check if click is inside any nested modal dropdown portal
+      // This handles cases where modals contain other modal dropdowns (e.g., Calendar with month/year dropdowns)
+      let element = target as HTMLElement | null;
+      while (element) {
+        if (element.classList?.contains(styles.modal)) return;
+        element = element.parentElement;
+      }
+
       setIsOpen(false);
     };
     document.addEventListener("mousedown", handleOutsideClick);
