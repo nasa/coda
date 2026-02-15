@@ -15,7 +15,6 @@ export const allPanes: Panes = {
     title: "Select display type",
     shortTitle: "None",
     icon: undefined,
-    color: "none",
     defaultPaneStateData: {
       ready: true,
     },
@@ -24,7 +23,6 @@ export const allPanes: Panes = {
     title: "Video Channels",
     shortTitle: "Video",
     icon: faVideo,
-    color: "teal",
     defaultPaneStateData: {
       ready: true,
       channel: 0,
@@ -38,7 +36,6 @@ export const allPanes: Panes = {
     title: "Video Other",
     shortTitle: "Video",
     icon: faVideo,
-    color: "teal",
     defaultPaneStateData: {
       ready: true,
       channel: -1,
@@ -52,7 +49,6 @@ export const allPanes: Panes = {
     title: "Current Photo",
     shortTitle: "Photo",
     icon: faCamera,
-    color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
       showInfo: false,
@@ -64,7 +60,6 @@ export const allPanes: Panes = {
     title: "All Photos",
     shortTitle: "Photos",
     icon: faCamera,
-    color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
       showFilter: false,
@@ -76,7 +71,6 @@ export const allPanes: Panes = {
     title: "ISS Position",
     shortTitle: "Orbit",
     icon: faGlobeAmericas,
-    color: "purple",
     defaultPaneStateData: {
       ready: true,
       lockMap: true,
@@ -87,7 +81,6 @@ export const allPanes: Panes = {
     title: "GPS Position",
     shortTitle: "GPS",
     icon: faGlobeAmericas,
-    color: "purple",
     defaultPaneStateData: {
       ready: true,
       lockMap: true,
@@ -99,7 +92,6 @@ export const allPanes: Panes = {
     title: "EVA Info",
     shortTitle: "Info",
     icon: faInfo,
-    color: "ruby",
     defaultPaneStateData: {
       ready: true,
       showHelp: false,
@@ -109,7 +101,6 @@ export const allPanes: Panes = {
     title: "Communications",
     shortTitle: "Comms",
     icon: faSatellite,
-    color: "burntOrange",
     defaultPaneStateData: {
       ready: true,
       lockScroll: true,
@@ -123,7 +114,6 @@ export const allPanes: Panes = {
     title: "Graph",
     shortTitle: "Graph",
     icon: faChartLine,
-    color: "burntUmber",
     defaultPaneStateData: {
       ready: true,
       lockScroll: true,

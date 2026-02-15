@@ -6,24 +6,6 @@ import styles from "./pane-picker.module.css";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
 
-// Mapping object for pane colors - static class resolution
-const paneColorClasses = {
-  teal: styles.teal,
-  ruby: styles.ruby,
-  purple: styles.purple,
-  grey: styles.grey,
-  mustardGreen: styles.mustardGreen,
-  burntOrange: styles.burntOrange,
-  burntUmber: styles.burntUmber,
-  none: "",
-} as const;
-
-export type PaneColorVariant = keyof typeof paneColorClasses;
-
-interface PanePickerModalOptions {
-  frameID: number;
-}
-
 /**
  * Renders the label for a type of frame
  */
@@ -31,7 +13,7 @@ export const PaneLabel: FunctionComponent<{
   paneType: string;
   labelSize?: "S" | "M" | "L";
 }> = ({ paneType, labelSize }) => {
-  const { title, shortTitle, icon, color } = allPanes[paneType];
+  const { title, shortTitle, icon } = allPanes[paneType];
 
   let displayTitle = title;
   if (labelSize === "M") {
@@ -40,12 +22,10 @@ export const PaneLabel: FunctionComponent<{
     displayTitle = "";
   }
 
-  const colorClass = paneColorClasses[color as PaneColorVariant] || "";
-
   return (
     <div className={styles.item}>
       {icon ? (
-        <div className={`${styles.icon} ${colorClass}`}>
+        <div className={styles.icon}>
           <FontAwesomeIcon icon={icon} />
         </div>
       ) : (

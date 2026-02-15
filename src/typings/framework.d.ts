@@ -13,7 +13,6 @@ interface Pane {
   title: string;
   shortTitle: string;
   icon?: import("@fortawesome/fontawesome-svg-core").IconProp;
-  color: string;
   defaultPaneStateData:
     | EmptyPaneStateData
     | VideoPaneStateData
