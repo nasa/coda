@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout } from "store/framework";
-import { allLayoutLetters, getFrameCount } from "./dockview-presets";
+import { allLayoutLetters, getFrameCount } from "./dockview-layouts";
 import styles from "./layout-picker.module.css";
 import { LayoutIcon } from "./layout-icons";
 import { HelpButton } from "components/interface/pane-help-control-button";

@@ -1,7 +1,7 @@
 /**
- * Dockview preset layout definitions.
+ * Dockview layout definitions.
  *
- * Each of the 19 CSS grid presets (a–s) is represented as a tree of splits
+ * Each of the 19 layouts (a–s) is represented as a tree of splits
  * and panels, then converted to the SerializedDockview format consumed by
  * `api.fromJSON()`.
  *
@@ -155,12 +155,12 @@ function treeToSerialized(root: TreeNode): SerializedDockview {
 }
 
 // ---------------------------------------------------------------------------
-// Preset definitions (a–s)
+// Layout definitions (a–s)
 //
 // Proportional sizes derived from the CSS grid (24 cols × 9 or 10 rows).
 // ---------------------------------------------------------------------------
 
-const presetTrees: Record<string, TreeNode> = {
+const layoutTrees: Record<string, TreeNode> = {
   // Layout h: 1 frame — full screen
   h: p(1),
 
@@ -258,7 +258,7 @@ const presetTrees: Record<string, TreeNode> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Ordered list of layout preset letters for display in the layout picker.
+ * Ordered list of layout letters for display in the layout picker.
  * Order here determines dropdown display order (not alphabetical).
  * Letters must never change — shared links reference them.
  */
@@ -284,17 +284,17 @@ export const allLayoutLetters: string[] = [
   "s",
 ];
 
-export function getPresetLayout(letter: string): SerializedDockview {
-  const tree = presetTrees[letter];
+export function getLayout(letter: string): SerializedDockview {
+  const tree = layoutTrees[letter];
   if (!tree) {
-    throw new Error(`Unknown layout preset: ${letter}`);
+    throw new Error(`Unknown layout: ${letter}`);
   }
   return treeToSerialized(tree);
 }
 
-/** Count the number of panels in a preset layout. */
+/** Count the number of panels in a layout. */
 export function getFrameCount(letter: string): number {
-  const tree = presetTrees[letter];
+  const tree = layoutTrees[letter];
   if (!tree) return 0;
   let count = 0;
   function walk(node: TreeNode): void {

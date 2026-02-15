@@ -214,9 +214,9 @@ const SIZES = {
 type IconSize = keyof typeof SIZES;
 
 /**
- * Renders an inline SVG depicting the given layout preset.
+ * Renders an inline SVG depicting the given layout.
  *
- * @param layout  Layout key (a–s) matching `allLayoutLetters` in dockview-presets
+ * @param layout  Layout key (a–s) matching `allLayoutLetters` in dockview-layouts
  * @param size    "small" (header bar) or "large" (layout picker modal)
  */
 export const LayoutIcon: FunctionComponent<{

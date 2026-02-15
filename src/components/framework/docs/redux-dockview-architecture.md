@@ -10,7 +10,7 @@ The system has a clean separation of concerns between two state managers:
 | ------------------------------------------------------------------- | ------------------------- | ---------------------- |
 | **What** is displayed in each panel (pane type + pane settings)     | Redux (`framework` slice) | `store/framework.ts`   |
 | **Where** panels are positioned (grid structure, sizes, drag state) | Dockview (`DockviewApi`)  | `dockview-layout.tsx`  |
-| **Which** preset layouts exist (tree definitions, letter order)     | Dockview presets          | `dockview-presets.ts`  |
+| **Which** layouts exist (tree definitions, letter order)            | Dockview layouts          | `dockview-layouts.ts`  |
 | **Encoding/decoding** state for share links                         | Share utilities           | `utils/share-state.ts` |
 
 Redux never knows about panel positions or group splits. Dockview never knows about video channels, map lock toggles, or filter states. The bridge between them is the **`frameId`** — an integer identifier assigned to each panel at creation time and passed through Dockview's `params` mechanism.
@@ -28,7 +28,7 @@ dispatch(setAllFrameworkState({ layout: "j", frames: { 1: {...}, 2: {...} } }))
     ↓
 Redux framework slice updates: layout="j", frames={...}
     ↓
-DockviewLayout reads layout from Redux → getPresetLayout("j") → api.fromJSON(preset)
+DockviewLayout reads layout from Redux → getLayout("j") → api.fromJSON(layout)
     ↓
 Dockview creates panels with params: { frameId: 1 }, { frameId: 2 }, ...
     ↓
@@ -43,9 +43,9 @@ LayoutPicker dispatches changeLayout({ layout: "e", frameCount: 4 })
 Redux: layout="e", layoutLastChanged=Date.now()
   + frames trimmed to keys 1–4 (keys 5+ deleted)
     ↓
-DockviewLayout effect fires → getPresetLayout("e") → api.fromJSON(preset)
+DockviewLayout effect fires → getLayout("e") → api.fromJSON(layout)
     ↓
-Entire Dockview tree is replaced with the new preset's panel structure
+Entire Dockview tree is replaced with the new layout's panel structure
     ↓
 Panels 1–4 read their pane types from Redux frames (preserving existing selections)
 Any panel added later via "+" gets a fresh empty frame → watermark picker
@@ -116,7 +116,7 @@ Redux is NOT updated — the layout letter and frame state remain the same
 The panel keeps its frameId param, so it continues reading the correct Redux state
 ```
 
-Drag rearrangements are **ephemeral**. Switching presets or generating a share link uses the layout letter, not Dockview's current visual arrangement.
+Drag rearrangements are **ephemeral**. Switching layouts or generating a share link uses the layout letter, not Dockview's current visual arrangement.
 
 ## The `frameId` Bridge
 
@@ -126,21 +126,21 @@ Every Dockview panel is created with a `params: { frameId: N }` object. This int
 - **Redux side**: `state.framework.frames[frameId]` holds the pane type and all pane-specific state
 - **Pane components**: Receive `frameID` as a prop, use it to select their Redux state and dispatch state updates
 
-The `frameId` is assigned by the preset layout definitions (frames 1–N for N-panel presets) or dynamically when adding panels via the "+" button (max existing ID + 1).
+The `frameId` is assigned by the layout definitions (frames 1–N for N-panel layouts) or dynamically when adding panels via the "+" button (max existing ID + 1).
 
-## Layout Presets vs Redux Layout Letter
+## Layout Letter vs Redux Layout State
 
-The `layout` field in the Redux `framework` slice is a **preset identifier**, not an active layout manager. It records which layout letter was last selected, and serves these purposes:
+The `layout` field in the Redux `framework` slice is a **layout identifier**, not an active layout manager. It records which layout letter was last selected, and serves these purposes:
 
-| Purpose                                                  | Consumer              |
-| -------------------------------------------------------- | --------------------- |
-| Initialize Dockview panels via `getPresetLayout(letter)` | `dockview-layout.tsx` |
-| Show the currently selected layout icon in the header    | `header.tsx`          |
+| Purpose                                              | Consumer              |
+| ---------------------------------------------------- | --------------------- |
+| Initialize Dockview panels via `getLayout(letter)`   | `dockview-layout.tsx` |
+| Show the currently selected layout icon in the header | `header.tsx`          |
 | Highlight the active layout in the layout picker         | `layout-picker.tsx`   |
 | Encode into share link URLs (`&l=j`)                     | `share-state.ts`      |
 | Store/restore with user presets (cookies)                | `preset-picker.tsx`   |
 
-Once Dockview has loaded a preset, the layout letter has no further effect on rendering. Users can drag panels to completely rearrange the visual layout without the letter changing.
+Once Dockview has loaded a layout, the layout letter has no further effect on rendering. Users can drag panels to completely rearrange the visual layout without the letter changing.
 
 ## Panel Dimensions
 
@@ -174,7 +174,7 @@ Share links encode a snapshot of the **Redux** state, not the Dockview visual st
   └─ share link version
 ```
 
-On load, the layout letter initializes Dockview (creating the panel grid), and the frame state populates Redux (setting pane types and their settings). Any drag rearrangements from the original session are lost — the recipient gets a clean preset layout with the same pane assignments.
+On load, the layout letter initializes Dockview (creating the panel grid), and the frame state populates Redux (setting pane types and their settings). Any drag rearrangements from the original session are lost — the recipient gets a clean layout with the same pane assignments.
 
 ## Why Not Store Dockview State in Redux?
 

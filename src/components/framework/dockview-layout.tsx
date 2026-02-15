@@ -1,9 +1,9 @@
 /**
  * DockviewLayout — replaces the CSS grid Viewer component.
  *
- * Mounts a `DockviewReact` instance and applies preset layouts from Redux.
+ * Mounts a `DockviewReact` instance and applies layouts from Redux.
  * When the `layout` letter changes in Redux, the corresponding Dockview
- * preset is loaded via `api.fromJSON()`.
+ * layout is loaded via `api.fromJSON()`.
  */
 
 import { FunctionComponent, useCallback, useEffect, useState } from "react";
@@ -12,7 +12,7 @@ import type { IWatermarkPanelProps } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
 
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
-import { getPresetLayout } from "./dockview-presets";
+import { getLayout } from "./dockview-layouts";
 import { setDockviewApi } from "./dockview-api-ref";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
@@ -64,12 +64,12 @@ const DockviewLayout: FunctionComponent = () => {
   useEffect(() => {
     if (!api) return;
     // If a serialized Dockview layout is available (v3 share/preset), use it directly.
-    // Otherwise fall back to the preset letter system.
+    // Otherwise fall back to the layout letter system.
     if (dockviewLayout) {
       api.fromJSON(dockviewLayout);
     } else {
-      const preset = getPresetLayout(layout);
-      api.fromJSON(preset);
+      const serializedLayout = getLayout(layout);
+      api.fromJSON(serializedLayout);
     }
   }, [api, layout, layoutLastChanged, dockviewLayout]);
 

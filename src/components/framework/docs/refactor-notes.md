@@ -38,7 +38,7 @@ Current-state reference for the Dockview-based layout system.
 | `dockview-tab.module.css`            | Tab, chevron, close button styles                                 |
 | `dockview-header-actions.tsx`        | Right header "+" button + inline/collapsed pane controls          |
 | `dockview-header-actions.module.css` | Add button + collapsed controls popover styles                    |
-| `dockview-presets.ts`                | Tree DSL + all 19 serialized Dockview layouts                     |
+| `dockview-layouts.ts`                | Tree DSL + all 19 serialized Dockview layouts                     |
 | `layout-icons.tsx`                   | Inline SVG layout icons for picker and header                     |
 
 **Visual customizations:**
@@ -63,7 +63,7 @@ Current-state reference for the Dockview-based layout system.
 ### Share links
 
 - v1.0 and v2.0 share links decode via `interpretFramestateQueryString` unchanged.
-- v2.0 share links encode the preset layout letter (`&l=`) + per-frame pane state.
+- v2.0 share links encode the layout letter (`&l=`) + per-frame pane state.
 - **v3.0 share links** capture the live Dockview layout via `api.toJSON()`, compressed with LZUTF8 and encoded as Base64 in the `&dv=` query parameter.
   - Preserves exact panel splits, proportions, and arrangement — even after drag rearrangements.
   - Proportionality is maintained across different screen resolutions (Dockview's `fromJSON()` scales sizes proportionally to the container).
@@ -99,7 +99,7 @@ Current-state reference for the Dockview-based layout system.
 
 ### Key exports
 
-- `allLayoutLetters` — ordered list of preset letters (now in `dockview-presets.ts`)
+- `allLayoutLetters` — ordered list of layout letters (now in `dockview-layouts.ts`)
 - `allPanes` — pane type → `{ title, shortTitle, icon, color, defaultPaneStateData }`
 - Reducers: `changeLayout`, `setPaneType`, `setAllFrameworkState`, `setPaneStateDataValue`, `addFrame`, `removeFrame`
 - `changeLayout` now accepts `{ layout, frameCount }` and trims `state.frames` to 1–frameCount
