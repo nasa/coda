@@ -50,34 +50,6 @@
   align-items: center;
 }
 
-.teal {
-  color: var(--teal);
-}
-
-.ruby {
-  color: var(--ruby);
-}
-
-.purple {
-  color: var(--purple);
-}
-
-.grey {
-  color: var(--extremely-grey);
-}
-
-.mustardGreen {
-  color: var(--mustard-green);
-}
-
-.burntOrange {
-  color: var(--burnt-orange);
-}
-
-.burntUmber {
-  color: var(--burnt-umber);
-}
-
 .closeOption {
   border-top: 1px solid var(--dark-grey);
   margin-top: 2px;

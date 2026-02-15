@@ -5,30 +5,19 @@
 node_modules/
 coverage/
 
-# production
-dist/
-
-# local cache
-.cache*
-
 # Directory where local data is stored during dev
 .local
 
-# MWBot cookie directory
-.cookies
-
 # don't commit secrets! (.env.local no longer used, but ignore to protect data on dev's computers)
-.env.local
 .env
-.env.secret
-.env.old
 env.secret.ts
 
 # NOCA cert required to hit wiki and IO. See README.md
 .env.local.cert.pem
 
-# typescript
-tsconfig.tsbuildinfo
-
 # created by coverage reporter
 junit.xml
+
+# any agent files
+*.copilot-instructions.*
+*.AGENTS.*

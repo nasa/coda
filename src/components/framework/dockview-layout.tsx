@@ -16,20 +16,8 @@ import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
 import { DockviewRightActions } from "./dockview-header-actions";
+import { setDockviewApi } from "./dockview-api-ref";
 import styles from "./dockview-layout.module.css";
-
-// Module-level reference to the DockviewApi instance
-// Used by preset picker and share utilities to capture the current Dockview layout state
-// without prop-drilling the API through the component tree
-let _api: DockviewApi | null = null;
-
-export function getDockviewApi(): DockviewApi | null {
-  return _api;
-}
-
-export function setDockviewApiRef(api: DockviewApi | null): void {
-  _api = api;
-}
 
 const components = {
   pane: DockviewPanePanel,
@@ -69,7 +57,7 @@ const DockviewLayout: FunctionComponent = () => {
 
   const onReady = useCallback((event: DockviewReadyEvent) => {
     setApi(event.api);
-    setDockviewApiRef(event.api);
+    setDockviewApi(event.api);
   }, []);
 
   // Apply layout whenever the API becomes available or the layout changes

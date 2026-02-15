@@ -10,7 +10,7 @@ import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
 import LZUTF8 from "lzutf8";
 import type { SerializedDockview } from "dockview-react";
-import { getDockviewApi } from "components/framework/dockview-layout";
+import { getDockviewApi } from "components/framework/dockview-api-ref";
 
 /**
  * Validates share link date/time parameters.

@@ -6,6 +6,10 @@ import styles from "./pane-picker.module.css";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
 
+interface PanePickerModalOptions {
+  frameID: number;
+}
+
 /**
  * Renders the label for a type of frame
  */

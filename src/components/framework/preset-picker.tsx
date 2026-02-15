@@ -12,7 +12,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import LZUTF8 from "lzutf8";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { getDockviewApi } from "./dockview-layout";
+import { getDockviewApi } from "./dockview-api-ref";
 
 const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
