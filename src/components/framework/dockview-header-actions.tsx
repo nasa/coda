@@ -1,10 +1,10 @@
 /**
  * Dockview header action components.
  *
- * RightActions — pane-specific controls for the active panel + "+" button.
- * Sits on the same row as tabs. The void-container flex-grow override in
- * dockview-layout.module.css keeps controls adjacent to tabs instead of
- * flushed to the far right.
+ * RightActions — "+" button (adjacent to tabs) followed by pane-specific
+ * controls for the active panel. Sits on the same row as tabs. The
+ * void-container flex-grow override in dockview-layout.module.css keeps
+ * these elements adjacent to tabs instead of flushed to the far right.
  *
  * When the available width is too small for inline controls (e.g. multiple
  * tabs in a narrow panel), controls collapse into a single button that opens
@@ -126,7 +126,7 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
 };
 
 // ---------------------------------------------------------------------------
-// Right header actions — controls + "+" button
+// Right header actions — "+" button + controls
 // ---------------------------------------------------------------------------
 
 export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps> = ({
