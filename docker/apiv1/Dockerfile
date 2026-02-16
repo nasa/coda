@@ -4,7 +4,7 @@
 # # # # # # # #
 # PROD image  #
 # # # # # # # #
-FROM node:24.11.1-alpine3.21 AS prod
+FROM node:24.11.1-alpine3.23 AS prod
 
 # CODA requires a special CA-cert in place to talk to Imagery Online.
 COPY .env.local.cert.pem /
