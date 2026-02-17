@@ -203,7 +203,7 @@ function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeSho
   const paneTypeString = "0" + paneType;
   const dlString = state.channel === -1 ? "-1" : "0" + state.channel.toString();
   const mutedString = state.muted ? "1" : "0";
-  const activeVideoFileID = state.activeVideoFileID;
+  const activeVideoFileID = encodeURIComponent(state.activeVideoFileID);
   return `${paneTypeString}${dlString}${mutedString}${activeVideoFileID}`;
 }
 
@@ -339,7 +339,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
           ready: true,
           channel: parseInt(frameString.substring(2, 4)),
           muted: frameString.charAt(4) === "1",
-          activeVideoFileID: "",
+          activeVideoFileID: decodeURIComponent(frameString.substring(5)),
           showInfo: false,
           showHelp: false,
         },
@@ -352,7 +352,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
           ready: true,
           channel: -1,
           muted: frameString.substring(4, 5) === "1",
-          activeVideoFileID: frameString.substring(5, 6),
+          activeVideoFileID: decodeURIComponent(frameString.substring(5)),
           showHelp: false,
         } as VideoPaneStateData,
       };
