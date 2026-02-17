@@ -49,27 +49,16 @@ const EventDropdown: FunctionComponent<{
 
   const value = selectedEVA?.startDate ?? "";
 
-  /**
-   * Switch to another Event date via Redux store (same as calendar date change)
-   */
   const handleEVASelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.preventDefault();
     if (e.target.value !== "") {
       const [year, month, day] = e.target.value.split("-").map(Number);
-      const formattedDate = `${year}-${padZeros(month, 2)}-${padZeros(day, 2)}`;
       const newDate = new Date(Date.UTC(year, month - 1, day));
 
-      // Update URL without reloading
-      const url = new URL(window.location.href);
-      url.searchParams.set("date", formattedDate);
-      url.searchParams.set("gmt", "00:00:00");
-      window.history.replaceState({}, "", url.toString());
-
-      // Clear stores and change to new date (socket will reconnect automatically)
       dispatch(
         thunkChangeViewingDate({
           newDate: midnightZulu(newDate).toISOString(),
-          newAppSeconds: 0,
+          keepCurrentTime: true,
         })
       );
     }

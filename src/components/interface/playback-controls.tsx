@@ -6,7 +6,6 @@ import { setAppSeconds, startClock, stopClock } from "store/clock";
 import { thunkChangeViewingDate } from "store/thunk/clockThunk";
 import ClockInterval from "components/framework/ClockInterval";
 import { addMs, midnightZulu } from "utils/date";
-import { padZeros } from "utils/formatting";
 import { usePlayheadDate } from "store/hooks";
 
 const SECONDS_IN_DAY = 86400;
@@ -17,23 +16,6 @@ const SECONDS_IN_DAY = 86400;
 function getNextDate(currentDate: string): Date {
   const current = new Date(currentDate);
   return addMs(midnightZulu(current), SECONDS_IN_DAY * 1000);
-}
-
-/**
- * Updates the browser URL's date parameter without reloading the page
- * @param nextDate - The next date to set in the URL
- */
-function updateURLDateParam(nextDate: Date): void {
-  const url = new URL(window.location.href);
-  const nextDateString = `${nextDate.getUTCFullYear()}-${padZeros(nextDate.getUTCMonth() + 1, 2)}-${padZeros(nextDate.getUTCDate(), 2)}`;
-
-  // Set or update the date parameter
-  url.searchParams.set("date", nextDateString);
-  // Reset GMT to beginning of day
-  url.searchParams.set("gmt", "00:00:00");
-
-  // Update URL without reloading the page
-  window.history.replaceState({}, "", url.toString());
 }
 
 const PlaybackControls: FunctionComponent = () => {
@@ -68,9 +50,6 @@ const PlaybackControls: FunctionComponent = () => {
       dispatch(setAppSeconds(SECONDS_IN_DAY - 1));
       return;
     }
-
-    // Update browser URL without reload
-    updateURLDateParam(nextDate);
 
     // Clear stores and change to new date (socket will reconnect automatically)
     dispatch(thunkChangeViewingDate({ newDate: nextDate.toISOString(), newAppSeconds: 0 }));
