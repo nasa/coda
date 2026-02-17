@@ -6,7 +6,7 @@
  * The component renders a lightweight inline SVG at the requested size.
  */
 import { FunctionComponent, useMemo } from "react";
-import { getLayoutIconDef } from "./dockview-layout-definitions";
+import { getLayoutIconDef } from "./dockview/dockview-layout-definitions";
 
 /** Gap between rectangles in grid-coordinate units */
 const GAP = 0.4;

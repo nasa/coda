@@ -12,7 +12,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import LZUTF8 from "lzutf8";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { getDockviewApi } from "./dockview-api-ref";
+import { getDockviewApi } from "./dockview/dockview-api-ref";
 
 const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
@@ -29,8 +29,9 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       ...framework,
       layout: preset.layout,
       frames: preset.frames,
-      // v3 presets include a serialized Dockview layout; v2 presets use the letter system
-      dockviewLayout: preset.version === 3 && preset.dockviewLayout ? preset.dockviewLayout : null,
+      // v3 presets include a serialized Dockview snapshot; v2 presets use the letter system
+      dockviewSnapshot:
+        preset.version === 3 && preset.dockviewSnapshot ? preset.dockviewSnapshot : null,
     };
     dispatch(setAllFrameworkState(newFrameworkState));
     closeClick?.();
@@ -45,8 +46,8 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       frames: framework.frames,
       name: presetNameField,
       version: 3,
-      // Capture the current Dockview layout so proportions and arrangement are restored
-      dockviewLayout: dockviewApi ? dockviewApi.toJSON() : undefined,
+      // Capture the current Dockview state snapshot so proportions and arrangement are restored
+      dockviewSnapshot: dockviewApi ? dockviewApi.toJSON() : undefined,
     };
 
     const newUserPresets = [...userPresets, newPreset];

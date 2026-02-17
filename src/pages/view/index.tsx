@@ -17,13 +17,13 @@ import { setDate, setAppSeconds } from "store/clock";
 import {
   interpretFramestateQueryString,
   validateShareLinkDateTime,
-  decompressDockviewLayout,
+  decompressDockviewSnapshot,
 } from "utils/share-state";
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
-import DockviewLayout from "components/framework/dockview-layout";
-import { getFrameCount } from "components/framework/dockview-layout-definitions";
+import DockviewLayout from "components/framework/dockview/dockview";
+import { getFrameCount } from "components/framework/dockview/dockview-layout-definitions";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
@@ -223,12 +223,12 @@ function getURLParams(query: URLSearchParams): QueryParams {
   } else if (version === "2.0") {
     fState.frames = interpretFramestateQueryString(query);
   } else if (version === "3.0") {
-    // v3: Dockview layout is serialized in the `dv` query param
+    // v3: Dockview snapshot is serialized in the `dv` query param
     const dvParam = query?.get("dv");
     if (dvParam) {
-      const decoded = decompressDockviewLayout(decodeURIComponent(dvParam));
+      const decoded = decompressDockviewSnapshot(decodeURIComponent(dvParam));
       if (decoded) {
-        fState.dockviewLayout = decoded;
+        fState.dockviewSnapshot = decoded;
       }
     }
     // Pane state is still encoded in f1, f2, ... params (same as v2)

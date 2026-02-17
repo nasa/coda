@@ -6,7 +6,7 @@ interface Preset {
   /** Version of the preset format: 2 = layout-letter based, 3 = serialized Dockview JSON */
   version?: 2 | 3;
   /** Serialized Dockview layout JSON (v3 presets only) */
-  dockviewLayout?: import("dockview-react").SerializedDockview;
+  dockviewSnapshot?: import("dockview-react").SerializedDockview;
 }
 
 interface Pane {
@@ -49,8 +49,8 @@ interface FrameworkState {
   layoutLastChanged: number; // milliseconds since epoch
   /** Current mapping of visible frames to Frame types */
   frames: FrameState;
-  /** Serialized Dockview layout JSON — when set, used instead of the preset letter */
-  dockviewLayout?: import("dockview-react").SerializedDockview | null;
+  /** Serialized Dockview layout JSON — snapshot for initialization only, not kept in sync */
+  dockviewSnapshot?: import("dockview-react").SerializedDockview | null;
 }
 
 interface FrameState {

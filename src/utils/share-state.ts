@@ -10,7 +10,7 @@ import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
 import LZUTF8 from "lzutf8";
 import type { SerializedDockview } from "dockview-react";
-import { getDockviewApi } from "components/framework/dockview-api-ref";
+import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
 
 /**
  * Validates share link date/time parameters.
@@ -78,7 +78,7 @@ export function validateShareLinkDateTime(
 /**
  * Compresses a SerializedDockview object into a URL-safe Base64 string.
  */
-export function compressDockviewLayout(layout: SerializedDockview): string {
+export function compressDockviewSnapshot(layout: SerializedDockview): string {
   const json = JSON.stringify(layout);
   return LZUTF8.compress(json, { outputEncoding: "Base64" });
 }
@@ -87,7 +87,7 @@ export function compressDockviewLayout(layout: SerializedDockview): string {
  * Decompresses a URL-safe Base64 string back into a SerializedDockview object.
  * Returns null if decompression or parsing fails.
  */
-export function decompressDockviewLayout(encoded: string): SerializedDockview | null {
+export function decompressDockviewSnapshot(encoded: string): SerializedDockview | null {
   try {
     const json = LZUTF8.decompress(encoded, { inputEncoding: "Base64" });
     return JSON.parse(json) as SerializedDockview;
@@ -171,15 +171,17 @@ export function generateShareURL(
   URL += `&gmt=${missionTime}`;
   URL += `&s=${shortSource}`;
 
-  // Capture the live Dockview layout for a v3 share link
+  // Capture the live Dockview state snapshot for a v3 share link
   const dockviewApi = getDockviewApi();
   if (dockviewApi) {
     const serialized = dockviewApi.toJSON();
-    const compressedLayout = compressDockviewLayout(serialized);
+    const compressedLayout = compressDockviewSnapshot(serialized);
     URL += `&v=3.0`;
     URL += `&dv=${encodeURIComponent(compressedLayout)}`;
   } else {
-    // Fallback to v2 format when DockviewApi is not available
+    // Fallback to v2 format when DockviewApi is not available.
+    // This can happen if: called before Dockview component initializes,
+    // component has unmounted, or in non-browser contexts.
     const layout = framework.layout;
     URL += `&v=2.0`;
     URL += `&l=${layout}`;

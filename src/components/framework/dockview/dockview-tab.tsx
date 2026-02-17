@@ -14,7 +14,7 @@ import { faChevronDown, faGripVertical } from "@fortawesome/free-solid-svg-icons
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { allPanes, removeFrame } from "store/framework";
-import PanePickerModal from "./pane-picker";
+import PanePickerModal from "../pane-picker";
 import styles from "./dockview-tab.module.css";
 
 interface PanelParams {
@@ -86,6 +86,7 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
         <FontAwesomeIcon icon={faChevronDown} />
       </span>
       {menuOpen &&
+        // Using createPortal to render the menu at the body level, so it can overflow the tab and not be cut off by overflow:hidden styles in Dockview.
         createPortal(
           <div
             ref={overlayRef}

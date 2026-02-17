@@ -5,7 +5,7 @@ interface QueryParams {
   gmt: string;
   frameworkState: FrameworkState;
   /** Serialized Dockview layout JSON from a v3 share link */
-  dockviewLayout?: import("dockview-react").SerializedDockview | null;
+  dockviewSnapshot?: import("dockview-react").SerializedDockview | null;
 }
 
 type FetchOptionsCredentials = "include" | "same-origin" | "omit";

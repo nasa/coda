@@ -16,7 +16,7 @@ import { shallowEqual, useAppSelector, refEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { allPanes, setPaneType } from "store/framework";
 import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
-import { PaneLabel } from "./pane-picker";
+import { PaneLabel } from "../pane-picker";
 
 import EventInfo from "components/panes/event-info";
 import VideoPaneChooser from "components/panes/video/video-chooser";

@@ -196,7 +196,7 @@ export const initialState: FrameworkState = {
   layoutLastChanged: Date.now(),
   frames: defaultFrames,
   source: "ISS",
-  dockviewLayout: null,
+  dockviewSnapshot: null,
 };
 
 export const frameworkSlice = createSlice({
@@ -240,7 +240,7 @@ export const frameworkSlice = createSlice({
       state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
       state.frames = action.payload.frames;
-      state.dockviewLayout = action.payload.dockviewLayout ?? null;
+      state.dockviewSnapshot = action.payload.dockviewSnapshot ?? null;
     },
 
     /**

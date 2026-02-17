@@ -5,7 +5,11 @@
  * Dockview layout state (via `api.toJSON()`) without prop-drilling
  * the API through the component tree.
  *
- * This has to be a separate files from the tsx because if vitest imports it as tsx, tests fail under node environment. (DockviewApi type references browser APIs, so importing the tsx causes vitest to try to load the entire Dockview library in node, which fails.)
+ * This has to be a separate files from the tsx because if vitest
+ * imports it as tsx, tests fail under node environment.
+ * (DockviewApi type references browser APIs, so importing the tsx
+ * causes vitest to try to load the entire Dockview library
+ * in node, which fails.)
  */
 
 import type { DockviewApi } from "dockview-react";

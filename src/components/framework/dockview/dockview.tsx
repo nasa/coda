@@ -1,9 +1,15 @@
 /**
- * DockviewLayout — replaces the CSS grid Viewer component.
+ * DockviewLayout — Main `DockviewReact` container, theme overrides, watermark
+ * Replaces the CSS grid Viewer component.
  *
  * Mounts a `DockviewReact` instance and applies layouts from Redux.
  * When the `layout` letter changes in Redux, the corresponding Dockview
  * layout is loaded via `api.fromJSON()`.
+ *
+ * Nomenclature:
+ * - "Pane": a single CODA content panel (e.g. video, photo, graph)
+ * - "Panel": a Dockview panel, which wraps a Pane and provides controls (move, close)
+ * - "Group": a Dockview group, which contains one or more Panels and provides layout (tabbed, stacked, etc)
  */
 
 import { FunctionComponent, useCallback, useEffect, useState } from "react";
@@ -21,7 +27,7 @@ import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
 import { DockviewRightActions } from "./dockview-header-actions";
 import { setDockviewApi } from "./dockview-api-ref";
-import styles from "./dockview-layout.module.css";
+import styles from "./dockview.module.css";
 
 const components = {
   pane: DockviewPanePanel,
@@ -78,8 +84,8 @@ const DockviewLayout: FunctionComponent = () => {
     (state) => state.framework.layoutLastChanged,
     shallowEqual
   );
-  const dockviewLayout = useAppSelector(
-    (state) => state.framework.dockviewLayout ?? null,
+  const dockviewSnapshot = useAppSelector(
+    (state) => state.framework.dockviewSnapshot ?? null,
     shallowEqual
   );
 
@@ -91,15 +97,15 @@ const DockviewLayout: FunctionComponent = () => {
   // Apply layout whenever the API becomes available or the layout changes
   useEffect(() => {
     if (!api) return;
-    // If a serialized Dockview layout is available (v3 share/preset), use it directly.
+    // If a serialized Dockview snapshot is available (v3 share/preset), use it directly.
     // Otherwise fall back to the layout letter system.
-    if (dockviewLayout) {
-      api.fromJSON(dockviewLayout);
+    if (dockviewSnapshot) {
+      api.fromJSON(dockviewSnapshot);
     } else {
       const serializedLayout = getLayout(layout);
       api.fromJSON(serializedLayout);
     }
-  }, [api, layout, layoutLastChanged, dockviewLayout]);
+  }, [api, layout, layoutLastChanged, dockviewSnapshot]);
 
   return (
     <div className={styles.container}>

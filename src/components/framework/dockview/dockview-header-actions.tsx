@@ -51,14 +51,10 @@ function getActiveFrameId(activePanel: IDockviewPanel | undefined): number {
   return (activePanel?.params?.frameId as number) ?? 0;
 }
 
-// ---------------------------------------------------------------------------
 // Collapsed controls popover — shown when inline controls won't fit
-// ---------------------------------------------------------------------------
 
-/**
- * Large fake dimensions passed to controls inside the popover so they always
- * render in their expanded / wide layout (labels visible, full button rows).
- */
+// Large fake dimensions passed to controls inside the popover so they always render in their expanded / wide layout (labels visible, full button rows).
+
 const POPOVER_DIMENSIONS: number[] = [800, 600];
 
 interface CollapsedControlsProps {
@@ -86,6 +82,32 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
     };
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [open]);
+
+  // Adjust popover position to keep it within viewport bounds
+  useEffect(() => {
+    if (!open || !popoverRef.current || !buttonRef.current) return;
+
+    const popoverRect = popoverRef.current.getBoundingClientRect();
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth;
+    const popoverWidth = popoverRect.width;
+
+    // Calculate ideal right position (button's right edge to popover's right edge)
+    let rightPos = viewportWidth - buttonRect.right;
+
+    // Clamp right position to keep popover within viewport
+    // Minimum right: 0 (popover's right edge at viewport right)
+    // Maximum right: viewportWidth - popoverWidth (popover's left edge at viewport left edge)
+    rightPos = Math.max(0, Math.min(rightPos, viewportWidth - popoverWidth));
+
+    setPopoverPos((prev) => {
+      // Only update if position changed to avoid loops
+      if (prev.right !== rightPos) {
+        return { ...prev, right: rightPos };
+      }
+      return prev;
+    });
   }, [open]);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
@@ -125,9 +147,7 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
   );
 };
 
-// ---------------------------------------------------------------------------
 // Right header actions — "+" button + controls
-// ---------------------------------------------------------------------------
 
 export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps> = ({
   group,

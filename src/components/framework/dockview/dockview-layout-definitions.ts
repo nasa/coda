@@ -13,9 +13,7 @@
 import type { SerializedDockview } from "dockview-react";
 import { Orientation } from "dockview-react";
 
-// ---------------------------------------------------------------------------
 // Tree DSL types
-// ---------------------------------------------------------------------------
 
 interface PanelNode {
   kind: "panel";
@@ -31,11 +29,9 @@ interface SplitNode {
 type TreeNode = PanelNode | SplitNode;
 
 /** [x, y, width, height] rectangle on the grid */
-export type LayoutRect = readonly [number, number, number, number];
+type LayoutRect = readonly [number, number, number, number];
 
-// ---------------------------------------------------------------------------
 // Helpers to build the tree
-// ---------------------------------------------------------------------------
 
 function p(frameId: number): PanelNode {
   return { kind: "panel", frameId };
@@ -57,9 +53,7 @@ function vsplit(...args: [TreeNode, number][]): SplitNode {
   };
 }
 
-// ---------------------------------------------------------------------------
 // Convert tree → SerializedDockview
-// ---------------------------------------------------------------------------
 
 interface GridLeaf {
   type: "leaf";
@@ -166,6 +160,8 @@ function treeToSerialized(root: TreeNode): SerializedDockview {
 // ---------------------------------------------------------------------------
 // Layout definitions (a–s)
 //
+// Ported from the original CSS grid layout system. Each layout is defined as a tree of splits and panels,
+// then converted to the SerializedDockview format consumed by `api.fromJSON()`.
 // Proportional sizes derived from the CSS grid (24 cols × 9 or 10 rows).
 // ---------------------------------------------------------------------------
 
@@ -262,10 +258,6 @@ const layoutTrees: Record<string, TreeNode> = {
   ),
 };
 
-// ---------------------------------------------------------------------------
-// Compute SVG rectangles from layout tree
-// ---------------------------------------------------------------------------
-
 /**
  * Compute rectangles for SVG icon rendering from a layout tree.
  * Recursively walks the tree and assigns positions based on split proportions.
@@ -313,6 +305,8 @@ export function computeLayoutRects(
   return rects;
 }
 
+// Compute SVG rectangles from layout tree
+
 /**
  * Get the icon definition (rectangles + row count) for a layout letter.
  * Layout 'g' uses 10 rows for a more balanced 2×3 grid; all others use 9.
@@ -327,9 +321,7 @@ export function getLayoutIconDef(letter: string): { rows: number; rects: LayoutR
   return { rows, rects: computeLayoutRects(tree, 24, rows) };
 }
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 /**
  * Ordered list of layout letters for display in the layout picker.
