@@ -211,6 +211,8 @@ export const frameworkSlice = createSlice({
     changeLayout: (state, action: { payload: { layout: string; frameCount: number } }) => {
       state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
+      // Clear any v3 snapshot so the new layout letter takes effect
+      state.dockviewSnapshot = null;
       // Remove frame entries beyond the preset's panel count
       for (const key of Object.keys(state.frames)) {
         if (Number(key) > action.payload.frameCount) {
