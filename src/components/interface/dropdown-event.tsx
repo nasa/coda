@@ -1,14 +1,15 @@
 import isNil from "lodash/isNil";
 import { FunctionComponent } from "react";
-import { deepEqual, refEqual, shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import styles from "./dropdown-event.module.css";
 import { padZeros } from "utils/formatting";
 import { collection as collectionEnum } from "utils/consts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { generateShareURL } from "utils/share-state";
-import { diff, isSameDate } from "../../utils/date";
+import { diff, isSameDate, midnightZulu } from "../../utils/date";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { usePlayheadDate } from "store/hooks";
+import { useAppDispatch } from "utils/useAppDispatch";
+import { thunkChangeViewingDate } from "store/thunk/clockThunk";
 
 /**
  * Format display title for test events by adding event number in brackets
@@ -26,10 +27,9 @@ const EventDropdown: FunctionComponent<{
   collection: Collection;
 }> = ({ collection }) => {
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
-  const framework = useAppSelector((state) => state.framework, shallowEqual);
 
   const date = usePlayheadDate();
-  const appSeconds = useAppSelector((state) => state.clock.appSecondsAtStartStop, refEqual);
+  const dispatch = useAppDispatch();
 
   let allSequences = sequences.allSequences;
   if (collection === collectionEnum.NBL) {
@@ -50,21 +50,30 @@ const EventDropdown: FunctionComponent<{
   const value = selectedEVA?.startDate ?? "";
 
   /**
-   * Navigate to another Event
+   * Switch to another Event date via Redux store (same as calendar date change)
    */
   const handleEVASelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.preventDefault();
     if (e.target.value !== "") {
-      const [year, month, day] = e.target.value.split("-");
-      const formattedDate = `${year}-${padZeros(+month, 2)}-${padZeros(+day, 2)}`;
-      let URL = generateShareURL(framework, date ?? "", appSeconds);
-      // replace the datestring in URL with selected calendar date
-      URL = URL.replace(/\d{4}-\d{2}-\d{2}/, formattedDate);
-      window.location.assign(URL);
+      const [year, month, day] = e.target.value.split("-").map(Number);
+      const formattedDate = `${year}-${padZeros(month, 2)}-${padZeros(day, 2)}`;
+      const newDate = new Date(Date.UTC(year, month - 1, day));
+
+      // Update URL without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.set("date", formattedDate);
+      url.searchParams.set("gmt", "00:00:00");
+      window.history.replaceState({}, "", url.toString());
+
+      // Clear stores and change to new date (socket will reconnect automatically)
+      dispatch(
+        thunkChangeViewingDate({
+          newDate: midnightZulu(newDate).toISOString(),
+          newAppSeconds: 0,
+        })
+      );
     }
   };
-
-  // TODO: add ... to avoid going behind the arrow
 
   const today = new Date();
   const earliestCutoff = new Date("2013-03-30");
