@@ -100,7 +100,10 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
   );
 };
 
-const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const PhotoPane: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
+  frameID,
+  frameDimensions,
+}) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
@@ -250,7 +253,14 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
+              <img
+                className={styles.photo}
+                src={
+                  frameDimensions[0] > 640 && photos.activePhoto.mediaHighResURL
+                    ? photos.activePhoto.mediaHighResURL
+                    : photos.activePhoto.mediaLowResURL
+                }
+              />
             </a>
             {paneStateData.showInfo ? renderPhotoOverlay() : null}
             {paneStateData.showFilter ? <RenderPhotoFilter /> : null}
