@@ -73,7 +73,8 @@
   box-shadow: 0 4px 16px rgb(0 0 0 / 50%);
   display: flex;
   align-items: center;
-  min-width: 400px;
+  width: fit-content;
+  max-width: calc(100vw - 8px);
   /* overflow visible so nested dropdowns (e.g. comm channel selector) render outside */
   overflow: visible;
 }

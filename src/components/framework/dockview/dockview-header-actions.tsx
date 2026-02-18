@@ -11,7 +11,14 @@
  * a popover containing the full controls component.
  */
 
-import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import type { IDockviewHeaderActionsProps, IDockviewPanel } from "dockview-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -53,9 +60,10 @@ function getActiveFrameId(activePanel: IDockviewPanel | undefined): number {
 
 // Collapsed controls popover — shown when inline controls won't fit
 
-// Large fake dimensions passed to controls inside the popover so they always render in their expanded / wide layout (labels visible, full button rows).
+// Fake dimensions passed to controls inside the popover so they always render in their expanded / wide layout (labels visible, full button rows).
+// Value just exceeds the largest responsive breakpoint across all pane controls (video: 527px).
 
-const POPOVER_DIMENSIONS: number[] = [800, 600];
+const POPOVER_DIMENSIONS: number[] = [560, 600];
 
 interface CollapsedControlsProps {
   ControlComponent: React.ComponentType<PaneComponentProps>;
@@ -67,7 +75,8 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
   frameId,
 }) => {
   const [open, setOpen] = useState(false);
-  const [popoverPos, setPopoverPos] = useState({ top: 0, right: 0 });
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
+  const [visible, setVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -84,41 +93,23 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [open]);
 
-  // Adjust popover position to keep it within viewport bounds
-  useEffect(() => {
+  // After the popover renders (but before the browser paints), measure its actual
+  // width and compute the correct position. Right-anchor to the button, clamped
+  // so it never overflows either edge of the viewport.
+  useLayoutEffect(() => {
     if (!open || !popoverRef.current || !buttonRef.current) return;
-
-    const popoverRect = popoverRef.current.getBoundingClientRect();
-    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const popoverWidth = popoverRef.current.offsetWidth;
+    const rect = buttonRef.current.getBoundingClientRect();
     const viewportWidth = document.documentElement.clientWidth;
-    const popoverWidth = popoverRect.width;
-
-    // Calculate ideal right position (button's right edge to popover's right edge)
-    let rightPos = viewportWidth - buttonRect.right;
-
-    // Clamp right position to keep popover within viewport
-    // Minimum right: 0 (popover's right edge at viewport right)
-    // Maximum right: viewportWidth - popoverWidth (popover's left edge at viewport left edge)
-    rightPos = Math.max(0, Math.min(rightPos, viewportWidth - popoverWidth));
-
-    setPopoverPos((prev) => {
-      // Only update if position changed to avoid loops
-      if (prev.right !== rightPos) {
-        return { ...prev, right: rightPos };
-      }
-      return prev;
-    });
+    const idealLeft = rect.right - popoverWidth;
+    const left = Math.max(0, Math.min(idealLeft, viewportWidth - popoverWidth));
+    setPopoverPos({ top: rect.bottom + 4, left });
+    setVisible(true);
   }, [open]);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setPopoverPos({
-        top: rect.bottom + 4,
-        right: document.documentElement.clientWidth - rect.right,
-      });
-    }
+    setVisible(false);
     setOpen((prev) => !prev);
   }, []);
 
@@ -137,7 +128,11 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
           <div
             ref={popoverRef}
             className={styles.controlsPopover}
-            style={{ top: popoverPos.top, right: popoverPos.right }}
+            style={{
+              top: popoverPos.top,
+              left: popoverPos.left,
+              visibility: visible ? "visible" : "hidden",
+            }}
           >
             <ControlComponent frameID={frameId} frameDimensions={POPOVER_DIMENSIONS} />
           </div>,
