@@ -90,8 +90,9 @@ export function V2(): JSX.Element {
     if (!isNil(urlState.gmt) && !isNil(urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
-    } else if (!hasInitializedTime.current) {
-      // Only look for EVA start times on initial load
+    } else if (!hasInitializedTime.current && !isToday) {
+      // Only look for EVA start times on initial load for non-today dates
+      // (today with no gmt param should stay at "now", not jump to EVA start)
       // change the time if the sequence has a PET start time
       let filteredEVAs = allEVAs;
       if (urlState.frameworkState.source === "NBL") {
@@ -154,10 +155,10 @@ function getURLParams(query: URLSearchParams): QueryParams {
   const source = parseInt(query?.get("s") ?? "");
   const layout = query?.get("l");
 
-  // Validate share link date/time - future dates go to today, future times go to now
+  // Validate date (no date/future/malformed → today) and clamp future gmt times to now
   const { validatedDate, validatedGmt } = validateShareLinkDateTime(rawDate, rawGmt);
   let date = validatedDate;
-  let gmt = validatedGmt;
+  const gmt = validatedGmt;
 
   const fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
@@ -186,14 +187,14 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.source = "ARTEMIS";
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
-      if (isNil(date)) {
-        // 2022-12-05 is a good representation of Artemis 1 events
-        date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
-      }
-      if (isNil(gmt)) {
-        // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
-        gmt = "17:14:44";
-      }
+      // if (isNil(date)) {
+      //   // 2022-12-05 is a good representation of Artemis 1 events
+      //   date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
+      //   if (isNil(gmt)) {
+      //     // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
+      //     gmt = "17:14:44";
+      //   }
+      // }
     }
   }
 
