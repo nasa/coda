@@ -1,332 +1,194 @@
 /**
- * Dockview layout definitions.
+ * Frozen legacy grid layouts (a–s).
  *
- * Each of the 19 layouts (a–s) is represented as a tree of splits
- * and panels, then converted to the SerializedDockview format consumed by
- * `api.fromJSON()`.
+ * Each layout is expressed using the compact builder functions from
+ * dockview-layout-builder.ts and exposes three public functions consumed
+ * by the rest of the app:
+ *   - getLayout         → SerializedDockview for api.fromJSON()
+ *   - getLayoutIconDef  → rects for SVG icon rendering
+ *   - getFrameCount     → number of panels in a layout
  *
- * The tree builder uses explicit directions — `hsplit` (left-to-right) and
- * `vsplit` (top-to-bottom) — which must alternate at each nesting level
- * to match Dockview's grid model.
+ * These 19 layouts are frozen — new layouts should be authored directly as
+ * Dockview snapshots rather than extending this file.
  */
 
 import type { SerializedDockview } from "dockview-react";
-import { Orientation } from "dockview-react";
-
-// Tree DSL types
-
-interface PanelNode {
-  kind: "panel";
-  frameId: number;
-}
-
-interface SplitNode {
-  kind: "split";
-  direction: "h" | "v";
-  children: { node: TreeNode; size: number }[];
-}
-
-type TreeNode = PanelNode | SplitNode;
-
-/** [x, y, width, height] rectangle on the grid */
-type LayoutRect = readonly [number, number, number, number];
-
-// Helpers to build the tree
-
-function p(frameId: number): PanelNode {
-  return { kind: "panel", frameId };
-}
-
-function hsplit(...args: [TreeNode, number][]): SplitNode {
-  return {
-    kind: "split",
-    direction: "h",
-    children: args.map(([node, size]) => ({ node, size })),
-  };
-}
-
-function vsplit(...args: [TreeNode, number][]): SplitNode {
-  return {
-    kind: "split",
-    direction: "v",
-    children: args.map(([node, size]) => ({ node, size })),
-  };
-}
-
-// Convert tree → SerializedDockview
-
-interface GridLeaf {
-  type: "leaf";
-  data: { id: string; views: string[]; activeView: string };
-  size: number;
-}
-
-interface GridBranch {
-  type: "branch";
-  data: GridNode[];
-  size: number;
-}
-
-type GridNode = GridLeaf | GridBranch;
-
-function treeToSerialized(root: TreeNode): SerializedDockview {
-  const panels: Record<
-    string,
-    {
-      id: string;
-      contentComponent: string;
-      tabComponent: string;
-      params: { frameId: number };
-      title: string;
-    }
-  > = {};
-  let groupCounter = 0;
-
-  function convert(node: TreeNode, size: number): GridNode {
-    if (node.kind === "panel") {
-      groupCounter++;
-      const groupId = `g-${groupCounter}`;
-      const panelId = `frame-${node.frameId}`;
-      panels[panelId] = {
-        id: panelId,
-        contentComponent: "pane",
-        tabComponent: "paneTab",
-        params: { frameId: node.frameId },
-        title: `Frame ${node.frameId}`,
-      };
-      return {
-        type: "leaf",
-        data: { id: groupId, views: [panelId], activeView: panelId },
-        size,
-      };
-    }
-
-    return {
-      type: "branch",
-      data: node.children.map((c) => convert(c.node, c.size)),
-      size,
-    };
-  }
-
-  // Single panel edge case - wrap in a branch to satisfy Dockview requirements
-  if (root.kind === "panel") {
-    groupCounter++;
-    const groupId = `g-${groupCounter}`;
-    const panelId = `frame-${root.frameId}`;
-    panels[panelId] = {
-      id: panelId,
-      contentComponent: "pane",
-      tabComponent: "paneTab",
-      params: { frameId: root.frameId },
-      title: `Frame ${root.frameId}`,
-    };
-    return {
-      grid: {
-        root: {
-          type: "branch",
-          data: [
-            {
-              type: "leaf",
-              data: { id: groupId, views: [panelId], activeView: panelId },
-              size: 1000,
-            },
-          ],
-          size: 1000,
-        },
-        height: 1000,
-        width: 1000,
-        orientation: Orientation.HORIZONTAL,
-      },
-      panels,
-      activeGroup: groupId,
-    };
-  }
-
-  const orientation = root.direction === "h" ? Orientation.HORIZONTAL : Orientation.VERTICAL;
-  const gridRoot = convert(root, 1000);
-
-  return {
-    grid: {
-      root: gridRoot as SerializedDockview["grid"]["root"],
-      height: 1000,
-      width: 1000,
-      orientation,
-    },
-    panels,
-    activeGroup: "g-1",
-  };
-}
+import {
+  type LayoutRect,
+  type TreeNode,
+  computeLayoutRects,
+  hsplit,
+  p,
+  treeToSerialized,
+  vsplit,
+} from "./dockview-layout-builder";
 
 // ---------------------------------------------------------------------------
 // Layout definitions (a–s)
 //
-// Ported from the original CSS grid layout system. Each layout is defined as a tree of splits and panels,
-// then converted to the SerializedDockview format consumed by `api.fromJSON()`.
-// Proportional sizes derived from the CSS grid (24 cols × 9 or 10 rows).
+// Each layout is an IIFE that builds named intermediate pieces bottom-up,
+// then returns the final assembly. Read from top to bottom: small pieces
+// first, combined last.
+//
+// Builder reference:
+//   p(n)                 — panel n (1-based)
+//   hsplit([A,w],[B,w])  — A | B side by side,  w = relative width
+//   vsplit([A,h],[B,h])  — A over B stacked,    h = relative height
+//
+// Proportional sizes derived from the original CSS grid (24 cols × 9 rows).
 // ---------------------------------------------------------------------------
 
-const layoutTrees: Record<string, TreeNode> = {
-  // Layout h: 1 frame — full screen
-  h: p(1),
+// Layout a — 5 frames: two top-left, bottom-left, two right stacked
+const treeA = (() => {
+  const topLeft = hsplit([p(1), 500], [p(2), 500]); // frames 1 | 2
+  const leftCol = vsplit([topLeft, 560], [p(5), 440]); // top pair over frame 5
+  const rightCol = vsplit([p(3), 440], [p(4), 560]); // frame 3 over frame 4
+  return hsplit([leftCol, 750], [rightCol, 250]); // 75% left | 25% right
+})();
 
-  // Layout o: 2 frames — side by side
-  o: hsplit([p(1), 500], [p(2), 500]),
+// Layout b — 6 frames: two top-left, bottom-left, three right stacked
+const treeB = (() => {
+  const topLeft = hsplit([p(1), 500], [p(2), 500]); // frames 1 | 2
+  const leftCol = vsplit([topLeft, 560], [p(5), 440]); // top pair over frame 5
+  const rightCol = vsplit([p(3), 333], [p(4), 333], [p(6), 334]); // frames 3, 4, 6
+  return hsplit([leftCol, 750], [rightCol, 250]); // 75% left | 25% right
+})();
 
-  // Layout i: 3 frames — three rows stacked
-  i: vsplit([p(1), 333], [p(2), 333], [p(3), 334]),
+// Layout c — 5 frames: three top equal, bottom split 75/25
+const treeC = (() => {
+  const topRow = hsplit([p(1), 333], [p(2), 333], [p(3), 334]); // frames 1 | 2 | 3
+  const bottomRow = hsplit([p(5), 750], [p(4), 250]); // frame 5 (75%) | frame 4 (25%)
+  return vsplit([topRow, 560], [bottomRow, 440]);
+})();
 
-  // Layout p: 3 frames — two top, one bottom full width
-  p: vsplit([hsplit([p(1), 500], [p(2), 500]), 670], [p(3), 330]),
+// Layout d — 4 frames: tall right frame, two top-left, one bottom-left
+const treeD = (() => {
+  const topLeft = hsplit([p(1), 500], [p(2), 500]); // frames 1 | 2
+  const leftCol = vsplit([topLeft, 560], [p(4), 440]); // top pair over frame 4
+  return hsplit([leftCol, 750], [p(3), 250]); // left col (75%) | tall frame 3 (25%)
+})();
 
-  // Layout e: 4 frames — three top equal, one bottom full width
-  e: vsplit([hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 560], [p(4), 440]),
+// Layout e — 4 frames: three top equal, one bottom full width
+const treeE = (() => {
+  const topRow = hsplit([p(1), 333], [p(2), 333], [p(3), 334]); // frames 1 | 2 | 3
+  return vsplit([topRow, 560], [p(4), 440]);
+})();
 
-  // Layout d: 4 frames — tall right column, two top-left, one bottom-left
-  d: hsplit([vsplit([hsplit([p(1), 500], [p(2), 500]), 560], [p(4), 440]), 750], [p(3), 250]),
+// Layout f — 9 frames: 3×3 grid
+const treeF = (() => {
+  const row1 = hsplit([p(1), 333], [p(2), 333], [p(3), 334]);
+  const row2 = hsplit([p(4), 333], [p(5), 333], [p(6), 334]);
+  const row3 = hsplit([p(7), 333], [p(8), 333], [p(9), 334]);
+  return vsplit([row1, 333], [row2, 333], [row3, 334]);
+})();
 
-  // Layout m: 4 frames — big left, three right stacked
-  m: hsplit([p(1), 710], [vsplit([p(2), 333], [p(3), 333], [p(4), 334]), 290]),
+// Layout g — 6 frames: 2×3 grid (uses 10 rows for icon rendering)
+const treeG = (() => {
+  const topRow = hsplit([p(1), 333], [p(2), 333], [p(3), 334]);
+  const bottomRow = hsplit([p(4), 333], [p(5), 333], [p(6), 334]);
+  return vsplit([topRow, 500], [bottomRow, 500]);
+})();
 
-  // Layout q: 4 frames — 2×2 grid
-  q: vsplit([hsplit([p(1), 500], [p(2), 500]), 670], [hsplit([p(3), 500], [p(4), 500]), 330]),
+// Layout h — 1 frame: full screen
+const treeH = p(1);
 
-  // Layout a: 5 frames — two top-left, bottom-left, two right stacked
-  a: hsplit(
-    [vsplit([hsplit([p(1), 500], [p(2), 500]), 560], [p(5), 440]), 750],
-    [vsplit([p(3), 440], [p(4), 560]), 250]
-  ),
+// Layout i — 3 frames: three rows stacked
+const treeI = vsplit([p(1), 333], [p(2), 333], [p(3), 334]);
 
-  // Layout c: 5 frames — three top equal, bottom split 75/25
-  c: vsplit(
-    [hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 560],
-    [hsplit([p(5), 750], [p(4), 250]), 440]
-  ),
+// Layout j — 6 frames: three top, bottom 50/25/25
+const treeJ = (() => {
+  const topRow = hsplit([p(1), 333], [p(2), 333], [p(3), 334]);
+  const bottomRow = hsplit([p(5), 500], [p(6), 250], [p(4), 250]);
+  return vsplit([topRow, 560], [bottomRow, 440]);
+})();
 
-  // Layout k: 5 frames — three top, bottom split 50/50
-  k: vsplit(
-    [hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 560],
-    [hsplit([p(5), 500], [p(4), 500]), 440]
-  ),
+// Layout k — 5 frames: three top, bottom split 50/50
+const treeK = (() => {
+  const topRow = hsplit([p(1), 333], [p(2), 333], [p(3), 334]);
+  const bottomRow = hsplit([p(5), 500], [p(4), 500]);
+  return vsplit([topRow, 560], [bottomRow, 440]);
+})();
 
-  // Layout r: 5 frames — two top, three bottom
-  r: vsplit(
-    [hsplit([p(1), 500], [p(2), 500]), 670],
-    [hsplit([p(3), 333], [p(4), 333], [p(5), 334]), 330]
-  ),
+// Layout l — 6 frames: left column three stacked, top-right split, big bottom-right
+const treeL = (() => {
+  const leftCol = vsplit([p(1), 333], [p(5), 333], [p(6), 334]); // frames 1, 5, 6 stacked
+  const topRight = hsplit([p(2), 500], [p(3), 500]); // frames 2 | 3
+  const rightCol = vsplit([topRight, 333], [p(4), 667]); // top pair over big frame 4
+  return hsplit([leftCol, 333], [rightCol, 667]); // 33% left | 67% right
+})();
 
-  // Layout b: 6 frames — two top-left, bottom-left, three right stacked
-  b: hsplit(
-    [vsplit([hsplit([p(1), 500], [p(2), 500]), 560], [p(5), 440]), 750],
-    [vsplit([p(3), 333], [p(4), 333], [p(6), 334]), 250]
-  ),
+// Layout m — 4 frames: big left, three right stacked
+const treeM = (() => {
+  const rightCol = vsplit([p(2), 333], [p(3), 333], [p(4), 334]); // frames 2, 3, 4 stacked
+  return hsplit([p(1), 710], [rightCol, 290]); // big frame 1 (71%) | right col (29%)
+})();
 
-  // Layout j: 6 frames — three top, bottom 50/25/25
-  j: vsplit(
-    [hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 560],
-    [hsplit([p(5), 500], [p(6), 250], [p(4), 250]), 440]
-  ),
+// Layout n — 7 frames: three top, four bottom
+const treeN = (() => {
+  const topRow = hsplit([p(1), 333], [p(2), 333], [p(3), 334]);
+  const bottomRow = hsplit([p(5), 250], [p(6), 250], [p(7), 250], [p(4), 250]);
+  return vsplit([topRow, 560], [bottomRow, 440]);
+})();
 
-  // Layout l: 6 frames — left column three stacked, top-right two, big bottom-right
-  l: hsplit(
-    [vsplit([p(1), 333], [p(5), 333], [p(6), 334]), 333],
-    [vsplit([hsplit([p(2), 500], [p(3), 500]), 333], [p(4), 667]), 667]
-  ),
+// Layout o — 2 frames: side by side
+const treeO = hsplit([p(1), 500], [p(2), 500]);
 
-  // Layout g: 6 frames — 2×3 grid (10 rows, 50/50 split)
-  g: vsplit(
-    [hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 500],
-    [hsplit([p(4), 333], [p(5), 333], [p(6), 334]), 500]
-  ),
+// Layout p — 3 frames: two top, one bottom full width
+const treeP = (() => {
+  const topRow = hsplit([p(1), 500], [p(2), 500]);
+  return vsplit([topRow, 670], [p(3), 330]);
+})();
 
-  // Layout s: 6 frames — two top, four bottom
-  s: vsplit(
-    [hsplit([p(1), 500], [p(2), 500]), 670],
-    [hsplit([p(3), 250], [p(4), 250], [p(5), 250], [p(6), 250]), 330]
-  ),
+// Layout q — 4 frames: 2×2 grid
+const treeQ = (() => {
+  const topRow = hsplit([p(1), 500], [p(2), 500]);
+  const bottomRow = hsplit([p(3), 500], [p(4), 500]);
+  return vsplit([topRow, 670], [bottomRow, 330]);
+})();
 
-  // Layout n: 7 frames — three top, four bottom
-  n: vsplit(
-    [hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 560],
-    [hsplit([p(5), 250], [p(6), 250], [p(7), 250], [p(4), 250]), 440]
-  ),
+// Layout r — 5 frames: two top, three bottom
+const treeR = (() => {
+  const topRow = hsplit([p(1), 500], [p(2), 500]);
+  const bottomRow = hsplit([p(3), 333], [p(4), 333], [p(5), 334]);
+  return vsplit([topRow, 670], [bottomRow, 330]);
+})();
 
-  // Layout f: 9 frames — 3×3 grid
-  f: vsplit(
-    [hsplit([p(1), 333], [p(2), 333], [p(3), 334]), 333],
-    [hsplit([p(4), 333], [p(5), 333], [p(6), 334]), 333],
-    [hsplit([p(7), 333], [p(8), 333], [p(9), 334]), 334]
-  ),
+// Layout s — 6 frames: two top, four bottom
+const treeS = (() => {
+  const topRow = hsplit([p(1), 500], [p(2), 500]);
+  const bottomRow = hsplit([p(3), 250], [p(4), 250], [p(5), 250], [p(6), 250]);
+  return vsplit([topRow, 670], [bottomRow, 330]);
+})();
+
+const layouts: Record<string, { frames: number; tree: TreeNode }> = {
+  a: { frames: 5, tree: treeA },
+  b: { frames: 6, tree: treeB },
+  c: { frames: 5, tree: treeC },
+  d: { frames: 4, tree: treeD },
+  e: { frames: 4, tree: treeE },
+  f: { frames: 9, tree: treeF },
+  g: { frames: 6, tree: treeG },
+  h: { frames: 1, tree: treeH },
+  i: { frames: 3, tree: treeI },
+  j: { frames: 6, tree: treeJ },
+  k: { frames: 5, tree: treeK },
+  l: { frames: 6, tree: treeL },
+  m: { frames: 4, tree: treeM },
+  n: { frames: 7, tree: treeN },
+  o: { frames: 2, tree: treeO },
+  p: { frames: 3, tree: treeP },
+  q: { frames: 4, tree: treeQ },
+  r: { frames: 5, tree: treeR },
+  s: { frames: 6, tree: treeS },
 };
 
-/**
- * Compute rectangles for SVG icon rendering from a layout tree.
- * Recursively walks the tree and assigns positions based on split proportions.
- *
- * @param tree Layout tree to compute
- * @param cols Number of columns in the grid (default 24)
- * @param rows Number of rows in the grid (default 9)
- * @returns Array of rectangles [x, y, width, height]
- */
-export function computeLayoutRects(
-  tree: TreeNode,
-  cols: number = 24,
-  rows: number = 9
-): LayoutRect[] {
-  const rects: LayoutRect[] = [];
-
-  function walk(node: TreeNode, x: number, y: number, width: number, height: number): void {
-    if (node.kind === "panel") {
-      rects[node.frameId - 1] = [x, y, width, height];
-      return;
-    }
-
-    // Split node - distribute space among children
-    const totalSize = node.children.reduce((sum, c) => sum + c.size, 0);
-    let offset = 0;
-
-    for (const child of node.children) {
-      const proportion = child.size / totalSize;
-
-      if (node.direction === "h") {
-        // Horizontal split: divide width (left to right)
-        const childWidth = width * proportion;
-        walk(child.node, x + offset, y, childWidth, height);
-        offset += childWidth;
-      } else {
-        // Vertical split: divide height (top to bottom)
-        const childHeight = height * proportion;
-        walk(child.node, x, y + offset, width, childHeight);
-        offset += childHeight;
-      }
-    }
-  }
-
-  walk(tree, 0, 0, cols, rows);
-  return rects;
-}
-
-// Compute SVG rectangles from layout tree
-
-/**
- * Get the icon definition (rectangles + row count) for a layout letter.
- * Layout 'g' uses 10 rows for a more balanced 2×3 grid; all others use 9.
- */
-export function getLayoutIconDef(letter: string): { rows: number; rects: LayoutRect[] } {
-  const tree = layoutTrees[letter];
-  if (!tree) {
-    throw new Error(`Unknown layout: ${letter}`);
-  }
-  // Layout 'g' is a 2×3 grid that looks better with 10 rows (5 per row)
-  const rows = letter === "g" ? 10 : 9;
-  return { rows, rects: computeLayoutRects(tree, 24, rows) };
-}
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 
 /**
- * Ordered list of layout letters for display in the layout picker.
- * Order here determines dropdown display order (not alphabetical).
- * Letters must never change — shared links reference them.
+ * Ordered list of layout letters for the layout picker.
+ * Order determines display order — letters must never change as shared links reference them.
  */
 export const allLayoutLetters: string[] = [
   "a",
@@ -350,26 +212,25 @@ export const allLayoutLetters: string[] = [
   "s",
 ];
 
+/** Returns the SerializedDockview snapshot for a layout letter, for use with `api.fromJSON()`. */
 export function getLayout(letter: string): SerializedDockview {
-  const tree = layoutTrees[letter];
-  if (!tree) {
-    throw new Error(`Unknown layout: ${letter}`);
-  }
-  return treeToSerialized(tree);
+  const layout = layouts[letter];
+  if (!layout) throw new Error(`Unknown layout: ${letter}`);
+  return treeToSerialized(layout.tree);
 }
 
-/** Count the number of panels in a layout. */
+/**
+ * Returns the icon definition (rects + row count) for a layout letter.
+ * Layout 'g' uses 10 rows for a more balanced 2×3 grid; all others use 9.
+ */
+export function getLayoutIconDef(letter: string): { rows: number; rects: LayoutRect[] } {
+  const layout = layouts[letter];
+  if (!layout) throw new Error(`Unknown layout: ${letter}`);
+  const rows = letter === "g" ? 10 : 9;
+  return { rows, rects: computeLayoutRects(layout.tree, 24, rows) };
+}
+
+/** Returns the number of panels in a layout, or 0 if the letter is unknown. */
 export function getFrameCount(letter: string): number {
-  const tree = layoutTrees[letter];
-  if (!tree) return 0;
-  let count = 0;
-  function walk(node: TreeNode): void {
-    if (node.kind === "panel") {
-      count++;
-    } else {
-      node.children.forEach((c) => walk(c.node));
-    }
-  }
-  walk(tree);
-  return count;
+  return layouts[letter]?.frames ?? 0;
 }
