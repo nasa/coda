@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout } from "store/framework";
-import { allLayoutLetters, getFrameCount } from "./dockview/dockview-layout-definitions";
+import { visibleLayoutLetters, getFrameCount } from "./dockview/dockview-layout-definitions";
 import styles from "./layout-picker.module.css";
 import { LayoutIcon } from "./layout-icons";
 import { HelpButton } from "components/interface/pane-help-control-button";
@@ -40,7 +40,7 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
         )}
       </div>
       <div className={styles.layouts}>
-        {allLayoutLetters.map((letter) => (
+        {visibleLayoutLetters.map((letter) => (
           <div
             className={`${styles.layout} ${
               letter === frameworkState.layout ? styles.layoutselected : ""
@@ -60,11 +60,12 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       >
         <div>
           <p>
-            CODA Layouts determines the number of visible application frames and how they are
-            displayed.
+            CODA Layouts sets the initial number of visible application panels and how they are
+            displayed. After selection, the layout can be further customized by dragging panels to
+            rearrange them, and closing or adding panels as needed.
           </p>
           <p>
-            Changing the layout will not affect the applications currently selected for each frame,
+            Changing the layout will not affect the applications currently selected for each panel,
             it merely rearranges how they are displayed.
           </p>
         </div>

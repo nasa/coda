@@ -160,26 +160,26 @@ const treeS = (() => {
   return vsplit([topRow, 670], [bottomRow, 330]);
 })();
 
-const layouts: Record<string, { frames: number; tree: TreeNode }> = {
-  a: { frames: 5, tree: treeA },
-  b: { frames: 6, tree: treeB },
-  c: { frames: 5, tree: treeC },
-  d: { frames: 4, tree: treeD },
-  e: { frames: 4, tree: treeE },
-  f: { frames: 9, tree: treeF },
-  g: { frames: 6, tree: treeG },
-  h: { frames: 1, tree: treeH },
-  i: { frames: 3, tree: treeI },
-  j: { frames: 6, tree: treeJ },
-  k: { frames: 5, tree: treeK },
-  l: { frames: 6, tree: treeL },
-  m: { frames: 4, tree: treeM },
-  n: { frames: 7, tree: treeN },
-  o: { frames: 2, tree: treeO },
-  p: { frames: 3, tree: treeP },
-  q: { frames: 4, tree: treeQ },
-  r: { frames: 5, tree: treeR },
-  s: { frames: 6, tree: treeS },
+const layouts: Record<string, { frames: number; tree: TreeNode; visible: boolean }> = {
+  a: { frames: 5, tree: treeA, visible: true },
+  b: { frames: 6, tree: treeB, visible: false },
+  c: { frames: 5, tree: treeC, visible: false },
+  d: { frames: 4, tree: treeD, visible: false },
+  e: { frames: 4, tree: treeE, visible: false },
+  f: { frames: 9, tree: treeF, visible: true },
+  g: { frames: 6, tree: treeG, visible: false },
+  h: { frames: 1, tree: treeH, visible: true },
+  i: { frames: 3, tree: treeI, visible: true },
+  j: { frames: 6, tree: treeJ, visible: false },
+  k: { frames: 5, tree: treeK, visible: false },
+  l: { frames: 6, tree: treeL, visible: false },
+  m: { frames: 4, tree: treeM, visible: false },
+  n: { frames: 7, tree: treeN, visible: true },
+  o: { frames: 2, tree: treeO, visible: false },
+  p: { frames: 3, tree: treeP, visible: false },
+  q: { frames: 4, tree: treeQ, visible: false },
+  r: { frames: 5, tree: treeR, visible: true },
+  s: { frames: 6, tree: treeS, visible: false },
 };
 
 // ---------------------------------------------------------------------------
@@ -187,8 +187,8 @@ const layouts: Record<string, { frames: number; tree: TreeNode }> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Ordered list of layout letters for the layout picker.
- * Order determines display order — letters must never change as shared links reference them.
+ * Ordered list of ALL layout letters (a–s).
+ * Order must never change — shared links reference layouts by letter.
  */
 export const allLayoutLetters: string[] = [
   "a",
@@ -211,6 +211,14 @@ export const allLayoutLetters: string[] = [
   "r",
   "s",
 ];
+
+/**
+ * Alphabetically sorted list of layouts that should appear in the layout picker dropdown.
+ * Layouts with `visible: false` are excluded.
+ */
+export const visibleLayoutLetters: string[] = Object.keys(layouts)
+  .filter((letter) => layouts[letter].visible)
+  .sort();
 
 /** Returns the SerializedDockview snapshot for a layout letter, for use with `api.fromJSON()`. */
 export function getLayout(letter: string): SerializedDockview {
