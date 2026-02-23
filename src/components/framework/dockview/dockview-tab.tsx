@@ -36,7 +36,7 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const chevronRef = useRef<HTMLSpanElement>(null);
+  const chevronContainerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
 
@@ -49,8 +49,8 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
     (e: React.MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
-      if (!menuOpen && chevronRef.current) {
-        const rect = chevronRef.current.getBoundingClientRect();
+      if (!menuOpen && chevronContainerRef.current) {
+        const rect = chevronContainerRef.current.getBoundingClientRect();
         setMenuPos({ top: rect.bottom + 2, left: rect.left });
       }
       setMenuOpen((prev) => !prev);
@@ -63,7 +63,7 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
     if (!menuOpen) return;
     const handleOutsideClick = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (chevronRef.current?.contains(target)) return;
+      if (chevronContainerRef.current?.contains(target)) return;
       if (overlayRef.current?.contains(target)) return;
       setMenuOpen(false);
     };
@@ -78,32 +78,34 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
   return (
     <div className={styles.tab} onMouseDown={handleMouseDown}>
       <FontAwesomeIcon icon={faGripVertical} className={styles.gripIcon} />
-      {paneInfo?.icon && <FontAwesomeIcon icon={paneInfo.icon} className={styles.icon} />}
-      <span>{paneInfo?.shortTitle ?? "None"}</span>
-      <span
-        ref={chevronRef}
-        className={styles.chevron}
+      <div
+        className={styles.chevronContainer}
         onClick={handleChevronClick}
         onMouseDown={(e) => e.stopPropagation()}
+        ref={chevronContainerRef}
       >
-        <FontAwesomeIcon icon={faChevronDown} />
-      </span>
-      {menuOpen &&
-        // Using createPortal to render the menu at the body level, so it can overflow the tab and not be cut off by overflow:hidden styles in Dockview.
-        createPortal(
-          <div
-            ref={overlayRef}
-            className={styles.pickerOverlay}
-            style={{ top: menuPos.top, left: menuPos.left }}
-          >
-            <PanePickerModal
-              closeClick={() => setMenuOpen(false)}
-              options={{ paneInstanceId: paneInstanceId }}
-              onClosePanel={handleClose}
-            />
-          </div>,
-          document.body
-        )}
+        {paneInfo?.icon && <FontAwesomeIcon icon={paneInfo.icon} className={styles.icon} />}
+        <span>{paneInfo?.shortTitle ?? "None"}</span>
+        <span className={styles.chevron}>
+          <FontAwesomeIcon icon={faChevronDown} />
+        </span>
+        {menuOpen &&
+          // Using createPortal to render the menu at the body level, so it can overflow the tab and not be cut off by overflow:hidden styles in Dockview.
+          createPortal(
+            <div
+              ref={overlayRef}
+              className={styles.pickerOverlay}
+              style={{ top: menuPos.top, left: menuPos.left }}
+            >
+              <PanePickerModal
+                closeClick={() => setMenuOpen(false)}
+                options={{ paneInstanceId: paneInstanceId }}
+                onClosePanel={handleClose}
+              />
+            </div>,
+            document.body
+          )}
+      </div>
     </div>
   );
 };

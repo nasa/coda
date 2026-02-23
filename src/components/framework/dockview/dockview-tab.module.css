@@ -36,7 +36,15 @@
   flex-shrink: 0;
 }
 
-.chevron:hover {
+.chevronContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevronContainer:hover {
   opacity: 1;
   background-color: rgb(255 255 255 / 15%);
 }
