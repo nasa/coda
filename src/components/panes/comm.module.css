@@ -213,7 +213,7 @@
   border: none;
   border-radius: var(--radius);
   color: white;
-  background-color: var(--lightest-grey);
+  background-color: var(--grey);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -221,7 +221,7 @@
 }
 
 .channelDropdownButton:hover {
-  background-color: var(--even-greyer);
+  background-color: var(--lightest-grey);
 }
 
 .channelDropdownArrow {
