@@ -22,15 +22,15 @@ import { createRoot } from "react-dom/client";
 import ClockInterval from "components/framework/ClockInterval";
 
 export const GPSLocationControls: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as GpsTrackPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as GpsTrackPaneStateData,
     deepEqual
   );
 
@@ -60,7 +60,7 @@ export const GPSLocationControls: FunctionComponent<{
 
             return (
               <Button
-                key={"DLBUTTON_" + track.name + "_" + frameID}
+                key={"DLBUTTON_" + track.name + "_" + paneInstanceId}
                 color={color}
                 size="medium"
                 rounded={rounded}
@@ -71,7 +71,7 @@ export const GPSLocationControls: FunctionComponent<{
 
                   dispatch(
                     setPaneStateDataValue({
-                      frameID,
+                      paneInstanceId,
                       paneStateProperty: "gpsTrackToggles",
                       paneStateValue: newTogglesData,
                     })
@@ -92,7 +92,7 @@ export const GPSLocationControls: FunctionComponent<{
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "lockMap",
                   paneStateValue: !paneStateData.lockMap,
                 })
@@ -116,7 +116,7 @@ export const GPSLocationControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showHelp",
                   paneStateValue: !paneStateData.showHelp,
                 })
@@ -130,8 +130,8 @@ export const GPSLocationControls: FunctionComponent<{
   );
 };
 
-const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
+const GPSLocation: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+  paneInstanceId,
   frameDimensions,
 }) => {
   const dispatch = useAppDispatch();
@@ -178,7 +178,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
   const gpsState: GPSState = useAppSelector((state) => state.gps, deepEqual);
   const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, deepEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as GpsTrackPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as GpsTrackPaneStateData,
     deepEqual
   );
 
@@ -567,7 +567,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
           onMouseDown={() => {
             dispatch(
               setPaneStateDataValue({
-                frameID,
+                paneInstanceId,
                 paneStateProperty: "lockMap",
                 paneStateValue: false,
               })
@@ -580,7 +580,7 @@ const GPSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[
           closeHandler={() => {
             dispatch(
               setPaneStateDataValue({
-                frameID,
+                paneInstanceId,
                 paneStateProperty: "showHelp",
                 paneStateValue: !paneStateData.showHelp,
               })

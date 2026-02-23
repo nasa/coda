@@ -12,14 +12,14 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
 import ClockInterval from "components/framework/ClockInterval";
 
-export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
+export const PhotoControls: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+  paneInstanceId,
   frameDimensions,
 }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData,
     deepEqual
   ) as PhotoPaneStateData;
 
@@ -55,7 +55,7 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
               clickHandler={() => {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "showInfo",
                     paneStateValue: !paneStateData.showInfo,
                   })
@@ -70,7 +70,7 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
               clickHandler={() => {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "showFilter",
                     paneStateValue: !paneStateData.showFilter,
                   })
@@ -85,7 +85,7 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
               clickHandler={() => {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "showHelp",
                     paneStateValue: !paneStateData.showHelp,
                   })
@@ -100,14 +100,14 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
   );
 };
 
-const PhotoPane: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
+const PhotoPane: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+  paneInstanceId,
   frameDimensions,
 }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as PhotoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as PhotoPaneStateData,
     deepEqual
   );
 
@@ -277,7 +277,7 @@ const PhotoPane: FunctionComponent<{ frameID: number; frameDimensions: number[] 
           closeHandler={() => {
             dispatch(
               setPaneStateDataValue({
-                frameID,
+                paneInstanceId,
                 paneStateProperty: "showHelp",
                 paneStateValue: !paneStateData.showHelp,
               })

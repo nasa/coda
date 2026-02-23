@@ -14,11 +14,11 @@ import { isSameDate } from "../../utils/date";
 import { setAppSeconds } from "store/clock";
 import ClockInterval from "components/framework/ClockInterval";
 
-export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+export const EventInfoControls: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as EventPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as EventPaneStateData,
     deepEqual
   );
 
@@ -31,7 +31,7 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showHelp",
                   paneStateValue: !paneStateData.showHelp,
                 })
@@ -45,7 +45,7 @@ export const EventInfoControls: FunctionComponent<{ frameID: number }> = ({ fram
   );
 };
 
-const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const EventInfo: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   // Clock state from Redux
   const playheadDate = usePlayheadDate();
   const playheadDateObj = new Date(playheadDate);
@@ -53,7 +53,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   const sequences: SequencesState = useAppSelector((state) => state.sequences, deepEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as EventPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as EventPaneStateData,
     deepEqual
   );
 
@@ -186,7 +186,7 @@ const EventInfo: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

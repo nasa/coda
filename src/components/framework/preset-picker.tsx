@@ -28,7 +28,7 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
     const newFrameworkState: FrameworkState = {
       ...framework,
       layout: preset.layout,
-      frames: preset.frames,
+      paneInstances: preset.paneInstances,
       // v3 presets include a serialized Dockview snapshot; v2 presets use the letter system
       dockviewSnapshot:
         preset.version === 3 && preset.dockviewSnapshot ? preset.dockviewSnapshot : null,
@@ -43,7 +43,7 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
     const newPreset: Preset = {
       uuid: uuidv4(),
       layout: framework.layout,
-      frames: framework.frames,
+      paneInstances: framework.paneInstances,
       name: presetNameField,
       version: 3,
       // Capture the current Dockview state snapshot so proportions and arrangement are restored

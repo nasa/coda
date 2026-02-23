@@ -168,7 +168,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
     } else if (source === sourceShortVal.TEST_EVENTS) {
       fState.source = "TEST_EVENTS";
       // if we're looking at the test events, we need to change the ISS location frame to GPS location pane
-      fState.frames = setGPSLocationFrame(fState, "5");
+      fState.paneInstances = setGPSLocationFrame(fState, "5");
       // set the default layout to the standard without Event Info
       fState.layout = "c";
       // if (isNil(date)) {
@@ -212,17 +212,17 @@ function getURLParams(query: URLSearchParams): QueryParams {
     const nonDLvideo2 = query?.get("nonDLvideo2");
 
     if (nonDLvideo1) {
-      fState.frames = setNonDLVideoFrame(fState, "1", nonDLvideo1);
+      fState.paneInstances = setNonDLVideoFrame(fState, "1", nonDLvideo1);
     } else if (video1) {
-      fState.frames = setDLVideoFrame(fState, "1", video1);
+      fState.paneInstances = setDLVideoFrame(fState, "1", video1);
     }
     if (nonDLvideo2) {
-      fState.frames = setNonDLVideoFrame(fState, "2", nonDLvideo2);
+      fState.paneInstances = setNonDLVideoFrame(fState, "2", nonDLvideo2);
     } else if (video2) {
-      fState.frames = setDLVideoFrame(fState, "2", video2);
+      fState.paneInstances = setDLVideoFrame(fState, "2", video2);
     }
   } else if (version === "2.0") {
-    fState.frames = interpretFramestateQueryString(query);
+    fState.paneInstances = interpretFramestateQueryString(query);
   } else if (version === "3.0") {
     // v3: Dockview snapshot is serialized in the `dv` query param
     const dvParam = query?.get("dv");
@@ -233,7 +233,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
       }
     }
     // Pane state is still encoded in f1, f2, ... params (same as v2)
-    fState.frames = interpretFramestateQueryString(query);
+    fState.paneInstances = interpretFramestateQueryString(query);
   }
 
   // Trim frames to match the layout's panel count so that dynamically
@@ -242,13 +242,13 @@ function getURLParams(query: URLSearchParams): QueryParams {
   if (version !== "3.0") {
     const frameCount = getFrameCount(fState.layout);
     if (frameCount > 0) {
-      const trimmed: FrameState = {};
-      for (const [key, value] of Object.entries(fState.frames)) {
+      const trimmed: PaneInstanceState = {};
+      for (const [key, value] of Object.entries(fState.paneInstances)) {
         if (Number(key) <= frameCount) {
           trimmed[key] = value;
         }
       }
-      fState.frames = trimmed;
+      fState.paneInstances = trimmed;
     }
   }
 
@@ -263,7 +263,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
 
 function setNonDLVideoFrame(fState: FrameworkState, frameNum: string, nonDLVideo: string) {
   const frameStateData = {
-    ...fState.frames[frameNum],
+    ...fState.paneInstances[frameNum],
     paneType: "video_non_downlink",
     paneStateData: {
       ...allPanes["video_non_downlink"].defaultPaneStateData,
@@ -272,12 +272,12 @@ function setNonDLVideoFrame(fState: FrameworkState, frameNum: string, nonDLVideo
       muted: true,
     } as VideoPaneStateData,
   };
-  return { ...fState.frames, [frameNum]: frameStateData };
+  return { ...fState.paneInstances, [frameNum]: frameStateData };
 }
 
 function setDLVideoFrame(fState: FrameworkState, frameNum: string, downlink: string) {
   const frameStateData = {
-    ...fState.frames[frameNum],
+    ...fState.paneInstances[frameNum],
     paneType: "video_downlink",
     paneStateData: {
       ...allPanes["video_downlink"].defaultPaneStateData,
@@ -285,16 +285,16 @@ function setDLVideoFrame(fState: FrameworkState, frameNum: string, downlink: str
       muted: true,
     } as VideoPaneStateData,
   };
-  return { ...fState.frames, [frameNum]: frameStateData };
+  return { ...fState.paneInstances, [frameNum]: frameStateData };
 }
 
 function setGPSLocationFrame(fState: FrameworkState, frameNum: string) {
   const frameStateData = {
-    ...fState.frames[frameNum],
+    ...fState.paneInstances[frameNum],
     paneType: "gps_location",
     paneStateData: {
       ...allPanes["gps_location"].defaultPaneStateData,
     },
   };
-  return { ...fState.frames, [frameNum]: frameStateData };
+  return { ...fState.paneInstances, [frameNum]: frameStateData };
 }

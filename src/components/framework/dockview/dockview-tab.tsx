@@ -18,15 +18,18 @@ import PanePickerModal from "../pane-picker";
 import styles from "./dockview-tab.module.css";
 
 interface PanelParams {
-  frameId: number;
+  paneInstanceId: number;
 }
 
 export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelParams>> = ({
   api,
   params,
 }) => {
-  const frameId = params.frameId;
-  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
+  const paneInstanceId = params.paneInstanceId;
+  const frameState = useAppSelector(
+    (state) => state.framework.paneInstances[paneInstanceId],
+    shallowEqual
+  );
 
   const paneType = frameState?.paneType ?? "empty";
   const paneInfo = allPanes[paneType];
@@ -38,9 +41,9 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
   const dispatch = useAppDispatch();
 
   const handleClose = useCallback(() => {
-    dispatch(removeFrame(frameId));
+    dispatch(removeFrame(paneInstanceId));
     api.close();
-  }, [api, dispatch, frameId]);
+  }, [api, dispatch, paneInstanceId]);
 
   const handleChevronClick = useCallback(
     (e: React.MouseEvent) => {
@@ -95,7 +98,7 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
           >
             <PanePickerModal
               closeClick={() => setMenuOpen(false)}
-              options={{ frameID: frameId }}
+              options={{ paneInstanceId: paneInstanceId }}
               onClosePanel={handleClose}
             />
           </div>,

@@ -2,7 +2,7 @@
  * Dockview panel content component.
  *
  * Each Dockview panel renders one pane. The pane type and state are read from
- * Redux via the `frameId` passed in panel params.
+ * Redux via the `paneInstanceId` passed in panel params.
  *
  * When the pane type is "empty" (or unset), a watermark pane picker is shown
  * so the user can choose what to display in this panel.
@@ -43,15 +43,18 @@ const paneComponents: Record<string, React.ComponentType<PaneComponentProps> | n
 };
 
 interface PanelParams {
-  frameId: number;
+  paneInstanceId: number;
 }
 
 export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParams>> = ({
   api,
   params,
 }) => {
-  const frameId = params.frameId;
-  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
+  const paneInstanceId = params.paneInstanceId;
+  const frameState = useAppSelector(
+    (state) => state.framework.paneInstances[paneInstanceId],
+    shallowEqual
+  );
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const dispatch = useAppDispatch();
 
@@ -74,7 +77,7 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
   );
 
   const handleSelectPaneType = (selectedType: string) => {
-    dispatch(setPaneType({ frameID: frameId, paneType: selectedType }));
+    dispatch(setPaneType({ paneInstanceId: paneInstanceId, paneType: selectedType }));
   };
 
   if (!PaneComponent) {
@@ -97,7 +100,7 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
 
   return (
     <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-      <PaneComponent frameID={frameId} frameDimensions={dimensions} />
+      <PaneComponent paneInstanceId={paneInstanceId} frameDimensions={dimensions} />
     </div>
   );
 };

@@ -41,14 +41,14 @@ const shouldMuteVideo = (
   return paneStateData.muted || isLOSVideo;
 };
 
-export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const dispatch = useAppDispatch();
 
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const playheadDate = usePlayheadDate();
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData,
     deepEqual
   );
 
@@ -109,14 +109,14 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (currVideoID !== paneStateData.activeVideoFileID) {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "activeVideoFileID",
           paneStateValue: currVideoID,
         })
       );
       setMetadata(null);
     }
-  }, [findCurrentVideoID, paneStateData.activeVideoFileID, dispatch, frameID]);
+  }, [findCurrentVideoID, paneStateData.activeVideoFileID, dispatch, paneInstanceId]);
 
   // Clear metadata when date changes
   useEffect(() => {
@@ -145,7 +145,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
           // Browser blocking autoplay of unmuted videos - mute and retry
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "muted",
               paneStateValue: true,
             })
@@ -154,7 +154,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
       }
     };
     asyncFunc();
-  }, [isRunning, appSeconds, sourceURL, dispatch, frameID]);
+  }, [isRunning, appSeconds, sourceURL, dispatch, paneInstanceId]);
 
   // Sync video time to playhead
   useEffect(() => {
@@ -200,14 +200,14 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
       if (!paneStateData.ready) {
         dispatch(
           setPaneStateDataValue({
-            frameID,
+            paneInstanceId,
             paneStateProperty: "ready",
             paneStateValue: true,
           })
         );
       }
     }
-  }, [paneStateData, getCurrentVideo, dispatch, frameID]);
+  }, [paneStateData, getCurrentVideo, dispatch, paneInstanceId]);
 
   // Cue video to correct time when source changes
   useEffect(() => {
@@ -227,7 +227,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (!paneStateData.ready) {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "ready",
           paneStateValue: true,
         })
@@ -238,7 +238,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
   const handleEnded = () => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "ready",
         paneStateValue: true,
       })
@@ -249,7 +249,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (paneStateData.ready && sourceURL) {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "ready",
           paneStateValue: false,
         })
@@ -278,7 +278,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (!vidElement.error?.message.includes("mpty")) {
       setStatus("error");
       console.error(
-        `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
+        `video ${paneInstanceId} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
       );
     } else {
       setStatus("novid");
@@ -288,7 +288,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     if (paneStateData.ready !== true) {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "ready",
           paneStateValue: true,
         })
@@ -345,7 +345,7 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
   const handleHelpClose = () => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "showHelp",
         paneStateValue: !paneStateData.showHelp,
       })
@@ -453,9 +453,9 @@ export const VideoIOPane: FunctionComponent<{ frameID: number }> = ({ frameID })
     : {};
 
   return (
-    <div className={styles.mediaPanel} key={`video_player__${frameID}`} data-frame-id="IO Player">
+    <div className={styles.mediaPanel} key={`video_player__${paneInstanceId}`} data-frame-id="IO Player">
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
-      <div key={`video_element__${frameID}`} className={styles.vidContainer}>
+      <div key={`video_element__${paneInstanceId}`} className={styles.vidContainer}>
         <VideoPoster state={posterState} />
 
         <video

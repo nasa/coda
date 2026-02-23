@@ -13,12 +13,12 @@ import { getSourceSuffix } from "utils/video";
 import { usePlayheadDate } from "store/hooks";
 import { VideoPlayerDisabledOverlay } from "./video-player-disabled-overlay";
 
-const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const VideoHlsPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const dispatch = useAppDispatch();
 
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData,
     deepEqual
   );
   const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
@@ -114,7 +114,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
         hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
           dispatch(
-            setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+            setPaneStateDataValue({ paneInstanceId, paneStateProperty: "ready", paneStateValue: true })
           );
         });
 
@@ -218,7 +218,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
 
   return (
     <div
-      key={`video_element__${frameID}`}
+      key={`video_element__${paneInstanceId}`}
       className={styles.vidContainer}
       data-frame-id={"HLS Player"}
     >
@@ -244,7 +244,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               if (paneStateData.ready) {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "ready",
                     paneStateValue: false,
                   })
@@ -259,7 +259,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               const vidElement = e.target as HTMLVideoElement;
               if (!vidElement.error?.message.includes("mpty")) {
                 console.error(
-                  `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
+                  `video ${paneInstanceId} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
                 );
               }
             }}
@@ -275,7 +275,7 @@ const VideoHlsPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

@@ -66,12 +66,12 @@ export const MuteButton: FunctionComponent<{
 // ============================================================================
 
 const RightButtons: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   paneStateData: VideoPaneStateData;
   frameDimensions: number[];
-}> = ({ frameID, paneStateData, frameDimensions }) => {
+}> = ({ paneInstanceId, paneStateData, frameDimensions }) => {
   const dispatch = useAppDispatch();
-  const frames = useAppSelector((state) => state.framework.frames, deepEqual);
+  const paneInstances = useAppSelector((state) => state.framework.paneInstances, deepEqual);
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const playheadDate = usePlayheadDate();
@@ -98,14 +98,14 @@ const RightButtons: FunctionComponent<{
   const handleMuteButtonClick = () => {
     if (paneStateData.muted) {
       // Unmute this pane and mute all other video panes
-      Object.entries(frames).forEach(([key, value]) => {
+      Object.entries(paneInstances).forEach(([key, value]) => {
         if (value.paneType.includes("video")) {
           const paneID = parseInt(key);
           dispatch(
             setPaneStateDataValue({
-              frameID: paneID,
+              paneInstanceId: paneID,
               paneStateProperty: "muted",
-              paneStateValue: paneID !== frameID,
+              paneStateValue: paneID !== paneInstanceId,
             })
           );
         }
@@ -114,7 +114,7 @@ const RightButtons: FunctionComponent<{
       // Just mute this pane
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "muted",
           paneStateValue: true,
         })
@@ -125,7 +125,7 @@ const RightButtons: FunctionComponent<{
   const handleInfoToggle = () => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "showInfo",
         paneStateValue: !paneStateData.showInfo,
       })
@@ -135,7 +135,7 @@ const RightButtons: FunctionComponent<{
   const handleHelpToggle = () => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "showHelp",
         paneStateValue: !paneStateData.showHelp,
       })
@@ -211,18 +211,18 @@ const getDropdownButtonRounding = (index: number, total: number): RoundedVariant
 // ============================================================================
 
 export const ChannelSelectorLarge: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   channelAvailability: boolean[];
   paneStateData: VideoPaneStateData;
   frameDimensions: number[];
-}> = ({ frameID, channelAvailability, paneStateData, frameDimensions }) => {
+}> = ({ paneInstanceId, channelAvailability, paneStateData, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
   // Get channels selected by other video panes
   const channelsSelectedByOthers = useAppSelector((state) => {
     const channels = new Set<number>();
-    for (const [key, value] of Object.entries(state.framework.frames)) {
-      if (value.paneType.includes("video") && parseInt(key) !== frameID) {
+    for (const [key, value] of Object.entries(state.framework.paneInstances)) {
+      if (value.paneType.includes("video") && parseInt(key) !== paneInstanceId) {
         channels.add((value.paneStateData as VideoPaneStateData).channel);
       }
     }
@@ -232,7 +232,7 @@ export const ChannelSelectorLarge: FunctionComponent<{
   const handleChannelSelect = (channel: number) => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "channel",
         paneStateValue: channel,
       })
@@ -244,7 +244,7 @@ export const ChannelSelectorLarge: FunctionComponent<{
       <div className={styles.selections}>
         {CHANNELS.map((channel) => (
           <Button
-            key={`DLBUTTON_${channel}_${frameID}`}
+            key={`DLBUTTON_${channel}_${paneInstanceId}`}
             color={getChannelButtonColor(
               channelAvailability[channel],
               paneStateData.channel === channel,
@@ -259,7 +259,7 @@ export const ChannelSelectorLarge: FunctionComponent<{
         ))}
       </div>
       <RightButtons
-        frameID={frameID}
+        paneInstanceId={paneInstanceId}
         paneStateData={paneStateData}
         frameDimensions={frameDimensions}
       />
@@ -268,7 +268,7 @@ export const ChannelSelectorLarge: FunctionComponent<{
 };
 
 interface ChannelDropdownModalOptions {
-  frameID: number;
+  paneInstanceId: number;
   channelAvailability: boolean[];
   channelSelected: number;
 }
@@ -290,7 +290,7 @@ const ChannelDropdownModal: FunctionComponent<{
   closeClick?: () => void;
   options?: ChannelDropdownModalOptions;
 }> = ({ closeClick, options }) => {
-  const frameID = options?.frameID ?? 0;
+  const paneInstanceId = options?.paneInstanceId ?? 0;
   const channelAvailability = options?.channelAvailability ?? [];
   const channelSelected = options?.channelSelected ?? 0;
   const dispatch = useAppDispatch();
@@ -298,8 +298,8 @@ const ChannelDropdownModal: FunctionComponent<{
   // Get channels selected by other video panes
   const channelsSelectedByOthers = useAppSelector((state) => {
     const channels = new Set<number>();
-    for (const [key, value] of Object.entries(state.framework.frames)) {
-      if (value.paneType.includes("video") && parseInt(key) !== frameID) {
+    for (const [key, value] of Object.entries(state.framework.paneInstances)) {
+      if (value.paneType.includes("video") && parseInt(key) !== paneInstanceId) {
         channels.add((value.paneStateData as VideoPaneStateData).channel);
       }
     }
@@ -309,7 +309,7 @@ const ChannelDropdownModal: FunctionComponent<{
   const handleSelectChannel = (channel: number) => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "channel",
         paneStateValue: channel,
       })
@@ -323,7 +323,7 @@ const ChannelDropdownModal: FunctionComponent<{
     <div className={styles.chDropdownModal}>
       {CHANNELS.map((channel) => (
         <div
-          key={`CHANNEL__PICKER__${frameID}__${channel}`}
+          key={`CHANNEL__PICKER__${paneInstanceId}__${channel}`}
           onClick={() => handleSelectChannel(channel)}
         >
           <Button
@@ -344,18 +344,22 @@ const ChannelDropdownModal: FunctionComponent<{
 };
 
 export const ChannelSelectorSmall: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   channelAvailability: boolean[];
   paneStateData: VideoPaneStateData;
   frameDimensions: number[];
-}> = ({ frameID, channelAvailability, paneStateData, frameDimensions }) => (
+}> = ({ paneInstanceId, channelAvailability, paneStateData, frameDimensions }) => (
   <div className={styles.controls}>
     <div className={styles.dropdown}>
       <ModalDropdown
         color="grey"
         size="skinny"
         modal={ChannelDropdownModal}
-        modalOptions={{ frameID, channelAvailability, channelSelected: paneStateData?.channel }}
+        modalOptions={{
+          paneInstanceId,
+          channelAvailability,
+          channelSelected: paneStateData?.channel,
+        }}
       >
         {!isNil(channelAvailability) ? (
           <ChannelDropdownLabel
@@ -368,7 +372,7 @@ export const ChannelSelectorSmall: FunctionComponent<{
       </ModalDropdown>
     </div>
     <RightButtons
-      frameID={frameID}
+      paneInstanceId={paneInstanceId}
       paneStateData={paneStateData}
       frameDimensions={frameDimensions}
     />
@@ -380,9 +384,9 @@ export const ChannelSelectorSmall: FunctionComponent<{
 // ============================================================================
 
 export const VideoDLPaneControls: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+}> = ({ paneInstanceId, frameDimensions }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const playheadDate = usePlayheadDate();
   const playheadDateObj = new Date(playheadDate);
@@ -395,7 +399,7 @@ export const VideoDLPaneControls: FunctionComponent<{
   const mtxHlsEndpoints = useAppSelector((state) => state.videos.mtxHlsEndpoints, deepEqual);
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData,
     deepEqual
   );
 
@@ -418,7 +422,7 @@ export const VideoDLPaneControls: FunctionComponent<{
     <>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <ChannelSelector
-        frameID={frameID}
+        paneInstanceId={paneInstanceId}
         channelAvailability={channelAvailability}
         paneStateData={paneStateData}
         frameDimensions={frameDimensions}
@@ -428,9 +432,9 @@ export const VideoDLPaneControls: FunctionComponent<{
 };
 
 export const VideoOtherPaneControls: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const playheadDate = usePlayheadDate();
@@ -438,7 +442,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData,
     deepEqual
   );
 
@@ -461,14 +465,14 @@ export const VideoOtherPaneControls: FunctionComponent<{
   const handleVideoSelect = (videoID: string) => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "channel",
         paneStateValue: -1,
       })
     );
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "activeVideoFileID",
         paneStateValue: videoID,
       })
@@ -509,7 +513,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
           </div>
         </div>
         <RightButtons
-          frameID={frameID}
+          paneInstanceId={paneInstanceId}
           paneStateData={paneStateData}
           frameDimensions={frameDimensions}
         />

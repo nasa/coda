@@ -11,13 +11,13 @@ import { setAppSeconds } from "store/clock";
 type HTMLDivElementExtended = HTMLDivElement & { on: Function };
 
 const PlotlyComponent: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   chartData: {
     plotlyChartTraces: PlotlyChartTrace[];
     plotlyChartLayout: ChartLayout;
   };
   plotIndexToHighlight: number;
-}> = ({ frameID, chartData, plotIndexToHighlight }) => {
+}> = ({ paneInstanceId, chartData, plotIndexToHighlight }) => {
   const dispatch = useAppDispatch();
 
   const plotlyClass = useRef<PlotlyClass | null>(null);
@@ -31,7 +31,7 @@ const PlotlyComponent: FunctionComponent<{
     if (!plotlyChartRef.current || !plotlyClass.current) return;
 
     plotlyClass.current.drawChart(
-      `plotlyChart${frameID}`,
+      `plotlyChart${paneInstanceId}`,
       chartData.plotlyChartTraces,
       chartData.plotlyChartLayout as Partial<Layout>
     );
@@ -49,7 +49,7 @@ const PlotlyComponent: FunctionComponent<{
         }
       }
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch is stable, frameID doesn't change after mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch is stable, paneInstanceId doesn't change after mount
   }, [plotlyChartRef, chartData]);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const PlotlyComponent: FunctionComponent<{
 
   return (
     <div>
-      <div ref={plotlyChartRef} id={`plotlyChart${frameID}`}></div>
+      <div ref={plotlyChartRef} id={`plotlyChart${paneInstanceId}`}></div>
     </div>
   );
 };

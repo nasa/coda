@@ -121,7 +121,7 @@ export function generateShareURL(
 
   let i = 1;
   let stateUrlParams = "";
-  for (const [_key, element] of Object.entries(framework.frames)) {
+  for (const [_key, element] of Object.entries(framework.paneInstances)) {
     let paneStateString = "";
     switch (element.paneType) {
       case "video_downlink":
@@ -299,8 +299,8 @@ function getStateStringForGraph(state: GraphPaneStateData) {
  * @param url All query params sent in the share URL
  * @returns FrameState object populated with the data from the URL
  */
-export function interpretFramestateQueryString(query: URLSearchParams): FrameState {
-  const frameState: FrameState = {};
+export function interpretFramestateQueryString(query: URLSearchParams): PaneInstanceState {
+  const frameState: PaneInstanceState = {};
   for (let i = 1; i <= 10; i++) {
     // 10 is the max number of frames
     const frameParam = query?.get("f" + i);

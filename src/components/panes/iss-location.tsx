@@ -34,15 +34,15 @@ type MapMarker = {
 };
 
 export const ISSLocationControls: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as LocationPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as LocationPaneStateData,
     deepEqual
   );
 
@@ -62,7 +62,7 @@ export const ISSLocationControls: FunctionComponent<{
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "lockMap",
                   paneStateValue: !paneStateData.lockMap,
                 })
@@ -86,7 +86,7 @@ export const ISSLocationControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showHelp",
                   paneStateValue: !paneStateData.showHelp,
                 })
@@ -100,8 +100,8 @@ export const ISSLocationControls: FunctionComponent<{
   );
 };
 
-export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
+export const ISSLocation: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+  paneInstanceId,
   frameDimensions,
 }) => {
   const dispatch = useAppDispatch();
@@ -114,7 +114,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   const ephemera: EphemeraState = useAppSelector((state) => state.ephemera, deepEqual);
   const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, refEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as LocationPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as LocationPaneStateData,
     deepEqual
   );
   const todayEphemera = ephemera.ephemerisFiles;
@@ -455,7 +455,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
         className={styles.mapContainer}
         onMouseDown={() => {
           dispatch(
-            setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: false })
+            setPaneStateDataValue({ paneInstanceId, paneStateProperty: "lockMap", paneStateValue: false })
           );
         }}
       ></div>
@@ -464,7 +464,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

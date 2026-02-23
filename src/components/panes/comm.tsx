@@ -64,9 +64,9 @@ function buildChannelTimingMap(
 }
 
 export const CommControls: FunctionComponent<{
-  frameID: number;
+  paneInstanceId: number;
   frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -74,7 +74,7 @@ export const CommControls: FunctionComponent<{
   const minWidth = 480; // minimum width of the transcript pane before breaking into dropdown for downlinks
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as CommPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as CommPaneStateData,
     deepEqual
   );
   const audioFiles = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
@@ -93,13 +93,13 @@ export const CommControls: FunctionComponent<{
     if (availableChannels.length > 0 && paneStateData.sgChannels.length === 0) {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "sgChannels",
           paneStateValue: availableChannels,
         })
       );
     }
-  }, [availableChannels, paneStateData.sgChannels, dispatch, frameID]);
+  }, [availableChannels, paneStateData.sgChannels, dispatch, paneInstanceId]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -117,7 +117,7 @@ export const CommControls: FunctionComponent<{
     if (currentChannels.includes(channel)) {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "sgChannels",
           paneStateValue: currentChannels.filter((c) => c !== channel),
         })
@@ -125,7 +125,7 @@ export const CommControls: FunctionComponent<{
     } else {
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "sgChannels",
           paneStateValue: [...currentChannels, channel],
         })
@@ -201,7 +201,7 @@ export const CommControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "isMuted",
                   paneStateValue: !paneStateData.isMuted,
                 })
@@ -217,7 +217,7 @@ export const CommControls: FunctionComponent<{
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "filterActive",
                   paneStateValue: !paneStateData.filterActive,
                 })
@@ -243,7 +243,7 @@ export const CommControls: FunctionComponent<{
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "lockScroll",
                   paneStateValue: !paneStateData.lockScroll,
                 })
@@ -270,7 +270,7 @@ export const CommControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showHelp",
                   paneStateValue: !paneStateData.showHelp,
                 })
@@ -301,14 +301,14 @@ type DisplayUtterance = {
   channel: string;
 };
 
-const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const audioFiles = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
   const talkybotMetadata = useAppSelector((state) => state.talkybot.metadata, deepEqual);
   const hasAudioFiles = audioFiles && audioFiles.length > 0;
   const channelTimingMap = useMemo(() => buildChannelTimingMap(audioFiles), [audioFiles]);
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as CommPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as CommPaneStateData,
     deepEqual
   );
 
@@ -365,7 +365,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const handleScroll = () => {
     if (paneStateData.lockScroll) {
       dispatch(
-        setPaneStateDataValue({ frameID, paneStateProperty: "lockScroll", paneStateValue: false })
+        setPaneStateDataValue({ paneInstanceId, paneStateProperty: "lockScroll", paneStateValue: false })
       );
     }
   };
@@ -500,13 +500,13 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
       // This resets the help state only when new data arrives
       dispatch(
         setPaneStateDataValue({
-          frameID,
+          paneInstanceId,
           paneStateProperty: "showHelp",
           paneStateValue: !hasAudioFiles,
         })
       );
     }
-  }, [talkybotMetadata, hasAudioFiles, dispatch, frameID]);
+  }, [talkybotMetadata, hasAudioFiles, dispatch, paneInstanceId]);
 
   // Get sorted channels for consistent color mapping
   const sortedChannels = useMemo(() => {
@@ -599,7 +599,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
                 setFilterText("");
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "filterActive",
                     paneStateValue: false,
                   })
@@ -621,7 +621,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
           onCanPlay={() => {
             if (!paneStateData.ready) {
               dispatch(
-                setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+                setPaneStateDataValue({ paneInstanceId, paneStateProperty: "ready", paneStateValue: true })
               );
             }
           }}
@@ -629,14 +629,14 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             // ready up because we don't want a missing audio to hold up the playhead
             setSrcUrl("");
             dispatch(
-              setPaneStateDataValue({ frameID, paneStateProperty: "ready", paneStateValue: true })
+              setPaneStateDataValue({ paneInstanceId, paneStateProperty: "ready", paneStateValue: true })
             );
           }}
           onWaiting={() => {
             if (paneStateData.ready && srcUrl !== "") {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "ready",
                   paneStateValue: false,
                 })
@@ -658,7 +658,7 @@ const CommPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

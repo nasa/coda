@@ -53,16 +53,16 @@ const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = ({ containerA
 
     let maxId = 0;
     for (const panel of containerApi.panels) {
-      const fId = (panel.params?.frameId as number) ?? 0;
+      const fId = (panel.params?.paneInstanceId as number) ?? 0;
       if (fId > maxId) maxId = fId;
     }
-    const newFrameId = maxId + 1;
-    dispatch(addFrame(newFrameId));
+    const newPaneInstanceId = maxId + 1;
+    dispatch(addFrame(newPaneInstanceId));
     containerApi.addPanel({
-      id: `frame-${newFrameId}`,
+      id: `frame-${newPaneInstanceId}`,
       component: "pane",
       tabComponent: "paneTab",
-      params: { frameId: newFrameId },
+      params: { paneInstanceId: newPaneInstanceId },
     });
   }, [dispatch, containerApi]);
 

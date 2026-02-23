@@ -123,7 +123,7 @@ export const allPanes: Panes = {
   },
 };
 
-export const defaultFrames: FrameState = {
+export const defaultPaneInstances: PaneInstanceState = {
   1: {
     paneType: "video_downlink",
     paneStateData: {
@@ -194,7 +194,7 @@ export const defaultFrames: FrameState = {
 export const initialState: FrameworkState = {
   layout: "n",
   layoutLastChanged: Date.now(),
-  frames: defaultFrames,
+  paneInstances: defaultPaneInstances,
   source: "ISS",
   dockviewSnapshot: null,
 };
@@ -214,9 +214,9 @@ export const frameworkSlice = createSlice({
       // Clear any v3 snapshot so the new layout letter takes effect
       state.dockviewSnapshot = null;
       // Remove frame entries beyond the preset's panel count
-      for (const key of Object.keys(state.frames)) {
+      for (const key of Object.keys(state.paneInstances)) {
         if (Number(key) > action.payload.frameCount) {
-          delete state.frames[key];
+          delete state.paneInstances[key];
         }
       }
     },
@@ -224,8 +224,8 @@ export const frameworkSlice = createSlice({
     /**
      * Select the type of frame to render in a frame
      */
-    setPaneType: (state, action: { payload: { frameID: number; paneType: string } }) => {
-      state.frames[action.payload.frameID] = {
+    setPaneType: (state, action: { payload: { paneInstanceId: number; paneType: string } }) => {
+      state.paneInstances[action.payload.paneInstanceId] = {
         paneType: action.payload.paneType,
         /* Set the pane state to the default state for this paneType */
         paneStateData: allPanes[action.payload.paneType].defaultPaneStateData,
@@ -241,7 +241,7 @@ export const frameworkSlice = createSlice({
       allPanes["event_info"].title = getEventInfoTitleBySource(action.payload.source);
       state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
-      state.frames = action.payload.frames;
+      state.paneInstances = action.payload.paneInstances;
       state.dockviewSnapshot = action.payload.dockviewSnapshot ?? null;
     },
 
@@ -250,10 +250,12 @@ export const frameworkSlice = createSlice({
      */
     setPaneStateDataValue: (
       state,
-      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: unknown } }
+      action: {
+        payload: { paneInstanceId: number; paneStateProperty: string; paneStateValue: unknown };
+      }
     ) => {
-      if (!state.frames[action.payload.frameID]) return;
-      (state.frames[action.payload.frameID].paneStateData as Record<string, unknown>)[
+      if (!state.paneInstances[action.payload.paneInstanceId]) return;
+      (state.paneInstances[action.payload.paneInstanceId].paneStateData as Record<string, unknown>)[
         action.payload.paneStateProperty
       ] = action.payload.paneStateValue;
     },
@@ -261,8 +263,8 @@ export const frameworkSlice = createSlice({
      * Add a new frame with the "empty" pane type (used when adding panels via the + button)
      */
     addFrame: (state, action: { payload: number }) => {
-      if (!state.frames[action.payload]) {
-        state.frames[action.payload] = {
+      if (!state.paneInstances[action.payload]) {
+        state.paneInstances[action.payload] = {
           paneType: "empty",
           paneStateData: allPanes["empty"].defaultPaneStateData,
         };
@@ -273,7 +275,7 @@ export const frameworkSlice = createSlice({
      * Remove a frame from state (used when closing panels via the X button)
      */
     removeFrame: (state, action: { payload: number }) => {
-      delete state.frames[action.payload];
+      delete state.paneInstances[action.payload];
     },
   },
 });

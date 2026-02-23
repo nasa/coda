@@ -7,7 +7,7 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
 
 interface PanePickerModalOptions {
-  frameID: number;
+  paneInstanceId: number;
 }
 
 /**
@@ -46,7 +46,7 @@ export const PanePickerModal: FunctionComponent<{
   options?: PanePickerModalOptions;
   onClosePanel?: () => void;
 }> = ({ closeClick, options, onClosePanel }) => {
-  const frameID = options?.frameID ?? 0;
+  const paneInstanceId = options?.paneInstanceId ?? 0;
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
   const dispatch = useAppDispatch();
@@ -59,7 +59,7 @@ export const PanePickerModal: FunctionComponent<{
 
   const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatch(setPaneType({ frameID, paneType }));
+    dispatch(setPaneType({ paneInstanceId, paneType }));
     closeClick?.();
   };
 
@@ -76,7 +76,7 @@ export const PanePickerModal: FunctionComponent<{
           <div
             className={styles.option}
             onClick={handleSelectPaneType(paneType)}
-            key={`PANE__PICKER__${frameID}__${paneType}`}
+            key={`PANE__PICKER__${paneInstanceId}__${paneType}`}
           >
             <PaneLabel paneType={paneType} />
           </div>

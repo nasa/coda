@@ -21,7 +21,7 @@ import { Orientation } from "dockview-react";
 
 interface PanelNode {
   kind: "panel";
-  frameId: number;
+  paneInstanceId: number;
 }
 
 interface SplitNode {
@@ -40,8 +40,8 @@ export type LayoutRect = readonly [number, number, number, number];
 // ---------------------------------------------------------------------------
 
 /** Creates a leaf panel node for the given 1-based frame ID. */
-export function p(frameId: number): PanelNode {
-  return { kind: "panel", frameId };
+export function p(paneInstanceId: number): PanelNode {
+  return { kind: "panel", paneInstanceId };
 }
 
 /** Creates a horizontal (left-to-right) split node. Each arg is [node, proportional size]. */
@@ -88,7 +88,7 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
       id: string;
       contentComponent: string;
       tabComponent: string;
-      params: { frameId: number };
+      params: { paneInstanceId: number };
       title: string;
     }
   > = {};
@@ -98,13 +98,13 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
     if (node.kind === "panel") {
       groupCounter++;
       const groupId = `g-${groupCounter}`;
-      const panelId = `frame-${node.frameId}`;
+      const panelId = `frame-${node.paneInstanceId}`;
       panels[panelId] = {
         id: panelId,
         contentComponent: "pane",
         tabComponent: "paneTab",
-        params: { frameId: node.frameId },
-        title: `Frame ${node.frameId}`,
+        params: { paneInstanceId: node.paneInstanceId },
+        title: `Frame ${node.paneInstanceId}`,
       };
       return {
         type: "leaf",
@@ -124,13 +124,13 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
   if (root.kind === "panel") {
     groupCounter++;
     const groupId = `g-${groupCounter}`;
-    const panelId = `frame-${root.frameId}`;
+    const panelId = `frame-${root.paneInstanceId}`;
     panels[panelId] = {
       id: panelId,
       contentComponent: "pane",
       tabComponent: "paneTab",
-      params: { frameId: root.frameId },
-      title: `Frame ${root.frameId}`,
+      params: { paneInstanceId: root.paneInstanceId },
+      title: `Frame ${root.paneInstanceId}`,
     };
     return {
       grid: {
@@ -180,7 +180,7 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
  * @param tree  The DSL layout tree to compute rects for
  * @param cols  Grid width units (default 24)
  * @param rows  Grid height units (default 9)
- * @returns     Array of [x, y, width, height] indexed by frameId - 1
+ * @returns     Array of [x, y, width, height] indexed by paneInstanceId - 1
  */
 export function computeLayoutRects(
   tree: TreeNode,
@@ -191,7 +191,7 @@ export function computeLayoutRects(
 
   function walk(node: TreeNode, x: number, y: number, width: number, height: number): void {
     if (node.kind === "panel") {
-      rects[node.frameId - 1] = [x, y, width, height];
+      rects[node.paneInstanceId - 1] = [x, y, width, height];
       return;
     }
 

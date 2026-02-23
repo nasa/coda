@@ -13,17 +13,17 @@ import ClockInterval from "components/framework/ClockInterval";
 import { usePlayheadDate } from "store/hooks";
 import { VideoPlayerDisabledOverlay } from "./video-player-disabled-overlay";
 
-const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData,
     deepEqual
   );
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const mtxPlaybackRecordsForDownlink = useAppSelector((state) => {
     const downlinkNumber = (
-      (state.framework.frames[frameID].paneStateData as VideoPaneStateData).channel + 1
+      (state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData).channel + 1
     ).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
   }, deepEqual);
@@ -57,7 +57,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
           dispatch(
-            setPaneStateDataValue({ frameID, paneStateProperty: "muted", paneStateValue: true })
+            setPaneStateDataValue({ paneInstanceId, paneStateProperty: "muted", paneStateValue: true })
           );
         }
       }
@@ -194,7 +194,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
 
   return (
     <div
-      key={`video_element__${frameID}`}
+      key={`video_element__${paneInstanceId}`}
       className={styles.vidContainer}
       data-frame-id={"MTX Player"}
     >
@@ -218,7 +218,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
               if (!paneStateData.ready) {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "ready",
                     paneStateValue: true,
                   })
@@ -229,7 +229,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
               // ready up because we don't want a missing video to hold up the playhead
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "ready",
                   paneStateValue: true,
                 })
@@ -240,7 +240,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
               if (paneStateData.ready) {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "ready",
                     paneStateValue: false,
                   })
@@ -257,7 +257,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
                 //if not 'src attribute is empty' - this eliminates raising an IO error on empty src
                 setStatus("error");
                 console.error(
-                  `video ${frameID} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
+                  `video ${paneInstanceId} has thrown an error ${vidElement.error?.code} - ${vidElement.error?.message}`
                 );
               } else {
                 setStatus("novid");
@@ -266,7 +266,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
               if (paneStateData.ready !== true) {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "ready",
                     paneStateValue: true,
                   })
@@ -287,7 +287,7 @@ const VideoMTXPlaybackPane: FunctionComponent<{ frameID: number }> = ({ frameID 
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

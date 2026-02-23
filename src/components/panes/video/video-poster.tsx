@@ -44,17 +44,17 @@ export const VideoPoster: FunctionComponent<{ state: PosterState }> = ({ state }
  * Standalone poster pane for when no video source is available.
  * Used by VideoPaneChooser when there's no IO, HLS, or MTX video.
  */
-export const VideoPosterPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+export const VideoPosterPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const dispatch = useAppDispatch();
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as VideoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData,
     deepEqual
   );
 
   const handleHelpClose = () => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "showHelp",
         paneStateValue: !paneStateData.showHelp,
       })
@@ -62,7 +62,7 @@ export const VideoPosterPane: FunctionComponent<{ frameID: number }> = ({ frameI
   };
 
   return (
-    <div className={styles.mediaPanel} key={`video_poster__${frameID}`} data-frame-id="No Video">
+    <div className={styles.mediaPanel} key={`video_poster__${paneInstanceId}`} data-frame-id="No Video">
       <div className={styles.vidContainer}>
         <VideoPoster state="novid" />
 

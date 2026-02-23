@@ -53,9 +53,9 @@ const controlComponents: Record<string, React.ComponentType<PaneComponentProps> 
 /** Width threshold (px) below which inline controls collapse into a button. */
 const COLLAPSE_THRESHOLD = 200;
 
-/** Extract the frameId from the active panel's params. */
-function getActiveFrameId(activePanel: IDockviewPanel | undefined): number {
-  return (activePanel?.params?.frameId as number) ?? 0;
+/** Extract the paneInstanceId from the active panel's params. */
+function getActivePaneInstanceId(activePanel: IDockviewPanel | undefined): number {
+  return (activePanel?.params?.paneInstanceId as number) ?? 0;
 }
 
 // Collapsed controls popover — shown when inline controls won't fit
@@ -67,12 +67,12 @@ const POPOVER_DIMENSIONS: number[] = [560, 600];
 
 interface CollapsedControlsProps {
   ControlComponent: React.ComponentType<PaneComponentProps>;
-  frameId: number;
+  paneInstanceId: number;
 }
 
 const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
   ControlComponent,
-  frameId,
+  paneInstanceId,
 }) => {
   const [open, setOpen] = useState(false);
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
@@ -134,7 +134,10 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
               visibility: visible ? "visible" : "hidden",
             }}
           >
-            <ControlComponent frameID={frameId} frameDimensions={POPOVER_DIMENSIONS} />
+            <ControlComponent
+              paneInstanceId={paneInstanceId}
+              frameDimensions={POPOVER_DIMENSIONS}
+            />
           </div>,
           document.body
         )}
@@ -150,16 +153,21 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
 }) => {
   const dispatch = useAppDispatch();
 
-  const [frameId, setFrameId] = useState(() => getActiveFrameId(group.activePanel));
+  const [paneInstanceId, setPaneInstanceId] = useState(() =>
+    getActivePaneInstanceId(group.activePanel)
+  );
   const [collapsed, setCollapsed] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
 
-  const frameState = useAppSelector((state) => state.framework.frames[frameId], shallowEqual);
+  const frameState = useAppSelector(
+    (state) => state.framework.paneInstances[paneInstanceId],
+    shallowEqual
+  );
 
   useEffect(() => {
-    setFrameId(getActiveFrameId(group.activePanel));
+    setPaneInstanceId(getActivePaneInstanceId(group.activePanel));
     const disposable = group.api.onDidActivePanelChange(() => {
-      setFrameId(getActiveFrameId(group.activePanel));
+      setPaneInstanceId(getActivePaneInstanceId(group.activePanel));
     });
     return () => disposable.dispose();
   }, [group]);
@@ -199,16 +207,16 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   const handleAddPanel = useCallback(() => {
     let maxId = 0;
     for (const panel of containerApi.panels) {
-      const fId = (panel.params?.frameId as number) ?? 0;
+      const fId = (panel.params?.paneInstanceId as number) ?? 0;
       if (fId > maxId) maxId = fId;
     }
-    const newFrameId = maxId + 1;
-    dispatch(addFrame(newFrameId));
+    const newPaneInstanceId = maxId + 1;
+    dispatch(addFrame(newPaneInstanceId));
     containerApi.addPanel({
-      id: `frame-${newFrameId}`,
+      id: `frame-${newPaneInstanceId}`,
       component: "pane",
       tabComponent: "paneTab",
-      params: { frameId: newFrameId },
+      params: { paneInstanceId: newPaneInstanceId },
       position: { referenceGroup: group },
     });
   }, [containerApi, dispatch, group]);
@@ -219,12 +227,12 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
         <FontAwesomeIcon icon={faPlus} />
       </button>
       {ControlComponent &&
-        frameId > 0 &&
+        paneInstanceId > 0 &&
         (collapsed ? (
-          <CollapsedControls ControlComponent={ControlComponent} frameId={frameId} />
+          <CollapsedControls ControlComponent={ControlComponent} paneInstanceId={paneInstanceId} />
         ) : (
           <div className={styles.controls}>
-            <ControlComponent frameID={frameId} frameDimensions={dimensions} />
+            <ControlComponent paneInstanceId={paneInstanceId} frameDimensions={dimensions} />
           </div>
         ))}
     </div>
