@@ -14,7 +14,9 @@ import { isSameDate } from "../../utils/date";
 import { setAppSeconds } from "store/clock";
 import ClockInterval from "components/framework/ClockInterval";
 
-export const EventInfoControls: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
+export const EventInfoControls: FunctionComponent<{ paneInstanceId: number }> = ({
+  paneInstanceId,
+}) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(

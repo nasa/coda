@@ -12,10 +12,10 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
 import ClockInterval from "components/framework/ClockInterval";
 
-export const PhotoControls: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
-  paneInstanceId,
-  frameDimensions,
-}) => {
+export const PhotoControls: FunctionComponent<{
+  paneInstanceId: number;
+  frameDimensions: number[];
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(

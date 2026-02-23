@@ -13,7 +13,9 @@ import ClockInterval from "components/framework/ClockInterval";
 import { usePlayheadDate } from "store/hooks";
 import { VideoPlayerDisabledOverlay } from "./video-player-disabled-overlay";
 
-const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
+const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
+  paneInstanceId,
+}) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
@@ -23,7 +25,8 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({ p
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const mtxPlaybackRecordsForDownlink = useAppSelector((state) => {
     const downlinkNumber = (
-      (state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData).channel + 1
+      (state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData).channel +
+      1
     ).toString();
     return state.videos.mtxPlaybackAvailability[downlinkNumber] || [];
   }, deepEqual);
@@ -57,7 +60,11 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({ p
         if (isAutoplayError(e)) {
           // the browser is preventing autoplay of unmuted videos. so let's just mute the video. on the next playhead tick, we'll try to play again
           dispatch(
-            setPaneStateDataValue({ paneInstanceId, paneStateProperty: "muted", paneStateValue: true })
+            setPaneStateDataValue({
+              paneInstanceId,
+              paneStateProperty: "muted",
+              paneStateValue: true,
+            })
           );
         }
       }

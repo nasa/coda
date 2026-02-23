@@ -453,7 +453,11 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
     : {};
 
   return (
-    <div className={styles.mediaPanel} key={`video_player__${paneInstanceId}`} data-frame-id="IO Player">
+    <div
+      className={styles.mediaPanel}
+      key={`video_player__${paneInstanceId}`}
+      data-frame-id="IO Player"
+    >
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div key={`video_element__${paneInstanceId}`} className={styles.vidContainer}>
         <VideoPoster state={posterState} />

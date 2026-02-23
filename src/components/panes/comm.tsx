@@ -365,7 +365,11 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
   const handleScroll = () => {
     if (paneStateData.lockScroll) {
       dispatch(
-        setPaneStateDataValue({ paneInstanceId, paneStateProperty: "lockScroll", paneStateValue: false })
+        setPaneStateDataValue({
+          paneInstanceId,
+          paneStateProperty: "lockScroll",
+          paneStateValue: false,
+        })
       );
     }
   };
@@ -621,7 +625,11 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
           onCanPlay={() => {
             if (!paneStateData.ready) {
               dispatch(
-                setPaneStateDataValue({ paneInstanceId, paneStateProperty: "ready", paneStateValue: true })
+                setPaneStateDataValue({
+                  paneInstanceId,
+                  paneStateProperty: "ready",
+                  paneStateValue: true,
+                })
               );
             }
           }}
@@ -629,7 +637,11 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
             // ready up because we don't want a missing audio to hold up the playhead
             setSrcUrl("");
             dispatch(
-              setPaneStateDataValue({ paneInstanceId, paneStateProperty: "ready", paneStateValue: true })
+              setPaneStateDataValue({
+                paneInstanceId,
+                paneStateProperty: "ready",
+                paneStateValue: true,
+              })
             );
           }}
           onWaiting={() => {

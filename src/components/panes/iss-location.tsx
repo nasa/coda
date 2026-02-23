@@ -100,10 +100,10 @@ export const ISSLocationControls: FunctionComponent<{
   );
 };
 
-export const ISSLocation: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
-  paneInstanceId,
-  frameDimensions,
-}) => {
+export const ISSLocation: FunctionComponent<{
+  paneInstanceId: number;
+  frameDimensions: number[];
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
   const initialMarker: MapMarker = {
@@ -455,7 +455,11 @@ export const ISSLocation: FunctionComponent<{ paneInstanceId: number; frameDimen
         className={styles.mapContainer}
         onMouseDown={() => {
           dispatch(
-            setPaneStateDataValue({ paneInstanceId, paneStateProperty: "lockMap", paneStateValue: false })
+            setPaneStateDataValue({
+              paneInstanceId,
+              paneStateProperty: "lockMap",
+              paneStateValue: false,
+            })
           );
         }}
       ></div>

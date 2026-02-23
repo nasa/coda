@@ -17,10 +17,10 @@ import { usePlayheadDate } from "store/hooks";
 import Button, { type ColorVariant, type RoundedVariant } from "components/interface/button";
 import ClockInterval from "components/framework/ClockInterval";
 
-export const GraphControls: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
-  paneInstanceId,
-  frameDimensions,
-}) => {
+export const GraphControls: FunctionComponent<{
+  paneInstanceId: number;
+  frameDimensions: number[];
+}> = ({ paneInstanceId, frameDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 500; // minimum width of the graph pane before shortening the dropdown
@@ -37,11 +37,19 @@ export const GraphControls: FunctionComponent<{ paneInstanceId: number; frameDim
   useEffect(() => {
     if (!graphs && !paneStateData.showHelp) {
       dispatch(
-        setPaneStateDataValue({ paneInstanceId, paneStateProperty: "showHelp", paneStateValue: true })
+        setPaneStateDataValue({
+          paneInstanceId,
+          paneStateProperty: "showHelp",
+          paneStateValue: true,
+        })
       );
     } else {
       dispatch(
-        setPaneStateDataValue({ paneInstanceId, paneStateProperty: "showHelp", paneStateValue: false })
+        setPaneStateDataValue({
+          paneInstanceId,
+          paneStateProperty: "showHelp",
+          paneStateValue: false,
+        })
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch/paneInstanceId are stable, paneStateData.showHelp would cause loops
@@ -274,7 +282,11 @@ const Graph: FunctionComponent<{ paneInstanceId: number; frameDimensions: number
     if (graphs.metadata === null || !paneStateData.selectedGraphId) return;
 
     dispatch(
-      setPaneStateDataValue({ paneInstanceId, paneStateProperty: "showHelp", paneStateValue: false })
+      setPaneStateDataValue({
+        paneInstanceId,
+        paneStateProperty: "showHelp",
+        paneStateValue: false,
+      })
     );
 
     dispatch(clearGraphsData());

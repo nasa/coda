@@ -114,7 +114,11 @@ const VideoHlsPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
 
         hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
           dispatch(
-            setPaneStateDataValue({ paneInstanceId, paneStateProperty: "ready", paneStateValue: true })
+            setPaneStateDataValue({
+              paneInstanceId,
+              paneStateProperty: "ready",
+              paneStateValue: true,
+            })
           );
         });
 
