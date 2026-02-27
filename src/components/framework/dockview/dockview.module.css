@@ -26,14 +26,16 @@
   --dv-active-sash-color: var(--grey);
 }
 
-/* Keep tabs compact; let right-actions (controls) fill remaining space */
+/* Keep void-container from consuming space so right-actions stays adjacent to tabs.
+   Right-actions: flex-basis 32px guarantees the + button is always visible even
+   when the scrollable tab strip fills the header; flex-grow lets controls expand
+   inline when there is remaining space; flex-shrink 0 prevents it being squeezed. */
 .container :global(.dv-void-container) {
   flex-grow: 0;
 }
 
 .container :global(.dv-right-actions-container) {
-  flex: 1;
-  min-width: 0;
+  flex: 1 0 32px;
 }
 
 /* Let header dropdowns (e.g. COM channels) render above panel content */
