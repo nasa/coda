@@ -242,7 +242,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
   if (version !== "3.0") {
     const frameCount = getFrameCount(fState.layout);
     if (frameCount > 0) {
-      const trimmed: PaneInstanceState = {};
+      const trimmed: { [key: string]: PaneState } = {};
       for (const [key, value] of Object.entries(fState.paneInstances)) {
         if (Number(key) <= frameCount) {
           trimmed[key] = value;

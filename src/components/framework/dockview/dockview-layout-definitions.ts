@@ -190,7 +190,7 @@ const layouts: Record<string, { frames: number; tree: TreeNode; visible: boolean
  * Ordered list of ALL layout letters (a–s).
  * Order must never change — shared links reference layouts by letter.
  */
-export const allLayoutLetters: string[] = [
+export const allLayoutLetters = [
   "a",
   "b",
   "c",
@@ -210,18 +210,21 @@ export const allLayoutLetters: string[] = [
   "q",
   "r",
   "s",
-];
+] as const;
+
+/** Union of all valid layout letter keys (a–s). */
+export type LayoutLetter = (typeof allLayoutLetters)[number];
 
 /**
  * Alphabetically sorted list of layouts that should appear in the layout picker dropdown.
  * Layouts with `visible: false` are excluded.
  */
-export const visibleLayoutLetters: string[] = Object.keys(layouts)
+export const visibleLayoutLetters: LayoutLetter[] = Object.keys(layouts)
   .filter((letter) => layouts[letter].visible)
-  .sort();
+  .sort() as LayoutLetter[];
 
 /** Returns the SerializedDockview snapshot for a layout letter, for use with `api.fromJSON()`. */
-export function getLayout(letter: string): SerializedDockview {
+export function getLayout(letter: LayoutLetter): SerializedDockview {
   const layout = layouts[letter];
   if (!layout) throw new Error(`Unknown layout: ${letter}`);
   return treeToSerialized(layout.tree);
@@ -231,7 +234,7 @@ export function getLayout(letter: string): SerializedDockview {
  * Returns the icon definition (rects + row count) for a layout letter.
  * Layout 'g' uses 10 rows for a more balanced 2×3 grid; all others use 9.
  */
-export function getLayoutIconDef(letter: string): { rows: number; rects: LayoutRect[] } {
+export function getLayoutIconDef(letter: LayoutLetter): { rows: number; rects: LayoutRect[] } {
   const layout = layouts[letter];
   if (!layout) throw new Error(`Unknown layout: ${letter}`);
   const rows = letter === "g" ? 10 : 9;
@@ -239,6 +242,6 @@ export function getLayoutIconDef(letter: string): { rows: number; rects: LayoutR
 }
 
 /** Returns the number of panels in a layout, or 0 if the letter is unknown. */
-export function getFrameCount(letter: string): number {
+export function getFrameCount(letter: LayoutLetter): number {
   return layouts[letter]?.frames ?? 0;
 }

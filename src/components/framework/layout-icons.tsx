@@ -6,7 +6,7 @@
  * The component renders a lightweight inline SVG at the requested size.
  */
 import { FunctionComponent, useMemo } from "react";
-import { getLayoutIconDef } from "./dockview/dockview-layout-definitions";
+import { getLayoutIconDef, LayoutLetter } from "./dockview/dockview-layout-definitions";
 
 /** Gap between rectangles in grid-coordinate units */
 const GAP = 0.4;
@@ -32,7 +32,7 @@ type IconSize = keyof typeof SIZES;
  * @param size    "small" (header bar) or "large" (layout picker modal)
  */
 export const LayoutIcon: FunctionComponent<{
-  layout: string;
+  layout: LayoutLetter;
   size: IconSize;
   className?: string;
 }> = ({ layout, size, className }) => {

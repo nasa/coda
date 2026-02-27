@@ -299,8 +299,10 @@ function getStateStringForGraph(state: GraphPaneStateData) {
  * @param url All query params sent in the share URL
  * @returns FrameState object populated with the data from the URL
  */
-export function interpretFramestateQueryString(query: URLSearchParams): PaneInstanceState {
-  const frameState: PaneInstanceState = {};
+export function interpretFramestateQueryString(query: URLSearchParams): {
+  [key: string]: PaneState;
+} {
+  const frameState: { [key: string]: PaneState } = {};
   for (let i = 1; i <= 10; i++) {
     // 10 is the max number of frames
     const frameParam = query?.get("f" + i);

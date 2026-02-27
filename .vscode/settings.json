@@ -16,6 +16,5 @@
   },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "json.validate.enable": false
+  }
 }

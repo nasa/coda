@@ -2,7 +2,7 @@ interface Preset {
   uuid?: string;
   name: string;
   layout: string;
-  paneInstances: PaneInstanceState;
+  paneInstances: { [key: string]: PaneState };
   /** Version of the preset format: 2 = layout-letter based, 3 = serialized Dockview JSON */
   version?: 2 | 3;
   /** Serialized Dockview layout JSON (v3 presets only) */
@@ -45,16 +45,12 @@ interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
   source: Source;
   /** Letter representing the layout as defined in components/framework/frames.module.css */
-  layout: string;
+  layout: LayoutLetter;
   layoutLastChanged: number; // milliseconds since epoch
-  /** Current mapping of visible pane instances to Frame types */
-  paneInstances: PaneInstanceState;
+  /** Current pane instances */
+  paneInstances: { [key: string]: PaneState };
   /** Serialized Dockview layout JSON — snapshot for initialization only, not kept in sync */
   dockviewSnapshot?: import("dockview-react").SerializedDockview | null;
-}
-
-interface PaneInstanceState {
-  [key: string]: PaneState;
 }
 
 type AllPaneStateData =

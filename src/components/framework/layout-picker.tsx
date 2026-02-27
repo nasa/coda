@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout } from "store/framework";
-import { visibleLayoutLetters, getFrameCount } from "./dockview/dockview-layout-definitions";
+import {
+  visibleLayoutLetters,
+  getFrameCount,
+  LayoutLetter,
+} from "./dockview/dockview-layout-definitions";
 import styles from "./layout-picker.module.css";
 import { LayoutIcon } from "./layout-icons";
 import { HelpButton } from "components/interface/pane-help-control-button";
@@ -13,8 +17,9 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
 
-  /** Select a layout preset and trim Redux frames to match its panel count. */
-  const handleSelectLayout = (e: React.MouseEvent, letter: string) => {
+  /** Select a layout preset and trim Redux framecount to match the new panel count.
+   * This stops pane states from being orphaned when the number of panes decreases */
+  const handleSelectLayout = (e: React.MouseEvent, letter: LayoutLetter) => {
     e.preventDefault();
     dispatch(changeLayout({ layout: letter, frameCount: getFrameCount(letter) }));
     closeClick?.();

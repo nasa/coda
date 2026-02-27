@@ -123,7 +123,7 @@ export const allPanes: Panes = {
   },
 };
 
-export const defaultPaneInstances: PaneInstanceState = {
+export const defaultPaneInstances: { [key: string]: PaneState } = {
   1: {
     paneType: "video_downlink",
     paneStateData: {

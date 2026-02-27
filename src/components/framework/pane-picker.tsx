@@ -11,7 +11,7 @@ interface PanePickerModalOptions {
 }
 
 /**
- * Renders the label for a type of frame
+ * Renders the label for a type of pane
  */
 export const PaneLabel: FunctionComponent<{
   paneType: string;
@@ -40,7 +40,7 @@ export const PaneLabel: FunctionComponent<{
   );
 };
 
-/** Renders a modal with a list of frame types to choose from */
+/** Renders a modal with a list of panes to choose from */
 export const PanePickerModal: FunctionComponent<{
   closeClick?: () => void;
   options?: PanePickerModalOptions;

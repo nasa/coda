@@ -8,7 +8,6 @@ coverage/
 # Directory where local data is stored during dev
 .local
 
-# don't commit secrets! (.env.local no longer used, but ignore to protect data on dev's computers)
 .env
 env.secret.ts
 
