@@ -14,16 +14,17 @@ import {
   setAllFrameworkState,
 } from "store/framework";
 import { setDate, setAppSeconds } from "store/clock";
-import {
-  interpretFramestateQueryString,
-  validateShareLinkDateTime,
-  decompressDockviewSnapshot,
-} from "utils/share-state";
+import { interpretFramestateQueryString, validateShareLinkDateTime } from "utils/share-state";
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import DockviewLayout from "components/framework/dockview/dockview";
 import { getFrameCount } from "components/framework/dockview/dockview-layout-definitions";
+import {
+  stringToTree,
+  treeToSerialized,
+} from "components/framework/dockview/dockview-layout-builder";
+import { setPendingDockviewSnapshot } from "components/framework/dockview/dockview-api-ref";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
@@ -227,10 +228,8 @@ function getURLParams(query: URLSearchParams): QueryParams {
     // v3: Dockview snapshot is serialized in the `dv` query param
     const dvParam = query?.get("dv");
     if (dvParam) {
-      const decoded = decompressDockviewSnapshot(decodeURIComponent(dvParam));
-      if (decoded) {
-        fState.dockviewSnapshot = decoded;
-      }
+      const tree = stringToTree(decodeURIComponent(dvParam));
+      if (tree) setPendingDockviewSnapshot(treeToSerialized(tree));
     }
     // Pane state is still encoded in f1, f2, ... params (same as v2)
     fState.paneInstances = interpretFramestateQueryString(query);

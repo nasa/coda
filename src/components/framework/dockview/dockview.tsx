@@ -26,7 +26,7 @@ import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
 import { DockviewRightActions } from "./dockview-header-actions";
-import { setDockviewApi } from "./dockview-api-ref";
+import { setDockviewApi, takePendingDockviewSnapshot } from "./dockview-api-ref";
 import styles from "./dockview.module.css";
 
 const components = {
@@ -84,28 +84,24 @@ const DockviewLayout: FunctionComponent = () => {
     (state) => state.framework.layoutLastChanged,
     shallowEqual
   );
-  const dockviewSnapshot = useAppSelector(
-    (state) => state.framework.dockviewSnapshot ?? null,
-    shallowEqual
-  );
-
   const onReady = useCallback((event: DockviewReadyEvent) => {
     setApi(event.api);
     setDockviewApi(event.api);
   }, []);
 
-  // Apply layout whenever the API becomes available or the layout changes
+  // Apply layout whenever the API becomes available or the layout changes.
+  // Consumes a pending snapshot (set by URL parsing or preset loading) if one
+  // exists; otherwise falls back to the layout letter system.
   useEffect(() => {
     if (!api) return;
-    // If a serialized Dockview snapshot is available (v3 share/preset), use it directly.
-    // Otherwise fall back to the layout letter system.
-    if (dockviewSnapshot) {
-      api.fromJSON(dockviewSnapshot);
+    const snapshot = takePendingDockviewSnapshot();
+    if (snapshot) {
+      api.fromJSON(snapshot);
     } else {
       const serializedLayout = getLayout(layout);
       api.fromJSON(serializedLayout);
     }
-  }, [api, layout, layoutLastChanged, dockviewSnapshot]);
+  }, [api, layout, layoutLastChanged]);
 
   return (
     <div className={styles.container}>

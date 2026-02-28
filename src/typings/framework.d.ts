@@ -57,8 +57,6 @@ interface FrameworkState {
   layoutLastChanged: number; // milliseconds since epoch
   /** Current pane instances */
   paneInstances: { [key: string]: PaneState };
-  /** Serialized Dockview layout JSON — snapshot for initialization only, not kept in sync */
-  dockviewSnapshot?: import("dockview-react").SerializedDockview | null;
 }
 
 type AllPaneStateData =

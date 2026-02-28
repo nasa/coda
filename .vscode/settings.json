@@ -2,6 +2,7 @@
   "git.ignoreLimitWarning": true,
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
+  "vitest.rootConfig": "vitest.config.mts",
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

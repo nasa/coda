@@ -312,7 +312,31 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     deepEqual
   );
 
-  // Audio state
+  // Derive available channels here (not only in CommControls) so that the
+  // auto-select effect below always runs, even when the header controls are
+  // in collapsed mode and CommControls is not mounted.
+  const availableChannels = useMemo(() => {
+    const channels = Array.from(channelTimingMap.keys());
+    channels.sort();
+    return channels;
+  }, [channelTimingMap]);
+
+  // Auto-select all channels when audio data first arrives and none are
+  // selected yet.  Must live in CommPane (not only CommControls) because the
+  // header controls may be collapsed (not mounted) on narrow panels loaded via
+  // a share link — the race condition that caused utterances to stay hidden.
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    if (availableChannels.length > 0 && paneStateData.sgChannels.length === 0) {
+      dispatch(
+        setPaneStateDataValue({
+          paneInstanceId,
+          paneStateProperty: "sgChannels",
+          paneStateValue: availableChannels,
+        })
+      );
+    }
+  }, [availableChannels, paneStateData.sgChannels, dispatch, paneInstanceId]);
   const [activeAudioFile, setActiveAudioFile] = useState<ActiveAudioFile>({
     file: null,
     playOffset: -1,
@@ -330,8 +354,6 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
   const audioPlayerRef = useRef<HTMLAudioElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
   const lastProcessedMetadataRef = useRef<FetchMetadata | null>(null);
-
-  const dispatch = useAppDispatch();
 
   // Get all timings for selected channels, merged and sorted by time
   const allChannelTimings = useMemo(() => {

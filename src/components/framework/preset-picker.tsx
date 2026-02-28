@@ -12,7 +12,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import LZUTF8 from "lzutf8";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { getDockviewApi } from "./dockview/dockview-api-ref";
+import { getDockviewApi, setPendingDockviewSnapshot } from "./dockview/dockview-api-ref";
 
 const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
@@ -25,13 +25,17 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
 
   const handleSelectPreset = (preset: Preset) => (e: React.MouseEvent) => {
     e.preventDefault();
+    // v3 presets carry a Dockview snapshot; stash it in the module-level ref so
+    // DockviewLayout can consume it on the next layout change.
+    if (preset.version === 3 && preset.dockviewSnapshot) {
+      setPendingDockviewSnapshot(preset.dockviewSnapshot);
+    } else {
+      setPendingDockviewSnapshot(null);
+    }
     const newFrameworkState: FrameworkState = {
       ...framework,
       layout: preset.layout,
       paneInstances: preset.paneInstances,
-      // v3 presets include a serialized Dockview snapshot; v2 presets use the letter system
-      dockviewSnapshot:
-        preset.version === 3 && preset.dockviewSnapshot ? preset.dockviewSnapshot : null,
     };
     dispatch(setAllFrameworkState(newFrameworkState));
     closeClick?.();

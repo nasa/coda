@@ -8,9 +8,11 @@ import { diff, isSameDate, midnightZulu } from "utils/date";
 import isNull from "lodash/isNull";
 import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
-import LZUTF8 from "lzutf8";
-import type { SerializedDockview } from "dockview-react";
-import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
+import type { DockviewApi } from "dockview-react";
+import {
+  serializedToTree,
+  treeToString,
+} from "components/framework/dockview/dockview-layout-builder";
 
 /**
  * Validates share link date/time parameters.
@@ -76,57 +78,20 @@ export function validateShareLinkDateTime(
 }
 
 /**
- * Compresses a SerializedDockview object into a URL-safe Base64 string.
- */
-export function compressDockviewSnapshot(layout: SerializedDockview): string {
-  const json = JSON.stringify(layout);
-  return LZUTF8.compress(json, { outputEncoding: "Base64" });
-}
-
-/**
- * Validates that a parsed object has the minimum expected SerializedDockview shape.
- * Guards against truncated URL blobs that decompress to incomplete JSON.
- */
-function isValidDockviewSnapshot(obj: unknown): obj is SerializedDockview {
-  if (typeof obj !== "object" || obj === null) return false;
-  const snapshot = obj as Record<string, unknown>;
-  if (typeof snapshot.grid !== "object" || snapshot.grid === null) return false;
-  const grid = snapshot.grid as Record<string, unknown>;
-  if (typeof grid.root !== "object" || grid.root === null) return false;
-  if (typeof snapshot.panels !== "object" || snapshot.panels === null) return false;
-  return true;
-}
-
-/**
- * Decompresses a URL-safe Base64 string back into a SerializedDockview object.
- * Returns null if decompression, parsing, or validation fails (e.g. truncated URL).
- */
-export function decompressDockviewSnapshot(encoded: string): SerializedDockview | null {
-  try {
-    const json = LZUTF8.decompress(encoded, { inputEncoding: "Base64" });
-    const parsed: unknown = JSON.parse(json);
-    if (!isValidDockviewSnapshot(parsed)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Generates a v3 URL string that represents the state of the application,
  * capturing the exact Dockview layout (proportions, splits, panel arrangement).
- *
- * Falls back to v2 format if the DockviewApi is unavailable.
  *
  * @param framework - The framework state
  * @param date - The current date string
  * @param appSeconds - The current app seconds
+ * @param dockviewApi - The live DockviewApi instance
  * @returns {string}
  */
 export function generateShareURL(
   framework: FrameworkState,
   date: string,
-  appSeconds: number
+  appSeconds: number,
+  dockviewApi: DockviewApi
 ): string {
   const dt = new Date(date);
 
@@ -187,24 +152,11 @@ export function generateShareURL(
   URL += `&gmt=${missionTime}`;
   URL += `&s=${shortSource}`;
 
-  // Capture the live Dockview state snapshot for a v3 share link
-  const dockviewApi = getDockviewApi();
-  if (dockviewApi) {
-    const serialized = dockviewApi.toJSON();
-    const compressedLayout = compressDockviewSnapshot(serialized);
-    URL += `&v=3.0`;
-    URL += stateUrlParams;
-    // dv blob goes last so a truncated URL degrades gracefully to the default view
-    URL += `&dv=${encodeURIComponent(compressedLayout)}`;
-  } else {
-    // Fallback to v2 format when DockviewApi is not available.
-    // This can happen if: called before Dockview component initializes,
-    // component has unmounted, or in non-browser contexts.
-    const layout = framework.layout;
-    URL += `&v=2.0`;
-    URL += `&l=${layout}`;
-    URL += stateUrlParams;
-  }
+  // Capture the live Dockview state snapshot for a v3 share link.
+  // DSL chars (h/v/(/):/,/digits) are all valid unencoded in query strings per RFC 3986 §3.4.
+  URL += `&v=3.0`;
+  URL += stateUrlParams;
+  URL += `&dv=${treeToString(serializedToTree(dockviewApi.toJSON())!)}`;
 
   return URL;
 }

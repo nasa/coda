@@ -18,6 +18,7 @@ import SharePanel from "components/interface/share";
 import AboutOverlay from "./about-overlay";
 import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
 import { generateShareURL } from "utils/share-state";
+import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
 import { isSameDate } from "utils/date";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { startClock, stopClock, setAppSeconds } from "store/clock";
@@ -132,7 +133,9 @@ const SourcesDropdown: FunctionComponent = () => {
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const handleSourceChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    let URL = generateShareURL(framework, playheadDate, appSeconds);
+    const api = getDockviewApi();
+    if (!api) return;
+    let URL = generateShareURL(framework, playheadDate, appSeconds, api);
 
     const value = e.target.value;
 

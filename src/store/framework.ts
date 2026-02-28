@@ -196,7 +196,6 @@ export const initialState: FrameworkState = {
   layoutLastChanged: Date.now(),
   paneInstances: defaultPaneInstances,
   source: "ISS",
-  dockviewSnapshot: null,
 };
 
 export const frameworkSlice = createSlice({
@@ -211,8 +210,6 @@ export const frameworkSlice = createSlice({
     changeLayout: (state, action: { payload: { layout: string; frameCount: number } }) => {
       state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
-      // Clear any v3 snapshot so the new layout letter takes effect
-      state.dockviewSnapshot = null;
       // Remove frame entries beyond the preset's panel count
       for (const key of Object.keys(state.paneInstances)) {
         if (Number(key) > action.payload.frameCount) {
@@ -242,7 +239,6 @@ export const frameworkSlice = createSlice({
       state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
       state.paneInstances = action.payload.paneInstances;
-      state.dockviewSnapshot = action.payload.dockviewSnapshot ?? null;
     },
 
     /**
