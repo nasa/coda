@@ -63,6 +63,12 @@
   background-color: var(--lightest-grey);
 }
 
+.popoverBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+}
+
 /* Popover that contains the full controls when collapsed */
 .controlsPopover {
   position: fixed;

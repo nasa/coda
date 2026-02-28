@@ -59,7 +59,7 @@ const COLLAPSE_THRESHOLDS: Partial<Record<PaneType, number>> = {
   iss_location: 200,
   gps_location: 200,
   event_info: 200,
-  comm: 200,
+  comm: 220,
   graph: 200,
 };
 
@@ -89,19 +89,6 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
   const [visible, setVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-
-  // Close on outside click
-  useEffect(() => {
-    if (!open) return;
-    const handleOutsideClick = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (buttonRef.current?.contains(target)) return;
-      if (popoverRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [open]);
 
   // After the popover renders (but before the browser paints), measure its actual
   // width and compute the correct position. Right-anchor to the button, clamped
@@ -135,20 +122,30 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
       </button>
       {open &&
         createPortal(
-          <div
-            ref={popoverRef}
-            className={styles.controlsPopover}
-            style={{
-              top: popoverPos.top,
-              left: popoverPos.left,
-              visibility: visible ? "visible" : "hidden",
-            }}
-          >
-            <ControlComponent
-              paneInstanceId={paneInstanceId}
-              groupDimensions={POPOVER_DIMENSIONS}
+          <>
+            <div
+              className={styles.popoverBackdrop}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpen(false);
+              }}
             />
-          </div>,
+            <div
+              ref={popoverRef}
+              className={styles.controlsPopover}
+              style={{
+                top: popoverPos.top,
+                left: popoverPos.left,
+                visibility: visible ? "visible" : "hidden",
+              }}
+            >
+              <ControlComponent
+                paneInstanceId={paneInstanceId}
+                groupDimensions={POPOVER_DIMENSIONS}
+              />
+            </div>
+          </>,
           document.body
         )}
     </>

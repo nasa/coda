@@ -6,7 +6,7 @@
  * The rest of the tab is draggable by Dockview.
  */
 
-import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { IDockviewPanelHeaderProps } from "dockview-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -58,19 +58,6 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
     [menuOpen]
   );
 
-  // Close on outside click
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleOutsideClick = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (chevronContainerRef.current?.contains(target)) return;
-      if (overlayRef.current?.contains(target)) return;
-      setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [menuOpen]);
-
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1) e.preventDefault();
   };
@@ -92,17 +79,27 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
         {menuOpen &&
           // Using createPortal to render the menu at the body level, so it can overflow the tab and not be cut off by overflow:hidden styles in Dockview.
           createPortal(
-            <div
-              ref={overlayRef}
-              className={styles.pickerOverlay}
-              style={{ top: menuPos.top, left: menuPos.left }}
-            >
-              <PanePickerModal
-                closeClick={() => setMenuOpen(false)}
-                options={{ paneInstanceId: paneInstanceId }}
-                onClosePanel={handleClose}
+            <>
+              <div
+                className={styles.pickerBackdrop}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setMenuOpen(false);
+                }}
               />
-            </div>,
+              <div
+                ref={overlayRef}
+                className={styles.pickerOverlay}
+                style={{ top: menuPos.top, left: menuPos.left }}
+              >
+                <PanePickerModal
+                  closeClick={() => setMenuOpen(false)}
+                  options={{ paneInstanceId: paneInstanceId }}
+                  onClosePanel={handleClose}
+                />
+              </div>
+            </>,
             document.body
           )}
       </div>

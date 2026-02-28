@@ -49,6 +49,12 @@
   background-color: rgb(255 255 255 / 15%);
 }
 
+.pickerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}
+
 .pickerOverlay {
   position: fixed;
   z-index: 1000;

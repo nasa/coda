@@ -59,12 +59,14 @@ export const PanePickerModal: FunctionComponent<{
 
   const handleSelectPaneType = (paneType: PaneType) => (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     dispatch(setPaneType({ paneInstanceId, paneType }));
     closeClick?.();
   };
 
   const handleClosePanel = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     closeClick?.();
     onClosePanel?.();
   };
