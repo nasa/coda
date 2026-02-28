@@ -14,7 +14,7 @@ interface PanePickerModalOptions {
  * Renders the label for a type of pane
  */
 export const PaneLabel: FunctionComponent<{
-  paneType: string;
+  paneType: PaneType;
   labelSize?: "S" | "M" | "L";
 }> = ({ paneType, labelSize }) => {
   const { title, shortTitle, icon } = allPanes[paneType];
@@ -51,13 +51,13 @@ export const PanePickerModal: FunctionComponent<{
 
   const dispatch = useAppDispatch();
 
-  const allPaneTypes = Object.keys(allPanes);
+  const allPaneTypes = Object.keys(allPanes) as PaneType[];
   const availablePanes = useMemo(
     () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
     [source, allPaneTypes]
   );
 
-  const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
+  const handleSelectPaneType = (paneType: PaneType) => (e: React.MouseEvent) => {
     e.preventDefault();
     dispatch(setPaneType({ paneInstanceId, paneType }));
     closeClick?.();

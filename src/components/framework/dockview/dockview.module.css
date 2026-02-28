@@ -29,13 +29,15 @@
 /* Keep void-container from consuming space so right-actions stays adjacent to tabs.
    Right-actions: flex-basis 32px guarantees the + button is always visible even
    when the scrollable tab strip fills the header; flex-grow lets controls expand
-   inline when there is remaining space; flex-shrink 0 prevents it being squeezed. */
+   inline when there is remaining space; flex-shrink 1 allows it to shrink when
+   the panel is narrow so the ResizeObserver can trigger collapse into a button. */
 .container :global(.dv-void-container) {
   flex-grow: 0;
 }
 
 .container :global(.dv-right-actions-container) {
-  flex: 1 0 32px;
+  flex: 1 1 32px;
+  min-width: 32px;
 }
 
 /* Let header dropdowns (e.g. COM channels) render above panel content */

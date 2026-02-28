@@ -224,7 +224,7 @@ export const frameworkSlice = createSlice({
     /**
      * Select the type of frame to render in a frame
      */
-    setPaneType: (state, action: { payload: { paneInstanceId: number; paneType: string } }) => {
+    setPaneType: (state, action: { payload: { paneInstanceId: number; paneType: PaneType } }) => {
       state.paneInstances[action.payload.paneInstanceId] = {
         paneType: action.payload.paneType,
         /* Set the pane state to the default state for this paneType */

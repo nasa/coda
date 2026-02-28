@@ -23,9 +23,19 @@ interface Pane {
     | CommPaneStateData;
 }
 
-interface Panes {
-  [key: string]: Pane;
-}
+type PaneType =
+  | "empty"
+  | "video_downlink"
+  | "video_non_downlink"
+  | "photo"
+  | "photo_all"
+  | "iss_location"
+  | "gps_location"
+  | "event_info"
+  | "comm"
+  | "graph";
+
+type Panes = Record<PaneType, Pane>;
 
 interface PaneComponentProps {
   paneInstanceId: number;
@@ -37,9 +47,7 @@ type PaneTypeComponentSet = {
   pane: React.ComponentType<PaneComponentProps> | null;
 };
 
-type PaneTypeComponentSets = {
-  [key: string]: PaneTypeComponentSet;
-};
+type PaneTypeComponentSets = Record<PaneType, PaneTypeComponentSet>;
 
 interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
@@ -65,7 +73,7 @@ type AllPaneStateData =
   | GraphPaneStateData;
 
 interface PaneState {
-  paneType: string;
+  paneType: PaneType;
   paneStateData: AllPaneStateData;
 }
 

@@ -335,7 +335,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
        * Char 4: 0 if muted, 1 if unmuted
        * Chars 5+: String of activeVideoFileID (used for non-downlink video selection)
        */
-      const videoDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
+      const videoDLReturnVal: PaneState = {
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
@@ -348,7 +348,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       };
       return videoDLReturnVal;
     case paneTypeShortVal.video_non_downlink:
-      const videoNonDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
+      const videoNonDLReturnVal: PaneState = {
         paneType: "video_non_downlink",
         paneStateData: {
           ready: true,
@@ -363,7 +363,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       /* Char 2: 0 if showInfo is false, 1 if showInfo is true
        * Char 3: 0 if showFilter is false, 1 if showFilter is true
        */
-      const photoReturnVal: { paneType: string; paneStateData: PhotoPaneStateData } = {
+      const photoReturnVal: PaneState = {
         paneType: "photo",
         paneStateData: {
           ready: true,
@@ -377,7 +377,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       /* Char 2: 0 if showFilter is false, 1 if showInfo is true
        * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
        */
-      const photoAllReturnVal: { paneType: string; paneStateData: PhotoAllPaneStateData } = {
+      const photoAllReturnVal: PaneState = {
         paneType: "photo_all",
         paneStateData: {
           ready: true,
@@ -388,7 +388,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       };
       return photoAllReturnVal;
     case paneTypeShortVal.event_info:
-      const eventInfoReturnVal: { paneType: string; paneStateData: EventPaneStateData } = {
+      const eventInfoReturnVal: PaneState = {
         paneType: "event_info",
         paneStateData: {
           ready: true,
@@ -399,7 +399,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
     case paneTypeShortVal.iss_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
-      const issLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
+      const issLocationReturnVal: PaneState = {
         paneType: "iss_location",
         paneStateData: {
           ready: true,
@@ -426,7 +426,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
           gpsTrackToggles[name] = true;
         }
       }
-      const gpsLocationReturnVal: { paneType: string; paneStateData: GpsTrackPaneStateData } = {
+      const gpsLocationReturnVal: PaneState = {
         paneType: "gps_location",
         paneStateData: {
           ready: true,
@@ -439,7 +439,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
     case paneTypeShortVal.talkybot:
       /* Channel info ignored - all channels selected by default
        */
-      const commReturnVal: { paneType: string; paneStateData: CommPaneStateData } = {
+      const commReturnVal: PaneState = {
         paneType: "comm",
         paneStateData: {
           ready: true,
@@ -456,7 +456,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
        * Char 3+4 graph id:
        */
 
-      const graphReturnVal: { paneType: string; paneStateData: GraphPaneStateData } = {
+      const graphReturnVal: PaneState = {
         paneType: "graph",
         paneStateData: {
           ready: true,

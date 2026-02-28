@@ -70,13 +70,13 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
     return () => disposable.dispose();
   }, [api]);
 
-  const allPaneTypes = useMemo(() => Object.keys(allPanes), []);
+  const allPaneTypes = useMemo(() => Object.keys(allPanes) as PaneType[], []);
   const availablePanes = useMemo(
     () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
     [source, allPaneTypes]
   );
 
-  const handleSelectPaneType = (selectedType: string) => {
+  const handleSelectPaneType = (selectedType: PaneType) => {
     dispatch(setPaneType({ paneInstanceId: paneInstanceId, paneType: selectedType }));
   };
 

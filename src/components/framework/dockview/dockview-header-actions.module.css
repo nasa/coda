@@ -6,6 +6,7 @@
   height: 100%;
   gap: 2px;
   padding: 0 2px;
+  min-width: 0;
 }
 
 .controls {
