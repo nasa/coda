@@ -39,7 +39,7 @@ type Panes = Record<PaneType, Pane>;
 
 interface PaneComponentProps {
   paneInstanceId: number;
-  frameDimensions: number[];
+  groupDimensions: number[];
 }
 
 type PaneTypeComponentSet = {

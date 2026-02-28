@@ -260,9 +260,9 @@ export const frameworkSlice = createSlice({
       ] = action.payload.paneStateValue;
     },
     /**
-     * Add a new frame with the "empty" pane type (used when adding panels via the + button)
+     * Add a new pane instance with the "empty" pane type (used when adding panels via the + button)
      */
-    addFrame: (state, action: { payload: number }) => {
+    addPaneInstance: (state, action: { payload: number }) => {
       if (!state.paneInstances[action.payload]) {
         state.paneInstances[action.payload] = {
           paneType: "empty",
@@ -272,9 +272,9 @@ export const frameworkSlice = createSlice({
     },
 
     /**
-     * Remove a frame from state (used when closing panels via the X button)
+     * Remove a pane instance from state (used when closing panels via the X button)
      */
-    removeFrame: (state, action: { payload: number }) => {
+    removePaneInstance: (state, action: { payload: number }) => {
       delete state.paneInstances[action.payload];
     },
   },
@@ -285,8 +285,8 @@ export const {
   setPaneType,
   setAllFrameworkState,
   setPaneStateDataValue,
-  addFrame,
-  removeFrame,
+  addPaneInstance,
+  removePaneInstance,
 } = frameworkSlice.actions;
 
 function getEventInfoTitleBySource(source: Source): string {

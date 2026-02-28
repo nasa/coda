@@ -28,9 +28,9 @@ const MIN_WIDTH_FOR_LONG_BUTTON = 470;
 export const IOInfoButton: FunctionComponent<{
   clickHandler: () => void;
   selected?: boolean;
-  frameDimensions: number[];
-}> = ({ clickHandler, selected, frameDimensions }) => {
-  const isLargeFrame = frameDimensions[0] > MIN_WIDTH_FOR_LONG_BUTTON;
+  groupDimensions: number[];
+}> = ({ clickHandler, selected, groupDimensions }) => {
+  const isLargeFrame = groupDimensions[0] > MIN_WIDTH_FOR_LONG_BUTTON;
   const buttonLength = isLargeFrame ? styles.ioButtonLong : styles.ioButtonShort;
   const iconAdjustment = isLargeFrame ? styles.iconAdjustmentLong : styles.iconAdjustmentShort;
   const selectedStyle = selected ? styles.selected : "";
@@ -66,8 +66,8 @@ export const MuteButton: FunctionComponent<{
 const RightButtons: FunctionComponent<{
   paneInstanceId: number;
   paneStateData: VideoPaneStateData;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, paneStateData, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, paneStateData, groupDimensions }) => {
   const dispatch = useAppDispatch();
   const paneInstances = useAppSelector((state) => state.framework.paneInstances, deepEqual);
   const videos = useAppSelector((state) => state.videos, deepEqual);
@@ -154,7 +154,7 @@ const RightButtons: FunctionComponent<{
                 <IOInfoButton
                   clickHandler={handleInfoToggle}
                   selected={paneStateData.showInfo}
-                  frameDimensions={frameDimensions}
+                  groupDimensions={groupDimensions}
                 />
               </div>
             </>
@@ -202,8 +202,8 @@ export const ChannelSelector: FunctionComponent<{
   paneInstanceId: number;
   channelAvailability: boolean[];
   paneStateData: VideoPaneStateData;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, channelAvailability, paneStateData, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, channelAvailability, paneStateData, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   // Get channels selected by other video panes
@@ -249,7 +249,7 @@ export const ChannelSelector: FunctionComponent<{
       <RightButtons
         paneInstanceId={paneInstanceId}
         paneStateData={paneStateData}
-        frameDimensions={frameDimensions}
+        groupDimensions={groupDimensions}
       />
     </div>
   );
@@ -261,8 +261,8 @@ export const ChannelSelector: FunctionComponent<{
 
 export const VideoDLPaneControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const playheadDate = usePlayheadDate();
   const playheadDateObj = new Date(playheadDate);
@@ -298,7 +298,7 @@ export const VideoDLPaneControls: FunctionComponent<{
         paneInstanceId={paneInstanceId}
         channelAvailability={channelAvailability}
         paneStateData={paneStateData}
-        frameDimensions={frameDimensions}
+        groupDimensions={groupDimensions}
       />
     </>
   );
@@ -306,8 +306,8 @@ export const VideoDLPaneControls: FunctionComponent<{
 
 export const VideoOtherPaneControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const playheadDate = usePlayheadDate();
@@ -355,7 +355,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
   const hasVideosAvailable = nonDlVideoIDs.length > 0;
   const selectActiveStyle = hasVideosAvailable ? styles.selectActive : "";
   const dropDownWidthClass =
-    frameDimensions[0] > MIN_WIDTH_FOR_LARGE_SELECTOR
+    groupDimensions[0] > MIN_WIDTH_FOR_LARGE_SELECTOR
       ? styles.selectContainerWide
       : styles.selectContainerNarrow;
 
@@ -389,7 +389,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
         <RightButtons
           paneInstanceId={paneInstanceId}
           paneStateData={paneStateData}
-          frameDimensions={frameDimensions}
+          groupDimensions={groupDimensions}
         />
       </div>
     </>

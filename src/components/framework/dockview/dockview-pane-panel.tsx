@@ -100,7 +100,7 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
 
   return (
     <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-      <PaneComponent paneInstanceId={paneInstanceId} frameDimensions={dimensions} />
+      <PaneComponent paneInstanceId={paneInstanceId} groupDimensions={dimensions} />
     </div>
   );
 };

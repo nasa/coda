@@ -98,7 +98,7 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
     if (node.kind === "panel") {
       groupCounter++;
       const groupId = `g-${groupCounter}`;
-      const panelId = `frame-${node.paneInstanceId}`;
+      const panelId = `paneInstance-${node.paneInstanceId}`;
       panels[panelId] = {
         id: panelId,
         contentComponent: "pane",
@@ -124,7 +124,7 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
   if (root.kind === "panel") {
     groupCounter++;
     const groupId = `g-${groupCounter}`;
-    const panelId = `frame-${root.paneInstanceId}`;
+    const panelId = `paneInstance-${root.paneInstanceId}`;
     panels[panelId] = {
       id: panelId,
       contentComponent: "pane",

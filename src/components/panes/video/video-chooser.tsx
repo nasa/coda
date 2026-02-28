@@ -20,7 +20,7 @@ import { VideoPosterPane } from "./video-poster";
  */
 const VideoPaneChooser: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
+  groupDimensions: number[];
 }> = ({ paneInstanceId }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const downlinkNumber = useAppSelector(

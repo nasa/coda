@@ -21,7 +21,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { addFrame } from "store/framework";
+import { addPaneInstance } from "store/framework";
 import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
@@ -57,9 +57,9 @@ const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = ({ containerA
       if (fId > maxId) maxId = fId;
     }
     const newPaneInstanceId = maxId + 1;
-    dispatch(addFrame(newPaneInstanceId));
+    dispatch(addPaneInstance(newPaneInstanceId));
     containerApi.addPanel({
-      id: `frame-${newPaneInstanceId}`,
+      id: `paneInstance-${newPaneInstanceId}`,
       component: "pane",
       tabComponent: "paneTab",
       params: { paneInstanceId: newPaneInstanceId },

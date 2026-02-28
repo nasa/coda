@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faGripVertical } from "@fortawesome/free-solid-svg-icons";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { allPanes, removeFrame } from "store/framework";
+import { allPanes, removePaneInstance } from "store/framework";
 import PanePickerModal from "../pane-picker";
 import styles from "./dockview-tab.module.css";
 
@@ -41,7 +41,7 @@ export const DockviewPaneTab: FunctionComponent<IDockviewPanelHeaderProps<PanelP
   const dispatch = useAppDispatch();
 
   const handleClose = useCallback(() => {
-    dispatch(removeFrame(paneInstanceId));
+    dispatch(removePaneInstance(paneInstanceId));
     api.close();
   }, [api, dispatch, paneInstanceId]);
 

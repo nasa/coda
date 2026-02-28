@@ -25,7 +25,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSliders } from "@fortawesome/free-solid-svg-icons";
 import { shallowEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { addFrame } from "store/framework";
+import { addPaneInstance } from "store/framework";
 import styles from "./dockview-header-actions.module.css";
 
 import { EventInfoControls } from "components/panes/event-info";
@@ -37,7 +37,7 @@ import { GPSLocationControls } from "components/panes/gps-location";
 import { CommControls } from "components/panes/comm";
 import { GraphControls } from "components/panes/graph/graph";
 
-const controlComponents: Record<string, React.ComponentType<PaneComponentProps> | null> = {
+const controlComponents: Record<PaneType, React.ComponentType<PaneComponentProps> | null> = {
   empty: null,
   video_downlink: VideoDLPaneControls,
   video_non_downlink: VideoOtherPaneControls,
@@ -51,7 +51,7 @@ const controlComponents: Record<string, React.ComponentType<PaneComponentProps> 
 };
 
 /** Width threshold (px) below which inline controls collapse into a button, keyed by paneType. */
-const COLLAPSE_THRESHOLDS: Record<string, number> = {
+const COLLAPSE_THRESHOLDS: Partial<Record<PaneType, number>> = {
   video_downlink: 220,
   video_non_downlink: 280,
   photo: 200,
@@ -146,7 +146,7 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
           >
             <ControlComponent
               paneInstanceId={paneInstanceId}
-              frameDimensions={POPOVER_DIMENSIONS}
+              groupDimensions={POPOVER_DIMENSIONS}
             />
           </div>,
           document.body
@@ -168,7 +168,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   );
   const [collapsed, setCollapsed] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const paneTypeRef = useRef<string>("");
+  const paneTypeRef = useRef<PaneType | "">("");
 
   const frameState = useAppSelector(
     (state) => state.framework.paneInstances[paneInstanceId],
@@ -194,7 +194,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     const el = actionsRef.current;
     if (!el) return;
     const width = el.getBoundingClientRect().width;
-    const threshold = COLLAPSE_THRESHOLDS[paneType] ?? 200;
+    const threshold = COLLAPSE_THRESHOLDS[paneType as PaneType] ?? 200;
     setCollapsed(width - 28 < threshold);
   }, [paneType]);
 
@@ -206,7 +206,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
       for (const entry of entries) {
         const width = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
         // Reserve ~28px for the add button; rest is available for controls
-        const threshold = COLLAPSE_THRESHOLDS[paneTypeRef.current] ?? 200;
+        const threshold = COLLAPSE_THRESHOLDS[paneTypeRef.current as PaneType] ?? 200;
         setCollapsed(width - 28 < threshold);
       }
     });
@@ -237,9 +237,9 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
       if (fId > maxId) maxId = fId;
     }
     const newPaneInstanceId = maxId + 1;
-    dispatch(addFrame(newPaneInstanceId));
+    dispatch(addPaneInstance(newPaneInstanceId));
     containerApi.addPanel({
-      id: `frame-${newPaneInstanceId}`,
+      id: `paneInstance-${newPaneInstanceId}`,
       component: "pane",
       tabComponent: "paneTab",
       params: { paneInstanceId: newPaneInstanceId },
@@ -258,7 +258,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
           <CollapsedControls ControlComponent={ControlComponent} paneInstanceId={paneInstanceId} />
         ) : (
           <div className={styles.controls}>
-            <ControlComponent paneInstanceId={paneInstanceId} frameDimensions={dimensions} />
+            <ControlComponent paneInstanceId={paneInstanceId} groupDimensions={dimensions} />
           </div>
         ))}
     </div>

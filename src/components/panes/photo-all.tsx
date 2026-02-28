@@ -16,8 +16,8 @@ import { setAppSeconds } from "store/clock";
 
 export const PhotoAllControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
@@ -27,7 +27,7 @@ export const PhotoAllControls: FunctionComponent<{
     deepEqual
   );
 
-  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = groupDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -51,9 +51,9 @@ export const PhotoAllControls: FunctionComponent<{
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Scroll" : ""}</div>
                 <div>
                   <FontAwesomeIcon
                     icon={paneStateData.lockScroll ? faLock : faLockOpen}
@@ -78,7 +78,7 @@ export const PhotoAllControls: FunctionComponent<{
               );
             }}
             selected={paneStateData.showFilter}
-            frameDimensions={frameDimensions}
+            groupDimensions={groupDimensions}
           />
         </div>
         <div className={styles.verticalCenter}>

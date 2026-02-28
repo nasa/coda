@@ -19,8 +19,8 @@ import ClockInterval from "components/framework/ClockInterval";
 
 export const GraphControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 500; // minimum width of the graph pane before shortening the dropdown
@@ -62,7 +62,7 @@ export const GraphControls: FunctionComponent<{
           <>
             <GraphSelectorDropdown
               paneInstanceId={paneInstanceId}
-              frameDimensions={frameDimensions}
+              groupDimensions={groupDimensions}
               minWidth={minWidth}
             />
             <GraphDurationSelector paneInstanceId={paneInstanceId} paneStateData={paneStateData} />
@@ -91,9 +91,9 @@ export const GraphControls: FunctionComponent<{
 
 const GraphSelectorDropdown: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
+  groupDimensions: number[];
   minWidth: number;
-}> = ({ paneInstanceId, frameDimensions, minWidth }) => {
+}> = ({ paneInstanceId, groupDimensions, minWidth }) => {
   const paneStateData = useAppSelector(
     (state) => state.framework.paneInstances[paneInstanceId].paneStateData as GraphPaneStateData,
     shallowEqual
@@ -105,7 +105,7 @@ const GraphSelectorDropdown: FunctionComponent<{
   );
 
   const dropDownWidthClass =
-    frameDimensions[0] > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
+    groupDimensions[0] > minWidth ? styles.selectContainerWide : styles.selectContainerNarrow;
 
   const selectedGraphId = paneStateData.selectedGraphId || "";
 
@@ -199,9 +199,9 @@ const GraphDurationSelector: FunctionComponent<{
   );
 };
 
-const Graph: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+const Graph: FunctionComponent<{ paneInstanceId: number; groupDimensions: number[] }> = ({
   paneInstanceId,
-  frameDimensions,
+  groupDimensions,
 }) => {
   const paneStateData = useAppSelector(
     (state) => state.framework.paneInstances[paneInstanceId].paneStateData as GraphPaneStateData,
@@ -219,7 +219,7 @@ const Graph: FunctionComponent<{ paneInstanceId: number; frameDimensions: number
   );
   const graphData = selectedGraph?.data;
 
-  const graphHeight = frameDimensions[1] - 40;
+  const graphHeight = groupDimensions[1] - 40;
 
   const initialChartData: {
     plotlyChartTraces: PlotlyChartTrace[];
@@ -381,7 +381,7 @@ const Graph: FunctionComponent<{ paneInstanceId: number; frameDimensions: number
       });
     }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- appSeconds, findPlotIndexToHighlight, paneInstanceId, graphHeight are stable or would cause excessive re-renders
-  }, [graphData, frameDimensions]);
+  }, [graphData, groupDimensions]);
 
   // update the graph ranges and hover when the time changes
   useEffect(() => {

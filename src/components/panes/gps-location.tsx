@@ -23,8 +23,8 @@ import ClockInterval from "components/framework/ClockInterval";
 
 export const GPSLocationControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
@@ -36,7 +36,7 @@ export const GPSLocationControls: FunctionComponent<{
 
   const gpsTracks = useAppSelector((state) => state.gps.gpsTracks, deepEqual);
 
-  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = groupDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -99,9 +99,9 @@ export const GPSLocationControls: FunctionComponent<{
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Scroll" : ""}</div>
                 <div>
                   <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
                 </div>
@@ -130,9 +130,9 @@ export const GPSLocationControls: FunctionComponent<{
   );
 };
 
-const GPSLocation: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+const GPSLocation: FunctionComponent<{ paneInstanceId: number; groupDimensions: number[] }> = ({
   paneInstanceId,
-  frameDimensions,
+  groupDimensions,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -234,7 +234,7 @@ const GPSLocation: FunctionComponent<{ paneInstanceId: number; frameDimensions: 
       map.resize();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- map instance doesn't change, only need to react to dimension changes
-  }, [frameDimensions, layoutLastChanged]);
+  }, [groupDimensions, layoutLastChanged]);
 
   useEffect(() => {
     if (!map) return;

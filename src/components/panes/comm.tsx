@@ -65,8 +65,8 @@ function buildChannelTimingMap(
 
 export const CommControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -133,7 +133,7 @@ export const CommControls: FunctionComponent<{
     }
   };
 
-  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = groupDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (paneStateData?.lockScroll) {
     lockButtonSelected = styles.buttonSelected;
@@ -224,9 +224,9 @@ export const CommControls: FunctionComponent<{
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Filter" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Filter" : ""}</div>
                 <div>
                   <FontAwesomeIcon icon={faFilter} size="sm" />
                 </div>
@@ -250,9 +250,9 @@ export const CommControls: FunctionComponent<{
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Scroll" : ""}</div>
                 <div>
                   <FontAwesomeIcon
                     icon={paneStateData.lockScroll ? faLock : faLockOpen}

@@ -14,8 +14,8 @@ import ClockInterval from "components/framework/ClockInterval";
 
 export const PhotoControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
@@ -62,7 +62,7 @@ export const PhotoControls: FunctionComponent<{
                 );
               }}
               selected={paneStateData.showInfo}
-              frameDimensions={frameDimensions}
+              groupDimensions={groupDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -77,7 +77,7 @@ export const PhotoControls: FunctionComponent<{
                 );
               }}
               selected={paneStateData.showFilter}
-              frameDimensions={frameDimensions}
+              groupDimensions={groupDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -100,9 +100,9 @@ export const PhotoControls: FunctionComponent<{
   );
 };
 
-const PhotoPane: FunctionComponent<{ paneInstanceId: number; frameDimensions: number[] }> = ({
+const PhotoPane: FunctionComponent<{ paneInstanceId: number; groupDimensions: number[] }> = ({
   paneInstanceId,
-  frameDimensions,
+  groupDimensions,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -256,7 +256,7 @@ const PhotoPane: FunctionComponent<{ paneInstanceId: number; frameDimensions: nu
               <img
                 className={styles.photo}
                 src={
-                  frameDimensions[0] > 640 && photos.activePhoto.mediaHighResURL
+                  groupDimensions[0] > 640 && photos.activePhoto.mediaHighResURL
                     ? photos.activePhoto.mediaHighResURL
                     : photos.activePhoto.mediaLowResURL
                 }

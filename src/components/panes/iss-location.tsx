@@ -35,8 +35,8 @@ type MapMarker = {
 
 export const ISSLocationControls: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
@@ -46,7 +46,7 @@ export const ISSLocationControls: FunctionComponent<{
     deepEqual
   );
 
-  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = groupDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -69,9 +69,9 @@ export const ISSLocationControls: FunctionComponent<{
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Scroll" : ""}</div>
                 <div>
                   <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
                 </div>
@@ -102,8 +102,8 @@ export const ISSLocationControls: FunctionComponent<{
 
 export const ISSLocation: FunctionComponent<{
   paneInstanceId: number;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, frameDimensions }) => {
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const initialMarker: MapMarker = {
@@ -390,7 +390,7 @@ export const ISSLocation: FunctionComponent<{
     if (mapRef.current) {
       mapRef.current.resize();
     }
-  }, [frameDimensions, layoutLastChanged]);
+  }, [groupDimensions, layoutLastChanged]);
 
   //update map based on changes in seconds / hoverSeconds only after map loading
   useEffect(() => {
