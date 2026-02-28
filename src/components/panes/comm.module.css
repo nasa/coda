@@ -1,6 +1,7 @@
 .controls {
   display: flex;
   height: 100%;
+  justify-content: flex-end;
   gap: 5px;
   margin-left: auto;
 }

@@ -1,4 +1,3 @@
-import isNil from "lodash/isNil";
 import { FunctionComponent, useEffect, useState } from "react";
 import ClockInterval from "components/framework/ClockInterval";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
@@ -13,7 +12,6 @@ import { calculateChannelAvailability, determineVideoPlayerType } from "utils/vi
 import styles from "./video-controls.module.css";
 import { setPaneStateDataValue } from "store/framework";
 import { HelpButton } from "components/interface/pane-help-control-button";
-import { ModalDropdown } from "components/interface/dropdown-modal";
 
 // ============================================================================
 // Constants
@@ -171,7 +169,7 @@ const RightButtons: FunctionComponent<{
 };
 
 // ============================================================================
-// Channel Selector Helpers
+// Channel Selector and helpers
 // ============================================================================
 
 /**
@@ -200,17 +198,7 @@ const getButtonRounding = (index: number, total: number): RoundedVariant => {
   return "none";
 };
 
-const getDropdownButtonRounding = (index: number, total: number): RoundedVariant => {
-  if (index === 0) return "top";
-  if (index === total - 1) return "bottom";
-  return "none";
-};
-
-// ============================================================================
-// Channel Selector Components
-// ============================================================================
-
-export const ChannelSelectorLarge: FunctionComponent<{
+export const ChannelSelector: FunctionComponent<{
   paneInstanceId: number;
   channelAvailability: boolean[];
   paneStateData: VideoPaneStateData;
@@ -241,7 +229,7 @@ export const ChannelSelectorLarge: FunctionComponent<{
 
   return (
     <div className={styles.controls}>
-      <div className={styles.selections}>
+      <div className={styles.selections} title="Select video downlink">
         {CHANNELS.map((channel) => (
           <Button
             key={`DLBUTTON_${channel}_${paneInstanceId}`}
@@ -266,118 +254,6 @@ export const ChannelSelectorLarge: FunctionComponent<{
     </div>
   );
 };
-
-interface ChannelDropdownModalOptions {
-  paneInstanceId: number;
-  channelAvailability: boolean[];
-  channelSelected: number;
-}
-
-const ChannelDropdownLabel: FunctionComponent<{
-  dlNumber: number;
-  isAvailable: boolean;
-}> = ({ dlNumber, isAvailable }) => {
-  const color = isAvailable ? "active_selected" : "disabled_selected";
-
-  return (
-    <div className={`${styles.chDropdownLabel} ${styles[color]}`}>
-      <div className={styles.verticalCenter}>{dlNumber + 1}</div>
-    </div>
-  );
-};
-
-const ChannelDropdownModal: FunctionComponent<{
-  closeClick?: () => void;
-  options?: ChannelDropdownModalOptions;
-}> = ({ closeClick, options }) => {
-  const paneInstanceId = options?.paneInstanceId ?? 0;
-  const channelAvailability = options?.channelAvailability ?? [];
-  const channelSelected = options?.channelSelected ?? 0;
-  const dispatch = useAppDispatch();
-
-  // Get channels selected by other video panes
-  const channelsSelectedByOthers = useAppSelector((state) => {
-    const channels = new Set<number>();
-    for (const [key, value] of Object.entries(state.framework.paneInstances)) {
-      if (value.paneType.includes("video") && parseInt(key) !== paneInstanceId) {
-        channels.add((value.paneStateData as VideoPaneStateData).channel);
-      }
-    }
-    return channels;
-  }, deepEqual);
-
-  const handleSelectChannel = (channel: number) => {
-    dispatch(
-      setPaneStateDataValue({
-        paneInstanceId,
-        paneStateProperty: "channel",
-        paneStateValue: channel,
-      })
-    );
-    closeClick?.();
-  };
-
-  if (!channelAvailability) return null;
-
-  return (
-    <div className={styles.chDropdownModal}>
-      {CHANNELS.map((channel) => (
-        <div
-          key={`CHANNEL__PICKER__${paneInstanceId}__${channel}`}
-          onClick={() => handleSelectChannel(channel)}
-        >
-          <Button
-            color={getChannelButtonColor(
-              channelAvailability[channel],
-              channelSelected === channel,
-              channelsSelectedByOthers.has(channel)
-            )}
-            size="small"
-            rounded={getDropdownButtonRounding(channel, CHANNELS.length)}
-          >
-            <div className={styles.dlLabel}>{channel + 1}</div>
-          </Button>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-export const ChannelSelectorSmall: FunctionComponent<{
-  paneInstanceId: number;
-  channelAvailability: boolean[];
-  paneStateData: VideoPaneStateData;
-  frameDimensions: number[];
-}> = ({ paneInstanceId, channelAvailability, paneStateData, frameDimensions }) => (
-  <div className={styles.controls}>
-    <div className={styles.dropdown}>
-      <ModalDropdown
-        color="grey"
-        size="skinny"
-        modal={ChannelDropdownModal}
-        modalOptions={{
-          paneInstanceId,
-          channelAvailability,
-          channelSelected: paneStateData?.channel,
-        }}
-      >
-        {!isNil(channelAvailability) ? (
-          <ChannelDropdownLabel
-            dlNumber={paneStateData.channel}
-            isAvailable={channelAvailability[paneStateData.channel]}
-          />
-        ) : (
-          <>&nbsp;DL</>
-        )}
-      </ModalDropdown>
-    </div>
-    <RightButtons
-      paneInstanceId={paneInstanceId}
-      paneStateData={paneStateData}
-      frameDimensions={frameDimensions}
-    />
-  </div>
-);
 
 // ============================================================================
 // Pane Control Components
@@ -414,9 +290,6 @@ export const VideoDLPaneControls: FunctionComponent<{
     source,
     liveEnabled
   );
-
-  const ChannelSelector =
-    frameDimensions[0] < MIN_WIDTH_FOR_LARGE_SELECTOR ? ChannelSelectorSmall : ChannelSelectorLarge;
 
   return (
     <>
@@ -497,6 +370,7 @@ export const VideoOtherPaneControls: FunctionComponent<{
           <select
             className={selectActiveStyle}
             value={paneStateData.activeVideoFileID}
+            disabled={!hasVideosAvailable}
             onChange={(e) => handleVideoSelect(e.target.value)}
           >
             <option disabled={!hasVideosAvailable} value="">

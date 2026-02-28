@@ -1,6 +1,7 @@
 .controls {
   display: flex;
   width: 100%;
+  justify-content: flex-end;
   gap: 5px;
 }
 
@@ -16,10 +17,6 @@
 
 .dlLabel {
   width: 22px;
-}
-
-.dropdown {
-  width: 40px;
 }
 
 .rightButtonsContainer {
@@ -101,16 +98,6 @@
   border: none;
 }
 
-/* Channel Dropdown */
-.chDropdownLabel {
-  padding-left: 7px;
-}
-
-.chDropdownModal {
-  display: flex;
-  flex-direction: column;
-}
-
 .selectActive {
   background-color: var(--even-greyer);
 }
@@ -134,7 +121,7 @@
 .selectContainer select {
   font-family: Inter, sans-serif;
   font-weight: 400;
-  font-size: 15px;
+  font-size: 0.8rem;
   cursor: pointer;
   padding-left: 15px;
   padding-right: 15px;
@@ -142,7 +129,7 @@
   border: none;
   border-radius: var(--radius);
   color: white;
-  background-color: var(--lightest-grey);
+  background-color: var(--grey);
   appearance: none;
   text-overflow: ellipsis;
   outline: 0;
@@ -158,13 +145,15 @@
 }
 
 .selectContainer select:disabled {
-  opacity: 0.5;
-  pointer-events: none;
+  opacity: 0.6;
+  background-color: var(--dark-grey);
+  cursor: default;
 }
 
 .nonDlSelect_arrow {
   position: absolute;
   pointer-events: none;
-  top: 3px;
-  right: 6px;
+  font-size: 1em;
+  top: 6px;
+  right: 10px;
 }

@@ -50,8 +50,18 @@ const controlComponents: Record<string, React.ComponentType<PaneComponentProps> 
   graph: GraphControls,
 };
 
-/** Width threshold (px) below which inline controls collapse into a button. */
-const COLLAPSE_THRESHOLD = 200;
+/** Width threshold (px) below which inline controls collapse into a button, keyed by paneType. */
+const COLLAPSE_THRESHOLDS: Record<string, number> = {
+  video_downlink: 220,
+  video_non_downlink: 280,
+  photo: 200,
+  photo_all: 200,
+  iss_location: 200,
+  gps_location: 200,
+  event_info: 200,
+  comm: 200,
+  graph: 200,
+};
 
 /** Extract the paneInstanceId from the active panel's params. */
 function getActivePaneInstanceId(activePanel: IDockviewPanel | undefined): number {
@@ -158,6 +168,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   );
   const [collapsed, setCollapsed] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const paneTypeRef = useRef<string>("");
 
   const frameState = useAppSelector(
     (state) => state.framework.paneInstances[paneInstanceId],
@@ -172,6 +183,21 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     return () => disposable.dispose();
   }, [group]);
 
+  // Keep paneTypeRef in sync so the ResizeObserver always reads the latest threshold
+  const paneType = frameState?.paneType ?? "";
+  useLayoutEffect(() => {
+    paneTypeRef.current = paneType;
+  });
+
+  // Re-evaluate collapsed immediately when paneType (and thus threshold) changes
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (!el) return;
+    const width = el.getBoundingClientRect().width;
+    const threshold = COLLAPSE_THRESHOLDS[paneType] ?? 200;
+    setCollapsed(width - 28 < threshold);
+  }, [paneType]);
+
   // Observe right-actions width to decide inline vs collapsed controls
   useEffect(() => {
     const el = actionsRef.current;
@@ -180,7 +206,8 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
       for (const entry of entries) {
         const width = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
         // Reserve ~28px for the add button; rest is available for controls
-        setCollapsed(width - 28 < COLLAPSE_THRESHOLD);
+        const threshold = COLLAPSE_THRESHOLDS[paneTypeRef.current] ?? 200;
+        setCollapsed(width - 28 < threshold);
       }
     });
     observer.observe(el);
@@ -201,7 +228,6 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     return () => disposable.dispose();
   }, [group]);
 
-  const paneType = frameState?.paneType ?? "";
   const ControlComponent = paneType ? (controlComponents[paneType] ?? null) : null;
 
   const handleAddPanel = useCallback(() => {
