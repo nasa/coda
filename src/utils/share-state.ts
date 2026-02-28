@@ -84,13 +84,29 @@ export function compressDockviewSnapshot(layout: SerializedDockview): string {
 }
 
 /**
+ * Validates that a parsed object has the minimum expected SerializedDockview shape.
+ * Guards against truncated URL blobs that decompress to incomplete JSON.
+ */
+function isValidDockviewSnapshot(obj: unknown): obj is SerializedDockview {
+  if (typeof obj !== "object" || obj === null) return false;
+  const snapshot = obj as Record<string, unknown>;
+  if (typeof snapshot.grid !== "object" || snapshot.grid === null) return false;
+  const grid = snapshot.grid as Record<string, unknown>;
+  if (typeof grid.root !== "object" || grid.root === null) return false;
+  if (typeof snapshot.panels !== "object" || snapshot.panels === null) return false;
+  return true;
+}
+
+/**
  * Decompresses a URL-safe Base64 string back into a SerializedDockview object.
- * Returns null if decompression or parsing fails.
+ * Returns null if decompression, parsing, or validation fails (e.g. truncated URL).
  */
 export function decompressDockviewSnapshot(encoded: string): SerializedDockview | null {
   try {
     const json = LZUTF8.decompress(encoded, { inputEncoding: "Base64" });
-    return JSON.parse(json) as SerializedDockview;
+    const parsed: unknown = JSON.parse(json);
+    if (!isValidDockviewSnapshot(parsed)) return null;
+    return parsed;
   } catch {
     return null;
   }
@@ -177,6 +193,8 @@ export function generateShareURL(
     const serialized = dockviewApi.toJSON();
     const compressedLayout = compressDockviewSnapshot(serialized);
     URL += `&v=3.0`;
+    URL += stateUrlParams;
+    // dv blob goes last so a truncated URL degrades gracefully to the default view
     URL += `&dv=${encodeURIComponent(compressedLayout)}`;
   } else {
     // Fallback to v2 format when DockviewApi is not available.
@@ -185,9 +203,8 @@ export function generateShareURL(
     const layout = framework.layout;
     URL += `&v=2.0`;
     URL += `&l=${layout}`;
+    URL += stateUrlParams;
   }
-
-  URL += stateUrlParams;
 
   return URL;
 }

@@ -167,7 +167,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   const actionsRef = useRef<HTMLDivElement>(null);
   const paneTypeRef = useRef<PaneType | "">("");
 
-  const frameState = useAppSelector(
+  const paneInstanceState = useAppSelector(
     (state) => state.framework.paneInstances[paneInstanceId],
     shallowEqual
   );
@@ -181,7 +181,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
   }, [group]);
 
   // Keep paneTypeRef in sync so the ResizeObserver always reads the latest threshold
-  const paneType = frameState?.paneType ?? "";
+  const paneType = paneInstanceState?.paneType ?? "";
   useLayoutEffect(() => {
     paneTypeRef.current = paneType;
   });
