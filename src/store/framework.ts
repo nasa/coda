@@ -20,7 +20,7 @@ export const allPanes: Panes = {
     },
   },
   video_downlink: {
-    title: "Video Channels",
+    title: "Video Downlink",
     shortTitle: "Video",
     icon: faVideo,
     defaultPaneStateData: {
@@ -33,7 +33,7 @@ export const allPanes: Panes = {
     } as VideoPaneStateData,
   },
   video_non_downlink: {
-    title: "Video Other",
+    title: "Video Non-Downlink",
     shortTitle: "Video",
     icon: faVideo,
     defaultPaneStateData: {
