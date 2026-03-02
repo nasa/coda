@@ -24,7 +24,6 @@ import {
   stringToTree,
   treeToSerialized,
 } from "components/framework/dockview/dockview-layout-builder";
-import { setPendingDockviewSnapshot } from "components/framework/dockview/dockview-api-ref";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
@@ -140,7 +139,9 @@ export function V2(): JSX.Element {
         socketStatus={socketStatus}
       />
       <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
-      <div className={styles.body}>{frameworkReady && <DockviewLayout />}</div>
+      <div className={styles.body}>
+        {frameworkReady && <DockviewLayout initialLayout={urlState.dockviewLayout} />}
+      </div>
       <Timeline source={source} />
       <PlaybackControls />
     </div>
@@ -160,6 +161,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
   const { validatedDate, validatedGmt } = validateShareLinkDateTime(rawDate, rawGmt);
   let date = validatedDate;
   const gmt = validatedGmt;
+  let dockviewLayout: import("dockview-react").SerializedDockview | null = null;
 
   const fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
@@ -225,11 +227,11 @@ function getURLParams(query: URLSearchParams): QueryParams {
   } else if (version === "2.0") {
     fState.paneInstances = interpretFramestateQueryString(query);
   } else if (version === "3.0") {
-    // v3: Dockview snapshot is serialized in the `dv` query param
+    // v3: Dockview layout is serialized in the `dv` query param
     const dvParam = query?.get("dv");
     if (dvParam) {
       const tree = stringToTree(decodeURIComponent(dvParam));
-      if (tree) setPendingDockviewSnapshot(treeToSerialized(tree));
+      if (tree) dockviewLayout = treeToSerialized(tree);
     }
     // Pane state is still encoded in f1, f2, ... params (same as v2)
     fState.paneInstances = interpretFramestateQueryString(query);
@@ -255,6 +257,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
     date: date, // date is now guaranteed to be a string from validateShareLinkDateTime
     gmt: gmt ?? "",
     frameworkState: fState,
+    dockviewLayout,
   };
 
   return urlState;

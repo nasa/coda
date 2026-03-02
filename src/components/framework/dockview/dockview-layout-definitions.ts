@@ -8,8 +8,8 @@
  *   - getLayoutIconDef  → rects for SVG icon rendering
  *   - getFrameCount     → number of panels in a layout
  *
- * These 19 layouts are frozen — new layouts should be authored directly as
- * Dockview snapshots rather than extending this file.
+ * These 19 layouts are frozen to maintain v2 share link compatibility.
+ * New layouts can be added as needed, but existing ones must never be removed or changed.
  */
 
 import type { SerializedDockview } from "dockview-react";
@@ -223,7 +223,7 @@ export const visibleLayoutLetters: LayoutLetter[] = Object.keys(layouts)
   .filter((letter) => layouts[letter].visible)
   .sort() as LayoutLetter[];
 
-/** Returns the SerializedDockview snapshot for a layout letter, for use with `api.fromJSON()`. */
+/** Returns the SerializedDockview layout for a layout letter, for use with `api.fromJSON()`. */
 export function getLayout(letter: LayoutLetter): SerializedDockview {
   const layout = layouts[letter];
   if (!layout) throw new Error(`Unknown layout: ${letter}`);

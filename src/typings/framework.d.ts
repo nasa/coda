@@ -5,8 +5,8 @@ interface Preset {
   paneInstances: { [key: string]: PaneState };
   /** Version of the preset format: 2 = layout-letter based, 3 = serialized Dockview JSON */
   version?: 2 | 3;
-  /** Serialized Dockview layout JSON (v3 presets only) */
-  dockviewSnapshot?: import("dockview-react").SerializedDockview;
+  /** Fully-specified Dockview layout JSON (v3 presets only) */
+  dockviewLayout?: import("dockview-react").SerializedDockview;
 }
 
 interface Pane {

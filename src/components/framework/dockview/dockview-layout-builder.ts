@@ -17,7 +17,7 @@
  * Functions:
  *   treeToString(node)         — TreeNode → DSL string
  *   stringToTree(s)            — DSL string → TreeNode | null
- *   serializedToTree(snapshot) — SerializedDockview → TreeNode | null
+ *   serializedToTree(serialized) — SerializedDockview → TreeNode | null
  *                                (reverse-engineers live api.toJSON() output
  *                                 using alternating-orientation inference)
  *
@@ -191,14 +191,14 @@ export function stringToTree(input: string): TreeNode | null {
 }
 
 /**
- * Reconstructs a TreeNode from a live SerializedDockview snapshot (e.g. from
+ * Reconstructs a TreeNode from a live SerializedDockview layout (e.g. from
  * `dockviewApi.toJSON()`). Dockview's grid format does not tag each branch with
  * a direction; instead, the top-level `grid.orientation` is canonical and every
  * deeper nesting level alternates. This function uses that alternating rule to
  * recover h/v direction at each depth.
  *
- * Returns null only if the snapshot is structurally malformed (missing root,
- * missing panel params, etc.). Valid live snapshots from this app always succeed.
+ * Returns null only if the serialized layout is structurally malformed (missing root,
+ * missing panel params, etc.). Valid live layouts from this app always succeed.
  */
 export function serializedToTree(serialized: SerializedDockview): TreeNode | null {
   const panelDefs = serialized.panels as Record<string, { params?: { paneInstanceId?: number } }>;

@@ -152,7 +152,7 @@ export function generateShareURL(
   URL += `&gmt=${missionTime}`;
   URL += `&s=${shortSource}`;
 
-  // Capture the live Dockview state snapshot for a v3 share link.
+  // Encode the live Dockview layout into the v3 share link.
   // DSL chars (h/v/(/):/,/digits) are all valid unencoded in query strings per RFC 3986 §3.4.
   URL += `&v=3.0`;
   URL += stateUrlParams;

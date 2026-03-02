@@ -12,7 +12,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import LZUTF8 from "lzutf8";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
-import { getDockviewApi, setPendingDockviewSnapshot } from "./dockview/dockview-api-ref";
+import { getDockviewApi, setPendingDockviewLayout } from "./dockview/dockview-api-ref";
 
 const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
@@ -25,12 +25,12 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
 
   const handleSelectPreset = (preset: Preset) => (e: React.MouseEvent) => {
     e.preventDefault();
-    // v3 presets carry a Dockview snapshot; stash it in the module-level ref so
-    // DockviewLayout can consume it on the next layout change.
-    if (preset.version === 3 && preset.dockviewSnapshot) {
-      setPendingDockviewSnapshot(preset.dockviewSnapshot);
+    // v3 presets carry a fully-specified Dockview layout; stash it so
+    // DockviewLayout applies it on the next layout change.
+    if (preset.version === 3 && preset.dockviewLayout) {
+      setPendingDockviewLayout(preset.dockviewLayout);
     } else {
-      setPendingDockviewSnapshot(null);
+      setPendingDockviewLayout(null);
     }
     const newFrameworkState: FrameworkState = {
       ...framework,
@@ -50,8 +50,8 @@ const PresetPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       paneInstances: framework.paneInstances,
       name: presetNameField,
       version: 3,
-      // Capture the current Dockview state snapshot so proportions and arrangement are restored
-      dockviewSnapshot: dockviewApi ? dockviewApi.toJSON() : undefined,
+      // Capture the current Dockview layout so proportions and arrangement are restored
+      dockviewLayout: dockviewApi ? dockviewApi.toJSON() : undefined,
     };
 
     const newUserPresets = [...userPresets, newPreset];

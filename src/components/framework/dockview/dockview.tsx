@@ -12,8 +12,14 @@
  * - "Group": a Dockview group, which contains one or more Panels and provides layout (tabbed, stacked, etc)
  */
 
-import { FunctionComponent, useCallback, useEffect, useState } from "react";
-import { DockviewReact, DockviewApi, DockviewReadyEvent, themeDark } from "dockview-react";
+import { FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  DockviewReact,
+  DockviewApi,
+  DockviewReadyEvent,
+  SerializedDockview,
+  themeDark,
+} from "dockview-react";
 import type { IWatermarkPanelProps } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -26,7 +32,7 @@ import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
 import { DockviewRightActions } from "./dockview-header-actions";
-import { setDockviewApi, takePendingDockviewSnapshot } from "./dockview-api-ref";
+import { setDockviewApi, getPendingDockviewLayout } from "./dockview-api-ref";
 import styles from "./dockview.module.css";
 
 const components = {
@@ -77,31 +83,41 @@ const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = ({ containerA
   );
 };
 
-const DockviewLayout: FunctionComponent = () => {
+const DockviewLayout: FunctionComponent<{ initialLayout?: SerializedDockview | null }> = ({
+  initialLayout,
+}) => {
   const [api, setApi] = useState<DockviewApi | null>(null);
   const layout = useAppSelector((state) => state.framework.layout, shallowEqual);
   const layoutLastChanged = useAppSelector(
     (state) => state.framework.layoutLastChanged,
     shallowEqual
   );
+  // Track whether we've applied the URL-supplied initial layout (apply it only once).
+  const initialLayoutApplied = useRef(false);
   const onReady = useCallback((event: DockviewReadyEvent) => {
     setApi(event.api);
     setDockviewApi(event.api);
   }, []);
 
   // Apply layout whenever the API becomes available or the layout changes.
-  // Consumes a pending snapshot (set by URL parsing or preset loading) if one
-  // exists; otherwise falls back to the layout letter system.
+  // On the very first run (api just became available), prefer the URL-supplied
+  // initialLayout if present.  Subsequent runs (layout changes from preset
+  // picker, layout button, etc.) use the pending layout or letter-layout path.
   useEffect(() => {
     if (!api) return;
-    const snapshot = takePendingDockviewSnapshot();
-    if (snapshot) {
-      api.fromJSON(snapshot);
+    if (initialLayout && !initialLayoutApplied.current) {
+      initialLayoutApplied.current = true;
+      api.fromJSON(initialLayout);
+      return;
+    }
+    const pendingLayout = getPendingDockviewLayout();
+    if (pendingLayout) {
+      api.fromJSON(pendingLayout);
     } else {
       const serializedLayout = getLayout(layout);
       api.fromJSON(serializedLayout);
     }
-  }, [api, layout, layoutLastChanged]);
+  }, [api, layout, layoutLastChanged, initialLayout]);
 
   return (
     <div className={styles.container}>

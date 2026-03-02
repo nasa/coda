@@ -24,20 +24,19 @@ export function getDockviewApi(): DockviewApi | null {
   return _api;
 }
 
-let _pendingSnapshot: SerializedDockview | null = null;
+let _pendingLayout: SerializedDockview | null = null;
 
 /**
- * Stash a Dockview layout snapshot to be applied on next initialization.
- * Called by URL parsing and preset loading before the Dockview API is ready,
- * so DockviewLayout can consume it instead of falling back to the layout letter.
+ * Stash a Dockview layout to be applied on next layout change.
+ * Called by the preset picker so that DockviewLayout applies the correct layout when the user selects a preset.
  */
-export function setPendingDockviewSnapshot(snapshot: SerializedDockview | null): void {
-  _pendingSnapshot = snapshot;
+export function setPendingDockviewLayout(layout: SerializedDockview | null): void {
+  _pendingLayout = layout;
 }
 
-/** Consume and clear the pending snapshot (returns null if none is set). */
-export function takePendingDockviewSnapshot(): SerializedDockview | null {
-  const snapshot = _pendingSnapshot;
-  _pendingSnapshot = null;
-  return snapshot;
+/** Get and clear the pending layout, if any. Called by DockviewLayout on layout changes. */
+export function getPendingDockviewLayout(): SerializedDockview | null {
+  const layout = _pendingLayout;
+  _pendingLayout = null;
+  return layout;
 }
