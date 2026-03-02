@@ -285,7 +285,7 @@ const VideoHlsPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
               className={styles.videoAspectBox}
               style={videoSize ? { aspectRatio: `${videoSize.w}/${videoSize.h}` } : undefined}
             >
-              {hlsAvailable && status === "playing" && (
+              {hlsAvailable && videoSize !== null && status !== "buffering" && (
                 <button
                   className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
                   onClick={() => toggleFullScreen()}

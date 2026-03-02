@@ -293,22 +293,25 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
               setVideoSize({ w: el.videoWidth, h: el.videoHeight });
             }}
           />
-          {status === "playing" && (
-            <div className={styles.videoAspectWrapper}>
-              <div
-                className={styles.videoAspectBox}
-                style={videoSize ? { aspectRatio: `${videoSize.w}/${videoSize.h}` } : undefined}
-              >
-                <button
-                  className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
-                  onClick={() => toggleFullScreen()}
-                  title="Fullscreen"
+          {videoSize !== null &&
+            status !== "buffering" &&
+            status !== "error" &&
+            status !== "novid" && (
+              <div className={styles.videoAspectWrapper}>
+                <div
+                  className={styles.videoAspectBox}
+                  style={videoSize ? { aspectRatio: `${videoSize.w}/${videoSize.h}` } : undefined}
                 >
-                  <FontAwesomeIcon icon={faExpand} />
-                </button>
+                  <button
+                    className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
+                    onClick={() => toggleFullScreen()}
+                    title="Fullscreen"
+                  >
+                    <FontAwesomeIcon icon={faExpand} />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </>
       )}
 

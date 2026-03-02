@@ -439,26 +439,30 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
           onError={handleError}
         />
 
-        {paneStateData.activeVideoFileID && status === "playing" && (
-          <div className={styles.videoAspectWrapper}>
-            <div
-              className={styles.videoAspectBox}
-              style={
-                metadata
-                  ? { aspectRatio: `${metadata.videoWidth}/${metadata.videoHeight}` }
-                  : undefined
-              }
-            >
-              <button
-                className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
-                onClick={() => videoElement.current?.requestFullscreen()}
-                title="Fullscreen"
+        {paneStateData.activeVideoFileID &&
+          metadata !== null &&
+          status !== "buffering" &&
+          status !== "error" &&
+          status !== "novid" && (
+            <div className={styles.videoAspectWrapper}>
+              <div
+                className={styles.videoAspectBox}
+                style={
+                  metadata
+                    ? { aspectRatio: `${metadata.videoWidth}/${metadata.videoHeight}` }
+                    : undefined
+                }
               >
-                <FontAwesomeIcon icon={faExpand} />
-              </button>
+                <button
+                  className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
+                  onClick={() => videoElement.current?.requestFullscreen()}
+                  title="Fullscreen"
+                >
+                  <FontAwesomeIcon icon={faExpand} />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         <div className={styles.IOError} style={errorStyle}>
           {errorMessage}
