@@ -19,7 +19,7 @@ import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
 import DockviewLayout from "components/framework/dockview/dockview";
-import { getFrameCount } from "components/framework/dockview/dockview-layout-definitions";
+import { getPaneInstanceCount } from "components/framework/dockview/dockview-layout-definitions";
 import {
   stringToTree,
   treeToSerialized,
@@ -241,11 +241,11 @@ function getURLParams(query: URLSearchParams): QueryParams {
   // added panels (via "+") always start empty / show watermark.
   // Skip trimming for v3 links — the Dockview layout defines the panel count.
   if (version !== "3.0") {
-    const frameCount = getFrameCount(fState.layout);
-    if (frameCount > 0) {
-      const trimmed: { [key: string]: PaneState } = {};
+    const paneInstanceCount = getPaneInstanceCount(fState.layout);
+    if (paneInstanceCount > 0) {
+      const trimmed: { [paneInstanceId: string]: PaneState } = {};
       for (const [key, value] of Object.entries(fState.paneInstances)) {
-        if (Number(key) <= frameCount) {
+        if (Number(key) <= paneInstanceCount) {
           trimmed[key] = value;
         }
       }

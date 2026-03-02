@@ -2,7 +2,7 @@ interface Preset {
   uuid?: string;
   name: string;
   layout: string;
-  paneInstances: { [key: string]: PaneState };
+  paneInstances: { [paneInstanceId: string]: PaneState };
   /** Version of the preset format: 2 = layout-letter based, 3 = serialized Dockview JSON */
   version?: 2 | 3;
   /** Fully-specified Dockview layout JSON (v3 presets only) */
@@ -56,7 +56,7 @@ interface FrameworkState {
   layout: LayoutLetter;
   layoutLastChanged: number; // milliseconds since epoch
   /** Current pane instances */
-  paneInstances: { [key: string]: PaneState };
+  paneInstances: { [paneInstanceId: string]: PaneState };
 }
 
 type AllPaneStateData =

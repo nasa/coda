@@ -48,6 +48,15 @@ export type TreeNode = PanelNode | SplitNode;
 /** [x, y, width, height] rectangle on the grid */
 export type LayoutRect = readonly [number, number, number, number];
 
+type RawNode = { type: "leaf" | "branch"; data: unknown; size: number };
+
+interface WalkFrame {
+  rawNode: RawNode;
+  isHoriz: boolean;
+  childIdx: number;
+  childNodes: { node: TreeNode; size: number }[];
+}
+
 // ---------------------------------------------------------------------------
 // Builder functions
 // ---------------------------------------------------------------------------
@@ -79,18 +88,18 @@ export function vsplit(...args: [TreeNode, number][]): SplitNode {
 // DSL string serialization  (TreeNode ↔ compact string for share URLs)
 // ---------------------------------------------------------------------------
 
+interface Frame {
+  node: SplitNode;
+  childIdx: number;
+  childStrs: string[];
+}
+
 /**
  * Serializes a TreeNode to a compact DSL string suitable for use in share URLs.
  * Examples: "1", "h(1:500,2:500)", "v(h(1:333,2:333,3:334):560,h(5:750,4:250):440)"
  */
 export function treeToString(root: TreeNode): string {
   if (root.kind === "panel") return String(root.paneInstanceId);
-
-  interface Frame {
-    node: SplitNode;
-    childIdx: number;
-    childStrs: string[];
-  }
 
   const stack: Frame[] = [{ node: root, childIdx: 0, childStrs: [] }];
 
@@ -128,14 +137,15 @@ export function treeToString(root: TreeNode): string {
  * Parses a DSL string back into a TreeNode.
  * Returns null if the string is malformed or contains unexpected characters.
  */
+
+type PendingSplit = {
+  direction: "h" | "v";
+  children: { node: TreeNode; size: number }[];
+};
+
 export function stringToTree(input: string): TreeNode | null {
   const s = input.trim();
   let pos = 0;
-
-  type PendingSplit = {
-    direction: "h" | "v";
-    children: { node: TreeNode; size: number }[];
-  };
 
   const stack: PendingSplit[] = [];
 
@@ -188,15 +198,6 @@ export function stringToTree(input: string): TreeNode | null {
   }
 
   return null; // string ended without a complete top-level node
-}
-
-type RawNode = { type: "leaf" | "branch"; data: unknown; size: number };
-
-interface WalkFrame {
-  rawNode: RawNode;
-  isHoriz: boolean;
-  childIdx: number;
-  childNodes: { node: TreeNode; size: number }[];
 }
 
 /**
@@ -299,6 +300,13 @@ interface GridBranch {
 
 type GridNode = GridLeaf | GridBranch;
 
+interface ConvertFrame {
+  node: SplitNode;
+  size: number;
+  childIdx: number;
+  childNodes: GridNode[];
+}
+
 /** Converts a DSL tree into the SerializedDockview format consumed by `api.fromJSON()`. */
 export function treeToSerialized(root: TreeNode): SerializedDockview {
   const panels: Record<
@@ -325,13 +333,6 @@ export function treeToSerialized(root: TreeNode): SerializedDockview {
       title: `Frame ${paneInstanceId}`,
     };
     return { type: "leaf", data: { id: groupId, views: [panelId], activeView: panelId }, size };
-  }
-
-  interface ConvertFrame {
-    node: SplitNode;
-    size: number;
-    childIdx: number;
-    childNodes: GridNode[];
   }
 
   // Single panel edge case — wrap in a branch to satisfy Dockview requirements

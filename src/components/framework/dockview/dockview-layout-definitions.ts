@@ -160,26 +160,26 @@ const treeS = (() => {
   return vsplit([topRow, 670], [bottomRow, 330]);
 })();
 
-const layouts: Record<string, { frames: number; tree: TreeNode; visible: boolean }> = {
-  a: { frames: 5, tree: treeA, visible: true },
-  b: { frames: 6, tree: treeB, visible: false },
-  c: { frames: 5, tree: treeC, visible: false },
-  d: { frames: 4, tree: treeD, visible: false },
-  e: { frames: 4, tree: treeE, visible: false },
-  f: { frames: 9, tree: treeF, visible: true },
-  g: { frames: 6, tree: treeG, visible: true },
-  h: { frames: 1, tree: treeH, visible: true },
-  i: { frames: 3, tree: treeI, visible: true },
-  j: { frames: 6, tree: treeJ, visible: false },
-  k: { frames: 5, tree: treeK, visible: false },
-  l: { frames: 6, tree: treeL, visible: false },
-  m: { frames: 4, tree: treeM, visible: true },
-  n: { frames: 7, tree: treeN, visible: true },
-  o: { frames: 2, tree: treeO, visible: false },
-  p: { frames: 3, tree: treeP, visible: false },
-  q: { frames: 4, tree: treeQ, visible: false },
-  r: { frames: 5, tree: treeR, visible: true },
-  s: { frames: 6, tree: treeS, visible: false },
+const layouts: Record<string, { paneInstances: number; tree: TreeNode; visible: boolean }> = {
+  a: { paneInstances: 5, tree: treeA, visible: true },
+  b: { paneInstances: 6, tree: treeB, visible: false },
+  c: { paneInstances: 5, tree: treeC, visible: false },
+  d: { paneInstances: 4, tree: treeD, visible: false },
+  e: { paneInstances: 4, tree: treeE, visible: false },
+  f: { paneInstances: 9, tree: treeF, visible: true },
+  g: { paneInstances: 6, tree: treeG, visible: true },
+  h: { paneInstances: 1, tree: treeH, visible: true },
+  i: { paneInstances: 3, tree: treeI, visible: true },
+  j: { paneInstances: 6, tree: treeJ, visible: false },
+  k: { paneInstances: 5, tree: treeK, visible: false },
+  l: { paneInstances: 6, tree: treeL, visible: false },
+  m: { paneInstances: 4, tree: treeM, visible: true },
+  n: { paneInstances: 7, tree: treeN, visible: true },
+  o: { paneInstances: 2, tree: treeO, visible: false },
+  p: { paneInstances: 3, tree: treeP, visible: false },
+  q: { paneInstances: 4, tree: treeQ, visible: false },
+  r: { paneInstances: 5, tree: treeR, visible: true },
+  s: { paneInstances: 6, tree: treeS, visible: false },
 };
 
 // ---------------------------------------------------------------------------
@@ -242,6 +242,6 @@ export function getLayoutIconDef(letter: LayoutLetter): { rows: number; rects: L
 }
 
 /** Returns the number of panels in a layout, or 0 if the letter is unknown. */
-export function getFrameCount(letter: LayoutLetter): number {
-  return layouts[letter]?.frames ?? 0;
+export function getPaneInstanceCount(letter: LayoutLetter): number {
+  return layouts[letter]?.paneInstances ?? 0;
 }

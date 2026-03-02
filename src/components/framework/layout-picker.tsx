@@ -4,7 +4,7 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout } from "store/framework";
 import {
   visibleLayoutLetters,
-  getFrameCount,
+  getPaneInstanceCount,
   LayoutLetter,
 } from "./dockview/dockview-layout-definitions";
 import styles from "./layout-picker.module.css";
@@ -17,11 +17,11 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
 
-  /** Select a layout preset and trim Redux framecount to match the new panel count.
+  /** Select a layout preset and trim Redux paneInstanceCount to match the new panel count.
    * This stops pane states from being orphaned when the number of panes decreases */
   const handleSelectLayout = (e: React.MouseEvent, letter: LayoutLetter) => {
     e.preventDefault();
-    dispatch(changeLayout({ layout: letter, frameCount: getFrameCount(letter) }));
+    dispatch(changeLayout({ layout: letter, paneInstanceCount: getPaneInstanceCount(letter) }));
     closeClick?.();
   };
 

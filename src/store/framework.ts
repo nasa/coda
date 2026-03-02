@@ -123,7 +123,7 @@ export const allPanes: Panes = {
   },
 };
 
-export const defaultPaneInstances: { [key: string]: PaneState } = {
+export const defaultPaneInstances: { [paneInstanceId: string]: PaneState } = {
   1: {
     paneType: "video_downlink",
     paneStateData: {
@@ -207,12 +207,12 @@ export const frameworkSlice = createSlice({
      * Trims frames to only contain entries for panels 1–frameCount so that
      * dynamically added panels (via "+") always start empty.
      */
-    changeLayout: (state, action: { payload: { layout: string; frameCount: number } }) => {
+    changeLayout: (state, action: { payload: { layout: string; paneInstanceCount: number } }) => {
       state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
       // Remove frame entries beyond the preset's panel count
       for (const key of Object.keys(state.paneInstances)) {
-        if (Number(key) > action.payload.frameCount) {
+        if (Number(key) > action.payload.paneInstanceCount) {
           delete state.paneInstances[key];
         }
       }

@@ -269,9 +269,9 @@ function getStateStringForGraph(state: GraphPaneStateData) {
  * @returns FrameState object populated with the data from the URL
  */
 export function interpretFramestateQueryString(query: URLSearchParams): {
-  [key: string]: PaneState;
+  [paneInstanceId: string]: PaneState;
 } {
-  const frameState: { [key: string]: PaneState } = {};
+  const frameState: { [paneInstanceId: string]: PaneState } = {};
   for (let i = 1; i <= 10; i++) {
     // 10 is the max number of frames
     const frameParam = query?.get("f" + i);

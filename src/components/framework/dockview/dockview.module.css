@@ -37,7 +37,34 @@
 
 .container :global(.dv-right-actions-container) {
   flex: 1 1 32px;
-  min-width: 32px;
+  min-width: 68px;
+}
+
+/* Disable Dockview's default overflow dropdown and keep tab strip scrollable */
+.container :global(.dv-tabs-overflow-dropdown-root),
+.container :global(.dv-tabs-overflow-dropdown-default) {
+  display: none !important;
+}
+
+/* Clip the native OS scrollbar out of view; scroll still works via mouse wheel.
+   The tab-bar is 28px tall — a thick OS scrollbar wastes too much of that space
+   and can't be reliably restyled in Chrome on Windows. */
+.container :global(.dv-scrollable) {
+  overflow: hidden;
+}
+
+.container :global(.dv-scrollable > .dv-tabs-container) {
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  /* push native scrollbar below the clipped area */
+  padding-bottom: 17px;
+  box-sizing: content-box !important;
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+.container :global(.dv-tabs-container)::-webkit-scrollbar {
+  display: none;
 }
 
 /* Let header dropdowns (e.g. COM channels) render above panel content */
