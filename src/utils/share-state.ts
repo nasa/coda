@@ -8,11 +8,11 @@ import { diff, isSameDate, midnightZulu } from "utils/date";
 import isNull from "lodash/isNull";
 import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
-import type { DockviewApi } from "dockview-react";
 import {
   serializedToTree,
   treeToString,
 } from "components/framework/dockview/dockview-layout-builder";
+import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
 
 /**
  * Validates share link date/time parameters.
@@ -84,15 +84,15 @@ export function validateShareLinkDateTime(
  * @param framework - The framework state
  * @param date - The current date string
  * @param appSeconds - The current app seconds
- * @param dockviewApi - The live DockviewApi instance
- * @returns {string}
+ * @returns {string | null} The share URL, or null if the DockviewApi is not yet available
  */
 export function generateShareURL(
   framework: FrameworkState,
   date: string,
-  appSeconds: number,
-  dockviewApi: DockviewApi
-): string {
+  appSeconds: number
+): string | null {
+  const dockviewApi = getDockviewApi();
+  if (!dockviewApi) return null;
   const dt = new Date(date);
 
   const missionDate = shortdateFromDateString(dt.toISOString());

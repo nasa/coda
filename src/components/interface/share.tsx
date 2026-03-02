@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, JSX } from "react";
 import styles from "./share.module.css";
 import { generateShareURL } from "utils/share-state";
-import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
 import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate } from "store/hooks";
 import { HelpButton } from "./pane-help-control-button";
@@ -37,9 +36,8 @@ const SharePanel = ({
       currentAppSeconds = Math.min(currentAppSeconds, 86401);
     }
 
-    const api = getDockviewApi();
-    if (!api) return;
-    const URL = generateShareURL(framework, playheadDate, currentAppSeconds, api);
+    const URL = generateShareURL(framework, playheadDate, currentAppSeconds);
+    if (!URL) return;
     setShareURLtextValue(URL);
   }
 

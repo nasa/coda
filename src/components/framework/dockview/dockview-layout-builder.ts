@@ -190,6 +190,15 @@ export function stringToTree(input: string): TreeNode | null {
   return null; // string ended without a complete top-level node
 }
 
+type RawNode = { type: "leaf" | "branch"; data: unknown; size: number };
+
+interface WalkFrame {
+  rawNode: RawNode;
+  isHoriz: boolean;
+  childIdx: number;
+  childNodes: { node: TreeNode; size: number }[];
+}
+
 /**
  * Reconstructs a TreeNode from a live SerializedDockview layout (e.g. from
  * `dockviewApi.toJSON()`). Dockview's grid format does not tag each branch with
@@ -206,15 +215,6 @@ export function serializedToTree(serialized: SerializedDockview): TreeNode | nul
   // Orientation.HORIZONTAL = 0, Orientation.VERTICAL = 1
   const rootIsHorizontal =
     (serialized.grid?.orientation ?? Orientation.HORIZONTAL) === Orientation.HORIZONTAL;
-
-  type RawNode = { type: "leaf" | "branch"; data: unknown; size: number };
-
-  interface WalkFrame {
-    rawNode: RawNode;
-    isHoriz: boolean;
-    childIdx: number;
-    childNodes: { node: TreeNode; size: number }[];
-  }
 
   const root = serialized.grid?.root as RawNode | undefined;
   if (!root) return null;
