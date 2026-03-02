@@ -13,6 +13,8 @@ import { VideoPoster, getPosterState } from "./video-poster";
 import { VideoIOHelpContent } from "./video-help";
 import ClockInterval from "components/framework/ClockInterval";
 import { usePlayheadDate } from "store/hooks";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExpand } from "@fortawesome/free-solid-svg-icons";
 
 // ============================================================================
 // IO Video Player Component
@@ -64,6 +66,7 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [status, setStatus] = useState<VideoStatus>(null);
   const [sourceURL, setSourceURL] = useState<string | null>(null);
+  const [expandVisible, setExpandVisible] = useState(false);
 
   // ============================================================================
   // Video Selection Logic
@@ -296,52 +299,6 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
     }
   };
 
-  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
-    if (paneStateData.activeVideoFileID) {
-      const el = videoElement.current;
-      if (!el?.requestFullscreen) return;
-
-      // Only trigger fullscreen if clicking on actual video content, not letterbox/pillarbox
-      const rect = el.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      // Calculate actual video content bounds (accounting for aspect ratio)
-      const videoAspect = el.videoWidth / el.videoHeight;
-      const containerAspect = rect.width / rect.height;
-
-      let videoDisplayWidth: number;
-      let videoDisplayHeight: number;
-      let videoLeft: number;
-      let videoTop: number;
-
-      if (containerAspect > videoAspect) {
-        // Pillarboxing (black bars on sides)
-        videoDisplayHeight = rect.height;
-        videoDisplayWidth = videoDisplayHeight * videoAspect;
-        videoLeft = (rect.width - videoDisplayWidth) / 2;
-        videoTop = 0;
-      } else {
-        // Letterboxing (black bars on top/bottom)
-        videoDisplayWidth = rect.width;
-        videoDisplayHeight = videoDisplayWidth / videoAspect;
-        videoLeft = 0;
-        videoTop = (rect.height - videoDisplayHeight) / 2;
-      }
-
-      // Check if click is within actual video content
-      const isWithinVideo =
-        clickX >= videoLeft &&
-        clickX <= videoLeft + videoDisplayWidth &&
-        clickY >= videoTop &&
-        clickY <= videoTop + videoDisplayHeight;
-
-      if (isWithinVideo) {
-        el.requestFullscreen();
-      }
-    }
-  };
-
   const handleHelpClose = () => {
     dispatch(
       setPaneStateDataValue({
@@ -459,7 +416,14 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
       data-frame-id="IO Player"
     >
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
-      <div key={`video_element__${paneInstanceId}`} className={styles.vidContainer}>
+      <div
+        key={`video_element__${paneInstanceId}`}
+        className={styles.vidContainer}
+        onTouchStart={() => {
+          setExpandVisible(true);
+          setTimeout(() => setExpandVisible(false), 3000);
+        }}
+      >
         <VideoPoster state={posterState} />
 
         <video
@@ -473,8 +437,28 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
           onPlaying={handlePlaying}
           onLoadedMetadata={handleLoadedMetadata}
           onError={handleError}
-          onClick={handleVideoClick}
         />
+
+        {paneStateData.activeVideoFileID && status === "playing" && (
+          <div className={styles.videoAspectWrapper}>
+            <div
+              className={styles.videoAspectBox}
+              style={
+                metadata
+                  ? { aspectRatio: `${metadata.videoWidth}/${metadata.videoHeight}` }
+                  : undefined
+              }
+            >
+              <button
+                className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
+                onClick={() => videoElement.current?.requestFullscreen()}
+                title="Fullscreen"
+              >
+                <FontAwesomeIcon icon={faExpand} />
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className={styles.IOError} style={errorStyle}>
           {errorMessage}

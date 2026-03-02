@@ -12,6 +12,8 @@ import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import ClockInterval from "components/framework/ClockInterval";
 import { usePlayheadDate } from "store/hooks";
 import { VideoPlayerDisabledOverlay } from "./video-player-disabled-overlay";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExpand } from "@fortawesome/free-solid-svg-icons";
 
 const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
   paneInstanceId,
@@ -39,6 +41,8 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
   const [currChannel, setCurrChannel] = useState<number | null>(null);
 
   const [lastURLStartTime, setLastURLStartTime] = useState<string | null>(null);
+  const [expandVisible, setExpandVisible] = useState(false);
+  const [videoSize, setVideoSize] = useState<{ w: number; h: number } | null>(null);
 
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const playheadDate = usePlayheadDate();
@@ -204,6 +208,10 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
       key={`video_element__${paneInstanceId}`}
       className={styles.vidContainer}
       data-frame-id={"MTX Player"}
+      onTouchStart={() => {
+        setExpandVisible(true);
+        setTimeout(() => setExpandVisible(false), 3000);
+      }}
     >
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {!liveVideoEnabled ? (
@@ -280,12 +288,27 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
                 );
               }
             }}
-            onClick={() => {
-              if (paneStateData.activeVideoFileID !== "") {
-                toggleFullScreen();
-              }
+            onLoadedMetadata={(e) => {
+              const el = e.target as HTMLVideoElement;
+              setVideoSize({ w: el.videoWidth, h: el.videoHeight });
             }}
           />
+          {status === "playing" && (
+            <div className={styles.videoAspectWrapper}>
+              <div
+                className={styles.videoAspectBox}
+                style={videoSize ? { aspectRatio: `${videoSize.w}/${videoSize.h}` } : undefined}
+              >
+                <button
+                  className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
+                  onClick={() => toggleFullScreen()}
+                  title="Fullscreen"
+                >
+                  <FontAwesomeIcon icon={faExpand} />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 

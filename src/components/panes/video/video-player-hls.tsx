@@ -6,6 +6,8 @@ import { setPaneStateDataValue } from "store/framework";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { VideoHLSHelpContent } from "./video-help";
 import Hls from "hls.js";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExpand } from "@fortawesome/free-solid-svg-icons";
 import { appSecondsFromDateString, dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import ClockInterval from "components/framework/ClockInterval";
@@ -26,6 +28,8 @@ const VideoHlsPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
 
   const [hlsAvailable, setHlsAvailable] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [expandVisible, setExpandVisible] = useState(false);
+  const [videoSize, setVideoSize] = useState<{ w: number; h: number } | null>(null);
 
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const playheadDate = usePlayheadDate();
@@ -225,6 +229,10 @@ const VideoHlsPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
       key={`video_element__${paneInstanceId}`}
       className={styles.vidContainer}
       data-frame-id={"HLS Player"}
+      onTouchStart={() => {
+        setExpandVisible(true);
+        setTimeout(() => setExpandVisible(false), 3000);
+      }}
     >
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
       {!liveVideoEnabled ? (
@@ -267,10 +275,27 @@ const VideoHlsPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
                 );
               }
             }}
-            onClick={() => {
-              toggleFullScreen();
+            onLoadedMetadata={(e) => {
+              const el = e.target as HTMLVideoElement;
+              setVideoSize({ w: el.videoWidth, h: el.videoHeight });
             }}
           />
+          <div className={styles.videoAspectWrapper}>
+            <div
+              className={styles.videoAspectBox}
+              style={videoSize ? { aspectRatio: `${videoSize.w}/${videoSize.h}` } : undefined}
+            >
+              {hlsAvailable && status === "playing" && (
+                <button
+                  className={`${styles.expandBtn}${expandVisible ? ` ${styles.expandBtnVisible}` : ""}`}
+                  onClick={() => toggleFullScreen()}
+                  title="Fullscreen"
+                >
+                  <FontAwesomeIcon icon={faExpand} />
+                </button>
+              )}
+            </div>
+          </div>
         </>
       )}
 
