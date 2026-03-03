@@ -427,13 +427,7 @@ const fetchAndEmitAllData = async ({
         dateWanted: visitorData.dateViewing,
         dataFetchConfig,
       });
-
-      if (!response) {
-        ConsoleLogger.error(
-          `${dataFetchConfig.type} Error fetching cached data for ${visitorData.source}_${visitorData.dateViewing}`
-        );
-        return;
-      }
+      if (!response) return; // any errors generated from above are already logged
 
       socket.emit("dataUpdate", {
         type: dataFetchConfig.type,

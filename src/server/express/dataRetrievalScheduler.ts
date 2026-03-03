@@ -550,7 +550,7 @@ const performBackgroundFetch = async ({
   });
 
   if (!dataResponse?.fetchMetadata?.success) {
-    ConsoleLogger.error(
+    ConsoleLogger.warn(
       `${dataFetchConfig.type} Error getting data for ${trackerDateKey}. Message: ${dataResponse?.fetchMetadata?.error}`
     );
   }
