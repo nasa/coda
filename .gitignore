@@ -16,7 +16,3 @@ env.secret.ts
 
 # created by coverage reporter
 junit.xml
-
-# any agent files
-*.copilot-instructions.*
-*.AGENTS.*
