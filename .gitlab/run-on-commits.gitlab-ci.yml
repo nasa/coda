@@ -18,7 +18,7 @@ include:
   # There are more jobs included at the top level .gitlab-ci.yml
 
   - project: "emss/gitlab-templates"
-    ref: 2.6.0
+    ref: 2.7.1
     file:
       # Run standard FIT developer-ecosystem/ci-job-templates with emss
       # stageless overrides.
