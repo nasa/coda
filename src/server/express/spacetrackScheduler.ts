@@ -176,12 +176,12 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
   const prefix = isManual ? "(manual) " : "";
   if (result.success) {
     ConsoleLogger.debug(
-      `Space-Track TLE update ${prefix}completed successfully in ${durationMs}ms, epoch: ${result.epoch}, inserted: ${result.recordsInserted}, skipped: ${result.recordsSkipped}`
+      `Space-Track TLE update${prefix} completed successfully in ${durationMs}ms, epoch: ${result.epoch}, inserted: ${result.recordsInserted}, skipped: ${result.recordsSkipped}`
     );
     // Emit updated ephemeris data to all clients viewing today
     await emitEphemerisToTodayClients();
   } else {
-    ConsoleLogger.error(`Space-Track TLE update ${prefix}failed: ${result.errorMessage}`);
+    ConsoleLogger.error(`Space-Track TLE update${prefix} failed: ${result.errorMessage}`);
   }
 
   // Finalize state and notify clients
