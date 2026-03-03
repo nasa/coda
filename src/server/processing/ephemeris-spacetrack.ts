@@ -47,141 +47,123 @@ export function calculateEpochFromTLE(line1: string, line2: string): Date | null
 }
 
 /**
- * Space-Track session manager with authentication
- * Maintains cookies across requests for authenticated access
+ * Authenticate with Space-Track
+ * Returns the cookie strings to pass in subsequent requests, or null on failure.
  */
-class SpaceTrackSession {
-  private cookies: string[] = [];
-  private isAuthenticated = false;
+async function loginToSpaceTrack(): Promise<string[] | null> {
+  const username = process.env.SPACETRACK_USERNAME;
+  const password = process.env.SPACETRACK_PASSWORD;
 
-  async login(): Promise<boolean> {
-    const username = process.env.SPACETRACK_USERNAME;
-    const password = process.env.SPACETRACK_PASSWORD;
-
-    if (!username || !password) {
-      ConsoleLogger.error(
-        "Space-Track credentials not configured. Set SPACETRACK_USERNAME and SPACETRACK_PASSWORD environment variables."
-      );
-      return false;
-    }
-
-    try {
-      ConsoleLogger.info("Authenticating with Space-Track.org...");
-
-      const formData = new URLSearchParams();
-      formData.append("identity", username);
-      formData.append("password", password);
-
-      const response = await fetchWithTimeout(LOGIN_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "CODA_TLE_Fetcher/1.0",
-        },
-        body: formData.toString(),
-      });
-
-      // Extract cookies from response
-      const setCookieHeaders = response.headers.getSetCookie?.() || [];
-      if (setCookieHeaders.length > 0) {
-        this.cookies = setCookieHeaders.map((cookie) => cookie.split(";")[0]);
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        ConsoleLogger.error(
-          `Space-Track login failed: ${response.status} ${response.statusText}. Body: ${errorText.substring(0, 500)}`
-        );
-        return false;
-      }
-
-      const responseText = await response.text();
-
-      // Check for error in JSON response
-      try {
-        const jsonResponse = JSON.parse(responseText);
-        if (jsonResponse.error) {
-          ConsoleLogger.error(`Space-Track login error: ${jsonResponse.error}`);
-          return false;
-        }
-      } catch {
-        // Response is not JSON, check for logout link as fallback
-        if (!responseText.toLowerCase().includes("logout")) {
-          ConsoleLogger.error("Space-Track login failed: unexpected response format");
-          return false;
-        }
-      }
-
-      this.isAuthenticated = true;
-      ConsoleLogger.info("Successfully authenticated with Space-Track.org");
-      return true;
-    } catch (e) {
-      ConsoleLogger.error(`Space-Track login error: ${e}`);
-      return false;
-    }
+  if (!username || !password) {
+    ConsoleLogger.error(
+      "Space-Track credentials not configured. Set SPACETRACK_USERNAME and SPACETRACK_PASSWORD environment variables."
+    );
+    return null;
   }
 
-  async fetchTLE(startDate: string, endDate: string): Promise<SpaceTrackGpHistoryRecord[] | null> {
-    if (!this.isAuthenticated) {
-      const loginSuccess = await this.login();
-      if (!loginSuccess) {
-        return null;
-      }
-    }
+  try {
+    ConsoleLogger.info("Authenticating with Space-Track.org...");
 
-    // Build query URL for gp_history class
-    // Format: /class/gp_history/EPOCH/startDate--endDate/NORAD_CAT_ID/25544/orderby/EPOCH asc/format/json
-    // Use predicates to limit response to only the fields we need (reduces data transfer significantly)
-    const orderBy = "orderby/EPOCH%20asc";
-    const predicates = "predicates/TLE_LINE1,TLE_LINE2";
-    const query = `/class/gp_history/EPOCH/${startDate}--${endDate}/NORAD_CAT_ID/${ISS_NORAD_ID}/${orderBy}/${predicates}/format/json`;
-    const url = `${API_BASE_URL}${query}`;
+    const formData = new URLSearchParams();
+    formData.append("identity", username);
+    formData.append("password", password);
 
-    ConsoleLogger.info(`Fetching TLE data from Space-Track: ${startDate} to ${endDate}`);
-    ConsoleLogger.debug(`Request URL: ${url}`);
+    const response = await fetchWithTimeout(LOGIN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "CODA_TLE_Fetcher/1.0",
+      },
+      body: formData.toString(),
+    });
 
-    try {
-      const response = await fetchWithTimeout(url, {
-        method: "GET",
-        headers: {
-          "User-Agent": "CODA_TLE_Fetcher/1.0",
-          Cookie: this.cookies.join("; "),
-        },
-      });
+    // Extract cookies from response
+    // This login cookie is only valid for 2 hours (Max-Age=7200)
+    const setCookieHeaders = response.headers.getSetCookie?.() || [];
+    ConsoleLogger.debug(
+      `Space-Track login Set-Cookie headers: ${JSON.stringify(setCookieHeaders)}`
+    );
+    const cookies = setCookieHeaders.map((cookie) => cookie.split(";")[0]);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        ConsoleLogger.error(
-          `Space-Track API error: ${response.status} ${response.statusText}. Body: ${errorText.substring(0, 500)}`
-        );
-        // Reset authentication state if we get 401/403
-        if (response.status === 401 || response.status === 403) {
-          this.isAuthenticated = false;
-        }
-        return null;
-      }
-
-      const data: SpaceTrackGpHistoryRecord[] = await response.json();
-      ConsoleLogger.info(`Retrieved ${data.length} TLE records from Space-Track`);
-      return data;
-    } catch (e) {
-      ConsoleLogger.error(`Space-Track API fetch error: ${e}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      ConsoleLogger.error(
+        `Space-Track login failed: ${response.status} ${response.statusText}. Body: ${errorText.substring(0, 500)}`
+      );
       return null;
     }
+
+    const responseText = await response.text();
+
+    // Check for error in JSON response
+    try {
+      const jsonResponse = JSON.parse(responseText);
+      if (jsonResponse.error) {
+        ConsoleLogger.error(`Space-Track login error: ${jsonResponse.error}`);
+        return null;
+      }
+    } catch {
+      // Response is not JSON, check for logout link as fallback
+      if (!responseText.toLowerCase().includes("logout")) {
+        ConsoleLogger.error("Space-Track login failed: unexpected response format");
+        return null;
+      }
+    }
+
+    ConsoleLogger.info("Successfully authenticated with Space-Track.org");
+    return cookies;
+  } catch (e) {
+    ConsoleLogger.error(`Space-Track login error: ${e}`);
+    return null;
   }
 }
 
-// Singleton session instance
-let spaceTrackSession: SpaceTrackSession | null = null;
-
 /**
- * Get or create the Space-Track session
+ * Fetch TLE records from Space-Track for the given date range.
+ * Logs in fresh on every call since the poll interval exceeds the session lifetime.
  */
-function getSession(): SpaceTrackSession {
-  if (!spaceTrackSession) {
-    spaceTrackSession = new SpaceTrackSession();
+async function fetchTLEFromSpaceTrack(
+  startDate: string,
+  endDate: string
+): Promise<SpaceTrackGpHistoryRecord[] | null> {
+  const loginCookies = await loginToSpaceTrack();
+  if (!loginCookies) return null;
+
+  // Build query URL for gp_history class
+  // Format: /class/gp_history/EPOCH/startDate--endDate/NORAD_CAT_ID/25544/orderby/EPOCH asc/format/json
+  // Use predicates to limit response to only the fields we need (reduces data transfer significantly)
+  const orderBy = "orderby/EPOCH%20asc";
+  const predicates = "predicates/TLE_LINE1,TLE_LINE2";
+  const query = `/class/gp_history/EPOCH/${startDate}--${endDate}/NORAD_CAT_ID/${ISS_NORAD_ID}/${orderBy}/${predicates}/format/json`;
+  const url = `${API_BASE_URL}${query}`;
+
+  ConsoleLogger.info(`Fetching TLE data from Space-Track: ${startDate} to ${endDate}`);
+  ConsoleLogger.debug(`Request URL: ${url}`);
+
+  try {
+    const response = await fetchWithTimeout(url, {
+      method: "GET",
+      headers: {
+        "User-Agent": "CODA_TLE_Fetcher/1.0",
+        Cookie: loginCookies.join("; "),
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      ConsoleLogger.error(
+        `Space-Track API error: ${response.status} ${response.statusText}. Body: ${errorText.substring(0, 500)}`
+      );
+      return null;
+    }
+
+    const data: SpaceTrackGpHistoryRecord[] = await response.json();
+    ConsoleLogger.info(`Retrieved ${data.length} TLE records from Space-Track`);
+    return data;
+  } catch (e) {
+    ConsoleLogger.error(`Space-Track API fetch error: ${e}`);
+    return null;
   }
-  return spaceTrackSession;
 }
 
 /**
@@ -206,8 +188,7 @@ export async function updateFromSpaceTrack(): Promise<SpaceTrackUpdateResult> {
       `Environment check - NODE_ENV: ${process.env.NODE_ENV}, hostname: ${process.env.HOSTNAME ?? "undefined"}`
     );
 
-    const session = getSession();
-    const tleRecords = await session.fetchTLE(startDateStr, endDateStr);
+    const tleRecords = await fetchTLEFromSpaceTrack(startDateStr, endDateStr);
 
     if (!tleRecords) {
       const msg = "Failed to fetch TLE data from Space-Track";
