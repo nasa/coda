@@ -57,11 +57,11 @@
     "ts-node": "10.9.2"
   },
   "devDependencies": {
-    "@emss/logger": "0.8.2",
-    "@emss/make-dotenv": "0.3.3",
-    "@emss/oauth2-proxy-backend": "0.5.1",
-    "@emss/oauth2-proxy-frontend": "0.2.10",
-    "@emss/utils": "0.5.0",
+    "@emss/logger": "0.9.3",
+    "@emss/make-dotenv": "0.4.3",
+    "@emss/oauth2-proxy-backend": "0.7.2",
+    "@emss/oauth2-proxy-frontend": "0.3.2",
+    "@emss/utils": "0.6.2",
     "@eslint/compat": "2.0.0",
     "@eslint/eslintrc": "3.3.3",
     "@eslint/js": "9.39.2",
