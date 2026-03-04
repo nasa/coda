@@ -5,7 +5,6 @@ import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate } from "store/hooks";
 import { HelpButton } from "./pane-help-control-button";
 import HelpOverlay from "./pane-help-overlay";
-import ClockInterval from "components/framework/ClockInterval";
 
 const SharePanel = ({
   closeClick,
@@ -15,20 +14,30 @@ const SharePanel = ({
   display?: boolean;
 }): JSX.Element => {
   const framework = useAppSelector((state) => state.framework, deepEqual);
+  const clockState = useAppSelector((state) => state.clock, deepEqual);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState("COPY LINK");
   const [shareURLtextValue, setShareURLtextValue] = useState("");
 
   const playheadDate = usePlayheadDate();
-  const [appSeconds, setLocalAppSeconds] = useState(0);
 
   const shareURLtextarea = useRef<HTMLTextAreaElement>(null);
 
   function handleRequestOpen() {
     setCopyButtonText("Copy Link");
 
-    const URL = generateShareURL(framework, playheadDate, appSeconds);
+    // Compute current app seconds from clock state (same logic as ClockInterval)
+    let currentAppSeconds = clockState.appSecondsAtStartStop;
+    if (clockState.startStopTimestamp) {
+      const secondsSinceStarted = (Date.now() - Date.parse(clockState.startStopTimestamp)) / 1000;
+      currentAppSeconds = Math.floor(clockState.appSecondsAtStartStop + secondsSinceStarted);
+      // Cap at 86401 to prevent race conditions while allowing day rollover at 86400
+      currentAppSeconds = Math.min(currentAppSeconds, 86401);
+    }
+
+    const URL = generateShareURL(framework, playheadDate, currentAppSeconds);
+    if (!URL) return;
     setShareURLtextValue(URL);
   }
 
@@ -50,7 +59,6 @@ const SharePanel = ({
 
   return (
     <div className={styles.main}>
-      <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.top}>
         <div className={styles.topLeft}>
           <div>Share this View of Playback Time</div>

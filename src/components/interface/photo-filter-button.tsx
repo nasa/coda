@@ -9,18 +9,18 @@ import { FunctionComponent } from "react";
 export const FilterButton: FunctionComponent<{
   clickHandler: () => void;
   selected?: boolean;
-  frameDimensions: number[];
-}> = ({ clickHandler, selected, frameDimensions }) => {
-  const buttonLength = frameDimensions[0] > 470 ? styles.buttonLong : styles.buttonShort;
+  groupDimensions: number[];
+}> = ({ clickHandler, selected, groupDimensions }) => {
+  const buttonLength = groupDimensions[0] > 470 ? styles.buttonLong : styles.buttonShort;
   const selectedStyle = selected ? styles.selected : "";
   return (
     <button
       className={`${styles.filterButton} ${buttonLength} ${selectedStyle}`}
       onClick={clickHandler}
     >
-      {frameDimensions[0] > 470 ? (
+      {groupDimensions[0] > 470 ? (
         <span className={styles.filterLabel}>
-          <div>{frameDimensions[0] > 470 ? "Filter" : ""}</div>
+          <div>{groupDimensions[0] > 470 ? "Filter" : ""}</div>
           <div>
             <FontAwesomeIcon icon={faFilter} size="sm" />
           </div>

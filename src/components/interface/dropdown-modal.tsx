@@ -6,7 +6,9 @@ import {
   useState,
   useEffect,
   ReactElement,
+  useCallback,
 } from "react";
+import { createPortal } from "react-dom";
 import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./dropdown-modal.module.css";
@@ -68,43 +70,53 @@ export const ModalDropdown = <T extends Record<string, unknown> = Record<string,
 }): ReactElement => {
   const opts = { ...modalDefaults, ...options };
   const [isOpen, setIsOpen] = useState(false);
-  const [modalTop, setModalTop] = useState<number | null>(null);
+  const [modalPos, setModalPos] = useState({ top: 0, left: 0 });
 
-  const modalRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLButtonElement>(null);
 
-  // Update modal position when dropdown opens
-  useEffect(() => {
-    if (isOpen && labelRef.current) {
-      setModalTop(labelRef.current.getBoundingClientRect().bottom + 4);
-    }
-  }, [isOpen]);
-
-  const handleClick = (e: MouseEvent) => {
+  const handleClick = useCallback((e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(!isOpen);
-  };
-
-  const handleBlur = (e: React.FocusEvent) => {
-    // Only close if focus moves outside the entire dropdown container
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsOpen(false);
+    if (labelRef.current) {
+      const rect = labelRef.current.getBoundingClientRect();
+      setModalPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+      });
     }
-  };
+    setIsOpen((prev) => !prev);
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleOutsideClick = (e: Event) => {
+      const target = e.target as Node;
+      if (labelRef.current?.contains(target)) return;
+      if (modalRef.current?.contains(target)) return;
+
+      // Check if click is inside any nested modal dropdown portal
+      // This handles cases where modals contain other modal dropdowns (e.g., Calendar with month/year dropdowns)
+      let element = target as HTMLElement | null;
+      while (element) {
+        if (element.classList?.contains(styles.modal)) return;
+        element = element.parentElement;
+      }
+
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isOpen]);
 
   const caretKey = isOpen ? oppositeCarets[opts.caret] : opts.caret;
   const caretStyle = caretClasses[caretKey];
   const colorClass = colorClasses[opts.color];
   const sizeClass = sizeClasses[opts.size];
-  const modalStyle: React.CSSProperties = {
-    display: isOpen ? "block" : "none",
-    width: opts.modalWidth ? opts.modalWidth + "px" : undefined,
-    top: isOpen && modalTop ? `${modalTop}px` : undefined,
-  };
 
   return (
-    <div tabIndex={-1} onBlur={handleBlur}>
+    <>
       <button className={styles.main} ref={labelRef}>
         <div className={`${styles.label} ${colorClass} ${sizeClass}`} onClick={handleClick}>
           <div className={styles.verticalCenter}>{children}</div>
@@ -117,15 +129,26 @@ export const ModalDropdown = <T extends Record<string, unknown> = Record<string,
           </div>
         </div>
       </button>
-      <div className={styles.modal} style={modalStyle} ref={modalRef}>
-        {opts.modal && (
-          <opts.modal
-            closeClick={() => setIsOpen(false)}
-            options={opts.modalOptions as T}
-            display={isOpen}
-          />
+      {isOpen &&
+        opts.modal &&
+        createPortal(
+          <div
+            ref={modalRef}
+            className={styles.modal}
+            style={{
+              top: modalPos.top,
+              left: modalPos.left,
+              width: opts.modalWidth || undefined,
+            }}
+          >
+            <opts.modal
+              closeClick={() => setIsOpen(false)}
+              options={opts.modalOptions as T}
+              display={isOpen}
+            />
+          </div>,
+          document.body
         )}
-      </div>
-    </div>
+    </>
   );
 };

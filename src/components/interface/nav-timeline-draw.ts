@@ -858,7 +858,7 @@ export default class DrawNav {
       const lineThickness = param.bottom - param.top;
       const futureLocX = param.leftPx + secondsIntoToday * param.pixelsPerSecond;
       const futureLocY = param.top + lineThickness / 2;
-      if (futureLocY < this.gNavigatorWidth) {
+      if (futureLocX < this.gNavigatorWidth) {
         const futureLeftPoint = new paper.Point(futureLocX, futureLocY);
         const futureRightPoint = new paper.Point(this.gNavigatorWidth, futureLocY);
         const fCrosshatching = new paper.Path.Line(futureLeftPoint, futureRightPoint);
@@ -1043,8 +1043,8 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        top: this.gTier1Top,
-        bottom: this.gTier1Top + this.gTier1Height,
+        top: drawingTop,
+        bottom: drawingBottom,
         largeLabel: false,
         crosshatchWidth: 2,
       })
@@ -1157,7 +1157,7 @@ export default class DrawNav {
         secondsEnd,
         pixelsPerSecond,
         leftPx,
-        top: this.gTier2Top,
+        top: this.gTier2Top + 9,
         bottom: drawingBottom,
         largeLabel: true,
         crosshatchWidth: 10,

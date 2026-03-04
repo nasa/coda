@@ -1,7 +1,8 @@
 .controls {
   display: flex;
   height: 100%;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 5px;
   margin-left: auto;
 }
 
@@ -21,6 +22,7 @@
 
 .rightButtons {
   display: flex;
+  align-items: center;
 }
 
 .rightButtons > *:not(:last-of-type) {
@@ -204,15 +206,15 @@
 .channelDropdownButton {
   font-family: Inter, sans-serif;
   font-weight: 400;
-  font-size: 15px;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding-left: 8px;
-  width: 115px;
-  height: 27px;
+  padding-left: 10px;
+  width: 110px;
+  height: 20px;
   border: none;
   border-radius: var(--radius);
   color: white;
-  background-color: var(--lightest-grey);
+  background-color: var(--grey);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -220,15 +222,16 @@
 }
 
 .channelDropdownButton:hover {
-  background-color: var(--even-greyer);
+  background-color: var(--lightest-grey);
 }
 
 .channelDropdownArrow {
   position: absolute;
   pointer-events: none;
-  font-size: 0.9em;
-  top: 6px;
-  right: 8px;
+  font-size: 1em;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
 }
 
 .channelDropdownMenu {
@@ -249,9 +252,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
+  padding: 2px 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.8rem;
   color: white;
   border: 1px solid rgb(255 255 255 / 30%);
   margin: 2px 4px;

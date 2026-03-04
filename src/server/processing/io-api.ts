@@ -215,7 +215,7 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
 
   // Only assign downlink channel if this is actually a downlink video (based on NASA ID source code)
   // Non-downlink videos (onboards, NASA TV, HDEV, etc.) will remain with downlink=-1
-  // so they appear in the "Video Other" component
+  // so they appear in the "Video Non-Downlink" component
   const videoIsDownlink = isDownlinkVideo(doc.nasa_id);
 
   // Determine downlink channel based on collection type

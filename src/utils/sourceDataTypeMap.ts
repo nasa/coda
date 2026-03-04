@@ -158,6 +158,9 @@ export const isPaneAvailableForSource = (source: Source, paneType: string): bool
 /**
  * Get all pane types that are available for a given source.
  */
-export const getAvailablePanesForSource = (source: Source, allPaneTypes: string[]): string[] => {
+export const getAvailablePanesForSource = (
+  source: Source,
+  allPaneTypes: PaneType[]
+): PaneType[] => {
   return allPaneTypes.filter((paneType) => isPaneAvailableForSource(source, paneType));
 };
