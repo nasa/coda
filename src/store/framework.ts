@@ -10,107 +10,19 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { createSlice } from "@reduxjs/toolkit";
 
-/**
- * Supporting information about each layout defined in components/layouts.modules.css.
- * The letters in this object refer to the CSS grid definitions in components/layouts.modules.css.
- * Letters should never be changed per layout in order for shared links to always refer to the correct layout.
- * Ordering of the layouts in this object represent the order they appear in the dropdown.
- * Dropdown order *********does not have to be alphabetical*********.
- */
-export const allLayouts: Layouts = {
-  a: {
-    frameCount: 5,
-    cssGridRows: 9,
-  },
-  b: {
-    frameCount: 6,
-    cssGridRows: 9,
-  },
-  c: {
-    frameCount: 5,
-    cssGridRows: 9,
-  },
-  j: {
-    frameCount: 6,
-    cssGridRows: 9,
-  },
-  n: {
-    frameCount: 7,
-    cssGridRows: 9,
-  },
-  k: {
-    frameCount: 5,
-    cssGridRows: 9,
-  },
-  e: {
-    frameCount: 4,
-    cssGridRows: 9,
-  },
-  d: {
-    frameCount: 4,
-    cssGridRows: 9,
-  },
-  f: {
-    frameCount: 9,
-    cssGridRows: 9,
-  },
-  g: {
-    frameCount: 6,
-    cssGridRows: 10,
-  },
-  l: {
-    frameCount: 6,
-    cssGridRows: 9,
-  },
-  m: {
-    frameCount: 4,
-    cssGridRows: 9,
-  },
-  h: {
-    frameCount: 1,
-    cssGridRows: 9,
-  },
-  i: {
-    frameCount: 3,
-    cssGridRows: 9,
-  },
-  o: {
-    frameCount: 2,
-    cssGridRows: 9,
-  },
-  p: {
-    frameCount: 3,
-    cssGridRows: 9,
-  },
-  q: {
-    frameCount: 4,
-    cssGridRows: 9,
-  },
-  r: {
-    frameCount: 5,
-    cssGridRows: 9,
-  },
-  s: {
-    frameCount: 6,
-    cssGridRows: 9,
-  },
-};
-
 export const allPanes: Panes = {
   empty: {
     title: "Select display type",
     shortTitle: "None",
     icon: undefined,
-    color: "none",
     defaultPaneStateData: {
       ready: true,
     },
   },
   video_downlink: {
-    title: "Video Channels",
-    shortTitle: "Live",
+    title: "Video Downlink",
+    shortTitle: "Video",
     icon: faVideo,
-    color: "teal",
     defaultPaneStateData: {
       ready: true,
       channel: 0,
@@ -121,10 +33,9 @@ export const allPanes: Panes = {
     } as VideoPaneStateData,
   },
   video_non_downlink: {
-    title: "Video Other",
+    title: "Video Non-Downlink",
     shortTitle: "Video",
     icon: faVideo,
-    color: "teal",
     defaultPaneStateData: {
       ready: true,
       channel: -1,
@@ -138,7 +49,6 @@ export const allPanes: Panes = {
     title: "Current Photo",
     shortTitle: "Photo",
     icon: faCamera,
-    color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
       showInfo: false,
@@ -150,7 +60,6 @@ export const allPanes: Panes = {
     title: "All Photos",
     shortTitle: "Photos",
     icon: faCamera,
-    color: "mustardGreen",
     defaultPaneStateData: {
       ready: true,
       showFilter: false,
@@ -162,7 +71,6 @@ export const allPanes: Panes = {
     title: "ISS Position",
     shortTitle: "Orbit",
     icon: faGlobeAmericas,
-    color: "purple",
     defaultPaneStateData: {
       ready: true,
       lockMap: true,
@@ -173,7 +81,6 @@ export const allPanes: Panes = {
     title: "GPS Position",
     shortTitle: "GPS",
     icon: faGlobeAmericas,
-    color: "purple",
     defaultPaneStateData: {
       ready: true,
       lockMap: true,
@@ -185,7 +92,6 @@ export const allPanes: Panes = {
     title: "EVA Info",
     shortTitle: "Info",
     icon: faInfo,
-    color: "ruby",
     defaultPaneStateData: {
       ready: true,
       showHelp: false,
@@ -195,7 +101,6 @@ export const allPanes: Panes = {
     title: "Communications",
     shortTitle: "Comms",
     icon: faSatellite,
-    color: "burntOrange",
     defaultPaneStateData: {
       ready: true,
       lockScroll: true,
@@ -209,7 +114,6 @@ export const allPanes: Panes = {
     title: "Graph",
     shortTitle: "Graph",
     icon: faChartLine,
-    color: "burntUmber",
     defaultPaneStateData: {
       ready: true,
       lockScroll: true,
@@ -219,7 +123,7 @@ export const allPanes: Panes = {
   },
 };
 
-export const defaultFrames: FrameState = {
+export const defaultPaneInstances: { [paneInstanceId: string]: PaneState } = {
   1: {
     paneType: "video_downlink",
     paneStateData: {
@@ -290,7 +194,7 @@ export const defaultFrames: FrameState = {
 export const initialState: FrameworkState = {
   layout: "n",
   layoutLastChanged: Date.now(),
-  frames: defaultFrames,
+  paneInstances: defaultPaneInstances,
   source: "ISS",
 };
 
@@ -299,18 +203,26 @@ export const frameworkSlice = createSlice({
   initialState,
   reducers: {
     /**
-     * Change the component layout
+     * Change the panel layout preset.
+     * Trims frames to only contain entries for panels 1–frameCount so that
+     * dynamically added panels (via "+") always start empty.
      */
-    changeLayout: (state, action: { payload: string }) => {
-      state.layout = action.payload;
+    changeLayout: (state, action: { payload: { layout: string; paneInstanceCount: number } }) => {
+      state.layout = action.payload.layout;
       state.layoutLastChanged = Date.now();
+      // Remove frame entries beyond the preset's panel count
+      for (const key of Object.keys(state.paneInstances)) {
+        if (Number(key) > action.payload.paneInstanceCount) {
+          delete state.paneInstances[key];
+        }
+      }
     },
 
     /**
      * Select the type of frame to render in a frame
      */
-    setPaneType: (state, action: { payload: { frameID: number; paneType: string } }) => {
-      state.frames[action.payload.frameID] = {
+    setPaneType: (state, action: { payload: { paneInstanceId: number; paneType: PaneType } }) => {
+      state.paneInstances[action.payload.paneInstanceId] = {
         paneType: action.payload.paneType,
         /* Set the pane state to the default state for this paneType */
         paneStateData: allPanes[action.payload.paneType].defaultPaneStateData,
@@ -318,13 +230,15 @@ export const frameworkSlice = createSlice({
     },
 
     /**
-     * Set the state of all frames. Used when state is sent in on a query parameter
+     * Set the state of all frames. Used when state is sent in on a query parameter.
+     * The provided frames are used as-is — callers must pre-trim to match the layout.
      */
     setAllFrameworkState: (state, action: { payload: FrameworkState }) => {
       state.source = action.payload.source;
       allPanes["event_info"].title = getEventInfoTitleBySource(action.payload.source);
       state.layout = action.payload.layout;
-      state.frames = action.payload.frames;
+      state.layoutLastChanged = Date.now();
+      state.paneInstances = action.payload.paneInstances;
     },
 
     /**
@@ -332,20 +246,32 @@ export const frameworkSlice = createSlice({
      */
     setPaneStateDataValue: (
       state,
-      action: { payload: { frameID: number; paneStateProperty: string; paneStateValue: unknown } }
+      action: {
+        payload: { paneInstanceId: number; paneStateProperty: string; paneStateValue: unknown };
+      }
     ) => {
-      if (!state.frames[action.payload.frameID]) return;
-      (state.frames[action.payload.frameID].paneStateData as Record<string, unknown>)[
+      if (!state.paneInstances[action.payload.paneInstanceId]) return;
+      (state.paneInstances[action.payload.paneInstanceId].paneStateData as Record<string, unknown>)[
         action.payload.paneStateProperty
       ] = action.payload.paneStateValue;
     },
     /**
-     * Change the overall data source (ISS, Test Events, NBL)
+     * Add a new pane instance with the "empty" pane type (used when adding panels via the + button)
      */
-    changeSource: (state, action: { payload: Source }) => {
-      state.source = action.payload;
-      state.frames = defaultFrames;
-      allPanes["event_info"].title = getEventInfoTitleBySource(action.payload);
+    addPaneInstance: (state, action: { payload: number }) => {
+      if (!state.paneInstances[action.payload]) {
+        state.paneInstances[action.payload] = {
+          paneType: "empty",
+          paneStateData: allPanes["empty"].defaultPaneStateData,
+        };
+      }
+    },
+
+    /**
+     * Remove a pane instance from state (used when closing panels via the X button)
+     */
+    removePaneInstance: (state, action: { payload: number }) => {
+      delete state.paneInstances[action.payload];
     },
   },
 });
@@ -355,7 +281,8 @@ export const {
   setPaneType,
   setAllFrameworkState,
   setPaneStateDataValue,
-  changeSource,
+  addPaneInstance,
+  removePaneInstance,
 } = frameworkSlice.actions;
 
 function getEventInfoTitleBySource(source: Source): string {

@@ -8,21 +8,13 @@ import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
 import PresetPicker from "components/framework/preset-picker";
 import styles from "./header.module.css";
-import {
-  frameGridClasses,
-  layoutClasses,
-  iconRowClasses,
-  containerClasses,
-  type FrameNumber,
-  type LayoutKey,
-} from "../framework/frames";
+import { LayoutIcon } from "../framework/layout-icons";
 import { appSecondsFromDateString, hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { collection, sourceShortVal } from "utils/consts";
 import StatusArea from "./status";
 import EventDropdown from "components/interface/dropdown-event";
 import SharePanel from "components/interface/share";
 
-import { allLayouts } from "store/framework";
 import AboutOverlay from "./about-overlay";
 import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
 import { generateShareURL } from "utils/share-state";
@@ -66,30 +58,10 @@ const LoaderHelpMenu: FunctionComponent<{
 const LayoutDropdown: FunctionComponent = () => {
   const layout = useAppSelector((state) => state.framework.layout, refEqual);
 
-  const layoutDefinition = allLayouts[layout];
-  const mainStyleName =
-    layoutDefinition.cssGridRows === 9 ? iconRowClasses.icon_9Rows : iconRowClasses.icon_10Rows;
-  const frames = [];
-  for (let i = 1; i <= layoutDefinition.frameCount; i++) {
-    // CSS Grid definitions
-    const frameKey = `f${i}` as FrameNumber;
-    const gridAreaName = frameGridClasses[frameKey];
-    frames.push(
-      <div className={`${containerClasses.iconFrameContainer} ${gridAreaName}`} key={`FRAME__${i}`}>
-        <div className={containerClasses.iconFrameBackground}></div>
-      </div>
-    );
-  }
-
-  const layoutKey = `layout_${layout}` as LayoutKey;
-
   return (
     <ModalDropdown modal={LayoutPicker} modalWidth={263} color="grey" caret="down">
-      <div
-        className={containerClasses.layoutIconContainer}
-        title="Choose display layout configuration"
-      >
-        <div className={`${mainStyleName} ${layoutClasses[layoutKey]}`}>{frames}</div>
+      <div title="Choose display layout configuration" style={{ marginLeft: 12 }}>
+        <LayoutIcon layout={layout} size="small" />
       </div>
     </ModalDropdown>
   );
@@ -161,6 +133,7 @@ const SourcesDropdown: FunctionComponent = () => {
 
   const handleSourceChange = (e: ChangeEvent<HTMLSelectElement>) => {
     let URL = generateShareURL(framework, playheadDate, appSeconds);
+    if (!URL) return;
 
     const value = e.target.value;
 

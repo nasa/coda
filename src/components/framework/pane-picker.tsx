@@ -6,32 +6,18 @@ import styles from "./pane-picker.module.css";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { getAvailablePanesForSource } from "utils/sourceDataTypeMap";
 
-// Mapping object for pane colors - static class resolution
-const paneColorClasses = {
-  teal: styles.teal,
-  ruby: styles.ruby,
-  purple: styles.purple,
-  grey: styles.grey,
-  mustardGreen: styles.mustardGreen,
-  burntOrange: styles.burntOrange,
-  burntUmber: styles.burntUmber,
-  none: "",
-} as const;
-
-export type PaneColorVariant = keyof typeof paneColorClasses;
-
 interface PanePickerModalOptions {
-  frameID: number;
+  paneInstanceId: number;
 }
 
 /**
- * Renders the label for a type of frame
+ * Renders the label for a type of pane
  */
 export const PaneLabel: FunctionComponent<{
-  paneType: string;
+  paneType: PaneType;
   labelSize?: "S" | "M" | "L";
 }> = ({ paneType, labelSize }) => {
-  const { title, shortTitle, icon, color } = allPanes[paneType];
+  const { title, shortTitle, icon } = allPanes[paneType];
 
   let displayTitle = title;
   if (labelSize === "M") {
@@ -40,12 +26,10 @@ export const PaneLabel: FunctionComponent<{
     displayTitle = "";
   }
 
-  const colorClass = paneColorClasses[color as PaneColorVariant] || "";
-
   return (
     <div className={styles.item}>
       {icon ? (
-        <div className={`${styles.icon} ${colorClass}`}>
+        <div className={styles.icon}>
           <FontAwesomeIcon icon={icon} />
         </div>
       ) : (
@@ -56,26 +40,35 @@ export const PaneLabel: FunctionComponent<{
   );
 };
 
-/** Renders a modal with a list of frame types to choose from */
+/** Renders a modal with a list of panes to choose from */
 export const PanePickerModal: FunctionComponent<{
   closeClick?: () => void;
   options?: PanePickerModalOptions;
-}> = ({ closeClick, options }) => {
-  const frameID = options?.frameID ?? 0;
+  onClosePanel?: () => void;
+}> = ({ closeClick, options, onClosePanel }) => {
+  const paneInstanceId = options?.paneInstanceId ?? 0;
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
   const dispatch = useAppDispatch();
 
-  const allPaneTypes = Object.keys(allPanes);
+  const allPaneTypes = Object.keys(allPanes) as PaneType[];
   const availablePanes = useMemo(
-    () => getAvailablePanesForSource(source, allPaneTypes),
+    () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
     [source, allPaneTypes]
   );
 
-  const handleSelectPaneType = (paneType: string) => (e: React.MouseEvent) => {
+  const handleSelectPaneType = (paneType: PaneType) => (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatch(setPaneType({ frameID, paneType }));
+    e.stopPropagation();
+    dispatch(setPaneType({ paneInstanceId, paneType }));
     closeClick?.();
+  };
+
+  const handleClosePanel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeClick?.();
+    onClosePanel?.();
   };
 
   return (
@@ -85,13 +78,18 @@ export const PanePickerModal: FunctionComponent<{
           <div
             className={styles.option}
             onClick={handleSelectPaneType(paneType)}
-            key={`PANE__PICKER__${frameID}__${paneType}`}
+            key={`PANE__PICKER__${paneInstanceId}__${paneType}`}
           >
             <PaneLabel paneType={paneType} />
           </div>
         ))
       ) : (
         <span>No available sources</span>
+      )}
+      {onClosePanel && (
+        <div className={`${styles.option} ${styles.closeOption}`} onClick={handleClosePanel}>
+          <span className={styles.closeLabel}>Remove Panel</span>
+        </div>
       )}
     </div>
   );

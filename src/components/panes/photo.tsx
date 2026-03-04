@@ -12,14 +12,14 @@ import HelpOverlay from "components/interface/pane-help-overlay";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
 import ClockInterval from "components/framework/ClockInterval";
 
-export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
-  frameDimensions,
-}) => {
+export const PhotoControls: FunctionComponent<{
+  paneInstanceId: number;
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData,
     deepEqual
   ) as PhotoPaneStateData;
 
@@ -55,14 +55,14 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
               clickHandler={() => {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "showInfo",
                     paneStateValue: !paneStateData.showInfo,
                   })
                 );
               }}
               selected={paneStateData.showInfo}
-              frameDimensions={frameDimensions}
+              groupDimensions={groupDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -70,14 +70,14 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
               clickHandler={() => {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "showFilter",
                     paneStateValue: !paneStateData.showFilter,
                   })
                 );
               }}
               selected={paneStateData.showFilter}
-              frameDimensions={frameDimensions}
+              groupDimensions={groupDimensions}
             />
           </div>
           <div className={styles.verticalCenter}>
@@ -85,7 +85,7 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
               clickHandler={() => {
                 dispatch(
                   setPaneStateDataValue({
-                    frameID,
+                    paneInstanceId,
                     paneStateProperty: "showHelp",
                     paneStateValue: !paneStateData.showHelp,
                   })
@@ -100,11 +100,14 @@ export const PhotoControls: FunctionComponent<{ frameID: number; frameDimensions
   );
 };
 
-const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const PhotoPane: FunctionComponent<{ paneInstanceId: number; groupDimensions: number[] }> = ({
+  paneInstanceId,
+  groupDimensions,
+}) => {
   const dispatch = useAppDispatch();
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as PhotoPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as PhotoPaneStateData,
     deepEqual
   );
 
@@ -250,7 +253,14 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img className={styles.photo} src={photos.activePhoto.mediaLowResURL} />
+              <img
+                className={styles.photo}
+                src={
+                  groupDimensions[0] > 640 && photos.activePhoto.mediaHighResURL
+                    ? photos.activePhoto.mediaHighResURL
+                    : photos.activePhoto.mediaLowResURL
+                }
+              />
             </a>
             {paneStateData.showInfo ? renderPhotoOverlay() : null}
             {paneStateData.showFilter ? <RenderPhotoFilter /> : null}
@@ -262,49 +272,49 @@ const PhotoPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
             </div>
           </div>
         )}
+        <HelpOverlay
+          isModalOpen={paneStateData.showHelp}
+          closeHandler={() => {
+            dispatch(
+              setPaneStateDataValue({
+                paneInstanceId,
+                paneStateProperty: "showHelp",
+                paneStateValue: !paneStateData.showHelp,
+              })
+            );
+          }}
+        >
+          <div>
+            <p>Displays the photo taken most recently relative to the time being viewed in CODA.</p>
+            <p>
+              Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
+              <a
+                href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
+                target={"_blank"}
+                rel="noopener noreferrer"
+              >
+                ISS Collection
+              </a>
+              . Exploration Test Events usually pulls from the root{" "}
+              <a
+                href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
+                target={"_blank"}
+                rel="noopener noreferrer"
+              >
+                xEVA Collection
+              </a>{" "}
+              but can be overridden by editing the CODA entry for each event in the{" "}
+              <a
+                href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
+                target={"_blank"}
+                rel="noopener noreferrer"
+              >
+                Exploration Wiki.
+              </a>
+            </p>
+          </div>
+        </HelpOverlay>
       </div>
-      <HelpOverlay
-        isModalOpen={paneStateData.showHelp}
-        closeHandler={() => {
-          dispatch(
-            setPaneStateDataValue({
-              frameID,
-              paneStateProperty: "showHelp",
-              paneStateValue: !paneStateData.showHelp,
-            })
-          );
-        }}
-      >
-        <div>
-          <p>Displays the photo taken most recently relative to the time being viewed in CODA.</p>
-          <p>
-            Photos are all pulled from Imagery Online collections. ISS displays photos in the{" "}
-            <a
-              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=4"}
-              target={"_blank"}
-              rel="noopener noreferrer"
-            >
-              ISS Collection
-            </a>
-            . Exploration Test Events usually pulls from the root{" "}
-            <a
-              href={"https://io.jsc.nasa.gov/app/collections.cfm?cid=2359928"}
-              target={"_blank"}
-              rel="noopener noreferrer"
-            >
-              xEVA Collection
-            </a>{" "}
-            but can be overridden by editing the CODA entry for each event in the{" "}
-            <a
-              href={"https://wiki.jsc.nasa.gov/exploration/index.php/Main_Page"}
-              target={"_blank"}
-              rel="noopener noreferrer"
-            >
-              Exploration Wiki.
-            </a>
-          </p>
-        </div>
-      </HelpOverlay>
     </div>
   );
 };

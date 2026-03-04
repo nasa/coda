@@ -15,19 +15,19 @@ import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filt
 import { setAppSeconds } from "store/clock";
 
 export const PhotoAllControls: FunctionComponent<{
-  frameID: number;
-  frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+  paneInstanceId: number;
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as PhotoAllPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as PhotoAllPaneStateData,
     deepEqual
   );
 
-  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = groupDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockScroll) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -44,16 +44,16 @@ export const PhotoAllControls: FunctionComponent<{
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "lockScroll",
                   paneStateValue: !paneStateData.lockScroll,
                 })
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Scroll" : ""}</div>
                 <div>
                   <FontAwesomeIcon
                     icon={paneStateData.lockScroll ? faLock : faLockOpen}
@@ -71,14 +71,14 @@ export const PhotoAllControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showFilter",
                   paneStateValue: !paneStateData.showFilter,
                 })
               );
             }}
             selected={paneStateData.showFilter}
-            frameDimensions={frameDimensions}
+            groupDimensions={groupDimensions}
           />
         </div>
         <div className={styles.verticalCenter}>
@@ -86,7 +86,7 @@ export const PhotoAllControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showHelp",
                   paneStateValue: !paneStateData.showHelp,
                 })
@@ -100,10 +100,10 @@ export const PhotoAllControls: FunctionComponent<{
   );
 };
 
-const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
+const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const photos: PhotosState = useAppSelector((state) => state.photos, deepEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as PhotoAllPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as PhotoAllPaneStateData,
     deepEqual
   );
 
@@ -115,7 +115,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
   const handleScroll = () => {
     dispatch(
       setPaneStateDataValue({
-        frameID,
+        paneInstanceId,
         paneStateProperty: "lockPhotosScroll",
         paneStateValue: false,
       })
@@ -197,7 +197,7 @@ const PhotoAllPane: FunctionComponent<{ frameID: number }> = ({ frameID }) => {
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

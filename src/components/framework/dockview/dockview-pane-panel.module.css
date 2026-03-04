@@ -1,0 +1,35 @@
+/* Styles for Dockview pane panel — watermark pane picker */
+
+.watermark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--nearly-black);
+  gap: 16px;
+}
+
+.watermarkGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 500px;
+  padding: 0 12px;
+}
+
+.watermarkOption {
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  background-color: var(--dark-grey);
+  font-size: 14px;
+  text-transform: uppercase;
+  transition: background-color 0.15s;
+}
+
+.watermarkOption:hover {
+  background-color: var(--grey);
+}

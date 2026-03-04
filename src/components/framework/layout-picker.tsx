@@ -1,17 +1,14 @@
-import map from "lodash/map";
 import { useState } from "react";
 import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
-import { changeLayout, allLayouts } from "store/framework";
-import styles from "./layout-picker.module.css";
+import { changeLayout } from "store/framework";
 import {
-  frameGridClasses,
-  layoutClasses,
-  largeIconRowClasses,
-  containerClasses,
-  type FrameNumber,
-  type LayoutKey,
-} from "./frames";
+  visibleLayoutLetters,
+  getPaneInstanceCount,
+  LayoutLetter,
+} from "./dockview/dockview-layout-definitions";
+import styles from "./layout-picker.module.css";
+import { LayoutIcon } from "./layout-icons";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
@@ -20,45 +17,12 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
 
-  /**
-   * Change the layout
-   * @param index The index of the layout in allLayouts
-   */
-  const handleSelectLayout = (e: React.MouseEvent, index: string) => {
+  /** Select a layout preset and trim Redux paneInstanceCount to match the new panel count.
+   * This stops pane states from being orphaned when the number of panes decreases */
+  const handleSelectLayout = (e: React.MouseEvent, letter: LayoutLetter) => {
     e.preventDefault();
-    // clientLogger.info({ logId: "user-select-layout", selectedLayout: index });
-    dispatch(changeLayout(index));
+    dispatch(changeLayout({ layout: letter, paneInstanceCount: getPaneInstanceCount(letter) }));
     closeClick?.();
-  };
-
-  const drawLayoutLargeIcon = (layout: string) => {
-    const layoutKey = `layout_${layout}` as LayoutKey;
-    const layoutGrid = layoutClasses[layoutKey];
-
-    const layoutDefinition = allLayouts[layout];
-    const mainStyleName =
-      layoutDefinition.cssGridRows === 9
-        ? largeIconRowClasses.largeIcon_9Rows
-        : largeIconRowClasses.largeIcon_10Rows;
-    const frames = [];
-    for (let i = 1; i <= layoutDefinition.frameCount; i++) {
-      // CSS Grid definitions
-      const frameKey = `f${i}` as FrameNumber;
-      const gridAreaName = frameGridClasses[frameKey];
-      frames.push(
-        <div
-          className={`${containerClasses.largeIconFrameContainer} ${gridAreaName}`}
-          key={`FRAME__${i}`}
-        >
-          <div className={containerClasses.largeIconFrameBackground}></div>
-        </div>
-      );
-    }
-    return (
-      <div className={containerClasses.layoutLargeIconContainer}>
-        <div className={`${mainStyleName} ${layoutGrid}`}>{frames}</div>
-      </div>
-    );
   };
 
   return (
@@ -81,15 +45,15 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
         )}
       </div>
       <div className={styles.layouts}>
-        {map(allLayouts, (_layout, index) => (
+        {visibleLayoutLetters.map((letter) => (
           <div
             className={`${styles.layout} ${
-              index === frameworkState.layout ? styles.layoutselected : ""
+              letter === frameworkState.layout ? styles.layoutselected : ""
             }`}
-            onClick={(e) => handleSelectLayout(e, index)}
-            key={`LAYOUT_${index}`}
+            onClick={(e) => handleSelectLayout(e, letter)}
+            key={`LAYOUT_${letter}`}
           >
-            {drawLayoutLargeIcon(index)}
+            <LayoutIcon layout={letter} size="large" />
           </div>
         ))}
       </div>
@@ -101,11 +65,12 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       >
         <div>
           <p>
-            CODA Layouts determines the number of visible application frames and how they are
-            displayed.
+            CODA Layouts sets the initial number of visible application panels and how they are
+            displayed. After selection, the layout can be further customized by dragging panels to
+            rearrange them, and closing or adding panels as needed.
           </p>
           <p>
-            Changing the layout will not affect the applications currently selected for each frame,
+            Changing the layout will not affect the applications currently selected for each panel,
             it merely rearranges how they are displayed.
           </p>
         </div>

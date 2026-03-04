@@ -5,7 +5,7 @@
 
 body {
   background-color: #3e3b44;
-  /* overflow-x: hidden; */
+  overflow: hidden;
   margin: 0;
   color: #ffffff;
 }

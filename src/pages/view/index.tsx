@@ -18,7 +18,12 @@ import { interpretFramestateQueryString, validateShareLinkDateTime } from "utils
 import PlaybackControls from "components/interface/playback-controls";
 import Header from "components/interface/header";
 import Timeline from "components/interface/nav-timeline";
-import Viewer from "components/framework/frames";
+import DockviewLayout from "components/framework/dockview/dockview";
+import { getPaneInstanceCount } from "components/framework/dockview/dockview-layout-definitions";
+import {
+  stringToTree,
+  treeToSerialized,
+} from "components/framework/dockview/dockview-layout-builder";
 import { useSearchParams } from "react-router";
 import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
@@ -85,8 +90,9 @@ export function V2(): JSX.Element {
     if (!isNil(urlState.gmt) && !isNil(urlState.gmt.match(reHHMM))) {
       const [hh, mm, ss = 0] = urlState.gmt.split(":").map(Number);
       userTime = hh * 3600 + mm * 60 + ss;
-    } else if (!hasInitializedTime.current) {
-      // Only look for EVA start times on initial load
+    } else if (!hasInitializedTime.current && !isToday) {
+      // Only look for EVA start times on initial load for non-today dates
+      // (today with no gmt param should stay at "now", not jump to EVA start)
       // change the time if the sequence has a PET start time
       let filteredEVAs = allEVAs;
       if (urlState.frameworkState.source === "NBL") {
@@ -133,7 +139,9 @@ export function V2(): JSX.Element {
         socketStatus={socketStatus}
       />
       <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
-      <div className={styles.body}>{frameworkReady && <Viewer />}</div>
+      <div className={styles.body}>
+        {frameworkReady && <DockviewLayout initialLayout={urlState.dockviewLayout} />}
+      </div>
       <Timeline source={source} />
       <PlaybackControls />
     </div>
@@ -149,10 +157,11 @@ function getURLParams(query: URLSearchParams): QueryParams {
   const source = parseInt(query?.get("s") ?? "");
   const layout = query?.get("l");
 
-  // Validate share link date/time - future dates go to today, future times go to now
+  // Validate date (no date/future/malformed → today) and clamp future gmt times to now
   const { validatedDate, validatedGmt } = validateShareLinkDateTime(rawDate, rawGmt);
   let date = validatedDate;
-  let gmt = validatedGmt;
+  const gmt = validatedGmt;
+  let dockviewLayout: import("dockview-react").SerializedDockview | null = null;
 
   const fState: FrameworkState = { ...initialFrameworkState };
   if (source) {
@@ -162,7 +171,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
     } else if (source === sourceShortVal.TEST_EVENTS) {
       fState.source = "TEST_EVENTS";
       // if we're looking at the test events, we need to change the ISS location frame to GPS location pane
-      fState.frames = setGPSLocationFrame(fState, "5");
+      fState.paneInstances = setGPSLocationFrame(fState, "5");
       // set the default layout to the standard without Event Info
       fState.layout = "c";
       // if (isNil(date)) {
@@ -181,14 +190,14 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.source = "ARTEMIS";
       // set the default layout to show no map, only All Photos along the bottom
       fState.layout = "e";
-      if (isNil(date)) {
-        // 2022-12-05 is a good representation of Artemis 1 events
-        date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
-      }
-      if (isNil(gmt)) {
-        // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
-        gmt = "17:14:44";
-      }
+      // if (isNil(date)) {
+      //   // 2022-12-05 is a good representation of Artemis 1 events
+      //   date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
+      //   if (isNil(gmt)) {
+      //     // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
+      //     gmt = "17:14:44";
+      //   }
+      // }
     }
   }
 
@@ -206,30 +215,57 @@ function getURLParams(query: URLSearchParams): QueryParams {
     const nonDLvideo2 = query?.get("nonDLvideo2");
 
     if (nonDLvideo1) {
-      fState.frames = setNonDLVideoFrame(fState, "1", nonDLvideo1);
+      fState.paneInstances = setNonDLVideoFrame(fState, "1", nonDLvideo1);
     } else if (video1) {
-      fState.frames = setDLVideoFrame(fState, "1", video1);
+      fState.paneInstances = setDLVideoFrame(fState, "1", video1);
     }
     if (nonDLvideo2) {
-      fState.frames = setNonDLVideoFrame(fState, "2", nonDLvideo2);
+      fState.paneInstances = setNonDLVideoFrame(fState, "2", nonDLvideo2);
     } else if (video2) {
-      fState.frames = setDLVideoFrame(fState, "2", video2);
+      fState.paneInstances = setDLVideoFrame(fState, "2", video2);
     }
   } else if (version === "2.0") {
-    fState.frames = interpretFramestateQueryString(query);
+    fState.paneInstances = interpretFramestateQueryString(query);
+  } else if (version === "3.0") {
+    // v3: Dockview layout is serialized in the `dv` query param
+    const dvParam = query?.get("dv");
+    if (dvParam) {
+      const tree = stringToTree(decodeURIComponent(dvParam));
+      if (tree) dockviewLayout = treeToSerialized(tree);
+    }
+    // Pane state is still encoded in f1, f2, ... params (same as v2)
+    fState.paneInstances = interpretFramestateQueryString(query);
   }
+
+  // Trim frames to match the layout's panel count so that dynamically
+  // added panels (via "+") always start empty / show watermark.
+  // Skip trimming for v3 links — the Dockview layout defines the panel count.
+  if (version !== "3.0") {
+    const paneInstanceCount = getPaneInstanceCount(fState.layout);
+    if (paneInstanceCount > 0) {
+      const trimmed: { [paneInstanceId: string]: PaneState } = {};
+      for (const [key, value] of Object.entries(fState.paneInstances)) {
+        if (Number(key) <= paneInstanceCount) {
+          trimmed[key] = value;
+        }
+      }
+      fState.paneInstances = trimmed;
+    }
+  }
+
   const urlState: QueryParams = {
     date: date, // date is now guaranteed to be a string from validateShareLinkDateTime
     gmt: gmt ?? "",
     frameworkState: fState,
+    dockviewLayout,
   };
 
   return urlState;
 }
 
 function setNonDLVideoFrame(fState: FrameworkState, frameNum: string, nonDLVideo: string) {
-  const frameStateData = {
-    ...fState.frames[frameNum],
+  const frameStateData: PaneState = {
+    ...fState.paneInstances[frameNum],
     paneType: "video_non_downlink",
     paneStateData: {
       ...allPanes["video_non_downlink"].defaultPaneStateData,
@@ -238,12 +274,12 @@ function setNonDLVideoFrame(fState: FrameworkState, frameNum: string, nonDLVideo
       muted: true,
     } as VideoPaneStateData,
   };
-  return { ...fState.frames, [frameNum]: frameStateData };
+  return { ...fState.paneInstances, [frameNum]: frameStateData };
 }
 
 function setDLVideoFrame(fState: FrameworkState, frameNum: string, downlink: string) {
-  const frameStateData = {
-    ...fState.frames[frameNum],
+  const frameStateData: PaneState = {
+    ...fState.paneInstances[frameNum],
     paneType: "video_downlink",
     paneStateData: {
       ...allPanes["video_downlink"].defaultPaneStateData,
@@ -251,16 +287,16 @@ function setDLVideoFrame(fState: FrameworkState, frameNum: string, downlink: str
       muted: true,
     } as VideoPaneStateData,
   };
-  return { ...fState.frames, [frameNum]: frameStateData };
+  return { ...fState.paneInstances, [frameNum]: frameStateData };
 }
 
 function setGPSLocationFrame(fState: FrameworkState, frameNum: string) {
-  const frameStateData = {
-    ...fState.frames[frameNum],
+  const frameStateData: PaneState = {
+    ...fState.paneInstances[frameNum],
     paneType: "gps_location",
     paneStateData: {
       ...allPanes["gps_location"].defaultPaneStateData,
     },
   };
-  return { ...fState.frames, [frameNum]: frameStateData };
+  return { ...fState.paneInstances, [frameNum]: frameStateData };
 }

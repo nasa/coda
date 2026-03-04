@@ -10,7 +10,6 @@ import isNil from "lodash/isNil";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { thunkChangeViewingDate } from "store/thunk/clockThunk";
-import type { AppDispatch } from "store/index";
 
 interface DateDescription {
   date: Date;
@@ -52,27 +51,6 @@ interface YearMonthModalOptions {
   visibleYearMonth: string;
   setVisibleYearMonth: (ym: string) => void;
 }
-
-const handleDateChange = (description: DateDescription, dispatch: AppDispatch) => {
-  const formattedDate = `${description.date.getUTCFullYear()}-${padZeros(
-    description.date.getUTCMonth() + 1,
-    2
-  )}-${padZeros(description.date.getUTCDate(), 2)}`;
-
-  // Update URL without reloading
-  const url = new URL(window.location.href);
-  url.searchParams.set("date", formattedDate);
-  url.searchParams.set("gmt", "00:00:00");
-  window.history.replaceState({}, "", url.toString());
-
-  // Clear stores and change to new date (socket will reconnect automatically)
-  dispatch(
-    thunkChangeViewingDate({
-      newDate: midnightZulu(description.date).toISOString(),
-      newAppSeconds: 0,
-    })
-  );
-};
 
 export const MonthsModal: FunctionComponent<{
   closeClick?: () => void;
@@ -192,7 +170,12 @@ const CalendarDate: FunctionComponent<{
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!description.isLater) {
-      handleDateChange(description, dispatch);
+      dispatch(
+        thunkChangeViewingDate({
+          newDate: midnightZulu(description.date).toISOString(),
+          keepCurrentTime: true,
+        })
+      );
       closeClick?.();
     }
   };
@@ -228,9 +211,6 @@ const CalendarDate: FunctionComponent<{
 
 const DayOfYearPicker: FunctionComponent = () => {
   const dispatch = useAppDispatch();
-  const playheadDate = usePlayheadDate();
-
-  const allSequences = useAppSelector((state) => state.sequences.allSequences, deepEqual);
 
   const today = new Date();
   const todayYYYY = today.getUTCFullYear();
@@ -314,23 +294,11 @@ const DayOfYearPicker: FunctionComponent = () => {
               return;
             }
 
-            const date = setDate;
-
-            const EVA = allSequences.find((seq) => isSameDate(new Date(seq.startDate), date));
-            const inMonth = date.getUTCMonth() === today.getUTCMonth();
-            const isPlayheadDay = isSameDate(date, new Date(playheadDate));
-            const isToday = isSameDate(date, today);
-
-            handleDateChange(
-              {
-                date,
-                isToday,
-                isPlayheadDay,
-                inMonth,
-                isLater: isFuture,
-                EVA,
-              },
-              dispatch
+            dispatch(
+              thunkChangeViewingDate({
+                newDate: midnightZulu(setDate).toISOString(),
+                keepCurrentTime: true,
+              })
             );
           }}
         >
