@@ -26,6 +26,7 @@
 
 .topRight {
   display: flex;
+  align-items: center;
 }
 
 .topRight > *:not(:last-of-type) {

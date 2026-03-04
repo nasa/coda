@@ -27,7 +27,7 @@ x-wrapper: &send_container_logs_to_syslog
 services:
   nginx:
     container_name: "${LOG_DATA_APP_ID}--nginx"
-    image: ${DOCKER_IMAGE_NGINX}
+    image: ${REGISTRY_IMAGE}/nginx:${IMAGE_VERSION}
     restart: always
     depends_on:
       - apiv1
@@ -42,7 +42,7 @@ services:
 
   apiv1:
     container_name: "${LOG_DATA_APP_ID}--apiv1"
-    image: ${DOCKER_IMAGE_APIV1}
+    image: ${REGISTRY_IMAGE}/apiv1:${IMAGE_VERSION}
     depends_on:
       database:
         condition: service_healthy

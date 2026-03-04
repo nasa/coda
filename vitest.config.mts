@@ -22,7 +22,7 @@ export default mergeConfig(
       },
       coverage: {
         provider: "v8",
-        reporter: ["text", "lcov", "cobertura"],
+        reporter: ["text", "text-summary", "lcov", "cobertura"],
         include: ["src/**/*.{js,jsx,ts,tsx}"],
         exclude: ["src/**/*.d.ts", "src/**/*.spec.ts"],
       },

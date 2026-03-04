@@ -8,6 +8,11 @@ import { diff, isSameDate, midnightZulu } from "utils/date";
 import isNull from "lodash/isNull";
 import isNaN from "lodash/isNaN";
 import isNil from "lodash/isNil";
+import {
+  serializedToTree,
+  treeToString,
+} from "components/framework/dockview/dockview-layout-builder";
+import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
 
 /**
  * Validates share link date/time parameters.
@@ -73,28 +78,31 @@ export function validateShareLinkDateTime(
 }
 
 /**
- * Generates a URL string that represents the state of the application.
+ * Generates a v3 URL string that represents the state of the application,
+ * capturing the exact Dockview layout (proportions, splits, panel arrangement).
+ *
  * @param framework - The framework state
  * @param date - The current date string
  * @param appSeconds - The current app seconds
- * @returns {string}
+ * @returns {string | null} The share URL, or null if the DockviewApi is not yet available
  */
 export function generateShareURL(
   framework: FrameworkState,
   date: string,
   appSeconds: number
-): string {
+): string | null {
+  const dockviewApi = getDockviewApi();
+  if (!dockviewApi) return null;
   const dt = new Date(date);
 
   const missionDate = shortdateFromDateString(dt.toISOString());
   const missionTime = hhmmssFromSeconds(appSeconds);
 
-  const layout = framework.layout;
   const shortSource = sourceShortVal[framework.source];
 
   let i = 1;
   let stateUrlParams = "";
-  for (const [_key, element] of Object.entries(framework.frames)) {
+  for (const [_key, element] of Object.entries(framework.paneInstances)) {
     let paneStateString = "";
     switch (element.paneType) {
       case "video_downlink":
@@ -142,10 +150,13 @@ export function generateShareURL(
   const urlRoot = location.origin + location.pathname;
   let URL = `${urlRoot}?date=${missionDate}`;
   URL += `&gmt=${missionTime}`;
-  URL += `&v=2.0`; // version number used for tracking the format of share URLs, in case we need to change it in the future
-  URL += `&l=${layout}`;
   URL += `&s=${shortSource}`;
+
+  // Encode the live Dockview layout into the v3 share link.
+  // DSL chars (h/v/(/):/,/digits) are all valid unencoded in query strings per RFC 3986 §3.4.
+  URL += `&v=3.0`;
   URL += stateUrlParams;
+  URL += `&dv=${treeToString(serializedToTree(dockviewApi.toJSON())!)}`;
 
   return URL;
 }
@@ -161,7 +172,7 @@ function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeSho
   const paneTypeString = "0" + paneType;
   const dlString = state.channel === -1 ? "-1" : "0" + state.channel.toString();
   const mutedString = state.muted ? "1" : "0";
-  const activeVideoFileID = state.activeVideoFileID;
+  const activeVideoFileID = encodeURIComponent(state.activeVideoFileID);
   return `${paneTypeString}${dlString}${mutedString}${activeVideoFileID}`;
 }
 
@@ -257,8 +268,10 @@ function getStateStringForGraph(state: GraphPaneStateData) {
  * @param url All query params sent in the share URL
  * @returns FrameState object populated with the data from the URL
  */
-export function interpretFramestateQueryString(query: URLSearchParams): FrameState {
-  const frameState: FrameState = {};
+export function interpretFramestateQueryString(query: URLSearchParams): {
+  [paneInstanceId: string]: PaneState;
+} {
+  const frameState: { [paneInstanceId: string]: PaneState } = {};
   for (let i = 1; i <= 10; i++) {
     // 10 is the max number of frames
     const frameParam = query?.get("f" + i);
@@ -291,26 +304,26 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
        * Char 4: 0 if muted, 1 if unmuted
        * Chars 5+: String of activeVideoFileID (used for non-downlink video selection)
        */
-      const videoDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
+      const videoDLReturnVal: PaneState = {
         paneType: "video_downlink",
         paneStateData: {
           ready: true,
           channel: parseInt(frameString.substring(2, 4)),
           muted: frameString.charAt(4) === "1",
-          activeVideoFileID: "",
+          activeVideoFileID: decodeURIComponent(frameString.substring(5)),
           showInfo: false,
           showHelp: false,
         },
       };
       return videoDLReturnVal;
     case paneTypeShortVal.video_non_downlink:
-      const videoNonDLReturnVal: { paneType: string; paneStateData: VideoPaneStateData } = {
+      const videoNonDLReturnVal: PaneState = {
         paneType: "video_non_downlink",
         paneStateData: {
           ready: true,
           channel: -1,
           muted: frameString.substring(4, 5) === "1",
-          activeVideoFileID: frameString.substring(5, 6),
+          activeVideoFileID: decodeURIComponent(frameString.substring(5)),
           showHelp: false,
         } as VideoPaneStateData,
       };
@@ -319,7 +332,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       /* Char 2: 0 if showInfo is false, 1 if showInfo is true
        * Char 3: 0 if showFilter is false, 1 if showFilter is true
        */
-      const photoReturnVal: { paneType: string; paneStateData: PhotoPaneStateData } = {
+      const photoReturnVal: PaneState = {
         paneType: "photo",
         paneStateData: {
           ready: true,
@@ -333,7 +346,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       /* Char 2: 0 if showFilter is false, 1 if showInfo is true
        * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
        */
-      const photoAllReturnVal: { paneType: string; paneStateData: PhotoAllPaneStateData } = {
+      const photoAllReturnVal: PaneState = {
         paneType: "photo_all",
         paneStateData: {
           ready: true,
@@ -344,7 +357,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
       };
       return photoAllReturnVal;
     case paneTypeShortVal.event_info:
-      const eventInfoReturnVal: { paneType: string; paneStateData: EventPaneStateData } = {
+      const eventInfoReturnVal: PaneState = {
         paneType: "event_info",
         paneStateData: {
           ready: true,
@@ -355,7 +368,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
     case paneTypeShortVal.iss_location:
       /* Char 2: 0 if lockToggle is false, 1 if lockToggle is true
        */
-      const issLocationReturnVal: { paneType: string; paneStateData: LocationPaneStateData } = {
+      const issLocationReturnVal: PaneState = {
         paneType: "iss_location",
         paneStateData: {
           ready: true,
@@ -382,7 +395,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
           gpsTrackToggles[name] = true;
         }
       }
-      const gpsLocationReturnVal: { paneType: string; paneStateData: GpsTrackPaneStateData } = {
+      const gpsLocationReturnVal: PaneState = {
         paneType: "gps_location",
         paneStateData: {
           ready: true,
@@ -395,7 +408,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
     case paneTypeShortVal.talkybot:
       /* Channel info ignored - all channels selected by default
        */
-      const commReturnVal: { paneType: string; paneStateData: CommPaneStateData } = {
+      const commReturnVal: PaneState = {
         paneType: "comm",
         paneStateData: {
           ready: true,
@@ -412,7 +425,7 @@ function interpretFrameQueryParam(frameString: string): PaneState | undefined {
        * Char 3+4 graph id:
        */
 
-      const graphReturnVal: { paneType: string; paneStateData: GraphPaneStateData } = {
+      const graphReturnVal: PaneState = {
         paneType: "graph",
         paneStateData: {
           ready: true,

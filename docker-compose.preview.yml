@@ -3,9 +3,9 @@
 # This is an override file. It is intended to be used on top of the base docker-compose.yml file.
 #
 # SUMMARY:
-# Do the exact same thing as the production `docker-compose.yml`, just build locally as a way to
-# quickly preview what a production build would do.
-# Don't pull an image from container registry: build it locally from a Dockerfile.
+# Do the exact same thing as the production `docker-compose.yml`, just build locally from the Dockerfile
+# instead of pulling the image from the container registry.
+# Use this as a way to quickly preview what a production build would do.
 #
 services:
   nginx:

@@ -18,13 +18,15 @@ import { VideoPosterPane } from "./video-poster";
  * 3. MTX (MediaMTX recordings) - for recorded playback
  * 4. Falls back to poster pane if nothing is available
  */
-const VideoPaneChooser: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
-}) => {
+const VideoPaneChooser: FunctionComponent<{
+  paneInstanceId: number;
+  groupDimensions: number[];
+}> = ({ paneInstanceId }) => {
   const videos = useAppSelector((state) => state.videos, deepEqual);
   const downlinkNumber = useAppSelector(
     (state) =>
-      ((state.framework.frames[frameID].paneStateData as VideoPaneStateData).channel + 1) as number,
+      ((state.framework.paneInstances[paneInstanceId].paneStateData as VideoPaneStateData).channel +
+        1) as number,
     refEqual
   );
   const mtxPlaybackRecordsForDownlink = useAppSelector(
@@ -42,7 +44,7 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number; frameDimensions: nu
     return (
       <>
         <ClockInterval setAppSeconds={setLocalAppSeconds} />
-        <VideoIOPane frameID={frameID} />
+        <VideoIOPane paneInstanceId={paneInstanceId} />
       </>
     );
   }
@@ -74,7 +76,7 @@ const VideoPaneChooser: FunctionComponent<{ frameID: number; frameDimensions: nu
   return (
     <>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
-      <PlayerComponent frameID={frameID} />
+      <PlayerComponent paneInstanceId={paneInstanceId} />
     </>
   );
 };

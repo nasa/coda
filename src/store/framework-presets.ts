@@ -2,7 +2,7 @@ export const allPresets: Preset[] = [
   {
     name: "Default CODA Display",
     layout: "j",
-    frames: {
+    paneInstances: {
       1: {
         paneType: "video_downlink",
         paneStateData: {
@@ -58,7 +58,7 @@ export const allPresets: Preset[] = [
   {
     name: "6-Pack Downlinks",
     layout: "g",
-    frames: {
+    paneInstances: {
       1: {
         paneType: "video_downlink",
         paneStateData: {
@@ -124,7 +124,7 @@ export const allPresets: Preset[] = [
   {
     name: "9-Pack Downlinks",
     layout: "f",
-    frames: {
+    paneInstances: {
       1: {
         paneType: "video_downlink",
         paneStateData: {

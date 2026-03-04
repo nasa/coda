@@ -87,26 +87,20 @@ export const config: DotenvConfig<typeof environments> = {
   // something like "IO_REQUEST_ORIGIN_HEADER" or something.
   HOST: { default: "https://coda.fit.nasa.gov" },
 
-  // - These values are not used locally since the docker-compose is overridden by
-  //   the docker-compose.preview files. Those files build the images directly from the Dockerfiles
-  // - IMAGE_VERSION is defined in the pipeline job
-  // - The docker images to be used in docker compose when running in the pipeline. These
-  //   values are not used locally.
-
-  DOCKER_IMAGE_NGINX: {
-    local: "NOT_USED_LOCALLY",
-    default: `eegitlabregistry.fit.nasa.gov/emss/coda/nginx:${process.env.IMAGE_VERSION}`,
+  /**
+   * Container image info
+   */
+  // Image version is used to make each image name unique to each commit's pipeline
+  IMAGE_VERSION: { default: process.env.IMAGE_VERSION || "dev" },
+  REGISTRY_IMAGE: {
+    default: "eegitlabregistry.fit.nasa.gov/emss/coda",
   },
-  DOCKER_IMAGE_APIV1: {
-    local: "NOT_USED_LOCALLY",
-    default: `eegitlabregistry.fit.nasa.gov/emss/coda/apiv1:${process.env.IMAGE_VERSION}`,
-  },
-  DOCKER_DB_DATA_DIR: { local: "./.local/database", default: "/d1/coda/postgres" },
-  DOCKER_DB_INIT_DIR: { local: "./.local/db-init", default: "/d1/coda/db-init" },
 
   /**
    * Database
    */
+  DOCKER_DB_DATA_DIR: { local: "./.local/database", default: "/d1/coda/postgres" },
+  DOCKER_DB_INIT_DIR: { local: "./.local/db-init", default: "/d1/coda/db-init" },
   DOCKER_IMAGE_DATABASE: { default: "postgres:17.7-alpine3.22" },
 
   // DB_HOST is "localhost" when doing native/local Node development. When running

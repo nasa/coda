@@ -4,7 +4,8 @@
   height: 50px;
   padding-top: 6px;
   padding-bottom: 6px;
-  min-width: 1332px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .left {

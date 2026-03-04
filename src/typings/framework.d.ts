@@ -1,23 +1,18 @@
-/** Definition of all possible layouts */
-interface Layouts {
-  [key: string]: {
-    frameCount: number;
-    cssGridRows: number;
-  };
-}
-
 interface Preset {
   uuid?: string;
   name: string;
   layout: string;
-  frames: FrameState;
+  paneInstances: { [paneInstanceId: string]: PaneState };
+  /** Version of the preset format: 2 = layout-letter based, 3 = serialized Dockview JSON */
+  version?: 2 | 3;
+  /** Fully-specified Dockview layout JSON (v3 presets only) */
+  dockviewLayout?: import("dockview-react").SerializedDockview;
 }
 
 interface Pane {
   title: string;
   shortTitle: string;
   icon?: import("@fortawesome/fontawesome-svg-core").IconProp;
-  color: string;
   defaultPaneStateData:
     | EmptyPaneStateData
     | VideoPaneStateData
@@ -28,13 +23,23 @@ interface Pane {
     | CommPaneStateData;
 }
 
-interface Panes {
-  [key: string]: Pane;
-}
+type PaneType =
+  | "empty"
+  | "video_downlink"
+  | "video_non_downlink"
+  | "photo"
+  | "photo_all"
+  | "iss_location"
+  | "gps_location"
+  | "event_info"
+  | "comm"
+  | "graph";
+
+type Panes = Record<PaneType, Pane>;
 
 interface PaneComponentProps {
-  frameID: number;
-  frameDimensions: number[];
+  paneInstanceId: number;
+  groupDimensions: number[];
 }
 
 type PaneTypeComponentSet = {
@@ -42,22 +47,16 @@ type PaneTypeComponentSet = {
   pane: React.ComponentType<PaneComponentProps> | null;
 };
 
-type PaneTypeComponentSets = {
-  [key: string]: PaneTypeComponentSet;
-};
+type PaneTypeComponentSets = Record<PaneType, PaneTypeComponentSet>;
 
 interface FrameworkState {
   /** Currently supports `iss` or `test_events` */
   source: Source;
   /** Letter representing the layout as defined in components/framework/frames.module.css */
-  layout: string;
+  layout: LayoutLetter;
   layoutLastChanged: number; // milliseconds since epoch
-  /** Current mapping of visible frames to Frame types */
-  frames: FrameState;
-}
-
-interface FrameState {
-  [key: string]: PaneState;
+  /** Current pane instances */
+  paneInstances: { [paneInstanceId: string]: PaneState };
 }
 
 type AllPaneStateData =
@@ -72,7 +71,7 @@ type AllPaneStateData =
   | GraphPaneStateData;
 
 interface PaneState {
-  paneType: string;
+  paneType: PaneType;
   paneStateData: AllPaneStateData;
 }
 

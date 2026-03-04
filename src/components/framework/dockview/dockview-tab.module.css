@@ -1,0 +1,61 @@
+/* Dockview custom tab: pane icon + short title + pane picker chevron */
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 0 0 0;
+  height: 100%;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.gripIcon {
+  font-size: 12px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  margin-right: 0;
+  cursor: grab;
+}
+
+.icon {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.chevronContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevronContainer:hover {
+  opacity: 1;
+  background-color: rgb(255 255 255 / 15%);
+}
+
+.pickerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}
+
+.pickerOverlay {
+  position: fixed;
+  z-index: 1000;
+}

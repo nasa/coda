@@ -34,19 +34,19 @@ type MapMarker = {
 };
 
 export const ISSLocationControls: FunctionComponent<{
-  frameID: number;
-  frameDimensions: number[];
-}> = ({ frameID, frameDimensions }) => {
+  paneInstanceId: number;
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const minWidth = 470;
 
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as LocationPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as LocationPaneStateData,
     deepEqual
   );
 
-  const buttonLength = frameDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
+  const buttonLength = groupDimensions[0] > minWidth ? styles.buttonLong : styles.buttonShort;
   let lockButtonSelected = "";
   if (typeof paneStateData !== "undefined" && paneStateData.lockMap) {
     lockButtonSelected = styles.lockButtonSelected;
@@ -62,16 +62,16 @@ export const ISSLocationControls: FunctionComponent<{
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "lockMap",
                   paneStateValue: !paneStateData.lockMap,
                 })
               );
             }}
           >
-            {frameDimensions[0] > minWidth ? (
+            {groupDimensions[0] > minWidth ? (
               <span className={styles.buttonLabel}>
-                <div>{frameDimensions[0] > minWidth ? "Scroll" : ""}</div>
+                <div>{groupDimensions[0] > minWidth ? "Scroll" : ""}</div>
                 <div>
                   <FontAwesomeIcon icon={paneStateData.lockMap ? faLock : faLockOpen} size="sm" />
                 </div>
@@ -86,7 +86,7 @@ export const ISSLocationControls: FunctionComponent<{
             clickHandler={() => {
               dispatch(
                 setPaneStateDataValue({
-                  frameID,
+                  paneInstanceId,
                   paneStateProperty: "showHelp",
                   paneStateValue: !paneStateData.showHelp,
                 })
@@ -100,10 +100,10 @@ export const ISSLocationControls: FunctionComponent<{
   );
 };
 
-export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: number[] }> = ({
-  frameID,
-  frameDimensions,
-}) => {
+export const ISSLocation: FunctionComponent<{
+  paneInstanceId: number;
+  groupDimensions: number[];
+}> = ({ paneInstanceId, groupDimensions }) => {
   const dispatch = useAppDispatch();
 
   const initialMarker: MapMarker = {
@@ -114,7 +114,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
   const ephemera: EphemeraState = useAppSelector((state) => state.ephemera, deepEqual);
   const layoutLastChanged = useAppSelector((state) => state.framework.layoutLastChanged, refEqual);
   const paneStateData = useAppSelector(
-    (state) => state.framework.frames[frameID].paneStateData as LocationPaneStateData,
+    (state) => state.framework.paneInstances[paneInstanceId].paneStateData as LocationPaneStateData,
     deepEqual
   );
   const todayEphemera = ephemera.ephemerisFiles;
@@ -390,7 +390,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
     if (mapRef.current) {
       mapRef.current.resize();
     }
-  }, [frameDimensions, layoutLastChanged]);
+  }, [groupDimensions, layoutLastChanged]);
 
   //update map based on changes in seconds / hoverSeconds only after map loading
   useEffect(() => {
@@ -455,7 +455,11 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
         className={styles.mapContainer}
         onMouseDown={() => {
           dispatch(
-            setPaneStateDataValue({ frameID, paneStateProperty: "lockMap", paneStateValue: false })
+            setPaneStateDataValue({
+              paneInstanceId,
+              paneStateProperty: "lockMap",
+              paneStateValue: false,
+            })
           );
         }}
       ></div>
@@ -464,7 +468,7 @@ export const ISSLocation: FunctionComponent<{ frameID: number; frameDimensions: 
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
-              frameID,
+              paneInstanceId,
               paneStateProperty: "showHelp",
               paneStateValue: !paneStateData.showHelp,
             })

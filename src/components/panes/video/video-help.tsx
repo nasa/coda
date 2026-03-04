@@ -26,11 +26,11 @@ export const VideoGeneralHelpContent: FunctionComponent = () => (
     <p>There are two types of Video displays:</p>
     <ol>
       <li>
-        <strong>Video Channels</strong> - Videos categorized by ISS downlink channel. Select a
+        <strong>Video Downlink</strong> - Videos categorized by ISS downlink channel. Select a
         channel using the buttons above the video.
       </li>
       <li>
-        <strong>Video Other</strong> - Uncategorized videos selectable via dropdown menu.
+        <strong>Video Non-Downlink</strong> - Uncategorized videos selectable via dropdown menu.
       </li>
     </ol>
   </div>
@@ -71,7 +71,7 @@ export const VideoIOHelpContent: FunctionComponent = () => (
     <p>There are two types of Video displays:</p>
     <ol>
       <li>
-        Video Channels
+        Video Downlink
         <p>
           Videos from Imagery Online are categorized based on what ISS downlink channel they were
           received on. Select a downlink channel using the downlink channel numbers above the video.
@@ -79,7 +79,7 @@ export const VideoIOHelpContent: FunctionComponent = () => (
         <p>For Test and NBL events, channels have been inferred for common video source types.</p>
       </li>
       <li>
-        Video Other
+        Video Non-Downlink
         <p>
           Contains the remaining videos from Imagery Online that have not been categorized into
           channels. Videos available at a given CODA time are selected via dropdown.

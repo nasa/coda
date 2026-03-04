@@ -1,0 +1,109 @@
+.container {
+  width: 100%;
+  height: calc(100vh - (50px + 122px));
+  /* 50px header + 122px timeline — matches the old CSS grid height */
+}
+
+/* ---- dockview theme overrides ---- */
+
+/* stylelint-disable selector-class-pattern */
+.container :global(.dv-dockview) {
+  --dv-group-view-background-color: var(--nearly-black);
+  --dv-tabs-and-actions-container-background-color: var(--nearly-black);
+  --dv-tabs-and-actions-container-height: 28px;
+  --dv-activegroup-visiblepanel-tab-background-color: var(--grey);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--dark-grey);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--grey);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--dark-grey);
+  --dv-tab-divider-color: transparent;
+  --dv-activegroup-visiblepanel-tab-color: #ffffff;
+  --dv-activegroup-hiddenpanel-tab-color: #bbbbbb;
+  --dv-inactivegroup-visiblepanel-tab-color: #ffffff;
+  --dv-inactivegroup-hiddenpanel-tab-color: #bbbbbb;
+  --dv-separator-border: 1px solid var(--dark-grey);
+  --dv-paneview-header-border-color: var(--dark-grey);
+  --dv-sash-color: var(--dark-grey);
+  --dv-active-sash-color: var(--grey);
+}
+
+/* Keep void-container from consuming space so right-actions stays adjacent to tabs.
+   Right-actions: flex-basis 32px guarantees the + button is always visible even
+   when the scrollable tab strip fills the header; flex-grow lets controls expand
+   inline when there is remaining space; flex-shrink 1 allows it to shrink when
+   the panel is narrow so the ResizeObserver can trigger collapse into a button. */
+.container :global(.dv-void-container) {
+  flex-grow: 0;
+}
+
+.container :global(.dv-right-actions-container) {
+  flex: 1 1 32px;
+  min-width: 68px;
+}
+
+/* Disable Dockview's default overflow dropdown and keep tab strip scrollable */
+.container :global(.dv-tabs-overflow-dropdown-root),
+.container :global(.dv-tabs-overflow-dropdown-default) {
+  display: none !important;
+}
+
+/* Clip the native OS scrollbar out of view; scroll still works via mouse wheel.
+   The tab-bar is 28px tall — a thick OS scrollbar wastes too much of that space
+   and can't be reliably restyled in Chrome on Windows. */
+.container :global(.dv-scrollable) {
+  overflow: hidden;
+}
+
+.container :global(.dv-scrollable > .dv-tabs-container) {
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  /* push native scrollbar below the clipped area */
+  padding-bottom: 17px;
+  box-sizing: content-box !important;
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+.container :global(.dv-tabs-container)::-webkit-scrollbar {
+  display: none;
+}
+
+/* Let header dropdowns (e.g. COM channels) render above panel content */
+.container :global(.dv-tabs-and-actions-container) {
+  position: relative;
+  z-index: 2;
+}
+/* stylelint-enable selector-class-pattern */
+
+/* Watermark placeholder for empty groups */
+.watermark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--nearly-black);
+  color: #666666;
+  font-size: 13px;
+}
+
+.watermarkButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--grey);
+  color: #aaaaaa;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+.watermarkButton:hover {
+  color: #ffffff;
+  background-color: var(--lightest-grey);
+}
