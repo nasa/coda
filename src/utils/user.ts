@@ -1,7 +1,8 @@
 const SUPERUSER_ROLES: EMSSRole[] = ["EMSS-Superuser", "CODA-Superuser"];
 
 export const isSuperuser = (user: EmssUser | null | undefined): boolean => {
-  if (!user?.roles) return false;
+  const roles = user?.roles;
+  if (!roles) return false;
 
-  return SUPERUSER_ROLES.some((role) => user.roles.includes(role));
+  return SUPERUSER_ROLES.some((role) => roles.includes(role));
 };
