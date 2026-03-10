@@ -1,8 +1,10 @@
 /* Shared Admin Page Styles */
 
-/* Page Layout - Uses normal document flow for proper scrolling */
+/* Page Layout - Handles scrolling within the page container */
 .page {
   min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   padding: 32px 24px 48px;
   background: var(--nearly-black);
 }
