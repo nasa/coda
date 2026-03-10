@@ -182,6 +182,11 @@ make-dotenv:
   variables:
     MAKE_DOTENV_ENVIRONMENT: fit
 
+make-dotenv:prod:
+  extends: .make-dotenv-template
+  variables:
+    MAKE_DOTENV_ENVIRONMENT: prod
+
 make-test-dotenv:
   extends: .make-dotenv-template
   variables:
@@ -391,7 +396,7 @@ deploy:prod:
     name: production
     url: https://coda.fit.nasa.gov
   needs:
-    - make-dotenv
+    - make-dotenv:prod
     - docker:retag
     - deploy:artifactize-committed-files
     - z:db-export:prod

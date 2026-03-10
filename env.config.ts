@@ -1,13 +1,12 @@
 import { DotenvConfig } from "@emss/make-dotenv/src/types";
 
-export const environments = ["local", "fit", "test"] as const;
+export const environments = ["local", "fit", "test", "prod"] as const;
 
 export const config: DotenvConfig<typeof environments> = {
   /**
    * Launchpad
    * Only our prod URLs are added to launchpad prod. All environments (dev/int/prod) are added to launchpad sandbox.
    * Ultimately we want to use sandbox launchpad for everything except prod (including local dev)
-   * Currently we don't have a solution to make a prod version of a .env so right now use sandbox for everything
    */
   OAUTH2_PROXY_COOKIE_SECRET: {
     local: {
@@ -18,34 +17,34 @@ export const config: DotenvConfig<typeof environments> = {
     default: { type: "required-from-secret" },
   },
   OAUTH2_PROXY_OIDC_ISSUER_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs",
   },
   OAUTH2_PROXY_LOGIN_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/authorize/", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/authorize/",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/",
   },
   OAUTH2_PROXY_REDEEM_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/token/", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/token/",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/token/",
   },
   OAUTH2_PROXY_OIDC_JWKS_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs/discovery/keys", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs/discovery/keys",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/discovery/keys",
   },
   OAUTH2_PROXY_WHITELIST_DOMAIN: {
-    // prod: "authfs.launchpad.nasa.gov", confirm correct
+    prod: "authfs.launchpad.nasa.gov",
     default: "authfs.launchpad-sbx.nasa.gov",
   },
   OAUTH2_PROXY_CLIENT_ID: {
-    // prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
+    prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
     default: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_SANDBOX_CLIENT_ID" },
   },
   OAUTH2_PROXY_CLIENT_SECRET: {
-    // prod: {
-    //   type: "alternate-varname-from-secret-file",
-    //   value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
-    // },
+    prod: {
+      type: "alternate-varname-from-secret-file",
+      value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
+    },
     default: {
       type: "alternate-varname-from-secret-file",
       value: "LAUNCHPAD_SANDBOX_CLIENT_SECRET",
