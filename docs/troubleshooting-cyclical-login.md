@@ -39,17 +39,13 @@ OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: true
 # (both inject an Authorization header; oauth2-proxy v7.5.1 rejects duplicates)
 ```
 
-### 2. Changed `SameSite=lax` → `SameSite=none` (committed)
+### 2. ~~Changed `SameSite=lax` → `SameSite=none`~~ (REVERTED)
 
 ```yaml
-# BEFORE
-OAUTH2_PROXY_COOKIE_SAMESITE: lax
-
-# AFTER
 OAUTH2_PROXY_COOKIE_SAMESITE: none
 ```
 
-**Why**: `SameSite=lax` cookies are only sent on top-level same-site navigations. VPN proxies that perform TLS inspection can rewrite the response in ways that make the browser treat the LaunchPad callback redirect as cross-origin, causing it to withhold the SESSION cookie. `SameSite=none` (with `Secure=true`, which is already set) removes this restriction. Different browsers enforce SameSite differently, which explains why the issue varies between Chrome/Edge/Firefox.
+**REVERTED**: This caused 403 "Unable to find a valid CSRF token" errors. Some VPN proxies and older browser versions strip or reject `SameSite=none` cookies. The oauth2-proxy CSRF cookie (`_oauth2_proxy_csrf`) set before redirecting to LaunchPad was being dropped, so the callback validation failed. Reverted back to `SameSite=lax`.
 
 ### 3. ~~Added `OAUTH2_PROXY_COOKIE_DOMAINS`~~ (REVERTED)
 
@@ -71,11 +67,17 @@ proxy_set_header X-Auth-Request-Redirect $scheme://$host$request_uri;
 
 **Why**: `$request_uri` is a relative path. When VPN proxies rewrite the Host header or strip/modify relative redirects, oauth2-proxy can't construct the correct post-login redirect URL. Using the full `$scheme://$host$request_uri` is more resilient. The codebase already noted this causes infinite redirects for the `/logout` location and removed it there — the same issue can affect login.
 
+### 5. Added forwarded proxy headers to all oauth2-proxy locations (committed)
+
+Added `X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-For` to all three oauth2-proxy locations in `setup-auth.conf`: the callback (`/api/v1/auth/nasalp/adfs/oidc/login`), the main `/oauth2/` block, and `/oauth2/auth`.
+
+Most critically, the **callback location** was missing **all** proxy headers — no `Host`, no `X-Real-IP`, no `X-Scheme`, nothing. When `OAUTH2_PROXY_REVERSE_PROXY: true` is set, oauth2-proxy uses these headers to construct redirect URLs and validate the CSRF state parameter. Without them, oauth2-proxy sees the internal Docker hostname and http scheme, which can cause the CSRF cookie domain/path to mismatch or redirect URLs to be wrong — both of which cause login loops.
+
 ## Additional Things to Try
 
 If the above changes don't resolve the issue, try these in order. Each can be tested independently on a dev server or via `npm run docker:preview`.
 
-### 5. Increase CSRF cookie expiration
+### A. Increase CSRF cookie expiration
 
 Add to `docker-compose.yml` oauth2-proxy environment:
 
@@ -86,20 +88,11 @@ OAUTH2_PROXY_COOKIE_CSRF_EXPIRE: "30m"
 
 **Why**: oauth2-proxy creates a CSRF cookie during the auth flow with a default 15-minute expiry. If the VPN adds latency to the LaunchPad round-trip, or the user is slow to enter credentials, the CSRF cookie can expire before the callback completes, causing a silent auth failure and restart.
 
-### 6. Try `SameSite=strict` instead of `none`
+### B. Add cookie refresh
 
-If `SameSite=none` causes other issues (e.g., CSRF concerns), try:
-
-```yaml
-OAUTH2_PROXY_COOKIE_SAMESITE: strict
-```
-
-This is the most restrictive setting. The tradeoff is that the SESSION cookie won't be sent on any cross-site navigation (e.g., clicking a link to CODA from another site will require re-auth).
-
-### 7. Revert to `SameSite=lax` but add cookie refresh
+Add to `docker-compose.yml` oauth2-proxy environment:
 
 ```yaml
-OAUTH2_PROXY_COOKIE_SAMESITE: lax
 OAUTH2_PROXY_COOKIE_REFRESH: "1m"
 ```
 
@@ -112,7 +105,7 @@ add_header Set-Cookie $auth_cookie;
 
 **Why**: Cookie refresh causes oauth2-proxy to re-issue the SESSION cookie on every request made more than 1 minute after the last refresh. This mitigates stale/corrupted cookies from VPN interference.
 
-### 8. Remove the multi-part cookie splitting in nginx
+### C. Remove the multi-part cookie splitting in nginx
 
 Since the app uses Redis for session storage (`OAUTH2_PROXY_SESSION_STORE_TYPE: redis`), the SESSION cookie should only contain a small session ID, not the full JWT. The cookie splitting logic in `route-require-auth.conf` (lines 27-39) may actually be causing problems by reconstructing cookies incorrectly. Try removing it:
 
@@ -125,19 +118,7 @@ Since the app uses Redis for session storage (`OAUTH2_PROXY_SESSION_STORE_TYPE: 
 
 If the cookie truly exceeds 4KB even with Redis sessions, something else is wrong.
 
-### 9. Add `proxy_set_header X-Forwarded-Proto` and `X-Forwarded-Host`
-
-In `setup-auth.conf`, add to both `/oauth2/` and `/oauth2/auth` blocks:
-
-```nginx
-proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Host  $host;
-proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-```
-
-**Why**: VPN proxies may strip these standard headers. oauth2-proxy uses them to construct redirect URLs when `OAUTH2_PROXY_REVERSE_PROXY: true` is set. Missing headers can cause oauth2-proxy to generate redirect URLs with the wrong scheme (http vs https) or wrong hostname.
-
-### 10. Upgrade oauth2-proxy
+### D. Upgrade oauth2-proxy
 
 The current version is `v7.5.1`. Consider upgrading to the latest v7.7.x+:
 
@@ -147,7 +128,7 @@ image: quay.io/oauth2-proxy/oauth2-proxy:v7.8.1
 
 Several relevant bugs were fixed in later releases around cookie handling, CSRF validation, and redirect loop detection.
 
-### 11. Add debug logging to oauth2-proxy
+### E. Add debug logging to oauth2-proxy
 
 For diagnosis, temporarily enable verbose logging:
 
@@ -160,6 +141,16 @@ command:
 ```
 
 Then reproduce the loop and check `sudo docker compose logs oauth2-proxy --tail 200` for specific error messages during the redirect cycle.
+
+## Attempt Log
+
+| # | Change | Result |
+|---|--------|--------|
+| 1 | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH` | oauth2-proxy started cleanly; cyclical login still present |
+| 2 | `SameSite=lax` → `SameSite=none` | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.** |
+| 3 | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"` | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.** |
+| 4 | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri` | Deployed alongside #5. Testing. |
+| 5 | Added proxy headers to callback + all oauth2-proxy locations | Deployed. Testing. |
 
 ## Debugging Checklist
 
