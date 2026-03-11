@@ -24,6 +24,28 @@ Browser → nginx (auth_request) → oauth2-proxy (/oauth2/auth)
 
 The loop occurs when something breaks between the callback (step 7) and the subsequent authenticated request (step 9), causing the SESSION cookie to either not be set, not be sent, or not be recognized.
 
+### Root Cause (identified from Chrome network trace)
+
+The callback to `coda-local.fit.nasa.gov` **never happens**. The loop is entirely within LaunchPad's internal SAML/IWA/Kerberos flow:
+
+```
+oauth2-proxy → ADFS authorize (approval_prompt=force)
+  → LaunchPad SAML → IWA → kerblogin page
+  → login.kerb → 500 (Kerberos fails on VPN)
+  → falls back to smartcard login page → user authenticates
+  → login.sc → 302 (smartcard succeeds!)
+  → iwa/?fedData=... → saml2sso → iwa/?type=social&type=social (duplicated!)
+  → kerblogin page again (LOOPS BACK instead of completing to ADFS → callback)
+```
+
+Key evidence:
+- `login.kerb` consistently returns **500** (Kerberos fails on VPN)
+- After smartcard auth succeeds, LaunchPad redirects back into the SAML/IWA flow instead of completing
+- The `type=social` parameter gets **duplicated** (`type=social&type=social`), suggesting redirect corruption
+- The ADFS authorize URL includes `approval_prompt=force`, which tells ADFS to force fresh authentication every time
+- Firefox handles the Kerberos/IWA fallback differently, which is why it works
+- The OIDC callback URL on our server is never reached in the Chrome flow
+
 ## Changes Applied
 
 ### 1. Fixed env var typos (committed)
@@ -55,17 +77,13 @@ OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"
 
 **REVERTED**: This caused a 403 "Login Failed: The upstream identity provider returned an error: server_error" on Firefox. Setting a broad cookie domain caused the OIDC CSRF cookie (used to validate the `state` parameter during the authorization code exchange) to be shared/conflicted across subdomains, corrupting the auth flow. LaunchPad ADFS then rejected the token exchange.
 
-### 4. Changed `X-Auth-Request-Redirect` to use full URL (committed)
+### 4. ~~Changed `X-Auth-Request-Redirect` to use full URL~~ (REVERTED)
 
 ```nginx
-# BEFORE (in setup-auth.conf)
-proxy_set_header X-Auth-Request-Redirect $request_uri;
-
-# AFTER
 proxy_set_header X-Auth-Request-Redirect $scheme://$host$request_uri;
 ```
 
-**Why**: `$request_uri` is a relative path. When VPN proxies rewrite the Host header or strip/modify relative redirects, oauth2-proxy can't construct the correct post-login redirect URL. Using the full `$scheme://$host$request_uri` is more resilient. The codebase already noted this causes infinite redirects for the `/logout` location and removed it there — the same issue can affect login.
+**REVERTED**: Absolute URLs trigger oauth2-proxy's redirect whitelist validation (`validator.go`), which requires the app's own domain to be in `OAUTH2_PROXY_WHITELIST_DOMAIN`. The comma-separated multi-domain syntax for this env var did not work reliably through docker-compose `.env` file interpolation. Reverted to the original `$request_uri` (relative path), which bypasses whitelist validation entirely. The forwarded proxy headers (change #5) handle the VPN-related concerns this was intended to address.
 
 ### 5. Added forwarded proxy headers to all oauth2-proxy locations (committed)
 
@@ -98,26 +116,17 @@ command:
 
 Reproduce the Chrome loop then run: `sudo docker compose logs oauth2-proxy --tail 200`
 
-### 9. Added app domain to `OAUTH2_PROXY_WHITELIST_DOMAIN` (committed)
+### 9. ~~Added app domain to `OAUTH2_PROXY_WHITELIST_DOMAIN`~~ (REVERTED)
 
-Debug logs revealed the root cause of the Chrome loop:
+No longer needed after reverting change #4 back to relative `$request_uri`. Relative redirect URLs are not validated against the whitelist.
 
-```
-[validator.go:60] Rejecting invalid redirect "https://iron-emss-dev.fit.nasa.gov/": domain / port not in whitelist
-```
+### 11. Removed `approval_prompt=force` from ADFS authorize URL (testing)
 
-When change #4 switched `X-Auth-Request-Redirect` from relative (`$request_uri`) to absolute (`$scheme://$host$request_uri`), oauth2-proxy started validating the redirect URL against `OAUTH2_PROXY_WHITELIST_DOMAIN`. That was only set to the LaunchPad domain, so the app's own domain was rejected. The post-login redirect was blocked, creating the loop.
-
-Fixed in `env.config.ts`:
-
-```typescript
-OAUTH2_PROXY_WHITELIST_DOMAIN: {
-    prod: ".fit.nasa.gov,authfs.launchpad.nasa.gov",
-    default: ".fit.nasa.gov,authfs.launchpad-sbx.nasa.gov",
-},
+```yaml
+OAUTH2_PROXY_APPROVAL_PROMPT: ""
 ```
 
-The leading `.` enables subdomain matching for all `*.fit.nasa.gov` hosts (iron-emss-dev, coda, coda-int, etc.).
+**Why**: oauth2-proxy v7.5.1's ADFS provider defaults `approval_prompt` to `"force"`, which appears in the authorize URL as `approval_prompt=force`. This tells ADFS to always force fresh authentication — combined with Kerberos failing (500) on VPN, this causes LaunchPad's internal SAML/IWA flow to loop after smartcard auth instead of completing back to ADFS and our callback. Setting it to empty string removes the parameter entirely, allowing ADFS to accept existing auth sessions.
 
 ## Additional Things to Try
 
@@ -158,9 +167,11 @@ Several relevant bugs were fixed in later releases around cookie handling, CSRF 
 | 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri` | Firefox: fixed 403. Chrome: still loops.                                                            |
 | 5   | Added proxy headers to callback + all oauth2-proxy locations       | Firefox: works. Chrome: still loops.                                                                |
 | 6   | CSRF per-request + 30m expiry                                      | Deployed alongside #7 and #8. Firefox still works. Chrome still loops.                              |
-| 7   | Removed multi-part cookie splitting in nginx                       | Deployed. No change.                                                                                |
+| 7   | Removed multi-part cookie splitting in nginx                       | Deployed. No change on its own.                                                                     |
 | 8   | Enabled debug logging on oauth2-proxy (temporary)                  | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".   |
-| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`           | Deploying. This should fix the Chrome loop.                                                         |
+| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`           | Comma-separated env var not parsed correctly through docker-compose `.env` interpolation. **Reverted.** |
+| 10  | Reverted `X-Auth-Request-Redirect` back to relative `$request_uri` | No errors in oauth2-proxy logs, but Chrome still loops — callback never reached.                   |
+| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Testing. Root cause: LaunchPad SAML/IWA loops internally when Kerberos fails + force re-auth.      |
 
 ## Debugging Checklist
 

@@ -33,8 +33,8 @@ export const config: DotenvConfig<typeof environments> = {
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/discovery/keys",
   },
   OAUTH2_PROXY_WHITELIST_DOMAIN: {
-    prod: ".fit.nasa.gov,authfs.launchpad.nasa.gov",
-    default: ".fit.nasa.gov,authfs.launchpad-sbx.nasa.gov",
+    prod: "authfs.launchpad.nasa.gov",
+    default: "authfs.launchpad-sbx.nasa.gov",
   },
   OAUTH2_PROXY_CLIENT_ID: {
     prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
