@@ -154,6 +154,73 @@ OAUTH2_PROXY_ACR_VALUES: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509"
 
 **Why**: `acr_values` is the OIDC-standard way to request a specific authentication method. ADFS maps this to `RequestedAuthnContext` in the SAML request it sends to the federated IdP (LaunchPad). Unlike `wauth` (WS-Fed only), `acr_values` is designed for OAuth2/OIDC endpoints and should propagate through the ADFS → SAML federation chain. If LaunchPad's SAML IdP respects `RequestedAuthnContext`, it should skip the IWA/Kerberos path and go directly to X.509 certificate (smartcard) authentication.
 
+## LaunchPad IWA Bug Theory
+
+The evidence strongly suggests this is a **bug in LaunchPad's IWA (Integrated Windows Authentication) fallback handler**, not something we can fix from the CODA side. Here is the detailed theory:
+
+### The Bug
+
+When LaunchPad's `/fed/iwa/` endpoint initiates Kerberos authentication and the browser's Kerberos attempt fails (HTTP 500 from `login.kerb`), the fallback mechanism is supposed to route the user to smartcard authentication and then **complete the SAML assertion** back to ADFS. Instead, after the user successfully authenticates via smartcard (`login.sc` → 302), LaunchPad's redirect chain **re-enters the IWA flow** rather than completing the SAML response.
+
+### Why It's Browser-Specific
+
+| Browser       | IWA/Negotiate Behavior                                                                             | Result                                      |
+| ------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Chrome / Edge | Automatically respond to `WWW-Authenticate: Negotiate` via Windows SSPI                            | Triggers IWA path → Kerberos 500 → bug loop |
+| Firefox       | Does NOT respond to Negotiate by default (requires explicit `network.negotiate-auth.trusted-uris`) | Skips IWA entirely → smartcard-only → works |
+
+Chrome and Edge on Windows use the OS-level SSPI to handle `WWW-Authenticate: Negotiate` challenges transparently. When LaunchPad's `/fed/iwa/` endpoint issues this challenge, Chrome sends a Kerberos token. On VPN, the Kerberos KDC (port 88) is unreachable, so `login.kerb` returns 500. LaunchPad's fallback handler then corrupts the redirect chain.
+
+Firefox ignores the Negotiate challenge entirely (it doesn't have `*.launchpad*.nasa.gov` in its `network.negotiate-auth.trusted-uris`), so LaunchPad never enters the IWA code path. It goes straight to the smartcard-only authentication flow, which works correctly.
+
+### Why It's VPN-Specific
+
+On the NASA network (or a VPN that allows Kerberos traffic), the Kerberos authentication at `login.kerb` **succeeds**. The IWA flow completes, the SAML assertion is returned to ADFS, ADFS issues an authorization code, the callback reaches our server, and everything works.
+
+On VPNs that **block port 88** (Kerberos KDC), `login.kerb` fails with 500. This triggers the broken fallback path in LaunchPad's IWA handler.
+
+### Evidence from Chrome Network Trace
+
+```
+1. oauth2-proxy → ADFS /oauth2/authorize (with our client_id, scopes, etc.)
+2. ADFS → LaunchPad /affwebservices/public/saml2sso (SAML AuthnRequest)
+3. LaunchPad → /fed/iwa/ (IWA endpoint — Chrome responds to Negotiate)
+4. → /kerblogin (Kerberos login page renders)
+5. → login.kerb → 500 ❌ (Kerberos fails — port 88 blocked on VPN)
+6. → /login (falls back to smartcard page — user enters PIN)
+7. → login.sc → 302 ✅ (smartcard auth succeeds!)
+8. → /fed/iwa/?fedData=... → 302
+9. → /affwebservices/public/saml2sso?type=social → 302
+10. → /fed/iwa/?type=social&type=social → 302  ⚠️ (type=social DUPLICATED)
+11. → /kerblogin → 200 (LOOPS BACK to Kerberos page!)
+12. → login.kerb → 500 ❌ (fails again — infinite loop)
+```
+
+**Step 10 is the smoking gun**: the `type=social` parameter gets duplicated (`type=social&type=social`), indicating redirect URL corruption in LaunchPad's IWA fallback handler. After successful smartcard auth (step 7), instead of constructing the SAML Response back to ADFS, LaunchPad re-enters the IWA redirect chain with corrupted parameters.
+
+### What We Tried to Fix It
+
+We attempted to tell ADFS to skip the IWA path entirely:
+
+- **`wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI`** on the authorize URL — ADFS ignored it because `wauth` is a WS-Federation parameter, not OAuth2/OIDC
+- **`acr_values=urn:oasis:names:tc:SAML:2.0:ac:classes:X509`** via `OAUTH2_PROXY_ACR_VALUES` — the OIDC-standard way to request a specific auth method, which ADFS should map to `RequestedAuthnContext` in the SAML request
+
+Neither parameter can prevent Chrome from responding to the Negotiate challenge at LaunchPad's IWA endpoint — the IWA negotiation happens at the HTTP protocol level between the browser and LaunchPad's web server, before any SAML/OIDC parameters are evaluated.
+
+### Possible Mitigations
+
+Since we cannot fix LaunchPad's server-side IWA handling, the options are:
+
+1. **Chrome enterprise policy `AuthServerAllowlist`**: Restrict which domains Chrome will send Negotiate/Kerberos credentials to. If `*.launchpad*.nasa.gov` is NOT in the allowlist, Chrome will behave like Firefox — skip IWA, go straight to smartcard. However, this requires client-side config (GPO or Chrome policy).
+
+2. **User-level Chrome flag**: Users can navigate to `chrome://settings/content/federatedIdentityApi` or set `--auth-server-whitelist` to exclude LaunchPad domains. Not scalable.
+
+3. **Report to LaunchPad team**: The IWA fallback handler has a bug where `type=social` gets duplicated in the redirect URL after a failed Kerberos + successful smartcard auth. The SAML assertion should complete back to ADFS after smartcard auth rather than re-entering the IWA flow. This is the proper fix.
+
+4. **Detect the loop client-side**: In our frontend, detect repeated redirects to the sign-in page and show a message suggesting Firefox or explaining the workaround.
+
+5. **Remove IWA from the ADFS relying party trust**: If the LaunchPad ADFS configuration for our client can be changed to disable IWA and only allow certificate-based auth, this would prevent the issue. Requires coordination with the LaunchPad admin team.
+
 ## Additional Things to Try
 
 ### B. Add cookie refresh
@@ -197,9 +264,9 @@ Several relevant bugs were fixed in later releases around cookie handling, CSRF 
 | 8   | Enabled debug logging on oauth2-proxy (temporary)                    | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".       |
 | 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`             | Comma-separated env var not parsed correctly through docker-compose `.env` interpolation. **Reverted.** |
 | 10  | Reverted `X-Auth-Request-Redirect` back to relative `$request_uri`   | No errors in oauth2-proxy logs, but Chrome still loops — callback never reached.                        |
-| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Still loops in Chrome. IWA/Negotiate is the real issue, not force re-auth.                          |
-| 12  | Added `wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI` to login URL  | ADFS ignores `wauth` on OAuth2 endpoint (WS-Fed only). Still loops. **Reverted.**                   |
-| 13  | Added `OAUTH2_PROXY_ACR_VALUES` for X.509 cert auth                  | Testing. OIDC-standard `acr_values` → ADFS maps to SAML `RequestedAuthnContext`.                    |
+| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Still loops in Chrome. IWA/Negotiate is the real issue, not force re-auth.                              |
+| 12  | Added `wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI` to login URL   | ADFS ignores `wauth` on OAuth2 endpoint (WS-Fed only). Still loops. **Reverted.**                       |
+| 13  | Added `OAUTH2_PROXY_ACR_VALUES` for X.509 cert auth                  | Testing. OIDC-standard `acr_values` → ADFS maps to SAML `RequestedAuthnContext`.                        |
 
 ## Debugging Checklist
 
