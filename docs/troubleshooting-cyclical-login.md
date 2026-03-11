@@ -24,27 +24,35 @@ Browser → nginx (auth_request) → oauth2-proxy (/oauth2/auth)
 
 The loop occurs when something breaks between the callback (step 7) and the subsequent authenticated request (step 9), causing the SESSION cookie to either not be set, not be sent, or not be recognized.
 
-### Root Cause (identified from Chrome network trace)
+### Root Cause (identified from Chrome network trace + Firefox comparison)
 
-The callback to `coda-local.fit.nasa.gov` **never happens**. The loop is entirely within LaunchPad's internal SAML/IWA/Kerberos flow:
+The callback to our server **never happens** for Chrome/Edge. The loop is entirely within LaunchPad's internal SAML/IWA/Kerberos flow. Firefox works because it **does not participate in IWA (Integrated Windows Authentication)**.
+
+**Chrome/Edge on Windows** automatically respond to `WWW-Authenticate: Negotiate` challenges using Windows SSPI (Kerberos/NTLM). When LaunchPad's `/fed/iwa/` endpoint challenges them, Chrome tries Kerberos → fails (500 on VPN, port 88 blocked) → LaunchPad's broken fallback re-enters the IWA flow instead of completing the SAML assertion.
+
+**Firefox** does NOT participate in IWA by default (requires explicit `network.negotiate-auth.trusted-uris` config). So when LaunchPad's IWA endpoint sends a Negotiate challenge, Firefox ignores it → LaunchPad immediately falls through to the smartcard-only path → completes cleanly → SAML assertion completes → ADFS issues code → callback reaches our server.
+
+Chrome network trace showing the loop:
 
 ```
-oauth2-proxy → ADFS authorize (approval_prompt=force)
+oauth2-proxy → ADFS authorize
   → LaunchPad SAML → IWA → kerblogin page
-  → login.kerb → 500 (Kerberos fails on VPN)
+  → login.kerb → 500 (Kerberos fails on VPN - Chrome tried Negotiate/SSPI)
   → falls back to smartcard login page → user authenticates
   → login.sc → 302 (smartcard succeeds!)
   → iwa/?fedData=... → saml2sso → iwa/?type=social&type=social (duplicated!)
   → kerblogin page again (LOOPS BACK instead of completing to ADFS → callback)
+  → login.kerb → 500 (Kerberos fails again - infinite loop)
 ```
 
 Key evidence:
-- `login.kerb` consistently returns **500** (Kerberos fails on VPN)
+
+- `login.kerb` consistently returns **500** (Kerberos fails on VPN) — only in Chrome/Edge which attempt IWA
 - After smartcard auth succeeds, LaunchPad redirects back into the SAML/IWA flow instead of completing
-- The `type=social` parameter gets **duplicated** (`type=social&type=social`), suggesting redirect corruption
-- The ADFS authorize URL includes `approval_prompt=force`, which tells ADFS to force fresh authentication every time
-- Firefox handles the Kerberos/IWA fallback differently, which is why it works
-- The OIDC callback URL on our server is never reached in the Chrome flow
+- The `type=social` parameter gets **duplicated** (`type=social&type=social`), showing redirect corruption in the IWA fallback
+- The OIDC callback URL on our server is never reached in Chrome/Edge
+- Firefox skips the entire IWA path → smartcard → completes → callback reaches our server → works
+- Confirmed on iron dev server: same user, same VPN, same time — Firefox 200 OK, Chrome/Edge 302 loop
 
 ## Changes Applied
 
@@ -120,13 +128,31 @@ Reproduce the Chrome loop then run: `sudo docker compose logs oauth2-proxy --tai
 
 No longer needed after reverting change #4 back to relative `$request_uri`. Relative redirect URLs are not validated against the whitelist.
 
-### 11. Removed `approval_prompt=force` from ADFS authorize URL (testing)
+### 11. ~~Removed `approval_prompt=force`~~ (did not fix)
 
 ```yaml
 OAUTH2_PROXY_APPROVAL_PROMPT: ""
 ```
 
-**Why**: oauth2-proxy v7.5.1's ADFS provider defaults `approval_prompt` to `"force"`, which appears in the authorize URL as `approval_prompt=force`. This tells ADFS to always force fresh authentication — combined with Kerberos failing (500) on VPN, this causes LaunchPad's internal SAML/IWA flow to loop after smartcard auth instead of completing back to ADFS and our callback. Setting it to empty string removes the parameter entirely, allowing ADFS to accept existing auth sessions.
+**Result**: Still loops in Chrome. The `approval_prompt` parameter was not the trigger — the loop is caused by Chrome's IWA/Negotiate behavior, not by ADFS being told to force re-auth. Keeping the empty value since `force` is unnecessary.
+
+### 12. ~~Added `wauth` parameter to skip IWA/Kerberos~~ (did not fix)
+
+Modified `OAUTH2_PROXY_LOGIN_URL` in `env.config.ts` to include a `wauth` hint:
+
+```
+https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/?wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI
+```
+
+**Result**: ADFS ignored the `wauth` parameter on its OAuth2 endpoint — `wauth` is a WS-Federation parameter, not OIDC/OAuth2. The authorize flow still went through IWA → Kerberos → 500 → loop. **Reverted** (removed from login URL).
+
+### 13. Added `acr_values` for X.509 cert authentication (testing)
+
+```yaml
+OAUTH2_PROXY_ACR_VALUES: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509"
+```
+
+**Why**: `acr_values` is the OIDC-standard way to request a specific authentication method. ADFS maps this to `RequestedAuthnContext` in the SAML request it sends to the federated IdP (LaunchPad). Unlike `wauth` (WS-Fed only), `acr_values` is designed for OAuth2/OIDC endpoints and should propagate through the ADFS → SAML federation chain. If LaunchPad's SAML IdP respects `RequestedAuthnContext`, it should skip the IWA/Kerberos path and go directly to X.509 certificate (smartcard) authentication.
 
 ## Additional Things to Try
 
@@ -159,19 +185,21 @@ Several relevant bugs were fixed in later releases around cookie handling, CSRF 
 
 ## Attempt Log
 
-| #   | Change                                                             | Result                                                                                              |
-| --- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| 1   | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH`      | oauth2-proxy started cleanly; cyclical login still present                                          |
-| 2   | `SameSite=lax` → `SameSite=none`                                   | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.** |
-| 3   | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"`               | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.** |
-| 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri` | Firefox: fixed 403. Chrome: still loops.                                                            |
-| 5   | Added proxy headers to callback + all oauth2-proxy locations       | Firefox: works. Chrome: still loops.                                                                |
-| 6   | CSRF per-request + 30m expiry                                      | Deployed alongside #7 and #8. Firefox still works. Chrome still loops.                              |
-| 7   | Removed multi-part cookie splitting in nginx                       | Deployed. No change on its own.                                                                     |
-| 8   | Enabled debug logging on oauth2-proxy (temporary)                  | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".   |
-| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`           | Comma-separated env var not parsed correctly through docker-compose `.env` interpolation. **Reverted.** |
-| 10  | Reverted `X-Auth-Request-Redirect` back to relative `$request_uri` | No errors in oauth2-proxy logs, but Chrome still loops — callback never reached.                   |
-| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Testing. Root cause: LaunchPad SAML/IWA loops internally when Kerberos fails + force re-auth.      |
+| #   | Change                                                               | Result                                                                                                  |
+| --- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 1   | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH`        | oauth2-proxy started cleanly; cyclical login still present                                              |
+| 2   | `SameSite=lax` → `SameSite=none`                                     | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.**     |
+| 3   | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"`                 | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.**     |
+| 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri`   | Firefox: fixed 403. Chrome: still loops.                                                                |
+| 5   | Added proxy headers to callback + all oauth2-proxy locations         | Firefox: works. Chrome: still loops.                                                                    |
+| 6   | CSRF per-request + 30m expiry                                        | Deployed alongside #7 and #8. Firefox still works. Chrome still loops.                                  |
+| 7   | Removed multi-part cookie splitting in nginx                         | Deployed. No change on its own.                                                                         |
+| 8   | Enabled debug logging on oauth2-proxy (temporary)                    | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".       |
+| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`             | Comma-separated env var not parsed correctly through docker-compose `.env` interpolation. **Reverted.** |
+| 10  | Reverted `X-Auth-Request-Redirect` back to relative `$request_uri`   | No errors in oauth2-proxy logs, but Chrome still loops — callback never reached.                        |
+| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Still loops in Chrome. IWA/Negotiate is the real issue, not force re-auth.                          |
+| 12  | Added `wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI` to login URL  | ADFS ignores `wauth` on OAuth2 endpoint (WS-Fed only). Still loops. **Reverted.**                   |
+| 13  | Added `OAUTH2_PROXY_ACR_VALUES` for X.509 cert auth                  | Testing. OIDC-standard `acr_values` → ADFS maps to SAML `RequestedAuthnContext`.                    |
 
 ## Debugging Checklist
 

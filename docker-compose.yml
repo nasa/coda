@@ -90,9 +90,14 @@ services:
 
       OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: true
 
-      # Don't send approval_prompt=force to ADFS — it causes LaunchPad's
-      # internal SAML/IWA flow to loop when Kerberos fails on certain VPNs
+      # Don't send approval_prompt=force to ADFS (default for ADFS provider)
       OAUTH2_PROXY_APPROVAL_PROMPT: ""
+
+      # Request X.509 certificate auth via OIDC acr_values. ADFS maps this to
+      # RequestedAuthnContext in the SAML request to LaunchPad, which should skip
+      # IWA/Kerberos. Chrome/Edge auto-attempt Kerberos via SSPI, which fails on
+      # VPN (port 88 blocked), causing LaunchPad's IWA fallback to loop.
+      OAUTH2_PROXY_ACR_VALUES: "urn:oasis:names:tc:SAML:2.0:ac:classes:X509"
 
       # Just do LaunchPad auth, don't make the user click a button
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: true
