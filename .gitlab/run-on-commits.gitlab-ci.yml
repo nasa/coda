@@ -177,7 +177,7 @@ node-sbom:
       - .env
     expire_in: 1 day
 
-make-dotenv:
+make-dotenv:fit:
   extends: .make-dotenv-template
   variables:
     MAKE_DOTENV_ENVIRONMENT: fit
@@ -187,7 +187,7 @@ make-dotenv:prod:
   variables:
     MAKE_DOTENV_ENVIRONMENT: prod
 
-make-test-dotenv:
+make-dotenv:test:
   extends: .make-dotenv-template
   variables:
     MAKE_DOTENV_ENVIRONMENT: test
@@ -196,7 +196,7 @@ test:
   stage: stageless
   needs:
     - install_dependencies
-    - make-test-dotenv
+    - make-dotenv:test
   variables:
     # define variables used by Node app
     DB_HOST: postgres-test-container
