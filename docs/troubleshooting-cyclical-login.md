@@ -98,6 +98,27 @@ command:
 
 Reproduce the Chrome loop then run: `sudo docker compose logs oauth2-proxy --tail 200`
 
+### 9. Added app domain to `OAUTH2_PROXY_WHITELIST_DOMAIN` (committed)
+
+Debug logs revealed the root cause of the Chrome loop:
+
+```
+[validator.go:60] Rejecting invalid redirect "https://iron-emss-dev.fit.nasa.gov/": domain / port not in whitelist
+```
+
+When change #4 switched `X-Auth-Request-Redirect` from relative (`$request_uri`) to absolute (`$scheme://$host$request_uri`), oauth2-proxy started validating the redirect URL against `OAUTH2_PROXY_WHITELIST_DOMAIN`. That was only set to the LaunchPad domain, so the app's own domain was rejected. The post-login redirect was blocked, creating the loop.
+
+Fixed in `env.config.ts`:
+
+```typescript
+OAUTH2_PROXY_WHITELIST_DOMAIN: {
+    prod: ".fit.nasa.gov,authfs.launchpad.nasa.gov",
+    default: ".fit.nasa.gov,authfs.launchpad-sbx.nasa.gov",
+},
+```
+
+The leading `.` enables subdomain matching for all `*.fit.nasa.gov` hosts (iron-emss-dev, coda, coda-int, etc.).
+
 ## Additional Things to Try
 
 ### B. Add cookie refresh
@@ -136,9 +157,10 @@ Several relevant bugs were fixed in later releases around cookie handling, CSRF 
 | 3   | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"`               | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.** |
 | 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri` | Firefox: fixed 403. Chrome: still loops.                                                            |
 | 5   | Added proxy headers to callback + all oauth2-proxy locations       | Firefox: works. Chrome: still loops.                                                                |
-| 6   | CSRF per-request + 30m expiry                                      | Deploying alongside #7 and #8.                                                                      |
-| 7   | Removed multi-part cookie splitting in nginx                       | Deploying.                                                                                          |
-| 8   | Enabled debug logging on oauth2-proxy (temporary)                  | Deploying. Check `sudo docker compose logs oauth2-proxy --tail 200` after reproducing Chrome loop.  |
+| 6   | CSRF per-request + 30m expiry                                      | Deployed alongside #7 and #8. Firefox still works. Chrome still loops.                              |
+| 7   | Removed multi-part cookie splitting in nginx                       | Deployed. No change.                                                                                |
+| 8   | Enabled debug logging on oauth2-proxy (temporary)                  | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".   |
+| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`           | Deploying. This should fix the Chrome loop.                                                         |
 
 ## Debugging Checklist
 
