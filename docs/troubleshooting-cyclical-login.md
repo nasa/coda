@@ -51,13 +51,13 @@ OAUTH2_PROXY_COOKIE_SAMESITE: none
 
 **Why**: `SameSite=lax` cookies are only sent on top-level same-site navigations. VPN proxies that perform TLS inspection can rewrite the response in ways that make the browser treat the LaunchPad callback redirect as cross-origin, causing it to withhold the SESSION cookie. `SameSite=none` (with `Secure=true`, which is already set) removes this restriction. Different browsers enforce SameSite differently, which explains why the issue varies between Chrome/Edge/Firefox.
 
-### 3. Added `OAUTH2_PROXY_COOKIE_DOMAINS` (committed)
+### 3. ~~Added `OAUTH2_PROXY_COOKIE_DOMAINS`~~ (REVERTED)
 
 ```yaml
 OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"
 ```
 
-**Why**: Without this, the cookie domain defaults to the exact hostname of the request. If a VPN or proxy causes requests to arrive with a different hostname (e.g., IP address vs FQDN), the cookie domain won't match subsequent requests. Setting it to `.fit.nasa.gov` ensures the cookie works across all `*.fit.nasa.gov` subdomains.
+**REVERTED**: This caused a 403 "Login Failed: The upstream identity provider returned an error: server_error" on Firefox. Setting a broad cookie domain caused the OIDC CSRF cookie (used to validate the `state` parameter during the authorization code exchange) to be shared/conflicted across subdomains, corrupting the auth flow. LaunchPad ADFS then rejected the token exchange.
 
 ### 4. Changed `X-Auth-Request-Redirect` to use full URL (committed)
 
