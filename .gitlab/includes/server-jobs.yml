@@ -93,12 +93,18 @@ z:db-export:oxygen:
     # Print the last 100 lines of logs to the GitLab job log
     - sudo docker compose logs apiv1 --tail 100
     - sudo docker compose logs nginx --tail 100
+    - sudo docker compose logs oauth2-proxy --tail 100
+    - sudo docker compose logs redis --tail 100
+    - sudo docker compose logs database --tail 100
     - sudo journalctl --unit=rsyslog -n 200 --no-pager
 
     # Put the full logs into artifacts. Full logs may hit the job log length
     # limit, and generally make the job log un-readably long
     - sudo docker compose logs apiv1 > "${LOG_ARTIFACTS}/apiv1"
     - sudo docker compose logs nginx > "${LOG_ARTIFACTS}/nginx"
+    - sudo docker compose logs oauth2-proxy > "${LOG_ARTIFACTS}/oauth2-proxy"
+    - sudo docker compose logs redis > "${LOG_ARTIFACTS}/redis"
+    - sudo docker compose logs database > "${LOG_ARTIFACTS}/database"
     - sudo journalctl --unit=rsyslog --no-pager > "${LOG_ARTIFACTS}/host-rsyslog"
   artifacts:
     when: always
