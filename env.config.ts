@@ -77,6 +77,7 @@ export const config: DotenvConfig<typeof environments> = {
     default: "/etc/pki/tls/private",
   },
   //# Unlikely these ever need to change
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
   // VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
 
@@ -116,23 +117,28 @@ export const config: DotenvConfig<typeof environments> = {
    * MTX Live streams
    */
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_LIVE_STREAMS_ENABLED: { default: "true" },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MEDIA_MTX_CONTROL_URL: {
     local: "http://127.0.0.1:9997/",
     default: "https://emss-lambda2.fit.nasa.gov/api/",
   },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MEDIA_MTX_HLS_URL: {
     local: "http://127.0.0.1:8888/",
     default: "https://emss-lambda2.fit.nasa.gov/live/",
   },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL: {
     local: "http://127.0.0.1:9996/",
     default: "https://emss-lambda2.fit.nasa.gov/recordings/",
   },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS: {
     default: "7",
   },
@@ -148,9 +154,11 @@ export const config: DotenvConfig<typeof environments> = {
    * Maplibre variables
    */
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   // no trailing slash
   VITE_PUBLIC_MAPLIBRE_BASE_URL: { default: "https://emss-labs.fit.nasa.gov/localearth" },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME: { default: "20250213.pmtiles" },
 
   /*
@@ -189,6 +197,7 @@ export const config: DotenvConfig<typeof environments> = {
       type: "required-from-secret",
     },
   },
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MAPBOX_KEY: {
     default: {
       type: "required-from-secret",
@@ -304,6 +313,7 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   // log level for ConsoleLogger and emss logging service (off, error, warn, info, debug)
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_LOG_LEVEL: {
     local: "debug",
     default: "info",
