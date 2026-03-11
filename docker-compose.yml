@@ -86,8 +86,8 @@ services:
       OAUTH2_PROXY_PASS_ACCESS_TOKEN: true
       OAUTH2_PROXY_OIDC_EMAIL_CLAIM: AUID
 
-      OAUTH2_PROXYSET_SET_AUTHORIZATION_HEADER: true
-      OAUTH2_PROXYSET_SET_BASIC_AUTH: true
+      OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: true
+      OAUTH2_PROXY_SET_BASIC_AUTH: true
 
       # Just do LaunchPad auth, don't make the user click a button
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: true
