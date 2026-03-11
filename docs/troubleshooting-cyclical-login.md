@@ -203,7 +203,8 @@ On VPNs that **block port 88** (Kerberos KDC), `login.kerb` fails with 500. This
 We attempted to tell ADFS to skip the IWA path entirely:
 
 - **`wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI`** on the authorize URL — ADFS ignored it because `wauth` is a WS-Federation parameter, not OAuth2/OIDC
-- **`acr_values=urn:oasis:names:tc:SAML:2.0:ac:classes:X509`** via `OAUTH2_PROXY_ACR_VALUES` — the OIDC-standard way to request a specific auth method, which ADFS should map to `RequestedAuthnContext` in the SAML request
+- **`acr_values=urn:oasis:names:tc:SAML:2.0:ac:classes:X509`** via `OAUTH2_PROXY_ACR_VALUES` — the OIDC-standard way to request a specific auth method, which ADFS should map to `RequestedAuthnContext` in the SAML request. ADFS did not propagate this to LaunchPad's IdP.
+- **Upgraded oauth2-proxy to v7.8.1** — same behavior; confirms the loop is entirely within LaunchPad before the callback ever reaches our server.
 
 Neither parameter can prevent Chrome from responding to the Negotiate challenge at LaunchPad's IWA endpoint — the IWA negotiation happens at the HTTP protocol level between the browser and LaunchPad's web server, before any SAML/OIDC parameters are evaluated.
 
@@ -220,6 +221,124 @@ Since we cannot fix LaunchPad's server-side IWA handling, the options are:
 4. **Detect the loop client-side**: In our frontend, detect repeated redirects to the sign-in page and show a message suggesting Firefox or explaining the workaround.
 
 5. **Remove IWA from the ADFS relying party trust**: If the LaunchPad ADFS configuration for our client can be changed to disable IWA and only allow certificate-based auth, this would prevent the issue. Requires coordination with the LaunchPad admin team.
+
+## Comparison: wiki.jsc.nasa.gov (works in Chrome on same VPN)
+
+wiki.jsc.nasa.gov authenticates with LaunchPad successfully in Chrome over the same VPN where CODA loops. Analyzing its network trace reveals the **fundamental architectural difference** that explains everything.
+
+### wiki.jsc.nasa.gov Chrome Network Trace (works)
+
+```
+1. wiki.jsc.nasa.gov → 302
+2. auth.launchpad.nasa.gov/affwebservices/public/saml2sso?SAMLRequest=...&RelayState=https://wiki.jsc.nasa.gov/ → 302
+3. /fed/iwa/?SAMLRequest=... → 302
+4. /kerblogin → 302 (immediate redirect — NO Kerberos page rendered!)
+5. /login → 200 (smartcard page — user enters PIN)
+6. login.sc → 302 (smartcard succeeds!)
+7. /fed/iwa/?fedData=... → 302
+8. /affwebservices/public/saml2sso?SAMLRequest=... → 200 (SAML Response auto-submit form)
+9. /simplesaml/module.php/saml/sp/saml2-acs.php/default-sp → 303
+10. wiki.jsc.nasa.gov → 200 ✅ (page loads!)
+```
+
+### CODA Chrome Network Trace (loops)
+
+```
+1. coda-local.fit.nasa.gov → 302
+2. oauth2-proxy → authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/ → 302
+3. ADFS → LaunchPad /affwebservices/public/saml2sso (second SAML hop) → 302
+4. /fed/iwa/ → 302
+5. /kerblogin → 200 (renders Kerberos page with JS)
+6. login.kerb → 500 ❌ (Kerberos fails on VPN)
+7. /login → 200 (smartcard page — user enters PIN)
+8. login.sc → 302 (smartcard succeeds!)
+9. /fed/iwa/?fedData=... → 302
+10. /saml2sso?type=social → 302
+11. /fed/iwa/?type=social&type=social → 302 ⚠️ (type=social DUPLICATED!)
+12. /kerblogin → 200 (LOOPS BACK — infinite loop)
+```
+
+### Critical Differences
+
+| Aspect                    | wiki.jsc.nasa.gov (works)                  | CODA (loops)                                               |
+| ------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
+| **Auth architecture**     | Direct SAML SP → LaunchPad IdP             | oauth2-proxy → ADFS → LaunchPad (double federation)        |
+| **LaunchPad server**      | `auth.launchpad.nasa.gov`                  | `authfs.launchpad-sbx.nasa.gov` ("**fs**" = **ADFS**)      |
+| **Protocol to LaunchPad** | Direct SAML `SAMLRequest`                  | ADFS creates secondary SAML federation (via `type=social`) |
+| **`kerblogin` behavior**  | 302 (immediate redirect, no Kerberos page) | 200 (renders page, JS calls `login.kerb` → 500)            |
+| **After smartcard auth**  | `saml2sso` → 200 (SAML Response completes) | `saml2sso?type=social` → 302 → loops back into IWA         |
+| **`type=social` param**   | Never appears                              | Appears and gets duplicated (ADFS social IdP federation)   |
+| **Callback target**       | Wiki's SimpleSAML ACS endpoint (direct)    | ADFS (which must then issue OAuth2 code back to us)        |
+
+### Why wiki Works and CODA Doesn't
+
+The wiki is a **SAML Service Provider (SP)** that talks **directly** to LaunchPad's native SAML Identity Provider at `auth.launchpad.nasa.gov`. The SAML `AuthnRequest` goes straight from the wiki to LaunchPad, and after authentication, the SAML `Response` goes straight back to the wiki's Assertion Consumer Service (ACS) endpoint. There is no intermediary.
+
+CODA uses **ADFS as an OAuth2/OIDC → SAML bridge**. The flow is:
+
+1. oauth2-proxy sends an OAuth2 authorize request to ADFS (`authfs.launchpad-sbx.nasa.gov`)
+2. ADFS creates a **second** SAML `AuthnRequest` to LaunchPad's IdP as a federated "social" identity provider
+3. This federation adds the `type=social` parameter to the SAML flow
+4. After authentication, LaunchPad must send the SAML Response back to ADFS (not directly to us)
+5. ADFS then exchanges it for an OAuth2 authorization code and redirects to our callback
+
+The `type=social` federation path in LaunchPad's IWA handler has the redirect corruption bug (step 11 above). The direct SAML path that wiki uses does NOT have this bug.
+
+Additionally, `kerblogin` behaves differently: in the wiki flow it returns 302 immediately (suggesting the direct SAML path handles Kerberos failure more gracefully), while in CODA's ADFS-federated flow it returns 200 and tries Kerberos via XHR.
+
+## Recommended Path Forward: Direct SAML Integration
+
+The root cause is the **ADFS intermediary** creating a double-federation SAML flow with LaunchPad. The fix is to **eliminate ADFS and talk directly to LaunchPad via SAML**, like wiki.jsc.nasa.gov does.
+
+### Option 1: Replace oauth2-proxy with a SAML-aware auth proxy
+
+Replace oauth2-proxy entirely with a reverse-proxy that supports SAML SP natively:
+
+- **[Vouch Proxy](https://github.com/vouch/vouch-proxy)** — Go-based, supports SAML and works with nginx `auth_request`, similar architecture to our current setup
+- **Apache `mod_auth_mellon`** — mature SAML SP module, but requires switching from nginx to Apache (or running Apache as a sidecar)
+- **[saml-proxy](https://github.com/bitly/saml-proxy)** — Bitly's SAML-aware reverse proxy (unmaintained but could serve as reference)
+
+This approach would:
+
+- Send SAML `AuthnRequest` directly to `auth.launchpad.nasa.gov` (not `authfs`)
+- Receive SAML Response directly back (no ADFS federation)
+- Bypass the `type=social` IWA bug entirely
+- Require registering our app as a SAML SP with LaunchPad (instead of as an ADFS/OIDC client)
+
+### Option 2: Use a local SAML → OIDC bridge (Keycloak, Dex, Satosa)
+
+Keep oauth2-proxy but replace ADFS with a self-hosted identity broker:
+
+- **[Keycloak](https://www.keycloak.org/)** — full-featured IdP that can act as a SAML SP to LaunchPad and expose OIDC to oauth2-proxy
+- **[Dex](https://dexidp.io/)** — lightweight OIDC provider with SAML connector
+- **[Satosa](https://github.com/IdentityPython/SATOSA)** — proxy that translates between SAML and OIDC
+
+This approach would:
+
+- Keep our nginx + oauth2-proxy architecture intact
+- Replace the NASA-managed ADFS with our own SAML → OIDC bridge
+- Talk directly to LaunchPad via SAML (bypassing the `type=social` bug)
+- Add operational complexity (another service to maintain)
+
+### Option 3: Check if LaunchPad supports direct OIDC
+
+Some newer NASA ICAM deployments support OIDC natively. If `auth.launchpad.nasa.gov` (not `authfs`) exposes OIDC endpoints, we could point oauth2-proxy directly at it:
+
+```yaml
+# Hypothetical — needs verification with LaunchPad team
+OAUTH2_PROXY_PROVIDER: oidc
+OAUTH2_PROXY_OIDC_ISSUER_URL: https://auth.launchpad.nasa.gov
+```
+
+This would be the simplest change but depends on LaunchPad's OIDC support.
+
+### Option 4: Report IWA bug + use Chrome policy as workaround
+
+If changing the auth architecture is not feasible short-term:
+
+1. **Report the bug** to the LaunchPad/ICAM team with the network traces showing the `type=social` duplication
+2. **Deploy a Chrome enterprise policy** via GPO to remove `*.launchpad*.nasa.gov` from `AuthServerAllowlist`, making Chrome behave like Firefox (skip IWA)
+3. **Add a client-side detection** in the frontend to detect the loop and suggest Firefox
 
 ## Additional Things to Try
 
@@ -240,33 +359,35 @@ add_header Set-Cookie $auth_cookie;
 
 **Why**: Cookie refresh causes oauth2-proxy to re-issue the SESSION cookie on every request made more than 1 minute after the last refresh. This mitigates stale/corrupted cookies from VPN interference.
 
-### C. Upgrade oauth2-proxy
+### ~~C. Upgrade oauth2-proxy~~ (tried, did not fix)
 
-The current version is `v7.5.1`. Consider upgrading to the latest v7.7.x+:
+Upgraded from `v7.5.1` to `v7.8.1`:
 
 ```yaml
 image: quay.io/oauth2-proxy/oauth2-proxy:v7.8.1
 ```
 
-Several relevant bugs were fixed in later releases around cookie handling, CSRF validation, and redirect loop detection.
+**Result**: Same behavior — 401 → sign_in → 302 to LaunchPad → no callback. Confirms the issue is entirely within LaunchPad's IWA handler, not in oauth2-proxy.
 
 ## Attempt Log
 
-| #   | Change                                                               | Result                                                                                                  |
-| --- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 1   | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH`        | oauth2-proxy started cleanly; cyclical login still present                                              |
-| 2   | `SameSite=lax` → `SameSite=none`                                     | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.**     |
-| 3   | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"`                 | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.**     |
-| 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri`   | Firefox: fixed 403. Chrome: still loops.                                                                |
-| 5   | Added proxy headers to callback + all oauth2-proxy locations         | Firefox: works. Chrome: still loops.                                                                    |
-| 6   | CSRF per-request + 30m expiry                                        | Deployed alongside #7 and #8. Firefox still works. Chrome still loops.                                  |
-| 7   | Removed multi-part cookie splitting in nginx                         | Deployed. No change on its own.                                                                         |
-| 8   | Enabled debug logging on oauth2-proxy (temporary)                    | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".       |
-| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`             | Comma-separated env var not parsed correctly through docker-compose `.env` interpolation. **Reverted.** |
-| 10  | Reverted `X-Auth-Request-Redirect` back to relative `$request_uri`   | No errors in oauth2-proxy logs, but Chrome still loops — callback never reached.                        |
-| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Still loops in Chrome. IWA/Negotiate is the real issue, not force re-auth.                              |
-| 12  | Added `wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI` to login URL   | ADFS ignores `wauth` on OAuth2 endpoint (WS-Fed only). Still loops. **Reverted.**                       |
-| 13  | Added `OAUTH2_PROXY_ACR_VALUES` for X.509 cert auth                  | Testing. OIDC-standard `acr_values` → ADFS maps to SAML `RequestedAuthnContext`.                        |
+| #   | Change                                                               | Result                                                                                                                                                                                    |
+| --- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH`        | oauth2-proxy started cleanly; cyclical login still present                                                                                                                                |
+| 2   | `SameSite=lax` → `SameSite=none`                                     | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.**                                                                                       |
+| 3   | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"`                 | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.**                                                                                       |
+| 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri`   | Firefox: fixed 403. Chrome: still loops.                                                                                                                                                  |
+| 5   | Added proxy headers to callback + all oauth2-proxy locations         | Firefox: works. Chrome: still loops.                                                                                                                                                      |
+| 6   | CSRF per-request + 30m expiry                                        | Deployed alongside #7 and #8. Firefox still works. Chrome still loops.                                                                                                                    |
+| 7   | Removed multi-part cookie splitting in nginx                         | Deployed. No change on its own.                                                                                                                                                           |
+| 8   | Enabled debug logging on oauth2-proxy (temporary)                    | **Revealed root cause**: oauth2-proxy rejects absolute redirect URL as "domain not in whitelist".                                                                                         |
+| 9   | Added `.fit.nasa.gov` to `OAUTH2_PROXY_WHITELIST_DOMAIN`             | Comma-separated env var not parsed correctly through docker-compose `.env` interpolation. **Reverted.**                                                                                   |
+| 10  | Reverted `X-Auth-Request-Redirect` back to relative `$request_uri`   | No errors in oauth2-proxy logs, but Chrome still loops — callback never reached.                                                                                                          |
+| 11  | Removed `approval_prompt=force` (`OAUTH2_PROXY_APPROVAL_PROMPT: ""`) | Still loops in Chrome. IWA/Negotiate is the real issue, not force re-auth.                                                                                                                |
+| 12  | Added `wauth=urn:oasis:names:tc:SAML:1.0:am:X509-PKI` to login URL   | ADFS ignores `wauth` on OAuth2 endpoint (WS-Fed only). Still loops. **Reverted.**                                                                                                         |
+| 13  | Added `OAUTH2_PROXY_ACR_VALUES` for X.509 cert auth                  | ADFS did not propagate `acr_values` to LaunchPad's IdP. Still loops.                                                                                                                      |
+| 14  | Upgraded oauth2-proxy from v7.5.1 to v7.8.1                          | Same behavior. Confirms loop is within LaunchPad, not oauth2-proxy.                                                                                                                       |
+| 15  | Compared with wiki.jsc.nasa.gov (works in Chrome on same VPN)        | Wiki uses direct SAML to `auth.launchpad.nasa.gov`. CODA uses ADFS double-federation via `authfs`. The `type=social` ADFS federation path has the IWA redirect bug. Direct SAML does not. |
 
 ## Debugging Checklist
 
