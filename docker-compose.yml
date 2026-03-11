@@ -61,6 +61,8 @@ services:
     command:
       - --http-address
       - 0.0.0.0:4180
+      - --request-logging=true
+      - --auth-logging=true
     depends_on:
       - redis
     <<: *send_container_logs_to_syslog
@@ -93,6 +95,8 @@ services:
 
       OAUTH2_PROXY_COOKIE_NAME: SESSION
       OAUTH2_PROXY_COOKIE_SAMESITE: lax
+      OAUTH2_PROXY_COOKIE_CSRF_PER_REQUEST: "true"
+      OAUTH2_PROXY_COOKIE_CSRF_EXPIRE: "30m"
       OAUTH2_PROXY_SESSION_STORE_TYPE: redis
       OAUTH2_PROXY_REDIS_CONNECTION_URL: redis://redis
 

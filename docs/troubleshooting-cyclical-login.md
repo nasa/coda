@@ -73,20 +73,32 @@ Added `X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-For` to all thre
 
 Most critically, the **callback location** was missing **all** proxy headers — no `Host`, no `X-Real-IP`, no `X-Scheme`, nothing. When `OAUTH2_PROXY_REVERSE_PROXY: true` is set, oauth2-proxy uses these headers to construct redirect URLs and validate the CSRF state parameter. Without them, oauth2-proxy sees the internal Docker hostname and http scheme, which can cause the CSRF cookie domain/path to mismatch or redirect URLs to be wrong — both of which cause login loops.
 
-## Additional Things to Try
-
-If the above changes don't resolve the issue, try these in order. Each can be tested independently on a dev server or via `npm run docker:preview`.
-
-### A. Increase CSRF cookie expiration
-
-Add to `docker-compose.yml` oauth2-proxy environment:
+### 6. CSRF per-request + extended expiry (committed)
 
 ```yaml
 OAUTH2_PROXY_COOKIE_CSRF_PER_REQUEST: "true"
 OAUTH2_PROXY_COOKIE_CSRF_EXPIRE: "30m"
 ```
 
-**Why**: oauth2-proxy creates a CSRF cookie during the auth flow with a default 15-minute expiry. If the VPN adds latency to the LaunchPad round-trip, or the user is slow to enter credentials, the CSRF cookie can expire before the callback completes, causing a silent auth failure and restart.
+**Why**: Chrome handles CSRF cookies more strictly during cross-site redirect chains. `CSRF_PER_REQUEST` generates a fresh CSRF token for each auth request (instead of reusing one that may have been set in a context Chrome no longer trusts), and the 30m expiry provides headroom for slow VPN round-trips.
+
+### 7. Removed multi-part cookie splitting in nginx (committed)
+
+Removed the `auth_cookie_name_upstream_1` / regex splitting logic from `route-require-auth.conf`. Since Redis session storage is used, the SESSION cookie only contains a small session ID — never the full JWT. The splitting logic was fragile: the regex extraction, the `if` blocks, and the duplicate `add_header Set-Cookie` could corrupt cookies when VPN proxies merge or strip duplicate `Set-Cookie` headers.
+
+### 8. Enabled debug logging on oauth2-proxy (committed, temporary)
+
+```yaml
+command:
+  - --http-address
+  - 0.0.0.0:4180
+  - --request-logging=true
+  - --auth-logging=true
+```
+
+Reproduce the Chrome loop then run: `sudo docker compose logs oauth2-proxy --tail 200`
+
+## Additional Things to Try
 
 ### B. Add cookie refresh
 
@@ -105,20 +117,7 @@ add_header Set-Cookie $auth_cookie;
 
 **Why**: Cookie refresh causes oauth2-proxy to re-issue the SESSION cookie on every request made more than 1 minute after the last refresh. This mitigates stale/corrupted cookies from VPN interference.
 
-### C. Remove the multi-part cookie splitting in nginx
-
-Since the app uses Redis for session storage (`OAUTH2_PROXY_SESSION_STORE_TYPE: redis`), the SESSION cookie should only contain a small session ID, not the full JWT. The cookie splitting logic in `route-require-auth.conf` (lines 27-39) may actually be causing problems by reconstructing cookies incorrectly. Try removing it:
-
-```nginx
-# REMOVE or comment out everything below line 22 in route-require-auth.conf:
-# auth_request_set $auth_cookie_name_upstream_1 ...
-# if ($auth_cookie ~* ...) { ... }
-# if ($auth_cookie_name_upstream_1) { ... }
-```
-
-If the cookie truly exceeds 4KB even with Redis sessions, something else is wrong.
-
-### D. Upgrade oauth2-proxy
+### C. Upgrade oauth2-proxy
 
 The current version is `v7.5.1`. Consider upgrading to the latest v7.7.x+:
 
@@ -128,29 +127,18 @@ image: quay.io/oauth2-proxy/oauth2-proxy:v7.8.1
 
 Several relevant bugs were fixed in later releases around cookie handling, CSRF validation, and redirect loop detection.
 
-### E. Add debug logging to oauth2-proxy
-
-For diagnosis, temporarily enable verbose logging:
-
-```yaml
-command:
-  - --http-address
-  - 0.0.0.0:4180
-  - --request-logging=true
-  - --auth-logging=true
-```
-
-Then reproduce the loop and check `sudo docker compose logs oauth2-proxy --tail 200` for specific error messages during the redirect cycle.
-
 ## Attempt Log
 
-| # | Change | Result |
-|---|--------|--------|
-| 1 | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH` | oauth2-proxy started cleanly; cyclical login still present |
-| 2 | `SameSite=lax` → `SameSite=none` | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.** |
-| 3 | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"` | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.** |
-| 4 | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri` | Deployed alongside #5. Testing. |
-| 5 | Added proxy headers to callback + all oauth2-proxy locations | Deployed. Testing. |
+| #   | Change                                                             | Result                                                                                              |
+| --- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 1   | Fixed `OAUTH2_PROXYSET_SET_*` typos, removed `SET_BASIC_AUTH`      | oauth2-proxy started cleanly; cyclical login still present                                          |
+| 2   | `SameSite=lax` → `SameSite=none`                                   | 403 "Unable to find a valid CSRF token" — VPN/browser strips `SameSite=none` cookies. **Reverted.** |
+| 3   | Added `OAUTH2_PROXY_COOKIE_DOMAINS: ".fit.nasa.gov"`               | 403 "upstream identity provider returned server_error" — CSRF cookie domain conflict. **Reverted.** |
+| 4   | `X-Auth-Request-Redirect` changed to `$scheme://$host$request_uri` | Firefox: fixed 403. Chrome: still loops.                                                            |
+| 5   | Added proxy headers to callback + all oauth2-proxy locations       | Firefox: works. Chrome: still loops.                                                                |
+| 6   | CSRF per-request + 30m expiry                                      | Deploying alongside #7 and #8.                                                                      |
+| 7   | Removed multi-part cookie splitting in nginx                       | Deploying.                                                                                          |
+| 8   | Enabled debug logging on oauth2-proxy (temporary)                  | Deploying. Check `sudo docker compose logs oauth2-proxy --tail 200` after reproducing Chrome loop.  |
 
 ## Debugging Checklist
 
