@@ -1,13 +1,12 @@
 import { DotenvConfig } from "@emss/make-dotenv/src/types";
 
-export const environments = ["local", "fit", "test"] as const;
+export const environments = ["local", "fit", "test", "prod"] as const;
 
 export const config: DotenvConfig<typeof environments> = {
   /**
    * Launchpad
    * Only our prod URLs are added to launchpad prod. All environments (dev/int/prod) are added to launchpad sandbox.
    * Ultimately we want to use sandbox launchpad for everything except prod (including local dev)
-   * Currently we don't have a solution to make a prod version of a .env so right now use sandbox for everything
    */
   OAUTH2_PROXY_COOKIE_SECRET: {
     local: {
@@ -18,34 +17,34 @@ export const config: DotenvConfig<typeof environments> = {
     default: { type: "required-from-secret" },
   },
   OAUTH2_PROXY_OIDC_ISSUER_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs",
   },
   OAUTH2_PROXY_LOGIN_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/authorize/", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/authorize/",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/",
   },
   OAUTH2_PROXY_REDEEM_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/token/", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/token/",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/token/",
   },
   OAUTH2_PROXY_OIDC_JWKS_URL: {
-    // prod: "https://authfs.launchpad.nasa.gov/adfs/discovery/keys", confirm correct
+    prod: "https://authfs.launchpad.nasa.gov/adfs/discovery/keys",
     default: "https://authfs.launchpad-sbx.nasa.gov/adfs/discovery/keys",
   },
   OAUTH2_PROXY_WHITELIST_DOMAIN: {
-    // prod: "authfs.launchpad.nasa.gov", confirm correct
+    prod: "authfs.launchpad.nasa.gov",
     default: "authfs.launchpad-sbx.nasa.gov",
   },
   OAUTH2_PROXY_CLIENT_ID: {
-    // prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
+    prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
     default: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_SANDBOX_CLIENT_ID" },
   },
   OAUTH2_PROXY_CLIENT_SECRET: {
-    // prod: {
-    //   type: "alternate-varname-from-secret-file",
-    //   value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
-    // },
+    prod: {
+      type: "alternate-varname-from-secret-file",
+      value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
+    },
     default: {
       type: "alternate-varname-from-secret-file",
       value: "LAUNCHPAD_SANDBOX_CLIENT_SECRET",
@@ -78,6 +77,7 @@ export const config: DotenvConfig<typeof environments> = {
     default: "/etc/pki/tls/private",
   },
   //# Unlikely these ever need to change
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
   // VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
 
@@ -117,23 +117,28 @@ export const config: DotenvConfig<typeof environments> = {
    * MTX Live streams
    */
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_LIVE_STREAMS_ENABLED: { default: "true" },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MEDIA_MTX_CONTROL_URL: {
     local: "http://127.0.0.1:9997/",
     default: "https://emss-lambda2.fit.nasa.gov/api/",
   },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MEDIA_MTX_HLS_URL: {
     local: "http://127.0.0.1:8888/",
     default: "https://emss-lambda2.fit.nasa.gov/live/",
   },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MEDIA_MTX_RECORDINGS_URL: {
     local: "http://127.0.0.1:9996/",
     default: "https://emss-lambda2.fit.nasa.gov/recordings/",
   },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MTX_VIDEO_MAX_AGE_DAYS: {
     default: "7",
   },
@@ -149,9 +154,11 @@ export const config: DotenvConfig<typeof environments> = {
    * Maplibre variables
    */
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   // no trailing slash
   VITE_PUBLIC_MAPLIBRE_BASE_URL: { default: "https://emss-labs.fit.nasa.gov/localearth" },
   /* REMEMBER THIS IS IN the DOCKERFILE DIRECTLY AND CI YML TOO */
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME: { default: "20250213.pmtiles" },
 
   /*
@@ -190,6 +197,7 @@ export const config: DotenvConfig<typeof environments> = {
       type: "required-from-secret",
     },
   },
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_MAPBOX_KEY: {
     default: {
       type: "required-from-secret",
@@ -305,6 +313,7 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   // log level for ConsoleLogger and emss logging service (off, error, warn, info, debug)
+  // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_LOG_LEVEL: {
     local: "debug",
     default: "info",
