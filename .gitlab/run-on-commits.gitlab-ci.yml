@@ -246,7 +246,7 @@ test:
   stage: stageless
   tags: ["docker", "linux"]
   needs:
-    - make-dotenv
+    - make-dotenv:fit
   before_script:
     # required for containers to have NASA CA cert
     - echo "${ENV_LOCAL_CERT_PEM}" > ./.env.local.cert.pem
@@ -288,7 +288,7 @@ docker:build:apiv1:
 docker:retag:
   extends: .emss-container-retag
   needs:
-    - make-dotenv
+    - make-dotenv:fit
     - job: test
       artifacts: false
     - job: docker:build:nginx
@@ -317,7 +317,7 @@ deploy:artifactize-committed-files:
 .deploy-template:
   extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
   needs:
-    - make-dotenv
+    - make-dotenv:fit
     - docker:retag
     - deploy:artifactize-committed-files
   stage: stageless
