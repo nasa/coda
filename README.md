@@ -33,7 +33,7 @@ EMSS dev servers all have element names, and are:
 
 ### Software Dependencies
 
-- [NodeJS](https://nodejs.dev/) (see the [Dockerfile](./docker/nextjs/Dockerfile) for the version we're using).
+- [NodeJS](https://nodejs.dev/) (see the [Dockerfile](./docker/apiv1/Dockerfile) for the version we're using).
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (optional)
 
 ### First Time Setup
@@ -47,11 +47,9 @@ EMSS dev servers all have element names, and are:
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
-- To my code reviewer: are we still using `coda-local.fit.nasa.gov`? If not, I can remove this next step
-
 5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
 6. (Required for Docker) Create a self-signed SSL certificate by doing `bash ./scripts/make-dev-ssl-cert.sh`
-7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAXBOX_KEY` value in the `.env` file.
+7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
 
 ### Option 1: Local Dev (non-Docker)
 
@@ -66,9 +64,7 @@ Then go to (http://coda-local.fit.nasa.gov:3000)
 
 This command sets up a hot-reloading fullstack node server. If any changes are made to the client, they should appear automatically in the browser. If any changes are made to the server, the server should automatically restart.
 
-Bonus: When run locally, the application is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging). Once the dev server is up and running, press F5 to attach to it (assuming the default keybindings haven't been changed in VS Code). Now breakpoints can be set and code execution can be inspected
-
-Here's the [documentation](https://nextjs.org/docs/advanced-features/debugging) on how the debugger is setup.
+Bonus: When run locally, the application is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging). Once the dev server is up and running, press F5 to attach to it (assuming the default keybindings haven't been changed in VS Code). Now breakpoints can be set and code execution can be inspected. The `.vscode/launch.json` file in this repo includes the debugger configuration.
 
 ### Option 2: Fully docker-compose (not recommended for dev)
 
@@ -81,8 +77,6 @@ npm run docker:preview
 Then go to https://coda-local.fit.nasa.gov. Note the HTTPS not HTTP, since the Docker setup is behind an nginx proxy with a self-signed certificate. Also there is no port number specified, since this is over port 443.
 
 You will likely need to accept the self-signed certificate warning.
-
-The first time this is run, docker will have to `npm install` all packages, even if there is a recent `node_modules` from running `npm install` locally. The packages on the Linux container may be OS-specific, so they cannot be shared with the host machine. They are cached (in `./.local/docker_node_modules`), so subsequent runs of `npm run docker:dev` won't take as long.
 
 To be sure that the Docker images are fully rebuilt after making changes to CODA, run `npm run docker:preview:rebuild`. This is generally not required, however, and simply running `npm run docker:preview` again will be sufficient to rebuild just what is necessary (not rebuild everything). To completely rebuild without using the cache, run `npm run docker:preview:rebuild:nocache`
 
