@@ -16,3 +16,7 @@ env.secret.ts
 
 # created by coverage reporter
 junit.xml
+
+# code assistant config files
+CLAUDE.md
+AGENTS.md
