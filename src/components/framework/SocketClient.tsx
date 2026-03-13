@@ -134,10 +134,26 @@ const SocketClient: FunctionComponent<{
 
     // Incoming client counts
     socket.current.on("statusFromServer", (statusFromServer: StatusFromServer) => {
-      setSocketStatus({
-        connectionStatus: "connected",
-        lastStatusFromServer: statusFromServer,
-        clientVersion: statusFromServer.serverVersion,
+      setSocketStatus((currentStatus) => {
+        const visitorCountChanged =
+          currentStatus.lastStatusFromServer.visitorCount !== statusFromServer.visitorCount;
+        const versionChanged = !isEqual(
+          currentStatus.clientVersion,
+          statusFromServer.serverVersion
+        );
+        const connectionChanged = currentStatus.connectionStatus !== "connected";
+
+        if (!visitorCountChanged && !versionChanged && !connectionChanged) {
+          return currentStatus;
+        }
+
+        return {
+          connectionStatus: "connected",
+          lastStatusFromServer: statusFromServer,
+          clientVersion: versionChanged
+            ? statusFromServer.serverVersion
+            : currentStatus.clientVersion,
+        };
       });
     });
 
