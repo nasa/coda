@@ -94,6 +94,11 @@ const DockviewLayout: FunctionComponent<{ initialLayout?: SerializedDockview | n
   );
   // Track whether we've applied the URL-supplied initial layout (apply it only once).
   const initialLayoutApplied = useRef(false);
+  // Capture the mount-time initialLayout in a ref so that re-renders of the
+  // parent (which recreate the SerializedDockview object each time via
+  // getURLParams) don't create a new effect dependency and re-fire the effect
+  // after the dv layout has already been applied.
+  const initialLayoutRef = useRef(initialLayout);
   const onReady = useCallback((event: DockviewReadyEvent) => {
     setApi(event.api);
     setDockviewApi(event.api);
@@ -105,9 +110,9 @@ const DockviewLayout: FunctionComponent<{ initialLayout?: SerializedDockview | n
   // picker, layout button, etc.) use the pending layout or letter-layout path.
   useEffect(() => {
     if (!api) return;
-    if (initialLayout && !initialLayoutApplied.current) {
+    if (initialLayoutRef.current && !initialLayoutApplied.current) {
       initialLayoutApplied.current = true;
-      api.fromJSON(initialLayout);
+      api.fromJSON(initialLayoutRef.current);
       return;
     }
     const pendingLayout = getPendingDockviewLayout();
@@ -117,7 +122,8 @@ const DockviewLayout: FunctionComponent<{ initialLayout?: SerializedDockview | n
       const serializedLayout = getLayout(layout);
       api.fromJSON(serializedLayout);
     }
-  }, [api, layout, layoutLastChanged, initialLayout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialLayoutRef is a stable ref (mount-time capture); omitting it from deps is intentional
+  }, [api, layout, layoutLastChanged]);
 
   return (
     <div className={styles.container}>
