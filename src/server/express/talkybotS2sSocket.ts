@@ -274,7 +274,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
     // Emit incremental update to clients viewing today's date
     const today = new Date().toISOString().split("T")[0];
 
-    // Use group info to target the correct source(s), or fall back to all talkybot sources
+    // Use group info to target the correct source(s), or fall back to sending to all sources
     const allTalkybotSources = getSourcesWithDataType("talkybot");
     let targetSources: Source[];
 
@@ -294,7 +294,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
 
       if (unmappedSlugs.length > 0) {
         ConsoleLogger.warn(
-          `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}`
+          `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}. This means audio files from these groups will be sent to all sources. Consider updating the TALKYBOT_GROUP_TO_SOURCE_MAP to include these groups.`
         );
       }
 

@@ -53,8 +53,8 @@ export const getSourcesWithDataType = (dataType: StoreDataType): Source[] => {
 
 /**
  * Mapping from Talkybot group slugs to CODA sources.
- * Talkybot channels belong to groups (m:n); this maps those group slugs to CODA sources.
- * Current talkybot groups (from seeder): "iss" (id:1), "sim" (id:2), "test" (id:3)
+ * Talkybot channels belong to groups; this maps those group slugs to CODA sources.
+ * Current talkybot groups (from seeder): "iss", "sim", "test". "artemis" group added for upcoming Artemis data.
  * Talkybot only sends public channel data to CODA.
  */
 const TALKYBOT_GROUP_TO_SOURCE_MAP: Record<string, Source> = {
