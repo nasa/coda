@@ -52,6 +52,27 @@ export const getSourcesWithDataType = (dataType: StoreDataType): Source[] => {
 };
 
 /**
+ * Mapping from Talkybot group slugs to CODA sources.
+ * Talkybot channels belong to groups (m:n); this maps those group slugs to CODA sources.
+ * Current talkybot groups (from seeder): "iss" (id:1), "sim" (id:2), "test" (id:3)
+ * Talkybot only sends public channel data to CODA.
+ */
+const TALKYBOT_GROUP_TO_SOURCE_MAP: Record<string, Source> = {
+  iss: "ISS",
+  test: "TEST_EVENTS",
+  sim: "TEST_EVENTS",
+  artemis: "ARTEMIS",
+};
+
+/**
+ * Get the CODA source for a Talkybot group slug.
+ * Returns null if the group slug doesn't map to any CODA source.
+ */
+export const getSourceForTalkybotGroup = (groupSlug: string): Source | null => {
+  return TALKYBOT_GROUP_TO_SOURCE_MAP[groupSlug] ?? null;
+};
+
+/**
 
  * Check if a date is within the valid range for mtxvideo data.
  * MTX video is only available for dates within the last N days.

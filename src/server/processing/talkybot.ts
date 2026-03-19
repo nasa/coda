@@ -3,7 +3,7 @@ import leoProfanity from "leo-profanity";
 import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { getSourcesWithDataType } from "utils/sourceDataTypeMap";
+import { getSourcesWithDataType, getSourceForTalkybotGroup } from "utils/sourceDataTypeMap";
 
 /**
  * Response type for Talkybot data fetch
@@ -72,6 +72,7 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
     text,
     textOriginalLanguage,
     language: af.transcription?.language ?? "",
+    groups: af.channel.groups ?? [],
   };
 };
 
@@ -149,7 +150,16 @@ export default async function getTalkybotData({
   });
 
   // Convert native audio files to the format expected by the UI
-  const audioFiles = nativeAudioFiles.map(toTbAudioFileConverted);
+  const allAudioFiles = nativeAudioFiles.map(toTbAudioFileConverted);
+
+  // Filter by group if audio files have group info - only include files whose group maps to this source
+  const audioFiles = allAudioFiles.filter((af) => {
+    if (af.groups.length === 0) return true; // No group info = include (backward compatible with REST API)
+    return af.groups.some((g) => {
+      const mappedSource = getSourceForTalkybotGroup(g.slug);
+      return mappedSource === null || mappedSource === source; // Include if unmapped or matches this source
+    });
+  });
 
   return {
     data: audioFiles,
@@ -285,6 +295,7 @@ async function fetchAndMergeLegacyOverrides({
             text: fullText || "",
             textOriginalLanguage: "",
             language: "en",
+            groups: [],
             override: true,
             audioUrl: `${audioOverrideUrl}/audio/${activityRange.aacSegmentFilename}`,
           };
@@ -308,6 +319,7 @@ async function fetchAndMergeLegacyOverrides({
           text,
           textOriginalLanguage: "",
           language: "en",
+          groups: [],
           override: true,
           audioUrl: undefined,
         };
