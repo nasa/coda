@@ -8,10 +8,13 @@ interface TbAudioFileConverted {
   startTime: Date;
   appSeconds?: number;
   duration: number;
-  channel: string; // channel slug (e.g. "sg1")
+  channel: string; // channel slug (e.g. "1-sg-1")
   text: string;
   textOriginalLanguage: string;
   language: string;
+
+  /** Groups from Talkybot channel - used to route audio files to the correct CODA source */
+  groups: TbGroup[];
 
   /** Indicates this is from an override source, not Talkybot API */
   override?: boolean;
@@ -22,6 +25,17 @@ interface TbAudioFileConverted {
 interface TbDateResponse {
   date: string; // ISO date format (YYYY-MM-DD)
   audioFiles: TbAudioFileNative[];
+}
+
+/**
+ * Channel group info from Talkybot.
+ * Represents a logical grouping of channels that corresponds to a CODA source.
+ * Relationship: AudioFile → Channel → groups[] (many-to-many)
+ */
+interface TbGroup {
+  id: number;
+  name: string;
+  slug: string;
 }
 
 interface TbAudioFileNative {
@@ -42,6 +56,7 @@ interface TbAudioFileNative {
     sim?: boolean;
     public?: boolean;
     dicesId?: number | null;
+    groups?: TbGroup[];
   };
 
   transcription?: {
