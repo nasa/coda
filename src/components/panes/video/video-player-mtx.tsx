@@ -55,10 +55,14 @@ const VideoMTXPlaybackPane: FunctionComponent<{ paneInstanceId: number }> = ({
         if (isRunning) {
           // make sure the video is playing when the playhead is running
           // if the video source is "", trying to play will "unload" the video and we'll show a poster instead
-          await videoRef.current.play();
+          if (videoRef.current.paused) {
+            await videoRef.current.play();
+          }
         } else if (!isRunning) {
           // make sure the video is paused when the playhead isn't running
-          await videoRef.current.pause();
+          if (!videoRef.current.paused) {
+            await videoRef.current.pause();
+          }
         }
       } catch (e: unknown) {
         if (isAutoplayError(e)) {
