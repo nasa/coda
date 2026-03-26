@@ -120,7 +120,7 @@ const PlaybackControls: FunctionComponent = () => {
       <div
         className={styles.controlButton}
         onClick={() => {
-          jumpTime(-5);
+          jumpTime(-10);
         }}
       >
         <div className={styles.jumpLeftImg}></div>
@@ -129,7 +129,7 @@ const PlaybackControls: FunctionComponent = () => {
       <div
         className={styles.controlButton}
         onClick={() => {
-          jumpTime(5);
+          jumpTime(10);
         }}
       >
         <div className={styles.jumpRightImg}></div>
