@@ -3,7 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
 import { toTbAudioFileConverted } from "../processing/talkybot";
-import { getSourcesWithDataType } from "../../utils/sourceDataTypeMap";
+import { getSourcesWithDataType, getSourceForTalkybotGroup } from "../../utils/sourceDataTypeMap";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
@@ -271,10 +271,40 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
       lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
     });
 
-    // Emit incremental update to all clients viewing today's date for sources that support talkybot
+    // Emit incremental update to clients viewing today's date
     const today = new Date().toISOString().split("T")[0];
 
-    for (const source of getSourcesWithDataType("talkybot")) {
+    // Use group info to target the correct source(s), or fall back to sending to all sources
+    const allTalkybotSources = getSourcesWithDataType("talkybot");
+    let targetSources: Source[];
+
+    if (audioFile.groups.length > 0) {
+      // Map group slugs to CODA sources, deduplicating
+      const mappedSources = new Set<Source>();
+      const unmappedSlugs: string[] = [];
+
+      for (const group of audioFile.groups) {
+        const source = getSourceForTalkybotGroup(group.slug);
+        if (source) {
+          mappedSources.add(source);
+        } else {
+          unmappedSlugs.push(group.slug);
+        }
+      }
+
+      if (unmappedSlugs.length > 0) {
+        ConsoleLogger.warn(
+          `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}. This means audio files from these groups will be sent to all sources. Consider updating the TALKYBOT_GROUP_TO_SOURCE_MAP to include these groups.`
+        );
+      }
+
+      // If we resolved at least one source, use those; otherwise fall back to all
+      targetSources = mappedSources.size > 0 ? [...mappedSources] : allTalkybotSources;
+    } else {
+      targetSources = allTalkybotSources;
+    }
+
+    for (const source of targetSources) {
       emitIncrementalDataUpdate({
         source,
         dataDate: today,

@@ -27,7 +27,7 @@
 
 z:db-export:prod:
   extends: .db-export-template
-  # when: always
+  when: always
   resource_group: prod # prevents concurrent executions on this environment when there are multiple pipelines
   tags: ["emss-coda-prod"]
   variables:
