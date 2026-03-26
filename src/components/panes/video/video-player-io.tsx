@@ -139,9 +139,13 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
 
       try {
         if (isRunning) {
-          await video.play();
+          if (video.paused) {
+            await video.play();
+          }
         } else {
-          await video.pause();
+          if (!video.paused) {
+            await video.pause();
+          }
         }
       } catch (e: unknown) {
         if (isAutoplayError(e)) {
@@ -157,7 +161,7 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
       }
     };
     asyncFunc();
-  }, [isRunning, appSeconds, sourceURL, dispatch, paneInstanceId]);
+  }, [isRunning, sourceURL, dispatch, paneInstanceId]);
 
   // Sync video time to playhead
   useEffect(() => {
@@ -220,7 +224,8 @@ export const VideoIOPane: FunctionComponent<{ paneInstanceId: number }> = ({ pan
     if (!currentVideo) return;
 
     videoElement.current.currentTime = getVideoOffset(currentVideo);
-  }, [sourceURL, getCurrentVideo, getVideoOffset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only seek when the video source actually changes, not every second
+  }, [sourceURL]);
 
   // ============================================================================
   // Event Handlers
