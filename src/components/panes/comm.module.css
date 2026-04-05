@@ -104,7 +104,7 @@
   flex-direction: column;
   justify-content: flex-start;
   padding: 0 5px 0 0;
-  min-width: 66px;
+  flex-shrink: 0;
 }
 
 .channelLabel {
@@ -115,6 +115,7 @@
   padding: 3px 5px 3px 3px;
   border-radius: var(--radius);
   text-align: right;
+  width: 100px;
 }
 
 .time {
@@ -124,6 +125,8 @@
 
 .utteranceText {
   padding: 2px 0 0 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .utteranceTextMain {
