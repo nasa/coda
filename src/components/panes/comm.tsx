@@ -541,6 +541,14 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     return channels;
   }, [channelTimingMap]);
 
+  // Estimate a consistent label width from the longest channel name, capped at 100px
+  const channelLabelWidth = useMemo(() => {
+    if (!sortedChannels.length) return 60;
+    const longest = Math.max(...sortedChannels.map((ch) => ch.length));
+    // ~8px per uppercase char at 0.9em, plus ~8px horizontal padding
+    return Math.min(100, longest * 8 + 8);
+  }, [sortedChannels]);
+
   function displayUtterance(utterance: DisplayUtterance, idx: number) {
     let uttClass = "";
     if (idx % 2 !== 0) {
@@ -582,7 +590,10 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         }}
       >
         <div className={styles.channelTime}>
-          <div className={styles.channelLabel} style={{ backgroundColor: channelColor }}>
+          <div
+            className={styles.channelLabel}
+            style={{ backgroundColor: channelColor, width: channelLabelWidth }}
+          >
             {utterance.channel}
             <div className={styles.time}>{utterance.time}</div>
           </div>
