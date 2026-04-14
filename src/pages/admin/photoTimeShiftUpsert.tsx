@@ -8,9 +8,12 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
+
 export const EditPhotoRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
-  const [source, setSource] = useState<string>("");
+  const [source, setSource] = useState<Source>("ISS");
+  const [nasaIdPrefix, setNasaIdPrefix] = useState<string>("*");
   const [timeOffset, setTimeOffset] = useState<string>("");
   const navigate = useNavigate();
   const query = useQuery();
@@ -27,7 +30,8 @@ export const EditPhotoRecord: FunctionComponent = () => {
         const response = await fetch(`/api/v1/db/photoTimeShifts/${id}`);
         const data: PhotoRecord = await response.json();
         setDate(data.date);
-        setSource(data.source);
+        setSource(data.source as Source);
+        setNasaIdPrefix(data.nasaIdPrefix);
         setTimeOffset(data.timeOffset);
       }
     })();
@@ -39,6 +43,7 @@ export const EditPhotoRecord: FunctionComponent = () => {
       id: id ? parseInt(id) : undefined,
       date,
       source,
+      nasaIdPrefix,
       timeOffset,
     };
     await fetch(`/api/v1/db/photoTimeShifts`, {
@@ -86,17 +91,38 @@ export const EditPhotoRecord: FunctionComponent = () => {
                 <label htmlFor="source" className={adminCommon.formLabel}>
                   Source
                 </label>
-                <input
+                <select
                   id="source"
-                  type="text"
                   value={source}
-                  onChange={(e) => setSource(e.target.value)}
+                  onChange={(e) => setSource(e.target.value as Source)}
                   className={adminCommon.formInput}
-                  placeholder="Camera or source identifier"
+                  required
+                >
+                  {SOURCES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <span className={adminCommon.formHint}>CODA source type</span>
+              </div>
+
+              <div className={adminCommon.formGroup}>
+                <label htmlFor="nasaIdPrefix" className={adminCommon.formLabel}>
+                  NASA ID Prefix
+                </label>
+                <input
+                  id="nasaIdPrefix"
+                  type="text"
+                  value={nasaIdPrefix}
+                  onChange={(e) => setNasaIdPrefix(e.target.value)}
+                  className={adminCommon.formInput}
+                  placeholder="*"
                   required
                 />
                 <span className={adminCommon.formHint}>
-                  Identifier for the camera or photo source
+                  Prefix to match against photo nasa_id. Use * for all photos, or a prefix like nhq
+                  or jsc2026e for per-camera corrections.
                 </span>
               </div>
 

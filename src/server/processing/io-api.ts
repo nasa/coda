@@ -19,6 +19,7 @@ import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";
+import artemis2SlotOverrides from "server/processing/artemis2/slot-overrides.json";
 
 const IO_HOST = "https://io.jsc.nasa.gov";
 const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
@@ -252,8 +253,8 @@ function parseVideoResultMetadata(doc: Doc, col: Collection): VideoFile {
       }
     }
   } else if (col === collection.ARTEMIS) {
-    // Artemis missions use a different channel naming scheme
-    const channel = getArtemisChannel(doc.collections_string);
+    // Artemis missions use collection strings, source codes, and static overrides
+    const channel = getArtemisChannel(doc.collections_string, doc.nasa_id);
     downlink = channel !== "" ? parseInt(channel) - 1 : -1;
   }
 
@@ -382,21 +383,55 @@ export function getISSChannel(collectionStrings: string[]): string {
 }
 
 /**
- * Extract Artemis mission channel number from IO API collection strings.
- * Artemis uses different channel naming: "Downlink" = channel 1, "NASA TV" = channel 2.
+ * Extract Artemis mission downlink slot from IO API metadata.
+ *
+ * Uses a three-tier strategy:
+ * 1. **Static overrides** – A JSON lookup keyed by nasa_id covers recovery-phase
+ *    source-150 feeds (Quad, Helo, SCIFLI, WB-57) that share a source code but
+ *    represent different camera angles.
+ * 2. **Collection string** – If the path contains `Downlink|Channel XX`, extract
+ *    the channel number directly (slots 01-04).
+ * 3. **Source code fallback** – Parse the 3-digit source code from the nasa_id
+ *    (`art{mission}m{source}...`) and map:
+ *      101-104 → slots 01-04 (downlink channels, including Prelaunch/Launch)
+ *      150     → slot 05 (NASA TV / broadcast)
+ *      120     → slot 06 (onboard camera clips)
+ *      136-138 → slot 07 (FCR cameras)
+ *
+ * See docs/artemis2-video-slot-mapping.md for full rationale.
  * Exported for testing purposes.
+ *
  * @param collectionStrings - Array of collection path strings from IO API doc
- * @returns Zero-padded channel number ("01" or "02") or empty string if no channel found
+ * @param nasaId - The nasa_id field from the IO API doc
+ * @returns Zero-padded channel number ("01"-"08") or empty string if unmapped
  */
-export function getArtemisChannel(collectionStrings: string[]): string {
+export function getArtemisChannel(collectionStrings: string[], nasaId: string): string {
+  // 1. Static overrides for recovery feeds and aircraft footage
+  const override = (artemis2SlotOverrides as Record<string, number>)[nasaId];
+  if (override !== undefined) {
+    return padZeros(override, 2);
+  }
+
+  // 2. Explicit channel from collection_string (Downlink|Channel XX)
   for (const collectionStr of collectionStrings) {
-    if (collectionStr.match(/Downlink/)) {
-      return padZeros(1, 2);
-    }
-    if (collectionStr.match(/NASA TV/)) {
-      return padZeros(2, 2);
+    const chMatch = collectionStr.match(/Downlink\|Channel (\d+)/);
+    if (chMatch) {
+      return padZeros(parseInt(chMatch[1]), 2);
     }
   }
+
+  // 3. Source code fallback from nasa_id (art{mission}m{source}{day}{time})
+  const srcMatch = nasaId.match(/^art\d{3}m(\d{3})/);
+  if (srcMatch) {
+    const sourceCode = parseInt(srcMatch[1], 10);
+    if (sourceCode >= 101 && sourceCode <= 104) {
+      return padZeros(sourceCode - 100, 2); // 101→01, 102→02, etc.
+    }
+    if (sourceCode === 150) return padZeros(5, 2); // NASA TV
+    if (sourceCode === 120) return padZeros(6, 2); // Onboard cameras
+    if (sourceCode >= 136 && sourceCode <= 138) return padZeros(7, 2); // FCR cameras
+  }
+
   return "";
 }
 

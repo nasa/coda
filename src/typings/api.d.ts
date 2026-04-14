@@ -14,7 +14,8 @@ type VideoUpsertRequest = {
 type PhotoUpsertRequest = {
   id?: number;
   date: string;
-  source: string;
+  source: Source;
+  nasaIdPrefix: string;
   timeOffset: string;
 };
 

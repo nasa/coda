@@ -100,30 +100,61 @@ export default async function getPhotoData({
       return buildResponse({ data: ioPhotos ?? [] });
     }
 
-    // Find override for this date
-    const overrides = allOverrides.find((override) => override.date === dateWanted);
+    // Find overrides matching this date and CODA source.
+    // Each override has a nasaIdPrefix field ("*" = all photos, or a prefix like "nhq").
+    ConsoleLogger.debug(
+      `Photo timeshifts: ${allOverrides.length} total overrides, looking for date=${dateWanted} source=${source}`
+    );
+    const dateOverrides = allOverrides.filter(
+      (override) => override.date === dateWanted && override.source === source
+    );
+    ConsoleLogger.debug(
+      `Photo timeshifts: ${dateOverrides.length} matching overrides for ${dateWanted}/${source}`,
+      dateOverrides
+    );
 
-    // no overrides for this date
-    if (isNil(overrides)) {
+    if (dateOverrides.length === 0) {
       return buildResponse({ data: ioPhotos ?? [] });
     }
 
-    try {
-      const match = overrides.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
+    // Pre-parse all offsets into milliseconds
+    const parsedOffsets: { nasaIdPrefix: string; offsetMs: number }[] = [];
+    for (const override of dateOverrides) {
+      const match = override.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
       if (!match) {
-        throw new Error(`Invalid photo time offset format: ${overrides.timeOffset}`);
+        ConsoleLogger.warn(`Invalid photo time offset format: ${override.timeOffset}`);
+        continue;
       }
-
       const [, sign, hh, mm, ss] = match;
-      const milliseconds = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
+      const offsetMs = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
+      parsedOffsets.push({ nasaIdPrefix: override.nasaIdPrefix, offsetMs });
+    }
 
+    try {
       const data: PhotoFile[] = (ioPhotos ?? []).map((result) => {
+        // Find the best matching offset for this photo.
+        // "*" matches everything; otherwise prefix-match on nasa_id.
+        // Longer (more specific) prefixes take priority.
+        const matching = parsedOffsets
+          .filter((o) => o.nasaIdPrefix === "*" || result.id.startsWith(o.nasaIdPrefix))
+          .sort((a, b) => {
+            // "*" has lowest priority; otherwise longer prefix wins
+            if (a.nasaIdPrefix === "*") return 1;
+            if (b.nasaIdPrefix === "*") return -1;
+            return b.nasaIdPrefix.length - a.nasaIdPrefix.length;
+          });
+
+        if (matching.length === 0) return result;
+
         const res = clone(result);
-        // shift the date
-        res.datetimeTaken = addMs(new Date(res.datetimeTaken), -milliseconds).toISOString();
+        res.datetimeTaken = addMs(new Date(res.datetimeTaken), -matching[0].offsetMs).toISOString();
         res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
         return res;
       });
+
+      // Re-sort by corrected time since different prefixes may have different offsets,
+      // which changes the relative ordering of photos from different cameras.
+      data.sort((a, b) => a.datetimeTakenAppSeconds - b.datetimeTakenAppSeconds);
 
       return buildResponse({ data });
     } catch (timeOverrideError) {
