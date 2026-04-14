@@ -65,7 +65,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 
 // create via post
 router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
-  const { id, date, source, nasaIdRegex, timeOffset } = req.body as PhotoUpsertRequest;
+  const { id, date, source, timeOffset } = req.body as PhotoUpsertRequest;
   const em = getORM().em;
 
   try {
@@ -74,7 +74,6 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       if (photoRecord) {
         photoRecord.date = date;
         photoRecord.source = source;
-        photoRecord.nasaIdRegex = nasaIdRegex;
         photoRecord.timeOffset = timeOffset;
         await em.persistAndFlush(photoRecord);
         res.status(200).json({
@@ -86,12 +85,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         res.status(404).json({ status: "error", message: "photo date time override not found" });
       }
     } else {
-      const photoRecord: PhotoRecord = em.create(PhotoTimeShifts_db, {
-        date,
-        source,
-        nasaIdRegex,
-        timeOffset,
-      });
+      const photoRecord: PhotoRecord = em.create(PhotoTimeShifts_db, { date, source, timeOffset });
       await em.persistAndFlush(photoRecord);
       res.status(201).json({
         status: "success",
@@ -151,10 +145,7 @@ export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
   const photos_db = await em.find(
     PhotoTimeShifts_db,
     {},
-    {
-      orderBy: { date: "ASC", source: "ASC" },
-      fields: ["id", "date", "source", "nasaIdRegex", "timeOffset"],
-    }
+    { orderBy: { date: "ASC", source: "ASC" }, fields: ["id", "date", "source", "timeOffset"] }
   );
   if (photos_db) {
     return photos_db;

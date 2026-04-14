@@ -8,12 +8,9 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
-
 export const EditPhotoRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
-  const [source, setSource] = useState<Source>("ISS");
-  const [nasaIdRegex, setNasaIdRegex] = useState<string>(".*");
+  const [source, setSource] = useState<string>("");
   const [timeOffset, setTimeOffset] = useState<string>("");
   const navigate = useNavigate();
   const query = useQuery();
@@ -30,8 +27,7 @@ export const EditPhotoRecord: FunctionComponent = () => {
         const response = await fetch(`/api/v1/db/photoTimeShifts/${id}`);
         const data: PhotoRecord = await response.json();
         setDate(data.date);
-        setSource(data.source as Source);
-        setNasaIdRegex(data.nasaIdRegex);
+        setSource(data.source);
         setTimeOffset(data.timeOffset);
       }
     })();
@@ -43,7 +39,6 @@ export const EditPhotoRecord: FunctionComponent = () => {
       id: id ? parseInt(id) : undefined,
       date,
       source,
-      nasaIdRegex,
       timeOffset,
     };
     await fetch(`/api/v1/db/photoTimeShifts`, {
@@ -91,38 +86,17 @@ export const EditPhotoRecord: FunctionComponent = () => {
                 <label htmlFor="source" className={adminCommon.formLabel}>
                   Source
                 </label>
-                <select
-                  id="source"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value as Source)}
-                  className={adminCommon.formInput}
-                  required
-                >
-                  {SOURCES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <span className={adminCommon.formHint}>CODA source type</span>
-              </div>
-
-              <div className={adminCommon.formGroup}>
-                <label htmlFor="nasaIdRegex" className={adminCommon.formLabel}>
-                  NASA ID Regex
-                </label>
                 <input
-                  id="nasaIdRegex"
+                  id="source"
                   type="text"
-                  value={nasaIdRegex}
-                  onChange={(e) => setNasaIdRegex(e.target.value)}
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
                   className={adminCommon.formInput}
-                  placeholder=".*"
+                  placeholder="Camera or source identifier"
                   required
                 />
                 <span className={adminCommon.formHint}>
-                  Regex to match against photo nasa_id. Use .* for all photos, or a pattern like
-                  ^nhq or ^jsc2026e for per-camera corrections.
+                  Identifier for the camera or photo source
                 </span>
               </div>
 

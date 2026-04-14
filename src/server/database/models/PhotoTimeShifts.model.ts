@@ -4,7 +4,6 @@ export class PhotoTimeShifts_db implements PhotoRecord {
   id!: number;
   date!: string;
   source!: string;
-  nasaIdRegex!: string;
   timeOffset!: string;
 }
 
@@ -15,7 +14,6 @@ export const PhotoTimeShifts_dbSchema = new EntitySchema<PhotoTimeShifts_db>({
     id: { type: MikroTypes.integer, primary: true, autoincrement: true },
     date: { type: MikroTypes.text },
     source: { type: MikroTypes.text },
-    nasaIdRegex: { type: MikroTypes.text, default: ".*" },
     timeOffset: { type: MikroTypes.text },
   },
 });
