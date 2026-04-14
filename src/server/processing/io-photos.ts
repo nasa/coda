@@ -3,14 +3,18 @@ import isNil from "lodash/isNil";
 import sortBy from "lodash/sortBy";
 import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
 import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
-import { getPhotoTimeshiftRecordsList } from "server/express/routes/db/photos";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
 import { addMs } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";
+import artemis2PhotoTimeOverrides from "server/processing/artemis2/photos/photo-time-overrides.json";
 
 /**
- * Fetch photo data from IO. We can't always trust the accuracy of IO's dates, so we fetch photos from the day before and day after as well
+ * Fetch photo data from IO for a given date. Fetches the previous day as well
+ * to catch photos whose local-time timestamp shifts past midnight when
+ * corrected to UTC (e.g., a photo taken at 22:00 CDT becomes 03:00 UTC the
+ * next day). After applying timezone corrections, photos that don't fall on
+ * the requested UTC day are filtered out.
  */
 export default async function getPhotoData({
   dateWanted,
@@ -77,99 +81,65 @@ export default async function getPhotoData({
       throw new Error(`Unable to resolve IO collection for source ${source}`);
     }
 
-    const [ioPhotos, allOverrides] = await Promise.all([
+    // Fetch photos for the requested day AND the previous day. Photos whose
+    // md_creation_date is on the previous day may land on the requested day
+    // after timezone correction (e.g., 22:00 CDT → 03:00 UTC next day).
+    const previousDate = addMs(requestedDate, -86400000);
+
+    const [ioPhotosToday, ioPhotosPrevDay] = await Promise.all([
       fetchIoData({
         collection: col,
         fetchType: "photos",
         requestedDate,
       }) as Promise<PhotoFile[]>,
-      // fetch start time overrides, but don't throw if the request fails
-      (async () => {
-        try {
-          return await getPhotoTimeshiftRecordsList();
-        } catch (overrideError) {
-          // don't block photo results if we can't find overrides
-          ConsoleLogger.warn("Error fetching photo timeshift overrides:", overrideError);
-          return undefined;
-        }
-      })(),
+      fetchIoData({
+        collection: col,
+        fetchType: "photos",
+        requestedDate: previousDate,
+      }) as Promise<PhotoFile[]>,
     ]);
 
-    if (isNil(allOverrides)) {
-      // we don't have the info required to apply time offsets. just return the photos
-      return buildResponse({ data: ioPhotos ?? [] });
-    }
-
-    // Find overrides matching this date and CODA source.
-    // Each override has a nasaIdRegex field (".*" = all photos, or a regex like "^nhq").
-    ConsoleLogger.debug(
-      `Photo timeshifts: ${allOverrides.length} total overrides, looking for date=${dateWanted} source=${source}`
-    );
-    const dateOverrides = allOverrides.filter(
-      (override) => override.date === dateWanted && override.source === source
-    );
-    ConsoleLogger.debug(
-      `Photo timeshifts: ${dateOverrides.length} matching overrides for ${dateWanted}/${source}`,
-      dateOverrides
-    );
-
-    if (dateOverrides.length === 0) {
-      return buildResponse({ data: ioPhotos ?? [] });
-    }
-
-    // Pre-parse all offsets into milliseconds with compiled regexes
-    const parsedOffsets: { regex: RegExp; pattern: string; offsetMs: number }[] = [];
-    for (const override of dateOverrides) {
-      const match = override.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
-      if (!match) {
-        ConsoleLogger.warn(`Invalid photo time offset format: ${override.timeOffset}`);
-        continue;
+    // Merge and deduplicate (a photo could theoretically appear in both queries)
+    const seenIds = new Set<string>();
+    const allPhotos: PhotoFile[] = [];
+    for (const photo of [...(ioPhotosToday ?? []), ...(ioPhotosPrevDay ?? [])]) {
+      if (!seenIds.has(photo.id)) {
+        seenIds.add(photo.id);
+        allPhotos.push(photo);
       }
+    }
+
+    // Apply timezone corrections from the static per-photo override map.
+    // Photos not in the map are left uncorrected (their md_creation_date is
+    // assumed to already be UTC).
+    const corrected: PhotoFile[] = allPhotos.map((result) => {
+      const override = (artemis2PhotoTimeOverrides as Record<string, string>)[result.id];
+      if (!override) return result;
+
+      const match = override.match(/([-+])(\d{2}):(\d{2}):(\d{2})/);
+      if (!match) return result;
+
       const [, sign, hh, mm, ss] = match;
       const offsetMs = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
-      try {
-        parsedOffsets.push({
-          regex: new RegExp(override.nasaIdRegex),
-          pattern: override.nasaIdRegex,
-          offsetMs,
-        });
-      } catch (e) {
-        ConsoleLogger.warn(`Invalid NASA ID regex "${override.nasaIdRegex}": ${e}`);
-      }
-    }
 
-    try {
-      const data: PhotoFile[] = (ioPhotos ?? []).map((result) => {
-        // Find the best matching offset for this photo.
-        // ".*" matches everything; more specific patterns take priority.
-        // Longer regex patterns are assumed to be more specific.
-        const matching = parsedOffsets
-          .filter((o) => o.regex.test(result.id))
-          .sort((a, b) => {
-            // ".*" has lowest priority; otherwise longer pattern wins
-            if (a.pattern === ".*") return 1;
-            if (b.pattern === ".*") return -1;
-            return b.pattern.length - a.pattern.length;
-          });
+      const res = clone(result);
+      res.datetimeTaken = addMs(new Date(res.datetimeTaken), -offsetMs).toISOString();
+      res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
+      return res;
+    });
 
-        if (matching.length === 0) return result;
+    // Filter to only photos that land on the requested UTC day after correction.
+    const dayStartMs = requestedDate.getTime();
+    const dayEndMs = dayStartMs + 86400000;
 
-        const res = clone(result);
-        res.datetimeTaken = addMs(new Date(res.datetimeTaken), -matching[0].offsetMs).toISOString();
-        res.datetimeTakenAppSeconds = appSecondsFromDateString(res.datetimeTaken);
-        return res;
-      });
+    const data = corrected
+      .filter((photo) => {
+        const photoMs = new Date(photo.datetimeTaken).getTime();
+        return photoMs >= dayStartMs && photoMs < dayEndMs;
+      })
+      .sort((a, b) => a.datetimeTakenAppSeconds - b.datetimeTakenAppSeconds);
 
-      // Re-sort by corrected time since different prefixes may have different offsets,
-      // which changes the relative ordering of photos from different cameras.
-      data.sort((a, b) => a.datetimeTakenAppSeconds - b.datetimeTakenAppSeconds);
-
-      return buildResponse({ data });
-    } catch (timeOverrideError) {
-      ConsoleLogger.error("Error parsing and apply photo overrides");
-      ConsoleLogger.error(timeOverrideError);
-      return buildResponse({ data: ioPhotos ?? [] });
-    }
+    return buildResponse({ data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error fetching photo data";
     return buildResponse({ error: message });

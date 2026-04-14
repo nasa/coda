@@ -19,7 +19,7 @@ import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import artemis2ChannelOverrides from "server/processing/artemis2/channel-overrides.json";
+import artemis2ChannelOverrides from "server/processing/artemis2/videos/channel-overrides.json";
 
 const IO_HOST = "https://io.jsc.nasa.gov";
 const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;

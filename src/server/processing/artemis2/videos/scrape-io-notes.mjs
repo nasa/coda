@@ -18,7 +18,7 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "../../../..");
+const ROOT = resolve(__dirname, "../../../../..");
 
 // Load IO_KEY from .env
 const envContent = readFileSync(resolve(ROOT, ".env"), "utf-8");
