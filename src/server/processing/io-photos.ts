@@ -101,7 +101,7 @@ export default async function getPhotoData({
     }
 
     // Find overrides matching this date and CODA source.
-    // Each override has a nasaIdPrefix field ("*" = all photos, or a prefix like "nhq").
+    // Each override has a nasaIdRegex field (".*" = all photos, or a regex like "^nhq").
     ConsoleLogger.debug(
       `Photo timeshifts: ${allOverrides.length} total overrides, looking for date=${dateWanted} source=${source}`
     );
@@ -117,8 +117,8 @@ export default async function getPhotoData({
       return buildResponse({ data: ioPhotos ?? [] });
     }
 
-    // Pre-parse all offsets into milliseconds
-    const parsedOffsets: { nasaIdPrefix: string; offsetMs: number }[] = [];
+    // Pre-parse all offsets into milliseconds with compiled regexes
+    const parsedOffsets: { regex: RegExp; pattern: string; offsetMs: number }[] = [];
     for (const override of dateOverrides) {
       const match = override.timeOffset.match(/([\+]|[\-])(\d{2}):(\d{2}):(\d{2})/);
       if (!match) {
@@ -127,21 +127,29 @@ export default async function getPhotoData({
       }
       const [, sign, hh, mm, ss] = match;
       const offsetMs = ((+`${sign}${hh}` * 60 + +`${sign}${mm}`) * 60 + +`${sign}${ss}`) * 1000;
-      parsedOffsets.push({ nasaIdPrefix: override.nasaIdPrefix, offsetMs });
+      try {
+        parsedOffsets.push({
+          regex: new RegExp(override.nasaIdRegex),
+          pattern: override.nasaIdRegex,
+          offsetMs,
+        });
+      } catch (e) {
+        ConsoleLogger.warn(`Invalid NASA ID regex "${override.nasaIdRegex}": ${e}`);
+      }
     }
 
     try {
       const data: PhotoFile[] = (ioPhotos ?? []).map((result) => {
         // Find the best matching offset for this photo.
-        // "*" matches everything; otherwise prefix-match on nasa_id.
-        // Longer (more specific) prefixes take priority.
+        // ".*" matches everything; more specific patterns take priority.
+        // Longer regex patterns are assumed to be more specific.
         const matching = parsedOffsets
-          .filter((o) => o.nasaIdPrefix === "*" || result.id.startsWith(o.nasaIdPrefix))
+          .filter((o) => o.regex.test(result.id))
           .sort((a, b) => {
-            // "*" has lowest priority; otherwise longer prefix wins
-            if (a.nasaIdPrefix === "*") return 1;
-            if (b.nasaIdPrefix === "*") return -1;
-            return b.nasaIdPrefix.length - a.nasaIdPrefix.length;
+            // ".*" has lowest priority; otherwise longer pattern wins
+            if (a.pattern === ".*") return 1;
+            if (b.pattern === ".*") return -1;
+            return b.pattern.length - a.pattern.length;
           });
 
         if (matching.length === 0) return result;

@@ -65,7 +65,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 
 // create via post
 router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
-  const { id, date, source, nasaIdPrefix, timeOffset } = req.body as PhotoUpsertRequest;
+  const { id, date, source, nasaIdRegex, timeOffset } = req.body as PhotoUpsertRequest;
   const em = getORM().em;
 
   try {
@@ -74,7 +74,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       if (photoRecord) {
         photoRecord.date = date;
         photoRecord.source = source;
-        photoRecord.nasaIdPrefix = nasaIdPrefix;
+        photoRecord.nasaIdRegex = nasaIdRegex;
         photoRecord.timeOffset = timeOffset;
         await em.persistAndFlush(photoRecord);
         res.status(200).json({
@@ -89,7 +89,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       const photoRecord: PhotoRecord = em.create(PhotoTimeShifts_db, {
         date,
         source,
-        nasaIdPrefix,
+        nasaIdRegex,
         timeOffset,
       });
       await em.persistAndFlush(photoRecord);
@@ -153,7 +153,7 @@ export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
     {},
     {
       orderBy: { date: "ASC", source: "ASC" },
-      fields: ["id", "date", "source", "nasaIdPrefix", "timeOffset"],
+      fields: ["id", "date", "source", "nasaIdRegex", "timeOffset"],
     }
   );
   if (photos_db) {

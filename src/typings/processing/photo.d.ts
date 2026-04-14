@@ -2,6 +2,6 @@ type PhotoRecord = {
   id: number;
   date: string;
   source: string;
-  nasaIdPrefix: string;
+  nasaIdRegex: string;
   timeOffset: string;
 };

@@ -15,7 +15,7 @@ type PhotoUpsertRequest = {
   id?: number;
   date: string;
   source: Source;
-  nasaIdPrefix: string;
+  nasaIdRegex: string;
   timeOffset: string;
 };
 

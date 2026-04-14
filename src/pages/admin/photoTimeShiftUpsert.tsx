@@ -13,7 +13,7 @@ const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
 export const EditPhotoRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
   const [source, setSource] = useState<Source>("ISS");
-  const [nasaIdPrefix, setNasaIdPrefix] = useState<string>("*");
+  const [nasaIdRegex, setNasaIdRegex] = useState<string>(".*");
   const [timeOffset, setTimeOffset] = useState<string>("");
   const navigate = useNavigate();
   const query = useQuery();
@@ -31,7 +31,7 @@ export const EditPhotoRecord: FunctionComponent = () => {
         const data: PhotoRecord = await response.json();
         setDate(data.date);
         setSource(data.source as Source);
-        setNasaIdPrefix(data.nasaIdPrefix);
+        setNasaIdRegex(data.nasaIdRegex);
         setTimeOffset(data.timeOffset);
       }
     })();
@@ -43,7 +43,7 @@ export const EditPhotoRecord: FunctionComponent = () => {
       id: id ? parseInt(id) : undefined,
       date,
       source,
-      nasaIdPrefix,
+      nasaIdRegex,
       timeOffset,
     };
     await fetch(`/api/v1/db/photoTimeShifts`, {
@@ -108,21 +108,21 @@ export const EditPhotoRecord: FunctionComponent = () => {
               </div>
 
               <div className={adminCommon.formGroup}>
-                <label htmlFor="nasaIdPrefix" className={adminCommon.formLabel}>
-                  NASA ID Prefix
+                <label htmlFor="nasaIdRegex" className={adminCommon.formLabel}>
+                  NASA ID Regex
                 </label>
                 <input
-                  id="nasaIdPrefix"
+                  id="nasaIdRegex"
                   type="text"
-                  value={nasaIdPrefix}
-                  onChange={(e) => setNasaIdPrefix(e.target.value)}
+                  value={nasaIdRegex}
+                  onChange={(e) => setNasaIdRegex(e.target.value)}
                   className={adminCommon.formInput}
-                  placeholder="*"
+                  placeholder=".*"
                   required
                 />
                 <span className={adminCommon.formHint}>
-                  Prefix to match against photo nasa_id. Use * for all photos, or a prefix like nhq
-                  or jsc2026e for per-camera corrections.
+                  Regex to match against photo nasa_id. Use .* for all photos, or a pattern like
+                  ^nhq or ^jsc2026e for per-camera corrections.
                 </span>
               </div>
 

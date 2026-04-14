@@ -19,7 +19,7 @@ import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import artemis2SlotOverrides from "server/processing/artemis2/slot-overrides.json";
+import artemis2ChannelOverrides from "server/processing/artemis2/channel-overrides.json";
 
 const IO_HOST = "https://io.jsc.nasa.gov";
 const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
@@ -383,22 +383,22 @@ export function getISSChannel(collectionStrings: string[]): string {
 }
 
 /**
- * Extract Artemis mission downlink slot from IO API metadata.
+ * Extract Artemis mission CODA channel number from IO API metadata.
  *
  * Uses a three-tier strategy:
  * 1. **Static overrides** – A JSON lookup keyed by nasa_id covers recovery-phase
  *    source-150 feeds (Quad, Helo, SCIFLI, WB-57) that share a source code but
  *    represent different camera angles.
  * 2. **Collection string** – If the path contains `Downlink|Channel XX`, extract
- *    the channel number directly (slots 01-04).
+ *    the channel number directly (channels 01-04).
  * 3. **Source code fallback** – Parse the 3-digit source code from the nasa_id
  *    (`art{mission}m{source}...`) and map:
- *      101-104 → slots 01-04 (downlink channels, including Prelaunch/Launch)
- *      150     → slot 05 (NASA TV / broadcast)
- *      120     → slot 06 (onboard camera clips)
- *      136-138 → slot 07 (FCR cameras)
+ *      101-104 → channels 01-04 (downlink channels, including Prelaunch/Launch)
+ *      150     → channel 05 (NASA TV / broadcast)
+ *      120     → channel 06 (onboard camera clips)
+ *      136-138 → channel 07 (FCR cameras)
  *
- * See docs/artemis2-video-slot-mapping.md for full rationale.
+ * See src/server/processing/artemis2/README.md for full rationale.
  * Exported for testing purposes.
  *
  * @param collectionStrings - Array of collection path strings from IO API doc
@@ -407,7 +407,7 @@ export function getISSChannel(collectionStrings: string[]): string {
  */
 export function getArtemisChannel(collectionStrings: string[], nasaId: string): string {
   // 1. Static overrides for recovery feeds and aircraft footage
-  const override = (artemis2SlotOverrides as Record<string, number>)[nasaId];
+  const override = (artemis2ChannelOverrides as Record<string, number>)[nasaId];
   if (override !== undefined) {
     return padZeros(override, 2);
   }

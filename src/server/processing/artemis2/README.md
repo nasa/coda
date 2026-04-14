@@ -1,4 +1,4 @@
-# Artemis 2 Video Slot Mapping
+# Artemis 2 Video Channel Mapping
 
 ## Quick Start
 
@@ -6,45 +6,45 @@
 # Step 1: Scrape video metadata + Mission Video Notes from IO (requires IO_KEY in .env)
 node src/server/processing/artemis2/scrape-io-notes.mjs
 
-# Step 2: Generate slot-overrides.json from the scraped notes
-node src/server/processing/artemis2/generate-slot-overrides.mjs
+# Step 2: Generate channel-overrides.json from the scraped notes
+node src/server/processing/artemis2/generate-channel-overrides.mjs
 ```
 
 Step 1 hits the IO API and then scrapes each video's info page (~2 minutes for 1,149 videos).
-Step 2 is instant — it reads `video-notes.json` and writes `slot-overrides.json`.
+Step 2 is instant — it reads `video-notes.json` and writes `channel-overrides.json`.
 
-Re-run both if IO data changes. `slot-overrides.json` is imported at runtime by `io-api.ts`.
+Re-run both if IO data changes. `channel-overrides.json` is imported at runtime by `io-api.ts`.
 
 ## Files
 
 | File | Purpose | Runtime? |
 |------|---------|----------|
-| `slot-overrides.json` | Per-video slot assignments for recovery/aircraft feeds | Yes (imported by io-api.ts) |
+| `channel-overrides.json` | Per-video channel assignments for recovery/aircraft feeds | Yes (imported by io-api.ts) |
 | `video-notes.json` | All 1,149 videos with scraped Mission Video Notes | No (input for generate script) |
 | `scrape-io-notes.mjs` | Fetches video list from IO API + scrapes notes from info pages | Script |
-| `generate-slot-overrides.mjs` | Reads video-notes.json, classifies feeds, writes slot-overrides.json | Script |
+| `generate-channel-overrides.mjs` | Reads video-notes.json, classifies feeds, writes channel-overrides.json | Script |
 
-## How Slot Assignment Works
+## How Channel Assignment Works
 
-Most videos are assigned a slot programmatically in `io-api.ts` (`getArtemisChannel`):
+Most videos are assigned a CODA channel programmatically in `io-api.ts` (`getArtemisChannel`):
 
-1. **Static overrides** — look up `nasa_id` in `slot-overrides.json` (this file)
-2. **Collection string** — if `Downlink|Channel XX` exists, use that channel (slots 1-4)
+1. **Static overrides** — look up `nasa_id` in `channel-overrides.json`
+2. **Collection string** — if `Downlink|Channel XX` exists, use that channel (channels 1-4)
 3. **Source code fallback** — parse the 3-digit source from the nasa_id:
-   - 101-104 → slots 1-4
-   - 150 → slot 5
-   - 120 → slot 6
-   - 136-138 → slot 7
+   - 101-104 → channels 1-4
+   - 150 → channel 5
+   - 120 → channel 6
+   - 136-138 → channel 7
 
 The static overrides handle videos that can't be resolved by steps 2-3 — primarily
 recovery-phase source 150 feeds that share a source code but are different cameras.
 
-## Slot Map
+## Channel Map
 
 ### Main Flight (FD02-FD09)
 
-| Slot | Source | How Identified |
-|------|--------|----------------|
+| Channel | Source | How Identified |
+|---------|--------|----------------|
 | 1 | Downlink Channel 01 | `Downlink\|Channel 01` in collection_string or source 101 |
 | 2 | Downlink Channel 02 | `Downlink\|Channel 02` in collection_string or source 102 |
 | 3 | Downlink Channel 03 | `Downlink\|Channel 03` in collection_string or source 103 |
@@ -55,8 +55,8 @@ recovery-phase source 150 feeds that share a source code but are different camer
 
 ### Launch Phase (April 1, 16:59 - April 2, 06:00 UTC)
 
-| Slot | Source | Content |
-|------|--------|---------|
+| Channel | Source | Content |
+|---------|--------|---------|
 | 1 | Source 101 | Downlink Ch01 (categorized as Prelaunch/Launch in IO) |
 | 2 | Source 102 | Downlink Ch02 (categorized as Prelaunch/Launch in IO) |
 | 3 | Source 103 | Downlink Ch03 (categorized as Prelaunch/Launch in IO) |
@@ -69,11 +69,11 @@ recovery-phase source 150 feeds that share a source code but are different camer
 ### Recovery Phase (April 10, 20:00 - April 11, 04:00 UTC)
 
 Recovery is the most complex phase. Downlink Ch01-02 end around 22:11 UTC, after
-which multiple broadcast and aircraft feeds begin. All slot assignments below come
+which multiple broadcast and aircraft feeds begin. All channel assignments below come
 from static overrides (generated from Mission Video Notes).
 
-| Slot | Feed Type | Source | Notes |
-|------|-----------|--------|-------|
+| Channel | Feed Type | Source | Notes |
+|---------|-----------|--------|-------|
 | 1 | Downlink Ch01 | 101 | Active until ~22:11 UTC |
 | 2 | Downlink Ch02 | 102 | Active until ~22:11 UTC |
 | 3 | SCIFLI aircraft | 160 | Gulfstream GV, reuses empty Ch03 |
@@ -85,20 +85,20 @@ from static overrides (generated from Mission Video Notes).
 
 ## Override Generation Rules
 
-`generate-slot-overrides.mjs` uses these rules to classify source 150 recovery feeds:
+`generate-channel-overrides.mjs` uses these rules to classify source 150 recovery feeds:
 
 ```
-Notes match /Quad Feed/i         → Slot 6
-Notes match /Helo feed.*1/i      → Slot 7
-Notes match /Helo feed.*2/i      → Slot 8
-Everything else (source 150)     → Slot 5  (NASA broadcast / PAO / News Conference)
+Notes match /Quad Feed/i         → Channel 6
+Notes match /Helo feed.*1/i      → Channel 7
+Notes match /Helo feed.*2/i      → Channel 8
+Everything else (source 150)     → Channel 5  (NASA broadcast / PAO / News Conference)
 ```
 
 Aircraft footage is classified by source code:
 ```
-Source 160 (SCIFLI)               → Slot 3
-Source 200 (WB-57, launch)        → Slot 7
-Source 201 (WB-57, recovery)      → Slot 4
+Source 160 (SCIFLI)               → Channel 3
+Source 200 (WB-57, launch)        → Channel 7
+Source 201 (WB-57, recovery)      → Channel 4
 ```
 
 ## Background

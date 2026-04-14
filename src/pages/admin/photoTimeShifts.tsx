@@ -78,7 +78,7 @@ const AdminPhotoTimeShifts: FunctionComponent = () => {
                           >
                             {record.source}
                             <span className={adminCommon.recordMeta}>
-                              {record.nasaIdPrefix !== "*" && ` (${record.nasaIdPrefix})`} —{" "}
+                              {record.nasaIdRegex !== ".*" && ` (${record.nasaIdRegex})`} —{" "}
                               {record.timeOffset}
                             </span>
                           </Link>
