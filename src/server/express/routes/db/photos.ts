@@ -86,7 +86,12 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         res.status(404).json({ status: "error", message: "photo date time override not found" });
       }
     } else {
-      const photoRecord: PhotoRecord = em.create(PhotoTimeShifts_db, { date, source, nasaIdPrefix, timeOffset });
+      const photoRecord: PhotoRecord = em.create(PhotoTimeShifts_db, {
+        date,
+        source,
+        nasaIdPrefix,
+        timeOffset,
+      });
       await em.persistAndFlush(photoRecord);
       res.status(201).json({
         status: "success",
@@ -146,7 +151,10 @@ export async function getPhotoTimeshiftRecordsList(): Promise<PhotoRecord[]> {
   const photos_db = await em.find(
     PhotoTimeShifts_db,
     {},
-    { orderBy: { date: "ASC", source: "ASC" }, fields: ["id", "date", "source", "nasaIdPrefix", "timeOffset"] }
+    {
+      orderBy: { date: "ASC", source: "ASC" },
+      fields: ["id", "date", "source", "nasaIdPrefix", "timeOffset"],
+    }
   );
   if (photos_db) {
     return photos_db;
