@@ -4,15 +4,65 @@ import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateDataValue } from "store/framework";
 import { setActivePhoto } from "store/photos";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import styles from "./photo-all.module.css";
-import { FunctionComponent, useEffect, useRef } from "react";
+import { FunctionComponent, useCallback, useEffect, useRef } from "react";
 import { hhmmssFromSeconds } from "utils/formatting";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
 import { setAppSeconds } from "store/clock";
+
+function useLazyImages(containerRef: React.RefObject<HTMLDivElement | null>) {
+  const pendingRef = useRef(new Set<HTMLImageElement>());
+  const scrollingRef = useRef(false);
+
+  const loadVisible = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const viewTop = container.scrollTop;
+    const viewBottom = container.scrollTop + container.clientHeight + 100;
+    pendingRef.current.forEach((img) => {
+      if (img.offsetTop + img.offsetHeight > viewTop && img.offsetTop < viewBottom) {
+        img.src = img.dataset.lazySrc!;
+        pendingRef.current.delete(img);
+      }
+    });
+  }, [containerRef]);
+
+  const beginProgrammaticScroll = useCallback(() => {
+    scrollingRef.current = true;
+  }, []);
+
+  const endProgrammaticScroll = useCallback(() => {
+    scrollingRef.current = false;
+    loadVisible();
+  }, [loadVisible]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      if (scrollingRef.current) return;
+      clearTimeout(timer);
+      timer = setTimeout(loadVisible, 100);
+    };
+    container.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      container.removeEventListener("scroll", onScroll);
+      clearTimeout(timer);
+    };
+  }, [containerRef, loadVisible]);
+
+  const register = useCallback((img: HTMLImageElement | null, src: string | undefined) => {
+    if (!img || !src) return;
+    img.dataset.lazySrc = src;
+    pendingRef.current.add(img);
+  }, []);
+
+  return { register, loadVisible, beginProgrammaticScroll, endProgrammaticScroll };
+}
 
 export const PhotoAllControls: FunctionComponent<{
   paneInstanceId: number;
@@ -111,14 +161,36 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
   const dispatch = useAppDispatch();
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
+  const thumbsContainerRef = useRef<HTMLDivElement>(null);
+  const { register, loadVisible, beginProgrammaticScroll, endProgrammaticScroll } =
+    useLazyImages(thumbsContainerRef);
 
   useEffect(() => {
     if (paneStateData.lockScroll && activePhotoRef.current !== null) {
+      beginProgrammaticScroll();
       activePhotoRef.current.scrollIntoView({
         behavior: "smooth",
       });
+      // Smooth scroll typically completes in ~500-1000ms
+      const timer = setTimeout(endProgrammaticScroll, 1000);
+      return () => {
+        clearTimeout(timer);
+        endProgrammaticScroll();
+      };
     }
-  }, [photos.activePhoto, activePhotoRef, paneStateData.lockScroll]);
+    return undefined;
+  }, [
+    photos.activePhoto,
+    activePhotoRef,
+    paneStateData.lockScroll,
+    beginProgrammaticScroll,
+    endProgrammaticScroll,
+  ]);
+
+  // Load visible images when photo list changes
+  useEffect(() => {
+    loadVisible();
+  }, [photoFiles, loadVisible]);
 
   // function that displays thumbnails of all photos in photoFiles
   function photoThumbnails() {
@@ -151,11 +223,11 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
               }}
               title={photoTitle}
             >
-              <LazyLoadImage
+              <img
+                ref={(el) => register(el, photoFiles[i].mediaThumbURL)}
                 alt={photoFiles[i].title}
                 width={80}
                 height={80}
-                src={photoFiles[i].mediaThumbURL}
               />
             </div>
           );
@@ -167,7 +239,7 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
 
   return (
     <div className={styles.main}>
-      <div className={styles.photoThumbs}>
+      <div className={styles.photoThumbs} ref={thumbsContainerRef}>
         {photos.collectionFilters.some((el) => el.selected === true) ? (
           photoThumbnails()
         ) : (
