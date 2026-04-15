@@ -122,7 +122,6 @@ const DockviewLayout: FunctionComponent<{ initialLayout?: SerializedDockview | n
       const serializedLayout = getLayout(layout);
       api.fromJSON(serializedLayout);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialLayoutRef is a stable ref (mount-time capture); omitting it from deps is intentional
   }, [api, layout, layoutLastChanged]);
 
   return (
