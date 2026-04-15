@@ -45,6 +45,7 @@ const SocketClient: FunctionComponent<{
   }, []);
 
   // Handle Socket.IO connection lifecycle.
+  // The setTimeout(0) below is solely to work around a local-dev Firefox bug where date changes cause socket reconnects to hang; see comment block below for details.
   // Socket creation is deferred with setTimeout(0) so that React StrictMode's
   // synchronous mount→unmount→remount cycle never opens a WebSocket connection
   // during the first (discarded) mount. Without this, Firefox leaves the aborted
