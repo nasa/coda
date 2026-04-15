@@ -20,3 +20,4 @@ junit.xml
 # code assistant config files
 CLAUDE.md
 AGENTS.md
+.claude/
