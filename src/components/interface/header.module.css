@@ -167,15 +167,16 @@
 
 .timeButtonsContainer {
   display: grid;
-  gap: 3px;
+  gap: 6px;
   grid-template-columns: repeat(2, 1fr);
   justify-content: space-around;
-  position: relative;
+  position: fixed;
   background-color: var(--lightest-grey);
-  width: 100%;
-  top: 0;
-  left: 0;
-  z-index: 5;
+  z-index: 9999;
+  padding: 6px;
+  border-radius: var(--radius);
+  /* border: 1px solid var(--even-greyer); */
+  box-shadow: 0 4px 12px rgb(0 0 0 / 50%);
 }
 
 .timeButtonsItems {
@@ -186,11 +187,6 @@
   font-size: 11px;
   font-weight: 600;
   margin: 5px;
-}
-
-.timeButtons {
-  grid-column: 1 / span 1;
-  grid-row: 1;
 }
 
 .select {
