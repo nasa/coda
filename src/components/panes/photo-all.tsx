@@ -167,9 +167,7 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
 
   return (
     <div className={styles.main}>
-      <div
-        className={styles.photoThumbs}
-      >
+      <div className={styles.photoThumbs}>
         {photos.collectionFilters.some((el) => el.selected === true) ? (
           photoThumbnails()
         ) : (
