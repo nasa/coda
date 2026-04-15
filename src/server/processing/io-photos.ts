@@ -110,9 +110,16 @@ export default async function getPhotoData({
     }
 
     // Apply timezone corrections from the static per-photo override map.
+    // Only applied for the ARTEMIS source within the Artemis 2 mission date range.
     // Photos not in the map are left uncorrected (their md_creation_date is
     // assumed to already be UTC).
+    const ARTEMIS2_START = new Date("2026-04-01T00:00:00Z");
+    const ARTEMIS2_END = new Date("2026-04-14T00:00:00Z"); // exclusive
+    const applyA2Overrides =
+      source === "ARTEMIS" && requestedDate >= ARTEMIS2_START && requestedDate < ARTEMIS2_END;
+
     const corrected: PhotoFile[] = allPhotos.map((result) => {
+      if (!applyA2Overrides) return result;
       const override = (artemis2PhotoTimeOverrides as Record<string, string>)[result.id];
       if (!override) return result;
 
