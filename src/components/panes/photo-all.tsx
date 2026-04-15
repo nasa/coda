@@ -4,7 +4,6 @@ import { deepEqual, useAppSelector } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { setPaneStateDataValue } from "store/framework";
 import { setActivePhoto } from "store/photos";
-import { LazyLoadImage } from "react-lazy-load-image-component";
 
 import styles from "./photo-all.module.css";
 import { FunctionComponent, useEffect, useRef } from "react";
@@ -13,6 +12,30 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import { FilterButton, RenderPhotoFilter } from "components/interface/photo-filter-button";
 import { setAppSeconds } from "store/clock";
+
+const LazyImg: FunctionComponent<{
+  src: string | undefined;
+  alt: string | undefined;
+  size: number;
+}> = ({ src, alt, size }) => {
+  const imgRef = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    const el = imgRef.current;
+    if (!el || !src) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.src = src;
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [src]);
+  return <img ref={imgRef} alt={alt} width={size} height={size} />;
+};
 
 export const PhotoAllControls: FunctionComponent<{
   paneInstanceId: number;
@@ -151,12 +174,7 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
               }}
               title={photoTitle}
             >
-              <LazyLoadImage
-                alt={photoFiles[i].title}
-                width={80}
-                height={80}
-                src={photoFiles[i].mediaThumbURL}
-              />
+              <LazyImg alt={photoFiles[i].title} size={80} src={photoFiles[i].mediaThumbURL} />
             </div>
           );
         }
