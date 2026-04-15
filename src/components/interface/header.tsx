@@ -17,6 +17,7 @@ import SharePanel from "components/interface/share";
 
 import AboutOverlay from "./about-overlay";
 import { FunctionComponent, ChangeEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { generateShareURL } from "utils/share-state";
 import { isSameDate } from "utils/date";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -190,15 +191,23 @@ const Clock: FunctionComponent = () => {
   const [renderTime, setRenderTime] = useState("00:00:00");
   const [userTimeValue, setUserTimeValue] = useState("");
   const [editingTime, setEditingTime] = useState(false);
+  const [buttonPos, setButtonPos] = useState({ top: 0, left: 0, width: 0 });
 
   const dispatch = useAppDispatch();
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const timeInput = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setRenderTime(hhmmssFromSeconds(appSeconds));
   }, [appSeconds]);
+
+  useEffect(() => {
+    if (editingTime && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setButtonPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+  }, [editingTime]);
 
   /** Navigates to a new time */
   const handleTimeChange = () => {
@@ -218,17 +227,14 @@ const Clock: FunctionComponent = () => {
     setEditingTime(false);
   };
 
-  const timeButtonsDisplay = editingTime ? "grid" : "none";
-
   return (
-    <div className={styles.timeContainer}>
+    <div className={styles.timeContainer} ref={containerRef}>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.timeInputContainer}>
         <div className={`${styles.iconWithText} ${styles.clockIconContainer}`}>
           <FontAwesomeIcon icon={faClock} size={"sm"} />
         </div>
         <input
-          ref={timeInput}
           type="text"
           size={8}
           placeholder="hh:mm:ss"
@@ -253,24 +259,21 @@ const Clock: FunctionComponent = () => {
         />
         <div className={`${styles.timeZulu} ${styles.clockIconContainer}`}>Z</div>
       </div>
-      <div className={styles.timeButtonsContainer} style={{ display: timeButtonsDisplay }}>
-        <button
-          className={`${styles.timeButtonsItems} ${styles.timeButtons}`}
-          onClick={() => {
-            handleCancel();
-          }}
-        >
-          <span>Cancel</span>
-        </button>
-        <button
-          className={`${styles.timeButtonsItems}`}
-          onClick={() => {
-            handleTimeChange();
-          }}
-        >
-          <span>Go</span>
-        </button>
-      </div>
+      {editingTime &&
+        createPortal(
+          <div
+            className={styles.timeButtonsContainer}
+            style={{ top: buttonPos.top, left: buttonPos.left, width: buttonPos.width }}
+          >
+            <button className={styles.timeButtonsItems} onClick={handleCancel}>
+              <span>Cancel</span>
+            </button>
+            <button className={styles.timeButtonsItems} onClick={handleTimeChange}>
+              <span>Go</span>
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
