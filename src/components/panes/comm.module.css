@@ -92,7 +92,7 @@
 }
 
 .activeUtterance {
-  border: 1px solid var(--lightest-grey);
+  border: 1px solid var(--burnt-orange);
 }
 
 .utteranceColorAlt {
