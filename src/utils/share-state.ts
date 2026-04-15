@@ -100,9 +100,8 @@ export function generateShareURL(
 
   const shortSource = sourceShortVal[framework.source];
 
-  let i = 1;
   let stateUrlParams = "";
-  for (const [_key, element] of Object.entries(framework.paneInstances)) {
+  for (const [key, element] of Object.entries(framework.paneInstances)) {
     let paneStateString = "";
     switch (element.paneType) {
       case "video_downlink":
@@ -143,8 +142,7 @@ export function generateShareURL(
         paneStateString = getStateStringForGraph(element.paneStateData as GraphPaneStateData);
         break;
     }
-    stateUrlParams += "&f" + i + "=" + paneStateString;
-    i++;
+    stateUrlParams += "&f" + key + "=" + paneStateString;
   }
 
   const urlRoot = location.origin + location.pathname;

@@ -1,4 +1,19 @@
-import { validateShareLinkDateTime } from "./share-state";
+import {
+  validateShareLinkDateTime,
+  generateShareURL,
+  interpretFramestateQueryString,
+} from "./share-state";
+import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
+
+// Mock browser-only modules so tests run in Node
+vi.mock("components/framework/dockview/dockview-api-ref", () => ({
+  getDockviewApi: vi.fn(),
+}));
+
+vi.mock("components/framework/dockview/dockview-layout-builder", () => ({
+  serializedToTree: vi.fn(() => ({ kind: "panel", paneInstanceId: 1 })),
+  treeToString: vi.fn(() => "1"),
+}));
 
 describe("validateShareLinkDateTime", () => {
   beforeEach(() => {
@@ -112,5 +127,165 @@ describe("validateShareLinkDateTime", () => {
       expect(result.validatedGmt).toBe("23:59:59");
       expect(result.isToday).toBe(false);
     });
+  });
+});
+
+describe("generateShareURL", () => {
+  beforeEach(() => {
+    vi.stubGlobal("location", { origin: "https://coda.nasa.gov", pathname: "/view/" });
+    vi.mocked(getDockviewApi).mockReturnValue({
+      toJSON: vi.fn().mockReturnValue({}),
+    } as unknown as ReturnType<typeof getDockviewApi>);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("uses paneInstance keys (not a sequential counter) as f-param indices", () => {
+    // Regression test for: share link panels loading in wrong panes.
+    //
+    // generateShareURL previously used a sequential counter (i++) for the f-param index
+    // instead of the actual paneInstance key. When panels are removed mid-session the
+    // Redux paneInstances object has non-sequential IDs (e.g. {1, 5, 6}). The old code
+    // wrote f1/f2/f3 while the DSL layout referenced panels 1/5/6, causing the receiver
+    // to restore each pane's content into the wrong slot.
+    //
+    // Simulate a state where panels 2, 3, 4 have been closed, leaving a gap.
+    // The bug caused f1/f2/f3 to be written instead of f1/f5/f6.
+    const framework: FrameworkState = {
+      layout: "c",
+      layoutLastChanged: 0,
+      source: "ISS",
+      paneInstances: {
+        "1": {
+          paneType: "video_downlink",
+          paneStateData: {
+            ready: true,
+            channel: 0,
+            activeVideoFileID: "",
+            muted: true,
+            showInfo: false,
+            showHelp: false,
+          } as VideoPaneStateData,
+        },
+        "5": {
+          paneType: "comm",
+          paneStateData: {
+            ready: true,
+            lockScroll: true,
+            filterActive: false,
+            sgChannels: [],
+            isMuted: false,
+            showHelp: true,
+          } as CommPaneStateData,
+        },
+        "6": {
+          paneType: "photo",
+          paneStateData: {
+            ready: true,
+            showInfo: false,
+            showFilter: false,
+            showHelp: false,
+          } as PhotoPaneStateData,
+        },
+      },
+    };
+
+    const url = generateShareURL(framework, "2024-03-10", 36000);
+    expect(url).not.toBeNull();
+    // f params must match actual paneInstance IDs, not a sequential 1/2/3
+    expect(url).toContain("f1=");
+    expect(url).toContain("f5=");
+    expect(url).toContain("f6=");
+    expect(url).not.toContain("f2=");
+    expect(url).not.toContain("f3=");
+    expect(url).not.toContain("f4=");
+  });
+
+  it("encodes correct pane state strings at the right indices", () => {
+    // Verify the encoded state values end up under the correct f-param key so
+    // that interpretFramestateQueryString can pair them back to the right paneInstanceId.
+    // e.g. the comm pane at slot 5 must be encoded as f5=08, not f2=08.
+    const framework: FrameworkState = {
+      layout: "c",
+      layoutLastChanged: 0,
+      source: "ISS",
+      paneInstances: {
+        "1": {
+          paneType: "video_downlink",
+          paneStateData: {
+            ready: true,
+            channel: 0,
+            activeVideoFileID: "",
+            muted: true,
+            showInfo: false,
+            showHelp: false,
+          } as VideoPaneStateData,
+        },
+        "5": {
+          paneType: "comm",
+          paneStateData: {
+            ready: true,
+            lockScroll: true,
+            filterActive: false,
+            sgChannels: [],
+            isMuted: false,
+            showHelp: true,
+          } as CommPaneStateData,
+        },
+        "6": {
+          paneType: "photo",
+          paneStateData: {
+            ready: true,
+            showInfo: false,
+            showFilter: false,
+            showHelp: false,
+          } as PhotoPaneStateData,
+        },
+      },
+    };
+
+    const url = generateShareURL(framework, "2024-03-10", 36000)!;
+    // video_downlink: paneType=01, channel=00, muted=1, activeVideoFileID=""
+    expect(url).toContain("f1=01001");
+    // comm/talkybot: paneType=08
+    expect(url).toContain("f5=08");
+    // photo: paneType=03, showInfo=0, showFilter=0
+    expect(url).toContain("f6=0300");
+  });
+});
+
+describe("interpretFramestateQueryString", () => {
+  it("maps non-sequential f-params to their matching paneInstance IDs", () => {
+    // interpretFramestateQueryString maps each fn param directly to paneInstance key "n".
+    // When the share link skips f2/f3/f4 (because those panels were removed), the
+    // resulting paneInstances object must also skip those keys — not re-number them.
+    // f1, f5, f6 — skipping f2/f3/f4 — must restore to keys "1", "5", "6"
+    const params = new URLSearchParams("f1=01001&f5=08&f6=0300");
+    const result = interpretFramestateQueryString(params);
+
+    expect(Object.keys(result)).toEqual(["1", "5", "6"]);
+    expect(result["1"].paneType).toBe("video_downlink");
+    expect(result["5"].paneType).toBe("comm");
+    expect(result["6"].paneType).toBe("photo");
+    // Keys 2, 3, 4 must be absent
+    expect(result["2"]).toBeUndefined();
+    expect(result["3"]).toBeUndefined();
+    expect(result["4"]).toBeUndefined();
+  });
+
+  it("round-trips: content generated by generateShareURL decodes to the original pane state", () => {
+    // End-to-end sanity check: a URL with non-sequential f-params (as produced by
+    // the fixed generateShareURL) must decode each pane to the correct slot.
+    // Before the fix, the receiver would map f3→key "3" instead of f5→key "5",
+    // so the comm pane would appear in slot 3 and slots 5/6 would be wrong.
+    const params = new URLSearchParams("f1=01001&f5=08&f6=0300");
+    const result = interpretFramestateQueryString(params);
+
+    // pane 5 must be comm, not photo (which was the bug: f3 → key "3", not "5")
+    expect(result["5"].paneType).toBe("comm");
+    // pane 6 must be photo, not something shifted
+    expect(result["6"].paneType).toBe("photo");
   });
 });
