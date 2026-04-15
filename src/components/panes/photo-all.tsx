@@ -112,16 +112,6 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
 
   const activePhotoRef = useRef<HTMLDivElement>(null);
 
-  const handleScroll = () => {
-    dispatch(
-      setPaneStateDataValue({
-        paneInstanceId,
-        paneStateProperty: "lockPhotosScroll",
-        paneStateValue: false,
-      })
-    );
-  };
-
   useEffect(() => {
     if (paneStateData.lockScroll && activePhotoRef.current !== null) {
       activePhotoRef.current.scrollIntoView({
@@ -179,9 +169,6 @@ const PhotoAllPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInsta
     <div className={styles.main}>
       <div
         className={styles.photoThumbs}
-        onWheel={() => {
-          handleScroll();
-        }}
       >
         {photos.collectionFilters.some((el) => el.selected === true) ? (
           photoThumbnails()
