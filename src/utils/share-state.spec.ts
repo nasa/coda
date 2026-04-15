@@ -2,8 +2,18 @@ import {
   validateShareLinkDateTime,
   generateShareURL,
   interpretFramestateQueryString,
+  interpretFrameQueryParam,
+  getStateStringForVideo,
+  getStateStringForPhoto,
+  getStateStringForPhotoAll,
+  getStateStringForEventInfo,
+  getStateStringforISSLocation,
+  getStateStringforGPSLocation,
+  getStateStringForComm,
+  getStateStringForGraph,
 } from "./share-state";
 import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
+import { paneTypeShortVal } from "utils/consts";
 
 // Mock browser-only modules so tests run in Node
 vi.mock("components/framework/dockview/dockview-api-ref", () => ({
@@ -142,71 +152,23 @@ describe("generateShareURL", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uses paneInstance keys (not a sequential counter) as f-param indices", () => {
-    // Regression test for: share link panels loading in wrong panes.
-    //
-    // generateShareURL previously used a sequential counter (i++) for the f-param index
-    // instead of the actual paneInstance key. When panels are removed mid-session the
-    // Redux paneInstances object has non-sequential IDs (e.g. {1, 5, 6}). The old code
-    // wrote f1/f2/f3 while the DSL layout referenced panels 1/5/6, causing the receiver
-    // to restore each pane's content into the wrong slot.
-    //
-    // Simulate a state where panels 2, 3, 4 have been closed, leaving a gap.
-    // The bug caused f1/f2/f3 to be written instead of f1/f5/f6.
+  it("returns null when the Dockview API is not yet available", () => {
+    // getDockviewApi returns null before Dockview has fired its onReady event.
+    // generateShareURL must short-circuit and return null in that case.
+    vi.mocked(getDockviewApi).mockReturnValue(null);
     const framework: FrameworkState = {
       layout: "c",
       layoutLastChanged: 0,
       source: "ISS",
-      paneInstances: {
-        "1": {
-          paneType: "video_downlink",
-          paneStateData: {
-            ready: true,
-            channel: 0,
-            activeVideoFileID: "",
-            muted: true,
-            showInfo: false,
-            showHelp: false,
-          } as VideoPaneStateData,
-        },
-        "5": {
-          paneType: "comm",
-          paneStateData: {
-            ready: true,
-            lockScroll: true,
-            filterActive: false,
-            sgChannels: [],
-            isMuted: false,
-            showHelp: true,
-          } as CommPaneStateData,
-        },
-        "6": {
-          paneType: "photo",
-          paneStateData: {
-            ready: true,
-            showInfo: false,
-            showFilter: false,
-            showHelp: false,
-          } as PhotoPaneStateData,
-        },
-      },
+      paneInstances: {},
     };
-
-    const url = generateShareURL(framework, "2024-03-10", 36000);
-    expect(url).not.toBeNull();
-    // f params must match actual paneInstance IDs, not a sequential 1/2/3
-    expect(url).toContain("f1=");
-    expect(url).toContain("f5=");
-    expect(url).toContain("f6=");
-    expect(url).not.toContain("f2=");
-    expect(url).not.toContain("f3=");
-    expect(url).not.toContain("f4=");
+    expect(generateShareURL(framework, "2024-03-10", 36000)).toBeNull();
   });
 
-  it("encodes correct pane state strings at the right indices", () => {
-    // Verify the encoded state values end up under the correct f-param key so
-    // that interpretFramestateQueryString can pair them back to the right paneInstanceId.
-    // e.g. the comm pane at slot 5 must be encoded as f5=08, not f2=08.
+  it("uses paneInstance keys as f-param indices and encodes correct state strings", () => {
+    // Verify f-param keys match actual paneInstance IDs (not a sequential counter) and
+    // that each pane type's encoder is correctly dispatched from the switch statement.
+    // With paneInstances {1, 5, 6}, f1/f5/f6 must be present and f2/f3/f4 must be absent.
     const framework: FrameworkState = {
       layout: "c",
       layoutLastChanged: 0,
@@ -223,7 +185,52 @@ describe("generateShareURL", () => {
             showHelp: false,
           } as VideoPaneStateData,
         },
+        "2": {
+          paneType: "video_non_downlink",
+          paneStateData: {
+            ready: true,
+            channel: -1,
+            activeVideoFileID: "clip",
+            muted: false,
+            showHelp: false,
+          } as VideoPaneStateData,
+        },
+        "3": {
+          paneType: "photo",
+          paneStateData: {
+            ready: true,
+            showInfo: false,
+            showFilter: false,
+            showHelp: false,
+          } as PhotoPaneStateData,
+        },
+        "4": {
+          paneType: "photo_all",
+          paneStateData: {
+            ready: true,
+            showFilter: true,
+            lockScroll: true,
+            showHelp: false,
+          } as PhotoAllPaneStateData,
+        },
         "5": {
+          paneType: "event_info",
+          paneStateData: { ready: true, showHelp: false } as EventPaneStateData,
+        },
+        "6": {
+          paneType: "iss_location",
+          paneStateData: { ready: true, lockMap: true, showHelp: false } as LocationPaneStateData,
+        },
+        "7": {
+          paneType: "gps_location",
+          paneStateData: {
+            ready: true,
+            lockMap: false,
+            showHelp: false,
+            gpsTrackToggles: { EV1: true },
+          } as GpsTrackPaneStateData,
+        },
+        "8": {
           paneType: "comm",
           paneStateData: {
             ready: true,
@@ -234,25 +241,217 @@ describe("generateShareURL", () => {
             showHelp: true,
           } as CommPaneStateData,
         },
-        "6": {
-          paneType: "photo",
+        "10": {
+          paneType: "graph",
           paneStateData: {
             ready: true,
-            showInfo: false,
-            showFilter: false,
+            lockScroll: true,
             showHelp: false,
-          } as PhotoPaneStateData,
+            selectedGraphId: "hr",
+          } as GraphPaneStateData,
         },
       },
     };
-
     const url = generateShareURL(framework, "2024-03-10", 36000)!;
-    // video_downlink: paneType=01, channel=00, muted=1, activeVideoFileID=""
-    expect(url).toContain("f1=01001");
-    // comm/talkybot: paneType=08
-    expect(url).toContain("f5=08");
-    // photo: paneType=03, showInfo=0, showFilter=0
-    expect(url).toContain("f6=0300");
+    expect(url).toContain("f1=01001"); // video_downlink
+    expect(url).toContain("f2=02-10clip"); // video_non_downlink
+    expect(url).toContain("f3=0300"); // photo
+    expect(url).toContain("f4=0711"); // photo_all
+    expect(url).toContain("f5=04"); // event_info
+    expect(url).toContain("f6=051"); // iss_location
+    expect(url).toContain("f7=060EV1"); // gps_location
+    expect(url).toContain("f8=08"); // comm
+    expect(url).toContain("f10=101hr"); // graph — key "10" → f10
+    // f9 not present since paneInstance "9" doesn't exist
+    expect(url).not.toContain("f9=");
+  });
+});
+
+describe("pane state encoders", () => {
+  it("encodes video_downlink: channel, muted, activeVideoFileID", () => {
+    expect(
+      getStateStringForVideo(
+        { channel: 2, muted: true, activeVideoFileID: "" } as VideoPaneStateData,
+        paneTypeShortVal.video_downlink
+      )
+    ).toBe("01021");
+    expect(
+      getStateStringForVideo(
+        { channel: 2, muted: false, activeVideoFileID: "" } as VideoPaneStateData,
+        paneTypeShortVal.video_downlink
+      )
+    ).toBe("01020");
+    expect(
+      getStateStringForVideo(
+        { channel: 0, muted: true, activeVideoFileID: "abc" } as VideoPaneStateData,
+        paneTypeShortVal.video_downlink
+      )
+    ).toBe("01001abc");
+  });
+
+  it("encodes video_non_downlink: channel is always -1", () => {
+    expect(
+      getStateStringForVideo(
+        { channel: -1, muted: false, activeVideoFileID: "clip" } as VideoPaneStateData,
+        paneTypeShortVal.video_non_downlink
+      )
+    ).toBe("02-10clip");
+    expect(
+      getStateStringForVideo(
+        { channel: -1, muted: true, activeVideoFileID: "" } as VideoPaneStateData,
+        paneTypeShortVal.video_non_downlink
+      )
+    ).toBe("02-11");
+  });
+
+  it("encodes photo: showInfo and showFilter flags", () => {
+    expect(
+      getStateStringForPhoto({ showInfo: false, showFilter: false } as PhotoPaneStateData)
+    ).toBe("0300");
+    expect(
+      getStateStringForPhoto({ showInfo: true, showFilter: false } as PhotoPaneStateData)
+    ).toBe("0310");
+    expect(
+      getStateStringForPhoto({ showInfo: false, showFilter: true } as PhotoPaneStateData)
+    ).toBe("0301");
+    expect(getStateStringForPhoto({ showInfo: true, showFilter: true } as PhotoPaneStateData)).toBe(
+      "0311"
+    );
+  });
+
+  it("encodes photo_all: showFilter and lockScroll flags", () => {
+    expect(
+      getStateStringForPhotoAll({ showFilter: false, lockScroll: false } as PhotoAllPaneStateData)
+    ).toBe("0700");
+    expect(
+      getStateStringForPhotoAll({ showFilter: true, lockScroll: true } as PhotoAllPaneStateData)
+    ).toBe("0711");
+    expect(
+      getStateStringForPhotoAll({ showFilter: true, lockScroll: false } as PhotoAllPaneStateData)
+    ).toBe("0710");
+  });
+
+  it("encodes event_info: pane type only", () => {
+    expect(getStateStringForEventInfo()).toBe("04");
+  });
+
+  it("encodes iss_location: lockMap flag", () => {
+    expect(getStateStringforISSLocation({ lockMap: true } as LocationPaneStateData)).toBe("051");
+    expect(getStateStringforISSLocation({ lockMap: false } as LocationPaneStateData)).toBe("050");
+  });
+
+  it("encodes gps_location: lockMap flag and enabled track names", () => {
+    // Only tracks with value=true are included in the string; disabled tracks are omitted.
+    expect(
+      getStateStringforGPSLocation({
+        lockMap: false,
+        gpsTrackToggles: { EV1: true, EV2: false, EV3: true },
+      } as unknown as GpsTrackPaneStateData)
+    ).toBe("060EV1,EV3");
+    expect(
+      getStateStringforGPSLocation({
+        lockMap: true,
+        gpsTrackToggles: { EV1: true },
+      } as unknown as GpsTrackPaneStateData)
+    ).toBe("061EV1");
+    expect(
+      getStateStringforGPSLocation({
+        lockMap: false,
+        gpsTrackToggles: {},
+      } as unknown as GpsTrackPaneStateData)
+    ).toBe("060");
+  });
+
+  it("encodes comm: pane type only (channel info not stored)", () => {
+    expect(getStateStringForComm({} as CommPaneStateData)).toBe("08");
+  });
+
+  it("encodes graph: lockScroll flag and selectedGraphId", () => {
+    expect(
+      getStateStringForGraph({
+        lockScroll: true,
+        selectedGraphId: "heart-rate",
+      } as GraphPaneStateData)
+    ).toBe("101heart-rate");
+    expect(
+      getStateStringForGraph({ lockScroll: false, selectedGraphId: "co2" } as GraphPaneStateData)
+    ).toBe("100co2");
+  });
+});
+
+describe("interpretFrameQueryParam", () => {
+  it("decodes video_downlink: channel, muted, activeVideoFileID", () => {
+    const result = interpretFrameQueryParam("01021abc")!;
+    expect(result.paneType).toBe("video_downlink");
+    const data = result.paneStateData as VideoPaneStateData;
+    expect(data.channel).toBe(2);
+    expect(data.muted).toBe(true);
+    expect(data.activeVideoFileID).toBe("abc");
+  });
+
+  it("decodes video_non_downlink: channel always -1, muted flag, fileID", () => {
+    const result = interpretFrameQueryParam("02-11myfile")!;
+    expect(result.paneType).toBe("video_non_downlink");
+    const data = result.paneStateData as VideoPaneStateData;
+    expect(data.channel).toBe(-1);
+    expect(data.muted).toBe(true);
+    expect(data.activeVideoFileID).toBe("myfile");
+  });
+
+  it("decodes photo: showInfo and showFilter flags", () => {
+    const on = interpretFrameQueryParam("0311")!.paneStateData as PhotoPaneStateData;
+    const off = interpretFrameQueryParam("0300")!.paneStateData as PhotoPaneStateData;
+    expect(on.showInfo).toBe(true);
+    expect(on.showFilter).toBe(true);
+    expect(off.showInfo).toBe(false);
+    expect(off.showFilter).toBe(false);
+  });
+
+  it("decodes photo_all: showFilter and lockScroll flags", () => {
+    const data = interpretFrameQueryParam("0710")!.paneStateData as PhotoAllPaneStateData;
+    expect(data.showFilter).toBe(true);
+    expect(data.lockScroll).toBe(false);
+  });
+
+  it("decodes event_info: no extra state", () => {
+    expect(interpretFrameQueryParam("04")!.paneType).toBe("event_info");
+  });
+
+  it("decodes iss_location: lockMap flag", () => {
+    expect((interpretFrameQueryParam("051")!.paneStateData as LocationPaneStateData).lockMap).toBe(
+      true
+    );
+    expect((interpretFrameQueryParam("050")!.paneStateData as LocationPaneStateData).lockMap).toBe(
+      false
+    );
+  });
+
+  it("decodes gps_location: lockMap flag and enabled track names", () => {
+    const data = interpretFrameQueryParam("061EV1,EV3")!.paneStateData as GpsTrackPaneStateData;
+    expect(data.lockMap).toBe(true);
+    expect(data.gpsTrackToggles).toEqual({ EV1: true, EV3: true });
+  });
+
+  it("decodes gps_location legacy format (no tracks defaults to EV1/EV2)", () => {
+    // Legacy links omit the track list entirely; the decoder defaults to EV1+EV2.
+    const data = interpretFrameQueryParam("060")!.paneStateData as GpsTrackPaneStateData;
+    expect(data.gpsTrackToggles).toEqual({ EV1: true, EV2: true });
+  });
+
+  it("decodes comm", () => {
+    expect(interpretFrameQueryParam("08")!.paneType).toBe("comm");
+  });
+
+  it("decodes graph: lockScroll flag and selectedGraphId", () => {
+    const data = interpretFrameQueryParam("101heart-rate")!.paneStateData as GraphPaneStateData;
+    expect(data.lockScroll).toBe(true);
+    expect(data.selectedGraphId).toBe("heart-rate");
+  });
+
+  it("returns undefined for unrecognised pane type codes", () => {
+    // An unknown pane type (e.g. from a future version) must not crash and must
+    // return undefined so the caller can safely omit it.
+    expect(interpretFrameQueryParam("99")).toBeUndefined();
   });
 });
 
@@ -261,7 +460,6 @@ describe("interpretFramestateQueryString", () => {
     // interpretFramestateQueryString maps each fn param directly to paneInstance key "n".
     // When the share link skips f2/f3/f4 (because those panels were removed), the
     // resulting paneInstances object must also skip those keys — not re-number them.
-    // f1, f5, f6 — skipping f2/f3/f4 — must restore to keys "1", "5", "6"
     const params = new URLSearchParams("f1=01001&f5=08&f6=0300");
     const result = interpretFramestateQueryString(params);
 
@@ -269,23 +467,23 @@ describe("interpretFramestateQueryString", () => {
     expect(result["1"].paneType).toBe("video_downlink");
     expect(result["5"].paneType).toBe("comm");
     expect(result["6"].paneType).toBe("photo");
-    // Keys 2, 3, 4 must be absent
     expect(result["2"]).toBeUndefined();
     expect(result["3"]).toBeUndefined();
     expect(result["4"]).toBeUndefined();
   });
 
-  it("round-trips: content generated by generateShareURL decodes to the original pane state", () => {
-    // End-to-end sanity check: a URL with non-sequential f-params (as produced by
-    // the fixed generateShareURL) must decode each pane to the correct slot.
-    // Before the fix, the receiver would map f3→key "3" instead of f5→key "5",
-    // so the comm pane would appear in slot 3 and slots 5/6 would be wrong.
-    const params = new URLSearchParams("f1=01001&f5=08&f6=0300");
-    const result = interpretFramestateQueryString(params);
+  it("returns an empty object when no f-params are present", () => {
+    // A URL with no frame params (e.g. only date/gmt) must produce an empty map.
+    const params = new URLSearchParams("date=2024-03-10&gmt=10:00:00");
+    expect(interpretFramestateQueryString(params)).toEqual({});
+  });
 
-    // pane 5 must be comm, not photo (which was the bug: f3 → key "3", not "5")
-    expect(result["5"].paneType).toBe("comm");
-    // pane 6 must be photo, not something shifted
-    expect(result["6"].paneType).toBe("photo");
+  it("silently drops f-params with unrecognised pane type codes", () => {
+    // When interpretFrameQueryParam returns undefined (unknown pane type), the
+    // entry must be omitted from the result rather than crashing or inserting undefined.
+    const params = new URLSearchParams("f1=01001&f2=99");
+    const result = interpretFramestateQueryString(params);
+    expect(result["1"].paneType).toBe("video_downlink");
+    expect(result["2"]).toBeUndefined();
   });
 });

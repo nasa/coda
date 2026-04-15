@@ -166,7 +166,10 @@ export function generateShareURL(
  * Char 4: 0 if muted, 1 if unmuted
  * Chars 5+: String of activeVideoFileID (used for non-downlink video selection)
  */
-function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeShortVal): string {
+export function getStateStringForVideo(
+  state: VideoPaneStateData,
+  paneType: PaneTypeShortVal
+): string {
   const paneTypeString = "0" + paneType;
   const dlString = state.channel === -1 ? "-1" : "0" + state.channel.toString();
   const mutedString = state.muted ? "1" : "0";
@@ -180,7 +183,7 @@ function getStateStringForVideo(state: VideoPaneStateData, paneType: PaneTypeSho
  * Char 2: 0 if showInfo is false, 1 if showInfo is true
  * Char 3: 0 if showFilter is false, 1 if showFilter is true
  */
-function getStateStringForPhoto(state: PhotoPaneStateData) {
+export function getStateStringForPhoto(state: PhotoPaneStateData): string {
   const paneTypeString = "0" + paneTypeShortVal.photo;
   const showInfo = state.showInfo ? "1" : "0";
   const showFilter = state.showFilter ? "1" : "0";
@@ -193,7 +196,7 @@ function getStateStringForPhoto(state: PhotoPaneStateData) {
  * Char 2: 0 if showFilter is false, 1 if showFilter is true
  * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
  */
-function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
+export function getStateStringForPhotoAll(state: PhotoAllPaneStateData): string {
   const paneTypeString = "0" + paneTypeShortVal.photo_all;
   const showFilter = state.showFilter ? "1" : "0";
   const lockScroll = state.lockScroll ? "1" : "0";
@@ -204,7 +207,7 @@ function getStateStringForPhotoAll(state: PhotoAllPaneStateData) {
  * @returns {string}
  * Chars 0,1 digits: pane type
  */
-function getStateStringForEventInfo() {
+export function getStateStringForEventInfo(): string {
   const paneTypeString = "0" + paneTypeShortVal.event_info;
   return `${paneTypeString}`;
 }
@@ -214,7 +217,7 @@ function getStateStringForEventInfo() {
  * Chars 0,1 digits: pane type
  * Char 2: 0 if lockToggle is false, 1 if lockToggle is true
  */
-function getStateStringforISSLocation(state: LocationPaneStateData) {
+export function getStateStringforISSLocation(state: LocationPaneStateData): string {
   const paneTypeString = "0" + paneTypeShortVal.iss_location;
   const lockToggle = state.lockMap ? "1" : "0";
   return `${paneTypeString}${lockToggle}`;
@@ -226,7 +229,7 @@ function getStateStringforISSLocation(state: LocationPaneStateData) {
  * Char 2: 0 if lockToggle is false, 1 if lockToggle is true
  * Chars 3+: Comma delimited list of GPS track names that have been enabled
  */
-function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
+export function getStateStringforGPSLocation(state: GpsTrackPaneStateData): string {
   const paneTypeString = "0" + paneTypeShortVal.gps_location;
   const lockToggle = state.lockMap ? "1" : "0";
   const enabledTracks = [];
@@ -244,7 +247,7 @@ function getStateStringforGPSLocation(state: GpsTrackPaneStateData) {
  * Chars 0,1 digits: pane type
  * No channel info - all channels selected by default
  */
-function getStateStringForComm(_state: CommPaneStateData) {
+export function getStateStringForComm(_state: CommPaneStateData): string {
   const paneTypeString = "0" + paneTypeShortVal.talkybot;
   return `${paneTypeString}`;
 }
@@ -254,7 +257,7 @@ function getStateStringForComm(_state: CommPaneStateData) {
  * Chars 0,1 digits: pane type
  * Char 2: S/G channel number - 1
  */
-function getStateStringForGraph(state: GraphPaneStateData) {
+export function getStateStringForGraph(state: GraphPaneStateData): string {
   const paneTypeString = paneTypeShortVal.graph;
   const lockToggle = state.lockScroll ? "1" : "0";
   const selectedGraphId = state.selectedGraphId;
@@ -288,11 +291,7 @@ export function interpretFramestateQueryString(query: URLSearchParams): {
  * @param frameString A shortened string representing the state of a frame received as a query parameter
  * @returns
  */
-function interpretFrameQueryParam(frameString: string): PaneState | undefined {
-  if (!frameString) {
-    return undefined;
-  }
-
+export function interpretFrameQueryParam(frameString: string): PaneState | undefined {
   /* Chars 0,1 digits: pane type */
   const paneType = parseInt(frameString.substring(0, 2));
 
