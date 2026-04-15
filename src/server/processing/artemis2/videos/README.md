@@ -16,16 +16,7 @@ Videos that don't match any tier get `downlink = -1` (non-channel, shown in the 
 
 ## IO Data Issues
 
-### Issue 1: NASA ID format differs from ISS
-
-ISS videos use `iss{exp}m{source}` with a 2-digit source code. Artemis uses `art{mission}m{source}` with a **3-digit** source code. The existing `isDownlinkVideo()` function only matches `iss` and `sts` prefixes, so it returns `false` for all Artemis videos. Channel assignment for Artemis bypasses `isDownlinkVideo()` entirely and uses `getArtemisChannel()`.
-
-```
-ISS:     iss060m01 2311234      source = 01 (2 digits)
-Artemis: art002m101 0912337     source = 101 (3 digits)
-```
-
-### Issue 2: Prelaunch/Launch videos are downlink channels in disguise
+### Issue 1: Prelaunch/Launch videos are downlink channels in disguise
 
 20 videos with source codes 101–103 are categorized by IO under `Prelaunch/Launch` instead of `Downlink|Channel XX`. These are the same camera feeds as Downlink Ch01–03, just from before and during launch (16:59–23:42 UTC on April 1). IO chose to categorize them by mission phase rather than by signal source.
 
@@ -38,7 +29,7 @@ Without the source code fallback, these videos would get `downlink = -1` and not
 | 103    | 77                     | 8                    | 85    |
 | 104    | 23                     | 0                    | 23    |
 
-### Issue 3: FD01–FD10 folders are mostly NASA TV, not flight day highlights
+### Issue 2: FD01–FD10 folders are mostly NASA TV, not flight day highlights
 
 IO created `FD01` through `FD10` subcollections that suggest curated flight-day content. In reality, 250 of the 277 videos in these folders are NASA TV continuous coverage feeds (source 150) — hour-long broadcast recordings chopped into segments.
 
@@ -46,7 +37,7 @@ Only 3 of the 286 source-150 videos are in the actual `NASA TV` collection. The 
 
 The source code fallback (150 → Ch 5) catches all of these regardless of which IO folder they're in.
 
-### Issue 4: "Mission Video Notes" is not in the API
+### Issue 3: "Mission Video Notes" is not in the API
 
 The IO search API returns `md_title` and `description` for each video, but many videos (especially source 120 onboard camera clips and recovery feeds) have both fields blank. The only useful metadata is in the "Mission Video Notes" field, which is **only visible on individual info.cfm web pages** — it is not returned by the search API.
 
@@ -60,7 +51,7 @@ Mission Video Notes: "Folder: Core-Separation-Batch-2 | File: cmasaw1_2026040122
 
 This tells us the camera name (`cmasaw1` — CMA Solar Array Wing Camera 1), the event (core separation), and clearance status — none of which appears in the API.
 
-### Issue 5: Recovery feeds share a source code but are different cameras
+### Issue 4: Recovery feeds share a source code but are different cameras
 
 During recovery (April 10–11), source code 150 represents **6 different camera feeds** running simultaneously:
 
@@ -76,7 +67,7 @@ During recovery (April 10–11), source code 150 represents **6 different camera
 
 All 30 videos have `source_code = 150` and `category = Landing/Recovery` in the API. The only way to distinguish them is the scraped Mission Video Notes field. The `generate-channel-overrides.mjs` script classifies them by regex matching on the notes text.
 
-### Issue 6: The "B" suffix does NOT mean duplicate
+### Issue 5: The "B" suffix does NOT mean duplicate
 
 38 videos have a `B` suffix on their nasa_id (e.g., `art002m1501002220B`). In 24 of these cases, the A and B versions are **completely different feeds** — not alternate encodes or backups.
 
@@ -90,7 +81,7 @@ Examples from recovery:
 
 For source-120 onboard clips, A and B are typically different physical cameras filming the same event from different angles (e.g., `cmacma1` vs `cmacma2`). These need to be on the same channel since they represent alternate views, not parallel streams.
 
-### Issue 7: Aircraft footage uses unique source codes with no IO categorization
+### Issue 6: Aircraft footage uses unique source codes with no IO categorization
 
 Three source codes appear only during launch and recovery for aircraft-based imaging:
 
@@ -105,7 +96,7 @@ IO lumps these into the same categories as everything else. They need static ove
 - Source 201 → Channel 4 (reuses empty Ch04 during recovery)
 - Source 200 → Channel 7 (no conflict during launch)
 
-### Issue 8: Two videos have non-standard nasa_ids
+### Issue 7: Two videos have non-standard nasa_ids
 
 Two Blue FCR (Flight Control Room) camera recordings of the Trans Lunar Injection burn use JSC-style nasa_ids instead of the Artemis `art` prefix:
 
