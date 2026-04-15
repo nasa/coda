@@ -189,18 +189,18 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.source = "ARTEMIS";
       // Default Artemis layout from share link (2026-04-01)
       const defaultArtemisTree = stringToTree(
-        "h(v(h(1:624,2:623):469,h(5:793,6:454):364):1250,3:415)"
+        "h(v(h(1:625,2:623):469,h(5:794,6:454):364):1251,3:414)"
       );
       if (defaultArtemisTree) dockviewLayout = treeToSerialized(defaultArtemisTree);
       fState.paneInstances = interpretFramestateQueryString(
         new URLSearchParams(
-          "f1=01001art002m1010911859&f2=01041art002m1500911859&f3=08&f5=0701&f6=0300"
+          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300"
         )
       );
       if (isNil(rawDate)) {
         date = "2026-04-01";
         if (isNil(rawGmt)) {
-          gmt = "17:00:00";
+          gmt = "18:37:15";
         }
       }
     }
