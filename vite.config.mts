@@ -72,7 +72,6 @@ export const config: UserConfig = {
             "react-router",
             "@reduxjs/toolkit",
             "react-modal",
-            "react-lazy-load-image-component",
             "react-cookie",
           ],
           plotly: ["plotly.js-basic-dist"],
