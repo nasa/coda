@@ -46,15 +46,14 @@
   "author": "jsc-dl-emss-coda@mail.nasa.gov",
   "license": "ISC",
   "dependencies": {
-    "@mikro-orm/cli": "6.6.13",
-    "@mikro-orm/core": "6.6.13",
-    "@mikro-orm/migrations": "6.6.13",
-    "@mikro-orm/postgresql": "6.6.13",
-    "@mikro-orm/seeder": "6.6.13",
+    "@mikro-orm/cli": "7.0.10",
+    "@mikro-orm/core": "7.0.10",
+    "@mikro-orm/migrations": "7.0.10",
+    "@mikro-orm/postgresql": "7.0.10",
+    "@mikro-orm/seeder": "7.0.10",
     "@vitejs/plugin-react": "6.0.1",
     "dotenv": "17.4.2",
-    "globals": "17.5.0",
-    "ts-node": "10.9.2"
+    "globals": "17.5.0"
   },
   "devDependencies": {
     "@emss/logger": "0.9.3",
@@ -145,7 +144,7 @@
     "services/iss-wiki-server": false
   },
   "mikro-orm": {
-    "useTsNode": true,
+    "preferTs": true,
     "tsConfigPath": "./src/server/database/tsconfig.orm.json",
     "configPaths": [
       "./src/server/database/mikro-orm.config.ts"

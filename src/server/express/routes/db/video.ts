@@ -72,7 +72,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       if (videoRecord) {
         videoRecord.videoId = videoId;
         videoRecord.startTime = startTime;
-        await em.persistAndFlush(videoRecord);
+        await em.persist(videoRecord).flush();
         res.status(200).json({
           status: "success",
           message: "video date time override updated",
@@ -86,7 +86,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         videoId,
         startTime,
       });
-      await em.persistAndFlush(videoRecord);
+      await em.persist(videoRecord).flush();
       res.status(201).json({
         status: "success",
         message: "video date time override inserted",
@@ -109,7 +109,7 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
       id: Number(id),
     });
     if (videoRecord) {
-      await em.removeAndFlush(videoRecord);
+      await em.remove(videoRecord).flush();
       res.status(200).json({ status: "success", message: "video deleted" });
     } else {
       res.status(404).json({ status: "error", message: "video not found" });
