@@ -25,7 +25,6 @@ import {
   treeToSerialized,
 } from "components/framework/dockview/dockview-layout-builder";
 import { useSearchParams } from "react-router";
-import { URLSearchParams } from "url";
 import { isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
 import { appSecondsFromDateString } from "utils/formatting";
@@ -160,7 +159,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
   // Validate date (no date/future/malformed → today) and clamp future gmt times to now
   const { validatedDate, validatedGmt } = validateShareLinkDateTime(rawDate, rawGmt);
   let date = validatedDate;
-  const gmt = validatedGmt;
+  let gmt = validatedGmt;
   let dockviewLayout: import("dockview-react").SerializedDockview | null = null;
 
   const fState: FrameworkState = { ...initialFrameworkState };
@@ -188,16 +187,22 @@ function getURLParams(query: URLSearchParams): QueryParams {
       }
     } else if (source === sourceShortVal.ARTEMIS) {
       fState.source = "ARTEMIS";
-      // set the default layout to show no map, only All Photos along the bottom
-      fState.layout = "e";
-      // if (isNil(date)) {
-      //   // 2022-12-05 is a good representation of Artemis 1 events
-      //   date = new Date(2022, 11, 5).toISOString().split("T")[0]; // 9 = October
-      //   if (isNil(gmt)) {
-      //     // 2022-12-05 at 17:14:44 is a good representation of Artemis 1 events
-      //     gmt = "17:14:44";
-      //   }
-      // }
+      // Default Artemis layout from share link (2026-04-01)
+      const defaultArtemisTree = stringToTree(
+        "h(v(h(1:625,2:623):469,h(5:794,6:454):364):1251,3:414)"
+      );
+      if (defaultArtemisTree) dockviewLayout = treeToSerialized(defaultArtemisTree);
+      fState.paneInstances = interpretFramestateQueryString(
+        new URLSearchParams(
+          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300"
+        )
+      );
+      if (isNil(rawDate)) {
+        date = "2026-04-01";
+        if (isNil(rawGmt)) {
+          gmt = "18:37:15";
+        }
+      }
     }
   }
 
