@@ -26,45 +26,23 @@
   --dv-active-sash-color: var(--grey);
 }
 
-/* Keep void-container from consuming space so right-actions stays adjacent to tabs.
-   Right-actions: flex-basis 32px guarantees the + button is always visible even
-   when the scrollable tab strip fills the header; flex-grow lets controls expand
-   inline when there is remaining space; flex-shrink 1 allows it to shrink when
-   the panel is narrow so the ResizeObserver can trigger collapse into a button. */
-.container :global(.dv-void-container) {
-  flex-grow: 0 !important;
-}
-
-.container :global(.dv-right-actions-container) {
-  flex: 1 1 32px;
-  min-width: 68px;
-}
-
 /* Disable Dockview's default overflow dropdown and keep tab strip scrollable */
 .container :global(.dv-tabs-overflow-dropdown-root),
 .container :global(.dv-tabs-overflow-dropdown-default) {
   display: none !important;
 }
 
-/* Clip the native OS scrollbar out of view; scroll still works via mouse wheel.
-   The tab-bar is 28px tall — a thick OS scrollbar wastes too much of that space
-   and can't be reliably restyled in Chrome on Windows. */
-.container :global(.dv-scrollable) {
-  overflow: hidden;
+/* Don't let the void spacer consume the space that right-actions needs
+   for its ResizeObserver-based collapse logic. */
+.container :global(.dv-void-container) {
+  flex-grow: 0 !important;
 }
 
-.container :global(.dv-scrollable > .dv-tabs-container) {
-  overflow-x: scroll !important;
-  overflow-y: hidden !important;
-  /* push native scrollbar below the clipped area */
-  padding-bottom: 17px;
-  box-sizing: content-box !important;
-  /* Firefox */
-  scrollbar-width: none;
-}
-
-.container :global(.dv-tabs-container)::-webkit-scrollbar {
-  display: none;
+/* Right-actions fills remaining space after tabs + add-button so the
+   ResizeObserver can measure real available width for inline controls. */
+.container :global(.dv-right-actions-container) {
+  flex: 1 1 0;
+  min-width: 32px;
 }
 
 /* Let header dropdowns (e.g. COM channels) render above panel content */
