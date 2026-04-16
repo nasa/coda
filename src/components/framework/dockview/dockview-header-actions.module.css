@@ -2,6 +2,7 @@
 
 .rightActions {
   display: flex;
+  flex: 1;
   align-items: center;
   height: 100%;
   gap: 2px;
@@ -13,10 +14,10 @@
   flex: 1;
   min-width: 0;
   overflow-x: clip;
-  margin-left: auto;
   display: flex;
   align-items: center;
   height: 100%;
+  margin-left: auto;
 }
 
 .addButton {

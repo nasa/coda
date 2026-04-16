@@ -75,7 +75,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         photoRecord.date = date;
         photoRecord.source = source;
         photoRecord.timeOffset = timeOffset;
-        await em.persistAndFlush(photoRecord);
+        await em.persist(photoRecord).flush();
         res.status(200).json({
           status: "success",
           message: "photo date time override updated",
@@ -86,7 +86,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       }
     } else {
       const photoRecord: PhotoRecord = em.create(PhotoTimeShifts_db, { date, source, timeOffset });
-      await em.persistAndFlush(photoRecord);
+      await em.persist(photoRecord).flush();
       res.status(201).json({
         status: "success",
         message: "photo date time override inserted",
@@ -109,7 +109,7 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
       id: Number(id),
     });
     if (photoRecord) {
-      await em.removeAndFlush(photoRecord);
+      await em.remove(photoRecord).flush();
       res.status(200).json({ status: "success", message: "photo time shift deleted" });
     } else {
       res.status(404).json({ status: "error", message: "photo time shift not found" });

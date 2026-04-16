@@ -18,7 +18,6 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 // ============================================================================
 
 const CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
-const MIN_WIDTH_FOR_LARGE_SELECTOR = 527;
 const MIN_WIDTH_FOR_LONG_BUTTON = 470;
 
 // ============================================================================
@@ -354,17 +353,13 @@ export const VideoOtherPaneControls: FunctionComponent<{
 
   const hasVideosAvailable = nonDlVideoIDs.length > 0;
   const selectActiveStyle = hasVideosAvailable ? styles.selectActive : "";
-  const dropDownWidthClass =
-    groupDimensions[0] > MIN_WIDTH_FOR_LARGE_SELECTOR
-      ? styles.selectContainerWide
-      : styles.selectContainerNarrow;
 
   return (
     <>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
       <div className={styles.controls}>
         <div
-          className={`${styles.selectContainer} ${dropDownWidthClass}`}
+          className={`${styles.selectContainer} ${styles.selectContainerWide}`}
           title={getPrettyVideoTitle(paneStateData.activeVideoFileID)}
         >
           <select
