@@ -77,7 +77,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         mediaOverride.source = source;
         mediaOverride.type = type;
         mediaOverride.url = url;
-        await em.persistAndFlush(mediaOverride);
+        await em.persist(mediaOverride).flush();
         res
           .status(200)
           .json({ status: "success", message: "media override updated", data: mediaOverride });
@@ -92,7 +92,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         type,
         url,
       });
-      await em.persistAndFlush(mediaOverride);
+      await em.persist(mediaOverride).flush();
       res
         .status(201)
         .json({ status: "success", message: "media override inserted", data: mediaOverride });
@@ -111,7 +111,7 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
   try {
     const mediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
     if (mediaOverride) {
-      await em.removeAndFlush(mediaOverride);
+      await em.remove(mediaOverride).flush();
       res.status(200).json({ status: "success", message: "media override deleted" });
     } else {
       res.status(404).json({ status: "error", message: "media override not found" });

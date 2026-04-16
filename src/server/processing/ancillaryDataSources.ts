@@ -54,7 +54,7 @@ export async function upsertAncillaryDataSource({
     existing.source = source;
     existing.type = type;
     existing.url = url;
-    await em.persistAndFlush(existing);
+    await em.persist(existing).flush();
     return { record: existing, isNew: false };
   }
 
@@ -64,7 +64,7 @@ export async function upsertAncillaryDataSource({
     type,
     url,
   });
-  await em.persistAndFlush(created);
+  await em.persist(created).flush();
   return { record: created, isNew: true };
 }
 
@@ -75,6 +75,6 @@ export async function deleteAncillaryDataSourceById(id: number): Promise<boolean
     return false;
   }
 
-  await em.removeAndFlush(existing);
+  await em.remove(existing).flush();
   return true;
 }

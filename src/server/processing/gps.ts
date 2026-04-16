@@ -83,12 +83,12 @@ export async function upsertGpxTrackRecord({
     existing.date = date;
     existing.name = name;
     existing.gpxData = gpxData;
-    await em.persistAndFlush(existing);
+    await em.persist(existing).flush();
     return { record: existing, isNew: false };
   }
 
   const created = em.create(GPXTracks_db, { date, name, gpxData });
-  await em.persistAndFlush(created);
+  await em.persist(created).flush();
   return { record: created, isNew: true };
 }
 
@@ -99,7 +99,7 @@ export async function deleteGpxTrackRecordById(id: number): Promise<boolean> {
     return false;
   }
 
-  await em.removeAndFlush(existing);
+  await em.remove(existing).flush();
   return true;
 }
 

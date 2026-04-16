@@ -31,7 +31,7 @@ import { addPaneInstance } from "store/framework";
 import { getLayout } from "./dockview-layout-definitions";
 import { DockviewPanePanel } from "./dockview-pane-panel";
 import { DockviewPaneTab } from "./dockview-tab";
-import { DockviewRightActions } from "./dockview-header-actions";
+import { DockviewLeftActions, DockviewRightActions } from "./dockview-header-actions";
 import { setDockviewApi, getPendingDockviewLayout } from "./dockview-api-ref";
 import styles from "./dockview.module.css";
 
@@ -129,6 +129,7 @@ const DockviewLayout: FunctionComponent<{ initialLayout?: SerializedDockview | n
       <DockviewReact
         components={components}
         tabComponents={tabComponents}
+        leftHeaderActionsComponent={DockviewLeftActions}
         rightHeaderActionsComponent={DockviewRightActions}
         watermarkComponent={DockviewWatermark}
         onReady={onReady}
