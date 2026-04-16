@@ -111,11 +111,7 @@
 }
 
 .selectContainerWide {
-  width: 14em;
-}
-
-.selectContainerNarrow {
-  width: 70px;
+  width: 15em;
 }
 
 .selectContainer select {
