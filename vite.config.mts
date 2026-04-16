@@ -4,7 +4,7 @@ dotenv.config({ override: true, quiet: true });
 import { UserConfig, defineConfig } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import packageJSON from "./package.json" with { type: "json" };
 
 const __filename = fileURLToPath(import.meta.url);

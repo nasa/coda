@@ -51,7 +51,7 @@
     "@mikro-orm/migrations": "6.6.13",
     "@mikro-orm/postgresql": "6.6.13",
     "@mikro-orm/seeder": "6.6.13",
-    "@vitejs/plugin-react-swc": "4.3.0",
+    "@vitejs/plugin-react": "6.0.1",
     "dotenv": "17.4.2",
     "globals": "17.5.0",
     "ts-node": "10.9.2"
