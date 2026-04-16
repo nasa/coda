@@ -32,7 +32,7 @@
    inline when there is remaining space; flex-shrink 1 allows it to shrink when
    the panel is narrow so the ResizeObserver can trigger collapse into a button. */
 .container :global(.dv-void-container) {
-  flex-grow: 0;
+  flex-grow: 0 !important;
 }
 
 .container :global(.dv-right-actions-container) {
