@@ -71,6 +71,8 @@ project-check:
 
 scc:
   when: manual
+  script:
+    - scc .
 
 code_quality:
   when: manual
