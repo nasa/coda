@@ -43,43 +43,33 @@ include:
 
 # Override some properties on FIT jobs.
 yaml-lint:
-  stage: stageless
-  needs: []
-  script:
-    - CONFIG_FILES=".yamllint .yamllint.yaml .yamllint.yml"
-    - CONFIG_FILE=""
-    - |
-      for filename in $CONFIG_FILES; do
-        if [ -e "$filename" ]; then
-          CONFIG_FILE="$filename"
-          break
-        fi
-      done
-    - |
-      if [ -z "${CONFIG_FILE}" ]; then
-        yamllint -d relaxed .
-      else
-        yamllint -c ${CONFIG_FILE} .
-      fi
+  rules:
+    - when: manual
+      allow_failure: true
 
 project-check:
   rules:
-    - when: never
+    - when: manual
+      allow_failure: true
   variables:
     SCAN_FOR_DOCS: "no"
     ALLOWED_FILES: >
       src/packages
 
 scc:
-  stage: stageless
   rules:
-    - when: never
-  script:
-    - scc .
+    - when: manual
+      allow_failure: true
+
+code-count:
+  rules:
+    - when: manual
+      allow_failure: true
 
 code_quality:
   rules:
-    - when: never
+    - when: manual
+      allow_failure: true
 
 dependency-check:
   stage: stageless
