@@ -22,10 +22,8 @@
     - sudo /usr/bin/docker compose down --remove-orphans
     - sudo rm -rf /d1/coda/postgres
 
-    # Bring docker compose back up, which will use the file at /d1/coda/db-init/coda.sql.
-    # --wait blocks until the database healthcheck passes, which only happens after
-    # postgres' entrypoint finishes running init scripts (i.e. the SQL import).
-    - sudo /usr/bin/docker compose up -d --wait
+    # Bring docker compose back up, which will use the file at /d1/coda/db-init/coda.sql, then remove it
+    - sudo /usr/bin/docker compose up -d
     - sudo rm -f /d1/coda/db-init/coda.sql
 
     # Migrations will be run when the apiv1 container restarts
