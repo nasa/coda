@@ -17,6 +17,9 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
+// IO uses an internal NASA CA not trusted by Node's default CA bundle.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../../../../..");
 
@@ -95,7 +98,10 @@ async function scrapeNotesForDoc(doc) {
     for (const pattern of patterns) {
       const match = html.match(pattern);
       if (match && match[1].trim()) {
-        notes = match[1].trim().replace(/<[^>]+>/g, "").trim();
+        notes = match[1]
+          .trim()
+          .replace(/<[^>]+>/g, "")
+          .trim();
         break;
       }
     }
