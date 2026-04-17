@@ -44,15 +44,10 @@ include:
   - local: .gitlab/includes/db-import.yml
 
 # Override some properties on FIT jobs.
-# yaml-lint, project-check, scc, code-count, code_quality disabled
+# yaml-lint, project-check, scc, code-count, code_quality, dependency-check disabled
 # (fit-ecosystem and code-quality includes commented out above)
 
-dependency-check:
-  stage: stageless
-  tags: ["docker", "linux"] # can't use openshift (yet?)
-  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
+# dependency-check: disabled - relies on fit-ecosystem.gitlab-ci.yml include above
 
 npm-audit:
   stage: stageless
