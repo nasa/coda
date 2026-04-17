@@ -98,7 +98,10 @@ async function scrapeNotesForDoc(doc) {
     for (const pattern of patterns) {
       const match = html.match(pattern);
       if (match && match[1].trim()) {
-        notes = match[1].trim().replace(/<[^>]+>/g, "").trim();
+        notes = match[1]
+          .trim()
+          .replace(/<[^>]+>/g, "")
+          .trim();
         break;
       }
     }
