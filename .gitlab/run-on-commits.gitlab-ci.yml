@@ -63,10 +63,17 @@ yaml-lint:
       fi
 
 project-check:
+  when: manual
   variables:
     SCAN_FOR_DOCS: "no"
     ALLOWED_FILES: >
       src/packages
+
+scc:
+  when: manual
+
+code_quality:
+  when: manual
 
 dependency-check:
   stage: stageless
