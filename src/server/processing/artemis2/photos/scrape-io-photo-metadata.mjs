@@ -20,6 +20,9 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
+// IO uses an internal NASA CA not trusted by Node's default CA bundle.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../../../../..");
 
@@ -164,9 +167,7 @@ async function main() {
     results.push(...batchResults);
     scraped += batchResults.length;
     const pct = Math.round((scraped / docsToScrape.length) * 100);
-    process.stdout.write(
-      `\r  Progress: ${scraped}/${docsToScrape.length} (${pct}%)`
-    );
+    process.stdout.write(`\r  Progress: ${scraped}/${docsToScrape.length} (${pct}%)`);
   }
   console.log();
 
@@ -232,32 +233,21 @@ function printSummary(output) {
 
     for (const [key, group] of Object.entries(byDateTz).sort()) {
       const ids = group.map((p) => p.nasa_id).sort();
-      const cameras = [
-        ...new Set(group.map((p) => p.exif?.Model).filter(Boolean)),
-      ];
-      const serials = [
-        ...new Set(group.map((p) => p.exif?.SerialNumber).filter(Boolean)),
-      ];
-      const creators = [
-        ...new Set(group.map((p) => p.exif?.Creator).filter(Boolean)),
-      ];
+      const cameras = [...new Set(group.map((p) => p.exif?.Model).filter(Boolean))];
+      const serials = [...new Set(group.map((p) => p.exif?.SerialNumber).filter(Boolean))];
+      const creators = [...new Set(group.map((p) => p.exif?.Creator).filter(Boolean))];
 
       console.log(`  ${key}: ${group.length} photos`);
       console.log(`    IDs: ${ids[0]} ... ${ids[ids.length - 1]}`);
-      if (cameras.length)
-        console.log(`    Cameras: ${cameras.join(", ")}`);
-      if (serials.length)
-        console.log(`    Serials: ${serials.join(", ")}`);
-      if (creators.length)
-        console.log(`    Creators: ${creators.join(", ")}`);
+      if (cameras.length) console.log(`    Cameras: ${cameras.join(", ")}`);
+      if (serials.length) console.log(`    Serials: ${serials.join(", ")}`);
+      if (creators.length) console.log(`    Creators: ${creators.join(", ")}`);
     }
   }
 
   // Special focus: recovery day mixed timezones
   const recoveryPhotos = output.filter(
-    (p) =>
-      p.nasa_id.startsWith("jsc2026e") &&
-      (p.date === "2026-04-10" || p.date === "2026-04-11")
+    (p) => p.nasa_id.startsWith("jsc2026e") && (p.date === "2026-04-10" || p.date === "2026-04-11")
   );
   if (recoveryPhotos.length) {
     console.log("\n" + "=".repeat(80));
@@ -273,25 +263,16 @@ function printSummary(output) {
 
     for (const [tz, group] of Object.entries(byTz).sort()) {
       const ids = group.map((p) => p.nasa_id).sort();
-      const cameras = [
-        ...new Set(group.map((p) => p.exif?.Model).filter(Boolean)),
-      ];
-      const serials = [
-        ...new Set(group.map((p) => p.exif?.SerialNumber).filter(Boolean)),
-      ];
-      const creators = [
-        ...new Set(group.map((p) => p.exif?.Creator).filter(Boolean)),
-      ];
+      const cameras = [...new Set(group.map((p) => p.exif?.Model).filter(Boolean))];
+      const serials = [...new Set(group.map((p) => p.exif?.SerialNumber).filter(Boolean))];
+      const creators = [...new Set(group.map((p) => p.exif?.Creator).filter(Boolean))];
 
       console.log(`\n  TZ ${tz}: ${group.length} photos`);
       console.log(`    First ID: ${ids[0]}`);
       console.log(`    Last ID:  ${ids[ids.length - 1]}`);
-      if (cameras.length)
-        console.log(`    Cameras: ${cameras.join(", ")}`);
-      if (serials.length)
-        console.log(`    Serials: ${serials.join(", ")}`);
-      if (creators.length)
-        console.log(`    Creators: ${creators.join(", ")}`);
+      if (cameras.length) console.log(`    Cameras: ${cameras.join(", ")}`);
+      if (serials.length) console.log(`    Serials: ${serials.join(", ")}`);
+      if (creators.length) console.log(`    Creators: ${creators.join(", ")}`);
 
       // Show contiguous ID ranges
       const numericIds = ids
@@ -308,20 +289,12 @@ function printSummary(output) {
         let prev = numericIds[0];
         for (let i = 1; i < numericIds.length; i++) {
           if (numericIds[i] !== prev + 1) {
-            ranges.push(
-              rangeStart === prev
-                ? `${rangeStart}`
-                : `${rangeStart}-${prev}`
-            );
+            ranges.push(rangeStart === prev ? `${rangeStart}` : `${rangeStart}-${prev}`);
             rangeStart = numericIds[i];
           }
           prev = numericIds[i];
         }
-        ranges.push(
-          rangeStart === prev
-            ? `${rangeStart}`
-            : `${rangeStart}-${prev}`
-        );
+        ranges.push(rangeStart === prev ? `${rangeStart}` : `${rangeStart}-${prev}`);
         console.log(`    ID ranges: ${ranges.join(", ")}`);
       }
     }
