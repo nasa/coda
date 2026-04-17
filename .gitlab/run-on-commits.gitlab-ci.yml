@@ -23,10 +23,12 @@ include:
       # Run standard FIT developer-ecosystem/ci-job-templates with emss
       # stageless overrides.
       # <https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates>
-      - "/jobs/fit-ecosystem.gitlab-ci.yml"
+      # Disabled: eegitlabregistry images (python, scc) are inaccessible
+      # - "/jobs/fit-ecosystem.gitlab-ci.yml"
 
       # Code quality checks
-      - "/jobs/code-quality.gitlab-ci.yml"
+      # Disabled: eegitlabregistry images are inaccessible
+      # - "/jobs/code-quality.gitlab-ci.yml"
 
       # Fitdock deploy template
       - "/jobs/fitdock-deploy.gitlab-ci.yml"
@@ -42,34 +44,8 @@ include:
   - local: .gitlab/includes/db-import.yml
 
 # Override some properties on FIT jobs.
-yaml-lint:
-  rules:
-    - when: manual
-      allow_failure: true
-
-project-check:
-  rules:
-    - when: manual
-      allow_failure: true
-  variables:
-    SCAN_FOR_DOCS: "no"
-    ALLOWED_FILES: >
-      src/packages
-
-scc:
-  rules:
-    - when: manual
-      allow_failure: true
-
-code-count:
-  rules:
-    - when: manual
-      allow_failure: true
-
-code_quality:
-  rules:
-    - when: manual
-      allow_failure: true
+# yaml-lint, project-check, scc, code-count, code_quality disabled
+# (fit-ecosystem and code-quality includes commented out above)
 
 dependency-check:
   stage: stageless
