@@ -1,10 +1,11 @@
 /**
  * Dockview header action components.
  *
- * RightActions — "+" button (adjacent to tabs) followed by pane-specific
- * controls for the active panel. Sits on the same row as tabs. The
- * void-container flex-grow override in dockview-layout.module.css keeps
- * these elements adjacent to tabs instead of flushed to the far right.
+ * v5 three-zone header layout:
+ * - LeftActions  ("+" button) — rendered in dv-left-actions-container,
+ *   immediately after the scrollable tab strip.
+ * - RightActions (pane controls) — rendered in dv-right-actions-container,
+ *   pushed to the far right by the dv-void-container spacer.
  *
  * When the available width is too small for inline controls (e.g. multiple
  * tabs in a narrow panel), controls collapse into a single button that opens
@@ -152,14 +153,41 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
   );
 };
 
-// Right header actions — "+" button + controls
+// Left header actions — "+" button, rendered flush after tabs
 
-export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps> = ({
+export const DockviewLeftActions: FunctionComponent<IDockviewHeaderActionsProps> = ({
   group,
   containerApi,
 }) => {
   const dispatch = useAppDispatch();
 
+  const handleAddPanel = useCallback(() => {
+    let maxId = 0;
+    for (const panel of containerApi.panels) {
+      const fId = (panel.params?.paneInstanceId as number) ?? 0;
+      if (fId > maxId) maxId = fId;
+    }
+    const newPaneInstanceId = maxId + 1;
+    dispatch(addPaneInstance(newPaneInstanceId));
+    containerApi.addPanel({
+      id: `paneInstance-${newPaneInstanceId}`,
+      component: "pane",
+      tabComponent: "paneTab",
+      params: { paneInstanceId: newPaneInstanceId },
+      position: { referenceGroup: group },
+    });
+  }, [containerApi, dispatch, group]);
+
+  return (
+    <button className={styles.addButton} onClick={handleAddPanel} title="Add panel">
+      <FontAwesomeIcon icon={faPlus} />
+    </button>
+  );
+};
+
+// Right header actions — pane controls
+
+export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps> = ({ group }) => {
   const [paneInstanceId, setPaneInstanceId] = useState(() =>
     getActivePaneInstanceId(group.activePanel)
   );
@@ -192,7 +220,7 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     if (!el) return;
     const width = el.getBoundingClientRect().width;
     const threshold = COLLAPSE_THRESHOLDS[paneType as PaneType] ?? 200;
-    setCollapsed(width - 28 < threshold);
+    setCollapsed(width < threshold);
   }, [paneType]);
 
   // Observe right-actions width to decide inline vs collapsed controls
@@ -202,9 +230,8 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
-        // Reserve ~28px for the add button; rest is available for controls
         const threshold = COLLAPSE_THRESHOLDS[paneTypeRef.current as PaneType] ?? 200;
-        setCollapsed(width - 28 < threshold);
+        setCollapsed(width < threshold);
       }
     });
     observer.observe(el);
@@ -227,37 +254,17 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
 
   const ControlComponent = paneType ? (controlComponents[paneType] ?? null) : null;
 
-  const handleAddPanel = useCallback(() => {
-    let maxId = 0;
-    for (const panel of containerApi.panels) {
-      const fId = (panel.params?.paneInstanceId as number) ?? 0;
-      if (fId > maxId) maxId = fId;
-    }
-    const newPaneInstanceId = maxId + 1;
-    dispatch(addPaneInstance(newPaneInstanceId));
-    containerApi.addPanel({
-      id: `paneInstance-${newPaneInstanceId}`,
-      component: "pane",
-      tabComponent: "paneTab",
-      params: { paneInstanceId: newPaneInstanceId },
-      position: { referenceGroup: group },
-    });
-  }, [containerApi, dispatch, group]);
+  if (!ControlComponent || paneInstanceId <= 0) return null;
 
   return (
     <div ref={actionsRef} className={styles.rightActions}>
-      <button className={styles.addButton} onClick={handleAddPanel} title="Add panel">
-        <FontAwesomeIcon icon={faPlus} />
-      </button>
-      {ControlComponent &&
-        paneInstanceId > 0 &&
-        (collapsed ? (
-          <CollapsedControls ControlComponent={ControlComponent} paneInstanceId={paneInstanceId} />
-        ) : (
-          <div className={styles.controls}>
-            <ControlComponent paneInstanceId={paneInstanceId} groupDimensions={dimensions} />
-          </div>
-        ))}
+      {collapsed ? (
+        <CollapsedControls ControlComponent={ControlComponent} paneInstanceId={paneInstanceId} />
+      ) : (
+        <div className={styles.controls}>
+          <ControlComponent paneInstanceId={paneInstanceId} groupDimensions={dimensions} />
+        </div>
+      )}
     </div>
   );
 };

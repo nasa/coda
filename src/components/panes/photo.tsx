@@ -150,8 +150,8 @@ const PhotoPane: FunctionComponent<{ paneInstanceId: number; groupDimensions: nu
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch is stable
-  useEffect(changePhoto, [appSeconds, photoFiles, photos]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- dispatch is stable, photos.activePhoto excluded to prevent update loop
+  useEffect(changePhoto, [appSeconds, photoFiles, photos.ready, photos.collectionFilters]);
 
   const renderPhotoOverlay = () => {
     const currentlyActivePhoto = photos.activePhoto.datetimeTaken !== "";

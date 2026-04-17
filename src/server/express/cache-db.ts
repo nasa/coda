@@ -68,7 +68,7 @@ export async function putCacheEntry({
         lastAccessedAt: now,
       });
     }
-    await em.persistAndFlush(entry);
+    await em.persist(entry).flush();
     return entry;
   } catch (error) {
     ConsoleLogger.error(`Error putting cache entry for ${folder}/${identifier}:`, error);
@@ -92,7 +92,7 @@ export async function removeCacheEntry({
       // If identifier is provided, remove a specific entry
       const entry = await em.findOne(Cache_db, { folder, cacheKey: identifier });
       if (entry) {
-        await em.removeAndFlush(entry);
+        await em.remove(entry).flush();
         return true;
       }
       return false; // Entry not found

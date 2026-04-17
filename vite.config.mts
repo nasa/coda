@@ -4,7 +4,7 @@ dotenv.config({ override: true, quiet: true });
 import { UserConfig, defineConfig } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import packageJSON from "./package.json" with { type: "json" };
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,29 +61,32 @@ export const config: UserConfig = {
     sourcemap: true,
     manifest: true,
     chunkSizeWarningLimit: 1500,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        // Creates a separate bundles for each of these chunks so there isn't one huge bundle.js file
-        manualChunks: {
-          react: [
-            "react",
-            "react-dom",
-            "react-redux",
-            "react-router",
-            "@reduxjs/toolkit",
-            "react-modal",
-            "react-lazy-load-image-component",
-            "react-cookie",
+        // Creates separate bundles for each of these chunks so there isn't one huge bundle.js file
+        codeSplitting: {
+          groups: [
+            {
+              name: "react",
+              test: /node_modules\/(react|react-dom|react-redux|react-router|@reduxjs\/toolkit|react-modal|react-cookie)\//,
+            },
+            {
+              name: "plotly",
+              test: /node_modules\/plotly\.js-basic-dist\//,
+            },
+            {
+              name: "mapbox",
+              test: /node_modules\/mapbox-gl\//,
+            },
+            {
+              name: "fonts",
+              test: /node_modules\/@fortawesome\//,
+            },
+            {
+              name: "paper",
+              test: /node_modules\/paper\//,
+            },
           ],
-          plotly: ["plotly.js-basic-dist"],
-          mapbox: ["mapbox-gl"],
-          fonts: [
-            "@fortawesome/fontawesome-svg-core",
-            "@fortawesome/free-regular-svg-icons",
-            "@fortawesome/free-solid-svg-icons",
-            "@fortawesome/react-fontawesome",
-          ],
-          paper: ["paper"],
         },
       },
       external: ["path", "os", "crypto"],

@@ -384,18 +384,6 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     }));
   }, [allChannelTimings]);
 
-  const handleScroll = () => {
-    if (paneStateData.lockScroll) {
-      dispatch(
-        setPaneStateDataValue({
-          paneInstanceId,
-          paneStateProperty: "lockScroll",
-          paneStateValue: false,
-        })
-      );
-    }
-  };
-
   // Find and set the active audio file for the current playhead position
   useEffect(() => {
     if (!allChannelTimings.length || paneStateData.isMuted) {
@@ -501,20 +489,19 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     return activeUtterance.secs;
   }, [appSeconds, filteredUtterances]);
 
-  // Scroll to the active utterance when scroll lock is enabled
+  // Scroll to the active utterance when scroll lock is enabled, but only when
+  // the active utterance changes — not on every clock tick.
   useEffect(() => {
-    const hasValidPlayhead = typeof appSeconds === "number";
     if (
       !paneStateData.lockScroll ||
       activeUtteranceRef.current === null ||
-      activeUtteranceSecs <= 0 ||
-      !hasValidPlayhead
+      activeUtteranceSecs <= 0
     ) {
       return;
     }
 
     activeUtteranceRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [activeUtteranceSecs, paneStateData.lockScroll, appSeconds]);
+  }, [activeUtteranceSecs, paneStateData.lockScroll]);
 
   // Set initial help state based on audio file presence when metadata loads
   useEffect(() => {
@@ -540,6 +527,14 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     channels.sort();
     return channels;
   }, [channelTimingMap]);
+
+  // Estimate a consistent label width from the longest channel name, capped at 100px
+  const channelLabelWidth = useMemo(() => {
+    if (!sortedChannels.length) return 60;
+    const longest = Math.max(...sortedChannels.map((ch) => ch.length));
+    // ~8px per uppercase char at 0.9em, plus ~8px horizontal padding
+    return Math.min(100, longest * 8 + 8);
+  }, [sortedChannels]);
 
   function displayUtterance(utterance: DisplayUtterance, idx: number) {
     let uttClass = "";
@@ -582,7 +577,10 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         }}
       >
         <div className={styles.channelTime}>
-          <div className={styles.channelLabel} style={{ backgroundColor: channelColor }}>
+          <div
+            className={styles.channelLabel}
+            style={{ backgroundColor: channelColor, width: channelLabelWidth }}
+          >
             {utterance.channel}
             <div className={styles.time}>{utterance.time}</div>
           </div>
@@ -679,12 +677,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
           }}
         />
       </div>
-      <div
-        className={styles.utterancesContainer}
-        onWheel={() => {
-          handleScroll();
-        }}
-      >
+      <div className={styles.utterancesContainer}>
         <div>{filteredUtterances.map((utterance, idx) => displayUtterance(utterance, idx))}</div>
       </div>
       <HelpOverlay

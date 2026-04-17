@@ -92,7 +92,7 @@
 }
 
 .activeUtterance {
-  border: 1px solid var(--lightest-grey);
+  border: 1px solid var(--burnt-orange);
 }
 
 .utteranceColorAlt {
@@ -104,7 +104,7 @@
   flex-direction: column;
   justify-content: flex-start;
   padding: 0 5px 0 0;
-  min-width: 66px;
+  flex-shrink: 0;
 }
 
 .channelLabel {
@@ -124,6 +124,8 @@
 
 .utteranceText {
   padding: 2px 0 0 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .utteranceTextMain {
