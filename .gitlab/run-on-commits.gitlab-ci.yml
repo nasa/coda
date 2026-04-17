@@ -70,6 +70,7 @@ project-check:
       src/packages
 
 scc:
+  stage: stageless
   when: manual
   script:
     - scc .
