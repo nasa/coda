@@ -63,7 +63,8 @@ yaml-lint:
       fi
 
 project-check:
-  when: manual
+  rules:
+    - when: never
   variables:
     SCAN_FOR_DOCS: "no"
     ALLOWED_FILES: >
@@ -71,12 +72,14 @@ project-check:
 
 scc:
   stage: stageless
-  when: manual
+  rules:
+    - when: never
   script:
     - scc .
 
 code_quality:
-  when: manual
+  rules:
+    - when: never
 
 dependency-check:
   stage: stageless
