@@ -104,6 +104,20 @@ const EventDropdown: FunctionComponent<{
               </option>
             );
           })}
+          <option disabled>──────────</option>
+          {Array.from({ length: 10 }, (_, i) => i).map((i) => {
+            const date = new Date("2026-04-01");
+            date.setDate(date.getDate() + i);
+            const year = date.getFullYear();
+            const month = padZeros(date.getMonth() + 1, 2);
+            const day = padZeros(date.getDate(), 2);
+            const formattedDate = `${year}-${month}-${day}`;
+            return (
+              <option key={formattedDate} value={formattedDate}>
+                Artemis II - FD{padZeros(i + 1, 2)}
+              </option>
+            );
+          })}
         </select>
         <div className={styles.select_arrow}>
           <FontAwesomeIcon icon={faChevronDown} />
