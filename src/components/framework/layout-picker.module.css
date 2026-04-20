@@ -39,10 +39,6 @@
   outline: 1px solid #ffffff;
 }
 
-.layoutselected {
-  outline: 1px solid #ffffff;
-}
-
 .layout > * {
   /* TODO: need to change the SVG colors */
   color: var(--light-grey);

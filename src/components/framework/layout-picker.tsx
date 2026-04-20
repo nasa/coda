@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout } from "store/framework";
 import {
@@ -13,7 +12,6 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
 const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
-  const frameworkState = useAppSelector((state) => state.framework, deepEqual);
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
 
@@ -47,9 +45,7 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       <div className={styles.layouts}>
         {visibleLayoutLetters.map((letter) => (
           <div
-            className={`${styles.layout} ${
-              letter === frameworkState.layout ? styles.layoutselected : ""
-            }`}
+            className={styles.layout}
             onClick={(e) => handleSelectLayout(e, letter)}
             key={`LAYOUT_${letter}`}
           >
