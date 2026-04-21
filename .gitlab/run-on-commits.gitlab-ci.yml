@@ -80,7 +80,7 @@ dependency-check:
   rules:
     - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
 
-code-quality:
+code_quality:
   when: manual
 
 npm-audit:
