@@ -83,6 +83,11 @@ const AdminIndex: FunctionComponent = () => {
                 description="Configure time shift corrections for photo timestamps."
               />
               <NavCard
+                to="/admin/assetOverrides"
+                title="Per-Asset Overrides"
+                description="Per-NASA-ID photo time and video channel overrides scoped by source and date range."
+              />
+              <NavCard
                 to="/admin/ephemeris"
                 title="Ephemeris Data"
                 description="View and manage ISS TLE data for orbit calculations and position tracking."
