@@ -23,12 +23,10 @@ include:
       # Run standard FIT developer-ecosystem/ci-job-templates with emss
       # stageless overrides.
       # <https://gitlab.fit.nasa.gov/developer-ecosystem/ci-job-templates>
-      # Disabled: eegitlabregistry images (python, scc) are inaccessible
-      # - "/jobs/fit-ecosystem.gitlab-ci.yml"
+      - "/jobs/fit-ecosystem.gitlab-ci.yml"
 
       # Code quality checks
-      # Disabled: eegitlabregistry images are inaccessible
-      # - "/jobs/code-quality.gitlab-ci.yml"
+      - "/jobs/code-quality.gitlab-ci.yml"
 
       # Fitdock deploy template
       - "/jobs/fitdock-deploy.gitlab-ci.yml"
@@ -44,40 +42,46 @@ include:
   - local: .gitlab/includes/db-import.yml
 
 # Override some properties on FIT jobs.
-# yaml-lint, project-check, dependency-check disabled: depend on
+# yaml-lint, project-check, dependency-check are set to manual: they depend on
 # fit-ecosystem.gitlab-ci.yml include above (eegitlabregistry images inaccessible)
-# yaml-lint:
-#   stage: stageless
-#   needs: []
-#   script:
-#     - CONFIG_FILES=".yamllint .yamllint.yaml .yamllint.yml"
-#     - CONFIG_FILE=""
-#     - |
-#       for filename in $CONFIG_FILES; do
-#         if [ -e "$filename" ]; then
-#           CONFIG_FILE="$filename"
-#           break
-#         fi
-#       done
-#     - |
-#       if [ -z "${CONFIG_FILE}" ]; then
-#         yamllint -d relaxed .
-#       else
-#         yamllint -c ${CONFIG_FILE} .
-#       fi
-#
-# project-check:
-#   variables:
-#     SCAN_FOR_DOCS: "no"
-#     ALLOWED_FILES: >
-#       src/packages
-#
-# dependency-check:
-#   stage: stageless
-#   tags: ["docker", "linux"] # can't use openshift (yet?)
-#   needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
-#   rules:
-#     - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
+yaml-lint:
+  stage: stageless
+  needs: []
+  when: manual
+  script:
+    - CONFIG_FILES=".yamllint .yamllint.yaml .yamllint.yml"
+    - CONFIG_FILE=""
+    - |
+      for filename in $CONFIG_FILES; do
+        if [ -e "$filename" ]; then
+          CONFIG_FILE="$filename"
+          break
+        fi
+      done
+    - |
+      if [ -z "${CONFIG_FILE}" ]; then
+        yamllint -d relaxed .
+      else
+        yamllint -c ${CONFIG_FILE} .
+      fi
+
+project-check:
+  when: manual
+  variables:
+    SCAN_FOR_DOCS: "no"
+    ALLOWED_FILES: >
+      src/packages
+
+dependency-check:
+  stage: stageless
+  when: manual
+  tags: ["docker", "linux"] # can't use openshift (yet?)
+  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
+
+code-quality:
+  when: manual
 
 npm-audit:
   stage: stageless
