@@ -412,6 +412,7 @@ export function interpretFrameQueryParam(frameString: string): PaneState | undef
           lockScroll: true,
           filterActive: false,
           sgChannels: [],
+          unselectedSgChannels: [],
           isMuted: false,
           showHelp: true,
         },

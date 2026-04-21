@@ -88,18 +88,32 @@ export const CommControls: FunctionComponent<{
     return channels;
   }, [channelTimingMap]);
 
-  // Auto-select all channels if none are selected and channels become available
+  // Auto-select any newly available channel that the user has not explicitly
+  // unselected. This keeps every channel selected by default — including
+  // channels that first appear after a date change — while preserving the
+  // user's intentional opt-outs.
   useEffect(() => {
-    if (availableChannels.length > 0 && paneStateData.sgChannels.length === 0) {
+    if (availableChannels.length === 0) return;
+    const unselected = paneStateData.unselectedSgChannels || [];
+    const toAdd = availableChannels.filter(
+      (c) => !paneStateData.sgChannels.includes(c) && !unselected.includes(c)
+    );
+    if (toAdd.length > 0) {
       dispatch(
         setPaneStateDataValue({
           paneInstanceId,
           paneStateProperty: "sgChannels",
-          paneStateValue: availableChannels,
+          paneStateValue: [...paneStateData.sgChannels, ...toAdd],
         })
       );
     }
-  }, [availableChannels, paneStateData.sgChannels, dispatch, paneInstanceId]);
+  }, [
+    availableChannels,
+    paneStateData.sgChannels,
+    paneStateData.unselectedSgChannels,
+    dispatch,
+    paneInstanceId,
+  ]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -114,6 +128,7 @@ export const CommControls: FunctionComponent<{
 
   const toggleChannel = (channel: string) => {
     const currentChannels = paneStateData.sgChannels || [];
+    const currentUnselected = paneStateData.unselectedSgChannels || [];
     if (currentChannels.includes(channel)) {
       dispatch(
         setPaneStateDataValue({
@@ -122,6 +137,15 @@ export const CommControls: FunctionComponent<{
           paneStateValue: currentChannels.filter((c) => c !== channel),
         })
       );
+      if (!currentUnselected.includes(channel)) {
+        dispatch(
+          setPaneStateDataValue({
+            paneInstanceId,
+            paneStateProperty: "unselectedSgChannels",
+            paneStateValue: [...currentUnselected, channel],
+          })
+        );
+      }
     } else {
       dispatch(
         setPaneStateDataValue({
@@ -130,6 +154,15 @@ export const CommControls: FunctionComponent<{
           paneStateValue: [...currentChannels, channel],
         })
       );
+      if (currentUnselected.includes(channel)) {
+        dispatch(
+          setPaneStateDataValue({
+            paneInstanceId,
+            paneStateProperty: "unselectedSgChannels",
+            paneStateValue: currentUnselected.filter((c) => c !== channel),
+          })
+        );
+      }
     }
   };
 
@@ -321,22 +354,33 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     return channels;
   }, [channelTimingMap]);
 
-  // Auto-select all channels when audio data first arrives and none are
-  // selected yet.  Must live in CommPane (not only CommControls) because the
+  // Auto-select any newly available channel the user hasn't explicitly
+  // unselected. Must live in CommPane (not only CommControls) because the
   // header controls may be collapsed (not mounted) on narrow panels loaded via
   // a share link — the race condition that caused utterances to stay hidden.
   const dispatch = useAppDispatch();
   useEffect(() => {
-    if (availableChannels.length > 0 && paneStateData.sgChannels.length === 0) {
+    if (availableChannels.length === 0) return;
+    const unselected = paneStateData.unselectedSgChannels || [];
+    const toAdd = availableChannels.filter(
+      (c) => !paneStateData.sgChannels.includes(c) && !unselected.includes(c)
+    );
+    if (toAdd.length > 0) {
       dispatch(
         setPaneStateDataValue({
           paneInstanceId,
           paneStateProperty: "sgChannels",
-          paneStateValue: availableChannels,
+          paneStateValue: [...paneStateData.sgChannels, ...toAdd],
         })
       );
     }
-  }, [availableChannels, paneStateData.sgChannels, dispatch, paneInstanceId]);
+  }, [
+    availableChannels,
+    paneStateData.sgChannels,
+    paneStateData.unselectedSgChannels,
+    dispatch,
+    paneInstanceId,
+  ]);
   const [activeAudioFile, setActiveAudioFile] = useState<ActiveAudioFile>({
     file: null,
     playOffset: -1,
