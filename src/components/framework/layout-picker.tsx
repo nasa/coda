@@ -26,15 +26,18 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
   return (
     <div className={styles.main}>
       <div className={styles.top}>
-        <div>Select a Layout</div>
-        <div>
-          <div className={styles.verticalCenter}>
-            <HelpButton
-              clickHandler={() => {
-                setHelpOpen(!helpOpen);
-              }}
-            />
-          </div>
+        <div className={styles.intro}>
+          Select a layout below or drag each panel to reposition or{" "}
+          <span className={styles.noWrap}>
+            scale&nbsp;
+            <span className={styles.helpInline}>
+              <HelpButton
+                clickHandler={() => {
+                  setHelpOpen(!helpOpen);
+                }}
+              />
+            </span>
+          </span>
         </div>
         {closeClick && (
           <div className={styles.close} onClick={closeClick}>
