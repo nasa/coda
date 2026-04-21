@@ -5,7 +5,7 @@
 node_modules/
 coverage/
 
-# Directory where local data is stored during dev
+# Directory where local data is stored during devp
 .local
 
 .env
