@@ -91,21 +91,7 @@ const EventDropdown: FunctionComponent<{
           <option key="" value="">
             {selectText}
           </option>
-          {Array.from({ length: 27 }, (_, i) => i).map((i) => {
-            const date = new Date("2022-11-16");
-            date.setDate(date.getDate() + i);
-            const year = date.getFullYear();
-            const month = padZeros(date.getMonth() + 1, 2);
-            const day = padZeros(date.getDate(), 2);
-            const formattedDate = `${year}-${month}-${day}`;
-            return (
-              <option key={formattedDate} value={formattedDate}>
-                Artemis I - FD{padZeros(i + 1, 2)}
-              </option>
-            );
-          })}
-          <option disabled>──────────</option>
-          {Array.from({ length: 10 }, (_, i) => i).map((i) => {
+          {Array.from({ length: 10 }, (_, i) => 9 - i).map((i) => {
             const date = new Date("2026-04-01");
             date.setDate(date.getDate() + i);
             const year = date.getFullYear();
@@ -115,6 +101,20 @@ const EventDropdown: FunctionComponent<{
             return (
               <option key={formattedDate} value={formattedDate}>
                 Artemis II - FD{padZeros(i + 1, 2)}
+              </option>
+            );
+          })}
+          <option disabled>──────────</option>
+          {Array.from({ length: 27 }, (_, i) => 26 - i).map((i) => {
+            const date = new Date("2022-11-16");
+            date.setDate(date.getDate() + i);
+            const year = date.getFullYear();
+            const month = padZeros(date.getMonth() + 1, 2);
+            const day = padZeros(date.getDate(), 2);
+            const formattedDate = `${year}-${month}-${day}`;
+            return (
+              <option key={formattedDate} value={formattedDate}>
+                Artemis I - FD{padZeros(i + 1, 2)}
               </option>
             );
           })}
