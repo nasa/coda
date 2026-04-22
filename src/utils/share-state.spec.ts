@@ -237,6 +237,7 @@ describe("generateShareURL", () => {
             lockScroll: true,
             filterActive: false,
             sgChannels: [],
+            unselectedSgChannels: [],
             isMuted: false,
             showHelp: true,
           } as CommPaneStateData,

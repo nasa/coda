@@ -125,6 +125,7 @@ type CommPaneStateData = {
   lockScroll: boolean;
   filterActive: boolean;
   sgChannels: string[];
+  unselectedSgChannels: string[];
   isMuted: boolean;
   showHelp: boolean;
 };

@@ -12,6 +12,7 @@ import { MediaOverride_dbSchema } from "./models/mediaOverride.model";
 import { AncillaryDataSource_dbSchema } from "./models/ancillaryData.model";
 import { VideoStartTimeOverrides_dbSchema } from "./models/VideoStartTimeOverrides.model";
 import { PhotoTimeShifts_dbSchema } from "./models/PhotoTimeShifts.model";
+import { AssetOverride_dbSchema } from "./models/AssetOverride.model";
 import { Cache_dbSchema } from "./models/cache.model";
 import { Ephemeris_dbSchema } from "./models/ephemera.model";
 
@@ -37,6 +38,7 @@ export default defineConfig({
     AncillaryDataSource_dbSchema,
     VideoStartTimeOverrides_dbSchema,
     PhotoTimeShifts_dbSchema,
+    AssetOverride_dbSchema,
     Cache_dbSchema,
     Ephemeris_dbSchema,
   ],
