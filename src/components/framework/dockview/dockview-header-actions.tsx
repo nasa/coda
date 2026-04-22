@@ -118,6 +118,7 @@ const CollapsedControls: FunctionComponent<CollapsedControlsProps> = ({
         className={styles.collapseButton}
         onClick={handleClick}
         title="Panel controls"
+        aria-label="Toggle panel controls"
       >
         <FontAwesomeIcon icon={faSliders} />
       </button>
@@ -179,7 +180,7 @@ export const DockviewLeftActions: FunctionComponent<IDockviewHeaderActionsProps>
   }, [containerApi, dispatch, group]);
 
   return (
-    <button className={styles.addButton} onClick={handleAddPanel} title="Add panel">
+    <button className={styles.addButton} onClick={handleAddPanel} title="Add panel" aria-label="Add panel">
       <FontAwesomeIcon icon={faPlus} />
     </button>
   );
