@@ -3,11 +3,11 @@ import isNil from "lodash/isNil";
 import sortBy from "lodash/sortBy";
 import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
 import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
+import { getAssetOverridesForDate } from "server/express/routes/db/assetOverrides";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
 import { addMs } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import artemis2PhotoTimeOverrides from "server/processing/artemis2/photos/photo-time-overrides.json";
 
 /**
  * Fetch photo data from IO for a given date. Fetches the previous day as well
@@ -109,18 +109,18 @@ export default async function getPhotoData({
       }
     }
 
-    // Apply timezone corrections from the static per-photo override map.
-    // Only applied for the ARTEMIS source within the Artemis 2 mission date range.
-    // Photos not in the map are left uncorrected (their md_creation_date is
-    // assumed to already be UTC).
-    const ARTEMIS2_START = new Date("2026-04-01T00:00:00Z");
-    const ARTEMIS2_END = new Date("2026-04-14T00:00:00Z"); // exclusive
-    const applyA2Overrides =
-      source === "ARTEMIS" && requestedDate >= ARTEMIS2_START && requestedDate < ARTEMIS2_END;
+    // Per-photo timezone corrections come from the asset_override_db table,
+    // scoped by mediaType="photo-time", source, and date range. Photos not in the
+    // map are left uncorrected (their md_creation_date is assumed to already be UTC).
+    let photoTimeOverrides: Record<string, string> = {};
+    try {
+      photoTimeOverrides = await getAssetOverridesForDate<string>("photo-time", source, dateWanted);
+    } catch (overrideErr) {
+      ConsoleLogger.warn("Error fetching photo-time asset overrides:", overrideErr);
+    }
 
     const corrected: PhotoFile[] = allPhotos.map((result) => {
-      if (!applyA2Overrides) return result;
-      const override = (artemis2PhotoTimeOverrides as Record<string, string>)[result.id];
+      const override = photoTimeOverrides[result.id];
       if (!override) return result;
 
       const match = override.match(/([-+])(\d{2}):(\d{2}):(\d{2})/);

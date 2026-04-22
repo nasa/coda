@@ -21,3 +21,9 @@ junit.xml
 CLAUDE.md
 AGENTS.md
 .claude/
+
+# generated artemis 2 override JSONs (paste content into admin UI instead)
+src/server/processing/artemis2/photos/photo-time-overrides.json
+src/server/processing/artemis2/photos/photo-exif-metadata.json
+src/server/processing/artemis2/videos/channel-overrides.json
+src/server/processing/artemis2/videos/video-notes.json

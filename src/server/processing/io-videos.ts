@@ -4,6 +4,7 @@ import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
 import { collection } from "utils/consts";
 import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { getVideoStartTimeOverridesRecordsList } from "server/express/routes/db/video";
+import { getAssetOverridesForDate } from "server/express/routes/db/assetOverrides";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
@@ -75,12 +76,25 @@ export default async function getVideoData({
       throw new Error(`Unable to resolve IO collection for source ${source}`);
     }
 
+    // Per-asset channel overrides, scoped by source + date range
+    let channelOverrideMap: Record<string, number> = {};
+    try {
+      channelOverrideMap = await getAssetOverridesForDate<number>(
+        "video-channel",
+        source,
+        dateWanted
+      );
+    } catch (channelOverrideErr) {
+      ConsoleLogger.warn("Error fetching video-channel asset overrides:", channelOverrideErr);
+    }
+
     // fetch and parse videos for the requested day, the day before, and the day after
     const [ioVideos, timeOverrides] = await Promise.all([
       fetchIoData({
         collection: col,
         fetchType: "videos",
         requestedDate,
+        channelOverrideMap,
       }) as Promise<VideoFile[]>,
       // fetch start time overrides, but don't throw if the request fails
       (async () => {
