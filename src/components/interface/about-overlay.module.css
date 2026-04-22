@@ -155,15 +155,26 @@
 }
 
 .helpCallout {
+  position: relative;
+  width: 100%;
+  max-width: 839px;
+  max-height: 527px;
+  aspect-ratio: 2404 / 1511;
+  margin: auto;
+}
+
+.helpCalloutImage {
+  display: block;
   width: 100%;
   height: 100%;
-  max-width: 839px;
-  max-height: 510px;
-  background: url("/images/help_callout.png");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-  margin: auto;
+}
+
+.helpCalloutVideo {
+  position: absolute;
+  top: 14.957%;
+  left: 18.386%;
+  width: 79.534%;
+  height: 70.946%;
 }
 
 .description {
