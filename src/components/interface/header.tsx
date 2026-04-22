@@ -1,14 +1,13 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate } from "store/hooks";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faChevronDown, faEye, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faChevronDown, faEye, faTableCells } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Calendar } from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
 import LayoutPicker from "components/framework/layout-picker";
 import PresetPicker from "components/framework/preset-picker";
 import styles from "./header.module.css";
-import { LayoutIcon } from "../framework/layout-icons";
 import { appSecondsFromDateString, hhmmssFromSeconds, padZeros } from "utils/formatting";
 import { collection, sourceShortVal } from "utils/consts";
 import StatusArea from "./status";
@@ -56,17 +55,16 @@ const LoaderHelpMenu: FunctionComponent<{
   );
 };
 
-const LayoutDropdown: FunctionComponent = () => {
-  const layout = useAppSelector((state) => state.framework.layout, refEqual);
-
-  return (
-    <ModalDropdown modal={LayoutPicker} modalWidth={263} color="grey" caret="down">
-      <div title="Choose display layout configuration" style={{ marginLeft: 12 }}>
-        <LayoutIcon layout={layout} size="small" />
-      </div>
-    </ModalDropdown>
-  );
-};
+const LayoutDropdown: FunctionComponent = () => (
+  <ModalDropdown modal={LayoutPicker} modalWidth={263} color="grey" caret="down">
+    <div
+      className={`${styles.verticalCenter} ${styles.preset}`}
+      title="Choose display layout configuration"
+    >
+      <FontAwesomeIcon icon={faTableCells} />
+    </div>
+  </ModalDropdown>
+);
 
 const PresetDropdown: FunctionComponent = () => (
   <ModalDropdown modal={PresetPicker} modalWidth={350} color="grey" caret="down">
@@ -74,7 +72,7 @@ const PresetDropdown: FunctionComponent = () => (
       className={`${styles.verticalCenter} ${styles.preset}`}
       title="Save and load display presets"
     >
-      <FontAwesomeIcon icon={faFloppyDisk} />
+      <FontAwesomeIcon icon={faBookmark} />
     </div>
   </ModalDropdown>
 );
@@ -339,7 +337,7 @@ const Header: FunctionComponent<{
         <div className={`${styles.item} ${styles.eventDropdownWrapper}`}>
           <EventDropdown collection={collection[source]} />
         </div>
-        <div className={styles.item} style={{ width: "80px" }}>
+        <div className={styles.item}>
           <LayoutDropdown />
         </div>
         <div className={styles.item}>
