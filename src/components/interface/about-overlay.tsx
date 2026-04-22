@@ -270,9 +270,6 @@ const AboutOverlay = ({
               </div>
             </div>
             <div className={styles.helpArea}>
-              <div className={styles.headerHeadlineContainer} style={{ marginLeft: "35px" }}>
-                <div className={styles.headerHeadline}>Using CODA</div>
-              </div>
               <div className={styles.helpCallout}>
                 <img
                   className={styles.helpCalloutImage}
