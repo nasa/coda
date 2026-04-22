@@ -270,10 +270,21 @@ const AboutOverlay = ({
               </div>
             </div>
             <div className={styles.helpArea}>
-              <div className={styles.headerHeadlineContainer} style={{ marginLeft: "35px" }}>
-                <div className={styles.headerHeadline}>Using CODA</div>
+              <div className={styles.helpCallout}>
+                <img
+                  className={styles.helpCalloutImage}
+                  src="/images/help_callout_background.png"
+                  alt="Using CODA callout"
+                />
+                <video
+                  className={styles.helpCalloutVideo}
+                  src="https://emss-labs.fit.nasa.gov/public/coda-video/coda-help-video.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
               </div>
-              <div className={styles.helpCallout}></div>
             </div>
           </div>
         </div>

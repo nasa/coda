@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAppSelector, deepEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { changeLayout } from "store/framework";
 import {
@@ -13,7 +12,6 @@ import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 
 const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.Element => {
-  const frameworkState = useAppSelector((state) => state.framework, deepEqual);
   const [helpOpen, setHelpOpen] = useState(false);
   const dispatch = useAppDispatch();
 
@@ -28,15 +26,18 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
   return (
     <div className={styles.main}>
       <div className={styles.top}>
-        <div>Select a Layout</div>
-        <div>
-          <div className={styles.verticalCenter}>
-            <HelpButton
-              clickHandler={() => {
-                setHelpOpen(!helpOpen);
-              }}
-            />
-          </div>
+        <div className={styles.intro}>
+          Select a layout below or drag each panel to reposition or{" "}
+          <span className={styles.noWrap}>
+            scale&nbsp;
+            <span className={styles.helpInline}>
+              <HelpButton
+                clickHandler={() => {
+                  setHelpOpen(!helpOpen);
+                }}
+              />
+            </span>
+          </span>
         </div>
         {closeClick && (
           <div className={styles.close} onClick={closeClick}>
@@ -47,9 +48,7 @@ const LayoutPicker = ({ closeClick }: { closeClick?: () => void }): React.JSX.El
       <div className={styles.layouts}>
         {visibleLayoutLetters.map((letter) => (
           <div
-            className={`${styles.layout} ${
-              letter === frameworkState.layout ? styles.layoutselected : ""
-            }`}
+            className={styles.layout}
             onClick={(e) => handleSelectLayout(e, letter)}
             key={`LAYOUT_${letter}`}
           >
