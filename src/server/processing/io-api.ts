@@ -19,7 +19,6 @@ import isNil from "lodash/isNil";
 import { collection } from "utils/consts";
 import { addMs } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import artemis2ChannelOverrides from "server/processing/artemis2/videos/channel-overrides.json";
 
 const IO_HOST = "https://io.jsc.nasa.gov";
 const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
@@ -89,16 +88,19 @@ export function formatDateQuery(start: Date, end?: Date): string {
  * @param collection Collection ID used to build the IO query string
  * @param fetchType IOFetchType
  * @param requestedDate The date to fetch data for
+ * @param channelOverrideMap Optional per-asset channel override map (videos only)
  * @returns PhotoFile[] | VideoFile[]
  */
 export async function fetchIoData({
   collection,
   fetchType,
   requestedDate,
+  channelOverrideMap,
 }: {
   collection: Collection;
   fetchType: IOFetchType;
   requestedDate: Date;
+  channelOverrideMap?: Record<string, number>;
 }): Promise<PhotoFile[] | VideoFile[]> {
   let parser: (arg0: IOResponse, arg1: Collection) => PhotoFile[] | VideoFile[];
   let queryParams: string;
@@ -108,7 +110,7 @@ export async function fetchIoData({
     const dateQuery = formatDateQuery(requestedDate);
     queryParams = `${dateQuery}&as=1&so=7&cols=${collection}`;
   } else if (fetchType === "videos") {
-    parser = (res, col) => parseIOVideoResponse(res, col, requestedDate);
+    parser = (res, col) => parseIOVideoResponse(res, col, channelOverrideMap);
     const dateQuery = formatDateQuery(addMs(requestedDate, -86400000), requestedDate); // get video for requestDate and also one day before to catch any vids crossing midnight
     queryParams = `${dateQuery}&cols=${collection}&as=2`;
   } else {
@@ -171,7 +173,11 @@ export function buildQueryArray(
   return queryParamsArray;
 }
 
-function parseIOVideoResponse(res: IOResponse, collection: Collection, requestedDate?: Date) {
+function parseIOVideoResponse(
+  res: IOResponse,
+  collection: Collection,
+  channelOverrideMap?: Record<string, number>
+) {
   if (!res.results) {
     return [];
   }
@@ -180,7 +186,7 @@ function parseIOVideoResponse(res: IOResponse, collection: Collection, requested
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
-    const metadata = parseVideoResultMetadata(doc, collection, requestedDate);
+    const metadata = parseVideoResultMetadata(doc, collection, channelOverrideMap);
     videos.push(metadata);
   }
   videos.sort(videoSorter);
@@ -210,7 +216,11 @@ export const videoSorter = (a: VideoFile, b: VideoFile): number => {
  * @param col - Collection ID to determine how to parse downlink information
  * @returns Parsed VideoFile object ready for application use
  */
-function parseVideoResultMetadata(doc: Doc, col: Collection, requestedDate?: Date): VideoFile {
+function parseVideoResultMetadata(
+  doc: Doc,
+  col: Collection,
+  channelOverrideMap?: Record<string, number>
+): VideoFile {
   let downlink = -1; // -1 indicates no specific downlink channel
   let LOS = false; // LOS (Loss of Signal) = video recorded during communication blackout, downlinked later
 
@@ -253,8 +263,8 @@ function parseVideoResultMetadata(doc: Doc, col: Collection, requestedDate?: Dat
       }
     }
   } else if (col === collection.ARTEMIS) {
-    // Artemis missions use collection strings, source codes, and static overrides
-    const channel = getArtemisChannel(doc.collections_string, doc.nasa_id, requestedDate);
+    // Artemis missions use collection strings, source codes, and per-asset overrides
+    const channel = getArtemisChannel(doc.collections_string, doc.nasa_id, channelOverrideMap);
     downlink = channel !== "" ? parseInt(channel) - 1 : -1;
   }
 
@@ -386,7 +396,8 @@ export function getISSChannel(collectionStrings: string[]): string {
  * Extract Artemis mission CODA channel number from IO API metadata.
  *
  * Uses a three-tier strategy:
- * 1. **Static overrides** – A JSON lookup keyed by nasa_id covers recovery-phase
+ * 1. **Per-asset overrides** – A nasa_id → channel map sourced from the
+ *    asset_override_db table (mediaType="video-channel"). Covers recovery-phase
  *    source-150 feeds (Quad, Helo, SCIFLI, WB-57) that share a source code but
  *    represent different camera angles.
  * 2. **Collection string** – If the path contains `Downlink|Channel XX`, extract
@@ -403,21 +414,18 @@ export function getISSChannel(collectionStrings: string[]): string {
  *
  * @param collectionStrings - Array of collection path strings from IO API doc
  * @param nasaId - The nasa_id field from the IO API doc
+ * @param channelOverrideMap - Optional per-asset override map keyed by nasa_id
  * @returns Zero-padded channel number ("01"-"08") or empty string if unmapped
  */
 export function getArtemisChannel(
   collectionStrings: string[],
   nasaId: string,
-  requestedDate?: Date
+  channelOverrideMap?: Record<string, number>
 ): string {
-  // 1. Static overrides for recovery feeds and aircraft footage.
-  // Only applied within the Artemis 2 mission date range.
-  const ARTEMIS2_START = new Date("2026-04-01T00:00:00Z");
-  const ARTEMIS2_END = new Date("2026-04-14T00:00:00Z"); // exclusive
-  const inA2Range =
-    !requestedDate || (requestedDate >= ARTEMIS2_START && requestedDate < ARTEMIS2_END);
-  if (inA2Range) {
-    const override = (artemis2ChannelOverrides as Record<string, number>)[nasaId];
+  // 1. Per-asset override map. Caller supplies the map scoped to the request's
+  // mediaType + source + date range; an empty map (or undefined) skips this tier.
+  if (channelOverrideMap) {
+    const override = channelOverrideMap[nasaId];
     if (override !== undefined) {
       return padZeros(override, 2);
     }
