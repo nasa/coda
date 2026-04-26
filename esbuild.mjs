@@ -125,6 +125,12 @@ const context = await esbuild.context({
     //   to give it to kaniko docker to use during build. However when running this locally
     //   with NO docker container, we need to set a default value of "localDev"
     __GIT_COMMIT__: JSON.stringify(process.env.GIT_COMMIT || "localDev"),
+    __DEPLOY_APP__: JSON.stringify(process.env.APP_NAME || "coda"),
+    __DEPLOY_BRANCH__: JSON.stringify(process.env.DEPLOY_BRANCH || "localDev"),
+    __DEPLOY_USER__: JSON.stringify(process.env.DEPLOY_USER || "localDev"),
+    __DEPLOY_TIMESTAMP__: JSON.stringify(process.env.DEPLOY_TIMESTAMP || ""),
+    __DEPLOY_MRS__: JSON.stringify(process.env.DEPLOY_MRS || ""),
+    __DEPLOY_PIPELINE_URL__: JSON.stringify(process.env.PIPELINE_URL || ""),
   },
 });
 

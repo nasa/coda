@@ -40,6 +40,10 @@ app.get("/api/v1/version", (_req, res) => {
   res.send(globalValues.appVersion);
 });
 
+app.get("/api/v1/deploy", (_req, res) => {
+  res.json(globalValues.deployInfo);
+});
+
 app.use("/api/v1/external/daynight/daynight", dayNightRoute); // external endpoint for maestro
 app.use("/api/v1/emss/dataRefresh", dataRefreshRoute); // routed through launchpad
 app.use("/api/v1/emss/dataView", dataViewRoute); // routed through launchpad

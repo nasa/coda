@@ -287,8 +287,20 @@ docker:build:apiv1:
     SERVICE_NAME: apiv1
     MULTISTAGE_TARGET: prod
     GIT_COMMIT: ${CI_COMMIT_SHORT_SHA}
+    APP_NAME: coda
+    DEPLOY_BRANCH: ${CI_COMMIT_REF_NAME}
+    DEPLOY_USER: ${GITLAB_USER_LOGIN}
+    DEPLOY_TIMESTAMP: ${CI_JOB_STARTED_AT}
+    DEPLOY_MRS: ${CI_OPEN_MERGE_REQUESTS}
+    PIPELINE_URL: ${CI_PIPELINE_URL}
     MAP_ENV_VARS_TO_BUILD_ARGS: |
       GIT_COMMIT
+      APP_NAME
+      DEPLOY_BRANCH
+      DEPLOY_USER
+      DEPLOY_TIMESTAMP
+      DEPLOY_MRS
+      PIPELINE_URL
 
 #
 # Retag docker images after necessary jobs pass (e.g. unit testing passes)

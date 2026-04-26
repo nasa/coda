@@ -28,6 +28,7 @@ export const globalValues: GlobalValues = {
   orm: null,
   socketInterval: null,
   appVersion: null,
+  deployInfo: null,
   fetchTrackers: {},
   talkybotS2sSocket: null,
   spacetrackInterval: null,
