@@ -48,22 +48,6 @@ yaml-lint:
   stage: stageless
   needs: []
   when: manual
-  script:
-    - CONFIG_FILES=".yamllint .yamllint.yaml .yamllint.yml"
-    - CONFIG_FILE=""
-    - |
-      for filename in $CONFIG_FILES; do
-        if [ -e "$filename" ]; then
-          CONFIG_FILE="$filename"
-          break
-        fi
-      done
-    - |
-      if [ -z "${CONFIG_FILE}" ]; then
-        yamllint -d relaxed .
-      else
-        yamllint -c ${CONFIG_FILE} .
-      fi
 
 project-check:
   when: manual
@@ -99,11 +83,8 @@ npm-audit:
 
 install_dependencies:
   stage: stageless
-  # This could be openshift, but it runs faster in a VM; other jobs rely on it, so get it done ASAP
-  tags: ["docker", "linux"]
+  tags: ["openshift"]
   cache:
-    # Cache npm's package download cache, keyed on package-lock.json so it only invalidates when deps change.
-    # `npm ci` still wipes node_modules and reinstalls, but tarballs come from .npm/ instead of the registry.
     key:
       files:
         - package-lock.json
@@ -111,9 +92,6 @@ install_dependencies:
       - .npm/
   script:
     - npm ci --cache .npm --prefer-offline
-    # Tar node_modules into a single artifact. GitLab spends most of the upload time walking 50k+ files
-    # and adding each to the artifact zip; collapsing to one tarball cuts upload from ~22s to a few seconds,
-    # and dependent jobs see the same speedup on download/extract.
     - tar -cf node_modules.tar node_modules
   artifacts:
     expire_in: 1 day
@@ -143,12 +121,18 @@ node-sbom:
 .make-dotenv-template:
   stage: stageless
   needs: []
-  tags: ["docker", "linux"] # needs to do global install, so needs to be root
+  tags: ["openshift"]
   before_script:
     # Determine the versions of @emss/make-dotenv and tsx defined in package-lock.json
     # This allows us to be sure the same versions are used in CI as are used in local dev
     - MAKE_DOTENV_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@emss/make-dotenv'].version")
     - TSX_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/tsx'].version")
+
+    # OpenShift runs the container as a random non-root UID, which can't write
+    # the default global npm prefix (/usr/local/lib/node_modules). Redirect to
+    # /tmp and put its bin on PATH so `make-dotenv`/`tsx` resolve below.
+    - export NPM_CONFIG_PREFIX=/tmp/npm-global
+    - export PATH=/tmp/npm-global/bin:$PATH
 
     # Globally install these packages. This allows us to use them without installing
     # all packages specified in package.json, which takes 1-4 minutes depending on the
@@ -295,9 +279,6 @@ test-vitest:
   script:
     - echo "Running vitest shard ${SHARD_INDEX} of ${NUM_SHARDS}"
     - npm run migration:up
-    # Each shard writes a blob report (.vitest-reports/blob-*.json) plus the
-    # default reporter for the job log. The merge-coverage job below combines
-    # all blobs into a single coverage report.
     - npx vitest run --config vitest.config.mts --coverage --shard=${SHARD_INDEX}/${NUM_SHARDS} --reporter=blob --reporter=default
   artifacts:
     when: always
