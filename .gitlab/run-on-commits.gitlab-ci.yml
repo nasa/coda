@@ -218,9 +218,10 @@ make-dotenv:test:
   variables:
     MAKE_DOTENV_ENVIRONMENT: test
 
-# Lint + tsc — runs in parallel with the test shards instead of being
-# tacked onto the test job, where it stretched its wall-clock. No DB needed.
-lint-and-tsc:
+# Lint and tsc split into three parallel jobs. OpenShift has plenty of
+# runners (~100), so wall-clock is faster as separate jobs than chaining
+# them together. No DB needed for any of them.
+lint-js:
   stage: stageless
   tags: ["openshift"]
   needs:
@@ -228,7 +229,27 @@ lint-and-tsc:
   before_script:
     - tar -xf node_modules.tar
   script:
-    - npx concurrently --names lint,tsc --kill-others-on-fail "npm run lint" "npm run tsc"
+    - npm run lint:js
+
+lint-css:
+  stage: stageless
+  tags: ["openshift"]
+  needs:
+    - install_dependencies
+  before_script:
+    - tar -xf node_modules.tar
+  script:
+    - npm run lint:css
+
+tsc:
+  stage: stageless
+  tags: ["openshift"]
+  needs:
+    - install_dependencies
+  before_script:
+    - tar -xf node_modules.tar
+  script:
+    - npm run tsc
 
 test-vitest:
   stage: stageless
@@ -274,9 +295,31 @@ test-vitest:
   script:
     - echo "Running vitest shard ${SHARD_INDEX} of ${NUM_SHARDS}"
     - npm run migration:up
-    - npm run test:coverage -- --shard=${SHARD_INDEX}/${NUM_SHARDS}
+    # Each shard writes a blob report (.vitest-reports/blob-*.json) plus the
+    # default reporter for the job log. The merge-coverage job below combines
+    # all blobs into a single coverage report.
+    - npx vitest run --config vitest.config.mts --coverage --shard=${SHARD_INDEX}/${NUM_SHARDS} --reporter=blob --reporter=default
+  artifacts:
+    when: always
+    paths:
+      - .vitest-reports/
+    expire_in: 1 day
+
+# Merge per-shard blob reports into a single coverage report.
+# Uses vitest 4's built-in --merge-reports --coverage workflow.
+test-vitest-merge-coverage:
+  stage: stageless
+  tags: ["openshift"]
+  needs:
+    - install_dependencies
+    - test-vitest
+  before_script:
+    - tar -xf node_modules.tar
+  script:
+    - npx vitest --config vitest.config.mts --merge-reports --coverage --reporter=junit --reporter=default
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
+    when: always
     reports:
       coverage_report:
         coverage_format: cobertura
@@ -377,7 +420,11 @@ docker:retag:
   extends: .emss-container-retag
   needs:
     - make-dotenv:fit
-    - job: lint-and-tsc
+    - job: lint-js
+      artifacts: false
+    - job: lint-css
+      artifacts: false
+    - job: tsc
       artifacts: false
     - job: test-vitest
       artifacts: false
