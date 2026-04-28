@@ -230,7 +230,7 @@ lint-and-tsc:
   script:
     - npx concurrently --names lint,tsc --kill-others-on-fail "npm run lint" "npm run tsc"
 
-test:
+test-vitest:
   stage: stageless
   needs:
     - install_dependencies
@@ -379,7 +379,7 @@ docker:retag:
     - make-dotenv:fit
     - job: lint-and-tsc
       artifacts: false
-    - job: test
+    - job: test-vitest
       artifacts: false
     - job: docker:build:nginx
       artifacts: false
