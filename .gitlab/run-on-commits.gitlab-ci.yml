@@ -59,10 +59,8 @@ project-check:
 dependency-check:
   stage: stageless
   when: manual
-  tags: ["docker", "linux"] # can't use openshift (yet?)
-  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
+  tags: ["openshift"]
+  needs: ["install_dependencies"]
   before_script:
     # node_modules is shipped as a tarball artifact (see install_dependencies)
     - tar -xf node_modules.tar
@@ -103,7 +101,7 @@ install_dependencies:
 #
 node-sbom:
   stage: stageless
-  tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
+  tags: ["openshift"]
   needs: ["install_dependencies"]
   image: ${CI_REGISTRY}/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
   before_script:
