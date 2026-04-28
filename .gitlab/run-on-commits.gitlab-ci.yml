@@ -79,6 +79,9 @@ dependency-check:
   needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
   rules:
     - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
+  before_script:
+    # node_modules is shipped as a tarball artifact (see install_dependencies)
+    - tar -xf node_modules.tar
 
 code_quality:
   when: manual
@@ -98,12 +101,24 @@ install_dependencies:
   stage: stageless
   # This could be openshift, but it runs faster in a VM; other jobs rely on it, so get it done ASAP
   tags: ["docker", "linux"]
+  cache:
+    # Cache npm's package download cache, keyed on package-lock.json so it only invalidates when deps change.
+    # `npm ci` still wipes node_modules and reinstalls, but tarballs come from .npm/ instead of the registry.
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
   script:
-    - npm ci
+    - npm ci --cache .npm --prefer-offline
+    # Tar node_modules into a single artifact. GitLab spends most of the upload time walking 50k+ files
+    # and adding each to the artifact zip; collapsing to one tarball cuts upload from ~22s to a few seconds,
+    # and dependent jobs see the same speedup on download/extract.
+    - tar -cf node_modules.tar node_modules
   artifacts:
     expire_in: 1 day
     paths:
-      - ./node_modules/*
+      - node_modules.tar
 
 #
 # Creates Software Bill of Materials
@@ -113,6 +128,9 @@ node-sbom:
   tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
   needs: ["install_dependencies"]
   image: ${CI_REGISTRY}/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
+  before_script:
+    # node_modules is shipped as a tarball artifact (see install_dependencies)
+    - tar -xf node_modules.tar
   script:
     - /make-sbom.sh
   artifacts:
@@ -200,12 +218,30 @@ make-dotenv:test:
   variables:
     MAKE_DOTENV_ENVIRONMENT: test
 
+# Lint + tsc — runs in parallel with the test shards instead of being
+# tacked onto the test job, where it stretched its wall-clock. No DB needed.
+lint-and-tsc:
+  stage: stageless
+  tags: ["openshift"]
+  needs:
+    - install_dependencies
+  before_script:
+    - tar -xf node_modules.tar
+  script:
+    - npx concurrently --names lint,tsc --kill-others-on-fail "npm run lint" "npm run tsc"
+
 test:
   stage: stageless
   needs:
     - install_dependencies
     - make-dotenv:test
+  parallel:
+    matrix:
+      - SHARD_INDEX: 1
+      - SHARD_INDEX: 2
+      - SHARD_INDEX: 3
   variables:
+    NUM_SHARDS: 3
     # define variables used by Node app
     DB_HOST: postgres-test-container
     DB_PASS: test-only-password
@@ -220,17 +256,25 @@ test:
     # Using dependency proxy for caching and rate limiting
     - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/${DOCKER_IMAGE_DATABASE}
       alias: postgres-test-container
-  tags: ["docker", "linux"]
+      variables:
+        # OpenShift runs containers as a random non-root UID. The default
+        # PGDATA (/var/lib/postgresql/data) is owned by the postgres user
+        # (UID 70 on alpine) and not writable by an arbitrary UID, so initdb
+        # fails silently and postgres never starts. Redirecting PGDATA to
+        # /tmp lets initdb create the data directory regardless of UID.
+        PGDATA: /tmp/pgdata
+  tags: ["openshift"]
   before_script:
+    # node_modules is shipped as a tarball artifact (see install_dependencies)
+    - tar -xf node_modules.tar
     # Remove lines from .env file.
     - sed -i '/DB_PASS/d' .env
     - sed -i '/DB_HOST/d' .env
     - sed -i '/DB_NAME/d' .env
   script:
+    - echo "Running vitest shard ${SHARD_INDEX} of ${NUM_SHARDS}"
     - npm run migration:up
-    - npm run lint
-    - npm run tsc
-    - npm run test:coverage
+    - npm run test:coverage -- --shard=${SHARD_INDEX}/${NUM_SHARDS}
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     reports:
@@ -242,6 +286,41 @@ test:
     paths:
       - ./coverage/*
     expire_in: 1 day
+
+# Forward-compat smoke test against the next version of node that CODA may use.
+# Manual-only — it's allow_failure, doesn't gate deploys, and runs the whole
+# lint/tsc/build/test chain serially. Trigger it when bumping the node version.
+test-node-next:
+  stage: stageless
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:25.8.1-alpine
+  needs:
+    - install_dependencies
+    - make-dotenv:test
+  variables:
+    DB_HOST: postgres-test-container
+    DB_PASS: test-only-password
+    DB_NAME: coda
+    POSTGRES_PASSWORD: test-only-password
+    POSTGRES_DB: coda
+  services:
+    - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/${DOCKER_IMAGE_DATABASE}
+      alias: postgres-test-container
+      variables:
+        PGDATA: /tmp/pgdata
+  tags: ["openshift"]
+  when: manual
+  allow_failure: true
+  before_script:
+    - tar -xf node_modules.tar
+    - sed -i '/DB_PASS/d' .env
+    - sed -i '/DB_HOST/d' .env
+    - sed -i '/DB_NAME/d' .env
+  script:
+    - npm run migration:up
+    - npm run lint
+    - npm run tsc
+    - npm run build
+    - npm run test
 
 #
 # Build container images
@@ -291,14 +370,32 @@ docker:build:apiv1:
       GIT_COMMIT
 
 #
-# Retag docker images after necessary jobs pass (e.g. unit testing passes)
+# Retag docker images after necessary jobs pass (e.g. unit testing passes).
+# Used by int/prod deploys — requires tests to pass.
 #
 docker:retag:
   extends: .emss-container-retag
   needs:
     - make-dotenv:fit
+    - job: lint-and-tsc
+      artifacts: false
     - job: test
       artifacts: false
+    - job: docker:build:nginx
+      artifacts: false
+    - job: docker:build:apiv1
+      artifacts: false
+  variables:
+    RETAG_SERVICE_IMAGES: |
+      nginx
+      apiv1
+
+# Retag for dev environments — does NOT require tests to pass.
+# Lets dev deploys proceed immediately after builds complete.
+docker:retag:dev:
+  extends: .emss-container-retag
+  needs:
+    - make-dotenv:fit
     - job: docker:build:nginx
       artifacts: false
     - job: docker:build:apiv1
@@ -322,6 +419,7 @@ deploy:artifactize-committed-files:
       - scripts/upgrade-db.sh
     expire_in: 1 day
 
+# Used by int/prod — requires tests to pass (via docker:retag)
 .deploy-template:
   extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
   needs:
@@ -331,9 +429,19 @@ deploy:artifactize-committed-files:
   stage: stageless
   timeout: 10 minutes
 
+# Used by dev envs — does NOT require tests to pass (via docker:retag:dev)
+.deploy-template:dev:
+  extends: .emss-fitdock-deploy
+  needs:
+    - make-dotenv:fit
+    - docker:retag:dev
+    - deploy:artifactize-committed-files
+  stage: stageless
+  timeout: 10 minutes
+
 deploy:carbon:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .carbon-deploy
   when: manual
   before_script:
@@ -343,7 +451,7 @@ deploy:carbon:
 
 deploy:gold:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .gold-deploy
   when: manual
   before_script:
@@ -352,7 +460,7 @@ deploy:gold:
 
 deploy:iron:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .iron-deploy
   when: manual
   before_script:
@@ -361,7 +469,7 @@ deploy:iron:
 
 deploy:neon:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .neon-deploy
   when: manual
   before_script:
@@ -370,7 +478,7 @@ deploy:neon:
 
 deploy:oxygen:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .oxygen-deploy
   when: manual
   before_script:
