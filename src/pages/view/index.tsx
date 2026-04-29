@@ -216,9 +216,9 @@ function getURLParams(query: URLSearchParams): QueryParams {
         )
       );
       if (isNil(rawDate)) {
-        date = "2026-04-01";
+        date = "2026-02-25";
         if (isNil(rawGmt)) {
-          gmt = "18:37:15";
+          gmt = "14:54:35";
         }
       }
     }
