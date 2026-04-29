@@ -48,22 +48,6 @@ yaml-lint:
   stage: stageless
   needs: []
   when: manual
-  script:
-    - CONFIG_FILES=".yamllint .yamllint.yaml .yamllint.yml"
-    - CONFIG_FILE=""
-    - |
-      for filename in $CONFIG_FILES; do
-        if [ -e "$filename" ]; then
-          CONFIG_FILE="$filename"
-          break
-        fi
-      done
-    - |
-      if [ -z "${CONFIG_FILE}" ]; then
-        yamllint -d relaxed .
-      else
-        yamllint -c ${CONFIG_FILE} .
-      fi
 
 project-check:
   when: manual
@@ -75,10 +59,11 @@ project-check:
 dependency-check:
   stage: stageless
   when: manual
-  tags: ["docker", "linux"] # can't use openshift (yet?)
-  needs: ["install_dependencies"] # dependency-check takes a while, don't wait for "test" job
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "int" || $CI_COMMIT_BRANCH == "prod"'
+  tags: ["openshift"]
+  needs: ["install_dependencies"]
+  before_script:
+    # node_modules is shipped as a tarball artifact (see install_dependencies)
+    - tar -xf node_modules.tar
 
 code_quality:
   when: manual
@@ -96,23 +81,26 @@ npm-audit:
 
 install_dependencies:
   stage: stageless
-  # This could be openshift, but it runs faster in a VM; other jobs rely on it, so get it done ASAP
-  tags: ["docker", "linux"]
+  tags: ["openshift"]
   script:
     - npm ci
+    - tar -cf node_modules.tar node_modules
   artifacts:
     expire_in: 1 day
     paths:
-      - ./node_modules/*
+      - node_modules.tar
 
 #
 # Creates Software Bill of Materials
 #
 node-sbom:
   stage: stageless
-  tags: ["docker", "linux"] # Can't be openshift due to it not pulling latest tag
+  tags: ["openshift"]
   needs: ["install_dependencies"]
   image: ${CI_REGISTRY}/emss/docker-images/node-ci:sbom # custom image, not on Docker Hub
+  before_script:
+    # node_modules is shipped as a tarball artifact (see install_dependencies)
+    - tar -xf node_modules.tar
   script:
     - /make-sbom.sh
   artifacts:
@@ -125,12 +113,18 @@ node-sbom:
 .make-dotenv-template:
   stage: stageless
   needs: []
-  tags: ["docker", "linux"] # needs to do global install, so needs to be root
+  tags: ["openshift"]
   before_script:
     # Determine the versions of @emss/make-dotenv and tsx defined in package-lock.json
     # This allows us to be sure the same versions are used in CI as are used in local dev
     - MAKE_DOTENV_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@emss/make-dotenv'].version")
     - TSX_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/tsx'].version")
+
+    # OpenShift runs the container as a random non-root UID, which can't write
+    # the default global npm prefix (/usr/local/lib/node_modules). Redirect to
+    # /tmp and put its bin on PATH so `make-dotenv`/`tsx` resolve below.
+    - export NPM_CONFIG_PREFIX=/tmp/npm-global
+    - export PATH=/tmp/npm-global/bin:$PATH
 
     # Globally install these packages. This allows us to use them without installing
     # all packages specified in package.json, which takes 1-4 minutes depending on the
@@ -200,7 +194,34 @@ make-dotenv:test:
   variables:
     MAKE_DOTENV_ENVIRONMENT: test
 
-test:
+# Lint and tsc split into three parallel jobs. OpenShift has plenty of
+# runners (~100), so wall-clock is faster as separate jobs than chaining
+# them together. No DB needed for any of them.
+.lint-tsc-template:
+  stage: stageless
+  tags: ["openshift"]
+  needs:
+    - install_dependencies
+  before_script:
+    - tar -xf node_modules.tar
+
+lint-js:
+  extends: .lint-tsc-template
+  script:
+    - npm run lint:js
+
+lint-css:
+  extends: .lint-tsc-template
+  script:
+    - npm run lint:css
+
+tsc:
+  extends: .lint-tsc-template
+  script:
+    - npm run tsc
+
+# Template for test-vitest and test-node-next jobs, adding database service etc.
+.test_template:
   stage: stageless
   needs:
     - install_dependencies
@@ -215,24 +236,60 @@ test:
     POSTGRES_PASSWORD: test-only-password
     POSTGRES_DB: coda
   services:
-    # image should match database used in docker-compose.yml
     # DOCKER_IMAGE_DATABASE comes from pipelineVariables.env dotenv artifact (without quotes)
     # Using dependency proxy for caching and rate limiting
     - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/${DOCKER_IMAGE_DATABASE}
       alias: postgres-test-container
-  tags: ["docker", "linux"]
+      variables:
+        # OpenShift runs containers as a random non-root UID. The default
+        # PGDATA (/var/lib/postgresql/data) is owned by the postgres user
+        # (UID 70 on alpine) and not writable by an arbitrary UID, so initdb
+        # fails silently and postgres never starts. Redirecting PGDATA to
+        # /tmp lets initdb create the data directory regardless of UID.
+        PGDATA: /tmp/pgdata
+  tags: ["openshift"]
   before_script:
+    # node_modules is shipped as a tarball artifact (see install_dependencies)
+    - tar -xf node_modules.tar
     # Remove lines from .env file.
     - sed -i '/DB_PASS/d' .env
     - sed -i '/DB_HOST/d' .env
     - sed -i '/DB_NAME/d' .env
+
+test-vitest:
+  extends: .test_template
+  parallel:
+    matrix:
+      - SHARD_INDEX: 1
+      - SHARD_INDEX: 2
+      - SHARD_INDEX: 3
+  variables:
+    NUM_SHARDS: 3
   script:
+    - echo "Running vitest shard ${SHARD_INDEX} of ${NUM_SHARDS}"
     - npm run migration:up
-    - npm run lint
-    - npm run tsc
-    - npm run test:coverage
+    - npx vitest run --config vitest.config.mts --coverage --shard=${SHARD_INDEX}/${NUM_SHARDS} --reporter=blob --reporter=default
+  artifacts:
+    when: always
+    paths:
+      - .vitest-reports/
+    expire_in: 1 day
+
+# Merge per-shard blob reports into a single coverage report.
+# Uses vitest 4's built-in --merge-reports --coverage workflow.
+test-vitest-merge-coverage:
+  stage: stageless
+  tags: ["openshift"]
+  needs:
+    - install_dependencies
+    - test-vitest
+  before_script:
+    - tar -xf node_modules.tar
+  script:
+    - npx vitest --config vitest.config.mts --merge-reports --coverage --reporter=junit --reporter=default
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
+    when: always
     reports:
       coverage_report:
         coverage_format: cobertura
@@ -242,6 +299,18 @@ test:
     paths:
       - ./coverage/*
     expire_in: 1 day
+
+test-node-next:
+  extends: .test_template
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:25.8.1-alpine
+  when: manual
+  allow_failure: true
+  script:
+    - npm run migration:up
+    - npm run lint
+    - npm run tsc
+    - npm run build
+    - npm run test
 
 #
 # Build container images
@@ -291,14 +360,36 @@ docker:build:apiv1:
       GIT_COMMIT
 
 #
-# Retag docker images after necessary jobs pass (e.g. unit testing passes)
+# Retag docker images after necessary jobs pass (e.g. unit testing passes).
+# Used by int/prod deploys — requires tests to pass.
 #
 docker:retag:
   extends: .emss-container-retag
   needs:
     - make-dotenv:fit
-    - job: test
+    - job: lint-js
       artifacts: false
+    - job: lint-css
+      artifacts: false
+    - job: tsc
+      artifacts: false
+    - job: test-vitest
+      artifacts: false
+    - job: docker:build:nginx
+      artifacts: false
+    - job: docker:build:apiv1
+      artifacts: false
+  variables:
+    RETAG_SERVICE_IMAGES: |
+      nginx
+      apiv1
+
+# Retag for dev environments — does NOT require tests to pass.
+# Lets dev deploys proceed immediately after builds complete.
+docker:retag:dev:
+  extends: .emss-container-retag
+  needs:
+    - make-dotenv:fit
     - job: docker:build:nginx
       artifacts: false
     - job: docker:build:apiv1
@@ -322,6 +413,7 @@ deploy:artifactize-committed-files:
       - scripts/upgrade-db.sh
     expire_in: 1 day
 
+# Used by int/prod — requires tests to pass (via docker:retag)
 .deploy-template:
   extends: .emss-fitdock-deploy # use job template from gitlab-templates repo
   needs:
@@ -331,9 +423,19 @@ deploy:artifactize-committed-files:
   stage: stageless
   timeout: 10 minutes
 
+# Used by dev envs — does NOT require tests to pass (via docker:retag:dev)
+.deploy-template:dev:
+  extends: .emss-fitdock-deploy
+  needs:
+    - make-dotenv:fit
+    - docker:retag:dev
+    - deploy:artifactize-committed-files
+  stage: stageless
+  timeout: 10 minutes
+
 deploy:carbon:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .carbon-deploy
   when: manual
   before_script:
@@ -343,7 +445,7 @@ deploy:carbon:
 
 deploy:gold:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .gold-deploy
   when: manual
   before_script:
@@ -352,7 +454,7 @@ deploy:gold:
 
 deploy:iron:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .iron-deploy
   when: manual
   before_script:
@@ -361,7 +463,7 @@ deploy:iron:
 
 deploy:neon:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .neon-deploy
   when: manual
   before_script:
@@ -370,7 +472,7 @@ deploy:neon:
 
 deploy:oxygen:
   extends:
-    - .deploy-template
+    - .deploy-template:dev
     - .oxygen-deploy
   when: manual
   before_script:
