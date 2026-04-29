@@ -69,7 +69,7 @@ export default function Index(): React.ReactElement {
                       navigate("/view/?s=4");
                     }}
                   >
-                    Artemis (Restricted)
+                    Artemis (Training)
                   </div>
                 </li>
                 <li className={styles.li}>

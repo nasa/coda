@@ -135,7 +135,7 @@ export async function getAssetOverridesList(): Promise<AssetOverrideListItem[]> 
  * [startDate, endDate] range contains the requested yyyy-mm-dd date. If multiple rows
  * overlap, later rows win on key collisions (sorted by startDate ASC, id ASC).
  */
-export async function getAssetOverridesForDate<T extends string | number>(
+export async function getAssetOverridesForDate<T>(
   mediaType: AssetOverrideMediaType,
   source: Source,
   requestedDate: string

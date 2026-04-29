@@ -110,13 +110,13 @@ export default async function getPhotoData({
     }
 
     // Per-photo timezone corrections come from the asset_override_db table,
-    // scoped by mediaType="photo-time", source, and date range. Photos not in the
+    // scoped by mediaType="photo", source, and date range. Photos not in the
     // map are left uncorrected (their md_creation_date is assumed to already be UTC).
     let photoTimeOverrides: Record<string, string> = {};
     try {
       photoTimeOverrides = await getAssetOverridesForDate<string>("photo-time", source, dateWanted);
     } catch (overrideErr) {
-      ConsoleLogger.warn("Error fetching photo-time asset overrides:", overrideErr);
+      ConsoleLogger.warn("Error fetching photo asset overrides:", overrideErr);
     }
 
     const corrected: PhotoFile[] = allPhotos.map((result) => {

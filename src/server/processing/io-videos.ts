@@ -85,7 +85,7 @@ export default async function getVideoData({
         dateWanted
       );
     } catch (channelOverrideErr) {
-      ConsoleLogger.warn("Error fetching video-channel asset overrides:", channelOverrideErr);
+      ConsoleLogger.warn("Error fetching video asset overrides:", channelOverrideErr);
     }
 
     // fetch and parse videos for the requested day, the day before, and the day after

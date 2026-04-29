@@ -43,10 +43,10 @@ function validateOverrideJson(text: string, mediaType: AssetOverrideMediaType): 
         };
       }
     } else {
-      if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 8) {
+      if (!(typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 8)) {
         return {
           ok: false,
-          message: `Entry "${key}" must be an integer channel between 1 and 8 (got ${JSON.stringify(value)}).`,
+          message: `Entry "${key}" must be a number 1–8 (got ${JSON.stringify(value)}).`,
         };
       }
     }
@@ -162,8 +162,8 @@ export const EditAssetOverrideRecord: FunctionComponent = () => {
                   ))}
                 </select>
                 <span className={adminCommon.formHint}>
-                  photo-time: per-photo timestamp shift (±hh:mm:ss). video-channel: per-video CODA
-                  channel number.
+                  photo: per-photo timestamp shift (±hh:mm:ss). video: per-video CODA channel
+                  number.
                 </span>
               </div>
 
@@ -236,6 +236,23 @@ export const EditAssetOverrideRecord: FunctionComponent = () => {
                 <label htmlFor="overrideJson" className={adminCommon.formLabel}>
                   Override JSON
                 </label>
+                <pre
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#94a3b8",
+                    background: "#0f172a",
+                    border: "1px solid #1e293b",
+                    borderRadius: 4,
+                    padding: "8px 12px",
+                    margin: 0,
+                    overflowX: "auto",
+                    whiteSpace: "pre",
+                  }}
+                >
+                  {mediaType === "photo-time"
+                    ? `{\n  "jsc2026e018901": "-05:00:00",\n  "jsc2026e018902": "-05:00:00"\n}`
+                    : `{\n  "art002m2000911749": 7,\n  "art002m1500911830": 5\n}`}
+                </pre>
                 <textarea
                   id="overrideJson"
                   value={overrideJsonText}
@@ -258,7 +275,7 @@ export const EditAssetOverrideRecord: FunctionComponent = () => {
                   JSON object keyed by NASA ID. Values are{" "}
                   {mediaType === "photo-time"
                     ? "±hh:mm:ss offset strings."
-                    : "channel numbers (1–8)."}
+                    : "{ channel: 1–8 } objects."}
                 </span>
                 <span
                   id="overrideJsonStatus"

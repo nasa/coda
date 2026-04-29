@@ -401,7 +401,7 @@ export function getISSChannel(collectionStrings: string[]): string {
  *
  * Uses a three-tier strategy:
  * 1. **Per-asset overrides** – A nasa_id → channel map sourced from the
- *    asset_override_db table (mediaType="video-channel"). Covers recovery-phase
+ *    asset_override_db table (mediaType="video"). Covers recovery-phase
  *    source-150 feeds (Quad, Helo, SCIFLI, WB-57) that share a source code but
  *    represent different camera angles.
  * 2. **Collection string** – If the path contains `Downlink|Channel XX`, extract

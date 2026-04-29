@@ -96,7 +96,7 @@ for (const v of videos) {
   }
 
   if (channel !== null) {
-    overrides[nasa_id] = channel;
+    overrides[nasa_id] = { channel };
 
     // Track stats
     stats.bySlot[channel] = (stats.bySlot[channel] || 0) + 1;
@@ -123,7 +123,9 @@ for (const channel of Object.keys(stats.bySlot).sort()) {
 }
 
 console.log("\nFeed type breakdown:");
-for (const [type, info] of Object.entries(stats.byFeedType).sort((a, b) => a[1].channel - b[1].channel)) {
+for (const [type, info] of Object.entries(stats.byFeedType).sort(
+  (a, b) => a[1].channel - b[1].channel
+)) {
   console.log(`  Slot ${info.channel} | ${type} (${info.count})`);
   for (const id of info.ids) {
     console.log(`    ${id}`);

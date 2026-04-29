@@ -41,8 +41,10 @@ const CAMERA_TZ = {
 
 // Default timezone for each nasa_id prefix. Applied to photos where we have
 // no EXIF tz_offset and no camera serial mapping.
+// Use the broadest prefix that reliably identifies a timezone — e.g. "jsc"
+// covers jsc2026e, jsc2026a, jsc2025e, etc. without needing per-year entries.
 const PREFIX_DEFAULTS = {
-  jsc2026e: "-05:00", // JSC photographers, CDT
+  jsc: "-05:00", // JSC ground photographers, CDT (Houston)
   nhq: "-04:00", // NHQ photographers at KSC, EDT
 };
 

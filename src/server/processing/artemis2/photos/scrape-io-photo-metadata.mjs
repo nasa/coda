@@ -1,17 +1,24 @@
 /**
- * Scrapes EXIF metadata from IO individual photo pages for Artemis 2 photos.
+ * Scrapes EXIF metadata from IO individual photo pages.
  *
  * The IO search API does NOT return EXIF fields like Digital Creation Time
  * (which includes the timezone offset), camera model, or photographer.
  * These are visible on individual photo info pages (info.cfm?pid=XXXXX).
  *
  * This script:
- * 1. Fetches all Artemis 2 mission-day photos from the IO search API
+ * 1. Fetches all photos for the given IO collection and date range from the IO search API
  * 2. Scrapes each photo's info page to extract EXIF metadata
- * 3. Writes results to src/server/processing/artemis2/photo-exif-metadata.json
+ * 3. Writes results to src/server/processing/artemis2/photos/photo-exif-metadata.json
  * 4. Prints a summary grouped by date + timezone offset + camera
  *
- * Usage: node src/server/processing/artemis2/scrape-io-photo-metadata.mjs
+ * Usage:
+ *   node src/server/processing/artemis2/photos/scrape-io-photo-metadata.mjs
+ *   node src/server/processing/artemis2/photos/scrape-io-photo-metadata.mjs --collection 2408409 --start 04-01-2026 --end 04-30-2026
+ *
+ * CLI options (all optional — defaults to Artemis 2 mission settings):
+ *   --collection <id>        IO collection ID (default: 2346894)
+ *   --start <MM-DD-YYYY>     Start date (default: 04-01-2026)
+ *   --end   <MM-DD-YYYY>     End date   (default: 04-13-2026)
  *
  * Requires IO_KEY in .env file.
  */
@@ -36,11 +43,25 @@ if (!ioKeyMatch) {
 const IO_KEY = ioKeyMatch[1];
 const IO_HOST = "https://io.jsc.nasa.gov";
 const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
-const ARTEMIS2_PHOTO_COLLECTION = 2346894;
 
-// Mission date range: April 1-13, 2026
-const START_DATE = "04-01-2026";
-const END_DATE = "04-13-2026";
+// ── CLI argument parsing ────────────────────────────────────────────────────
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const result = {
+    collection: 2346894, // default: Artemis 2
+    start: "04-01-2026", // default: Artemis 2 mission start
+    end: "04-13-2026", // default: Artemis 2 mission end
+  };
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--collection" && args[i + 1]) result.collection = parseInt(args[++i], 10);
+    else if (args[i] === "--start" && args[i + 1]) result.start = args[++i];
+    else if (args[i] === "--end" && args[i + 1]) result.end = args[++i];
+  }
+  return result;
+}
+
+const { collection: PHOTO_COLLECTION, start: START_DATE, end: END_DATE } = parseArgs();
+console.log(`Collection: ${PHOTO_COLLECTION}, dates: ${START_DATE} → ${END_DATE}`);
 
 const CONCURRENCY = 10;
 
@@ -56,7 +77,7 @@ async function fetchIO(params) {
 }
 
 async function fetchAllPhotos() {
-  const baseParams = `s_dt=${START_DATE}&e_dt=${END_DATE}&cols=${ARTEMIS2_PHOTO_COLLECTION}&as=1&so=7`;
+  const baseParams = `s_dt=${START_DATE}&e_dt=${END_DATE}&cols=${PHOTO_COLLECTION}&as=1&so=7`;
   const first = await fetchIO(baseParams);
   const numfound = first.results?.response?.numfound ?? 0;
   console.log(`Total photos found: ${numfound}`);

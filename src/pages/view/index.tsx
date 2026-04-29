@@ -205,7 +205,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
       }
     } else if (source === sourceShortVal.ARTEMIS_TRAINING) {
       fState.source = "ARTEMIS_TRAINING";
-      // Default Artemis (Restricted) layout mirrors standard Artemis layout
+      // Default Artemis (Training) layout mirrors standard Artemis layout
       const defaultArtemisTree = stringToTree(
         "h(v(h(1:625,2:623):469,h(5:794,6:454):364):1251,3:414)"
       );
