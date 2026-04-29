@@ -18,8 +18,6 @@ env.secret.ts
 junit.xml
 
 # code assistant config files
-CLAUDE.md
-AGENTS.md
 .claude/
 
 # generated artemis 2 override JSONs (paste content into admin UI instead)
