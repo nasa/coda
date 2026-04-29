@@ -82,14 +82,8 @@ npm-audit:
 install_dependencies:
   stage: stageless
   tags: ["openshift"]
-  cache:
-    key:
-      files:
-        - package-lock.json
-    paths:
-      - .npm/
   script:
-    - npm ci --cache .npm --prefer-offline
+    - npm ci
     - tar -cf node_modules.tar node_modules
   artifacts:
     expire_in: 1 day
@@ -203,48 +197,36 @@ make-dotenv:test:
 # Lint and tsc split into three parallel jobs. OpenShift has plenty of
 # runners (~100), so wall-clock is faster as separate jobs than chaining
 # them together. No DB needed for any of them.
-lint-js:
+.lint-tsc-template:
   stage: stageless
   tags: ["openshift"]
   needs:
     - install_dependencies
   before_script:
     - tar -xf node_modules.tar
+
+lint-js:
+  extends: .lint-tsc-template
   script:
     - npm run lint:js
 
 lint-css:
-  stage: stageless
-  tags: ["openshift"]
-  needs:
-    - install_dependencies
-  before_script:
-    - tar -xf node_modules.tar
+  extends: .lint-tsc-template
   script:
     - npm run lint:css
 
 tsc:
-  stage: stageless
-  tags: ["openshift"]
-  needs:
-    - install_dependencies
-  before_script:
-    - tar -xf node_modules.tar
+  extends: .lint-tsc-template
   script:
     - npm run tsc
 
-test-vitest:
+# Template for test-vitest and test-node-next jobs, adding database service etc.
+.test_template:
   stage: stageless
   needs:
     - install_dependencies
     - make-dotenv:test
-  parallel:
-    matrix:
-      - SHARD_INDEX: 1
-      - SHARD_INDEX: 2
-      - SHARD_INDEX: 3
   variables:
-    NUM_SHARDS: 3
     # define variables used by Node app
     DB_HOST: postgres-test-container
     DB_PASS: test-only-password
@@ -254,7 +236,6 @@ test-vitest:
     POSTGRES_PASSWORD: test-only-password
     POSTGRES_DB: coda
   services:
-    # image should match database used in docker-compose.yml
     # DOCKER_IMAGE_DATABASE comes from pipelineVariables.env dotenv artifact (without quotes)
     # Using dependency proxy for caching and rate limiting
     - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/${DOCKER_IMAGE_DATABASE}
@@ -274,6 +255,16 @@ test-vitest:
     - sed -i '/DB_PASS/d' .env
     - sed -i '/DB_HOST/d' .env
     - sed -i '/DB_NAME/d' .env
+
+test-vitest:
+  extends: .test_template
+  parallel:
+    matrix:
+      - SHARD_INDEX: 1
+      - SHARD_INDEX: 2
+      - SHARD_INDEX: 3
+  variables:
+    NUM_SHARDS: 3
   script:
     - echo "Running vitest shard ${SHARD_INDEX} of ${NUM_SHARDS}"
     - npm run migration:up
@@ -309,34 +300,11 @@ test-vitest-merge-coverage:
       - ./coverage/*
     expire_in: 1 day
 
-# Forward-compat smoke test against the next version of node that CODA may use.
-# Manual-only — it's allow_failure, doesn't gate deploys, and runs the whole
-# lint/tsc/build/test chain serially. Trigger it when bumping the node version.
 test-node-next:
-  stage: stageless
+  extends: .test_template
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:25.8.1-alpine
-  needs:
-    - install_dependencies
-    - make-dotenv:test
-  variables:
-    DB_HOST: postgres-test-container
-    DB_PASS: test-only-password
-    DB_NAME: coda
-    POSTGRES_PASSWORD: test-only-password
-    POSTGRES_DB: coda
-  services:
-    - name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/${DOCKER_IMAGE_DATABASE}
-      alias: postgres-test-container
-      variables:
-        PGDATA: /tmp/pgdata
-  tags: ["openshift"]
   when: manual
   allow_failure: true
-  before_script:
-    - tar -xf node_modules.tar
-    - sed -i '/DB_PASS/d' .env
-    - sed -i '/DB_HOST/d' .env
-    - sed -i '/DB_NAME/d' .env
   script:
     - npm run migration:up
     - npm run lint
