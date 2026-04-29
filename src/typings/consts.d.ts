@@ -3,15 +3,16 @@ type Collection =
   | 4 //International Space Station. https://io.jsc.nasa.gov/app/collections.cfm?cid=4
   | 2359932 // All test events https://io.jsc.nasa.gov/app/collections.cfm?cid=2359932
   | 78178 // Neutral Buoyancy Lab. https://io.jsc.nasa.gov/app/collections.cfm?cid=78178
-  | 2346894; // Artemis Missions. https://io.jsc.nasa.gov/app/collections.cfm?cid=2346894
+  | 2346894 // Artemis Missions. https://io.jsc.nasa.gov/app/collections.cfm?cid=2346894
+  | 2375374; // DA - EVA & Human Surface Mobility Program (Artemis Training). https://io.jsc.nasa.gov/app/collections.cfm?cid=2375374
 
 type IOFetchType = "videos" | "photos";
 
-type Source = "ISS" | "TEST_EVENTS" | "NBL" | "ARTEMIS";
+type Source = "ISS" | "TEST_EVENTS" | "NBL" | "ARTEMIS" | "ARTEMIS_TRAINING";
 
 type MediaMedium = "video" | "photo" | "transcript" | "audio";
 
-type SourceShortVal = 0 | 1 | 2 | 3;
+type SourceShortVal = 0 | 1 | 2 | 3 | 4;
 
 /** Keys used to lookup and map sequence type values */
 type SequenceTypeKey = "EVA" | "IVA" | "testing" | "analog" | "training";

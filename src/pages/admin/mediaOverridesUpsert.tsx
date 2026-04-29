@@ -97,6 +97,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   required
                 >
                   <option value="ARTEMIS">ARTEMIS</option>
+                  <option value="ARTEMIS_TRAINING">ARTEMIS_TRAINING</option>
                   <option value="ISS">ISS</option>
                   <option value="NBL">NBL</option>
                   <option value="TEST_EVENTS">TEST_EVENTS</option>

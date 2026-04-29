@@ -266,6 +266,10 @@ function parseVideoResultMetadata(
     // Artemis missions use collection strings, source codes, and per-asset overrides
     const channel = getArtemisChannel(doc.collections_string, doc.nasa_id, channelOverrideMap);
     downlink = channel !== "" ? parseInt(channel) - 1 : -1;
+  } else if (col === collection.ARTEMIS_TRAINING) {
+    // Artemis (Training) uses the same channel-parsing strategy as ARTEMIS
+    const channel = getArtemisChannel(doc.collections_string, doc.nasa_id, channelOverrideMap);
+    downlink = channel !== "" ? parseInt(channel) - 1 : -1;
   }
 
   // Determine video start time from IO metadata

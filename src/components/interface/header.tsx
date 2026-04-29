@@ -154,7 +154,8 @@ const SourcesDropdown: FunctionComponent = () => {
           handleSourceChange(e);
         }}
       >
-        <option value={"ARTEMIS"}>ARTEMIS</option>
+        <option value={"ARTEMIS"}>Artemis</option>
+        <option value={"ARTEMIS_TRAINING"}>Artemis (Training)</option>
         <option value={"ISS"}>ISS</option>
         <option value={"NBL"}>NBL</option>
         <option value={"TEST_EVENTS"}>Test Events</option>

@@ -296,6 +296,8 @@ function getEventInfoTitleBySource(source: Source): string {
     return "Test Event Info";
   } else if (source === "ARTEMIS") {
     return "Mission Info";
+  } else if (source === "ARTEMIS_TRAINING") {
+    return "Mission Info";
   } else {
     throw new Error(source);
   }

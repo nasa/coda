@@ -3,6 +3,7 @@ export const collection: Record<Source, Collection> = {
   TEST_EVENTS: 2359932,
   NBL: 78178,
   ARTEMIS: 2346894,
+  ARTEMIS_TRAINING: 2375374,
 };
 
 export const sourceShortVal: Record<Source, SourceShortVal> = {
@@ -10,6 +11,7 @@ export const sourceShortVal: Record<Source, SourceShortVal> = {
   TEST_EVENTS: 1,
   NBL: 2,
   ARTEMIS: 3,
+  ARTEMIS_TRAINING: 4,
 };
 
 export const sequenceType: Record<SequenceTypeKey, SequenceType> = {

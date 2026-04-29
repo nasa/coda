@@ -33,6 +33,7 @@ export const SOURCE_DATA_TYPE_MAP: Record<Source, StoreDataType[]> = {
   TEST_EVENTS: ["videos", "mtxvideo", "photos", "wikiTestEvents", "talkybot", "graph", "gpstracks"],
   NBL: ["videos", "photos", "wikiTestEvents", "mtxvideo", "graph"],
   ARTEMIS: ["videos", "photos", "wikiTestEvents", "mtxvideo", "talkybot"],
+  ARTEMIS_TRAINING: ["videos", "photos", "wikiTestEvents", "mtxvideo", "talkybot"],
 };
 
 /**

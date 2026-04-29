@@ -66,6 +66,15 @@ export default function Index(): React.ReactElement {
                 <li className={styles.li}>
                   <div
                     onClick={() => {
+                      navigate("/view/?s=4");
+                    }}
+                  >
+                    Artemis (Restricted)
+                  </div>
+                </li>
+                <li className={styles.li}>
+                  <div
+                    onClick={() => {
                       navigate("/view/?s=0");
                     }}
                   >

@@ -8,7 +8,7 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
+const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS", "ARTEMIS_TRAINING"];
 const MEDIA_TYPES: AssetOverrideMediaType[] = ["photo-time", "video-channel"];
 
 const TIME_OFFSET_RE = /^[+-]\d{2}:\d{2}:\d{2}$/;
