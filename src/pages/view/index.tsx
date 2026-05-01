@@ -206,14 +206,10 @@ function getURLParams(query: URLSearchParams): QueryParams {
     } else if (source === sourceShortVal.ARTEMIS_TRAINING) {
       fState.source = "ARTEMIS_TRAINING";
       // Default Artemis (Training) layout mirrors standard Artemis layout
-      const defaultArtemisTree = stringToTree(
-        "h(v(h(1:625,2:623):469,h(5:794,6:454):364):1251,3:414)"
-      );
+      const defaultArtemisTree = stringToTree("v(h(1:815,2:813):430,5:334)");
       if (defaultArtemisTree) dockviewLayout = treeToSerialized(defaultArtemisTree);
       fState.paneInstances = interpretFramestateQueryString(
-        new URLSearchParams(
-          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300"
-        )
+        new URLSearchParams("f1=01001jsc2026m000264&f2=0300&f3=08&f5=0701&f6=0300")
       );
       if (isNil(rawDate)) {
         date = "2026-02-25";
