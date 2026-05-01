@@ -39,9 +39,14 @@ interface ParsedCrews {
 // =====================
 
 /**
- * Parse as-executed timeline data into the expected format grouped by event name and actor
+ * Parse as-executed timeline data into the expected format grouped by event name and actor.
+ *
+ * @param tasks - Raw Actor_task rows from Cargo query
+ * @param actorOffset - Actor number offset for EV mapping.
+ *   - `1` (default): "Actor 2" → EV1, "Actor 3" → EV2 (ISS EVAs where Actor 1 is SSRMS)
+ *   - `0`: "Actor 1" → EV1, "Actor 2" → EV2 (AxEMU training where Actor 1 is the suited crew)
  */
-export function parseAsExecuted(tasks: CargoActorTask[]): ParsedExecution {
+export function parseAsExecuted(tasks: CargoActorTask[], actorOffset = 1): ParsedExecution {
   const result: ParsedExecution = {};
 
   for (const task of tasks) {
@@ -52,15 +57,16 @@ export function parseAsExecuted(tasks: CargoActorTask[]): ParsedExecution {
       result[eventName] = {};
     }
 
-    // Normalize actor names: "Actor 2" -> "EV1", "Actor 3" -> "EV2"
-    // Actor 1 is typically SSRMS - we skip it
+    // Normalize actor names using the offset:
+    //   actorOffset=1: "Actor 2" → EV1, "Actor 3" → EV2 (skip Actor 1 = SSRMS)
+    //   actorOffset=0: "Actor 1" → EV1, "Actor 2" → EV2 (no SSRMS)
     let actor = task["Actor title"] || "";
     if (actor.startsWith("Actor")) {
       const actorNumber = parseInt(actor.replace("Actor", "").trim(), 10);
-      if (actorNumber <= 1) {
-        continue; // Skip Actor 1 (SSRMS)
+      if (actorNumber <= actorOffset && actorOffset > 0) {
+        continue; // Skip actors below the offset (e.g., Actor 1 = SSRMS for ISS EVAs)
       }
-      actor = `EV${actorNumber - 1}`;
+      actor = `EV${actorNumber - actorOffset}`;
     }
 
     if (!result[eventName][actor]) {

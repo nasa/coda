@@ -12,6 +12,7 @@ import getTalkybotData from "server/processing/talkybot";
 import getGraphManifest from "server/processing/graphs";
 import { getISSEvaData } from "server/processing/wiki/evaData";
 import { getTestEventsData } from "server/processing/wiki/testEventData";
+import { getArtemisTrainingData } from "server/processing/wiki/artemisTrainingData";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import isEqual from "lodash/isEqual";
 import { getCacheEntry, putCacheEntry } from "server/express/cache-db";
@@ -75,6 +76,15 @@ export const dataFetchConfigs: FetchConfig[] = [
   {
     type: "wikiTestEvents",
     getDataFunction: getTestEventsData,
+    refreshIntervalTodayMs: dayjs.duration(6, "hour").asMilliseconds(),
+    refreshIntervalMs: null, // Not used for non-date-dependent data
+    fetchTimeoutMs: dayjs.duration(60, "seconds").asMilliseconds(), // Allow more time for wiki API
+    enableCacheUse: true, // Cache wiki data to reduce API calls
+    isDateDependent: false, // Wiki data is the same for all dates
+  },
+  {
+    type: "wikiArtemisTraining",
+    getDataFunction: getArtemisTrainingData,
     refreshIntervalTodayMs: dayjs.duration(6, "hour").asMilliseconds(),
     refreshIntervalMs: null, // Not used for non-date-dependent data
     fetchTimeoutMs: dayjs.duration(60, "seconds").asMilliseconds(), // Allow more time for wiki API

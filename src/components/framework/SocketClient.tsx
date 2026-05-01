@@ -98,7 +98,8 @@ const SocketClient: FunctionComponent<{
         }
         if (
           !isDataTypeValidForSource(source, "wikiEvas") &&
-          !isDataTypeValidForSource(source, "wikiTestEvents")
+          !isDataTypeValidForSource(source, "wikiTestEvents") &&
+          !isDataTypeValidForSource(source, "wikiArtemisTraining")
         ) {
           dispatch(addSequences({ data: [], fetchMetadata: unneededMetadata }));
         }
@@ -190,6 +191,9 @@ const SocketClient: FunctionComponent<{
           const dataResponse = response as FetchResponse<Sequence[]>;
           dispatch(addSequences(dataResponse));
         } else if (dataUpdate.type === "wikiTestEvents") {
+          const dataResponse = response as FetchResponse<Sequence[]>;
+          dispatch(addSequences(dataResponse));
+        } else if (dataUpdate.type === "wikiArtemisTraining") {
           const dataResponse = response as FetchResponse<Sequence[]>;
           dispatch(addSequences(dataResponse));
         } else if (dataUpdate.type === "mtxvideo") {

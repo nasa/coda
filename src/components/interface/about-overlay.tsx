@@ -44,7 +44,8 @@ const AboutOverlay = ({
 
   const isSequencesLoaded =
     (!isDataTypeValidForSource(source, "wikiEvas") &&
-      !isDataTypeValidForSource(source, "wikiTestEvents")) ||
+      !isDataTypeValidForSource(source, "wikiTestEvents") &&
+      !isDataTypeValidForSource(source, "wikiArtemisTraining")) ||
     sequences.metadata !== null;
 
   const isGpsLoaded = !isDataTypeValidForSource(source, "gpstracks") || gps.metadata !== null;

@@ -159,6 +159,13 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         title: "Events " + sequenceStatus.message,
       });
     }
+    if (isDataTypeValidForSource(source, "wikiArtemisTraining")) {
+      dataTypes.push({
+        label: "Training",
+        status: sequenceStatus,
+        title: "Training " + sequenceStatus.message,
+      });
+    }
     if (isDataTypeValidForSource(source, "gpstracks")) {
       dataTypes.push({ label: "GPS", status: gpsStatus, title: "GPS track " + gpsStatus.message });
     }
@@ -261,6 +268,13 @@ const StatusArea: FunctionComponent<{ largeDisplay: boolean }> = ({ largeDisplay
         label: "Events",
         status: sequenceStatus,
         title: "Events " + sequenceStatus.message,
+      });
+    }
+    if (isDataTypeValidForSource(source, "wikiArtemisTraining")) {
+      dataTypes.push({
+        label: "Training",
+        status: sequenceStatus,
+        title: "Training " + sequenceStatus.message,
       });
     }
     if (isDataTypeValidForSource(source, "gpstracks")) {

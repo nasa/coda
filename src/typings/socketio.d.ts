@@ -7,6 +7,7 @@ type StoreDataType =
   | "photos"
   | "wikiEvas"
   | "wikiTestEvents"
+  | "wikiArtemisTraining"
   | "mtxvideo"
   | "gpstracks"
   | "talkybot"

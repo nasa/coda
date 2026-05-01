@@ -370,7 +370,6 @@ deploy:neon:
 
 deploy:oxygen:
   extends:
-    - .deploy-template
     - .oxygen-deploy
   when: manual
   before_script:

@@ -33,7 +33,7 @@ export const SOURCE_DATA_TYPE_MAP: Record<Source, StoreDataType[]> = {
   TEST_EVENTS: ["videos", "mtxvideo", "photos", "wikiTestEvents", "talkybot", "graph", "gpstracks"],
   NBL: ["videos", "photos", "wikiTestEvents", "mtxvideo", "graph"],
   ARTEMIS: ["videos", "photos", "wikiTestEvents", "mtxvideo", "talkybot"],
-  ARTEMIS_TRAINING: ["videos", "photos", "wikiTestEvents", "mtxvideo", "talkybot"],
+  ARTEMIS_TRAINING: ["videos", "photos", "wikiArtemisTraining", "mtxvideo", "talkybot"],
 };
 
 /**
@@ -156,7 +156,7 @@ export const PANE_DATA_TYPE_REQUIREMENTS: Record<string, StoreDataType[]> = {
   photo_all: ["photos"],
   iss_location: ["ephemeris", "daynight"],
   gps_location: ["gpstracks"],
-  event_info: ["wikiEvas", "wikiTestEvents"], // needs at least one of these (handled specially)
+  event_info: ["wikiEvas", "wikiTestEvents", "wikiArtemisTraining"], // needs at least one of these (handled specially)
   comm: ["talkybot"],
   graph: ["graph"],
 };
