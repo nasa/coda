@@ -28,14 +28,21 @@ include:
       # Code quality checks
       - "/jobs/code-quality.gitlab-ci.yml"
 
-      # Fitdock deploy template
-      - "/jobs/fitdock-deploy.gitlab-ci.yml"
-
       # Kaniko build template
       - "/jobs/kaniko-build.gitlab-ci.yml"
 
       # Retag job template
       - "/jobs/container-retag.gitlab-ci.yml"
+
+  # Pulled separately at 2.8.0 to opt this app's hosts into the EMSS host
+  # metrics rollout (node-exporter + cAdvisor + OTel agent installed by
+  # Part 3 of fitdock-deploy). Other templates intentionally stay at 2.7.1
+  # so this opt-in doesn't drag in unrelated template churn. Move back into
+  # the block above once everything else has caught up to 2.8.0+.
+  - project: "emss/gitlab-templates"
+    ref: 2.8.0
+    file:
+      - "/jobs/fitdock-deploy.gitlab-ci.yml"
 
   # Adds jobs to export db, and dump logs
   - local: .gitlab/includes/server-jobs.yml
