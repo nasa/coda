@@ -12,12 +12,14 @@ import AdminAncillaryData from "pages/admin/ancillaryData";
 import AdminVideo from "pages/admin/videoStartTimeOverrides";
 import AdminPhoto from "pages/admin/photoTimeShifts";
 import AdminAssetOverrides from "pages/admin/assetOverrides";
+import AdminAccessGrants from "pages/admin/accessGrants";
 import { EditGPSRecord } from "pages/admin/gpsUpsert";
 import { EditMediaOverridesRecord } from "pages/admin/mediaOverridesUpsert";
 import { EditAncillaryDataRecord } from "pages/admin/ancillaryDataUpsert";
 import { EditVideoRecord } from "pages/admin/videoStartTimeOverrideUpsert";
 import { EditPhotoRecord } from "pages/admin/photoTimeShiftUpsert";
 import { EditAssetOverrideRecord } from "pages/admin/assetOverrideUpsert";
+import { EditAccessGrantRecord } from "pages/admin/accessGrantUpsert";
 import { EnsureLogin } from "./packages/EnsureLogin";
 import { Tooltip } from "react-tooltip";
 import HLSPage from "pages/hls";
@@ -43,12 +45,14 @@ const App = (): React.ReactElement => {
         <Route path="/admin/videoStartTimeOverrides" element={<AdminVideo />} />
         <Route path="/admin/photoTimeShifts" element={<AdminPhoto />} />
         <Route path="/admin/assetOverrides" element={<AdminAssetOverrides />} />
+        <Route path="/admin/accessGrants" element={<AdminAccessGrants />} />
         <Route path="/admin/gpsUpsert" element={<EditGPSRecord />} />
         <Route path="/admin/mediaOverridesUpsert" element={<EditMediaOverridesRecord />} />
         <Route path="/admin/ancillaryDataUpsert" element={<EditAncillaryDataRecord />} />
         <Route path="/admin/videoStartTimeOverrideUpsert" element={<EditVideoRecord />} />
         <Route path="/admin/photoTimeShiftUpsert" element={<EditPhotoRecord />} />
         <Route path="/admin/assetOverrideUpsert" element={<EditAssetOverrideRecord />} />
+        <Route path="/admin/accessGrantUpsert" element={<EditAccessGrantRecord />} />
         <Route path="/admin/ephemeris" element={<AdminEphemeris />} />
         <Route path="/hls" element={<HLSPage />} />
         <Route path="/admin/socketStatus" element={<ServerSocketStatus />} />

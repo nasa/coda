@@ -2,7 +2,7 @@ import clone from "lodash/cloneDeep";
 import sortBy from "lodash/sortBy";
 import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
 import { collection } from "utils/consts";
-import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
+import { getPublicMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { getVideoStartTimeOverridesRecordsList } from "server/express/routes/db/video";
 import { getAssetOverridesForDate } from "server/express/routes/db/assetOverrides";
 import ConsoleLogger from "utils/logging/consoleLogger";
@@ -42,7 +42,7 @@ export default async function getVideoData({
     // Fetch video source overrides from the db for this date. If there are none, then use Imagery Online
     let mediaOverrides: MediaOverride[] | undefined;
     try {
-      mediaOverrides = await getMediaOverridesList();
+      mediaOverrides = await getPublicMediaOverridesList();
     } catch (overrideError) {
       // don't block results if media overrides call fails
       ConsoleLogger.warn("Error fetching media overrides:", overrideError);

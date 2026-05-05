@@ -7,6 +7,7 @@ import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { getTalkybotS2sSocketTrackerData } from "./talkybotS2sSocket";
+import { findRestrictedAccessesForUser } from "./routes/db/accessGrants";
 
 export const INSPECTOR_ROOM = "inspectorRoom";
 
@@ -137,7 +138,27 @@ export const setupSocketIO = (): void => {
             return item.socketId === visitorData.socketId;
           });
           // Initialize liveVideoEnabled to true for new visitors
-          visitorsData.push({ ...visitorData, liveVideoEnabled: true });
+          visitorsData.push({ ...visitorData, liveVideoEnabled: true, restrictedAccesses: [] });
+
+          // Compute restricted-override eligibility (auid-gated MediaOverride rows for this source+date)
+          // and update the visitor record + emit fresh inspector update once available.
+          findRestrictedAccessesForUser(
+            visitorData.user?.auid,
+            visitorData.source,
+            visitorData.dateViewing
+          )
+            .then((accesses) => {
+              const tracked = find(visitorsData, { socketId: visitorData.socketId });
+              if (tracked) {
+                tracked.restrictedAccesses = accesses;
+                if (accesses.length > 0) {
+                  emitVisitorInspectorUpdate();
+                }
+              }
+            })
+            .catch((err) => {
+              ConsoleLogger.warn("findRestrictedAccessesForUser failed:", err);
+            });
 
           // update the server data refresh timeouts object to possibly add this source/day if this is the first visitor currently viewing it
           updateServerFetchTrackers();

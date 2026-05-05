@@ -1,6 +1,6 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import leoProfanity from "leo-profanity";
-import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
+import { getPublicMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import { getSourcesWithDataType, getSourceForTalkybotGroup } from "utils/sourceDataTypeMap";
@@ -98,7 +98,7 @@ export default async function getTalkybotData({
   // Fetch source overrides from the database for this date (only for non-ISS sources)
   if (source !== "ISS") {
     try {
-      const mediaOverrides = await getMediaOverridesList();
+      const mediaOverrides = await getPublicMediaOverridesList();
 
       // Check for audio override
       const audioMediaOverride = mediaOverrides?.find((vo) => {
