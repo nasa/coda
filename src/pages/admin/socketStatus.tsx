@@ -296,6 +296,7 @@ const ServerSocketStatus: FunctionComponent = () => {
                       <tr>
                         <th>User</th>
                         <th>{isWithinLiveVideoWindow(dateData.date) && "Live Video"}</th>
+                        <th>Restricted Access</th>
                         <th>IP Address</th>
                         <th>Connected</th>
                         <th>Version</th>
@@ -325,6 +326,24 @@ const ServerSocketStatus: FunctionComponent = () => {
                                   >
                                     {isVideoDisabled ? "Disabled" : "Enabled"}
                                   </button>
+                                )}
+                              </td>
+                              <td>
+                                {conn.restrictedAccesses && conn.restrictedAccesses.length > 0 ? (
+                                  <span
+                                    title={conn.restrictedAccesses
+                                      .map(
+                                        (a) =>
+                                          `${a.overrideType} override #${a.overrideId} via grant "${a.grantName}" (#${a.grantId})`
+                                      )
+                                      .join("\n")}
+                                  >
+                                    {conn.restrictedAccesses
+                                      .map((a) => `${a.overrideType}: ${a.grantName}`)
+                                      .join(", ")}
+                                  </span>
+                                ) : (
+                                  "—"
                                 )}
                               </td>
                               <td>

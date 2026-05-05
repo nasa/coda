@@ -2,7 +2,7 @@ import clone from "lodash/clone";
 import isNil from "lodash/isNil";
 import sortBy from "lodash/sortBy";
 import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
-import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
+import { getPublicMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { getAssetOverridesForDate } from "server/express/routes/db/assetOverrides";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
@@ -48,7 +48,7 @@ export default async function getPhotoData({
     let mediaOverrides: MediaOverride[] | undefined;
     // Fetch photo source overrides from the db for this date. If there are none, then use Imagery Online
     try {
-      mediaOverrides = await getMediaOverridesList();
+      mediaOverrides = await getPublicMediaOverridesList();
     } catch (overrideError) {
       // don't block results if media overrides call fails
       ConsoleLogger.warn("Error fetching media overrides:", overrideError);
