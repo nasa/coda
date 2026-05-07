@@ -1,7 +1,13 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate } from "store/hooks";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBookmark, faChevronDown, faEye, faTableCells } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBookmark,
+  faChevronDown,
+  faEye,
+  faTableCells,
+  faUserCheck,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Calendar } from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
@@ -304,6 +310,23 @@ export const SocketStatus: FunctionComponent<{ socketStatus: ClientSocketStatus 
   );
 };
 
+export const AuthStatus: FunctionComponent = () => {
+  const user = useAppSelector((state) => state.user.user, refEqual);
+  if (!user?.auid) return null;
+
+  const tooltip = [user.display_name, user.email].filter(Boolean).join("<br/>");
+
+  return (
+    <div
+      className={styles.authStatus}
+      data-tooltip-id="app-tooltip"
+      data-tooltip-html={`Logged in as:<br/>${tooltip || user.auid}`}
+    >
+      <FontAwesomeIcon className={styles.authStatusIcon} icon={faUserCheck} />
+    </div>
+  );
+};
+
 const Header: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
@@ -348,6 +371,9 @@ const Header: FunctionComponent<{
         </div>
       </div>
       <div className={styles.right}>
+        <div>
+          <AuthStatus />
+        </div>
         <div>
           <SocketStatus socketStatus={socketStatus} />
         </div>
