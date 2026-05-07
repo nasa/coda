@@ -30,12 +30,20 @@ export const SKIP_FETCH_THRESHOLD_MS = 6 * 60 * 60 * 1000;
  */
 const SAFE_MINUTES = [12, 48] as const;
 
-const msUntilNextSafeMinute = (now: Date = new Date()): number => {
-  const minute = now.getMinutes();
+/**
+ * Returns ms from now until the next clock minute matching SAFE_MINUTES that is
+ * also at least `minDelayMs` ahead. The min-delay floor prevents a manual
+ * trigger at, say, :05 from causing a recurring fire at :12 just minutes later
+ * (which would be two Space-Track hits inside a 6h window).
+ */
+const msUntilNextSafeMinute = (minDelayMs: number = 0): number => {
+  const now = Date.now();
+  const earliest = new Date(now + minDelayMs);
+  const minute = earliest.getMinutes();
   const target = SAFE_MINUTES.find((m) => m > minute) ?? SAFE_MINUTES[0] + 60;
-  const targetDate = new Date(now);
+  const targetDate = new Date(earliest);
   targetDate.setMinutes(target, 0, 0);
-  return targetDate.getTime() - now.getTime();
+  return targetDate.getTime() - now;
 };
 
 /** Whichever update path applies to this instance — see EPHEMERIS_SYNC_FROM_URL. */
@@ -46,17 +54,17 @@ const updateState = (updates: Partial<SpaceTrackTrackerData>): void => {
   globalValues.spacetrackTrackerData = { ...globalValues.spacetrackTrackerData, ...updates };
 };
 
-const calculateNextUpdateTime = (): string | null => {
-  if (!globalValues.spacetrackTrackerData.isActive) return null;
-  // The recurring interval is aligned to a safe minute (:12 or :48). After the first
-  // fire, every subsequent fire is 6h later — same minute mark. Before the first fire,
-  // it's the alignment delay from now.
-  const interval = globalValues.spacetrackInterval;
-  if (interval) {
-    return new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString();
-  }
-  return new Date(Date.now() + msUntilNextSafeMinute()).toISOString();
-};
+/**
+ * Compute the post-fire `nextOperationAt`: every fire (aligned or recurring)
+ * is followed 6h later by another fire on the same safe minute, since 360 min
+ * is a clean multiple of 60 min. Called from performSpaceTrackUpdate after the
+ * fetch completes; for the pre-first-fire case, scheduleAlignedRecurring writes
+ * `nextOperationAt` directly.
+ */
+const calculateNextUpdateTime = (): string | null =>
+  globalValues.spacetrackTrackerData.isActive
+    ? new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString()
+    : null;
 
 // Fetch decision helpers
 
@@ -238,25 +246,30 @@ export const startSpacetrackScheduler = async (): Promise<void> => {
     ConsoleLogger.notice(
       `Skipping initial Space-Track fetch - ${skipReason} (threshold: ${dayjs.duration(SKIP_FETCH_THRESHOLD_MS).asMinutes().toFixed(0)} minutes)`
     );
-    updateState({ nextOperationAt: calculateNextUpdateTime() });
-    emitSpacetrackInspectorUpdate();
   }
 
   scheduleAlignedRecurring();
+  emitSpacetrackInspectorUpdate();
 };
 
 /**
  * Schedule the recurring 6h fire, aligned so the first fire lands on minute :12
- * or :48. Subsequent fires are 6h later (same minute mark, since 360 min is a
- * clean multiple of 60 min). Replaces any existing scheduled timer.
+ * or :48 and is at least `minDelayMs` from now. Subsequent fires are 6h later
+ * (same minute mark, since 360 min is a clean multiple of 60 min). Replaces any
+ * existing scheduled timer.
+ *
+ * `minDelayMs` is used by `triggerSpacetrackUpdate` to push the next aligned
+ * fire ~6h out — so a manual trigger doesn't immediately trip a second fire on
+ * the next clock-aligned minute.
  */
-const scheduleAlignedRecurring = (): void => {
+const scheduleAlignedRecurring = (minDelayMs: number = 0): void => {
   if (globalValues.spacetrackInterval) {
     clearInterval(globalValues.spacetrackInterval);
     globalValues.spacetrackInterval = null;
   }
-  const alignmentDelayMs = msUntilNextSafeMinute();
+  const alignmentDelayMs = msUntilNextSafeMinute(minDelayMs);
   const firstFireAt = new Date(Date.now() + alignmentDelayMs);
+  updateState({ nextOperationAt: firstFireAt.toISOString() });
   globalValues.spacetrackInterval = setTimeout(() => {
     ConsoleLogger.debug("Running scheduled Space-Track TLE update (first aligned fire)");
     void performSpaceTrackUpdate(false);
@@ -292,7 +305,9 @@ export const triggerSpacetrackUpdate = async (username: string): Promise<void> =
   });
 
   if (globalValues.spacetrackTrackerData.isActive) {
-    scheduleAlignedRecurring();
+    // Manual fire is happening now; push the next aligned fire ~6h out so we
+    // don't double-hit Space-Track inside a single rate-limit window.
+    scheduleAlignedRecurring(SPACETRACK_UPDATE_INTERVAL_MS);
   } else if (globalValues.spacetrackInterval) {
     clearInterval(globalValues.spacetrackInterval);
     globalValues.spacetrackInterval = null;
