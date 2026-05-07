@@ -1,13 +1,22 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import { getEphemerisByDate, upsertEphemerisRecords, getStats } from "server/processing/ephemeris";
+import {
+  getEphemerisByDate,
+  upsertEphemerisRecords,
+  getStats,
+  getEphemerisRecordsSince,
+  RECENT_RECORDS_MAX,
+} from "server/processing/ephemeris";
 import { seedMissingData } from "server/processing/ephemeris-seed";
 import { triggerSpacetrackUpdate } from "server/express/spacetrackScheduler";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import { requireEmssToken } from "server/express/middleware/requireEmssToken";
 import { getUser } from "packages/getUser";
 import { globalValues } from "server/express/global";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import { Ephemeris_db } from "server/database/models/ephemera.model";
+
+const DEFAULT_SINCE_DAYS = 30;
 
 /**
  * Get ISS TLE records from CODA DB
@@ -91,6 +100,49 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
   } catch (e) {
     ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the POST request ${e}` });
+  }
+});
+
+// Server-to-server sync endpoint: returns records with epoch > `since`.
+// Called by non-prod CODA instances to mirror the prod ephemeris DB without
+// hitting Space-Track. Auth via shared EMSS_TOKEN bearer.
+router.get("/recent", requireEmssToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    let since: Date;
+    const sinceParam = req.query.since;
+    if (typeof sinceParam === "string" && sinceParam.length > 0) {
+      since = new Date(sinceParam);
+      if (isNaN(since.getTime())) {
+        res
+          .status(400)
+          .json({ status: "error", message: "Invalid `since` parameter (must be ISO 8601)" });
+        return;
+      }
+    } else {
+      // No `since` supplied — fresh follower with empty DB. Default to 30 days.
+      since = new Date();
+      since.setDate(since.getDate() - DEFAULT_SINCE_DAYS);
+    }
+
+    const records = await getEphemerisRecordsSince(since);
+    const payload: EphemerisEntry[] = records.map((r) => ({
+      epoch: r.epoch.toISOString(),
+      tle_line1: r.tle_line1,
+      tle_line2: r.tle_line2,
+    }));
+
+    if (payload.length === RECENT_RECORDS_MAX) {
+      ConsoleLogger.warn(
+        `/ephemeris/recent hit row cap (${RECENT_RECORDS_MAX}); follower since=${since.toISOString()} should retry with newer cursor`
+      );
+    }
+
+    res.status(200).json(payload);
+  } catch (e) {
+    ConsoleLogger.error(e);
+    res
+      .status(500)
+      .json({ status: "error", message: `Error fetching recent ephemeris records ${e}` });
   }
 });
 

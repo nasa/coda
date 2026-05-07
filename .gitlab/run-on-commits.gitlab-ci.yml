@@ -442,6 +442,8 @@ deploy:carbon:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/carbon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/carbon/g" .env
+    # Non-prod follower: pull ephemeris from prod instead of polling Space-Track
+    - echo 'EPHEMERIS_SYNC_FROM_URL=https://coda.fit.nasa.gov' >> .env
 
 deploy:gold:
   extends:
@@ -451,6 +453,7 @@ deploy:gold:
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/gold-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/gold/g" .env
+    - echo 'EPHEMERIS_SYNC_FROM_URL=https://coda.fit.nasa.gov' >> .env
 
 deploy:iron:
   extends:
@@ -460,6 +463,7 @@ deploy:iron:
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/iron-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/iron/g" .env
+    - echo 'EPHEMERIS_SYNC_FROM_URL=https://coda.fit.nasa.gov' >> .env
 
 deploy:neon:
   extends:
@@ -469,6 +473,7 @@ deploy:neon:
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/neon-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/neon/g" .env
+    - echo 'EPHEMERIS_SYNC_FROM_URL=https://coda.fit.nasa.gov' >> .env
 
 deploy:oxygen:
   extends:
@@ -478,6 +483,7 @@ deploy:oxygen:
   before_script:
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
+    - echo 'EPHEMERIS_SYNC_FROM_URL=https://coda.fit.nasa.gov' >> .env
 
 deploy:int:
   extends: .deploy-template
@@ -497,6 +503,8 @@ deploy:int:
     # This is currently our hack to change out a necessary var for Launchpad Auth
     - sed -i "s/INSERT_SUBDOMAIN/coda-int/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/int/g" .env
+    # Non-prod follower: pull ephemeris from prod instead of polling Space-Track
+    - echo 'EPHEMERIS_SYNC_FROM_URL=https://coda.fit.nasa.gov' >> .env
 
 deploy:prod:
   extends: .deploy-template

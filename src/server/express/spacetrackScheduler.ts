@@ -10,6 +10,7 @@
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
+import { syncEphemerisFromProd } from "server/processing/ephemeris-prod-sync";
 import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { globalValues, getSocketIO } from "./global";
@@ -17,20 +18,45 @@ import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 dayjs.extend(duration);
 
-// Space-Track provides comprehensive TLE data. We fetch 30 days at a time
-// Run every 6 hours to be respectful of their API limits
+// Run every 6 hours per Space-Track's API guidelines.
 const SPACETRACK_UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 /** Skip initial fetch if latest record was created less than this threshold */
 export const SKIP_FETCH_THRESHOLD_MS = 6 * 60 * 60 * 1000;
+/**
+ * Space-Track asks API users to avoid the busy minutes around the top and
+ * bottom of the hour (e.g., :00 and :30). Aligning the recurring scheduler to
+ * fire at :12 or :48 of some hour keeps every subsequent 6h fire on the same
+ * safe minute mark (since 360 min is a clean multiple of 60 min).
+ */
+const SAFE_MINUTES = [12, 48] as const;
+
+const msUntilNextSafeMinute = (now: Date = new Date()): number => {
+  const minute = now.getMinutes();
+  const target = SAFE_MINUTES.find((m) => m > minute) ?? SAFE_MINUTES[0] + 60;
+  const targetDate = new Date(now);
+  targetDate.setMinutes(target, 0, 0);
+  return targetDate.getTime() - now.getTime();
+};
+
+/** Whichever update path applies to this instance — see EPHEMERIS_SYNC_FROM_URL. */
+const runUpdate = (): Promise<SpaceTrackUpdateResult> =>
+  process.env.EPHEMERIS_SYNC_FROM_URL ? syncEphemerisFromProd() : updateFromSpaceTrack();
 
 const updateState = (updates: Partial<SpaceTrackTrackerData>): void => {
   globalValues.spacetrackTrackerData = { ...globalValues.spacetrackTrackerData, ...updates };
 };
 
-const calculateNextUpdateTime = (): string | null =>
-  globalValues.spacetrackTrackerData.isActive
-    ? new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString()
-    : null;
+const calculateNextUpdateTime = (): string | null => {
+  if (!globalValues.spacetrackTrackerData.isActive) return null;
+  // The recurring interval is aligned to a safe minute (:12 or :48). After the first
+  // fire, every subsequent fire is 6h later — same minute mark. Before the first fire,
+  // it's the alignment delay from now.
+  const interval = globalValues.spacetrackInterval;
+  if (interval) {
+    return new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString();
+  }
+  return new Date(Date.now() + msUntilNextSafeMinute()).toISOString();
+};
 
 // Fetch decision helpers
 
@@ -141,8 +167,8 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
 
   emitSpacetrackInspectorUpdate();
 
-  // Execute the update
-  const result = await updateFromSpaceTrack();
+  // Execute the update — dispatches to Space-Track on prod, prod-sync on followers.
+  const result = await runUpdate();
 
   const endTime = Date.now();
   const completedAt = new Date(endTime).toISOString();
@@ -216,12 +242,31 @@ export const startSpacetrackScheduler = async (): Promise<void> => {
     emitSpacetrackInspectorUpdate();
   }
 
-  globalValues.spacetrackInterval = setInterval(() => {
-    ConsoleLogger.debug("Running scheduled Space-Track TLE update");
+  scheduleAlignedRecurring();
+};
+
+/**
+ * Schedule the recurring 6h fire, aligned so the first fire lands on minute :12
+ * or :48. Subsequent fires are 6h later (same minute mark, since 360 min is a
+ * clean multiple of 60 min). Replaces any existing scheduled timer.
+ */
+const scheduleAlignedRecurring = (): void => {
+  if (globalValues.spacetrackInterval) {
+    clearInterval(globalValues.spacetrackInterval);
+    globalValues.spacetrackInterval = null;
+  }
+  const alignmentDelayMs = msUntilNextSafeMinute();
+  const firstFireAt = new Date(Date.now() + alignmentDelayMs);
+  globalValues.spacetrackInterval = setTimeout(() => {
+    ConsoleLogger.debug("Running scheduled Space-Track TLE update (first aligned fire)");
     void performSpaceTrackUpdate(false);
-  }, SPACETRACK_UPDATE_INTERVAL_MS);
+    globalValues.spacetrackInterval = setInterval(() => {
+      ConsoleLogger.debug("Running scheduled Space-Track TLE update");
+      void performSpaceTrackUpdate(false);
+    }, SPACETRACK_UPDATE_INTERVAL_MS);
+  }, alignmentDelayMs);
   ConsoleLogger.info(
-    `Space-Track TLE update scheduler started (${dayjs.duration(SPACETRACK_UPDATE_INTERVAL_MS).asHours().toFixed(0)} hour interval)`
+    `Space-Track scheduler aligned — next fire at ${firstFireAt.toISOString()} (:12/:48), then every ${dayjs.duration(SPACETRACK_UPDATE_INTERVAL_MS).asHours().toFixed(0)}h`
   );
 };
 
@@ -246,15 +291,11 @@ export const triggerSpacetrackUpdate = async (username: string): Promise<void> =
     lastManualTriggerBy: username,
   });
 
-  if (globalValues.spacetrackInterval) {
+  if (globalValues.spacetrackTrackerData.isActive) {
+    scheduleAlignedRecurring();
+  } else if (globalValues.spacetrackInterval) {
     clearInterval(globalValues.spacetrackInterval);
     globalValues.spacetrackInterval = null;
-  }
-  if (globalValues.spacetrackTrackerData.isActive) {
-    globalValues.spacetrackInterval = setInterval(() => {
-      ConsoleLogger.debug("Running scheduled Space-Track TLE update");
-      void performSpaceTrackUpdate(false);
-    }, SPACETRACK_UPDATE_INTERVAL_MS);
   }
   await performSpaceTrackUpdate(true);
 };
