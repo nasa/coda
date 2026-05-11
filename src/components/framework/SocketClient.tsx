@@ -271,7 +271,7 @@ async function fetchAndApplyRestrictedVideos({
   source: Source;
   dateWanted: string;
   applyRestricted: (response: FetchResponse<VideoFile[]>) => void;
-}): Promise<boolean> {
+}): Promise<void> {
   if (!source || !dateWanted) return;
   try {
     const url = `/api/v1/restricted/videos?source=${encodeURIComponent(source)}&dateWanted=${encodeURIComponent(dateWanted)}`;
