@@ -12,7 +12,7 @@ import { setGraphsManifest } from "store/graphs";
 import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
 import { addSequences } from "store/sequences";
 import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
-import { setLiveVideoEnabled } from "store/user";
+import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
@@ -182,12 +182,17 @@ const SocketClient: FunctionComponent<{
         } else if (dataUpdate.type === "videos") {
           const dataResponse = response as FetchResponse<VideoFile[]>;
           dispatch(addVideos(dataResponse));
+          // Reset restricted status when public data arrives, then check for restricted override
+          dispatch(setRestrictedOverrideActive(false));
           // After applying public videos, request any restricted-override variant the
           // logged-in user may be entitled to. If returned, it replaces the videos store.
           void fetchAndApplyRestrictedVideos({
             source,
             dateWanted: playheadDate.split("T")[0],
-            applyRestricted: (r) => dispatch(addVideos(r)),
+            applyRestricted: (r) => {
+              dispatch(addVideos(r));
+              dispatch(setRestrictedOverrideActive(true));
+            },
           });
         } else if (dataUpdate.type === "photos") {
           const dataResponse = response as FetchResponse<PhotoFile[]>;
@@ -259,7 +264,7 @@ async function fetchAndApplyRestrictedVideos({
   source: Source;
   dateWanted: string;
   applyRestricted: (response: FetchResponse<VideoFile[]>) => void;
-}): Promise<void> {
+}): Promise<boolean> {
   if (!source || !dateWanted) return;
   try {
     const url = `/api/v1/restricted/videos?source=${encodeURIComponent(source)}&dateWanted=${encodeURIComponent(dateWanted)}`;

@@ -5,8 +5,8 @@ import {
   faBookmark,
   faChevronDown,
   faEye,
+  faShieldHalved,
   faTableCells,
-  faUserCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Calendar } from "components/interface/calendar";
@@ -310,19 +310,27 @@ export const SocketStatus: FunctionComponent<{ socketStatus: ClientSocketStatus 
   );
 };
 
-export const AuthStatus: FunctionComponent = () => {
+export const RestrictedAccessIndicator: FunctionComponent = () => {
+  const restrictedOverrideActive = useAppSelector(
+    (state) => state.user.restrictedOverrideActive,
+    refEqual
+  );
   const user = useAppSelector((state) => state.user.user, refEqual);
-  if (!user?.auid) return null;
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const playheadDate = usePlayheadDate();
 
-  const tooltip = [user.display_name, user.email].filter(Boolean).join("<br/>");
+  if (!restrictedOverrideActive) return null;
+
+  const displayName = user?.display_name || user?.auid || "User";
+  const dateLabel = playheadDate.split("T")[0];
 
   return (
     <div
-      className={styles.authStatus}
+      className={styles.restrictedAccess}
       data-tooltip-id="app-tooltip"
-      data-tooltip-html={`Logged in as:<br/>${tooltip || user.auid}`}
+      data-tooltip-html={`${displayName}<br/>has been granted access to restricted<br/>material on ${source} / ${dateLabel}`}
     >
-      <FontAwesomeIcon className={styles.authStatusIcon} icon={faUserCheck} />
+      <FontAwesomeIcon className={styles.restrictedAccessIcon} icon={faShieldHalved} />
     </div>
   );
 };
@@ -372,7 +380,7 @@ const Header: FunctionComponent<{
       </div>
       <div className={styles.right}>
         <div>
-          <AuthStatus />
+          <RestrictedAccessIndicator />
         </div>
         <div>
           <SocketStatus socketStatus={socketStatus} />
