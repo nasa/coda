@@ -457,15 +457,17 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
       const { file } = timing;
 
       if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
-        // Restricted channels go through CODA's authenticated proxy so per-user access
-        // can be re-validated and the upstream public-only filter bypassed via the
-        // server's EMSS_TOKEN. Public channels keep the direct talkybot URL.
+        // Public audio: browser fetches directly from talkybot (no auth needed).
+        // Restricted audio: browser hits CODA's authenticated proxy, which re-validates
+        // the user against the channel-access snapshot and forwards to talkybot with
+        // EMSS_TOKEN to bypass the public-only filter. The api key never leaves CODA's
+        // server.
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // !! WARNING — DO NOT MERGE !! TEMP HARDCODE !!!!!!!!!!!!
-        // !! Audio file URLs are pointed at PROD talkybot       !!
-        // !! instead of VITE_PUBLIC_TALKYBOT_URL.               !!
-        // !! Revert this back to import.meta.env before merging !!
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // !! WARNING — DO NOT MERGE !! TEMP HARDCODE !!!!!!!!!!!!!!!!!
+        // !! Public audio URL is pinned to PROD talkybot because     !!
+        // !! dev/carbon doesn't have audio files. Revert to          !!
+        // !! VITE_PUBLIC_TALKYBOT_URL before merging.                !!
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         const newSrcUrl =
           file.audioUrl ||
           (file.restricted
