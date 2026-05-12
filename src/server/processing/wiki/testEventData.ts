@@ -32,8 +32,8 @@ export async function getTestEventsData(): Promise<FetchResponse<Sequence[]>> {
       `Fetched ${allTestEvents.length} test events, ${executionTasks.length} tasks, ${testCrews.length} crew entries`
     );
 
-    // Parse the raw data
-    const asExecuted = parseAsExecuted(executionTasks);
+    // Parse the raw data with actorOffset=0 (Actor 1 = EV1, no SSRMS skip)
+    const asExecuted = parseAsExecuted(executionTasks, 0);
 
     // Create a set of test events that have subjects
     const eventsWithCrew = new Set(testCrews.map((c) => c.pageName));

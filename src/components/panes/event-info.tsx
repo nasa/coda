@@ -116,7 +116,7 @@ const EventInfo: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstance
   return (
     <div className={styles.main}>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
-      {!isNil(seq) && seq.type === sequenceType.EVA ? (
+      {!isNil(seq) && (seq.type === sequenceType.EVA || seq.type === sequenceType.testing) ? (
         <>
           <table className={styles.dataTable}>
             <tbody>
@@ -144,10 +144,14 @@ const EventInfo: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstance
                   </span>
                 </td>
                 <td>
-                  <span>Duration:</span>
-                  <span className={`${styles.labelValue} ${styles.leftPadded}`}>
-                    {hhmmFromSeconds(seq.duration)}
-                  </span>
+                  {seq.duration > 0 && (
+                    <>
+                      <span>Duration:</span>
+                      <span className={`${styles.labelValue} ${styles.leftPadded}`}>
+                        {hhmmFromSeconds(seq.duration)}
+                      </span>
+                    </>
+                  )}
                 </td>
               </tr>
             </tbody>
