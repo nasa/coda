@@ -11,7 +11,11 @@ import { setGPSTracks } from "store/gps";
 import { setGraphsManifest } from "store/graphs";
 import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
 import { addSequences } from "store/sequences";
-import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
+import {
+  upsertTalkybotAudioFile,
+  setTalkybotAudioFiles,
+  removeTalkybotChannel,
+} from "store/talkybot";
 import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
@@ -231,6 +235,14 @@ const SocketClient: FunctionComponent<{
       // Incoming live video restriction updates (admin can disable live video per session)
       currentSocket.on("liveVideoRestrictionUpdate", (update: LiveVideoRestrictionUpdate) => {
         dispatch(setLiveVideoEnabled(!update.disabled));
+      });
+
+      // Incoming channel-revoked event from server: a talkybot admin removed this user's
+      // access to a channel mid-session. Purge that channel's audio from the store so it
+      // disappears from the comm pane immediately rather than lingering until reload.
+      currentSocket.on("channelRevoked", (payload: ChannelRevokedPayload) => {
+        ConsoleLogger.info(`channelRevoked received: ${payload.channelSlug}`);
+        dispatch(removeTalkybotChannel(payload.channelSlug));
       });
     }, 0);
 

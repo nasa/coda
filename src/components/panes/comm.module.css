@@ -277,6 +277,12 @@
   flex: 1;
 }
 
+.restrictedChannelIcon {
+  margin-left: 4px;
+  color: var(--lightest-grey);
+  flex-shrink: 0;
+}
+
 /* Typing ellipsis animation for utterances being captured */
 .typingIndicator {
   display: inline-flex;

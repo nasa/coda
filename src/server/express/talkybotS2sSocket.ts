@@ -1,9 +1,18 @@
 import "utils/loadEnv";
 import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
+import { emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
+import { getSocketIO } from "./global";
+import { globalValues } from "./global";
 import { toTbAudioFileConverted } from "../processing/talkybot";
-import { getSourcesWithDataType, getSourceForTalkybotGroup } from "../../utils/sourceDataTypeMap";
+import { getSourcesWithDataType, getSourcesForTalkybotGroup } from "../../utils/sourceDataTypeMap";
+import {
+  getChannelAccessSnapshot,
+  isChannelRestricted,
+  setChannelAccessSnapshot,
+  userCanSeeChannel,
+  type ChannelAccessSnapshot,
+} from "./channelAccessSnapshot";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
@@ -18,6 +27,9 @@ interface TalkybotS2sServerToClientEvents {
   statusFromServer: (payload: TalkybotS2sStatusFromServer) => void;
   version: (appVersion: string) => void;
   audioFile: (payload: TbAudioFileNative) => void;
+  restrictedAudioFile: (payload: TbAudioFileNative) => void;
+  channelAccessSnapshot: (payload: ChannelAccessSnapshot) => void;
+  channelAccessUpdate: (payload: ChannelAccessSnapshot) => void;
 }
 
 interface TalkybotS2sStatusFromServer {
@@ -251,72 +263,178 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
   });
 
   talkybotS2sSocket.on("audioFile", (payload) => {
-    // Convert native audio file to Coda format
-    const audioFile = toTbAudioFileConverted(payload);
+    handleIncomingAudioFile(payload, "audioFile");
+  });
 
-    ConsoleLogger.debug(`TalkybotS2s Socket: Received new audioFile - ${audioFile.fileUuid}`);
+  talkybotS2sSocket.on("restrictedAudioFile", (payload) => {
+    handleIncomingAudioFile(payload, "restrictedAudioFile");
+  });
 
-    const textPreview = audioFile.text
-      ? `"${audioFile.text.substring(0, 80)}${audioFile.text.length > 80 ? "..." : ""}"`
-      : "No transcript";
-
+  talkybotS2sSocket.on("channelAccessSnapshot", (payload) => {
+    setChannelAccessSnapshot(payload);
     updateTalkybotS2sSocketTrackerData({
       messagesReceived: talkybotS2sSocketTrackerData.messagesReceived + 1,
       lastMessageReceivedAt: new Date().toISOString(),
-      lastMessageType: "audioFile",
-      lastMessagePreview: `${audioFile.channel}: ${textPreview}`,
-      audioFilesReceived: talkybotS2sSocketTrackerData.audioFilesReceived + 1,
-      lastAudioFileReceivedAt: new Date().toISOString(),
-      lastAudioFileUuid: audioFile.fileUuid,
-      lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
+      lastMessageType: "channelAccessSnapshot",
+      lastMessagePreview: `v${payload.version} (${payload.channels.length} channels)`,
     });
+  });
 
-    // Emit incremental update to clients viewing today's date
-    const today = new Date().toISOString().split("T")[0];
-
-    // Use group info to target the correct source(s), or fall back to sending to all sources
-    const allTalkybotSources = getSourcesWithDataType("talkybot");
-    let targetSources: Source[];
-
-    if (audioFile.groups.length > 0) {
-      // Map group slugs to CODA sources, deduplicating
-      const mappedSources = new Set<Source>();
-      const unmappedSlugs: string[] = [];
-
-      for (const group of audioFile.groups) {
-        const source = getSourceForTalkybotGroup(group.slug);
-        if (source) {
-          mappedSources.add(source);
-        } else {
-          unmappedSlugs.push(group.slug);
-        }
-      }
-
-      if (unmappedSlugs.length > 0) {
-        ConsoleLogger.warn(
-          `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}. This means audio files from these groups will be sent to all sources. Consider updating the TALKYBOT_GROUP_TO_SOURCE_MAP to include these groups.`
-        );
-      }
-
-      // If we resolved at least one source, use those; otherwise fall back to all
-      targetSources = mappedSources.size > 0 ? [...mappedSources] : allTalkybotSources;
-    } else {
-      targetSources = allTalkybotSources;
-    }
-
-    for (const source of targetSources) {
-      emitIncrementalDataUpdate({
-        source,
-        dataDate: today,
-        incrementalUpdate: {
-          type: "talkybot",
-          item: audioFile,
-        },
-      });
+  talkybotS2sSocket.on("channelAccessUpdate", (payload) => {
+    const { previous } = setChannelAccessSnapshot(payload);
+    updateTalkybotS2sSocketTrackerData({
+      messagesReceived: talkybotS2sSocketTrackerData.messagesReceived + 1,
+      lastMessageReceivedAt: new Date().toISOString(),
+      lastMessageType: "channelAccessUpdate",
+      lastMessagePreview: `v${payload.version} (${payload.channels.length} channels)`,
+    });
+    if (previous) {
+      revokeAccessForVisitors(previous, payload);
     }
   });
 
   return talkybotS2sSocket;
+};
+
+/**
+ * Compute the CODA `Source`s that a talkybot audio file should be routed to, based on
+ * its talkybot groups. Falls back to all talkybot-capable sources if no groups map.
+ */
+const resolveTargetSources = (audioFile: TbAudioFileConverted): Source[] => {
+  const allTalkybotSources = getSourcesWithDataType("talkybot");
+
+  if (audioFile.groups.length === 0) return allTalkybotSources;
+
+  const mappedSources = new Set<Source>();
+  const unmappedSlugs: string[] = [];
+
+  for (const group of audioFile.groups) {
+    const sources = getSourcesForTalkybotGroup(group.slug);
+    if (sources.length > 0) {
+      sources.forEach((s) => mappedSources.add(s));
+    } else {
+      unmappedSlugs.push(group.slug);
+    }
+  }
+
+  if (unmappedSlugs.length > 0) {
+    ConsoleLogger.warn(
+      `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}. Falling back to all talkybot-capable sources. Update TALKYBOT_GROUP_TO_SOURCES_MAP to fix.`
+    );
+  }
+
+  return mappedSources.size > 0 ? [...mappedSources] : allTalkybotSources;
+};
+
+/**
+ * Per-visitor fan-out: send the audio file only to visitors whose user has access to
+ * the channel per the cached channel-access snapshot. This is the boundary that
+ * prevents restricted audio from reaching unauthorized browsers.
+ */
+const handleIncomingAudioFile = (
+  payload: TbAudioFileNative,
+  eventType: "audioFile" | "restrictedAudioFile"
+): void => {
+  const audioFile = toTbAudioFileConverted(payload);
+
+  ConsoleLogger.debug(
+    `TalkybotS2s Socket: Received new ${eventType} - ${audioFile.fileUuid} (channel: ${audioFile.channel})`
+  );
+
+  const textPreview = audioFile.text
+    ? `"${audioFile.text.substring(0, 80)}${audioFile.text.length > 80 ? "..." : ""}"`
+    : "No transcript";
+
+  updateTalkybotS2sSocketTrackerData({
+    messagesReceived: talkybotS2sSocketTrackerData.messagesReceived + 1,
+    lastMessageReceivedAt: new Date().toISOString(),
+    lastMessageType: eventType,
+    lastMessagePreview: `${audioFile.channel}: ${textPreview}`,
+    audioFilesReceived: talkybotS2sSocketTrackerData.audioFilesReceived + 1,
+    lastAudioFileReceivedAt: new Date().toISOString(),
+    lastAudioFileUuid: audioFile.fileUuid,
+    lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
+  });
+
+  // Fail-closed if we don't yet have an access snapshot. Without it we cannot know who
+  // is allowed to see what; better to silently drop than to leak.
+  if (!getChannelAccessSnapshot()) {
+    ConsoleLogger.warn(
+      `TalkybotS2s Socket: dropped ${eventType} ${audioFile.fileUuid} — no channelAccessSnapshot yet`
+    );
+    return;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  const targetSources = new Set(resolveTargetSources(audioFile));
+  const ioServer = getSocketIO();
+
+  let delivered = 0;
+  for (const visitor of globalValues.serverSocketStatus.visitorsData) {
+    if (visitor.dateViewing !== today) continue;
+    if (!targetSources.has(visitor.source)) continue;
+    if (!userCanSeeChannel(visitor.user, audioFile.channel)) continue;
+
+    ioServer.to(visitor.socketId).emit("incrementalDataUpdate", {
+      type: "talkybot",
+      item: { ...audioFile, restricted: isChannelRestricted(audioFile.channel) },
+    });
+    delivered += 1;
+  }
+
+  ConsoleLogger.debug(
+    `TalkybotS2s Socket: ${eventType} ${audioFile.fileUuid} delivered to ${delivered} visitor(s)`
+  );
+};
+
+/**
+ * After a snapshot update, find visitors who lost access to one or more channels they
+ * could previously see, and tell their client to purge those channels from its store.
+ */
+const revokeAccessForVisitors = (
+  previous: ChannelAccessSnapshot,
+  next: ChannelAccessSnapshot
+): void => {
+  const ioServer = getSocketIO();
+  const previousBySlug = new Map(previous.channels.map((c) => [c.slug, c]));
+  const nextBySlug = new Map(next.channels.map((c) => [c.slug, c]));
+
+  // Channel slugs that exist in either snapshot
+  const allSlugs = new Set<string>([...previousBySlug.keys(), ...nextBySlug.keys()]);
+
+  for (const visitor of globalValues.serverSocketStatus.visitorsData) {
+    for (const slug of allSlugs) {
+      const couldSee = canSeeChannelInSnapshot(visitor.user, slug, previous, previousBySlug);
+      const canSee = canSeeChannelInSnapshot(visitor.user, slug, next, nextBySlug);
+      if (couldSee && !canSee) {
+        ConsoleLogger.info(
+          `channelAccessUpdate: revoking channel "${slug}" for visitor ${visitor.socketId} (auid: ${visitor.user?.auid ?? "?"})`
+        );
+        ioServer.to(visitor.socketId).emit("channelRevoked", { channelSlug: slug });
+      }
+    }
+  }
+};
+
+// Snapshot-scoped variant of userCanSeeChannel — needed because revokeAccessForVisitors
+// has to evaluate access against an arbitrary (previous) snapshot, not just the current one.
+const canSeeChannelInSnapshot = (
+  user: { auid?: string; roles?: string | string[] | null } | null | undefined,
+  channelSlug: string,
+  snap: ChannelAccessSnapshot,
+  bySlug: Map<string, ChannelAccessSnapshot["channels"][number]>
+): boolean => {
+  const channel = bySlug.get(channelSlug);
+  if (!channel) return false;
+
+  const userRoles = !user?.roles ? [] : Array.isArray(user.roles) ? user.roles : [user.roles];
+
+  const isSuperuser = snap.superuserRoles.some((role) => userRoles.includes(role));
+  if (isSuperuser) return true;
+
+  if (!channel.enabled) return false;
+  if (channel.public) return true;
+  return Boolean(user?.auid) && channel.auids.includes(user!.auid!);
 };
 
 /**

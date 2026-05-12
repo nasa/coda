@@ -20,6 +20,10 @@ interface TbAudioFileConverted {
   override?: boolean;
   /** Full URL to download audio file (used for overrides since they're not from Talkybot API) */
   audioUrl?: string;
+  /** True if this audio file's channel is non-public in talkybot — set on the CODA server
+   *  using the channelAccessSnapshot before sending to clients. Drives the lock indicator
+   *  in the comm pane. */
+  restricted?: boolean;
 }
 
 interface TbDateResponse {

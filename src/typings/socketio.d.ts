@@ -214,6 +214,12 @@ interface ServerToClientEvents {
   spacetrackInspectorUpdate: (payload: SpaceTrackTrackerDataUpdate) => void;
   visitorInspectorUpdate: (payload: VisitorInspectorUpdate) => void;
   liveVideoRestrictionUpdate: (payload: LiveVideoRestrictionUpdate) => void; // sent to individual clients when their restriction status changes
+  channelRevoked: (payload: ChannelRevokedPayload) => void; // sent when a visitor's access to a talkybot channel is revoked mid-session
+}
+
+/** Payload for the channelRevoked event - tells the client to purge a talkybot channel from its store */
+interface ChannelRevokedPayload {
+  channelSlug: string;
 }
 
 interface ClientToServerEvents {

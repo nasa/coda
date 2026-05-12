@@ -2,7 +2,13 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import getVideoData from "server/processing/io-videos";
 import { globalValues } from "./global";
-import { emitDataUpdate, emitDataUpdateToSource, emitFetchInspectorUpdate } from "./sockets";
+import {
+  emitDataUpdate,
+  emitDataUpdateToSource,
+  emitFetchInspectorUpdate,
+  emitTalkybotDataUpdatePerVisitor,
+} from "./sockets";
+import type { TalkybotResponse } from "../processing/talkybot";
 import getDayNight from "server/processing/daynight";
 import getEphemera from "server/processing/ephemeris";
 import getPhotoData from "server/processing/io-photos";
@@ -637,11 +643,21 @@ const performBackgroundFetch = async ({
       ConsoleLogger.debug(
         `${dataFetchConfig.type} Emitting data update to room for ${source}_${trackerDateKey}`
       );
-      emitDataUpdate({
-        source,
-        dataDate: trackerDateKey,
-        dataUpdate: { type: dataFetchConfig.type, response: dataResponse },
-      });
+      if (dataFetchConfig.type === "talkybot") {
+        // Talkybot data needs per-visitor filtering against the channel-access snapshot;
+        // a room-based broadcast would leak restricted audio to unauthorized visitors.
+        emitTalkybotDataUpdatePerVisitor({
+          source,
+          dataDate: trackerDateKey,
+          response: dataResponse as FetchResponse<TalkybotResponse>,
+        });
+      } else {
+        emitDataUpdate({
+          source,
+          dataDate: trackerDateKey,
+          dataUpdate: { type: dataFetchConfig.type, response: dataResponse },
+        });
+      }
     }
     updateFetchTracker(source, trackerDateKey, dataType, {
       lastEmitAt: new Date().toISOString(),

@@ -8,6 +8,7 @@ import type { DefaultEventsMap, Socket } from "socket.io";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { getTalkybotS2sSocketTrackerData } from "./talkybotS2sSocket";
 import { findRestrictedAccessesForUser } from "./routes/db/accessGrants";
+import { filterTalkybotResponseForUser, type TalkybotResponse } from "../processing/talkybot";
 
 export const INSPECTOR_ROOM = "inspectorRoom";
 
@@ -316,6 +317,38 @@ export const emitIncrementalDataUpdate = ({
 };
 
 /**
+ * Per-visitor talkybot dataUpdate fan-out. The talkybot cache is the union of all
+ * channels (public + restricted); each visitor gets a filtered slice based on their
+ * channel access in the talkybot snapshot. Used by background-refresh emits — the
+ * room-based emitDataUpdate would otherwise leak restricted audio.
+ */
+export const emitTalkybotDataUpdatePerVisitor = ({
+  source,
+  dataDate,
+  response,
+}: {
+  source: Source;
+  dataDate: string;
+  response: FetchResponse<TalkybotResponse>;
+}): void => {
+  const io = getSocketIO();
+  let delivered = 0;
+  for (const visitor of globalValues.serverSocketStatus.visitorsData) {
+    if (visitor.source !== source) continue;
+    if (visitor.dateViewing !== dataDate) continue;
+    const responseForVisitor = filterTalkybotResponseForUser(response, visitor.user);
+    io.to(visitor.socketId).emit("dataUpdate", {
+      type: "talkybot",
+      response: responseForVisitor,
+    });
+    delivered += 1;
+  }
+  ConsoleLogger.debug(
+    `Emitted talkybot dataUpdate per-visitor to ${delivered} visitor(s) for ${source}_${dataDate}`
+  );
+};
+
+/**
  * When a new client connects or an existing client disconnects, update the server fetch tracker object
  */
 const updateServerFetchTrackers = () => {
@@ -450,9 +483,19 @@ const fetchAndEmitAllData = async ({
       });
       if (!response) return; // any errors generated from above are already logged
 
+      // Filter talkybot responses per visitor — the cache holds all channels
+      // (public + restricted); we trim to what this user can see before sending.
+      const responseForVisitor =
+        dataFetchConfig.type === "talkybot"
+          ? filterTalkybotResponseForUser(
+              response as FetchResponse<TalkybotResponse>,
+              visitorData.user
+            )
+          : response;
+
       socket.emit("dataUpdate", {
         type: dataFetchConfig.type,
-        response,
+        response: responseForVisitor,
       });
     })();
 

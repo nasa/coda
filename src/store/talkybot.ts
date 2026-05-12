@@ -67,6 +67,14 @@ export const talkybotSlice = createSlice({
         timestamp: state.metadata?.timestamp || new Date().toISOString(),
       };
     },
+    /** Drop all audio files for a given channel slug. Used when the server tells us the
+     * visitor's access to a talkybot channel was revoked mid-session. */
+    removeTalkybotChannel: (state, action: { payload: string }) => {
+      const channelSlug = action.payload;
+      state.audioFiles = state.audioFiles.filter(
+        (audioFile: TbAudioFileConverted) => audioFile.channel !== channelSlug
+      );
+    },
   },
 });
 
@@ -75,4 +83,5 @@ export const {
   clearTalkybotAudioFiles,
   upsertTalkybotAudioFile,
   talkybotFetchError,
+  removeTalkybotChannel,
 } = talkybotSlice.actions;

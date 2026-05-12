@@ -88,6 +88,16 @@ export const CommControls: FunctionComponent<{
     return channels;
   }, [channelTimingMap]);
 
+  // Channels marked restricted by the server (non-public per the talkybot
+  // channel-access snapshot). Used to render a lock icon in the channel selector.
+  const restrictedChannels = useMemo(() => {
+    const set = new Set<string>();
+    for (const f of audioFiles) {
+      if (f.restricted) set.add(f.channel);
+    }
+    return set;
+  }, [audioFiles]);
+
   // Auto-select any newly available channel that the user has not explicitly
   // unselected. This keeps every channel selected by default — including
   // channels that first appear after a date change — while preserving the
@@ -217,6 +227,14 @@ export const CommControls: FunctionComponent<{
                   onClick={(e) => e.stopPropagation()}
                 />
                 <label>{channel}</label>
+                {restrictedChannels.has(channel) && (
+                  <span
+                    className={styles.restrictedChannelIcon}
+                    title="Restricted channel — visible because you have explicit access"
+                  >
+                    <FontAwesomeIcon icon={faLock} size="sm" />
+                  </span>
+                )}
               </div>
             ))}
           </div>

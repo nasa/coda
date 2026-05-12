@@ -3,7 +3,8 @@ import leoProfanity from "leo-profanity";
 import { getPublicMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { getSourcesWithDataType, getSourceForTalkybotGroup } from "utils/sourceDataTypeMap";
+import { getSourcesWithDataType, getSourcesForTalkybotGroup } from "utils/sourceDataTypeMap";
+import { userCanSeeChannel, isChannelRestricted } from "server/express/channelAccessSnapshot";
 
 /**
  * Response type for Talkybot data fetch
@@ -156,8 +157,9 @@ export default async function getTalkybotData({
   const audioFiles = allAudioFiles.filter((af) => {
     if (af.groups.length === 0) return true; // No group info = include (backward compatible with REST API)
     return af.groups.some((g) => {
-      const mappedSource = getSourceForTalkybotGroup(g.slug);
-      return mappedSource === null || mappedSource === source; // Include if unmapped or matches this source
+      const mappedSources = getSourcesForTalkybotGroup(g.slug);
+      // Include if the group is unmapped (preserve previous behavior) or maps to this source
+      return mappedSources.length === 0 || mappedSources.includes(source);
     });
   });
 
@@ -194,7 +196,9 @@ export async function fetchTalkybotAudioFiles({
     return [];
   }
 
-  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles?date=${dateWanted}`;
+  // Use the /audiofiles/all endpoint to receive both public and restricted channels.
+  // CODA filters per-visitor at the socket emit boundary using the channelAccessSnapshot.
+  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/all?date=${dateWanted}`;
 
   try {
     const res = await fetchWithTimeout(url, {
@@ -334,3 +338,24 @@ async function fetchAndMergeLegacyOverrides({
 
   return audioFiles;
 }
+
+/**
+ * Filter a TalkybotResponse for a specific visitor based on the channel-access snapshot
+ * pushed from talkybot. Returns a new response containing only the audio files whose
+ * channel the user is allowed to see. Override-origin audio files (no channel slug
+ * registered with talkybot, e.g. legacy mission overrides) are passed through unchanged.
+ */
+export const filterTalkybotResponseForUser = (
+  response: FetchResponse<TalkybotResponse>,
+  user: { auid?: string; roles?: string | string[] | null } | null | undefined
+): FetchResponse<TalkybotResponse> => {
+  if (response.origin !== "talky-bot") {
+    // Legacy/override origin — channel slugs aren't in the talkybot access table; pass through.
+    return response;
+  }
+
+  const filtered = response.data
+    .filter((af) => userCanSeeChannel(user, af.channel))
+    .map((af) => ({ ...af, restricted: isChannelRestricted(af.channel) }));
+  return { ...response, data: filtered };
+};

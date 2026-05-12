@@ -54,22 +54,25 @@ export const getSourcesWithDataType = (dataType: StoreDataType): Source[] => {
 /**
  * Mapping from Talkybot group slugs to CODA sources.
  * Talkybot channels belong to groups; this maps those group slugs to CODA sources.
- * Current talkybot groups (from seeder): "iss", "sim", "test". "artemis" group added for upcoming Artemis data.
- * Talkybot only sends public channel data to CODA.
+ *
+ * "artemis" maps to BOTH ARTEMIS and TEST_EVENTS because Artemis sometimes uses
+ * its mission XPL loops for sims, and there's no in-band signal distinguishing real
+ * vs sim traffic. Routing to both sources keeps comm visible whichever source the user
+ * is viewing.
  */
-const TALKYBOT_GROUP_TO_SOURCE_MAP: Record<string, Source> = {
-  iss: "ISS",
-  test: "TEST_EVENTS",
-  sim: "TEST_EVENTS",
-  artemis: "ARTEMIS",
+const TALKYBOT_GROUP_TO_SOURCES_MAP: Record<string, Source[]> = {
+  iss: ["ISS"],
+  test: ["TEST_EVENTS"],
+  sim: ["TEST_EVENTS"],
+  artemis: ["ARTEMIS", "TEST_EVENTS"],
 };
 
 /**
- * Get the CODA source for a Talkybot group slug.
- * Returns null if the group slug doesn't map to any CODA source.
+ * Get the CODA sources for a Talkybot group slug.
+ * Returns an empty array if the group slug doesn't map to any CODA source.
  */
-export const getSourceForTalkybotGroup = (groupSlug: string): Source | null => {
-  return TALKYBOT_GROUP_TO_SOURCE_MAP[groupSlug] ?? null;
+export const getSourcesForTalkybotGroup = (groupSlug: string): Source[] => {
+  return TALKYBOT_GROUP_TO_SOURCES_MAP[groupSlug] ?? [];
 };
 
 /**
