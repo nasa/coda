@@ -75,7 +75,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     }
 
     const auids = Array.isArray(grant.auids) ? grant.auids : [];
-    if (!isSuperuser(user) && (!user.auid || !auids.includes(user.auid))) {
+    if (!isSuperuser(user) && (!user.auid || !auids.includes(user.auid.toLowerCase()))) {
       res.status(403).json({ status: "error", message: "Forbidden" });
       return;
     }
