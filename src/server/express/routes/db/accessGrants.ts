@@ -3,6 +3,7 @@ import { getORM } from "server/express/global";
 import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import { isSuperuser } from "utils/user";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
 const router = express.Router();
@@ -137,15 +138,17 @@ export async function getAccessGrantsList(): Promise<AccessGrantListItem[]> {
 }
 
 /**
- * Find every restricted MediaOverride for (source, date) for which the given AUID
- * is in the linked AccessGrant. Used to populate VisitorData.restrictedAccesses.
+ * Find every restricted MediaOverride for (source, date) for which the given user
+ * is in the linked AccessGrant (or is a superuser). Used to populate VisitorData.restrictedAccesses.
  */
 export async function findRestrictedAccessesForUser(
-  auid: string | undefined,
+  user: EmssUser | undefined,
   source: Source,
   date: string
 ): Promise<VisitorRestrictedAccess[]> {
+  const auid = user?.auid;
   if (!auid) return [];
+  const userIsSuperuser = isSuperuser(user);
   const em = getORM().em.fork();
   const overrides = await em.find(MediaOverride_db, {
     source,
@@ -165,7 +168,7 @@ export async function findRestrictedAccessesForUser(
     if (typeof o.accessGrantId !== "number") continue;
     const grant = grantsById.get(o.accessGrantId);
     if (!grant) continue;
-    if (!Array.isArray(grant.auids) || !grant.auids.includes(auid)) continue;
+    if (!userIsSuperuser && (!Array.isArray(grant.auids) || !grant.auids.includes(auid))) continue;
     results.push({
       overrideId: o.id,
       overrideType: o.type,

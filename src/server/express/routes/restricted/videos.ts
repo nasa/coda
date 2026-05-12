@@ -5,6 +5,7 @@ import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { fetchForgedIoManifest } from "server/processing/io-api";
 import { getUser } from "packages/getUser";
+import { isSuperuser } from "utils/user";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import serverLogger from "utils/logging/serverLogger";
 
@@ -74,7 +75,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     }
 
     const auids = Array.isArray(grant.auids) ? grant.auids : [];
-    if (!user.auid || !auids.includes(user.auid)) {
+    if (!isSuperuser(user) && (!user.auid || !auids.includes(user.auid))) {
       res.status(403).json({ status: "error", message: "Forbidden" });
       return;
     }
