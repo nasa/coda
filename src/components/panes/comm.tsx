@@ -457,9 +457,15 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
       const { file } = timing;
 
       if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // !! WARNING — DO NOT MERGE !! TEMP HARDCODE !!!!!!!!!!!!
+        // !! Audio file URLs are pointed at PROD talkybot       !!
+        // !! instead of VITE_PUBLIC_TALKYBOT_URL.               !!
+        // !! Revert this back to import.meta.env before merging !!
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         const newSrcUrl =
           file.audioUrl ||
-          `${import.meta.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/${file.fileUuid}/file`;
+          `https://talkybot.fit.nasa.gov/api/v1/external/audiofiles/${file.fileUuid}/file`;
 
         if (srcUrl !== newSrcUrl) {
           setSrcUrl(newSrcUrl);
