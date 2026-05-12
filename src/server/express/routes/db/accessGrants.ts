@@ -15,7 +15,7 @@ const sanitizeAuids = (raw: unknown): string[] | null => {
     if (typeof v !== "string") return null;
     const trimmed = v.trim();
     if (trimmed.length === 0) continue;
-    cleaned.push(trimmed);
+    cleaned.push(trimmed.toLowerCase());
   }
   return cleaned;
 };
@@ -168,7 +168,11 @@ export async function findRestrictedAccessesForUser(
     if (typeof o.accessGrantId !== "number") continue;
     const grant = grantsById.get(o.accessGrantId);
     if (!grant) continue;
-    if (!userIsSuperuser && (!Array.isArray(grant.auids) || !grant.auids.includes(auid))) continue;
+    if (
+      !userIsSuperuser &&
+      (!Array.isArray(grant.auids) || !grant.auids.includes(auid.toLowerCase()))
+    )
+      continue;
     results.push({
       overrideId: o.id,
       overrideType: o.type,
