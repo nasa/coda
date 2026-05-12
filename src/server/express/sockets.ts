@@ -143,7 +143,7 @@ export const setupSocketIO = (): void => {
           // Compute restricted-override eligibility (auid-gated MediaOverride rows for this source+date)
           // and update the visitor record + emit fresh inspector update once available.
           findRestrictedAccessesForUser(
-            visitorData.user?.auid,
+            visitorData.user,
             visitorData.source,
             visitorData.dateViewing
           )
