@@ -457,6 +457,9 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
       const { file } = timing;
 
       if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
+        // Restricted channels go through CODA's authenticated proxy so per-user access
+        // can be re-validated and the upstream public-only filter bypassed via the
+        // server's EMSS_TOKEN. Public channels keep the direct talkybot URL.
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // !! WARNING — DO NOT MERGE !! TEMP HARDCODE !!!!!!!!!!!!
         // !! Audio file URLs are pointed at PROD talkybot       !!
@@ -465,7 +468,9 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         const newSrcUrl =
           file.audioUrl ||
-          `https://talkybot.fit.nasa.gov/api/v1/external/audiofiles/${file.fileUuid}/file`;
+          (file.restricted
+            ? `/api/v1/restricted/audio/${file.fileUuid}?channelSlug=${encodeURIComponent(file.channel)}`
+            : `https://talkybot.fit.nasa.gov/api/v1/external/audiofiles/${file.fileUuid}/file`);
 
         if (srcUrl !== newSrcUrl) {
           setSrcUrl(newSrcUrl);
