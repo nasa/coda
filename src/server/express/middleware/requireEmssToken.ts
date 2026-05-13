@@ -17,8 +17,7 @@ export const requireEmssToken = (req: Request, res: Response, next: NextFunction
     return;
   }
 
-  const provided =
-    (req.headers["x-api-key"] as string | undefined)?.trim() ?? null;
+  const provided = (req.headers["x-api-key"] as string | undefined)?.trim() ?? null;
 
   if (!provided || provided !== expected) {
     ConsoleLogger.warn(
