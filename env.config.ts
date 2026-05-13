@@ -320,6 +320,17 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   /**
+   * Ephemeris sync
+   * Non-prod instances pull TLE data from another CODA instance instead of
+   * polling Space-Track directly. When set, the scheduler calls the sync
+   * endpoint at this URL. Prod leaves it unset so it fetches from Space-Track.
+   */
+  EPHEMERIS_SYNC_FROM_URL: {
+    prod: "",
+    default: "https://coda.fit.nasa.gov",
+  },
+
+  /**
    * EMSS Token for inter-service communication
    */
   EMSS_TOKEN: {

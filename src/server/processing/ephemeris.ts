@@ -161,12 +161,14 @@ export async function getLatestRecordCreatedAt(): Promise<Date | null> {
 
 /**
  * Get the epoch of the newest TLE record in the local DB.
- * Used by non-prod followers as the `since` high-water-mark when syncing from prod.
+ * Used as the `since` parameter when non-prod instances sync from prod,
+ * so we only fetch records newer than what we already have.
  */
 export async function getLatestEpoch(): Promise<Date | null> {
   const em = getORM().em.fork();
-  const latest = await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 });
-  return latest[0]?.epoch || null;
+  return (
+    (await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 }))[0]?.epoch || null
+  );
 }
 
 /** Sanity cap on /recent payload to protect against a malformed/very-old `since`. */
@@ -174,7 +176,7 @@ export const RECENT_RECORDS_MAX = 10000;
 
 /**
  * Get all TLE records with epoch strictly greater than `since`, ordered ascending.
- * Used by the prod-sync endpoint that non-prod instances poll.
+ * Used by the ephemeris sync endpoint that non-prod instances poll.
  */
 export async function getEphemerisRecordsSince(since: Date): Promise<Ephemeris_db[]> {
   const em = getORM().em.fork();

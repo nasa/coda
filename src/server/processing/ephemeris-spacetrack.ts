@@ -3,12 +3,12 @@
  *
  * Uses the optimized `gp` class per Space-Track's API guidelines, filtered to
  * NORAD_CAT_ID 25544 (ISS) with CREATION_DATE > now-1 day. The 24-hour window
- * gives 4x overlap with the 6-hour scheduler so a few failed fetches in a row
- * still won't drop a TLE on the floor.
+ * gives 4x overlap with the 6-hour scheduler, so even if several consecutive
+ * fetches fail we won't miss any TLE records.
  *
  * IMPORTANT: Space-Track has strict rate limiting policies. Only the prod
- * instance should call this module — non-prod instances pull from prod via
- * ephemeris-prod-sync.ts. See spacetrackScheduler.ts for the dispatch.
+ * instance should call this module — non-prod instances pull ephemeris via
+ * ephemeris-sync.ts. See spacetrackScheduler.ts for the dispatch.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getEpochTimestamp } from "tle.js";

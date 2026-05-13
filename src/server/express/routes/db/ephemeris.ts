@@ -105,7 +105,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
 
 // Server-to-server sync endpoint: returns records with epoch > `since`.
 // Called by non-prod CODA instances to mirror the prod ephemeris DB without
-// hitting Space-Track. Auth via shared EMSS_TOKEN bearer.
+// hitting Space-Track. Auth via shared EMSS_TOKEN (x-api-key header).
 router.get("/recent", requireEmssToken, async (req: Request, res: Response): Promise<void> => {
   try {
     let since: Date;
@@ -119,7 +119,7 @@ router.get("/recent", requireEmssToken, async (req: Request, res: Response): Pro
         return;
       }
     } else {
-      // No `since` supplied — fresh follower with empty DB. Default to 30 days.
+      // No `since` supplied — new instance with empty DB. Default to 30 days.
       since = new Date();
       since.setDate(since.getDate() - DEFAULT_SINCE_DAYS);
     }
@@ -133,7 +133,7 @@ router.get("/recent", requireEmssToken, async (req: Request, res: Response): Pro
 
     if (payload.length === RECENT_RECORDS_MAX) {
       ConsoleLogger.warn(
-        `/ephemeris/recent hit row cap (${RECENT_RECORDS_MAX}); follower since=${since.toISOString()} should retry with newer cursor`
+        `/ephemeris/recent hit row cap (${RECENT_RECORDS_MAX}); caller since=${since.toISOString()} should retry with newer cursor`
       );
     }
 

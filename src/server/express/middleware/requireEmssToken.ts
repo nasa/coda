@@ -3,8 +3,9 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
  * Express middleware for server-to-server (S2S) calls between CODA instances.
- * Requires `Authorization: Bearer <EMSS_TOKEN>`. Uses the same shared secret
- * already used for Talkybot S2S, so no new secret is needed in any environment.
+ * Requires `x-api-key: <EMSS_TOKEN>` header (consistent with Talkybot and
+ * AEGIS/Maestro S2S patterns). Uses the same shared secret already used for
+ * Talkybot S2S, so no new secret is needed in any environment.
  */
 export const requireEmssToken = (req: Request, res: Response, next: NextFunction): void => {
   const expected = process.env.EMSS_TOKEN;
@@ -16,8 +17,8 @@ export const requireEmssToken = (req: Request, res: Response, next: NextFunction
     return;
   }
 
-  const header = req.headers.authorization;
-  const provided = header?.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : null;
+  const provided =
+    (req.headers["x-api-key"] as string | undefined)?.trim() ?? null;
 
   if (!provided || provided !== expected) {
     ConsoleLogger.warn(

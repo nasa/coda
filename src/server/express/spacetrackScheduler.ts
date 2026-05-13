@@ -4,13 +4,33 @@
  * This module manages the scheduled fetching of TLE data from Space-Track.org.
  * It provides status tracking and exposes functions for the admin monitoring page.
  *
+ * ## Timing overview
+ *
+ * 1. **On server start** (`startSpacetrackScheduler`): we check if the DB
+ *    already has a recent record (< 6 hours old). If so, we skip the initial
+ *    fetch to avoid hammering Space-Track on frequent dev restarts.
+ * 2. **First scheduled fire**: we wait until the next "safe" clock minute
+ *    (:12 or :48 past the hour) so we avoid Space-Track's known busy windows
+ *    around :00 and :30. This is `msUntilNextSafeMinute`.
+ * 3. **Recurring fires**: every 6 hours after the first aligned fire, on the
+ *    same minute mark (360 min is a clean multiple of 60 min, so the alignment
+ *    is preserved automatically).
+ * 4. **Manual triggers** (`triggerSpacetrackUpdate`): fire immediately, then
+ *    push the next recurring fire ~6 h out so we don't double-hit Space-Track.
+ *
+ * ## Prod vs non-prod
+ *
+ * If `EPHEMERIS_SYNC_FROM_URL` is set (non-prod instances), the scheduler calls
+ * the sync function instead of Space-Track directly. The same timing logic
+ * applies; the only difference is the data source.
+ *
  * IMPORTANT: Space-Track has strict rate limiting. The scheduler runs every 6 hours
- * and fetches 30 days of TLE data in a single API call. Do not increase the frequency.
+ * and fetches 24 hours of TLE data in a single API call. Do not increase the frequency.
  */
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
-import { syncEphemerisFromProd } from "server/processing/ephemeris-prod-sync";
+import { syncEphemerisFromRemote } from "server/processing/ephemeris-sync";
 import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { globalValues, getSocketIO } from "./global";
@@ -48,7 +68,7 @@ const msUntilNextSafeMinute = (minDelayMs: number = 0): number => {
 
 /** Whichever update path applies to this instance — see EPHEMERIS_SYNC_FROM_URL. */
 const runUpdate = (): Promise<SpaceTrackUpdateResult> =>
-  process.env.EPHEMERIS_SYNC_FROM_URL ? syncEphemerisFromProd() : updateFromSpaceTrack();
+  process.env.EPHEMERIS_SYNC_FROM_URL ? syncEphemerisFromRemote() : updateFromSpaceTrack();
 
 const updateState = (updates: Partial<SpaceTrackTrackerData>): void => {
   globalValues.spacetrackTrackerData = { ...globalValues.spacetrackTrackerData, ...updates };
@@ -175,7 +195,7 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
 
   emitSpacetrackInspectorUpdate();
 
-  // Execute the update — dispatches to Space-Track on prod, prod-sync on followers.
+  // Execute the update — dispatches to Space-Track on prod, ephemeris sync on non-prod instances.
   const result = await runUpdate();
 
   const endTime = Date.now();
