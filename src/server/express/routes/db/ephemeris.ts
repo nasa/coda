@@ -133,7 +133,7 @@ router.get("/recent", requireEmssToken, async (req: Request, res: Response): Pro
 
     if (payload.length === RECENT_RECORDS_MAX) {
       ConsoleLogger.warn(
-        `/ephemeris/recent hit row cap (${RECENT_RECORDS_MAX}); caller since=${since.toISOString()} should retry with newer cursor`
+        `/ephemeris/recent hit row cap (${RECENT_RECORDS_MAX}); caller since=${since.toISOString()} should retry with a newer \`since\` date (e.g. the latest epoch received)`
       );
     }
 
