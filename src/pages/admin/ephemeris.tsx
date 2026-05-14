@@ -22,14 +22,24 @@ const AdminEphemeris: FunctionComponent = () => {
     count: number;
     latestEpoch: string | null;
     yearCounts: Array<{ year: number; count: number }>;
+    backfillEnabled: boolean;
   }>({
     count: 0,
     latestEpoch: null,
     yearCounts: [],
+    backfillEnabled: false,
   });
-  const [seeding, setSeeding] = useState(false);
-  const [seedResult, setSeedResult] = useState<string | null>(null);
-  const [seedProgress, setSeedProgress] = useState<string[]>([]);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [backfillProgress, setBackfillProgress] = useState<string[]>([]);
+  const [gapStatus, setGapStatus] = useState<{
+    totalRecords: number;
+    gapsDetected: number;
+    knownGapsSkipped: number;
+    earliestGapStart: string | null;
+    gapThresholdHours: number;
+  } | null>(null);
+  const [gapStatusLoading, setGapStatusLoading] = useState(false);
 
   // SpaceTrack status state
   const [spacetrackStatus, setSpacetrackStatus] = useState<SpaceTrackTrackerData | null>(null);
@@ -109,13 +119,14 @@ const AdminEphemeris: FunctionComponent = () => {
 
   useEffect(() => {
     fetchStats();
+    fetchGapStatus();
   }, []);
 
   useEffect(() => {
     if (progressTextareaRef.current) {
       progressTextareaRef.current.scrollTop = progressTextareaRef.current.scrollHeight;
     }
-  }, [seedProgress]);
+  }, [backfillProgress]);
 
   const fetchStats = async () => {
     try {
@@ -130,12 +141,26 @@ const AdminEphemeris: FunctionComponent = () => {
     }
   };
 
-  const handleSeed = async () => {
-    setSeeding(true);
-    setSeedResult(null);
-    setSeedProgress(["Initializing..."]);
+  const fetchGapStatus = async () => {
+    setGapStatusLoading(true);
     try {
-      const response = await fetch("/api/v1/db/ephemeris/seed", {
+      const response = await fetch("/api/v1/db/ephemeris/backfill/status");
+      if (!response.ok) return;
+      const data = await response.json();
+      setGapStatus(data);
+    } catch (e) {
+      console.error("Error fetching gap status:", e);
+    } finally {
+      setGapStatusLoading(false);
+    }
+  };
+
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    setBackfillResult(null);
+    setBackfillProgress(["Initializing..."]);
+    try {
+      const response = await fetch("/api/v1/db/ephemeris/backfill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -143,12 +168,12 @@ const AdminEphemeris: FunctionComponent = () => {
 
       if (!response.ok) {
         const data = await response.json();
-        setSeedResult(`Error: ${data.message}`);
-        setSeedProgress([]);
+        setBackfillResult(`Error: ${data.message}`);
+        setBackfillProgress([]);
         return;
       }
 
-      // Check if response is streaming (text/event-stream or ndjson)
+      // Streaming ndjson response from the backfill endpoint
       const contentType = response.headers.get("content-type");
       if (contentType?.includes("text/event-stream") || contentType?.includes("ndjson")) {
         const reader = response.body?.getReader();
@@ -169,12 +194,12 @@ const AdminEphemeris: FunctionComponent = () => {
                 try {
                   const progressData = JSON.parse(line);
                   if (progressData.progress) {
-                    setSeedProgress((prev) => [...prev, progressData.progress]);
+                    setBackfillProgress((prev) => [...prev, progressData.progress]);
                   }
                   if (progressData.complete) {
-                    setSeedResult(`${progressData.message}`);
+                    setBackfillResult(`${progressData.message}`);
                   }
-                } catch (e) {
+                } catch {
                   // Skip invalid JSON lines
                 }
               }
@@ -185,14 +210,14 @@ const AdminEphemeris: FunctionComponent = () => {
       } else {
         // Fallback to regular JSON response
         const data = await response.json();
-        setSeedResult(`${data.message}`);
-        fetchStats(); // Refresh stats
+        setBackfillResult(`${data.message}`);
+        fetchStats();
       }
     } catch (e) {
-      setSeedResult(`Error: ${e}`);
-      setSeedProgress([]);
+      setBackfillResult(`Error: ${e}`);
+      setBackfillProgress([]);
     } finally {
-      setSeeding(false);
+      setBackfilling(false);
     }
   };
 
@@ -217,7 +242,25 @@ const AdminEphemeris: FunctionComponent = () => {
   };
 
   // Helper functions for formatting
+  /** For TLE/data epochs — always shown in UTC so they match Space-Track values. */
   const formatTimestamp = (value?: string | null) => {
+    if (!value) return "Never";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    const timeAgo = dayjs(value).fromNow();
+    const utcString = date.toLocaleString(undefined, { timeZone: "UTC" }) + " UTC";
+    return (
+      <>
+        {utcString}
+        <span style={{ marginLeft: "8px", opacity: 0.6, fontSize: "0.9em" }}>({timeAgo})</span>
+      </>
+    );
+  };
+
+  /** For server event timestamps — shown in the browser's local timezone. */
+  const formatLocalTimestamp = (value?: string | null) => {
     if (!value) return "Never";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
@@ -292,8 +335,9 @@ const AdminEphemeris: FunctionComponent = () => {
         </Link>
         <h1 className={adminCommon.pageTitle}>Ephemeris (ISS TLE)</h1>
         <p className={adminCommon.introText}>
-          These records contain Two-Line Element (TLE) data for the ISS. TLEs are automatically
-          seeded from historical data and can be used for orbit calculations and position tracking.
+          These records contain Two-Line Element (TLE) data for the ISS. TLEs are pulled
+          automatically every 6 hours from Space-Track (or mirrored from prod on non-prod instances)
+          and are used for orbit calculations and position tracking.
         </p>
 
         {/* Space-Track Scheduler Status Section */}
@@ -326,7 +370,7 @@ const AdminEphemeris: FunctionComponent = () => {
             <div className={adminCommon.infoItem}>
               <span className={adminCommon.infoLabel}>Last update:</span>
               <span className={adminCommon.infoValue}>
-                {lastUpdatedAt ? formatTimestamp(lastUpdatedAt) : "None"}
+                {lastUpdatedAt ? formatLocalTimestamp(lastUpdatedAt) : "None"}
               </span>
             </div>
           </div>
@@ -357,7 +401,7 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Scheduler Started</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(spacetrackStatus.startedAt)}
+                        {formatLocalTimestamp(spacetrackStatus.startedAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
@@ -385,13 +429,13 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Attempt</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(spacetrackStatus.lastOperationStartedAt)}
+                        {formatLocalTimestamp(spacetrackStatus.lastOperationStartedAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Completed</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(spacetrackStatus.lastOperationCompletedAt)}
+                        {formatLocalTimestamp(spacetrackStatus.lastOperationCompletedAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
@@ -495,7 +539,7 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Error At</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(spacetrackStatus.lastErrorAt)}
+                        {formatLocalTimestamp(spacetrackStatus.lastErrorAt)}
                       </dd>
                     </div>
                   </dl>
@@ -508,7 +552,7 @@ const AdminEphemeris: FunctionComponent = () => {
                     <div className={adminCommon.definitionRow}>
                       <dt className={adminCommon.definitionTerm}>Last Manual Trigger</dt>
                       <dd className={adminCommon.definitionValue}>
-                        {formatTimestamp(spacetrackStatus.lastManualTriggerAt)}
+                        {formatLocalTimestamp(spacetrackStatus.lastManualTriggerAt)}
                       </dd>
                     </div>
                     <div className={adminCommon.definitionRow}>
@@ -554,7 +598,7 @@ const AdminEphemeris: FunctionComponent = () => {
                   <div className={adminCommon.definitionRow}>
                     <dt className={adminCommon.definitionTerm}>Latest Epoch</dt>
                     <dd className={adminCommon.definitionValue}>
-                      {stats.latestEpoch ? new Date(stats.latestEpoch).toISOString() : "N/A"}
+                      {stats.latestEpoch ? formatTimestamp(stats.latestEpoch) : "N/A"}
                     </dd>
                   </div>
                 </dl>
@@ -582,34 +626,115 @@ const AdminEphemeris: FunctionComponent = () => {
           </div>
         </section>
 
-        {/* Seed Database Section */}
-        <section className={adminCommon.section} aria-labelledby="seed-heading">
-          <h2 id="seed-heading" className={adminCommon.sectionHeading}>
-            Seed Database
+        {/* Backfill Section (prod-only) */}
+        <section className={adminCommon.section} aria-labelledby="backfill-heading">
+          <h2 id="backfill-heading" className={adminCommon.sectionHeading}>
+            Backfill from Space-Track
           </h2>
           <div className={adminCommon.details}>
-            <p className={adminCommon.descriptionText}>
-              Seed missing historical TLE data from ISS in Real time (data.issinrealtime.org)
-            </p>
-            <button
-              type="button"
-              onClick={handleSeed}
-              disabled={seeding}
-              className={`${adminCommon.button} ${adminCommon.buttonPrimary}`}
-              aria-busy={seeding}
-            >
-              {seeding ? "Seeding..." : "Seed Missing Data"}
-            </button>
-            {seedProgress.length > 0 && (
-              <textarea
-                ref={progressTextareaRef}
-                readOnly
-                value={seedProgress.join("\n")}
-                className={adminCommon.logTextarea}
-                aria-label="Seeding progress log"
-              />
+            {stats.backfillEnabled ? (
+              <>
+                {/* Gap scan status */}
+                <div className={adminCommon.infoPanel} role="status" aria-live="polite">
+                  <div className={adminCommon.infoItem}>
+                    <span className={adminCommon.infoLabel}>TLE gap status:</span>
+                    <span className={adminCommon.infoValue}>
+                      {gapStatusLoading ? (
+                        "Scanning..."
+                      ) : !gapStatus ? (
+                        "Unknown"
+                      ) : gapStatus.gapsDetected === 0 ? (
+                        <span className={adminCommon.badgeSuccess}>
+                          <span
+                            className={`${adminCommon.statusIndicator} ${adminCommon.badgeSuccess}`}
+                            style={{ marginRight: 8 }}
+                            aria-hidden="true"
+                          />
+                          No gaps detected — database is complete
+                        </span>
+                      ) : (
+                        <span className={adminCommon.badgeError}>
+                          <span
+                            className={`${adminCommon.statusIndicator} ${adminCommon.badgeError}`}
+                            style={{ marginRight: 8 }}
+                            aria-hidden="true"
+                          />
+                          {gapStatus.gapsDetected} gap{gapStatus.gapsDetected !== 1 ? "s" : ""}{" "}
+                          detected (earliest:{" "}
+                          {gapStatus.earliestGapStart
+                            ? new Date(gapStatus.earliestGapStart).toLocaleDateString()
+                            : "N/A"}
+                          )
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {gapStatus && (
+                    <>
+                      <div className={adminCommon.infoItem}>
+                        <span className={adminCommon.infoLabel}>Records scanned:</span>
+                        <span className={adminCommon.infoValue}>
+                          {gapStatus.totalRecords.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={adminCommon.infoItem}>
+                        <span className={adminCommon.infoLabel}>Known Space-Track outages:</span>
+                        <span className={adminCommon.infoValue}>
+                          {gapStatus.knownGapsSkipped} (ignored)
+                        </span>
+                      </div>
+                      <div className={adminCommon.infoItem}>
+                        <span className={adminCommon.infoLabel}>Gap threshold:</span>
+                        <span className={adminCommon.infoValue}>
+                          {gapStatus.gapThresholdHours}h between consecutive TLEs
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <p className={adminCommon.descriptionText}>
+                  {gapStatus?.gapsDetected === 0
+                    ? "The database has no unexpected gaps. Running backfill will make zero " +
+                      "Space-Track API calls. You can still click the button to verify."
+                    : "Scan the local DB for gaps in TLE coverage and, if any are found, issue a " +
+                      "single gp_history query to Space-Track to fill them in. Space-Track " +
+                      'rate-limits this class to "1 / lifetime" per object, so this should be ' +
+                      "used sparingly. Existing records are deduplicated by epoch."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleBackfill().then(() => fetchGapStatus());
+                  }}
+                  disabled={backfilling}
+                  className={`${adminCommon.button} ${adminCommon.buttonPrimary}`}
+                  aria-busy={backfilling}
+                >
+                  {backfilling
+                    ? "Backfilling..."
+                    : gapStatus?.gapsDetected === 0
+                      ? "Verify (no gaps detected)"
+                      : "Backfill Missing TLEs"}
+                </button>
+                {backfillProgress.length > 0 && (
+                  <textarea
+                    ref={progressTextareaRef}
+                    readOnly
+                    value={backfillProgress.join("\n")}
+                    className={adminCommon.logTextarea}
+                    aria-label="Backfill progress log"
+                  />
+                )}
+                {backfillResult && <p className={adminCommon.resultMessage}>{backfillResult}</p>}
+              </>
+            ) : (
+              <p className={adminCommon.descriptionText}>
+                Backfill is disabled on this instance. This server mirrors TLE data from another
+                CODA instance (<code>EPHEMERIS_SYNC_FROM_URL</code> is set), so there is nothing to
+                backfill here — missing records will arrive automatically via the scheduler.
+              </p>
             )}
-            {seedResult && <p className={adminCommon.resultMessage}>{seedResult}</p>}
           </div>
         </section>
       </div>

@@ -2,9 +2,10 @@
  * Space-Track API integration for fetching ISS TLE data
  *
  * Uses the optimized `gp` class per Space-Track's API guidelines, filtered to
- * NORAD_CAT_ID 25544 (ISS) with CREATION_DATE > now-1 day. The 24-hour window
- * gives 4x overlap with the 6-hour scheduler, so even if several consecutive
- * fetches fail we won't miss any TLE records.
+ * NORAD_CAT_ID 25544 (ISS) with EPOCH > now-10 days. This is the window
+ * Space-Track themselves recommend in their documentation. At our 6h poll
+ * interval it gives 40x overlap, so outages up to ~9 days recover automatically
+ * on the next successful call without touching gp_history.
  *
  * IMPORTANT: Space-Track has strict rate limiting policies. Only the prod
  * instance should call this module — non-prod instances pull ephemeris via
@@ -16,8 +17,9 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 import { upsertEphemerisRecords } from "./ephemeris";
 
 const LOGIN_URL = "https://www.space-track.org/ajaxauth/login";
-const API_BASE_URL = "https://www.space-track.org/basicspacedata/query";
-const ISS_NORAD_ID = 25544;
+export const SPACETRACK_API_BASE_URL = "https://www.space-track.org/basicspacedata/query";
+const API_BASE_URL = SPACETRACK_API_BASE_URL;
+export const ISS_NORAD_ID = 25544;
 
 /**
  * Parse precise epoch from TLE line1
@@ -51,7 +53,7 @@ export function calculateEpochFromTLE(line1: string, line2: string): Date | null
  * Authenticate with Space-Track
  * Returns the cookie strings to pass in subsequent requests, or null on failure.
  */
-async function loginToSpaceTrack(): Promise<string[] | null> {
+export async function loginToSpaceTrack(): Promise<string[] | null> {
   const username = process.env.SPACETRACK_USERNAME;
   const password = process.env.SPACETRACK_PASSWORD;
 
@@ -127,15 +129,17 @@ async function fetchTLEFromSpaceTrack(): Promise<SpaceTrackGpRecord[] | null> {
   const loginCookies = await loginToSpaceTrack();
   if (!loginCookies) return null;
 
-  // Per Space-Track API guidelines: use the optimized `gp` class for current ephemerides.
-  // CREATION_DATE/>now-1 = TLEs created in the last 24 hours (4x overlap with 6h scheduler).
+  // Per Space-Track API guidelines: use the optimized `gp` class (allowed 1/hour,
+  // we call every 6h). EPOCH/>now-10 is Space-Track's own recommended window —
+  // it appears verbatim in their documentation. At 6h poll intervals this gives
+  // 40x overlap, so even a ~9-day outage recovers automatically on the next hit.
   // decay_date/null-val excludes decayed objects (harmless for ISS, matches their template).
-  const orderBy = "orderby/CREATION_DATE%20desc";
+  const orderBy = "orderby/EPOCH%20desc";
   const predicates = "predicates/TLE_LINE1,TLE_LINE2";
-  const query = `/class/gp/NORAD_CAT_ID/${ISS_NORAD_ID}/decay_date/null-val/CREATION_DATE/%3Enow-1/${orderBy}/format/json/${predicates}`;
+  const query = `/class/gp/NORAD_CAT_ID/${ISS_NORAD_ID}/decay_date/null-val/EPOCH/%3Enow-10/${orderBy}/format/json/${predicates}`;
   const url = `${API_BASE_URL}${query}`;
 
-  ConsoleLogger.info("Fetching latest ISS TLEs from Space-Track (gp class, 24h window)");
+  ConsoleLogger.info("Fetching latest ISS TLEs from Space-Track (gp class, 10-day window)");
   ConsoleLogger.debug(`Request URL: ${url}`);
 
   try {

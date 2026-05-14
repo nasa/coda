@@ -7,7 +7,7 @@ import {
   getEphemerisRecordsSince,
   RECENT_RECORDS_MAX,
 } from "server/processing/ephemeris";
-import { seedMissingData } from "server/processing/ephemeris-seed";
+import { backfillFromSpaceTrack, scanForGaps } from "server/processing/ephemeris-backfill";
 import { triggerSpacetrackUpdate } from "server/express/spacetrackScheduler";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import { requireEmssToken } from "server/express/middleware/requireEmssToken";
@@ -150,33 +150,70 @@ router.get("/recent", requireEmssToken, async (req: Request, res: Response): Pro
 router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
   try {
     const stats = await getStats();
-    res.status(200).json(stats);
+    // backfillEnabled mirrors the prod-only check on POST /backfill: this
+    // instance is allowed to call Space-Track directly only when it is NOT
+    // configured to sync from another CODA instance.
+    const backfillEnabled = !process.env.EPHEMERIS_SYNC_FROM_URL;
+    res.status(200).json({ ...stats, backfillEnabled });
   } catch (e) {
     ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error fetching stats ${e}` });
   }
 });
 
-// Seed database from remote source
-router.post("/seed", requireSuperuser, async (_req: Request, res: Response): Promise<void> => {
+// Lightweight gap-scan endpoint — reads the DB but never calls Space-Track.
+// The admin UI polls this to show whether a backfill is needed.
+router.get(
+  "/backfill/status",
+  requireSuperuser,
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await scanForGaps();
+      res.status(200).json(result);
+    } catch (e) {
+      ConsoleLogger.error(e);
+      res.status(500).json({ status: "error", message: `Error scanning for gaps ${e}` });
+    }
+  }
+);
+
+// Backfill missing TLEs from Space-Track's `gp_history` class.
+//
+// PROD ONLY: non-prod instances mirror prod via /api/v1/db/ephemeris/recent
+// (see ephemeris-sync.ts) and must not hit Space-Track directly. The check
+// uses the same heuristic as the scheduler: an empty EPHEMERIS_SYNC_FROM_URL
+// means "this instance is the source of truth" (i.e. prod).
+router.post("/backfill", requireSuperuser, async (_req: Request, res: Response): Promise<void> => {
+  if (process.env.EPHEMERIS_SYNC_FROM_URL) {
+    res.status(403).json({
+      status: "error",
+      message:
+        "Backfill is disabled on this instance because EPHEMERIS_SYNC_FROM_URL is set. " +
+        "Non-prod instances mirror TLE data from prod via the scheduler — there is nothing to backfill here.",
+    });
+    return;
+  }
+
   try {
-    // Set headers for streaming response (newline-delimited JSON)
+    // Streaming ndjson response so the admin UI can show progress live.
     res.setHeader("Content-Type", "application/x-ndjson");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    // Progress callback to stream updates
     const onProgress = (message: string) => {
       res.write(JSON.stringify({ progress: message }) + "\n");
     };
 
-    const result = await seedMissingData(onProgress);
+    const result = await backfillFromSpaceTrack(onProgress);
 
-    // Send final result
     res.write(
       JSON.stringify({
         complete: true,
-        message: `Processed ${result.monthsProcessed} months. Inserted ${result.totalInserted} records, skipped ${result.totalSkipped} duplicates`,
+        message: result.success
+          ? `Backfill complete. Fetched ${result.recordsFetched ?? 0} records, ` +
+            `inserted ${result.recordsInserted ?? 0} new, ` +
+            `skipped ${result.recordsSkipped ?? 0} duplicates.`
+          : `Backfill failed: ${result.errorMessage ?? "unknown error"}`,
         data: result,
       }) + "\n"
     );
@@ -184,7 +221,7 @@ router.post("/seed", requireSuperuser, async (_req: Request, res: Response): Pro
   } catch (e) {
     ConsoleLogger.error(e);
     res.write(
-      JSON.stringify({ error: true, message: `Error processing the seed request ${e}` }) + "\n"
+      JSON.stringify({ error: true, message: `Error processing the backfill request ${e}` }) + "\n"
     );
     res.end();
   }

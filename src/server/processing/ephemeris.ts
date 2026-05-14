@@ -172,7 +172,23 @@ export async function getLatestEpoch(): Promise<Date | null> {
 }
 
 /** Sanity cap on /recent payload to protect against a malformed/very-old `since`. */
-export const RECENT_RECORDS_MAX = 10000;
+export const RECENT_RECORDS_MAX = 100000;
+
+/**
+ * Get all epochs in the DB ordered ascending. Used by the backfill module to
+ * detect gaps in coverage so it can issue a single targeted Space-Track query.
+ * Returns just the timestamps (ms since epoch) — no TLE strings — to keep
+ * memory low even when the DB has tens of thousands of records.
+ */
+export async function getAllEpochsAsc(): Promise<number[]> {
+  const em = getORM().em.fork();
+  const connection = em.getConnection();
+  const result = await connection.execute(`SELECT epoch FROM ephemeris_db ORDER BY epoch ASC`);
+  const rows: Array<{ epoch: Date | string }> =
+    (result as { rows?: Array<{ epoch: Date | string }> }).rows ??
+    (result as Array<{ epoch: Date | string }>);
+  return rows.map((r) => new Date(r.epoch).getTime());
+}
 
 /**
  * Get all TLE records with epoch strictly greater than `since`, ordered ascending.
