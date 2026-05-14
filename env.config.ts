@@ -327,7 +327,7 @@ export const config: DotenvConfig<typeof environments> = {
    */
   EPHEMERIS_SYNC_FROM_URL: {
     prod: "",
-    default: "https://coda.fit.nasa.gov",
+    default: "",
   },
 
   /**
