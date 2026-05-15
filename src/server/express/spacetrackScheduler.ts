@@ -41,7 +41,7 @@ import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
 import { syncEphemerisFromRemote } from "server/processing/ephemeris-sync";
 import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { globalValues, getSocketIO } from "./global";
+import { globalValues } from "./global";
 import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 dayjs.extend(duration);
@@ -149,12 +149,13 @@ const determineShouldFetch = async (): Promise<SpaceTrackFetchDecision> => {
 /**
  * Emit updated ephemeris data to all ISS clients viewing today's date.
  * Called after a successful Space-Track TLE update to push fresh data.
+ * Socket.IO delivers only to clients in the relevant room; no need to check
+ * membership here.
  */
 const emitEphemerisToTodayClients = async (): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
-  const source: Source = "ISS"; // Ephemeris data is ISS-specific
+  const source: Source = "ISS";
 
-  // Fetch ephemeris data once (same TLE data applies to ISS)
   let ephemerisData: FetchResponse<EphemerisEntry[]> | null = null;
   try {
     ephemerisData = await getEphemera({ dateWanted: today });
@@ -167,21 +168,11 @@ const emitEphemerisToTodayClients = async (): Promise<void> => {
     return;
   }
 
-  // Check if any clients are viewing today for ISS
-  const roomName = `${source}_${today}`;
-  const io = getSocketIO();
-  const room = io.sockets.adapter.rooms.get(roomName);
-
-  if (!room?.size) {
-    return; // No clients viewing ISS/today
-  }
-
   emitDataUpdate({
     source,
     dataDate: today,
     dataUpdate: { type: "ephemeris", response: ephemerisData },
   });
-  ConsoleLogger.debug(`Emitted ephemeris update to ${room.size} client(s) in ${roomName}`);
 };
 
 // Update execution
