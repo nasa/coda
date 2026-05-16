@@ -26,6 +26,7 @@ import { ISSLocation } from "components/panes/iss-location";
 import GPSLocation from "components/panes/gps-location";
 import CommPane from "components/panes/comm";
 import Graph from "components/panes/graph/graph";
+import PcdAudioPane from "components/panes/pcd-audio";
 
 import styles from "./dockview-pane-panel.module.css";
 
@@ -40,6 +41,7 @@ const paneComponents: Record<string, React.ComponentType<PaneComponentProps> | n
   event_info: EventInfo,
   comm: CommPane,
   graph: Graph,
+  pcd_audio: PcdAudioPane,
 };
 
 interface PanelParams {
@@ -56,6 +58,7 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
     shallowEqual
   );
   const source = useAppSelector((state) => state.framework.source, refEqual);
+  const date = useAppSelector((state) => state.clock.date, refEqual);
   const dispatch = useAppDispatch();
 
   const paneType = frameState?.paneType ?? "";
@@ -72,8 +75,8 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
 
   const allPaneTypes = useMemo(() => Object.keys(allPanes) as PaneType[], []);
   const availablePanes = useMemo(
-    () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
-    [source, allPaneTypes]
+    () => getAvailablePanesForSource(source, allPaneTypes, date).filter((pt) => pt !== "empty"),
+    [source, allPaneTypes, date]
   );
 
   const handleSelectPaneType = (selectedType: PaneType) => {

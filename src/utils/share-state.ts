@@ -141,6 +141,9 @@ export function generateShareURL(
       case "graph":
         paneStateString = getStateStringForGraph(element.paneStateData as GraphPaneStateData);
         break;
+      case "pcd_audio":
+        paneStateString = getStateStringForPcdAudio(element.paneStateData as PcdAudioPaneStateData);
+        break;
     }
     stateUrlParams += "&f" + key + "=" + paneStateString;
   }
@@ -250,6 +253,16 @@ export function getStateStringforGPSLocation(state: GpsTrackPaneStateData): stri
 export function getStateStringForComm(_state: CommPaneStateData): string {
   const paneTypeString = "0" + paneTypeShortVal.talkybot;
   return `${paneTypeString}`;
+}
+
+/**
+ * @returns {string}
+ * Chars 0,1 digits: pane type (11)
+ * Chars 2+: comma-separated list of unmuted device channels (e.g. "PLT,MS2"), or empty if all muted
+ */
+export function getStateStringForPcdAudio(state: PcdAudioPaneStateData): string {
+  const paneTypeString = paneTypeShortVal.pcd_audio;
+  return `${paneTypeString}${state.unmutedChannels.join(",")}`;
 }
 
 /**
@@ -433,6 +446,18 @@ export function interpretFrameQueryParam(frameString: string): PaneState | undef
         },
       };
       return graphReturnVal;
+    case paneTypeShortVal.pcd_audio:
+      /* Chars 2+: comma-separated list of unmuted device channels, or empty if all muted */
+      const unmutedChannelsStr = frameString.substring(2);
+      const pcdAudioReturnVal: PaneState = {
+        paneType: "pcd_audio",
+        paneStateData: {
+          ready: true,
+          unmutedChannels: unmutedChannelsStr ? unmutedChannelsStr.split(",") : [],
+          showHelp: false,
+        } as PcdAudioPaneStateData,
+      };
+      return pcdAudioReturnVal;
     default:
       return undefined;
   }

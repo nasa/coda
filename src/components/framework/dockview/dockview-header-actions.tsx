@@ -37,6 +37,7 @@ import { ISSLocationControls } from "components/panes/iss-location";
 import { GPSLocationControls } from "components/panes/gps-location";
 import { CommControls } from "components/panes/comm";
 import { GraphControls } from "components/panes/graph/graph";
+import { PcdAudioControls } from "components/panes/pcd-audio";
 
 const controlComponents: Record<PaneType, React.ComponentType<PaneComponentProps> | null> = {
   empty: null,
@@ -49,6 +50,7 @@ const controlComponents: Record<PaneType, React.ComponentType<PaneComponentProps
   event_info: EventInfoControls,
   comm: CommControls,
   graph: GraphControls,
+  pcd_audio: PcdAudioControls,
 };
 
 /** Width threshold (px) below which inline controls collapse into a button, keyed by paneType. */
@@ -62,6 +64,7 @@ const COLLAPSE_THRESHOLDS: Partial<Record<PaneType, number>> = {
   event_info: 200,
   comm: 220,
   graph: 200,
+  pcd_audio: 200,
 };
 
 /** Extract the paneInstanceId from the active panel's params. */

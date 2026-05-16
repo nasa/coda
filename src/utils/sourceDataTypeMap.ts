@@ -32,7 +32,7 @@ export const SOURCE_DATA_TYPE_MAP: Record<Source, StoreDataType[]> = {
   ISS: ["daynight", "ephemeris", "videos", "mtxvideo", "photos", "wikiEvas", "talkybot"],
   TEST_EVENTS: ["videos", "mtxvideo", "photos", "wikiTestEvents", "talkybot", "graph", "gpstracks"],
   NBL: ["videos", "photos", "wikiTestEvents", "mtxvideo", "graph"],
-  ARTEMIS: ["videos", "photos", "wikiTestEvents", "mtxvideo", "talkybot"],
+  ARTEMIS: ["videos", "photos", "wikiTestEvents", "mtxvideo", "talkybot", "pcdAudio"],
 };
 
 /**
@@ -158,6 +158,15 @@ export const PANE_DATA_TYPE_REQUIREMENTS: Record<string, StoreDataType[]> = {
   event_info: ["wikiEvas", "wikiTestEvents"], // needs at least one of these (handled specially)
   comm: ["talkybot"],
   graph: ["graph"],
+  pcd_audio: ["pcdAudio"],
+};
+
+/**
+ * Panes listed here are only shown in the picker when the viewed date falls within the given range.
+ * Dates are inclusive YYYY-MM-DD strings.
+ */
+export const PANE_DATE_GATES: Partial<Record<string, { start: string; end: string }>> = {
+  pcd_audio: { start: "2026-03-31", end: "2026-04-11" },
 };
 
 /**
@@ -177,11 +186,34 @@ export const isPaneAvailableForSource = (source: Source, paneType: string): bool
 };
 
 /**
- * Get all pane types that are available for a given source.
+ * Check if a pane type is available for the given date.
+ * Panes without a date gate are always available.
+ * Panes with a date gate require a date within the gate range; if date is null/undefined they are hidden.
+ */
+export const isPaneAvailableForDate = (
+  paneType: string,
+  date: string | null | undefined
+): boolean => {
+  const gate = PANE_DATE_GATES[paneType];
+  if (!gate) return true;
+  if (!date) return false;
+  const d = date.split("T")[0];
+  return d >= gate.start && d <= gate.end;
+};
+
+/**
+ * Get all pane types that are available for a given source and optional date.
+ * When date is provided, date-gated panes are filtered out if the date is outside their gate.
+ * When date is undefined, date filtering is skipped (backward-compatible).
  */
 export const getAvailablePanesForSource = (
   source: Source,
-  allPaneTypes: PaneType[]
+  allPaneTypes: PaneType[],
+  date?: string | null
 ): PaneType[] => {
-  return allPaneTypes.filter((paneType) => isPaneAvailableForSource(source, paneType));
+  return allPaneTypes.filter((paneType) => {
+    if (!isPaneAvailableForSource(source, paneType)) return false;
+    if (date !== undefined && !isPaneAvailableForDate(paneType, date)) return false;
+    return true;
+  });
 };

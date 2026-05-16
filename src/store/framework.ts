@@ -4,6 +4,7 @@ import {
   faCamera,
   faChartLine,
   faGlobeAmericas,
+  faHeadphones,
   faInfo,
   faSatellite,
   faVideo,
@@ -121,6 +122,16 @@ export const allPanes: Panes = {
       showHelp: false,
       selectedGraphId: "",
     } as GraphPaneStateData,
+  },
+  pcd_audio: {
+    title: "PCD Audio",
+    shortTitle: "PCD",
+    icon: faHeadphones,
+    defaultPaneStateData: {
+      ready: true,
+      unmutedChannels: [],
+      showHelp: false,
+    } as PcdAudioPaneStateData,
   },
 };
 

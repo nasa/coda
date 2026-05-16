@@ -10,7 +10,8 @@ type StoreDataType =
   | "mtxvideo"
   | "gpstracks"
   | "talkybot"
-  | "graph";
+  | "graph"
+  | "pcdAudio";
 
 interface DataUpdate {
   type: StoreDataType;

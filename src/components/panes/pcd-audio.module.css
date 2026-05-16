@@ -1,0 +1,171 @@
+.main {
+  position: relative;
+  height: 0;
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--nearly-black);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Controls bar ─────────────────────────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+  margin-left: auto;
+}
+
+.controlsLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.deviceButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid rgb(100 100 100 / 50%);
+  border-radius: 4px;
+  background: transparent;
+  color: rgb(150 150 150);
+  font-size: 0.75em;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.deviceButton:hover {
+  border-color: rgb(180 180 180 / 70%);
+  color: rgb(200 200 200);
+}
+
+.deviceButtonActive {
+  background: rgb(255 255 255 / 6%);
+}
+
+.deviceButtonLabel {
+  letter-spacing: 0.03em;
+}
+
+.rightButtons {
+  display: flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 5px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+/* ── Recording list ───────────────────────────────────────────────────────── */
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(120 120 120);
+  font-size: 0.85em;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgb(255 255 255 / 4%);
+  transition: background 0.1s;
+  font-size: 0.8em;
+}
+
+.row:hover {
+  background: rgb(255 255 255 / 5%);
+}
+
+.pastRow {
+  opacity: 0.4;
+}
+
+.activeRow {
+  opacity: 1;
+  background: rgb(255 255 255 / 8%);
+  border-left: 3px solid rgb(255 255 255 / 30%);
+}
+
+.activeRow:hover {
+  background: rgb(255 255 255 / 12%);
+}
+
+/* ── Row columns ──────────────────────────────────────────────────────────── */
+
+.deviceBadge {
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #000000;
+}
+
+.startTime {
+  flex-shrink: 0;
+  width: 70px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(200 200 200);
+  font-weight: 300;
+}
+
+.totalDuration {
+  flex-shrink: 0;
+  width: 44px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(160 160 160);
+  font-weight: 200;
+}
+
+.statusCol {
+  flex: 1;
+  text-align: right;
+}
+
+.progressText {
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  color: rgb(220 220 220);
+  letter-spacing: 0.02em;
+}
+
+.pastLabel {
+  color: rgb(100 100 100);
+  font-weight: 200;
+  font-size: 0.9em;
+}
+
+.upcomingLabel {
+  color: rgb(130 130 130);
+  font-weight: 200;
+  font-size: 0.9em;
+}
