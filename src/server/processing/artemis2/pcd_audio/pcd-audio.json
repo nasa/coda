@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-16T18:17:32.720Z",
+  "generatedAt": "2026-05-16T18:32:50.508Z",
   "sourceCollections": [
     {
       "cid": 2409450,
@@ -30,7 +30,7 @@
     {
       "nasa_id": "art002a000002",
       "title": "FD05_SoundRecordings",
-      "device": null,
+      "device": "PCD3",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-04|SoundRecordings",
       "startTime": "2026-04-05T05:36:35.429Z",
       "durationSeconds": 6.570646,
@@ -41,7 +41,7 @@
     {
       "nasa_id": "art002a000001",
       "title": "FD05_SoundRecordings",
-      "device": null,
+      "device": "PCD3",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-04|SoundRecordings",
       "startTime": "2026-04-05T05:41:32.342Z",
       "durationSeconds": 151.658417,
@@ -52,7 +52,7 @@
     {
       "nasa_id": "art002a000050",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T18:37:46.115Z",
       "durationSeconds": 4.885313,
@@ -63,7 +63,7 @@
     {
       "nasa_id": "art002a000027",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T18:37:56.840Z",
       "durationSeconds": 4.159979,
@@ -74,7 +74,7 @@
     {
       "nasa_id": "art002a000017",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T18:38:09.109Z",
       "durationSeconds": 1311.891271,
@@ -85,7 +85,7 @@
     {
       "nasa_id": "art002a000028",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T18:38:23.216Z",
       "durationSeconds": 1919.783667,
@@ -96,7 +96,7 @@
     {
       "nasa_id": "art002a000018",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T19:00:15.750Z",
       "durationSeconds": 582.24975,
@@ -107,7 +107,7 @@
     {
       "nasa_id": "art002a000029",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T19:10:39.063Z",
       "durationSeconds": 824.937375,
@@ -118,7 +118,7 @@
     {
       "nasa_id": "art002a000019",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T19:10:44.115Z",
       "durationSeconds": 468.884583,
@@ -129,7 +129,7 @@
     {
       "nasa_id": "art002a000020",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T19:20:01.715Z",
       "durationSeconds": 523.2845,
@@ -140,7 +140,7 @@
     {
       "nasa_id": "art002a000030",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T19:24:31.270Z",
       "durationSeconds": 346.730104,
@@ -151,7 +151,7 @@
     {
       "nasa_id": "art002a000021",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T19:33:01.758Z",
       "durationSeconds": 547.241792,
@@ -162,7 +162,7 @@
     {
       "nasa_id": "art002a000031",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T19:33:15.377Z",
       "durationSeconds": 514.623188,
@@ -173,7 +173,7 @@
     {
       "nasa_id": "art002a000032",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T19:42:00.526Z",
       "durationSeconds": 250.474271,
@@ -184,7 +184,7 @@
     {
       "nasa_id": "art002a000022",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T19:42:17.718Z",
       "durationSeconds": 322.282146,
@@ -195,7 +195,7 @@
     {
       "nasa_id": "art002a000033",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T19:46:14.576Z",
       "durationSeconds": 135.423771,
@@ -206,7 +206,7 @@
     {
       "nasa_id": "art002a000005",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T20:03:51.847Z",
       "durationSeconds": 922.153208,
@@ -217,7 +217,7 @@
     {
       "nasa_id": "art002a000034",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T20:03:59.865Z",
       "durationSeconds": 731.134854,
@@ -228,7 +228,7 @@
     {
       "nasa_id": "art002a000035",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T20:16:31.943Z",
       "durationSeconds": 838.057354,
@@ -239,7 +239,7 @@
     {
       "nasa_id": "art002a000006",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T20:19:57.801Z",
       "durationSeconds": 659.198958,
@@ -250,7 +250,7 @@
     {
       "nasa_id": "art002a000007",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T20:33:57.688Z",
       "durationSeconds": 229.311625,
@@ -261,7 +261,7 @@
     {
       "nasa_id": "art002a000036",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T20:34:15.795Z",
       "durationSeconds": 253.204938,
@@ -272,7 +272,7 @@
     {
       "nasa_id": "art002a000008",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T20:38:22.364Z",
       "durationSeconds": 1079.635646,
@@ -283,7 +283,7 @@
     {
       "nasa_id": "art002a000037",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T20:38:54.935Z",
       "durationSeconds": 1057.065,
@@ -294,7 +294,7 @@
     {
       "nasa_id": "art002a000023",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T21:02:19.279Z",
       "durationSeconds": 1031.721042,
@@ -305,7 +305,7 @@
     {
       "nasa_id": "art002a000038",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T21:02:24.041Z",
       "durationSeconds": 792.95875,
@@ -316,7 +316,7 @@
     {
       "nasa_id": "art002a000039",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T21:15:44.826Z",
       "durationSeconds": 1138.174208,
@@ -327,7 +327,7 @@
     {
       "nasa_id": "art002a000024",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T21:19:39.165Z",
       "durationSeconds": 1290.835313,
@@ -338,7 +338,7 @@
     {
       "nasa_id": "art002a000040",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T21:34:49.998Z",
       "durationSeconds": 393.002042,
@@ -349,7 +349,7 @@
     {
       "nasa_id": "art002a000041",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T21:42:42.961Z",
       "durationSeconds": 551.039125,
@@ -360,7 +360,7 @@
     {
       "nasa_id": "art002a000025",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T21:42:58.198Z",
       "durationSeconds": 557.801792,
@@ -371,7 +371,7 @@
     {
       "nasa_id": "art002a000042",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T21:52:01.065Z",
       "durationSeconds": 695.934896,
@@ -382,7 +382,7 @@
     {
       "nasa_id": "art002a000026",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T21:52:20.494Z",
       "durationSeconds": 678.505604,
@@ -393,7 +393,7 @@
     {
       "nasa_id": "art002a000016",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T22:13:44.875Z",
       "durationSeconds": 287.124875,
@@ -404,7 +404,7 @@
     {
       "nasa_id": "art002a000043",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T22:15:47.745Z",
       "durationSeconds": 608.255042,
@@ -415,7 +415,7 @@
     {
       "nasa_id": "art002a000009",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T22:19:30.166Z",
       "durationSeconds": 601.833708,
@@ -426,7 +426,7 @@
     {
       "nasa_id": "art002a000044",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T22:26:15.630Z",
       "durationSeconds": 459.369938,
@@ -437,7 +437,7 @@
     {
       "nasa_id": "art002a000010",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T22:29:59.560Z",
       "durationSeconds": 221.439646,
@@ -448,7 +448,7 @@
     {
       "nasa_id": "art002a000011",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T22:34:32.489Z",
       "durationSeconds": 784.510771,
@@ -459,7 +459,7 @@
     {
       "nasa_id": "art002a000045",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T22:39:11.395Z",
       "durationSeconds": 307.604833,
@@ -470,7 +470,7 @@
     {
       "nasa_id": "art002a000046",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T22:45:13.670Z",
       "durationSeconds": 724.329521,
@@ -481,7 +481,7 @@
     {
       "nasa_id": "art002a000012",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T22:51:28.401Z",
       "durationSeconds": 393.599375,
@@ -492,7 +492,7 @@
     {
       "nasa_id": "art002a000047",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T22:59:01.571Z",
       "durationSeconds": 465.428604,
@@ -503,7 +503,7 @@
     {
       "nasa_id": "art002a000013",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T22:59:55.163Z",
       "durationSeconds": 354.836771,
@@ -514,7 +514,7 @@
     {
       "nasa_id": "art002a000014",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T23:06:30.931Z",
       "durationSeconds": 258.068917,
@@ -525,7 +525,7 @@
     {
       "nasa_id": "art002a000048",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T23:11:13.158Z",
       "durationSeconds": 180.842375,
@@ -536,7 +536,7 @@
     {
       "nasa_id": "art002a000015",
       "title": "MS2 Sound recordings",
-      "device": "MS2",
+      "device": "PCD2",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|MS2 Sound recordings",
       "startTime": "2026-04-06T23:13:36.537Z",
       "durationSeconds": 606.463042,
@@ -547,7 +547,7 @@
     {
       "nasa_id": "art002a000049",
       "title": "PLT Sound recordings",
-      "device": "PLT",
+      "device": "PCD1",
       "collectionPath": "Artemis - Missions|Artemis-02|MISSION IMAGERY|Flight-Day-06|Lunar Flyby Audio|PLT Sound recordings",
       "startTime": "2026-04-06T23:16:24.732Z",
       "durationSeconds": 573.268438,

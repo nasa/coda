@@ -155,6 +155,21 @@ function parseIODoc(doc, collectionInfo) {
 // ── Device name ───────────────────────────────────────────────────────────────
 
 /**
+ * Maps the raw IO device token to a canonical PCD device label.
+ * IO uses crew-position names (PLT, MS2) that don't match the physical
+ * laptop numbering — we normalise them here.
+ *   PLT  → PCD1  (Pilot laptop)
+ *   MS2  → PCD2  (Mission Specialist 2 laptop)
+ *   PCD3 → PCD3  (unchanged)
+ *   null / anything else → PCD3  (FD05 browse collection has no device segment)
+ */
+const DEVICE_MAP = {
+  PLT: "PCD1",
+  MS2: "PCD2",
+  PCD3: "PCD3",
+};
+
+/**
  * Extract a short PCD device name from the IO collection path.
  * Looks for a leading short uppercase+digit token in any path segment,
  * most-specific first (e.g. "PLT Sound recordings" → "PLT").
@@ -167,6 +182,11 @@ function extractDevice(collectionPath) {
     if (m && !EXCLUDE.has(m[1])) return m[1];
   }
   return null;
+}
+
+/** Translate raw IO device token to canonical display label. */
+function canonicalDevice(rawDevice) {
+  return DEVICE_MAP[rawDevice] ?? "PCD3";
 }
 
 // ── Local file index ──────────────────────────────────────────────────────────
@@ -312,7 +332,7 @@ async function main() {
     probeFailed = 0;
 
   for (const rec of deduped) {
-    const device = extractDevice(rec.collectionPath);
+    const device = canonicalDevice(extractDevice(rec.collectionPath));
     let startTime = null,
       durationSeconds = null,
       endTime = null,

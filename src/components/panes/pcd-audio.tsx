@@ -14,13 +14,12 @@ import { setAppSeconds } from "store/clock";
 import styles from "./pcd-audio.module.css";
 
 // Canonical channel order for display
-const ALL_DEVICES = ["PLT", "MS2", "PCD3", "FD05"] as const;
+const ALL_DEVICES = ["PCD1", "PCD2", "PCD3"] as const;
 
 const DEVICE_COLORS: Record<string, string> = {
-  PLT: "#e8a020",
-  MS2: "#4a9edd",
+  PCD1: "#e8a020",
+  PCD2: "#4a9edd",
   PCD3: "#a855f7",
-  FD05: "#22c55e",
 };
 
 function fmtDur(seconds: number): string {
@@ -50,7 +49,7 @@ export const PcdAudioControls: FunctionComponent<PaneComponentProps> = ({ paneIn
     const seen = new Set<string>();
     for (const r of pcdAudioData.recordings) {
       if (r.startTime.startsWith(dateStr)) {
-        seen.add(r.device ?? "FD05");
+        seen.add(r.device ?? "PCD3");
       }
     }
     return ALL_DEVICES.filter((d) => seen.has(d));
@@ -155,7 +154,7 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
         const isPast = currentUtcMs >= endMs;
         const elapsedSeconds = isActive ? (currentUtcMs - startMs) / 1000 : 0;
         const secondsUntil = !isActive && !isPast ? (startMs - currentUtcMs) / 1000 : 0;
-        const deviceKey = r.device ?? "FD05";
+        const deviceKey = r.device ?? "PCD3";
         return { ...r, startMs, endMs, isActive, isPast, elapsedSeconds, secondsUntil, deviceKey };
       }),
     [todayRecordings, currentUtcMs]
@@ -180,7 +179,7 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
         const startMs = new Date(r.startTime).getTime();
         const endMs = startMs + r.durationSeconds * 1000;
         const isActive = nowMs >= startMs && nowMs < endMs;
-        const deviceKey = r.device ?? "FD05";
+        const deviceKey = r.device ?? "PCD3";
         const isUnmuted = unmutedChannels.includes(deviceKey);
 
         if (isActive && isUnmuted && isRunning) {

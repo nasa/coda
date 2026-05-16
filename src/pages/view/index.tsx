@@ -194,7 +194,7 @@ function getURLParams(query: URLSearchParams): QueryParams {
       if (defaultArtemisTree) dockviewLayout = treeToSerialized(defaultArtemisTree);
       fState.paneInstances = interpretFramestateQueryString(
         new URLSearchParams(
-          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300&f7=11PLT,MS2,PCD3,FD05"
+          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300&f7=11PCD1,PCD2,PCD3"
         )
       );
       if (isNil(rawDate)) {
