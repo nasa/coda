@@ -447,13 +447,15 @@ export function interpretFrameQueryParam(frameString: string): PaneState | undef
       };
       return graphReturnVal;
     case paneTypeShortVal.pcd_audio:
-      /* Chars 2+: comma-separated list of unmuted device channels, or empty if all muted */
+      /* Chars 2+: comma-separated list of unmuted device channels, or empty for all unmuted */
       const unmutedChannelsStr = frameString.substring(2);
       const pcdAudioReturnVal: PaneState = {
         paneType: "pcd_audio",
         paneStateData: {
           ready: true,
-          unmutedChannels: unmutedChannelsStr ? unmutedChannelsStr.split(",") : [],
+          unmutedChannels: unmutedChannelsStr
+            ? unmutedChannelsStr.split(",")
+            : ["PLT", "MS2", "PCD3", "FD04"],
           showHelp: false,
         } as PcdAudioPaneStateData,
       };

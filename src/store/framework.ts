@@ -129,7 +129,7 @@ export const allPanes: Panes = {
     icon: faHeadphones,
     defaultPaneStateData: {
       ready: true,
-      unmutedChannels: [],
+      unmutedChannels: ["PLT", "MS2", "PCD3", "FD04"],
       showHelp: false,
     } as PcdAudioPaneStateData,
   },
