@@ -455,7 +455,7 @@ export function interpretFrameQueryParam(frameString: string): PaneState | undef
           ready: true,
           unmutedChannels: unmutedChannelsStr
             ? unmutedChannelsStr.split(",")
-            : ["PLT", "MS2", "PCD3", "FD04"],
+            : ["PLT", "MS2", "PCD3", "FD05"],
           showHelp: false,
         } as PcdAudioPaneStateData,
       };

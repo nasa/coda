@@ -189,12 +189,12 @@ function getURLParams(query: URLSearchParams): QueryParams {
       fState.source = "ARTEMIS";
       // Default Artemis layout from share link (2026-04-01)
       const defaultArtemisTree = stringToTree(
-        "h(v(h(1:625,2:623):469,h(5:794,6:454):364):1251,3:414)"
+        "h(v(h(1:628,2:624):468,h(5:733,6:519):363):1254,v(3:540,7:291):410)"
       );
       if (defaultArtemisTree) dockviewLayout = treeToSerialized(defaultArtemisTree);
       fState.paneInstances = interpretFramestateQueryString(
         new URLSearchParams(
-          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300"
+          "f1=01001art002m1010911659&f2=01021art002m1030911743&f3=08&f5=0701&f6=0300&f7=11PLT,MS2,PCD3,FD05"
         )
       );
       if (isNil(rawDate)) {

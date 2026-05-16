@@ -30,7 +30,7 @@
  *
  * Source collections (add new ones to AUDIO_COLLECTIONS as mission progresses):
  *   2409450  FD06 PLT Sound Recordings
- *   2409033  FD04 Sound Recordings
+ *   2409033  FD05 Sound Recordings
  *
  * Usage:
  *   node src/server/processing/artemis2/pcd_audio/fetch-audio-metadata.mjs
@@ -73,7 +73,7 @@ const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
 
 /**
  * Root directory containing local M4A files, organised as:
- *   <LOCAL_AUDIO_ROOT>/FD04/art002a000001.m4a
+ *   <LOCAL_AUDIO_ROOT>/FD05/art002a000001.m4a
  *   <LOCAL_AUDIO_ROOT>/FD06/MS2/art002a000005.M4A
  *   <LOCAL_AUDIO_ROOT>/FD06/PLT/art002a000028.M4A
  *   <LOCAL_AUDIO_ROOT>/FD06/PDC3/art002a000051.M4A
@@ -95,8 +95,10 @@ const AUDIO_COLLECTIONS = [
   },
   {
     cid: 2409033,
-    label: "FD04 Sound Recordings",
-    description: "Flight Day 04 – Sound Recordings (browse collection)",
+    label: "FD05 Sound Recordings",
+    description: "Flight Day 05 – Sound Recordings (browse collection)",
+    // IO still uses the old FD04 name internally — rewrite it in fetched metadata.
+    rewrite: { from: "FD04", to: "FD05" },
   },
 ];
 
@@ -130,11 +132,20 @@ function parseIODoc(doc, collectionInfo) {
   const audioUrl = `${IO_HOST}${doc.webpath}/audio/${doc.nasa_id}.mp3`;
   const infoUrl = `${IO_HOST}/app/info.cfm?pid=${doc.id}`;
   // Last pipe-delimited segment encodes the device name
-  const collectionPath =
+  let collectionPath =
     doc.collections_string?.[doc.collections_string.length - 1]?.replace(/^P\d+\//, "") ?? "";
+  let title = doc.description || doc.nasa_id;
+
+  // Apply collection-level string rewrites (e.g. IO uses stale FD04 label)
+  if (collectionInfo.rewrite) {
+    const { from, to } = collectionInfo.rewrite;
+    title = title.replaceAll(from, to);
+    collectionPath = collectionPath.replaceAll(from, to);
+  }
+
   return {
     nasa_id: doc.nasa_id,
-    title: doc.description || doc.nasa_id,
+    title,
     collectionPath,
     audioUrl,
     infoUrl,
