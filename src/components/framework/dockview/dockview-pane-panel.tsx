@@ -62,7 +62,6 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
   const dispatch = useAppDispatch();
 
   const paneType = frameState?.paneType ?? "";
-  const PaneComponent = paneType ? (paneComponents[paneType] ?? null) : null;
 
   const [dimensions, setDimensions] = useState<number[]>([api.width, api.height]);
 
@@ -78,6 +77,11 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
     () => getAvailablePanesForSource(source, allPaneTypes, date).filter((pt) => pt !== "empty"),
     [source, allPaneTypes, date]
   );
+
+  const isCurrentPaneAvailable =
+    paneType === "empty" || availablePanes.some((pt) => pt === paneType);
+  const PaneComponent =
+    paneType && isCurrentPaneAvailable ? (paneComponents[paneType] ?? null) : null;
 
   const handleSelectPaneType = (selectedType: PaneType) => {
     dispatch(setPaneType({ paneInstanceId: paneInstanceId, paneType: selectedType }));
