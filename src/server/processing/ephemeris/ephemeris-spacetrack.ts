@@ -8,7 +8,7 @@
  * on the next successful call without touching gp_history.
  *
  * IMPORTANT: Space-Track has strict rate limiting policies. Only the prod
- * instance should call this module — non-prod instances pull ephemeris via
+ * instance should call this module — other CODA instances should sync ephemeris via
  * ephemeris-sync.ts. See spacetrackScheduler.ts for the dispatch.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
@@ -18,7 +18,6 @@ import { upsertEphemerisRecords } from "./ephemeris";
 
 const LOGIN_URL = "https://www.space-track.org/ajaxauth/login";
 export const SPACETRACK_API_BASE_URL = "https://www.space-track.org/basicspacedata/query";
-const API_BASE_URL = SPACETRACK_API_BASE_URL;
 export const ISS_NORAD_ID = 25544;
 
 /**
@@ -137,7 +136,7 @@ async function fetchTLEFromSpaceTrack(): Promise<SpaceTrackGpRecord[] | null> {
   const orderBy = "orderby/EPOCH%20desc";
   const predicates = "predicates/TLE_LINE1,TLE_LINE2";
   const query = `/class/gp/NORAD_CAT_ID/${ISS_NORAD_ID}/decay_date/null-val/EPOCH/%3Enow-10/${orderBy}/format/json/${predicates}`;
-  const url = `${API_BASE_URL}${query}`;
+  const url = `${SPACETRACK_API_BASE_URL}${query}`;
 
   ConsoleLogger.info("Fetching latest ISS TLEs from Space-Track (gp class, 10-day window)");
   ConsoleLogger.debug(`Request URL: ${url}`);

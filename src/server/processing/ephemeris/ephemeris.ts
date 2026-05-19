@@ -126,9 +126,9 @@ export async function getStats(): Promise<{
   // Get counts per year using raw SQL for aggregation
   const connection = em.getConnection();
   const yearCountsResult = await connection.execute(
-    `SELECT EXTRACT(YEAR FROM epoch)::int as year, COUNT(*) as count 
-     FROM ephemeris_db 
-     GROUP BY EXTRACT(YEAR FROM epoch) 
+    `SELECT EXTRACT(YEAR FROM epoch)::int as year, COUNT(*) as count
+     FROM ephemeris_db
+     GROUP BY EXTRACT(YEAR FROM epoch)
      ORDER BY year ASC`
   );
   const yearCounts: Array<{ year: number; count: string }> =
@@ -159,40 +159,11 @@ export async function getLatestRecordCreatedAt(): Promise<Date | null> {
   return latestRecords[0]?.createdAt || null;
 }
 
-/**
- * Get the epoch of the newest TLE record in the local DB.
- * Used as the `since` parameter when non-prod instances sync from prod,
- * so we only fetch records newer than what we already have.
- */
-export async function getLatestEpoch(): Promise<Date | null> {
-  const em = getORM().em.fork();
-  return (
-    (await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 }))[0]?.epoch || null
-  );
-}
-
 /** Sanity cap on /recent payload to protect against a malformed/very-old `since`. */
 export const RECENT_RECORDS_MAX = 100000;
 
 /**
- * Get all epochs in the DB ordered ascending. Used by the backfill module to
- * detect gaps in coverage so it can issue a single targeted Space-Track query.
- * Returns just the timestamps (ms since epoch) — no TLE strings — to keep
- * memory low even when the DB has tens of thousands of records.
- */
-export async function getAllEpochsAsc(): Promise<number[]> {
-  const em = getORM().em.fork();
-  const connection = em.getConnection();
-  const result = await connection.execute(`SELECT epoch FROM ephemeris_db ORDER BY epoch ASC`);
-  const rows: Array<{ epoch: Date | string }> =
-    (result as { rows?: Array<{ epoch: Date | string }> }).rows ??
-    (result as Array<{ epoch: Date | string }>);
-  return rows.map((r) => new Date(r.epoch).getTime());
-}
-
-/**
  * Get all TLE records with epoch strictly greater than `since`, ordered ascending.
- * Used by the ephemeris sync endpoint that non-prod instances poll.
  */
 export async function getEphemerisRecordsSince(since: Date): Promise<Ephemeris_db[]> {
   const em = getORM().em.fork();

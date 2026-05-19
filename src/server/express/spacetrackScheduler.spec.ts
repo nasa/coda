@@ -1,7 +1,7 @@
 import { globalValues } from "./global";
-import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
-import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
-import { syncEphemerisFromRemote } from "server/processing/ephemeris-sync";
+import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris/ephemeris";
+import { updateFromSpaceTrack } from "server/processing/ephemeris/ephemeris-spacetrack";
+import { syncEphemerisFromRemote } from "server/processing/ephemeris/ephemeris-remoteSync";
 import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ vi.mock("./global", () => {
 import {
   startSpacetrackScheduler,
   stopSpacetrackScheduler,
-  triggerSpacetrackUpdate,
+  triggerManualEphemerisUpdate,
   SKIP_FETCH_THRESHOLD_MS,
 } from "./spacetrackScheduler";
 
@@ -314,7 +314,7 @@ describe("spacetrackScheduler", () => {
     it("records lastManualTriggerBy and lastManualTriggerAt before the fetch", async () => {
       const before = Date.now();
 
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(globalValues.spacetrackTrackerData.lastManualTriggerBy).toBe("alice");
       const triggerTime = new Date(
@@ -324,20 +324,20 @@ describe("spacetrackScheduler", () => {
     });
 
     it("calls updateFromSpaceTrack immediately", async () => {
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(updateFromSpaceTrack).toHaveBeenCalledTimes(1);
     });
 
     it("increments totalOperations and successfulOperations on success", async () => {
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(globalValues.spacetrackTrackerData.totalOperations).toBe(1);
       expect(globalValues.spacetrackTrackerData.successfulOperations).toBe(1);
     });
 
     it("sets lastOperationSuccess=true and records epoch/counts on success", async () => {
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(globalValues.spacetrackTrackerData.lastOperationSuccess).toBe(true);
       expect(globalValues.spacetrackTrackerData.lastFetchedEpoch).toBe(SUCCESS_RESULT.epoch);
@@ -352,7 +352,7 @@ describe("spacetrackScheduler", () => {
     it("sets lastOperationSuccess=false, records errorMessage, and increments failedOperations on failure", async () => {
       vi.mocked(updateFromSpaceTrack).mockResolvedValueOnce(FAILURE_RESULT);
 
-      await triggerSpacetrackUpdate("bob");
+      await triggerManualEphemerisUpdate("bob");
 
       expect(globalValues.spacetrackTrackerData.lastOperationSuccess).toBe(false);
       expect(globalValues.spacetrackTrackerData.lastErrorMessage).toBe("Network error");
@@ -361,7 +361,7 @@ describe("spacetrackScheduler", () => {
     });
 
     it("records lastOperationCompletedAt and lastOperationDurationMs", async () => {
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(globalValues.spacetrackTrackerData.lastOperationCompletedAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T/
@@ -373,7 +373,7 @@ describe("spacetrackScheduler", () => {
       await startSpacetrackScheduler();
       const intervalBefore = globalValues.spacetrackInterval;
 
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(globalValues.spacetrackInterval).toBe(intervalBefore);
       expect(globalValues.spacetrackTrackerData.isActive).toBe(true);
@@ -382,7 +382,7 @@ describe("spacetrackScheduler", () => {
     it("calls syncEphemerisFromRemote instead of updateFromSpaceTrack when EPHEMERIS_SYNC_FROM_URL is set", async () => {
       process.env.EPHEMERIS_SYNC_FROM_URL = "https://remote.example.com";
 
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(syncEphemerisFromRemote).toHaveBeenCalledTimes(1);
       expect(updateFromSpaceTrack).not.toHaveBeenCalled();
@@ -395,7 +395,7 @@ describe("spacetrackScheduler", () => {
     const today = new Date().toISOString().split("T")[0];
 
     it("calls emitDataUpdate with ISS source and today's date on a successful update", async () => {
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(emitDataUpdate).toHaveBeenCalledWith(
         expect.objectContaining({ source: "ISS", dataDate: today })
@@ -408,7 +408,7 @@ describe("spacetrackScheduler", () => {
         null as unknown as FetchResponse<EphemerisEntry[]>
       );
 
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(emitDataUpdate).not.toHaveBeenCalled();
     });
@@ -416,7 +416,7 @@ describe("spacetrackScheduler", () => {
     it("does NOT call emitDataUpdate on a failed update", async () => {
       vi.mocked(updateFromSpaceTrack).mockResolvedValueOnce(FAILURE_RESULT);
 
-      await triggerSpacetrackUpdate("alice");
+      await triggerManualEphemerisUpdate("alice");
 
       expect(emitDataUpdate).not.toHaveBeenCalled();
     });

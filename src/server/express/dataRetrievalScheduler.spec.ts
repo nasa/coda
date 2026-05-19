@@ -12,7 +12,7 @@ dayjs.extend(duration);
 
 // Import for mocking purposes (need to mock to prevent actual module execution)
 import "server/processing/daynight";
-import "server/processing/ephemeris";
+import "server/processing/ephemeris/ephemeris";
 import "server/processing/io-videos";
 import "server/processing/io-photos";
 import "server/processing/gps";

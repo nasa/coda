@@ -19,19 +19,20 @@
  *   The "trailing gap" (latest epoch → now) is NOT checked here — keeping the
  *   tail current is the scheduler's job (runs every 6h).
  *
- * IMPORTANT: This module must only be invoked by the prod instance. Non-prod
- * instances mirror prod via ephemeris-sync.ts (EPHEMERIS_SYNC_FROM_URL) and
+ * IMPORTANT: This module should only be invoked by the prod instance. Other CODA
+ * instances sync from prod via ephemeris-sync.ts (EPHEMERIS_SYNC_FROM_URL) and
  * must not hit Space-Track directly. The route handler enforces this guard.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { upsertEphemerisRecords, getAllEpochsAsc } from "./ephemeris";
+import { upsertEphemerisRecords } from "./ephemeris";
 import {
   calculateEpochFromTLE,
   loginToSpaceTrack,
   ISS_NORAD_ID,
   SPACETRACK_API_BASE_URL,
 } from "./ephemeris-spacetrack";
+import { getORM } from "server/express/global";
 
 /**
  * Maximum acceptable gap (in hours) between consecutive TLE epochs before we
@@ -385,4 +386,20 @@ export async function backfillFromSpaceTrack(
     }
     return { success: false, errorMessage: msg };
   }
+}
+
+/**
+ * Get all epochs in the DB ordered ascending. Used by the backfill to
+ * detect gaps in coverage so it can issue a single targeted Space-Track query.
+ * Returns just the timestamps (ms since epoch) — no TLE strings — to keep
+ * memory low even when the DB has tens of thousands of records.
+ */
+export async function getAllEpochsAsc(): Promise<number[]> {
+  const em = getORM().em.fork();
+  const connection = em.getConnection();
+  const result = await connection.execute(`SELECT epoch FROM ephemeris_db ORDER BY epoch ASC`);
+  const rows: Array<{ epoch: Date | string }> =
+    (result as { rows?: Array<{ epoch: Date | string }> }).rows ??
+    (result as Array<{ epoch: Date | string }>);
+  return rows.map((r) => new Date(r.epoch).getTime());
 }
