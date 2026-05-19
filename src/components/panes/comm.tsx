@@ -439,9 +439,17 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
       const { file } = timing;
 
       if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
-        const newSrcUrl =
-          file.audioUrl ||
-          `${import.meta.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/${file.fileUuid}/file`;
+        // For override files without an audioUrl, skip audio playback (transcript-only overrides)
+        let newSrcUrl = "";
+        if (file.override && !file.audioUrl) {
+          // Transcript-only override - no audio available
+          newSrcUrl = "";
+        } else {
+          // Use audioUrl if available (for overrides with audio), otherwise construct Talkybot API URL
+          newSrcUrl =
+            file.audioUrl ||
+            `${import.meta.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/${file.fileUuid}/file`;
+        }
 
         if (srcUrl !== newSrcUrl) {
           setSrcUrl(newSrcUrl);
