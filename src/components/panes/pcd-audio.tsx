@@ -9,7 +9,7 @@ import ClockInterval from "components/framework/ClockInterval";
 import { HelpButton } from "components/interface/pane-help-control-button";
 import HelpOverlay from "components/interface/pane-help-overlay";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
+import { faVolumeHigh, faVolumeXmark, faInfo } from "@fortawesome/free-solid-svg-icons";
 import { setAppSeconds } from "store/clock";
 import styles from "./pcd-audio.module.css";
 
@@ -249,12 +249,13 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
         <div className={styles.empty}>No recordings for this date</div>
       ) : (
         <div className={styles.list} ref={listRef}>
-          {enriched.map((r) => (
+          {enriched.map((r, idx) => (
             <div
               key={r.nasa_id}
               data-nasa-id={r.nasa_id}
               className={[
                 styles.row,
+                idx % 2 !== 0 ? styles.rowAlt : "",
                 r.isActive ? styles.activeRow : "",
                 r.isPast && !r.isActive ? styles.pastRow : "",
               ]
@@ -263,14 +264,25 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
               onClick={() => dispatch(setAppSeconds(appSecondsFromDateString(r.startTime)))}
               title={`Jump to ${r.startTime.slice(11, 19)} UTC`}
             >
-              <div
-                className={styles.deviceBadge}
-                style={{ background: DEVICE_COLORS[r.deviceKey] }}
-              >
+              <div className={styles.deviceBadge} style={{ color: DEVICE_COLORS[r.deviceKey] }}>
                 {r.deviceKey}
               </div>
               <div className={styles.startTime}>{r.startTime.slice(11, 19)}</div>
               <div className={styles.totalDuration}>{fmtDur(r.durationSeconds)}</div>
+              <div className={styles.infoCol}>
+                {r.infoUrl && (
+                  <a
+                    href={r.infoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.infoButton}
+                    onClick={(e) => e.stopPropagation()}
+                    title="Open in Imagery Online"
+                  >
+                    IO <FontAwesomeIcon icon={faInfo} />
+                  </a>
+                )}
+              </div>
               <div className={styles.statusCol}>
                 {r.isActive ? (
                   <span className={styles.progressText}>

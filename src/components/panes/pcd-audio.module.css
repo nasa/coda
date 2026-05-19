@@ -91,15 +91,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px;
+  padding: 4px 0;
   cursor: pointer;
-  border-bottom: 1px solid rgb(255 255 255 / 4%);
-  transition: background 0.1s;
+  border: 1px solid black;
   font-size: 0.8em;
+  font-weight: 300;
+  color: var(--greyish);
 }
 
 .row:hover {
-  background: rgb(255 255 255 / 5%);
+  background-color: var(--dark-grey);
+}
+
+.rowAlt {
+  background-color: black;
 }
 
 .pastRow {
@@ -108,33 +113,31 @@
 
 .activeRow {
   opacity: 1;
-  background: rgb(255 255 255 / 8%);
-  border-left: 3px solid rgb(255 255 255 / 30%);
+  border: 1px solid var(--burnt-orange);
 }
 
-.activeRow:hover {
-  background: rgb(255 255 255 / 12%);
+.activeRow + .activeRow {
+  border-top-color: transparent;
 }
 
 /* ── Row columns ──────────────────────────────────────────────────────────── */
 
 .deviceBadge {
   flex-shrink: 0;
-  width: 36px;
-  text-align: center;
-  border-radius: 3px;
-  padding: 1px 4px;
-  font-size: 0.75em;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #000000;
+  text-transform: uppercase;
+  color: var(--greyish);
+  border-radius: var(--radius);
+  text-align: right;
+  padding: 3px 5px 3px 3px;
+  font-size: 0.9em;
+  font-weight: 500;
 }
 
 .startTime {
   flex-shrink: 0;
   width: 70px;
   font-variant-numeric: tabular-nums;
-  color: rgb(200 200 200);
+  color: var(--greyish);
   font-weight: 300;
 }
 
@@ -142,8 +145,35 @@
   flex-shrink: 0;
   width: 44px;
   font-variant-numeric: tabular-nums;
-  color: rgb(160 160 160);
-  font-weight: 200;
+  color: var(--greyish);
+  font-weight: 300;
+}
+
+.infoCol {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.infoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 16px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.infoButton:hover {
+  background-color: #eeeeee;
 }
 
 .statusCol {
@@ -153,19 +183,20 @@
 
 .progressText {
   font-variant-numeric: tabular-nums;
-  font-weight: 400;
-  color: rgb(220 220 220);
+  font-weight: 300;
+  color: var(--greyish);
   letter-spacing: 0.02em;
 }
 
 .pastLabel {
-  color: rgb(100 100 100);
-  font-weight: 200;
+  color: var(--greyish);
+  font-weight: 300;
   font-size: 0.9em;
+  opacity: 0.5;
 }
 
 .upcomingLabel {
-  color: rgb(130 130 130);
-  font-weight: 200;
+  color: var(--greyish);
+  font-weight: 300;
   font-size: 0.9em;
 }
