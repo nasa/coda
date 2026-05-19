@@ -221,28 +221,28 @@ const AdminEphemeris: FunctionComponent = () => {
     }
   };
 
-  // Trigger manual Space-Track update via API
-  const handleTriggerSpacetrackUpdate = async () => {
+  // Trigger manual ephemeris update via API
+  const handleTriggerEphemerisUpdate = async () => {
     if (isTriggering) return;
     setIsTriggering(true);
     try {
-      const response = await fetch("/api/v1/db/ephemeris/spacetrack/trigger", {
+      const response = await fetch("/api/v1/db/ephemeris/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) {
         const data = await response.json();
-        console.error("Error triggering Space-Track update:", data.message);
+        console.error("Error manually triggering ephemeris update:", data.message);
       }
       // Status update will come via socket
     } catch (e) {
-      console.error("Error triggering Space-Track update:", e);
+      console.error("Error manually triggering ephemeris update:", e);
       setIsTriggering(false);
     }
   };
 
   // Helper functions for formatting
-  /** For TLE/data epochs — always shown in UTC so they match Space-Track values. */
+  // For TLE/data epochs — always shown in UTC so they match Space-Track values.
   const formatTimestamp = (value?: string | null) => {
     if (!value) return "Never";
     const date = new Date(value);
@@ -336,8 +336,8 @@ const AdminEphemeris: FunctionComponent = () => {
         <h1 className={adminCommon.pageTitle}>Ephemeris (ISS TLE)</h1>
         <p className={adminCommon.introText}>
           These records contain Two-Line Element (TLE) data for the ISS. TLEs are pulled
-          automatically every 6 hours from Space-Track (or mirrored from prod on non-prod instances)
-          and are used for orbit calculations and position tracking.
+          automatically every 6 hours from Space-Track (or synced from another CODA server) and are
+          used for orbit calculations and position tracking.
         </p>
 
         {/* Space-Track Scheduler Status Section */}
@@ -566,7 +566,7 @@ const AdminEphemeris: FunctionComponent = () => {
                       <dd className={adminCommon.definitionValue}>
                         <button
                           type="button"
-                          onClick={handleTriggerSpacetrackUpdate}
+                          onClick={handleTriggerEphemerisUpdate}
                           disabled={isTriggering || connectionStatus !== "connected"}
                           className={adminCommon.button}
                           aria-busy={isTriggering}
@@ -730,9 +730,10 @@ const AdminEphemeris: FunctionComponent = () => {
               </>
             ) : (
               <p className={adminCommon.descriptionText}>
-                Backfill is disabled on this instance. This server mirrors TLE data from another
-                CODA instance (<code>EPHEMERIS_SYNC_FROM_URL</code> is set), so there is nothing to
-                backfill here — missing records will arrive automatically via the scheduler.
+                Backfill is disabled on this instance. This server remote syncs TLE data from
+                another CODA instance (<code>EPHEMERIS_SYNC_FROM_URL</code> is set), so there is
+                nothing to backfill here — missing records will arrive automatically via the
+                scheduler.
               </p>
             )}
           </div>

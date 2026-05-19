@@ -6,9 +6,12 @@ import {
   getStats,
   getEphemerisRecordsSince,
   RECENT_RECORDS_MAX,
-} from "server/processing/ephemeris";
-import { backfillFromSpaceTrack, scanForGaps } from "server/processing/ephemeris-backfill";
-import { triggerSpacetrackUpdate } from "server/express/spacetrackScheduler";
+} from "server/processing/ephemeris/ephemeris";
+import {
+  backfillFromSpaceTrack,
+  scanForGaps,
+} from "server/processing/ephemeris/ephemeris-backfill";
+import { triggerManualEphemerisUpdate } from "server/express/spacetrackScheduler";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import { requireEmssToken } from "server/express/middleware/requireEmssToken";
 import { getUser } from "packages/getUser";
@@ -104,8 +107,8 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
 });
 
 // Server-to-server sync endpoint: returns records with epoch > `since`.
-// Called by non-prod CODA instances to mirror the prod ephemeris DB without
-// hitting Space-Track. Auth via shared EMSS_TOKEN (x-api-key header).
+// Allows other CODA instances to grab this server's ephemeris DB data
+// Auth via shared EMSS_TOKEN (x-api-key header).
 router.get("/recent", requireEmssToken, async (req: Request, res: Response): Promise<void> => {
   try {
     let since: Date;
@@ -150,9 +153,8 @@ router.get("/recent", requireEmssToken, async (req: Request, res: Response): Pro
 router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
   try {
     const stats = await getStats();
-    // backfillEnabled mirrors the prod-only check on POST /backfill: this
-    // instance is allowed to call Space-Track directly only when it is NOT
-    // configured to sync from another CODA instance.
+    // Also return whether or not this server can backfill
+    // Can only backfill if server is set to pull from Space-Track.
     const backfillEnabled = !process.env.EPHEMERIS_SYNC_FROM_URL;
     res.status(200).json({ ...stats, backfillEnabled });
   } catch (e) {
@@ -161,7 +163,6 @@ router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
-// Lightweight gap-scan endpoint — reads the DB but never calls Space-Track.
 // The admin UI polls this to show whether a backfill is needed.
 router.get(
   "/backfill/status",
@@ -179,17 +180,14 @@ router.get(
 
 // Backfill missing TLEs from Space-Track's `gp_history` class.
 //
-// PROD ONLY: non-prod instances mirror prod via /api/v1/db/ephemeris/recent
-// (see ephemeris-sync.ts) and must not hit Space-Track directly. The check
-// uses the same heuristic as the scheduler: an empty EPHEMERIS_SYNC_FROM_URL
-// means "this instance is the source of truth" (i.e. prod).
+// Can only be called if the EPHEMERIS_SYNC_FROM_URL is not set, meaning
+// this server pulls from space-track directly
 router.post("/backfill", requireSuperuser, async (_req: Request, res: Response): Promise<void> => {
   if (process.env.EPHEMERIS_SYNC_FROM_URL) {
     res.status(403).json({
       status: "error",
-      message:
-        "Backfill is disabled on this instance because EPHEMERIS_SYNC_FROM_URL is set. " +
-        "Non-prod instances mirror TLE data from prod via the scheduler — there is nothing to backfill here.",
+      message: `Backfill is disabled on this server because EPHEMERIS_SYNC_FROM_URL is set.
+      This server remote syncs TLE data from ${process.env.EPHEMERIS_SYNC_FROM_URL} via the scheduler`,
     });
     return;
   }
@@ -227,28 +225,24 @@ router.post("/backfill", requireSuperuser, async (_req: Request, res: Response):
   }
 });
 
-// Trigger manual Space-Track update (resets the interval)
-router.post(
-  "/spacetrack/trigger",
-  requireSuperuser,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const user = getUser(req);
-      const username = user instanceof Error ? "unknown" : user.email || user.auid || "unknown";
-      await triggerSpacetrackUpdate(username);
+// Trigger manual ephemeris update
+router.post("/trigger", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = getUser(req);
+    const username = user instanceof Error ? "unknown" : user.email || user.auid || "unknown";
+    await triggerManualEphemerisUpdate(username);
 
-      res.status(200).json({
-        status: "success",
-        message: "Space-Track update triggered successfully",
-        data: { ...globalValues.spacetrackTrackerData },
-      });
-    } catch (e) {
-      ConsoleLogger.error(e);
-      res
-        .status(500)
-        .json({ status: "error", message: `Error triggering Space-Track update ${e}` });
-    }
+    res.status(200).json({
+      status: "success",
+      message: "Ephemeris manual update triggered successfully",
+      data: { ...globalValues.spacetrackTrackerData },
+    });
+  } catch (e) {
+    ConsoleLogger.error(e);
+    res
+      .status(500)
+      .json({ status: "error", message: `Error manually triggering ephemeris update ${e}` });
   }
-);
+});
 
 export default router;

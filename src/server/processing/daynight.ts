@@ -2,7 +2,7 @@ import { hhmmssFromSeconds } from "utils/formatting";
 import { getAppropriateTLE } from "store/ephemera";
 import * as SunCalc from "utils/suncalc.js";
 import { getSatelliteInfo } from "tle.js";
-import getEphemera from "./ephemeris";
+import getEphemera from "./ephemeris/ephemeris";
 import { NtlmClient, NtlmCredentials } from "axios-ntlm";
 import { isSameDate, midnightZulu, mmddyy } from "../../utils/date";
 import ConsoleLogger from "utils/logging/consoleLogger";

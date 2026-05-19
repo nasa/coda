@@ -2,14 +2,16 @@
  * Pull new ISS TLE records from another CODA instance's
  * /api/v1/db/ephemeris/recent endpoint.
  *
- * Used by non-prod CODA instances (int, dev, feature branches) instead of
+ * Should be used by non-prod CODA instances (int, dev, feature branches) instead of
  * polling Space-Track directly. Activated when EPHEMERIS_SYNC_FROM_URL is set;
  * the spacetrackScheduler dispatches to this function in place of
  * updateFromSpaceTrack on those instances.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { getLatestEpoch, upsertEphemerisRecords } from "./ephemeris";
+import { upsertEphemerisRecords } from "./ephemeris";
+import { getORM } from "server/express/global";
+import { Ephemeris_db } from "server/database/models/ephemera.model";
 
 export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult> {
   const baseUrl = process.env.EPHEMERIS_SYNC_FROM_URL;
@@ -95,4 +97,15 @@ export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult>
     }
     return { success: false, errorMessage: msg };
   }
+}
+
+/**
+ * Get the epoch of the newest TLE record in the local DB.
+ * Used as the `since` parameter so we only fetch records newer than what we already have.
+ */
+export async function getLatestEpoch(): Promise<Date | null> {
+  const em = getORM().em.fork();
+  return (
+    (await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 }))[0]?.epoch || null
+  );
 }

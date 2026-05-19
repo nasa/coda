@@ -321,13 +321,13 @@ export const config: DotenvConfig<typeof environments> = {
 
   /**
    * Ephemeris sync
-   * Non-prod instances pull TLE data from another CODA instance instead of
-   * polling Space-Track directly. When set, the scheduler calls the sync
-   * endpoint at this URL. Prod leaves it unset so it fetches from Space-Track.
+   * Blank will sync from Space-Track, otherwise remote sync from a URL
+   * Prod should leave it blank so it fetches from Space-Track.
+   * All other environments should sync from prod
    */
   EPHEMERIS_SYNC_FROM_URL: {
     prod: "",
-    default: "",
+    default: "https://coda.fit.nasa.gov",
   },
 
   /**
