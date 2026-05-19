@@ -6,16 +6,16 @@ import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-vi.mock("server/processing/ephemeris", () => ({
+vi.mock("server/processing/ephemeris/ephemeris", () => ({
   default: vi.fn(),
   getLatestRecordCreatedAt: vi.fn(),
 }));
 
-vi.mock("server/processing/ephemeris-spacetrack", () => ({
+vi.mock("server/processing/ephemeris/ephemeris-spacetrack", () => ({
   updateFromSpaceTrack: vi.fn(),
 }));
 
-vi.mock("server/processing/ephemeris-sync", () => ({
+vi.mock("server/processing/ephemeris/ephemeris-remoteSync", () => ({
   syncEphemerisFromRemote: vi.fn(),
 }));
 
