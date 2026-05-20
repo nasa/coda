@@ -17,6 +17,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -258,9 +259,13 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     return () => disposable.dispose();
   }, [group]);
 
+  const pcdAudioDateGate = useAppSelector((state) => state.pcdAudio.dateGate, refEqual);
+  const paneDateRanges = useMemo(() => ({ pcd_audio: pcdAudioDateGate }), [pcdAudioDateGate]);
+
   const isCurrentPaneAvailable =
     !paneType ||
-    (isPaneAvailableForSource(source, paneType) && isPaneAvailableForDate(paneType, date));
+    (isPaneAvailableForSource(source, paneType) &&
+      isPaneAvailableForDate(paneType, date, paneDateRanges));
   const ControlComponent =
     paneType && isCurrentPaneAvailable ? (controlComponents[paneType] ?? null) : null;
 

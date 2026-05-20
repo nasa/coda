@@ -25,3 +25,4 @@ src/server/processing/artemis2/photos/photo-time-overrides.json
 src/server/processing/artemis2/photos/photo-exif-metadata.json
 src/server/processing/artemis2/videos/channel-overrides.json
 src/server/processing/artemis2/videos/video-notes.json
+src/server/processing/artemis2/pcd-audio/pcd-audio.json

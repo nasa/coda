@@ -72,10 +72,16 @@ export const DockviewPanePanel: FunctionComponent<IDockviewPanelProps<PanelParam
     return () => disposable.dispose();
   }, [api]);
 
+  const pcdAudioDateGate = useAppSelector((state) => state.pcdAudio.dateGate, refEqual);
+  const paneDateRanges = useMemo(() => ({ pcd_audio: pcdAudioDateGate }), [pcdAudioDateGate]);
+
   const allPaneTypes = useMemo(() => Object.keys(allPanes) as PaneType[], []);
   const availablePanes = useMemo(
-    () => getAvailablePanesForSource(source, allPaneTypes, date).filter((pt) => pt !== "empty"),
-    [source, allPaneTypes, date]
+    () =>
+      getAvailablePanesForSource(source, allPaneTypes, date, paneDateRanges).filter(
+        (pt) => pt !== "empty"
+      ),
+    [source, allPaneTypes, date, paneDateRanges]
   );
 
   const isCurrentPaneAvailable =

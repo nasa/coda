@@ -1,4 +1,3 @@
-import pcdAudioData from "server/processing/artemis2/pcd_audio/pcd-audio.json";
 import { FunctionComponent, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate } from "store/hooks";
@@ -41,19 +40,23 @@ export const PcdAudioControls: FunctionComponent<PaneComponentProps> = ({ paneIn
     deepEqual
   );
   const date = useAppSelector((state) => state.clock.date, refEqual);
+  const recordings = useAppSelector(
+    (state) => state.pcdAudio.audioJson?.recordings ?? [],
+    deepEqual
+  );
   const dateStr = date?.split("T")[0];
 
   // Only show device buttons for channels that have recordings on this date
   const availableDevices = useMemo(() => {
     if (!dateStr) return [] as string[];
     const seen = new Set<string>();
-    for (const r of pcdAudioData.recordings) {
-      if (r.startTime.startsWith(dateStr)) {
+    for (const r of recordings) {
+      if (r.startTime?.startsWith(dateStr)) {
         seen.add(r.device ?? "PCD3");
       }
     }
     return ALL_DEVICES.filter((d) => seen.has(d));
-  }, [dateStr]);
+  }, [dateStr, recordings]);
 
   const toggleDevice = useCallback(
     (device: string) => {
@@ -128,6 +131,11 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
     refEqual
   );
   const startStopTimestamp = useAppSelector((state) => state.clock.startStopTimestamp, refEqual);
+  const allRecordings = useAppSelector(
+    (state) => state.pcdAudio.audioJson?.recordings ?? [],
+    deepEqual
+  );
+  const pcdAudioReady = useAppSelector((state) => state.pcdAudio.ready, refEqual);
 
   const paneStateData = useAppSelector(
     (state) => state.framework.paneInstances[paneInstanceId].paneStateData as PcdAudioPaneStateData,
@@ -140,8 +148,12 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
   const currentUtcMs = dayStartMs + appSeconds * 1000;
 
   const todayRecordings = useMemo(
-    () => pcdAudioData.recordings.filter((r) => r.startTime.startsWith(dateStr)),
-    [dateStr]
+    () =>
+      allRecordings.filter(
+        (r): r is PcdAudioRecording & { startTime: string; durationSeconds: number } =>
+          r.startTime != null && r.durationSeconds != null && r.startTime.startsWith(dateStr)
+      ),
+    [allRecordings, dateStr]
   );
 
   // Enrich recordings with display-time status (updates every 100ms via ClockInterval)
@@ -174,8 +186,8 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
       const currentSeconds = isRunning ? appSecondsAtStartStop + elapsed : appSecondsAtStartStop;
       const nowMs = dayStartMs + currentSeconds * 1000;
 
-      for (const r of pcdAudioData.recordings) {
-        if (!r.startTime.startsWith(dateStr)) continue;
+      for (const r of allRecordings) {
+        if (!r.startTime?.startsWith(dateStr) || r.durationSeconds == null) continue;
         const startMs = new Date(r.startTime).getTime();
         const endMs = startMs + r.durationSeconds * 1000;
         const isActive = nowMs >= startMs && nowMs < endMs;
@@ -214,7 +226,15 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isRunning, appSecondsAtStartStop, startStopTimestamp, unmutedChannels, dateStr, dayStartMs]);
+  }, [
+    isRunning,
+    appSecondsAtStartStop,
+    startStopTimestamp,
+    unmutedChannels,
+    dateStr,
+    dayStartMs,
+    allRecordings,
+  ]);
 
   // Cleanup audio elements on unmount
   useEffect(() => {
@@ -245,7 +265,9 @@ const PcdAudioPane: FunctionComponent<PaneComponentProps> = ({ paneInstanceId })
     <div className={styles.main}>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
 
-      {todayRecordings.length === 0 ? (
+      {!pcdAudioReady ? (
+        <div className={styles.empty}>Loading PCD audio data…</div>
+      ) : todayRecordings.length === 0 ? (
         <div className={styles.empty}>No recordings for this date</div>
       ) : (
         <div className={styles.list} ref={listRef}>

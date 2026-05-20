@@ -8,6 +8,7 @@ import { dayNightSlice, initialState as dayNightInitialState } from "./daynight"
 import { gpsSlice, initialState as gpsInitialState } from "./gps";
 import { talkybotSlice, initialState as talkybotInitialState } from "./talkybot";
 import { graphSlice, initialState as graphInitialState } from "./graphs";
+import { pcdAudioSlice, initialState as pcdAudioInitialState } from "./pcdAudio";
 import { userSlice, initialState as userInitialState } from "./user";
 import { clockSlice, initialState as clockInitialState } from "./clock";
 import type { Middleware } from "@reduxjs/toolkit";
@@ -22,6 +23,7 @@ export const initialState = {
   framework: viewerInitialState,
   talkybot: talkybotInitialState,
   graphs: graphInitialState,
+  pcdAudio: pcdAudioInitialState,
   user: userInitialState,
   clock: clockInitialState,
 };
@@ -36,6 +38,7 @@ const sliceReducers = combineReducers({
   framework: frameworkSlice.reducer,
   talkybot: talkybotSlice.reducer,
   graphs: graphSlice.reducer,
+  pcdAudio: pcdAudioSlice.reducer,
   user: userSlice.reducer,
   clock: clockSlice.reducer,
 });

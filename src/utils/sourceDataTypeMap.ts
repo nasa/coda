@@ -162,14 +162,6 @@ export const PANE_DATA_TYPE_REQUIREMENTS: Record<string, StoreDataType[]> = {
 };
 
 /**
- * Panes listed here are only shown in the picker when the viewed date falls within the given range.
- * Dates are inclusive YYYY-MM-DD strings.
- */
-export const PANE_DATE_GATES: Partial<Record<string, { start: string; end: string }>> = {
-  pcd_audio: { start: "2026-03-31", end: "2026-04-11" },
-};
-
-/**
  * Check if a pane type is available for a given source.
  * A pane is available if at least one of its required data types is supported.
  */
@@ -187,14 +179,17 @@ export const isPaneAvailableForSource = (source: Source, paneType: string): bool
 
 /**
  * Check if a pane type is available for the given date.
- * Panes without a date gate are always available.
- * Panes with a date gate require a date within the gate range; if date is null/undefined they are hidden.
+ * Panes without a dynamic date gate are always available.
+ * Panes with a gate require a date within the gate range; if date is null/undefined they are hidden.
+ *
+ * @param paneDateRanges - Date ranges keyed by pane type (e.g. from pcdAudio Redux state).
  */
 export const isPaneAvailableForDate = (
   paneType: string,
-  date: string | null | undefined
+  date: string | null | undefined,
+  paneDateRanges?: Partial<Record<string, { start: string; end: string } | null>>
 ): boolean => {
-  const gate = PANE_DATE_GATES[paneType];
+  const gate = paneDateRanges?.[paneType];
   if (!gate) return true;
   if (!date) return false;
   const d = date.split("T")[0];
@@ -205,15 +200,18 @@ export const isPaneAvailableForDate = (
  * Get all pane types that are available for a given source and optional date.
  * When date is provided, date-gated panes are filtered out if the date is outside their gate.
  * When date is undefined, date filtering is skipped (backward-compatible).
+ *
+ * @param paneDateRanges - Date ranges keyed by pane type (e.g. from pcdAudio Redux state).
  */
 export const getAvailablePanesForSource = (
   source: Source,
   allPaneTypes: PaneType[],
-  date?: string | null
+  date?: string | null,
+  dynamicGates?: Partial<Record<string, { start: string; end: string } | null>>
 ): PaneType[] => {
   return allPaneTypes.filter((paneType) => {
     if (!isPaneAvailableForSource(source, paneType)) return false;
-    if (date !== undefined && !isPaneAvailableForDate(paneType, date)) return false;
+    if (date !== undefined && !isPaneAvailableForDate(paneType, date, dynamicGates)) return false;
     return true;
   });
 };
