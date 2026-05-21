@@ -15,6 +15,7 @@ import { PhotoTimeShifts_dbSchema } from "./models/PhotoTimeShifts.model";
 import { AssetOverride_dbSchema } from "./models/AssetOverride.model";
 import { Cache_dbSchema } from "./models/cache.model";
 import { Ephemeris_dbSchema } from "./models/ephemera.model";
+import { PcdAudio_dbSchema } from "./models/PcdAudio.model";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +42,7 @@ export default defineConfig({
     AssetOverride_dbSchema,
     Cache_dbSchema,
     Ephemeris_dbSchema,
+    PcdAudio_dbSchema,
   ],
   debug: process.env.DEBUG === "true" || process.env.DEBUG?.includes("db"),
   allowGlobalContext: false,

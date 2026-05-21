@@ -15,6 +15,7 @@ import profiler from "./routes/profiler/profiler";
 import videoRoute from "./routes/db/video";
 import photoRoute from "./routes/db/photos";
 import assetOverridesRoute from "./routes/db/assetOverrides";
+import pcdAudioRoute from "./routes/db/pcdAudio";
 import { getORM, globalValues } from "./global";
 import timeRoute from "./routes/time/time";
 
@@ -51,6 +52,7 @@ app.use("/api/v1/db/ancillaryDataSources", ancillaryDataRoute);
 app.use("/api/v1/db/videoStartTimeOverrides", videoRoute);
 app.use("/api/v1/db/photoTimeShifts", photoRoute);
 app.use("/api/v1/db/assetOverrides", assetOverridesRoute);
+app.use("/api/v1/db/pcdAudio", pcdAudioRoute);
 app.use("/api/v1/user/current", getCurrentUser); // routed through launchpad
 app.use("/api/v1/log/from-client", logFromClient);
 app.use("/api/v1/profile", profiler);
