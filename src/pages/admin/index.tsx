@@ -88,6 +88,11 @@ const AdminIndex: FunctionComponent = () => {
                 description="Per-NASA-ID photo time and video channel overrides scoped by source and date range."
               />
               <NavCard
+                to="/admin/pcdAudio"
+                title="PCD Audio"
+                description="Crew PCD audio recording metadata fetched from Imagery Online, stored by mission source."
+              />
+              <NavCard
                 to="/admin/ephemeris"
                 title="Ephemeris Data"
                 description="View and manage ISS TLE data for orbit calculations and position tracking."

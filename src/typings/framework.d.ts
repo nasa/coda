@@ -20,7 +20,8 @@ interface Pane {
     | PhotoAllPaneStateData
     | LocationPaneStateData
     | EventPaneStateData
-    | CommPaneStateData;
+    | CommPaneStateData
+    | PcdAudioPaneStateData;
 }
 
 type PaneType =
@@ -33,7 +34,8 @@ type PaneType =
   | "gps_location"
   | "event_info"
   | "comm"
-  | "graph";
+  | "graph"
+  | "pcd_audio";
 
 type Panes = Record<PaneType, Pane>;
 
@@ -68,7 +70,8 @@ type AllPaneStateData =
   | GpsTrackPaneStateData
   | EventPaneStateData
   | CommPaneStateData
-  | GraphPaneStateData;
+  | GraphPaneStateData
+  | PcdAudioPaneStateData;
 
 interface PaneState {
   paneType: PaneType;
@@ -136,4 +139,11 @@ type GraphPaneStateData = {
   showHelp: boolean;
   selectedGraphId: string;
   durationSelection?: number; // seconds
+};
+
+type PcdAudioPaneStateData = {
+  ready: boolean;
+  /** Device channel keys whose audio is currently unmuted (e.g. ["PLT", "MS2"]) */
+  unmutedChannels: string[];
+  showHelp: boolean;
 };

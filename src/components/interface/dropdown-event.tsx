@@ -91,16 +91,15 @@ const EventDropdown: FunctionComponent<{
           <option key="" value="">
             {selectText}
           </option>
-          {Array.from({ length: 10 }, (_, i) => 9 - i).map((i) => {
-            const date = new Date("2026-04-01");
-            date.setDate(date.getDate() + i);
-            const year = date.getFullYear();
-            const month = padZeros(date.getMonth() + 1, 2);
-            const day = padZeros(date.getDate(), 2);
+          {Array.from({ length: 10 }, (_, i) => i).map((i) => {
+            const date = new Date(Date.UTC(2026, 2, 31 + i));
+            const year = date.getUTCFullYear();
+            const month = padZeros(date.getUTCMonth() + 1, 2);
+            const day = padZeros(date.getUTCDate(), 2);
             const formattedDate = `${year}-${month}-${day}`;
             return (
               <option key={formattedDate} value={formattedDate}>
-                Artemis II - FD{padZeros(i + 1, 2)}
+                Artemis II - FD{padZeros(i, 2)}
               </option>
             );
           })}
