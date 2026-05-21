@@ -29,8 +29,9 @@ type PaneTypeKey =
   | "gps_location"
   | "photo_all"
   | "talkybot"
-  | "graph";
+  | "graph"
+  | "pcd_audio";
 
 /** Pane types converted to integers */
 
-type PaneTypeShortVal = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+type PaneTypeShortVal = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;

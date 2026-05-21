@@ -10,6 +10,7 @@ import getGpsTrackData from "server/processing/gps";
 import { getMTXAPIResponses } from "server/processing/mediaMtx";
 import getTalkybotData from "server/processing/talkybot";
 import getGraphManifest from "server/processing/graphs";
+import getPcdAudioData from "server/processing/pcdAudio";
 import { getISSEvaData } from "server/processing/wiki/evaData";
 import { getTestEventsData } from "server/processing/wiki/testEventData";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
@@ -116,6 +117,15 @@ export const dataFetchConfigs: FetchConfig[] = [
     fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
     enableCacheUse: false, // Data retrieved from local database (no caching needed)
     isDateDependent: true,
+  },
+  {
+    type: "pcdAudio",
+    getDataFunction: getPcdAudioData,
+    refreshIntervalTodayMs: null, // No polling - DB-sourced; re-emit when admin updates the record
+    refreshIntervalMs: null,
+    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
+    enableCacheUse: false, // Data retrieved from local database (no caching needed)
+    isDateDependent: false, // All recordings for a mission are in one record, filtered client-side
   },
 ];
 

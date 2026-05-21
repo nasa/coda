@@ -463,6 +463,10 @@ function parseIOPhotoResponse(res: IOResponse, collection: Collection): PhotoFil
 
   for (let i = 0; i < docs.length; i++) {
     const doc = docs[i];
+    // Audio recordings are stored in IO as photo-type assets (they carry an
+    // Artemis logo thumbnail) but are not photos. Skip them so they don't
+    // appear in the photo panes. They are served separately via pcd_audio.
+    if (doc.has_audio_file) continue;
     const metadata = parsePhotoResultMetadata(doc, collection);
     photos.push(metadata);
   }
