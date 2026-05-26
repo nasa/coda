@@ -162,6 +162,13 @@ export async function getLatestRecordCreatedAt(): Promise<Date | null> {
 /** Sanity cap on /recent payload to protect against a malformed/very-old `since`. */
 export const RECENT_RECORDS_MAX = 100000;
 
+export async function getLatestEphemerisEpoch(): Promise<Date | null> {
+  const em = getORM().em.fork();
+  return (
+    (await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 }))[0]?.epoch ?? null
+  );
+}
+
 /**
  * Get all TLE records with epoch strictly greater than `since`, ordered ascending.
  */

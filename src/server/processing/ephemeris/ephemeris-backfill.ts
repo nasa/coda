@@ -126,6 +126,15 @@ export interface GapScanResult {
  */
 export async function scanForGaps(): Promise<GapScanResult> {
   const epochsAsc = await getAllEpochsAsc();
+  if (epochsAsc.length === 0) {
+    return {
+      totalRecords: 0,
+      gapsDetected: 0,
+      knownGapsSkipped: 0,
+      earliestGapStart: null,
+      gapThresholdHours: GAP_THRESHOLD_HOURS,
+    };
+  }
   const { earliestGapStart, gapsDetected, knownGapsSkipped } = detectGaps(epochsAsc);
   return {
     totalRecords: epochsAsc.length,

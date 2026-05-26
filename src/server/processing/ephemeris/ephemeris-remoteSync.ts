@@ -1,17 +1,17 @@
 /**
- * Pull new ISS TLE records from another CODA instance's
+ * Pull ISS TLE records from another CODA instance's
  * /api/v1/db/ephemeris/recent endpoint.
  *
- * Should be used by non-prod CODA instances (int, dev, feature branches) instead of
+ * Used by non-prod CODA instances (int, dev, feature branches) instead of
  * polling Space-Track directly. Activated when EPHEMERIS_SYNC_FROM_URL is set;
  * the spacetrackScheduler dispatches to this function in place of
  * updateFromSpaceTrack on those instances.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { upsertEphemerisRecords } from "./ephemeris";
-import { getORM } from "server/express/global";
-import { Ephemeris_db } from "server/database/models/ephemera.model";
+import { upsertEphemerisRecords, getLatestEphemerisEpoch } from "./ephemeris";
+
+const ISS_LAUNCH_DATE = new Date("1998-11-20T00:00:00Z");
 
 export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult> {
   const baseUrl = process.env.EPHEMERIS_SYNC_FROM_URL;
@@ -28,25 +28,18 @@ export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult>
   }
 
   try {
-    const latestEpoch = await getLatestEpoch();
-    const sinceParam = latestEpoch ? `?since=${encodeURIComponent(latestEpoch.toISOString())}` : "";
-    const url = `${baseUrl.replace(/\/$/, "")}/api/v1/db/ephemeris/recent${sinceParam}`;
+    const latestEpoch = await getLatestEphemerisEpoch();
+    const since = latestEpoch ?? ISS_LAUNCH_DATE;
+    const url =
+      `${baseUrl.replace(/\/$/, "")}/api/v1/db/ephemeris/recent` +
+      `?since=${encodeURIComponent(since.toISOString())}`;
 
-    ConsoleLogger.info(
-      `Syncing ephemeris from ${baseUrl} (since=${latestEpoch ? latestEpoch.toISOString() : "<empty DB, default 30d>"})`
-    );
+    ConsoleLogger.info(`Ephemeris sync: fetching from ${baseUrl} since ${since.toISOString()}`);
 
-    // 30s timeout to accommodate larger first-time payloads on empty DBs.
     const response = await fetchWithTimeout(
       url,
-      {
-        method: "GET",
-        headers: {
-          "User-Agent": "CODA_Ephemeris_Sync/1.0",
-          "x-api-key": token,
-        },
-      },
-      30000
+      { method: "GET", headers: { "User-Agent": "CODA_Ephemeris_Sync/1.0", "x-api-key": token } },
+      60_000
     );
 
     if (!response.ok) {
@@ -65,7 +58,7 @@ export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult>
     }
 
     if (records.length === 0) {
-      ConsoleLogger.info("Ephemeris sync: already up to date (0 new records)");
+      ConsoleLogger.info("Ephemeris sync: already up to date");
       return {
         success: true,
         epoch: latestEpoch?.toISOString() ?? null,
@@ -75,9 +68,7 @@ export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult>
     }
 
     const result = await upsertEphemerisRecords({ records, origin: "spacetrack" });
-
-    // The endpoint orders ascending, so the last record has the newest epoch.
-    const newestEpoch = records[records.length - 1]?.epoch ?? null;
+    const newestEpoch = records[records.length - 1].epoch;
 
     ConsoleLogger.info(
       `Ephemeris sync complete: inserted ${result.inserted}, skipped ${result.skipped}. Newest epoch: ${newestEpoch}`
@@ -92,20 +83,7 @@ export async function syncEphemerisFromRemote(): Promise<SpaceTrackUpdateResult>
   } catch (e) {
     const msg = `Ephemeris sync error: ${e}`;
     ConsoleLogger.error(msg);
-    if (e instanceof Error) {
-      ConsoleLogger.error(`Error stack: ${e.stack}`);
-    }
+    if (e instanceof Error) ConsoleLogger.error(`Error stack: ${e.stack}`);
     return { success: false, errorMessage: msg };
   }
-}
-
-/**
- * Get the epoch of the newest TLE record in the local DB.
- * Used as the `since` parameter so we only fetch records newer than what we already have.
- */
-export async function getLatestEpoch(): Promise<Date | null> {
-  const em = getORM().em.fork();
-  return (
-    (await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 }))[0]?.epoch || null
-  );
 }
