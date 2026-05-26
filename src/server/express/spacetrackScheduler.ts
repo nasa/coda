@@ -14,7 +14,7 @@
  *    around :00 and :30. This is `msUntilNextSafeMinute`.
  * 3. **Recurring fires**: every 6 hours after the first fire, on the same
  *    safe-minute mark.
- * 4. **Manual triggers** (`triggerSpacetrackUpdate`): fire immediately and
+ * 4. **Manual triggers** (`triggerManualEphemerisUpdate`): fire immediately and
  *    independently. The regular interval schedule continues unchanged; manual
  *    triggers do not shift or reset the regular timer.
  *
@@ -283,7 +283,7 @@ const scheduleRecurring = (): void => {
 
 export const stopSpacetrackScheduler = (): void => {
   if (globalValues.spacetrackInterval) {
-    clearInterval(globalValues.spacetrackInterval);
+    clearTimeout(globalValues.spacetrackInterval);
     globalValues.spacetrackInterval = null;
   }
   updateState({

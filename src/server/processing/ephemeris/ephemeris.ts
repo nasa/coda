@@ -159,7 +159,7 @@ export async function getLatestRecordCreatedAt(): Promise<Date | null> {
   return latestRecords[0]?.createdAt || null;
 }
 
-/** Sanity cap on /recent payload to protect against a malformed/very-old `since`. */
+/** Row cap on /recent payload to guard against a very old or missing `since` parameter. */
 export const RECENT_RECORDS_MAX = 100000;
 
 export async function getLatestEphemerisEpoch(): Promise<Date | null> {
