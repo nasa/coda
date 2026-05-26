@@ -4,35 +4,72 @@
  * This module manages the scheduled fetching of TLE data from Space-Track.org.
  * It provides status tracking and exposes functions for the admin monitoring page.
  *
+ * ## Timing overview
+ *
+ * 1. **On server start** (`startSpacetrackScheduler`): we check if the DB
+ *    already has a recent record (< 6 hours old). If so, we skip the initial
+ *    fetch to avoid hammering Space-Track on frequent dev restarts.
+ * 2. **First scheduled fire**: we wait until the next "safe" clock minute
+ *    (:12 or :48 past the hour) so we avoid Space-Track's known busy windows
+ *    around :00 and :30. This is `msUntilNextSafeMinute`.
+ * 3. **Recurring fires**: every 6 hours after the first fire, on the same
+ *    safe-minute mark.
+ * 4. **Manual triggers** (`triggerManualEphemerisUpdate`): fire immediately and
+ *    independently. The regular interval schedule continues unchanged; manual
+ *    triggers do not shift or reset the regular timer.
+ *
+ * ## Ephemeris sync on Prod vs non-prod
+ *
+ * If `EPHEMERIS_SYNC_FROM_URL` is set, the scheduler calls
+ * the remote sync function instead of Space-Track directly. The same timing logic
+ * applies; the only difference is the data source. All non-production CODA instances
+ * should be remote syncing from prod.
+ *
  * IMPORTANT: Space-Track has strict rate limiting. The scheduler runs every 6 hours
- * and fetches 30 days of TLE data in a single API call. Do not increase the frequency.
+ * and fetches 24 hours of TLE data in a single API call. Do not increase the frequency.
  */
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { updateFromSpaceTrack } from "server/processing/ephemeris-spacetrack";
-import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris";
+import { updateFromSpaceTrack } from "server/processing/ephemeris/ephemeris-spacetrack";
+import { syncEphemerisFromRemote } from "server/processing/ephemeris/ephemeris-remoteSync";
+import getEphemera, { getLatestRecordCreatedAt } from "server/processing/ephemeris/ephemeris";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { globalValues, getSocketIO } from "./global";
+import { globalValues } from "./global";
 import { emitSpacetrackInspectorUpdate, emitDataUpdate } from "./sockets";
 
 dayjs.extend(duration);
 
-// Space-Track provides comprehensive TLE data. We fetch 30 days at a time
-// Run every 6 hours to be respectful of their API limits
+// Run every 6 hours per Space-Track's API guidelines.
+// Must be ≥ 60 minutes to work with the safe-minute scheduling logic.
 const SPACETRACK_UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 /** Skip initial fetch if latest record was created less than this threshold */
 export const SKIP_FETCH_THRESHOLD_MS = 6 * 60 * 60 * 1000;
+/**
+ * Space-Track asks API users to avoid the busy minutes around the top and
+ * bottom of the hour (e.g., :00 and :30). Scheduling the first fire at :12 or
+ * :48 keeps every subsequent 6h fire on the same safe minute mark (since
+ * 360 min is a clean multiple of 60 min — see interval constraint in the
+ * module header comment).
+ */
+const SAFE_MINUTES = [12, 48] as const;
+
+/**
+ * Returns ms from now until the next clock minute matching SAFE_MINUTES that is
+ * also at least `minDelayMs` ahead.
+ */
+const msUntilNextSafeMinute = (minDelayMs: number = 0): number => {
+  const now = Date.now();
+  const earliest = new Date(now + minDelayMs);
+  const minute = earliest.getMinutes();
+  const target = SAFE_MINUTES.find((m) => m > minute) ?? SAFE_MINUTES[0] + 60;
+  const targetDate = new Date(earliest);
+  targetDate.setMinutes(target, 0, 0);
+  return targetDate.getTime() - now;
+};
 
 const updateState = (updates: Partial<SpaceTrackTrackerData>): void => {
   globalValues.spacetrackTrackerData = { ...globalValues.spacetrackTrackerData, ...updates };
 };
-
-const calculateNextUpdateTime = (): string | null =>
-  globalValues.spacetrackTrackerData.isActive
-    ? new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString()
-    : null;
-
-// Fetch decision helpers
 
 const isWithinThreshold = (timestamp: string | Date): boolean => {
   const date = typeof timestamp === "string" ? new Date(timestamp) : timestamp;
@@ -93,12 +130,13 @@ const determineShouldFetch = async (): Promise<SpaceTrackFetchDecision> => {
 /**
  * Emit updated ephemeris data to all ISS clients viewing today's date.
  * Called after a successful Space-Track TLE update to push fresh data.
+ * Socket.IO delivers only to clients in the relevant room; no need to check
+ * membership here.
  */
 const emitEphemerisToTodayClients = async (): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
-  const source: Source = "ISS"; // Ephemeris data is ISS-specific
+  const source: Source = "ISS";
 
-  // Fetch ephemeris data once (same TLE data applies to ISS)
   let ephemerisData: FetchResponse<EphemerisEntry[]> | null = null;
   try {
     ephemerisData = await getEphemera({ dateWanted: today });
@@ -111,26 +149,16 @@ const emitEphemerisToTodayClients = async (): Promise<void> => {
     return;
   }
 
-  // Check if any clients are viewing today for ISS
-  const roomName = `${source}_${today}`;
-  const io = getSocketIO();
-  const room = io.sockets.adapter.rooms.get(roomName);
-
-  if (!room?.size) {
-    return; // No clients viewing ISS/today
-  }
-
   emitDataUpdate({
     source,
     dataDate: today,
     dataUpdate: { type: "ephemeris", response: ephemerisData },
   });
-  ConsoleLogger.debug(`Emitted ephemeris update to ${room.size} client(s) in ${roomName}`);
 };
 
 // Update execution
-
-const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void> => {
+// Can be from remote or directly from Space-Track
+const performEphemerisUpdate = async (isManual: boolean = false): Promise<void> => {
   const startTime = Date.now();
   const attemptedAt = new Date(startTime).toISOString();
 
@@ -141,8 +169,10 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
 
   emitSpacetrackInspectorUpdate();
 
-  // Execute the update
-  const result = await updateFromSpaceTrack();
+  // Execute the update — dispatches to Space-Track or remote.
+  const result = process.env.EPHEMERIS_SYNC_FROM_URL
+    ? await syncEphemerisFromRemote()
+    : await updateFromSpaceTrack();
 
   const endTime = Date.now();
   const completedAt = new Date(endTime).toISOString();
@@ -185,7 +215,14 @@ const performSpaceTrackUpdate = async (isManual: boolean = false): Promise<void>
   }
 
   // Finalize state and notify clients
-  updateState({ nextOperationAt: calculateNextUpdateTime() });
+
+  // Compute the post-fire `nextOperationAt` timestamp shown in the inspector.
+  // Only update for scheduled fires; manual triggers keep the existing schedule.
+  if (!isManual && globalValues.spacetrackTrackerData.isActive) {
+    const nextOperationAt = new Date(Date.now() + SPACETRACK_UPDATE_INTERVAL_MS).toISOString();
+    updateState({ nextOperationAt });
+  }
+
   emitSpacetrackInspectorUpdate();
 };
 
@@ -207,27 +244,46 @@ export const startSpacetrackScheduler = async (): Promise<void> => {
 
   if (shouldFetch) {
     ConsoleLogger.debug("Starting initial Space-Track TLE update");
-    void performSpaceTrackUpdate(false);
+    void performEphemerisUpdate(false);
   } else {
     ConsoleLogger.notice(
       `Skipping initial Space-Track fetch - ${skipReason} (threshold: ${dayjs.duration(SKIP_FETCH_THRESHOLD_MS).asMinutes().toFixed(0)} minutes)`
     );
-    updateState({ nextOperationAt: calculateNextUpdateTime() });
-    emitSpacetrackInspectorUpdate();
   }
 
-  globalValues.spacetrackInterval = setInterval(() => {
+  scheduleRecurring();
+  emitSpacetrackInspectorUpdate();
+};
+
+/**
+ * Schedule (or reschedule) the recurring 6h timer so the first fire lands on
+ * a safe clock minute (:12 or :48). Subsequent fires repeat every 6h from
+ * that point. Replaces any existing scheduled timer.
+ */
+const scheduleRecurring = (): void => {
+  if (globalValues.spacetrackInterval) {
+    clearInterval(globalValues.spacetrackInterval);
+    globalValues.spacetrackInterval = null;
+  }
+  const delayMs = msUntilNextSafeMinute();
+  const firstFireAt = new Date(Date.now() + delayMs);
+  updateState({ nextOperationAt: firstFireAt.toISOString() });
+  globalValues.spacetrackInterval = setTimeout(() => {
     ConsoleLogger.debug("Running scheduled Space-Track TLE update");
-    void performSpaceTrackUpdate(false);
-  }, SPACETRACK_UPDATE_INTERVAL_MS);
+    void performEphemerisUpdate(false);
+    globalValues.spacetrackInterval = setInterval(() => {
+      ConsoleLogger.debug("Running scheduled Space-Track TLE update");
+      void performEphemerisUpdate(false);
+    }, SPACETRACK_UPDATE_INTERVAL_MS);
+  }, delayMs);
   ConsoleLogger.info(
-    `Space-Track TLE update scheduler started (${dayjs.duration(SPACETRACK_UPDATE_INTERVAL_MS).asHours().toFixed(0)} hour interval)`
+    `Space-Track scheduler set — next fire at ${firstFireAt.toISOString()} (:12/:48), then every ${dayjs.duration(SPACETRACK_UPDATE_INTERVAL_MS).asHours().toFixed(0)}h`
   );
 };
 
 export const stopSpacetrackScheduler = (): void => {
   if (globalValues.spacetrackInterval) {
-    clearInterval(globalValues.spacetrackInterval);
+    clearTimeout(globalValues.spacetrackInterval);
     globalValues.spacetrackInterval = null;
   }
   updateState({
@@ -238,7 +294,7 @@ export const stopSpacetrackScheduler = (): void => {
   emitSpacetrackInspectorUpdate();
 };
 
-export const triggerSpacetrackUpdate = async (username: string): Promise<void> => {
+export const triggerManualEphemerisUpdate = async (username: string): Promise<void> => {
   ConsoleLogger.notice(`Manual Space-Track update triggered by ${username}`);
 
   updateState({
@@ -246,15 +302,6 @@ export const triggerSpacetrackUpdate = async (username: string): Promise<void> =
     lastManualTriggerBy: username,
   });
 
-  if (globalValues.spacetrackInterval) {
-    clearInterval(globalValues.spacetrackInterval);
-    globalValues.spacetrackInterval = null;
-  }
-  if (globalValues.spacetrackTrackerData.isActive) {
-    globalValues.spacetrackInterval = setInterval(() => {
-      ConsoleLogger.debug("Running scheduled Space-Track TLE update");
-      void performSpaceTrackUpdate(false);
-    }, SPACETRACK_UPDATE_INTERVAL_MS);
-  }
-  await performSpaceTrackUpdate(true);
+  // Run the fetch immediately. The regular interval schedule is not touched.
+  await performEphemerisUpdate(true);
 };

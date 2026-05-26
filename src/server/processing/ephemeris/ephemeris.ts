@@ -126,9 +126,9 @@ export async function getStats(): Promise<{
   // Get counts per year using raw SQL for aggregation
   const connection = em.getConnection();
   const yearCountsResult = await connection.execute(
-    `SELECT EXTRACT(YEAR FROM epoch)::int as year, COUNT(*) as count 
-     FROM ephemeris_db 
-     GROUP BY EXTRACT(YEAR FROM epoch) 
+    `SELECT EXTRACT(YEAR FROM epoch)::int as year, COUNT(*) as count
+     FROM ephemeris_db
+     GROUP BY EXTRACT(YEAR FROM epoch)
      ORDER BY year ASC`
   );
   const yearCounts: Array<{ year: number; count: string }> =
@@ -157,6 +157,28 @@ export async function getLatestRecordCreatedAt(): Promise<Date | null> {
     { orderBy: { createdAt: "DESC" }, limit: 1 }
   );
   return latestRecords[0]?.createdAt || null;
+}
+
+/** Row cap on /recent payload to guard against a very old or missing `since` parameter. */
+export const RECENT_RECORDS_MAX = 100000;
+
+export async function getLatestEphemerisEpoch(): Promise<Date | null> {
+  const em = getORM().em.fork();
+  return (
+    (await em.find(Ephemeris_db, {}, { orderBy: { epoch: "DESC" }, limit: 1 }))[0]?.epoch ?? null
+  );
+}
+
+/**
+ * Get all TLE records with epoch strictly greater than `since`, ordered ascending.
+ */
+export async function getEphemerisRecordsSince(since: Date): Promise<Ephemeris_db[]> {
+  const em = getORM().em.fork();
+  return em.find(
+    Ephemeris_db,
+    { epoch: { $gt: since } },
+    { orderBy: { epoch: "ASC" }, limit: RECENT_RECORDS_MAX }
+  );
 }
 
 /**
