@@ -4,7 +4,7 @@ import getVideoData from "server/processing/io-videos";
 import { globalValues } from "./global";
 import { emitDataUpdate, emitDataUpdateToSource, emitFetchInspectorUpdate } from "./sockets";
 import getDayNight from "server/processing/daynight";
-import getEphemera from "server/processing/ephemeris";
+import getEphemera from "server/processing/ephemeris/ephemeris";
 import getPhotoData from "server/processing/io-photos";
 import getGpsTrackData from "server/processing/gps";
 import { getMTXAPIResponses } from "server/processing/mediaMtx";
