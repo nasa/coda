@@ -320,6 +320,17 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   /**
+   * Ephemeris sync
+   * Blank will sync from Space-Track, otherwise remote sync from a URL
+   * Prod should leave it blank so it fetches from Space-Track.
+   * All other environments should sync from prod
+   */
+  EPHEMERIS_SYNC_FROM_URL: {
+    prod: "",
+    default: "https://coda.fit.nasa.gov",
+  },
+
+  /**
    * EMSS Token for inter-service communication
    */
   EMSS_TOKEN: {

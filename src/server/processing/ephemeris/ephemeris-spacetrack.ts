@@ -1,12 +1,15 @@
 /**
  * Space-Track API integration for fetching ISS TLE data
  *
- * Fetches the last 30 days of TLE data from Space-Track.org in a single call.
- * Uses the gp_history class which replaced the deprecated tle class.
+ * Uses the optimized `gp` class per Space-Track's API guidelines, filtered to
+ * NORAD_CAT_ID 25544 (ISS) with EPOCH > now-10 days. This is the window
+ * Space-Track themselves recommend in their documentation. At our 6h poll
+ * interval it gives 40x overlap, so outages up to ~9 days recover automatically
+ * on the next successful call without touching gp_history.
  *
- * IMPORTANT: Space-Track has strict rate limiting policies. This module should only
- * be called on the configured interval (6 hours). Do not call during development
- * testing unless absolutely necessary.
+ * IMPORTANT: Space-Track has strict rate limiting policies. Only the prod
+ * instance should call this module — other CODA instances should sync ephemeris via
+ * ephemeris-sync.ts. See spacetrackScheduler.ts for the dispatch.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getEpochTimestamp } from "tle.js";
@@ -14,9 +17,8 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 import { upsertEphemerisRecords } from "./ephemeris";
 
 const LOGIN_URL = "https://www.space-track.org/ajaxauth/login";
-const API_BASE_URL = "https://www.space-track.org/basicspacedata/query";
-const ISS_NORAD_ID = 25544;
-const DAYS_TO_FETCH = 30;
+export const SPACETRACK_API_BASE_URL = "https://www.space-track.org/basicspacedata/query";
+export const ISS_NORAD_ID = 25544;
 
 /**
  * Parse precise epoch from TLE line1
@@ -50,7 +52,7 @@ export function calculateEpochFromTLE(line1: string, line2: string): Date | null
  * Authenticate with Space-Track
  * Returns the cookie strings to pass in subsequent requests, or null on failure.
  */
-async function loginToSpaceTrack(): Promise<string[] | null> {
+export async function loginToSpaceTrack(): Promise<string[] | null> {
   const username = process.env.SPACETRACK_USERNAME;
   const password = process.env.SPACETRACK_PASSWORD;
 
@@ -119,25 +121,24 @@ async function loginToSpaceTrack(): Promise<string[] | null> {
 }
 
 /**
- * Fetch TLE records from Space-Track for the given date range.
+ * Fetch the latest ISS TLE records from Space-Track.
  * Logs in fresh on every call since the poll interval exceeds the session lifetime.
  */
-async function fetchTLEFromSpaceTrack(
-  startDate: string,
-  endDate: string
-): Promise<SpaceTrackGpHistoryRecord[] | null> {
+async function fetchTLEFromSpaceTrack(): Promise<SpaceTrackGpRecord[] | null> {
   const loginCookies = await loginToSpaceTrack();
   if (!loginCookies) return null;
 
-  // Build query URL for gp_history class
-  // Format: /class/gp_history/EPOCH/startDate--endDate/NORAD_CAT_ID/25544/orderby/EPOCH asc/format/json
-  // Use predicates to limit response to only the fields we need (reduces data transfer significantly)
-  const orderBy = "orderby/EPOCH%20asc";
+  // Per Space-Track API guidelines: use the optimized `gp` class (allowed 1/hour,
+  // we call every 6h). EPOCH/>now-10 is Space-Track's own recommended window —
+  // it appears verbatim in their documentation. At 6h poll intervals this gives
+  // 40x overlap, so even a ~9-day outage recovers automatically on the next hit.
+  // decay_date/null-val excludes decayed objects (harmless for ISS, matches their template).
+  const orderBy = "orderby/EPOCH%20desc";
   const predicates = "predicates/TLE_LINE1,TLE_LINE2";
-  const query = `/class/gp_history/EPOCH/${startDate}--${endDate}/NORAD_CAT_ID/${ISS_NORAD_ID}/${orderBy}/${predicates}/format/json`;
-  const url = `${API_BASE_URL}${query}`;
+  const query = `/class/gp/NORAD_CAT_ID/${ISS_NORAD_ID}/decay_date/null-val/EPOCH/%3Enow-10/${orderBy}/format/json/${predicates}`;
+  const url = `${SPACETRACK_API_BASE_URL}${query}`;
 
-  ConsoleLogger.info(`Fetching TLE data from Space-Track: ${startDate} to ${endDate}`);
+  ConsoleLogger.info("Fetching latest ISS TLEs from Space-Track (gp class, 10-day window)");
   ConsoleLogger.debug(`Request URL: ${url}`);
 
   try {
@@ -157,7 +158,7 @@ async function fetchTLEFromSpaceTrack(
       return null;
     }
 
-    const data: SpaceTrackGpHistoryRecord[] = await response.json();
+    const data: SpaceTrackGpRecord[] = await response.json();
     ConsoleLogger.info(`Retrieved ${data.length} TLE records from Space-Track`);
     return data;
   } catch (e) {
@@ -167,28 +168,20 @@ async function fetchTLEFromSpaceTrack(
 }
 
 /**
- * Fetch last 30 days of TLE data from Space-Track and update database
- * Returns information about the latest epoch from the fetched TLE data
+ * Fetch the latest ISS TLE records from Space-Track and update database.
+ * Returns information about the latest epoch from the fetched TLE data.
  *
- * IMPORTANT: This function should only be called on the configured interval
- * (6 hours). Space-Track has strict rate limiting and will ban IPs that
- * make too many requests.
+ * IMPORTANT: This function should only be called by the prod instance, on the
+ * configured interval (6 hours). Space-Track has strict rate limiting and will
+ * suspend accounts that make too many requests.
  */
 export async function updateFromSpaceTrack(): Promise<SpaceTrackUpdateResult> {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - DAYS_TO_FETCH);
-
-  const startDateStr = startDate.toISOString().split("T")[0];
-  const endDateStr = endDate.toISOString().split("T")[0];
-
   try {
-    ConsoleLogger.info(`Initiating Space-Track fetch for ${DAYS_TO_FETCH} days of TLE data`);
     ConsoleLogger.info(
-      `Environment check - NODE_ENV: ${process.env.NODE_ENV}, hostname: ${process.env.HOSTNAME ?? "undefined"}`
+      `Initiating Space-Track fetch - NODE_ENV: ${process.env.NODE_ENV}, hostname: ${process.env.HOSTNAME ?? "undefined"}`
     );
 
-    const tleRecords = await fetchTLEFromSpaceTrack(startDateStr, endDateStr);
+    const tleRecords = await fetchTLEFromSpaceTrack();
 
     if (!tleRecords) {
       const msg = "Failed to fetch TLE data from Space-Track";
