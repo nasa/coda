@@ -1,7 +1,7 @@
 # README
 # This defines the pipeline of jobs that runs when you push to gitlab
 # To check the validity of this file, try the live editor:
-# https://gitlab.fit.nasa.gov/coda/coda/-/ci/lint
+# https://jsfitpeegitlab.ndc.nasa.gov/emss/coda/-/ci/lint
 
 variables:
   # Images are pulled via GitLab dependency proxy (caches from Docker Hub)
