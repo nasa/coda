@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **CODA** (Contextual Operations Data Activation) is a NASA full-stack TypeScript web application for consolidating mission, training, and testing context into a unified platform with real-time data visualization, interactive maps, and historical event management.
 
-In eegitlab, this project's ID is 670.
+This project is hosted on [GitLab](https://eegitlab.fit.nasa.gov), and its project ID is 670.
 
 ## Commands
 
