@@ -17,6 +17,7 @@ import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
 import { isDataTypeValidForSource } from "utils/sourceDataTypeMap";
+import { prefixUrl } from "utils/basePath";
 import { usePlayheadDate } from "store/hooks";
 
 const SocketClient: FunctionComponent<{
@@ -65,7 +66,12 @@ const SocketClient: FunctionComponent<{
       if (!socket.current) {
         socket.current = io(socketUrl, {
           transports: ["websocket"],
-          path: "/api/v1/socketio",
+          // Subpath-aware: the server-side socket.io path stays at
+          // `/api/v1/socketio` because imago's Traefik strips the tenant
+          // prefix before forwarding. The client must include the prefix
+          // because it talks to the edge. See
+          // imago/docs/consumer-base-url-rewrite.md §6 "WebSocket clients".
+          path: prefixUrl("/api/v1/socketio"),
           reconnectionAttempts: socketUrl === "coda.fit.nasa.gov" ? Infinity : 10,
         });
       }

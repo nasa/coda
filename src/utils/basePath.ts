@@ -26,8 +26,17 @@ export const getViteBase = (): string =>
  * `''` for root deploys so concatenation yields an absolute path
  * (`/api/v1/foo`), and `/emss/coda/<branch>` for imago tenants.
  */
-export const baseUrlNoTrailingSlash = (): string =>
-  getViteBase().replace(/\/$/, "");
+export const baseUrlNoTrailingSlash = (): string => {
+  const b = getViteBase();
+  return b !== "/" && b.endsWith("/") ? b.slice(0, -1) : "";
+};
+
+/**
+ * Prefix an absolute app-relative URL (e.g. `/api/v1/foo`, `/images/...`)
+ * with the Vite base so it works under a subpath deploy. Pass-through
+ * when running at root mount (the common case).
+ */
+export const prefixUrl = (path: string): string => `${baseUrlNoTrailingSlash()}${path}`;
 
 /**
  * Server-side read of the imago subpath prefix. Returns `''` for root
@@ -39,5 +48,4 @@ export const baseUrlNoTrailingSlash = (): string =>
  * are making the result deployment-path-dependent. For URLs that stay
  * inside the app, prefer prefixing at render time on the frontend.
  */
-export const getBasePath = (): string =>
-  (process.env.BASE_URL_REPLACE ?? "").replace(/\/$/, "");
+export const getBasePath = (): string => (process.env.BASE_URL_REPLACE ?? "").replace(/\/$/, "");

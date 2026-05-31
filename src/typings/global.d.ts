@@ -30,5 +30,5 @@ declare const __GIT_COMMIT__: string;
  * to promote files to ESM and then fail on emitted `exports`. See
  * imago/docs/consumer-base-url-rewrite.md §6.
  */
-// eslint-disable-next-line no-underscore-dangle, @typescript-eslint/naming-convention
+
 declare const __VITE_BASE_URL__: string | undefined;

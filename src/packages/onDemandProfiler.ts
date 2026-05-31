@@ -3,6 +3,7 @@ import * as inspector from "node:inspector/promises";
 import { EmssUser } from "@emss/oauth2-proxy-common";
 import { asError } from "@emss/utils";
 import serverLogger from "utils/logging/serverLogger";
+import { getBasePath } from "utils/basePath";
 
 let session: inspector.Session | undefined;
 let profilingTimeoutId: NodeJS.Timeout;
@@ -99,6 +100,9 @@ export const expressProfilingStop = async (res: Response, user: EmssUser): Promi
 };
 
 export const expressProfilingUI = (res: Response): void => {
+  // Subpath-aware: bake the imago tenant prefix (empty for root deploys)
+  // into the absolute fetch URLs the inline script issues at runtime.
+  const basePath = getBasePath();
   res.send(
     `<!doctype html>
 		<html lang="en">
@@ -110,7 +114,7 @@ export const expressProfilingUI = (res: Response): void => {
 			<script>
 				document.querySelector('#start').onclick = async () => {
 					try {
-						const response = await fetch("/api/v1/profile/start", { method: "POST" });
+						const response = await fetch("${basePath}/api/v1/profile/start", { method: "POST" });
 						document.querySelector('#start').style.display = 'none';
 						document.querySelector('#stop').style.display = '';
 						document.querySelector('#result').innerText = '';
@@ -122,7 +126,7 @@ export const expressProfilingUI = (res: Response): void => {
 
 				document.querySelector('#stop').onclick = async () => {
 					try {
-						const response = await fetch("/api/v1/profile/stop", { method: "POST" });
+						const response = await fetch("${basePath}/api/v1/profile/stop", { method: "POST" });
 						document.querySelector('#start').style.display = '';
 						document.querySelector('#stop').style.display = 'none';
 						const json = await response.json();

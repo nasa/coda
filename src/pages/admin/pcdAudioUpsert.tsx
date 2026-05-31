@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -71,7 +72,7 @@ export const EditPcdAudioRecord: FunctionComponent = () => {
         return;
       }
       if (id) {
-        const response = await fetch(`/api/v1/db/pcdAudio/${id}`);
+        const response = await fetch(prefixUrl(`/api/v1/db/pcdAudio/${id}`));
         const data: PcdAudioRecord = await response.json();
         setSource(data.source);
         setNotes(data.notes ?? "");
@@ -96,7 +97,7 @@ export const EditPcdAudioRecord: FunctionComponent = () => {
       audioJson: validation.parsed,
     };
 
-    const response = await fetch(`/api/v1/db/pcdAudio`, {
+    const response = await fetch(prefixUrl(`/api/v1/db/pcdAudio`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

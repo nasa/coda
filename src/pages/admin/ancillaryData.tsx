@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 const AdminAncillaryData: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const AdminAncillaryData: FunctionComponent = () => {
         navigate("/");
         return;
       }
-      const response = await fetch("/api/v1/db/ancillaryDataSources");
+      const response = await fetch(prefixUrl("/api/v1/db/ancillaryDataSources"));
       const data: AncillaryDataSourceList[] = await response.json();
       setRecords(data);
     })();
@@ -25,7 +26,7 @@ const AdminAncillaryData: FunctionComponent = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this record?")) return;
-    await fetch(`/api/v1/db/ancillaryDataSources/${id}`, { method: "DELETE" });
+    await fetch(prefixUrl(`/api/v1/db/ancillaryDataSources/${id}`), { method: "DELETE" });
     setRecords(records.filter((record) => record.id !== id));
   };
 

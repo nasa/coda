@@ -18,6 +18,7 @@ import { MuteButton } from "components/panes/video/video-controls";
 import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
 import ClockInterval from "components/framework/ClockInterval";
+import { prefixUrl } from "utils/basePath";
 
 export const channelColors = [
   "#653939",
@@ -740,7 +741,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
           <div className={styles.helpHeader}>
             <div className={styles.helpTitleRow}>
               <img
-                src="/images/talky-the-bot.svg"
+                src={prefixUrl("/images/talky-the-bot.svg")}
                 alt="Talky Bot mascot"
                 className={styles.helpMascot}
               />
@@ -767,7 +768,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
               className={styles.helpCallout}
             >
               <img
-                src="/images/ISSiRT.png"
+                src={prefixUrl("/images/ISSiRT.png")}
                 alt="ISS in Real Time"
                 className={styles.helpCalloutIcon}
               />

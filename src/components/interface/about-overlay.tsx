@@ -11,6 +11,7 @@ import {
   getMtxVideoMaxAgeDays,
 } from "utils/sourceDataTypeMap";
 import { usePlayheadDate } from "store/hooks";
+import { prefixUrl } from "utils/basePath";
 
 const AboutOverlay = ({
   modalIsOpen,
@@ -104,7 +105,11 @@ const AboutOverlay = ({
                 <span className={styles.wordMark}>CODA</span>
               </div>
               <div className={styles.logoRight}>
-                <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+                <img
+                  className={styles.meatball}
+                  src={prefixUrl("/images/logo_NASA.svg")}
+                  alt="NASA meatball"
+                />
                 <div
                   className={styles.logoEmssWrapper}
                   onClick={() => {
@@ -273,7 +278,7 @@ const AboutOverlay = ({
               <div className={styles.helpCallout}>
                 <img
                   className={styles.helpCalloutImage}
-                  src="/images/help_callout_background.png"
+                  src={prefixUrl("/images/help_callout_background.png")}
                   alt="Using CODA callout"
                 />
                 <video

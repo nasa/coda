@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -25,7 +26,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
         return;
       }
       if (id) {
-        const response = await fetch(`/api/v1/db/mediaOverrides/${id}`);
+        const response = await fetch(prefixUrl(`/api/v1/db/mediaOverrides/${id}`));
         const data: MediaOverride = await response.json();
         setDate(data.date);
         setSource(data.source);
@@ -44,7 +45,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
       type: type as "video" | "photo" | "transcript" | "audio",
       url: url,
     };
-    await fetch(`/api/v1/db/mediaOverrides`, {
+    await fetch(prefixUrl(`/api/v1/db/mediaOverrides`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

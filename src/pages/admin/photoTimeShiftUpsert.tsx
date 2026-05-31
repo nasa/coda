@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -24,7 +25,7 @@ export const EditPhotoRecord: FunctionComponent = () => {
         return;
       }
       if (id) {
-        const response = await fetch(`/api/v1/db/photoTimeShifts/${id}`);
+        const response = await fetch(prefixUrl(`/api/v1/db/photoTimeShifts/${id}`));
         const data: PhotoRecord = await response.json();
         setDate(data.date);
         setSource(data.source);
@@ -41,7 +42,7 @@ export const EditPhotoRecord: FunctionComponent = () => {
       source,
       timeOffset,
     };
-    await fetch(`/api/v1/db/photoTimeShifts`, {
+    await fetch(prefixUrl(`/api/v1/db/photoTimeShifts`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

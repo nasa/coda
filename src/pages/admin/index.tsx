@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import { isSuperuser } from "utils/user";
 import styles from "./index.module.css";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 interface NavCardProps {
   to: string;
@@ -36,7 +37,7 @@ const AdminIndex: FunctionComponent = () => {
       <div className={adminCommon.container}>
         <header className={styles.pageHeader}>
           <div className={styles.headerLeft}>
-            <img src="/images/EMSS.svg" alt="EMSS Emblem" className={styles.emblem} />
+            <img src={prefixUrl("/images/EMSS.svg")} alt="EMSS Emblem" className={styles.emblem} />
             <div>
               <h1 className={styles.wordMark}>CODA</h1>
               <p className={adminCommon.introText}>
@@ -46,7 +47,7 @@ const AdminIndex: FunctionComponent = () => {
           </div>
           <div className={styles.headerRight}>
             <div className={styles.logoEmss} title="EMSS" />
-            <img src="/images/logo_NASA.svg" alt="NASA" className={styles.meatball} />
+            <img src={prefixUrl("/images/logo_NASA.svg")} alt="NASA" className={styles.meatball} />
           </div>
         </header>
 

@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 const AdminVideoStartTimeOverrides: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const AdminVideoStartTimeOverrides: FunctionComponent = () => {
         navigate("/");
         return;
       }
-      const response = await fetch("/api/v1/db/videoStartTimeOverrides");
+      const response = await fetch(prefixUrl("/api/v1/db/videoStartTimeOverrides"));
       const data: VideoRecord[] = await response.json();
       setRecords(data);
     })();
@@ -25,7 +26,7 @@ const AdminVideoStartTimeOverrides: FunctionComponent = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this record?")) return;
-    await fetch(`/api/v1/db/videoStartTimeOverrides/${id}`, { method: "DELETE" });
+    await fetch(prefixUrl(`/api/v1/db/videoStartTimeOverrides/${id}`), { method: "DELETE" });
     setRecords(records.filter((record) => record.id !== id));
   };
 

@@ -7,12 +7,13 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import duration from "dayjs/plugin/duration";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
+import { prefixUrl } from "utils/basePath";
 import adminCommon from "./adminCommon.module.css";
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
-const SOCKET_PATH = "/api/v1/socketio";
+const SOCKET_PATH = prefixUrl("/api/v1/socketio");
 const UPDATE_INTERVAL_MS = 1000;
 
 const TalkybotSocketStatus: FunctionComponent = () => {

@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -23,7 +24,7 @@ export const EditVideoRecord: FunctionComponent = () => {
         return;
       }
       if (id) {
-        const response = await fetch(`/api/v1/db/videoStartTimeOverrides/${id}`);
+        const response = await fetch(prefixUrl(`/api/v1/db/videoStartTimeOverrides/${id}`));
         const data: VideoRecord = await response.json();
         setVideoId(data.videoId);
         setStartTime(data.startTime);
@@ -38,7 +39,7 @@ export const EditVideoRecord: FunctionComponent = () => {
       videoId,
       startTime,
     };
-    await fetch("/api/v1/db/videoStartTimeOverrides", {
+    await fetch(prefixUrl("/api/v1/db/videoStartTimeOverrides"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

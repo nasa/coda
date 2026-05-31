@@ -7,13 +7,14 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import duration from "dayjs/plugin/duration";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
+import { prefixUrl } from "utils/basePath";
 import adminCommon from "./adminCommon.module.css";
 import styles from "./ephemeris.module.css";
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
-const SOCKET_PATH = "/api/v1/socketio";
+const SOCKET_PATH = prefixUrl("/api/v1/socketio");
 
 const AdminEphemeris: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const AdminEphemeris: FunctionComponent = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/v1/db/ephemeris/stats");
+      const response = await fetch(prefixUrl("/api/v1/db/ephemeris/stats"));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -144,7 +145,7 @@ const AdminEphemeris: FunctionComponent = () => {
   const fetchGapStatus = async () => {
     setGapStatusLoading(true);
     try {
-      const response = await fetch("/api/v1/db/ephemeris/backfill/status");
+      const response = await fetch(prefixUrl("/api/v1/db/ephemeris/backfill/status"));
       if (!response.ok) return;
       const data = await response.json();
       setGapStatus(data);
@@ -160,7 +161,7 @@ const AdminEphemeris: FunctionComponent = () => {
     setBackfillResult(null);
     setBackfillProgress(["Initializing..."]);
     try {
-      const response = await fetch("/api/v1/db/ephemeris/backfill", {
+      const response = await fetch(prefixUrl("/api/v1/db/ephemeris/backfill"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -226,7 +227,7 @@ const AdminEphemeris: FunctionComponent = () => {
     if (isTriggering) return;
     setIsTriggering(true);
     try {
-      const response = await fetch("/api/v1/db/ephemeris/trigger", {
+      const response = await fetch(prefixUrl("/api/v1/db/ephemeris/trigger"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

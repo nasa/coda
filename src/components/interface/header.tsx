@@ -22,6 +22,7 @@ import { isSameDate } from "utils/date";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { startClock, stopClock, setAppSeconds } from "store/clock";
 import ClockInterval from "components/framework/ClockInterval";
+import { prefixUrl } from "utils/basePath";
 
 const LoaderHelpMenu: FunctionComponent<{
   helpLoaderOpen: boolean;
@@ -366,7 +367,11 @@ const Header: FunctionComponent<{
         </div>
         <div className={styles.logoRight}>
           <div>
-            <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+            <img
+              className={styles.meatball}
+              src={prefixUrl("/images/logo_NASA.svg")}
+              alt="NASA meatball"
+            />
           </div>
           <div
             className={styles.logoEmssWrapper}

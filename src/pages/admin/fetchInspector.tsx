@@ -8,12 +8,13 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
+import { prefixUrl } from "utils/basePath";
 import adminCommon from "./adminCommon.module.css";
 import styles from "./fetchInspector.module.css";
 
 dayjs.extend(relativeTime);
 
-const SOCKET_PATH = "/api/v1/socketio";
+const SOCKET_PATH = prefixUrl("/api/v1/socketio");
 const HIGHLIGHT_DURATION_MS = 10000;
 const KEY_SEPARATOR = "::";
 const COUNTDOWN_UPDATE_INTERVAL_MS = 1000;
@@ -311,7 +312,7 @@ const AdminFetchStatuses: FunctionComponent = () => {
     setRefreshing((prev) => ({ ...prev, [refreshKey]: true }));
 
     try {
-      const response = await fetch("/api/v1/emss/dataRefresh", {
+      const response = await fetch(prefixUrl("/api/v1/emss/dataRefresh"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

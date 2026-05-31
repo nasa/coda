@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -84,7 +85,7 @@ export const EditAssetOverrideRecord: FunctionComponent = () => {
         return;
       }
       if (id) {
-        const response = await fetch(`/api/v1/db/assetOverrides/${id}`);
+        const response = await fetch(prefixUrl(`/api/v1/db/assetOverrides/${id}`));
         const data: AssetOverride = await response.json();
         setMediaType(data.mediaType);
         setSource(data.source);
@@ -114,7 +115,7 @@ export const EditAssetOverrideRecord: FunctionComponent = () => {
       overrideJson: validation.parsed,
       notes: notes.trim() ? notes.trim() : undefined,
     };
-    const response = await fetch(`/api/v1/db/assetOverrides`, {
+    const response = await fetch(prefixUrl(`/api/v1/db/assetOverrides`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

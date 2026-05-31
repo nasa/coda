@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -24,7 +25,7 @@ export const EditGPSRecord: FunctionComponent = () => {
         return;
       }
       if (id) {
-        const response = await fetch(`/api/v1/db/gps/${id}`);
+        const response = await fetch(prefixUrl(`/api/v1/db/gps/${id}`));
         const data: GPXTrackRecord = await response.json();
         setDate(data.date);
         setName(data.name);
@@ -41,7 +42,7 @@ export const EditGPSRecord: FunctionComponent = () => {
       name: name,
       gpxData: gpxData,
     };
-    await fetch(`/api/v1/db/gps`, {
+    await fetch(prefixUrl(`/api/v1/db/gps`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

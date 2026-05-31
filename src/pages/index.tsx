@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
+import { prefixUrl } from "utils/basePath";
 import styles from "./index.module.css";
 
 // Make sure all images are <=1mb for quick loading time.
@@ -21,7 +22,7 @@ export default function Index(): React.ReactElement {
     const randomImage = codaHomeBackgrounds[Math.floor(Math.random() * codaHomeBackgrounds.length)];
     document.documentElement.style.setProperty(
       "--homepage-background",
-      `url(/images/${randomImage})`
+      `url(${prefixUrl(`/images/${randomImage}`)})`
     );
   }, []);
 
@@ -33,7 +34,11 @@ export default function Index(): React.ReactElement {
           <div className={styles.description}>
             <div className={styles.logo}>
               <div className={styles.verticalCenter}>
-                <img className={styles.meatball} src="/images/logo_NASA.svg" alt="NASA meatball" />
+                <img
+                  className={styles.meatball}
+                  src={prefixUrl("/images/logo_NASA.svg")}
+                  alt="NASA meatball"
+                />
               </div>
               <div className={styles.verticalCenter}>
                 <span className={styles.wordMark}>CODA</span>

@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
+import { prefixUrl } from "utils/basePath";
 
 const AdminGPS: FunctionComponent = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const AdminGPS: FunctionComponent = () => {
         navigate("/");
         return;
       }
-      const response = await fetch("/api/v1/db/gps");
+      const response = await fetch(prefixUrl("/api/v1/db/gps"));
       const data: GPXTrackListRecord[] = await response.json();
       setRecords(data);
     })();
@@ -25,7 +26,7 @@ const AdminGPS: FunctionComponent = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this record?")) return;
-    await fetch(`/api/v1/db/gps/${id}`, { method: "DELETE" });
+    await fetch(prefixUrl(`/api/v1/db/gps/${id}`), { method: "DELETE" });
     setRecords(records.filter((record) => record.id !== id));
   };
 

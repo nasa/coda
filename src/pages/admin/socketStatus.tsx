@@ -9,12 +9,13 @@ import { Link, useNavigate } from "react-router";
 import { io, Socket } from "socket.io-client";
 import { isSuperuser } from "utils/user";
 import ConsoleLogger from "utils/logging/consoleLogger";
+import { prefixUrl } from "utils/basePath";
 import adminCommon from "./adminCommon.module.css";
 import styles from "./socketStatus.module.css";
 
 dayjs.extend(relativeTime);
 
-const SOCKET_PATH = "/api/v1/socketio";
+const SOCKET_PATH = prefixUrl("/api/v1/socketio");
 
 interface SourceData {
   source: string;
