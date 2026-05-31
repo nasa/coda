@@ -34,7 +34,7 @@ deploy:imago:oxygen:
     IMAGO_EDGE_SERVICE: "nginx"
     IMAGO_EDGE_PORT: "8080"
     IMAGO_WEBSOCKET_PATH: "/api/v1/socket.io"
-    IMAGO_HEALTHCHECKS: '[{"service":"apiv1","kind":"http","path":"/api/v1/health"},{"service":"database","kind":"pg_isready"}]'
+    IMAGO_HEALTHCHECKS: '[{"service":"apiv1","kind":"http","path":"/api/v1/health","port":3001},{"service":"database","kind":"pg_isready"}]'
     # The tenant inherits every var from make-dotenv:fit except the
     # build-only vars listed below. Imago additionally denies its own
     # template-injected names (BASE_URL_REPLACE, REGISTRY_IMAGE,
