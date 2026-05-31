@@ -73,10 +73,23 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy built files to nginx root
 COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 
+# Runtime base-URL substitution. The stock nginx:alpine entrypoint
+# (`/docker-entrypoint.d/20-envsubst-on-templates.sh`) renders every file
+# under NGINX_ENVSUBST_TEMPLATE_DIR with envsubst and writes the output to
+# NGINX_ENVSUBST_OUTPUT_DIR before launching nginx. Pointing the output at
+# /etc/nginx lets us replace the top-level nginx.conf. The FILTER restricts
+# substitution to BASE_URL_REPLACE so unrelated env vars cannot bleed into
+# the config — see imago/docs/consumer-base-url-rewrite.md §4.
+ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+ENV NGINX_ENVSUBST_FILTER=^BASE_URL_REPLACE$
+
 # Nginx config files
-COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY /docker/nginx/nginx.conf.template /etc/nginx/templates/nginx.conf.template
 COPY /docker/nginx/setup-auth.conf /etc/nginx/setup-auth.conf
 COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf
+COPY /docker/nginx/locations-shared.conf /etc/nginx/locations-shared.conf
+COPY /docker/nginx/imago-auth-headers.conf /etc/nginx/imago-auth-headers.conf
 # COPY /docker/nginx/*.conf /etc/nginx/*.conf
 
 COPY ./docker/nginx/loggedout.html /usr/share/nginx/html/

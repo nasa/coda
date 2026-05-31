@@ -13,6 +13,23 @@ http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
 
+    # Runtime base-URL rewriting for subpath deploys (imago previews).
+    # The Vite build emits the literal placeholder `/__BASE_URL__` inside
+    # every asset reference and inside the injected `__VITE_BASE_URL__`
+    # constant. nginx rewrites that placeholder to the empty string (root
+    # mounts: prod, int, dev VMs) or to a tenant prefix like
+    # `/emss/coda/<branch>` (imago) as it streams the response body.
+    # `${BASE_URL_REPLACE}` is supplied by envsubst at container start —
+    # see Dockerfile. Applied at http scope so both server blocks (:443 and
+    # :8080) inherit it. See docs/imago-runtime-base-url.md.
+    sub_filter '/__BASE_URL__' '${BASE_URL_REPLACE}';
+    sub_filter_once off;
+    # text/css is required: Vite emits `url(/__BASE_URL__/fonts/...)` and
+    # `url(/__BASE_URL__/assets/...)` inside built CSS bundles. Without
+    # the rewrite those URLs 404, the SPA fallback returns index.html as
+    # the response body, and the browser fails to decode HTML as a font.
+    sub_filter_types text/html application/javascript application/json text/css;
+
     # All EMSS Nginx log_format must be this format, to be ingested properly by
     # emss/logs logstash
     log_format main '$remote_addr $http_x_forwarded_for "$remote_user" $email [$time_local] "$host" '
@@ -122,24 +139,46 @@ http {
             proxy_set_header Host $host;
         }
 
-        # mediamtx server reverse proxy ports
-        # location /live/ {
-        #     proxy_pass http://host.docker.internal:8888/;
-        #     proxy_redirect off;
-        #     proxy_buffering off;
-        # }
+    }
 
-        # location /api/ {
-        #     proxy_pass http://host.docker.internal:9997/;
-        #     proxy_redirect off;
-        #     proxy_buffering off;
-        # }
+    # Plain-HTTP listener for imago preview deploys. Per
+    # imago/docs/proxy-design.md §5 and §9.1, imago's Traefik edge terminates
+    # TLS and runs ForwardAuth against the shared oauth2-proxy BEFORE
+    # forwarding here, so this block has no SSL and no `auth_request`. The
+    # :443 listener above is unchanged and remains the entry point for the
+    # standalone single-app CODA deploy.
+    #
+    # Auth header contract under imago: Traefik forwards oauth2-proxy's
+    # X-Auth-Request-* headers (per proxy-design.md §5.6). The :443 block
+    # uses nginx auth_request_set to rename those into the X-User / X-Email
+    # / X-Access-Token headers apiv1 expects. On :8080 the headers arrive
+    # pre-set from Traefik and we rename them via imago-auth-headers.conf
+    # included inside each proxy_pass location (nginx's "array directive"
+    # inheritance rule means a location that declares any proxy_set_header
+    # loses all server-scope ones, so we repeat the include rather than
+    # hoist it).
+    server {
+        listen 8080;
+        listen [::]:8080;
+        server_name codanginx;
 
-        # location /recordings/ {
-        #     proxy_pass http://host.docker.internal:9996/;
-        #     proxy_redirect off;
-        #     proxy_buffering off;
-        # }
+        client_max_body_size 50G;
 
+        root /usr/share/nginx/html;
+
+        # Static asset + SPA fallback locations, shared with the :443 block.
+        include locations-shared.conf;
+
+        location /api/v1/ {
+            include imago-auth-headers.conf;
+            proxy_pass http://apiv1:3001/api/v1/;
+            proxy_redirect off;
+            proxy_buffering off;
+
+            # For websockets
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+        }
     }
 }

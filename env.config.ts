@@ -338,4 +338,20 @@ export const config: DotenvConfig<typeof environments> = {
       type: "required-from-secret",
     },
   },
+
+  /**
+   * Subpath deploy support (imago preview deployments)
+   *
+   * Consumed at runtime — not at build time. nginx envsubst rewrites
+   * the literal `/__BASE_URL__` placeholder baked into the SPA bundle
+   * to this value on every response (empty for root mounts, a tenant
+   * prefix like `/emss/coda/<branch>` for imago previews).
+   *
+   * Default empty preserves root-mount behavior for existing deploys
+   * (prod, int, dev VMs) and local dev. imago tenant compose injects
+   * the tenant-specific value automatically.
+   *
+   * See imago/docs/consumer-base-url-rewrite.md.
+   */
+  BASE_URL_REPLACE: { default: "" },
 };
