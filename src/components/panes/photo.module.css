@@ -111,7 +111,7 @@
   top: 0;
   left: 0;
   content: "";
-  background: center / contain no-repeat url("/images/patch_fod_1400_8bit.png");
+  background: center / contain no-repeat url("/__BASE_URL__/images/patch_fod_1400_8bit.png");
   background-size: 50%;
   opacity: 0.4;
 }

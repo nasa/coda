@@ -60,19 +60,19 @@
 }
 
 .loading {
-  background-image: url("/images/icon_status_loading.svg");
+  background-image: url("/__BASE_URL__/images/icon_status_loading.svg");
 }
 
 .noError {
-  background-image: url("/images/icon_status_check_green.svg");
+  background-image: url("/__BASE_URL__/images/icon_status_check_green.svg");
 }
 
 .error {
-  background-image: url("/images/icon_status_error.svg");
+  background-image: url("/__BASE_URL__/images/icon_status_error.svg");
 }
 
 .unneeded {
-  background-image: url("/images/icon_status_no_assets.svg");
+  background-image: url("/__BASE_URL__/images/icon_status_no_assets.svg");
 }
 
 .largeStatusGrid {

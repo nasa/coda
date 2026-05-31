@@ -14,7 +14,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("/fonts/Inter-Variable.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/Inter-Variable.woff2") format("woff2");
 }
 
 /* Roboto Mono - Variable Font (weights 300-500) */
@@ -23,7 +23,7 @@
   font-style: normal;
   font-weight: 300 500;
   font-display: swap;
-  src: url("/fonts/RobotoMono-Variable.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/RobotoMono-Variable.woff2") format("woff2");
 }
 
 /* Ubuntu Mono - Regular (400) */
@@ -32,7 +32,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/UbuntuMono-Regular.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/UbuntuMono-Regular.woff2") format("woff2");
 }
 
 /* Ubuntu Mono - Bold (700) */
@@ -41,7 +41,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/UbuntuMono-Bold.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/UbuntuMono-Bold.woff2") format("woff2");
 }
 
 /* Ubuntu Mono - Italic (400) */
@@ -50,7 +50,7 @@
   font-style: italic;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/UbuntuMono-Italic.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/UbuntuMono-Italic.woff2") format("woff2");
 }
 
 /* Ubuntu Mono - Bold Italic (700) */
@@ -59,7 +59,7 @@
   font-style: italic;
   font-weight: 700;
   font-display: swap;
-  src: url("/fonts/UbuntuMono-BoldItalic.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/UbuntuMono-BoldItalic.woff2") format("woff2");
 }
 
 /* Aldrich - Regular (400) */
@@ -68,5 +68,5 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/Aldrich-Regular.woff2") format("woff2");
+  src: url("/__BASE_URL__/fonts/Aldrich-Regular.woff2") format("woff2");
 }

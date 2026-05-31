@@ -28,7 +28,7 @@
   --highlight-red: #f40000;
   --radius: 3px;
   --panelRadius: 6px;
-  --homepage-background: "url(/images/earth_moon.jpg)"; /* Handled in ./pages/index.tsx */
+  --homepage-background: "url(/__BASE_URL__/images/earth_moon.jpg)"; /* Handled in ./pages/index.tsx */
 }
 
 /* ===== Scrollbar CSS ===== */
