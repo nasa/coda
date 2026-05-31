@@ -15,9 +15,26 @@ const ReactCompilerConfig = {
   target: "19",
 };
 
+// Prod build emits a literal placeholder; nginx sub_filter rewrites it per
+// request to the empty string (root deploys: prod, int, dev VMs) or to a
+// tenant prefix like `/emss/coda/<branch>` (imago previews). See
+// imago/docs/consumer-base-url-rewrite.md. Dev keeps '/' because the Vite
+// dev server bypasses nginx.
+const VITE_BASE = process.env.NODE_ENV === "production" ? "/__BASE_URL__/" : "/";
+
 export const config: UserConfig = {
   root: "./src",
   envDir: "../",
+  base: VITE_BASE,
+  // Mirror the base into a global constant so client code can read it
+  // without referencing `import.meta.env.BASE_URL` directly. The literal
+  // `import.meta` syntax causes some non-Vite loaders (Playwright, ts-node)
+  // to promote files to ESM and fail on emitted `exports`. Reading from a
+  // global sidesteps that while still being statically replaced by Vite at
+  // build time. See imago/docs/consumer-base-url-rewrite.md §6.
+  define: {
+    __VITE_BASE_URL__: JSON.stringify(VITE_BASE),
+  },
   plugins: [react()],
 
   resolve: {
