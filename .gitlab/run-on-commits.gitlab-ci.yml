@@ -41,6 +41,9 @@ include:
   - local: .gitlab/includes/server-jobs.yml
   - local: .gitlab/includes/db-import.yml
 
+  # imago preview deploys (per-branch ephemeral tenants on dev VMs)
+  - local: .gitlab/includes/imago-preview.yml
+
 # Override some properties on FIT jobs.
 # yaml-lint, project-check, dependency-check are set to manual: they depend on
 # fit-ecosystem.gitlab-ci.yml include above (eegitlabregistry images inaccessible)

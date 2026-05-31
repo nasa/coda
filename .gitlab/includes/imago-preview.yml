@@ -1,0 +1,68 @@
+# imago preview deploys (per-feature-branch ephemeral tenants).
+#
+# Distinct from the dev-VM deploy jobs in run-on-commits.gitlab-ci.yml:
+# those install a single CODA per VM via fitdock. The imago jobs below ask
+# imago to spin up an additional per-branch tenant on the same VM under a
+# path prefix
+# (https://oxygen-emss-dev.fit.nasa.gov/emss/coda/<branch>/), so reviewers
+# can poke at a feature branch without disturbing the canonical VM install.
+#
+# See app-design.md §6.1 in emss/imago for the onboarding-checklist
+# template these jobs follow, and docs/imago-runtime-base-url.md in the
+# imago repo for the consumer-side contract.
+include:
+  # TODO: bump to 2.8.0 once gitlab-templates ships the imago job files
+  # under a tagged release (tracked by emss/imago task #6). Pinned to
+  # feature/imago-templates for now because the templates only live on
+  # that branch today.
+  - project: "emss/gitlab-templates"
+    ref: feature/imago-templates
+    file: "/jobs/imago-deploy.gitlab-ci.yml"
+  - project: "emss/gitlab-templates"
+    ref: feature/imago-templates
+    file: "/jobs/imago-undeploy.gitlab-ci.yml"
+
+deploy:imago:oxygen:
+  extends: .imago-deploy
+  needs:
+    - make-dotenv:fit
+    - docker:retag:dev
+  variables:
+    IMAGO_HOST: "oxygen-emss-dev.fit.nasa.gov"
+    IMAGO_TOKEN: "${IMAGO_OXYGEN_TOKEN}"
+    IMAGO_SERVICES: "nginx apiv1 database"
+    IMAGO_EDGE_SERVICE: "nginx"
+    IMAGO_EDGE_PORT: "8080"
+    IMAGO_WEBSOCKET_PATH: "/api/v1/socket.io"
+    IMAGO_HEALTHCHECKS: '[{"service":"apiv1","kind":"http","path":"/api/v1/health"},{"service":"database","kind":"pg_isready"}]'
+    # The tenant inherits every var from make-dotenv:fit except the
+    # build-only vars listed below. Imago additionally denies its own
+    # template-injected names (BASE_URL_REPLACE, REGISTRY_IMAGE,
+    # IMAGE_VERSION) regardless of what we set here. The Postgres password
+    # is forwarded as DB_PASS and imago's emss-standard-v1 template
+    # accepts that name directly. See imago/docs/app-design.md and
+    # imago/docs/lifecycle-design.md §3.4.
+    IMAGO_ENV_EXCLUDE: "BASE_IMAGE_NAME TEST_WORKERS TEST_RETRY VITE_SERVER_PORT"
+  environment:
+    name: "preview-oxygen"
+    url: "https://oxygen-emss-dev.fit.nasa.gov/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/${CI_COMMIT_REF_NAME}/"
+    on_stop: "z:undeploy:imago:oxygen"
+  resource_group: "imago-${CI_PROJECT_NAME}-${CI_COMMIT_REF_NAME}-oxygen"
+  rules:
+    # int/prod already get full fitdock VMs; previews would be noise.
+    - if: $CI_COMMIT_BRANCH == 'int' || $CI_COMMIT_BRANCH == 'prod'
+      when: never
+    # Previews are exploratory; require an explicit click and never block
+    # the pipeline if the deploy fails.
+    - when: manual
+      allow_failure: true
+
+z:undeploy:imago:oxygen:
+  extends: .imago-undeploy
+  variables:
+    IMAGO_HOST: "oxygen-emss-dev.fit.nasa.gov"
+    IMAGO_TOKEN: "${IMAGO_OXYGEN_TOKEN}"
+  environment:
+    name: "preview-oxygen"
+    action: stop
+  when: manual
