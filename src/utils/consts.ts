@@ -32,4 +32,5 @@ export const paneTypeShortVal: Record<PaneTypeKey, PaneTypeShortVal> = {
   talkybot: 8,
   // 9 was sg-audio for some reason --- IGNORE ---
   graph: 10,
+  pcd_audio: 11,
 };

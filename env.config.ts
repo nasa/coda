@@ -1,4 +1,4 @@
-import { DotenvConfig } from "@emss/make-dotenv/src/types";
+import { DotenvConfig } from "@emss/make-dotenv/types";
 
 export const environments = ["local", "fit", "test", "prod"] as const;
 
@@ -317,6 +317,17 @@ export const config: DotenvConfig<typeof environments> = {
   VITE_PUBLIC_LOG_LEVEL: {
     local: "debug",
     default: "info",
+  },
+
+  /**
+   * Ephemeris sync
+   * Blank will sync from Space-Track, otherwise remote sync from a URL
+   * Prod should leave it blank so it fetches from Space-Track.
+   * All other environments should sync from prod
+   */
+  EPHEMERIS_SYNC_FROM_URL: {
+    prod: "",
+    default: "https://coda.fit.nasa.gov",
   },
 
   /**

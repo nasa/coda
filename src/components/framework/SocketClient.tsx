@@ -13,6 +13,7 @@ import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/ph
 import { addSequences } from "store/sequences";
 import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
 import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
+import { setPcdAudioData, clearPcdAudioData } from "store/pcdAudio";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
@@ -108,6 +109,9 @@ const SocketClient: FunctionComponent<{
         }
         if (!isDataTypeValidForSource(source, "graph")) {
           dispatch(setGraphsManifest({ data: null, fetchMetadata: unneededMetadata }));
+        }
+        if (!isDataTypeValidForSource(source, "pcdAudio")) {
+          dispatch(clearPcdAudioData());
         }
       });
 
@@ -217,6 +221,9 @@ const SocketClient: FunctionComponent<{
         } else if (dataUpdate.type === "graph") {
           const dataResponse = response as FetchResponse<GraphsManifest>;
           dispatch(setGraphsManifest(dataResponse));
+        } else if (dataUpdate.type === "pcdAudio") {
+          const dataResponse = response as FetchResponse<PcdAudioJson | null>;
+          dispatch(setPcdAudioData(dataResponse));
         }
       });
 

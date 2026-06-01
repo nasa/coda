@@ -48,13 +48,20 @@ export const PanePickerModal: FunctionComponent<{
 }> = ({ closeClick, options, onClosePanel }) => {
   const paneInstanceId = options?.paneInstanceId ?? 0;
   const source = useAppSelector((state) => state.framework.source, refEqual);
+  const date = useAppSelector((state) => state.clock.date, refEqual);
+  const pcdAudioDateGate = useAppSelector((state) => state.pcdAudio.dateGate, refEqual);
 
   const dispatch = useAppDispatch();
 
+  const paneDateRanges = useMemo(() => ({ pcd_audio: pcdAudioDateGate }), [pcdAudioDateGate]);
+
   const allPaneTypes = Object.keys(allPanes) as PaneType[];
   const availablePanes = useMemo(
-    () => getAvailablePanesForSource(source, allPaneTypes).filter((pt) => pt !== "empty"),
-    [source, allPaneTypes]
+    () =>
+      getAvailablePanesForSource(source, allPaneTypes, date, paneDateRanges).filter(
+        (pt) => pt !== "empty"
+      ),
+    [source, allPaneTypes, date, paneDateRanges]
   );
 
   const handleSelectPaneType = (paneType: PaneType) => (e: React.MouseEvent) => {

@@ -13,6 +13,8 @@ import AdminVideo from "pages/admin/videoStartTimeOverrides";
 import AdminPhoto from "pages/admin/photoTimeShifts";
 import AdminAssetOverrides from "pages/admin/assetOverrides";
 import AdminAccessGrants from "pages/admin/accessGrants";
+import AdminPcdAudio from "pages/admin/pcdAudio";
+import { EditPcdAudioRecord } from "pages/admin/pcdAudioUpsert";
 import { EditGPSRecord } from "pages/admin/gpsUpsert";
 import { EditMediaOverridesRecord } from "pages/admin/mediaOverridesUpsert";
 import { EditAncillaryDataRecord } from "pages/admin/ancillaryDataUpsert";
@@ -53,6 +55,8 @@ const App = (): React.ReactElement => {
         <Route path="/admin/photoTimeShiftUpsert" element={<EditPhotoRecord />} />
         <Route path="/admin/assetOverrideUpsert" element={<EditAssetOverrideRecord />} />
         <Route path="/admin/accessGrantUpsert" element={<EditAccessGrantRecord />} />
+        <Route path="/admin/pcdAudio" element={<AdminPcdAudio />} />
+        <Route path="/admin/pcdAudioUpsert" element={<EditPcdAudioRecord />} />
         <Route path="/admin/ephemeris" element={<AdminEphemeris />} />
         <Route path="/hls" element={<HLSPage />} />
         <Route path="/admin/socketStatus" element={<ServerSocketStatus />} />

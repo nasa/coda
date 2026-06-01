@@ -1,0 +1,202 @@
+.main {
+  position: relative;
+  height: 0;
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--nearly-black);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Controls bar ─────────────────────────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+  margin-left: auto;
+}
+
+.controlsLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.deviceButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid rgb(100 100 100 / 50%);
+  border-radius: 4px;
+  background: transparent;
+  color: rgb(150 150 150);
+  font-size: 0.75em;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.deviceButton:hover {
+  border-color: rgb(180 180 180 / 70%);
+  color: rgb(200 200 200);
+}
+
+.deviceButtonActive {
+  background: rgb(255 255 255 / 6%);
+}
+
+.deviceButtonLabel {
+  letter-spacing: 0.03em;
+}
+
+.rightButtons {
+  display: flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.rightButtons > *:not(:last-of-type) {
+  margin-right: 5px;
+}
+
+.verticalCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+/* ── Recording list ───────────────────────────────────────────────────────── */
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(120 120 120);
+  font-size: 0.85em;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  border: 1px solid black;
+  font-size: 0.8em;
+  font-weight: 300;
+  color: var(--greyish);
+}
+
+.row:hover {
+  background-color: var(--dark-grey);
+}
+
+.rowAlt {
+  background-color: black;
+}
+
+.pastRow {
+  opacity: 0.4;
+}
+
+.activeRow {
+  opacity: 1;
+  border: 1px solid var(--burnt-orange);
+}
+
+.activeRow + .activeRow {
+  border-top-color: transparent;
+}
+
+/* ── Row columns ──────────────────────────────────────────────────────────── */
+
+.deviceBadge {
+  flex-shrink: 0;
+  text-transform: uppercase;
+  color: var(--greyish);
+  border-radius: var(--radius);
+  text-align: right;
+  padding: 3px 5px 3px 3px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.startTime {
+  flex-shrink: 0;
+  width: 70px;
+  font-variant-numeric: tabular-nums;
+  color: var(--greyish);
+  font-weight: 300;
+}
+
+.totalDuration {
+  flex-shrink: 0;
+  width: 44px;
+  font-variant-numeric: tabular-nums;
+  color: var(--greyish);
+  font-weight: 300;
+}
+
+.infoCol {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.infoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 16px;
+  background-color: var(--even-greyer);
+  color: var(--lighter-grey);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.infoButton:hover {
+  background-color: #eeeeee;
+}
+
+.statusCol {
+  flex: 1;
+  text-align: right;
+}
+
+.progressText {
+  font-variant-numeric: tabular-nums;
+  font-weight: 300;
+  color: var(--greyish);
+  letter-spacing: 0.02em;
+}
+
+.pastLabel {
+  color: var(--greyish);
+  font-weight: 300;
+  font-size: 0.9em;
+  opacity: 0.5;
+}
+
+.upcomingLabel {
+  color: var(--greyish);
+  font-weight: 300;
+  font-size: 0.9em;
+}

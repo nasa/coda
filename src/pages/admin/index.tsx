@@ -93,6 +93,11 @@ const AdminIndex: FunctionComponent = () => {
                 description="Reusable AUID lists used to restrict delivery of media overrides to authorized users."
               />
               <NavCard
+                to="/admin/pcdAudio"
+                title="PCD Audio"
+                description="Crew PCD audio recording metadata fetched from Imagery Online, stored by mission source."
+              />
+              <NavCard
                 to="/admin/ephemeris"
                 title="Ephemeris Data"
                 description="View and manage ISS TLE data for orbit calculations and position tracking."

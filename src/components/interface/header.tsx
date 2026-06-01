@@ -291,7 +291,7 @@ export const SocketStatus: FunctionComponent<{ socketStatus: ClientSocketStatus 
     <div
       className={styles.userCount}
       data-tooltip-id="app-tooltip"
-      data-tooltip-html={
+      data-tooltip-content={
         socketStatus.connectionStatus === "connected"
           ? `CODA Visitors: ${visitorCount}`
           : "Connection to server lost"

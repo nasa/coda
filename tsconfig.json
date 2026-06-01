@@ -42,6 +42,6 @@
     "types": ["vite/client", "node", "vitest/globals", "react", "react-dom"],
     "preserveConstEnums": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "env.config.ts", "env.secret.ts"],
   "exclude": ["node_modules", ".local", "public", "static"]
 }

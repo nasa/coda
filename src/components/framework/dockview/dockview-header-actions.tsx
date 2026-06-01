@@ -17,6 +17,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -24,9 +25,10 @@ import { createPortal } from "react-dom";
 import type { IDockviewHeaderActionsProps, IDockviewPanel } from "dockview-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSliders } from "@fortawesome/free-solid-svg-icons";
-import { shallowEqual, useAppSelector } from "utils/useAppSelector";
+import { shallowEqual, useAppSelector, refEqual } from "utils/useAppSelector";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { addPaneInstance } from "store/framework";
+import { isPaneAvailableForSource, isPaneAvailableForDate } from "utils/sourceDataTypeMap";
 import styles from "./dockview-header-actions.module.css";
 
 import { EventInfoControls } from "components/panes/event-info";
@@ -37,6 +39,7 @@ import { ISSLocationControls } from "components/panes/iss-location";
 import { GPSLocationControls } from "components/panes/gps-location";
 import { CommControls } from "components/panes/comm";
 import { GraphControls } from "components/panes/graph/graph";
+import { PcdAudioControls } from "components/panes/pcd-audio";
 
 const controlComponents: Record<PaneType, React.ComponentType<PaneComponentProps> | null> = {
   empty: null,
@@ -49,6 +52,7 @@ const controlComponents: Record<PaneType, React.ComponentType<PaneComponentProps
   event_info: EventInfoControls,
   comm: CommControls,
   graph: GraphControls,
+  pcd_audio: PcdAudioControls,
 };
 
 /** Width threshold (px) below which inline controls collapse into a button, keyed by paneType. */
@@ -62,6 +66,7 @@ const COLLAPSE_THRESHOLDS: Partial<Record<PaneType, number>> = {
   event_info: 200,
   comm: 220,
   graph: 200,
+  pcd_audio: 200,
 };
 
 /** Extract the paneInstanceId from the active panel's params. */
@@ -199,6 +204,8 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     (state) => state.framework.paneInstances[paneInstanceId],
     shallowEqual
   );
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const date = useAppSelector((state) => state.clock.date, refEqual);
 
   useEffect(() => {
     setPaneInstanceId(getActivePaneInstanceId(group.activePanel));
@@ -252,7 +259,15 @@ export const DockviewRightActions: FunctionComponent<IDockviewHeaderActionsProps
     return () => disposable.dispose();
   }, [group]);
 
-  const ControlComponent = paneType ? (controlComponents[paneType] ?? null) : null;
+  const pcdAudioDateGate = useAppSelector((state) => state.pcdAudio.dateGate, refEqual);
+  const paneDateRanges = useMemo(() => ({ pcd_audio: pcdAudioDateGate }), [pcdAudioDateGate]);
+
+  const isCurrentPaneAvailable =
+    !paneType ||
+    (isPaneAvailableForSource(source, paneType) &&
+      isPaneAvailableForDate(paneType, date, paneDateRanges));
+  const ControlComponent =
+    paneType && isCurrentPaneAvailable ? (controlComponents[paneType] ?? null) : null;
 
   if (!ControlComponent || paneInstanceId <= 0) return null;
 
