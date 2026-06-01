@@ -445,10 +445,12 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
           // Transcript-only override - no audio available
           newSrcUrl = "";
         } else {
-          // Use audioUrl if available (for overrides with audio), otherwise construct Talkybot API URL
-          newSrcUrl =
-            file.audioUrl ||
-            `${import.meta.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/${file.fileUuid}/file`;
+          // Use audioUrl if available (for overrides with audio), otherwise hit the
+          // CODA same-origin proxy. The proxy adds the EMSS_TOKEN server-to-server
+          // (see routes/external/audiofiles.ts) so the browser doesn't need a
+          // Talkybot session and doesn't get blocked by ORB on the cross-origin
+          // restricted-audio response.
+          newSrcUrl = file.audioUrl || `/api/v1/external/audiofiles/${file.fileUuid}/file`;
         }
 
         if (srcUrl !== newSrcUrl) {
