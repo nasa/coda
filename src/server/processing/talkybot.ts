@@ -3,7 +3,7 @@ import leoProfanity from "leo-profanity";
 import { getPublicMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { getSourcesWithDataType, getSourceForTalkybotGroup } from "utils/sourceDataTypeMap";
+import { getSourcesWithDataType, getSourcesForTalkybotGroup } from "utils/sourceDataTypeMap";
 
 /**
  * Response type for Talkybot data fetch
@@ -73,6 +73,7 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
     textOriginalLanguage,
     language: af.transcription?.language ?? "",
     groups: af.channel.groups ?? [],
+    sim: af.channel.sim ?? false,
   };
 };
 
@@ -152,13 +153,15 @@ export default async function getTalkybotData({
   // Convert native audio files to the format expected by the UI
   const allAudioFiles = nativeAudioFiles.map(toTbAudioFileConverted);
 
-  // Filter by group if audio files have group info - only include files whose group maps to this source
+  // Filter by group + sim flag: include the file if any of its groups resolves to a
+  // set of CODA sources that contains the requested source. The (group, sim) pair
+  // together determines routing (see getSourcesForTalkybotGroup) - notably, a
+  // sim:true file in the ISS group is never routed anywhere, since CODA never shows
+  // simulated ISS traffic. Unknown slugs fall through to the miscellaneous bucket
+  // inside that helper, so we never silently drop unmapped content.
   const audioFiles = allAudioFiles.filter((af) => {
     if (af.groups.length === 0) return true; // No group info = include (backward compatible with REST API)
-    return af.groups.some((g) => {
-      const mappedSource = getSourceForTalkybotGroup(g.slug);
-      return mappedSource === null || mappedSource === source; // Include if unmapped or matches this source
-    });
+    return af.groups.some((g) => getSourcesForTalkybotGroup(g.slug, af.sim).includes(source));
   });
 
   return {
@@ -194,7 +197,12 @@ export async function fetchTalkybotAudioFiles({
     return [];
   }
 
-  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles?date=${dateWanted}`;
+  // Use the /all endpoint so we receive both public and non-public (restricted)
+  // channels. Talkybot's /audiofiles endpoint applies a public-only filter and would
+  // omit e.g. all artemis/sim training-event audio. CODA is responsible for any
+  // downstream per-user gating; for now we ingest everything and route by (group, sim)
+  // via getSourcesForTalkybotGroup.
+  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/all?date=${dateWanted}`;
 
   try {
     const res = await fetchWithTimeout(url, {
@@ -296,6 +304,7 @@ async function fetchAndMergeLegacyOverrides({
             textOriginalLanguage: "",
             language: "en",
             groups: [],
+            sim: false, // legacy overrides aren't talkybot channels; sim flag isn't meaningful
             override: true,
             audioUrl: `${audioOverrideUrl}/audio/${activityRange.aacSegmentFilename}`,
           };
@@ -320,6 +329,7 @@ async function fetchAndMergeLegacyOverrides({
           textOriginalLanguage: "",
           language: "en",
           groups: [],
+          sim: false, // legacy overrides aren't talkybot channels; sim flag isn't meaningful
           override: true,
           audioUrl: undefined,
         };
