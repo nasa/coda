@@ -3,7 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
 import { toTbAudioFileConverted } from "../processing/talkybot";
-import { getSourcesWithDataType, getSourceForTalkybotGroup } from "../../utils/sourceDataTypeMap";
+import { getSourcesWithDataType, getSourcesForTalkybotGroup } from "../../utils/sourceDataTypeMap";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
@@ -17,7 +17,15 @@ import { getSourcesWithDataType, getSourceForTalkybotGroup } from "../../utils/s
 interface TalkybotS2sServerToClientEvents {
   statusFromServer: (payload: TalkybotS2sStatusFromServer) => void;
   version: (appVersion: string) => void;
+  /** Real-time push for a newly-recorded *public* audio file. */
   audioFile: (payload: TbAudioFileNative) => void;
+  /**
+   * Real-time push for a newly-recorded *non-public/restricted* audio file. Talkybot
+   * separates this from `audioFile` so old CODA clients (which only listen for
+   * `audioFile`) can't accidentally leak restricted audio. CODA handles both events
+   * identically and relies on (group, sim) routing for source assignment.
+   */
+  restrictedAudioFile: (payload: TbAudioFileNative) => void;
 }
 
 interface TalkybotS2sStatusFromServer {
@@ -250,11 +258,18 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
     });
   });
 
-  talkybotS2sSocket.on("audioFile", (payload) => {
-    // Convert native audio file to Coda format
+  // Talkybot emits two real-time events: `audioFile` for public channels and
+  // `restrictedAudioFile` for non-public ones (kept separate so old CODA clients
+  // can't accidentally leak restricted audio by listening on `audioFile`). CODA
+  // handles both identically - source routing is decided downstream by
+  // (group, sim) via getSourcesForTalkybotGroup.
+  const handleIncomingAudioFile = (
+    eventType: "audioFile" | "restrictedAudioFile",
+    payload: TbAudioFileNative
+  ): void => {
     const audioFile = toTbAudioFileConverted(payload);
 
-    ConsoleLogger.debug(`TalkybotS2s Socket: Received new audioFile - ${audioFile.fileUuid}`);
+    ConsoleLogger.debug(`TalkybotS2s Socket: Received ${eventType} - ${audioFile.fileUuid}`);
 
     const textPreview = audioFile.text
       ? `"${audioFile.text.substring(0, 80)}${audioFile.text.length > 80 ? "..." : ""}"`
@@ -263,7 +278,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
     updateTalkybotS2sSocketTrackerData({
       messagesReceived: talkybotS2sSocketTrackerData.messagesReceived + 1,
       lastMessageReceivedAt: new Date().toISOString(),
-      lastMessageType: "audioFile",
+      lastMessageType: eventType,
       lastMessagePreview: `${audioFile.channel}: ${textPreview}`,
       audioFilesReceived: talkybotS2sSocketTrackerData.audioFilesReceived + 1,
       lastAudioFileReceivedAt: new Date().toISOString(),
@@ -271,35 +286,25 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
       lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
     });
 
-    // Emit incremental update to clients viewing today's date
+    // Emit incremental update to clients viewing today's date.
     const today = new Date().toISOString().split("T")[0];
 
-    // Use group info to target the correct source(s), or fall back to sending to all sources
+    // Use (group, sim) to target the correct source(s); a single talkybot group can
+    // map to multiple CODA sources (e.g. the miscellaneous non-ISS bucket), or to
+    // zero sources (e.g. Sim-ISS, which is intentionally dropped). If the file has
+    // no group info at all, fall back to sending to every talkybot-enabled source
+    // so we don't silently drop it.
     const allTalkybotSources = getSourcesWithDataType("talkybot");
     let targetSources: Source[];
 
     if (audioFile.groups.length > 0) {
-      // Map group slugs to CODA sources, deduplicating
       const mappedSources = new Set<Source>();
-      const unmappedSlugs: string[] = [];
-
       for (const group of audioFile.groups) {
-        const source = getSourceForTalkybotGroup(group.slug);
-        if (source) {
+        for (const source of getSourcesForTalkybotGroup(group.slug, audioFile.sim)) {
           mappedSources.add(source);
-        } else {
-          unmappedSlugs.push(group.slug);
         }
       }
-
-      if (unmappedSlugs.length > 0) {
-        ConsoleLogger.warn(
-          `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}. This means audio files from these groups will be sent to all sources. Consider updating the TALKYBOT_GROUP_TO_SOURCE_MAP to include these groups.`
-        );
-      }
-
-      // If we resolved at least one source, use those; otherwise fall back to all
-      targetSources = mappedSources.size > 0 ? [...mappedSources] : allTalkybotSources;
+      targetSources = [...mappedSources];
     } else {
       targetSources = allTalkybotSources;
     }
@@ -314,7 +319,12 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
         },
       });
     }
-  });
+  };
+
+  talkybotS2sSocket.on("audioFile", (payload) => handleIncomingAudioFile("audioFile", payload));
+  talkybotS2sSocket.on("restrictedAudioFile", (payload) =>
+    handleIncomingAudioFile("restrictedAudioFile", payload)
+  );
 
   return talkybotS2sSocket;
 };
