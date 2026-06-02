@@ -26,15 +26,6 @@ export const config: UserConfig = {
   root: "./src",
   envDir: "../",
   base: VITE_BASE,
-  // Mirror the base into a global constant so client code can read it
-  // without referencing `import.meta.env.BASE_URL` directly. The literal
-  // `import.meta` syntax causes some non-Vite loaders (Playwright, ts-node)
-  // to promote files to ESM and fail on emitted `exports`. Reading from a
-  // global sidesteps that while still being statically replaced by Vite at
-  // build time. See imago/docs/consumer-base-url-rewrite.md §6.
-  define: {
-    __VITE_BASE_URL__: JSON.stringify(VITE_BASE),
-  },
   plugins: [react()],
 
   resolve: {
@@ -117,6 +108,14 @@ export const config: UserConfig = {
     //   to give it to kaniko docker to use during build. However when running this locally
     //   with NO docker container, we need to set a default value of "localDev"
     __GIT_COMMIT__: JSON.stringify(process.env.GIT_COMMIT || "localDev"),
+    // Mirror the Vite base into a global constant so client code can read
+    // it without referencing `import.meta.env.BASE_URL` directly. The
+    // `import.meta` syntax causes some non-Vite loaders (Playwright,
+    // ts-node) to promote files to ESM and fail on emitted `exports`.
+    // Reading from a global sidesteps that while still being statically
+    // replaced by Vite at build time. See
+    // imago/docs/consumer-base-url-rewrite.md §6.
+    __VITE_BASE_URL__: JSON.stringify(VITE_BASE),
   },
 };
 
