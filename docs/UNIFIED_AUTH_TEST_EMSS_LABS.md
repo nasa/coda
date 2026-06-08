@@ -43,9 +43,9 @@ services:
     image: nginx:1.25-alpine
     restart: always
     ports:
-      - "127.0.0.1:8443:443"   # TLS terminates here; HAProxy/host nginx
-                                # or direct port-forward punches it out to
-                                # emss-labs.fit.nasa.gov:443 under /unified-auth
+      - "127.0.0.1:8443:443" # TLS terminates here; HAProxy/host nginx
+        # or direct port-forward punches it out to
+        # emss-labs.fit.nasa.gov:443 under /unified-auth
     volumes:
       - /etc/pki/tls/certs:/etc/pki/tls/certs:ro
       - /etc/pki/tls/private:/etc/pki/tls/private:ro
@@ -211,7 +211,7 @@ services:
   # Auth is now handled by emss-labs.fit.nasa.gov/unified-auth.
   oauth2-proxy:
     profiles:
-      - disabled   # effective no-op; compose ignores it unless --profile disabled is passed
+      - disabled # effective no-op; compose ignores it unless --profile disabled is passed
 
   redis:
     profiles:
@@ -368,14 +368,14 @@ as any multi-domain SSO flow.
 
 Run these manually after bringing the test stack up.
 
-| # | Test | Expected result |
-|---|------|-----------------|
-| 1 | Open `https://coda-test.fit.nasa.gov` in a clean private window | Redirected through LaunchPad SBX; lands on CODA after authenticating |
-| 2 | Check `document.cookie` in the browser console | `SESSION` cookie present with `Domain=.fit.nasa.gov` |
-| 3 | In the same browser tab, open `https://emss-labs.fit.nasa.gov/unified-auth/oauth2/userinfo` | Returns JSON for the already-logged-in user (no second LaunchPad redirect) |
-| 4 | In a new tab (same window), open a second `*.fit.nasa.gov` test app if available | No second LaunchPad login; `SESSION` cookie sent automatically |
-| 5 | Click the CODA logout link (`/logout`) | Session cleared; redirected to LaunchPad SBX logout |
-| 6 | After logout, reload CODA | Redirected to LaunchPad SBX sign-in again |
+| #   | Test                                                                                        | Expected result                                                            |
+| --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 1   | Open `https://coda-test.fit.nasa.gov` in a clean private window                             | Redirected through LaunchPad SBX; lands on CODA after authenticating       |
+| 2   | Check `document.cookie` in the browser console                                              | `SESSION` cookie present with `Domain=.fit.nasa.gov`                       |
+| 3   | In the same browser tab, open `https://emss-labs.fit.nasa.gov/unified-auth/oauth2/userinfo` | Returns JSON for the already-logged-in user (no second LaunchPad redirect) |
+| 4   | In a new tab (same window), open a second `*.fit.nasa.gov` test app if available            | No second LaunchPad login; `SESSION` cookie sent automatically             |
+| 5   | Click the CODA logout link (`/logout`)                                                      | Session cleared; redirected to LaunchPad SBX logout                        |
+| 6   | After logout, reload CODA                                                                   | Redirected to LaunchPad SBX sign-in again                                  |
 
 ---
 
