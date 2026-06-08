@@ -410,6 +410,7 @@ deploy:artifactize-committed-files:
     paths:
       - .fitdock.yml
       - docker-compose.yml
+      - docker/nginx/setup-auth-unified.conf
       - scripts/upgrade-db.sh
     expire_in: 1 day
 
