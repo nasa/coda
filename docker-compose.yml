@@ -35,9 +35,6 @@ services:
     volumes:
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
-      # Auth is handled by the shared proxy at emss-labs.fit.nasa.gov/unified-auth.
-      # This mounts the unified variant over the baked-in setup-auth.conf.
-      - ./docker/nginx/setup-auth-unified.conf:/etc/nginx/setup-auth.conf:ro
     ports:
       # launchpad must be over HTTPS and not have a port specified in the URL
       # e.g. https://coda.fit.nasa.gov not https://coda.fit.nasa.gov:8000

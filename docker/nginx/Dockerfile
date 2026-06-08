@@ -76,6 +76,7 @@ COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 # Nginx config files
 COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY /docker/nginx/setup-auth.conf /etc/nginx/setup-auth.conf
+COPY /docker/nginx/setup-auth-unified.conf /etc/nginx/setup-auth-unified.conf
 COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf
 # COPY /docker/nginx/*.conf /etc/nginx/*.conf
 
