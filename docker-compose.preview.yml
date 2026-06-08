@@ -17,6 +17,11 @@ services:
       args:
         # Build args needed in context during build (see note in Dockerfile)
         - VITE_PUBLIC_MAPBOX_KEY=${VITE_PUBLIC_MAPBOX_KEY}
+    volumes:
+      # Mount unified-auth conf so local preview uses the same auth path as production.
+      # The base docker-compose.yml mount is overridden here to ensure the locally-built
+      # image also gets it (volume mounts merge in compose overrides).
+      - ./docker/nginx/setup-auth-unified.conf:/etc/nginx/setup-auth.conf:ro
 
   apiv1:
     image: coda-preview-apiv1:latest
