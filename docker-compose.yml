@@ -32,6 +32,11 @@ services:
     depends_on:
       - apiv1
     <<: *send_container_logs_to_syslog
+    environment:
+      # Hostname of the shared oauth2-proxy this app delegates auth_request to.
+      # docker-entrypoint.sh envsubst's this into setup-auth-unified.conf at
+      # container start. See env.config.ts for per-environment values.
+      AUTH_HOST: ${AUTH_HOST}
     volumes:
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private

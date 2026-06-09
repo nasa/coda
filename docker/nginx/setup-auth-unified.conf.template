@@ -1,10 +1,18 @@
+# !!! AUTO-GENERATED AT CONTAINER START — DO NOT EDIT THE RENDERED FILE !!!
+#
+# Source of truth: docker/nginx/setup-auth-unified.conf.template
+# docker-entrypoint.sh runs `envsubst '${AUTH_HOST}' < ...template > setup-auth-unified.conf`
+# before nginx starts, so every ${AUTH_HOST} below becomes the value of the
+# AUTH_HOST env var (e.g. emss-labs.fit.nasa.gov). nginx's own $variables
+# (which use bare-`$var`, not `${var}`) are unaffected.
+#
 # Unified auth variant of setup-auth.conf.
 #
-# Points all auth traffic at the shared oauth2-proxy running on emss-labs.fit.nasa.gov
+# Points all auth traffic at the shared oauth2-proxy running on ${AUTH_HOST}
 # instead of a sidecar oauth2-proxy container on this host.
 #
 # The SESSION cookie is scoped to .fit.nasa.gov, so a user who already authenticated
-# via any other EMSS app on the same domain (e.g. emss-labs.fit.nasa.gov) is already
+# via any other EMSS app on the same domain (e.g. ${AUTH_HOST}) is already
 # logged in here without a second LaunchPad redirect.
 #
 # Baked into docker-compose.yml on this branch — no override file needed.
@@ -13,15 +21,15 @@
 
 # LaunchPad SBX is registered with /api/v1/auth/nasalp/adfs/oidc/login as the only
 # allowed redirect URI — but for the shared-proxy flow the callback goes directly to
-# emss-labs.fit.nasa.gov (which rewrites it to /oauth2/callback internally).
+# ${AUTH_HOST} (which rewrites it to /oauth2/callback internally).
 # CODA's nginx does NOT need to handle this path; this location block is intentionally
 # absent so stale requests to it return 404 rather than silently mis-routing.
 
 # /oauth2/ — sign-in page and other oauth2-proxy UI, served from the shared proxy.
 location /oauth2/ {
-    proxy_pass       https://emss-labs.fit.nasa.gov/unified-auth/oauth2/;
+    proxy_pass       https://${AUTH_HOST}/unified-auth/oauth2/;
     proxy_ssl_server_name on;
-    proxy_set_header Host                    emss-labs.fit.nasa.gov;
+    proxy_set_header Host                    ${AUTH_HOST};
     proxy_set_header X-Real-IP               $remote_addr;
     proxy_set_header X-Scheme                $scheme;
     # $http_host carries the client-sent Host header (coda-local.fit.nasa.gov),
@@ -31,11 +39,11 @@ location /oauth2/ {
 
 # /oauth2/auth — subrequest endpoint hit by auth_request in route-require-auth.conf.
 # X-Auth-Request-Redirect encodes the original CODA URL into the LaunchPad state
-# parameter so oauth2-proxy redirects back here (not emss-labs) after the callback.
+# parameter so oauth2-proxy redirects back here (not ${AUTH_HOST}) after the callback.
 location = /oauth2/auth {
-    proxy_pass       https://emss-labs.fit.nasa.gov/unified-auth/oauth2/auth;
+    proxy_pass       https://${AUTH_HOST}/unified-auth/oauth2/auth;
     proxy_ssl_server_name on;
-    proxy_set_header Host                    emss-labs.fit.nasa.gov;
+    proxy_set_header Host                    ${AUTH_HOST};
     proxy_set_header X-Real-IP               $remote_addr;
     proxy_set_header X-Scheme                $scheme;
     proxy_set_header X-Auth-Request-Redirect $scheme://$http_host$request_uri;
@@ -45,10 +53,10 @@ location = /oauth2/auth {
 
 # Logout — forward to the shared proxy's sign_out.
 location = /logout {
-    proxy_pass https://emss-labs.fit.nasa.gov/unified-auth/oauth2/sign_out;
+    proxy_pass https://${AUTH_HOST}/unified-auth/oauth2/sign_out;
     proxy_ssl_server_name on;
     proxy_intercept_errors on;
-    proxy_set_header Host        emss-labs.fit.nasa.gov;
+    proxy_set_header Host        ${AUTH_HOST};
     proxy_set_header X-Real-IP   $remote_addr;
     proxy_set_header X-Scheme    $scheme;
     error_page
@@ -66,7 +74,7 @@ location = /login {
 }
 
 location = /is-logged-in {
-    proxy_pass https://emss-labs.fit.nasa.gov/unified-auth/oauth2/auth;
+    proxy_pass https://${AUTH_HOST}/unified-auth/oauth2/auth;
     proxy_ssl_server_name on;
     proxy_intercept_errors on;
     error_page

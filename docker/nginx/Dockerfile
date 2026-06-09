@@ -50,6 +50,11 @@ RUN rm -rf /etc/nginx /usr/share/nginx/html \
 # baked into nginx.conf keep working.
 RUN mkdir -p /var/log/nginx
 
+# `envsubst` (from gettext) is needed by docker-entrypoint.sh to render
+# setup-auth-unified.conf from its .template at container start, substituting
+# ${AUTH_HOST} with the env var value. ~150 KB installed.
+RUN apk add --no-cache gettext
+
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
 
@@ -117,12 +122,21 @@ COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 # Nginx config files
 COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY /docker/nginx/setup-auth.conf /etc/nginx/setup-auth.conf
-COPY /docker/nginx/setup-auth-unified.conf /etc/nginx/setup-auth-unified.conf
+# setup-auth-unified.conf is RENDERED AT CONTAINER START from this template by
+# docker-entrypoint.sh, which envsubst's the AUTH_HOST env var into it. The
+# rendered file lands at /etc/nginx/setup-auth-unified.conf and is what
+# nginx.conf includes.
+COPY /docker/nginx/setup-auth-unified.conf.template /etc/nginx/setup-auth-unified.conf.template
 COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf
 # COPY /docker/nginx/*.conf /etc/nginx/*.conf
 
 COPY ./docker/nginx/loggedout.html /usr/share/nginx/html/
 COPY ./docker/nginx/loggedin.html /usr/share/nginx/html/
+
+# Entrypoint renders the unified-auth template, then exec's CMD.
+COPY ./docker/nginx/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # This image is intended to be run with docker-compose. See docker-compose*.yml files for necessary
 # environment variables

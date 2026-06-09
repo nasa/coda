@@ -4,9 +4,30 @@ export const environments = ["local", "fit", "test", "prod"] as const;
 
 export const config: DotenvConfig<typeof environments> = {
   /**
+   * Unified auth
+   * Hostname of the shared oauth2-proxy this app delegates `auth_request` to.
+   * The proxy lives at `https://${AUTH_HOST}/unified-auth/...` and owns the
+   * OIDC dance with LaunchPad. Today only one shared proxy exists
+   * (emss-labs.fit.nasa.gov, backed by LaunchPad SBX), so every environment
+   * points at it. When/if a prod-LaunchPad-backed shared proxy is stood up
+   * (e.g. emss-prod.fit.nasa.gov), flip `prod` to that hostname here. The
+   * value is consumed at container start by `docker/nginx/docker-entrypoint.sh`,
+   * which envsubst's it into `setup-auth-unified.conf`.
+   */
+  AUTH_HOST: {
+    // prod: "emss-prod.fit.nasa.gov", // <- when a prod-LaunchPad shared proxy exists
+    default: "emss-labs.fit.nasa.gov",
+  },
+
+  /**
    * Launchpad
    * Only our prod URLs are added to launchpad prod. All environments (dev/int/prod) are added to launchpad sandbox.
    * Ultimately we want to use sandbox launchpad for everything except prod (including local dev)
+   *
+   * NOTE: These OAUTH2_PROXY_* variables are only used when running a per-app
+   * oauth2-proxy sidecar (the legacy `setup-auth.conf` flow). The unified-auth
+   * flow (`setup-auth-unified.conf`) delegates auth to AUTH_HOST and ignores
+   * these. They're retained so the legacy mode still works for rollback.
    */
   OAUTH2_PROXY_COOKIE_SECRET: {
     local: {
