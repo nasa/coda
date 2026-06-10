@@ -4,7 +4,6 @@ import app from "./restApi";
 import { Server as SocketServer } from "socket.io";
 import { globalValues } from "./global";
 import { setupSocketIO } from "./sockets";
-import { initTalkybotS2sSocket, disconnectTalkybotS2sSocket } from "./talkybotS2sSocket";
 import { startSpacetrackScheduler, stopSpacetrackScheduler } from "./spacetrackScheduler";
 import serverLogger from "utils/logging/serverLogger";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
@@ -47,13 +46,6 @@ server.listen(3001, () => {
 
   // Start Space-Track TLE update scheduler
   void startSpacetrackScheduler();
-
-  // Initialize server-to-server socket connection to Talkybot
-  const talkybotS2sSocket = initTalkybotS2sSocket();
-  if (talkybotS2sSocket) {
-    globalValues.talkybotS2sSocket = talkybotS2sSocket;
-    ConsoleLogger.info("TalkybotS2s Socket to Talkybot initialized");
-  }
 });
 
 // Simple shutdown handler
@@ -69,11 +61,6 @@ const gracefulShutdown = async () => {
     globalValues.socketInterval = null;
     ConsoleLogger.info("Socket status interval stopped");
   }
-
-  // Disconnect TalkybotS2s socket to Talkybot
-  disconnectTalkybotS2sSocket();
-  globalValues.talkybotS2sSocket = null;
-  ConsoleLogger.info("TalkybotS2s Socket disconnected");
 
   // Close Socket.IO first
   if (globalValues.socketio) {

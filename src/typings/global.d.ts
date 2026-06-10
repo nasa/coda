@@ -12,7 +12,6 @@ type GlobalValues = {
   socketInterval: NodeJS.Timeout | null;
   appVersion: AppVersion | null;
   fetchTrackers: FetchTrackers;
-  talkybotS2sSocket: import("socket.io-client").Socket | null;
   spacetrackInterval: NodeJS.Timeout | null;
   spacetrackTrackerData: SpaceTrackTrackerData;
 };

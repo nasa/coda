@@ -17,6 +17,7 @@ import { usePlayheadDate } from "store/hooks";
 import { MuteButton } from "components/panes/video/video-controls";
 import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
+import { getTalkybotAudioUrl } from "utils/talkybot";
 import ClockInterval from "components/framework/ClockInterval";
 
 export const channelColors = [
@@ -450,12 +451,11 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
           // Transcript-only overrides have no audio
           let srcUrl = "";
           if (!file.override || file.audioUrl) {
-            // Use audioUrl if available (for overrides with audio), otherwise hit the
-            // CODA same-origin proxy. The proxy adds the EMSS_TOKEN server-to-server
-            // (see routes/external/audiofiles.ts) so the browser doesn't need a
-            // Talkybot session and doesn't get blocked by ORB on the cross-origin
-            // restricted-audio response.
-            srcUrl = file.audioUrl || `/api/v1/external/audiofiles/${file.fileUuid}/file`;
+            // Use audioUrl if available (for legacy overrides with audio), otherwise stream
+            // directly from Talkybot. CODA is a native Talkybot client now: the shared
+            // .fit.nasa.gov auth cookie gates per-user access, and the <audio> element below
+            // sends it via crossOrigin="use-credentials".
+            srcUrl = file.audioUrl || getTalkybotAudioUrl(file.fileUuid);
           }
           const playOffset =
             appSeconds - timing.startSeconds < file.duration
@@ -702,6 +702,9 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
             key={channel}
             autoPlay={false}
             muted={paneStateData.isMuted}
+            // Send the shared auth cookie on cross-origin Talkybot audio requests so
+            // per-user restricted audio is served (works with Talkybot CORS allow-credentials).
+            crossOrigin="use-credentials"
             ref={(el) => {
               if (el) {
                 channelAudioRefs.current.set(channel, el);

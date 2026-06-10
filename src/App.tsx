@@ -26,7 +26,6 @@ import { EnsureLogin } from "./packages/EnsureLogin";
 import { Tooltip } from "react-tooltip";
 import HLSPage from "pages/hls";
 import ServerSocketStatus from "pages/admin/socketStatus";
-import TalkybotSocketStatus from "pages/admin/talkybotSocketStatus";
 import FetchInspector from "pages/admin/fetchInspector";
 import AdminEphemeris from "pages/admin/ephemeris";
 
@@ -60,7 +59,6 @@ const App = (): React.ReactElement => {
         <Route path="/admin/ephemeris" element={<AdminEphemeris />} />
         <Route path="/hls" element={<HLSPage />} />
         <Route path="/admin/socketStatus" element={<ServerSocketStatus />} />
-        <Route path="/admin/talkybotSocketStatus" element={<TalkybotSocketStatus />} />
         <Route path="/admin/fetchInspector" element={<FetchInspector />} />
       </Routes>
       <Tooltip
