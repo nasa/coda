@@ -44,7 +44,15 @@ interface TalkybotTranscriptResponse {
 
 const TalkybotClient: FunctionComponent = () => {
   const dispatch = useAppDispatch();
-  const playheadDate = usePlayheadDate();
+  // The base UTC date being viewed. usePlayheadDate() is guaranteed non-null: it returns
+  // state.clock.date once view/index.tsx has applied the URL date, and falls back to today
+  // (midnight Z) before then. We use it instead of the raw state.clock.date because for
+  // ISS *today* (no `date` URL param) view/index.tsx never dispatches setDate — playhead
+  // already equals today — so clock.date stays null forever and a raw-null guard would
+  // never let us fetch (spinner spins forever). The fallback is the correct date for today,
+  // and for any non-today URL date setDate is always dispatched before this settles.
+  // Stays put during playback (the live playhead advances via appSeconds, not clock.date).
+  const clockDate = usePlayheadDate();
   const source = useAppSelector((state) => state.framework.source, refEqual);
 
   // Latest source/date for the live socket handler to read without forcing a reconnect.
@@ -103,8 +111,8 @@ const TalkybotClient: FunctionComponent = () => {
 
   // Load the transcript + legacy overrides whenever the source or viewed date changes.
   useEffect(() => {
-    if (!playheadDate) return;
-    const date = playheadDate.split("T")[0];
+    // clockDate is non-null (usePlayheadDate fallback) — see note above.
+    const date = clockDate.split("T")[0];
     dateRef.current = date;
 
     if (!source || !isDataTypeValidForSource(source, "talkybot")) {
@@ -181,7 +189,7 @@ const TalkybotClient: FunctionComponent = () => {
     return () => {
       cancelled = true;
     };
-  }, [source, playheadDate, dispatch]);
+  }, [source, clockDate, dispatch]);
 
   return <></>;
 };
