@@ -594,7 +594,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     if (!sortedChannels.length) return 60;
     const longest = Math.max(...sortedChannels.map((ch) => ch.length));
     // ~8px per uppercase char at 0.9em, plus ~8px horizontal padding
-    return Math.min(100, longest * 8 + 8);
+    return Math.min(115, longest * 8 + 8);
   }, [sortedChannels]);
 
   function displayUtterance(utterance: DisplayUtterance, idx: number) {
