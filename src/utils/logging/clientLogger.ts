@@ -1,4 +1,4 @@
-import { createClientLogger } from "@emss/logger";
+import { createClientLogger } from "@emss/logger/client";
 
 /**
  * **Do not use on server.**
