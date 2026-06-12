@@ -8,7 +8,7 @@
 # This build doesn't actually need the "AS base" except that it simplifies our .gitlab-ci.yml by
 # allowing us to specify `--target base`
 #
-FROM nginx:1.28.2-alpine3.23 AS base
+FROM nginx:1.30.2-alpine3.23 AS base
 
 # njs provides ngx_http_js_module for URL-encoding in the @error401 named
 # location (docker/nginx/rd.js + js_set in nginx.conf). Stock nginx has no
@@ -16,7 +16,8 @@ FROM nginx:1.28.2-alpine3.23 AS base
 # without a base-image swap — just `apk add nginx-module-njs`.
 # gettext provides envsubst, used by docker-entrypoint.sh to render
 # setup-auth-unified.conf with AUTH_HOST at container start.
-RUN apk add --no-cache nginx-module-njs gettext
+# Versions pinned to the apk packages bundled with nginx:1.30.2-alpine3.23.
+RUN apk add --no-cache nginx-module-njs=1.30.2.0.9.9-r1 gettext=0.24.1-r1
 
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
@@ -26,7 +27,7 @@ RUN mkdir -p /usr/share/nginx/static
 # # # # # # # # #
 
 ### Build the React client
-FROM node:24.11.1-alpine3.23 AS builder
+FROM node:24.16.0-alpine3.23 AS builder
 
 RUN mkdir /clientsrc
 WORKDIR /clientsrc
@@ -84,7 +85,6 @@ COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 
 # Nginx config files
 COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY /docker/nginx/setup-auth.conf /etc/nginx/setup-auth.conf
 # setup-auth-unified.conf is RENDERED AT CONTAINER START from this template by
 # docker-entrypoint.sh, which envsubst's the AUTH_HOST env var into it. The
 # rendered file lands at /etc/nginx/setup-auth-unified.conf and is what

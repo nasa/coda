@@ -20,71 +20,6 @@ export const config: DotenvConfig<typeof environments> = {
   },
 
   /**
-   * Launchpad
-   * Only our prod URLs are added to launchpad prod. All environments (dev/int/prod) are added to launchpad sandbox.
-   * Ultimately we want to use sandbox launchpad for everything except prod (including local dev)
-   *
-   * NOTE: These OAUTH2_PROXY_* variables are only used when running a per-app
-   * oauth2-proxy sidecar (the legacy `setup-auth.conf` flow). The unified-auth
-   * flow (`setup-auth-unified.conf`) delegates auth to AUTH_HOST and ignores
-   * these. They're retained so the legacy mode still works for rollback.
-   */
-  OAUTH2_PROXY_COOKIE_SECRET: {
-    local: {
-      type: "generate-to-secret-if-missing",
-      length: 32,
-      characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-=",
-    },
-    default: { type: "required-from-secret" },
-  },
-  OAUTH2_PROXY_OIDC_ISSUER_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs",
-  },
-  OAUTH2_PROXY_LOGIN_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/authorize/",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/",
-  },
-  OAUTH2_PROXY_REDEEM_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/token/",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/token/",
-  },
-  OAUTH2_PROXY_OIDC_JWKS_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs/discovery/keys",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs/discovery/keys",
-  },
-  OAUTH2_PROXY_WHITELIST_DOMAIN: {
-    prod: "authfs.launchpad.nasa.gov",
-    default: "authfs.launchpad-sbx.nasa.gov",
-  },
-  OAUTH2_PROXY_CLIENT_ID: {
-    prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
-    default: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_SANDBOX_CLIENT_ID" },
-  },
-  OAUTH2_PROXY_CLIENT_SECRET: {
-    prod: {
-      type: "alternate-varname-from-secret-file",
-      value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
-    },
-    default: {
-      type: "alternate-varname-from-secret-file",
-      value: "LAUNCHPAD_SANDBOX_CLIENT_SECRET",
-    },
-  },
-
-  // Ultimately need to alter this based on what server we're on (prod/int/dev). Currently this override
-  // happens in the pipeline deploy script. `INSERT_SUBDOMAIN` that gets replaced
-  // with the appropriate subdomain during deploy.
-  OAUTH2_PROXY_REDIRECT_URL: {
-    // prod: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    // int: "https://coda-int.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    // dev: carbon, gold, iron, neon, oxygen...
-    local: "https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    default: "https://INSERT_SUBDOMAIN.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-  },
-  REDIS_CACHE_DIR: { local: "./.local/redis", default: "/d1/coda/redis" },
-
-  /**
    * Directories on the host
    * ENV vars for nginx
    */
@@ -99,6 +34,8 @@ export const config: DotenvConfig<typeof environments> = {
   },
   //# Unlikely these ever need to change
   // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
+  // TODO(before merge to int): point back at prod talkybot. Currently aimed at the
+  // carbon-emss-dev server to test against the dev talkybot shared-auth deployment.
   // VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
   VITE_PUBLIC_TALKYBOT_URL: { default: "https://carbon-emss-dev.fit.nasa.gov" },
 
