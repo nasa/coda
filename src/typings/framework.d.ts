@@ -52,7 +52,7 @@ type PaneTypeComponentSet = {
 type PaneTypeComponentSets = Record<PaneType, PaneTypeComponentSet>;
 
 interface FrameworkState {
-  /** Currently supports `iss` or `test_events` */
+  /** One of the supported sources: ISS, TEST_EVENTS, NBL, ARTEMIS */
   source: Source;
   /** Letter representing the layout as defined in components/framework/frames.module.css */
   layout: LayoutLetter;

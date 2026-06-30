@@ -57,7 +57,7 @@ export const store: StoreType = configureStore({
   preloadedState: initialState,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(rejectedActionLogger),
   devTools: {
-    name: `CODA Tab-${Math.random()}`, // Include git branch name
+    name: `CODA Tab-${Math.random()}`, // Random suffix to distinguish multiple tabs in DevTools
   },
 });
 export type StoreType = ReturnType<typeof configureStore<RootState>>;

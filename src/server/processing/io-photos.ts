@@ -46,7 +46,7 @@ export default async function getPhotoData({
     const requestedDate = new Date(Date.UTC(year, month - 1, date));
 
     let mediaOverrides: MediaOverride[] | undefined;
-    // Fetch video source overrides from the wiki for this date. If there are none, then use Imagery Online
+    // Fetch photo source overrides from the db for this date. If there are none, then use Imagery Online
     try {
       mediaOverrides = await getMediaOverridesList();
     } catch (overrideError) {

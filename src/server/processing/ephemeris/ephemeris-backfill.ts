@@ -20,7 +20,7 @@
  *   tail current is the scheduler's job (runs every 6h).
  *
  * IMPORTANT: This module should only be invoked by the prod instance. Other CODA
- * instances sync from prod via ephemeris-sync.ts (EPHEMERIS_SYNC_FROM_URL) and
+ * instances sync from prod via ephemeris-remoteSync.ts (EPHEMERIS_SYNC_FROM_URL) and
  * must not hit Space-Track directly. The route handler enforces this guard.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";

@@ -10,7 +10,7 @@ export const ephemeraSlice = createSlice({
   name: "ephemera",
   initialState,
   reducers: {
-    /** Add new photo files to the store */
+    /** Add new ephemeris files to the store */
     addEphemera: (state, action: { payload: FetchResponse<EphemerisEntry[]> }) => {
       state.ephemerisFiles = action.payload.data || [];
       state.metadata = action.payload.fetchMetadata;

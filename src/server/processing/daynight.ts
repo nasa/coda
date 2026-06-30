@@ -18,19 +18,19 @@ type TopoURL = {
  * Get day night data.
  *
  * CALL ORDER AND FALLBACK LOGIC:
- * 1. Initial validation: If requested date is >50 days in future, return error immediately (out of TOPO range)
+ * 1. Initial validation: If requested date is 50 or more days in future, return error immediately (out of TOPO range)
  *
  * 2. Primary source - TOPO (if not out of historic range):
  *    - Queries 3 weeks of data (week before, current week, week after) to ensure coverage
  *    - Each week attempts to fetch from Tuesday (normal upload day) through the next 7 days
- *    - Uses historic BET files for dates before today, predicted STP files for dates today through +50 days
+ *    - Uses historic BET files for dates before today, predicted STP files for dates today through +49 days
  *    - Validates data has both morning and evening entries (detects partial/incomplete data)
  *    - If successful and has complete data, returns TOPO result
  *    - If fails or returns incomplete data, captures error and continues to fallback
  *
  * 3. Fallback source - Ephemera:
  *    - Only attempted if TOPO fails AND requested date is <= tomorrow midnight
- *    - Fetches ISS ephemera TLE data via fetchEphemeris
+ *    - Fetches ISS ephemera TLE data via getEphemera
  *    - Calculates day/night from ephemera TLE data at 5-second intervals
  *    - If successful and has data, returns ephemera-based result
  *    - If fails, returns error combining both TOPO and ephemera failure messages
@@ -318,7 +318,7 @@ export function getTopoURL(requestDate: Date): TopoURL {
   }
 
   if (topoState === "predicted") {
-    // Use short term plan (STP) predicted data for dates within next 50 days
+    // Use short term plan (STP) predicted data for dates within the next 50 days (today through +49)
     return {
       url: "https://fod2.jsc.nasa.gov/CM/TOPO/data/stp/topo52.ISS.sun_lighting_events.txt",
       state: topoState,

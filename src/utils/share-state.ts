@@ -268,7 +268,8 @@ export function getStateStringForPcdAudio(state: PcdAudioPaneStateData): string 
 /**
  * @returns {string}
  * Chars 0,1 digits: pane type
- * Char 2: S/G channel number - 1
+ * Char 2: 0 if lockScroll is false, 1 if true
+ * Chars 3+: selectedGraphId
  */
 export function getStateStringForGraph(state: GraphPaneStateData): string {
   const paneTypeString = paneTypeShortVal.graph;
@@ -353,7 +354,7 @@ export function interpretFrameQueryParam(frameString: string): PaneState | undef
       };
       return photoReturnVal;
     case paneTypeShortVal.photo_all:
-      /* Char 2: 0 if showFilter is false, 1 if showInfo is true
+      /* Char 2: 0 if showFilter is false, 1 if showFilter is true
        * Char 3: 0 if lockScroll is false, 1 if lockScroll is true
        */
       const photoAllReturnVal: PaneState = {
