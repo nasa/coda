@@ -39,46 +39,24 @@ const parseQuery = (query: Query): DayNightQueryParams => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    // add support for year month date query params for Maestro
-    //    remove when Maestro is updated to use dateWanted
-    if (queryObj.year && queryObj.month && queryObj.date) {
-      const response = await getDayNight({
-        dateWanted: queryObj.dateWanted,
-      });
+    const response = await getDayNight({
+      dateWanted: queryObj.dateWanted,
+    });
 
-      // turn this into a legacy WrappedResponse for Maestro so they don't have to update anything
-      const wrappedResponse: WrappedResponse<DayNightStore> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: new Date().toISOString(),
-          expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          error: "",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: "",
-        },
-        data: response.data,
-      };
+    // turn this into a legacy WrappedResponse for Maestro so they don't have to update anything
+    const wrappedResponse: WrappedResponse<DayNightStore> = {
+      responseMetadata: {
+        retrieverStatus: "complete",
+        cachedTimestamp: new Date().toISOString(),
+        expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        error: "",
+        retrieverErrorCount: 0,
+        lastErrorTimestamp: "",
+      },
+      data: response.data,
+    };
 
-      res.status(200).json(wrappedResponse);
-    } else {
-      const response = await getDayNight({
-        dateWanted: queryObj.dateWanted,
-      });
-
-      const wrappedResponse: WrappedResponse<DayNightStore> = {
-        responseMetadata: {
-          retrieverStatus: "complete",
-          cachedTimestamp: new Date().toISOString(),
-          expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          error: "",
-          retrieverErrorCount: 0,
-          lastErrorTimestamp: "",
-        },
-        data: response.data,
-      };
-
-      res.status(200).json(wrappedResponse);
-    }
+    res.status(200).json(wrappedResponse);
     return;
   } catch (e) {
     ConsoleLogger.error(e);

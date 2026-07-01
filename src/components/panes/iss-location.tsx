@@ -29,8 +29,8 @@ import { createRoot } from "react-dom/client";
 import ClockInterval from "components/framework/ClockInterval";
 
 type MapMarker = {
-  marker: maplibregl.Marker | null; //the MapBox marker reference
-  markerNode: HTMLDivElement | null; //the real DOM id of the marker
+  marker: maplibregl.Marker | null; //the maplibre marker reference
+  markerNode: HTMLDivElement | null; //the DOM node hosting the marker
 };
 
 export const ISSLocationControls: FunctionComponent<{
@@ -170,7 +170,7 @@ export const ISSLocation: FunctionComponent<{
       },
     });
 
-    //part 1 in case line crosses dateline
+    //part 2 in case line crosses dateline
     thisMap.addSource("orbitLine2", {
       type: "geojson",
       data: {

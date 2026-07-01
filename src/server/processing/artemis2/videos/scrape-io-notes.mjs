@@ -6,9 +6,9 @@
  *
  * 1. Fetches all Artemis 2 mission-day videos from the IO search API
  * 2. Scrapes the info page for each video to extract Mission Video Notes
- * 3. Writes results to src/server/processing/artemis2/video-notes.json
+ * 3. Writes results to src/server/processing/artemis2/videos/video-notes.json
  *
- * Usage: node src/server/processing/artemis2/scrape-io-notes.mjs
+ * Usage: node src/server/processing/artemis2/videos/scrape-io-notes.mjs
  *
  * Requires IO_KEY in .env file.
  */

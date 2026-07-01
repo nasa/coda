@@ -11,10 +11,7 @@ import {
 } from "./video";
 
 /**
- * These tests verify the logic of helper functions in video.ts.
- * The functions are copied here because video.ts uses import.meta.env which
- * Jest cannot parse without additional babel configuration.
- * The test implementations mirror the source exactly.
+ * These tests verify the logic of helper functions imported directly from video.ts.
  */
 
 describe("getSourceSuffix", () => {

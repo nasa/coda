@@ -9,7 +9,7 @@
  *
  * IMPORTANT: Space-Track has strict rate limiting policies. Only the prod
  * instance should call this module — other CODA instances should sync ephemeris via
- * ephemeris-sync.ts. See spacetrackScheduler.ts for the dispatch.
+ * ephemeris-remoteSync.ts. See spacetrackScheduler.ts for the dispatch.
  */
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getEpochTimestamp } from "tle.js";
