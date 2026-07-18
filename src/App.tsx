@@ -27,6 +27,7 @@ import ServerSocketStatus from "pages/admin/socketStatus";
 import TalkybotSocketStatus from "pages/admin/talkybotSocketStatus";
 import FetchInspector from "pages/admin/fetchInspector";
 import AdminEphemeris from "pages/admin/ephemeris";
+import AdminCacheManager from "pages/admin/cacheManager";
 
 const App = (): React.ReactElement => {
   return (
@@ -54,6 +55,7 @@ const App = (): React.ReactElement => {
         <Route path="/admin/pcdAudio" element={<AdminPcdAudio />} />
         <Route path="/admin/pcdAudioUpsert" element={<EditPcdAudioRecord />} />
         <Route path="/admin/ephemeris" element={<AdminEphemeris />} />
+        <Route path="/admin/cacheManager" element={<AdminCacheManager />} />
         <Route path="/hls" element={<HLSPage />} />
         <Route path="/admin/socketStatus" element={<ServerSocketStatus />} />
         <Route path="/admin/talkybotSocketStatus" element={<TalkybotSocketStatus />} />

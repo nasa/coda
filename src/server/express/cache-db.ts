@@ -108,33 +108,176 @@ export async function removeCacheEntry({
 }
 
 /**
- * Removes Least Recently Used (LRU) entries from a specific folder that were last accessed before a given date.
- * @param folder The cache folder to clean up.
- * @param olderThanDate Entries last accessed before this date will be removed.
- * @returns The number of entries removed.
+ * The special cache folder used for source-independent data (see dataRetrievalScheduler).
+ * Its `folder` is exactly `socketDataCache/allDates` rather than the usual
+ * `socketDataCache/${source}/${date}` shape.
  */
-export async function evictLruCacheEntries({
-  olderThanDate,
-  folder,
-}: {
-  olderThanDate: Date;
-  folder?: string;
-}): Promise<number> {
+const ALL_DATES_FOLDER = "socketDataCache/allDates";
+
+/**
+ * Rows come back from raw SQL aggregation with numeric columns as strings
+ * (Postgres COUNT/SUM) — this normalises the shape node-postgres returns.
+ */
+function unwrapRows<T>(result: unknown): T[] {
+  return (result as { rows?: T[] }).rows ?? (result as T[]);
+}
+
+/**
+ * Aggregate reporting over the whole cache_db table. Size is not stored, so it is
+ * computed on the fly. We use octet_length(data::text) — the byte length of the
+ * JSON representation — rather than pg_column_size(data), which reports the much
+ * smaller TOAST-compressed on-disk size and so wildly understates the logical
+ * data size (and doesn't line up with an uncompressed SQL dump). Mirrors the
+ * raw-SQL aggregation approach used by the ephemeris getStats().
+ */
+export async function getCacheStats(): Promise<CacheStats> {
   const em = getORM().em.fork();
-  try {
-    const filter: FilterQuery<Cache_db> = {
-      lastAccessedAt: { $lt: olderThanDate },
-    };
-    if (folder) {
-      filter.folder = folder;
-    }
-    const numDeleted = await em.nativeDelete(Cache_db, filter);
-    return numDeleted;
-  } catch (error) {
-    ConsoleLogger.error(
-      `Error removing LRU entries ${folder ? `for folder ${folder} ` : ""}older than ${olderThanDate.toISOString()}:`,
-      error
-    );
-    return 0;
+  const connection = em.getConnection();
+
+  const totalsRows = unwrapRows<{ count: string; total_bytes: string }>(
+    await connection.execute(
+      `SELECT COUNT(*) AS count, COALESCE(SUM(octet_length(data::text)), 0) AS total_bytes
+       FROM cache_db`
+    )
+  );
+
+  const bySourceRows = unwrapRows<{
+    source: string;
+    count: string;
+    total_bytes: string;
+    oldest_access: Date | string | null;
+    newest_access: Date | string | null;
+  }>(
+    await connection.execute(
+      `SELECT split_part(folder, '/', 2) AS source,
+              COUNT(*) AS count,
+              COALESCE(SUM(octet_length(data::text)), 0) AS total_bytes,
+              MIN(last_accessed_at) AS oldest_access,
+              MAX(last_accessed_at) AS newest_access
+       FROM cache_db
+       GROUP BY split_part(folder, '/', 2)
+       ORDER BY total_bytes DESC`
+    )
+  );
+
+  const byTypeRows = unwrapRows<{ cache_key: string; count: string; total_bytes: string }>(
+    await connection.execute(
+      `SELECT cache_key,
+              COUNT(*) AS count,
+              COALESCE(SUM(octet_length(data::text)), 0) AS total_bytes
+       FROM cache_db
+       GROUP BY cache_key
+       ORDER BY total_bytes DESC`
+    )
+  );
+
+  // Group dates by month (YYYY-MM). The date is the 3rd path segment of the
+  // folder; the allDates bucket has no date segment (empty string) and falls
+  // into its own "" group, labelled "(all dates)" on the client.
+  const byMonthRows = unwrapRows<{ month: string; count: string; total_bytes: string }>(
+    await connection.execute(
+      `SELECT substring(split_part(folder, '/', 3) FROM 1 FOR 7) AS month,
+              COUNT(*) AS count,
+              COALESCE(SUM(octet_length(data::text)), 0) AS total_bytes
+       FROM cache_db
+       GROUP BY substring(split_part(folder, '/', 3) FROM 1 FOR 7)
+       ORDER BY month DESC`
+    )
+  );
+
+  const toIso = (value: Date | string | null): string | null => {
+    if (!value) return null;
+    return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+  };
+
+  return {
+    totals: {
+      count: parseInt(totalsRows[0]?.count ?? "0", 10),
+      totalBytes: parseInt(totalsRows[0]?.total_bytes ?? "0", 10),
+    },
+    bySource: bySourceRows.map((r) => ({
+      source: r.source,
+      count: parseInt(r.count, 10),
+      totalBytes: parseInt(r.total_bytes, 10),
+      oldestAccess: toIso(r.oldest_access),
+      newestAccess: toIso(r.newest_access),
+    })),
+    byType: byTypeRows.map((r) => ({
+      cacheKey: r.cache_key,
+      count: parseInt(r.count, 10),
+      totalBytes: parseInt(r.total_bytes, 10),
+    })),
+    byMonth: byMonthRows.map((r) => ({
+      month: r.month,
+      count: parseInt(r.count, 10),
+      totalBytes: parseInt(r.total_bytes, 10),
+    })),
+  };
+}
+
+/**
+ * Builds the MikroORM filter for a purge request from the supplied criteria.
+ * Returns null when no criteria are supplied, so callers can reject an empty
+ * filter and avoid an accidental full-table wipe.
+ */
+function buildPurgeFilter({
+  source,
+  cacheKey,
+  month,
+  olderThanDays,
+}: CachePurgeParams): FilterQuery<Cache_db> | null {
+  const filter: FilterQuery<Cache_db> = {};
+  let hasCriteria = false;
+
+  if (typeof olderThanDays === "number" && olderThanDays >= 0) {
+    const cutoff = new Date(Date.now() - olderThanDays * 86400000);
+    filter.lastAccessedAt = { $lt: cutoff };
+    hasCriteria = true;
   }
+
+  // Folder encodes both source and date: socketDataCache/${source}/${date}, with
+  // the special exact folder socketDataCache/allDates for source-independent data.
+  // Source and/or month (YYYY-MM date prefix) both constrain that folder path.
+  if (source || month) {
+    if (source === "allDates") {
+      filter.folder = ALL_DATES_FOLDER;
+    } else if (source && month) {
+      filter.folder = { $like: `socketDataCache/${source}/${month}%` };
+    } else if (source) {
+      filter.folder = { $like: `socketDataCache/${source}/%` };
+    } else {
+      // Month across all sources: source segment is the wildcard.
+      filter.folder = { $like: `socketDataCache/%/${month}%` };
+    }
+    hasCriteria = true;
+  }
+
+  if (cacheKey) {
+    filter.cacheKey = cacheKey;
+    hasCriteria = true;
+  }
+
+  return hasCriteria ? filter : null;
+}
+
+/**
+ * Manually purge cache entries matching any combination of source, data type
+ * (cacheKey), and inactivity age. When dryRun is true, returns the count of
+ * entries that would be deleted without deleting them. Rejects an empty filter
+ * to prevent accidentally wiping the whole table.
+ * @returns The number of entries deleted (or that would be deleted for a dry run).
+ */
+export async function purgeCacheEntries(params: CachePurgeParams): Promise<number> {
+  const filter = buildPurgeFilter(params);
+  if (!filter) {
+    throw new Error(
+      "purgeCacheEntries requires at least one of: source, cacheKey, month, olderThanDays"
+    );
+  }
+
+  const em = getORM().em.fork();
+  if (params.dryRun) {
+    return em.count(Cache_db, filter);
+  }
+  return em.nativeDelete(Cache_db, filter);
 }

@@ -123,6 +123,11 @@ const AdminIndex: FunctionComponent = () => {
                 title="Talkybot S2s Connection Monitor"
                 description="Monitor the server-to-server socket connection to Talkybot."
               />
+              <NavCard
+                to="/admin/cacheManager"
+                title="Cache Manager"
+                description="Report on cache size by source, type, and date, and purge stale entries."
+              />
             </nav>
           </div>
         </section>
