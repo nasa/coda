@@ -1,6 +1,7 @@
 import isEqual from "lodash/isEqual";
-import { setupFetchFns } from "packages/fetchFns";
+import { setupFetchFns, fetchWithAuth } from "packages/fetchFns";
 import { getCurrentUser } from "packages/getCurrentUser";
+import ConsoleLogger from "utils/logging/consoleLogger";
 import { Dispatch, FunctionComponent, SetStateAction, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
@@ -12,7 +13,7 @@ import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/ph
 import { addSequences } from "store/sequences";
 import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
 import { setPcdAudioData, clearPcdAudioData } from "store/pcdAudio";
-import { setLiveVideoEnabled } from "store/user";
+import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
@@ -185,6 +186,18 @@ const SocketClient: FunctionComponent<{
         } else if (dataUpdate.type === "videos") {
           const dataResponse = response as FetchResponse<VideoFile[]>;
           dispatch(addVideos(dataResponse));
+          // Reset restricted status when public data arrives, then check for restricted override
+          dispatch(setRestrictedOverrideActive(false));
+          // After applying public videos, request any restricted-override variant the
+          // logged-in user may be entitled to. If returned, it replaces the videos store.
+          void fetchAndApplyRestrictedVideos({
+            source,
+            dateWanted: playheadDate.split("T")[0],
+            applyRestricted: (r) => {
+              dispatch(addVideos(r));
+              dispatch(setRestrictedOverrideActive(true));
+            },
+          });
         } else if (dataUpdate.type === "photos") {
           const dataResponse = response as FetchResponse<PhotoFile[]>;
           dispatch(addPhotos(dataResponse));
@@ -243,3 +256,41 @@ const SocketClient: FunctionComponent<{
 };
 
 export default SocketClient;
+
+/**
+ * Fetch the restricted video override (if any) for the current user and overlay it
+ * on top of the public videos already in the store. Silently no-ops on 204
+ * (no restricted override configured for this date/source) and on 401/403
+ * (user not authorized).
+ */
+async function fetchAndApplyRestrictedVideos({
+  source,
+  dateWanted,
+  applyRestricted,
+}: {
+  source: Source;
+  dateWanted: string;
+  applyRestricted: (response: FetchResponse<VideoFile[]>) => void;
+}): Promise<void> {
+  if (!source || !dateWanted) return;
+  try {
+    const url = `/api/v1/restricted/videos?source=${encodeURIComponent(source)}&dateWanted=${encodeURIComponent(dateWanted)}`;
+    const res = await fetchWithAuth(url);
+    if (res.status === 204) return; // no restricted override configured
+    if (res.status === 401 || res.status === 403) return; // user not eligible
+    if (!res.ok) {
+      ConsoleLogger.warn(`restricted videos fetch returned ${res.status}`);
+      return;
+    }
+    const restrictedResponse = (await res.json()) as FetchResponse<VideoFile[]>;
+    if (
+      restrictedResponse?.fetchMetadata?.success &&
+      Array.isArray(restrictedResponse.data) &&
+      restrictedResponse.data.length > 0
+    ) {
+      applyRestricted(restrictedResponse);
+    }
+  } catch (e) {
+    ConsoleLogger.warn("restricted videos fetch error:", e);
+  }
+}

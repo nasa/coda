@@ -20,6 +20,12 @@ const parseQuery = (query: Query): MediaOverrideQueryParams => {
   return queryObj;
 };
 
+const normalizeAccessGrantId = (raw: unknown): number | null => {
+  if (raw === undefined || raw === null || raw === "") return null;
+  const n = typeof raw === "number" ? raw : parseInt(String(raw), 10);
+  return Number.isFinite(n) ? n : null;
+};
+
 // get by date or get list if no date provided
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
@@ -66,8 +72,9 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
 
 // create via post
 router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
-  const { id, date, source, type, url } = req.body as MediaOverrideUpsertRequest;
+  const { id, date, source, type, url, accessGrantId } = req.body as MediaOverrideUpsertRequest;
   const em = getORM().em;
+  const normalizedGrantId = normalizeAccessGrantId(accessGrantId);
 
   try {
     if (id) {
@@ -77,6 +84,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         mediaOverride.source = source;
         mediaOverride.type = type;
         mediaOverride.url = url;
+        mediaOverride.accessGrantId = normalizedGrantId;
         await em.persist(mediaOverride).flush();
         res
           .status(200)
@@ -91,6 +99,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         source,
         type,
         url,
+        accessGrantId: normalizedGrantId,
       });
       await em.persist(mediaOverride).flush();
       res
@@ -142,16 +151,41 @@ async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
   }
 }
 
+/**
+ * Returns ALL media overrides including restricted ones. Used by the admin UI.
+ * Do NOT use from public-data fetchers — use {@link getPublicMediaOverridesList} instead.
+ */
 export async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
   const em = getORM().em.fork();
   const mediaOverrides_db = await em.find(
     MediaOverride_db,
     {},
-    { orderBy: { date: "ASC", source: "ASC" }, fields: ["id", "date", "source", "type", "url"] }
+    {
+      orderBy: { date: "ASC", source: "ASC" },
+      fields: ["id", "date", "source", "type", "url", "accessGrantId"],
+    }
   );
   if (mediaOverrides_db) {
     return mediaOverrides_db;
   } else {
     return [];
   }
+}
+
+/**
+ * Returns only PUBLIC media overrides (those with no accessGrantId). This is what
+ * the socket-fed public video/photo fetchers should use, so restricted overrides
+ * never leak into the public cache or the public Socket.IO room.
+ */
+export async function getPublicMediaOverridesList(): Promise<MediaOverrideList[]> {
+  const em = getORM().em.fork();
+  const mediaOverrides_db = await em.find(
+    MediaOverride_db,
+    { accessGrantId: null },
+    {
+      orderBy: { date: "ASC", source: "ASC" },
+      fields: ["id", "date", "source", "type", "url", "accessGrantId"],
+    }
+  );
+  return mediaOverrides_db ?? [];
 }

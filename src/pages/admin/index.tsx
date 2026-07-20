@@ -88,6 +88,11 @@ const AdminIndex: FunctionComponent = () => {
                 description="Per-NASA-ID photo time and video channel overrides scoped by source and date range."
               />
               <NavCard
+                to="/admin/accessGrants"
+                title="Access Grants"
+                description="Reusable AUID lists used to restrict delivery of media overrides to authorized users."
+              />
+              <NavCard
                 to="/admin/pcdAudio"
                 title="PCD Audio"
                 description="Crew PCD audio recording metadata fetched from Imagery Online, stored by mission source."

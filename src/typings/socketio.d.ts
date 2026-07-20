@@ -239,6 +239,8 @@ interface VisitorData {
   user: LaunchpadUser;
   connectedAt: number;
   liveVideoEnabled: boolean;
+  /** Server-populated: restricted MediaOverride rows this user is eligible to receive for (source, dateViewing) */
+  restrictedAccesses?: VisitorRestrictedAccess[];
 }
 
 // ============================================================================

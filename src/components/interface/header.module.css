@@ -302,3 +302,19 @@
   font-weight: 400;
   font-size: 0.95em;
 }
+
+.restrictedAccess {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid var(--greyish);
+  border-radius: var(--radius);
+  padding: 5px 5px 6px 3px;
+  margin: 2px 0 0 0;
+  color: var(--greyish);
+  cursor: default;
+}
+
+.restrictedAccessIcon {
+  margin: 2px 2px 0 6px;
+}

@@ -6,6 +6,7 @@ export class MediaOverride_db implements MediaOverride {
   source!: Source;
   type!: MediaMedium;
   url!: string;
+  accessGrantId?: number | null;
 }
 
 export const MediaOverride_dbSchema = new EntitySchema<MediaOverride_db>({
@@ -17,5 +18,6 @@ export const MediaOverride_dbSchema = new EntitySchema<MediaOverride_db>({
     source: { type: MikroTypes.text },
     type: { type: MikroTypes.text },
     url: { type: MikroTypes.text },
+    accessGrantId: { type: MikroTypes.integer, nullable: true },
   },
 });
