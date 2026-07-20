@@ -32,6 +32,11 @@ services:
     depends_on:
       - apiv1
     <<: *send_container_logs_to_syslog
+    environment:
+      # Hostname of the shared oauth2-proxy this app delegates auth_request to.
+      # docker-entrypoint.sh envsubst's this into setup-auth-unified.conf at
+      # container start. See env.config.ts for per-environment values.
+      AUTH_HOST: ${AUTH_HOST}
     volumes:
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private
@@ -54,56 +59,6 @@ services:
       # First the .env file is used to SET environment variables on the container. The .env file is
       # NOT actually moved over onto the container, just the variables are set.
       - ./.env
-
-  oauth2-proxy:
-    container_name: "${LOG_DATA_APP_ID}--oauth2"
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.5.1
-    command:
-      - --http-address
-      - 0.0.0.0:4180
-    depends_on:
-      - redis
-    <<: *send_container_logs_to_syslog
-    restart: always
-    environment:
-      OAUTH2_PROXY_PROVIDER: adfs
-      OAUTH2_PROXY_OIDC_ISSUER_URL: ${OAUTH2_PROXY_OIDC_ISSUER_URL}
-      OAUTH2_PROXY_CLIENT_ID: ${OAUTH2_PROXY_CLIENT_ID}
-      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET}
-      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
-      OAUTH2_PROXY_REDIRECT_URL: ${OAUTH2_PROXY_REDIRECT_URL}
-      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET}
-      OAUTH2_PROXY_COOKIE_SECURE: true
-      OAUTH2_PROXY_REVERSE_PROXY: true
-
-      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: true
-      OAUTH2_PROXY_LOGIN_URL: ${OAUTH2_PROXY_LOGIN_URL}
-      OAUTH2_PROXY_REDEEM_URL: ${OAUTH2_PROXY_REDEEM_URL}
-      OAUTH2_PROXY_OIDC_JWKS_URL: ${OAUTH2_PROXY_OIDC_JWKS_URL}
-      OAUTH2_PROXY_WHITELIST_DOMAIN: ${OAUTH2_PROXY_WHITELIST_DOMAIN}
-
-      OAUTH2_PROXY_SET_XAUTHREQUEST: true
-      OAUTH2_PROXY_PASS_ACCESS_TOKEN: true
-      OAUTH2_PROXY_OIDC_EMAIL_CLAIM: AUID
-
-      OAUTH2_PROXYSET_SET_AUTHORIZATION_HEADER: true
-      OAUTH2_PROXYSET_SET_BASIC_AUTH: true
-
-      # Just do LaunchPad auth, don't make the user click a button
-      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: true
-
-      OAUTH2_PROXY_COOKIE_NAME: SESSION
-      OAUTH2_PROXY_COOKIE_SAMESITE: lax
-      OAUTH2_PROXY_SESSION_STORE_TYPE: redis
-      OAUTH2_PROXY_REDIS_CONNECTION_URL: redis://redis
-
-  redis:
-    container_name: "${LOG_DATA_APP_ID}--redis"
-    image: redis:7.2.4-alpine3.19
-    restart: always
-    <<: *send_container_logs_to_syslog
-    volumes:
-      - ${REDIS_CACHE_DIR}:/data
 
   database:
     container_name: "${LOG_DATA_APP_ID}--database"
