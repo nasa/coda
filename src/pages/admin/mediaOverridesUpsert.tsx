@@ -8,11 +8,15 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+const PUBLIC_GRANT_VALUE = "";
+
 export const EditMediaOverridesRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
   const [source, setSource] = useState<Source>("ARTEMIS");
   const [type, setType] = useState<MediaMedium>("video");
   const [url, setURL] = useState<string>("");
+  const [accessGrantId, setAccessGrantId] = useState<string>(PUBLIC_GRANT_VALUE);
+  const [accessGrants, setAccessGrants] = useState<AccessGrantListItem[]>([]);
   const navigate = useNavigate();
   const query = useQuery();
   const id = query.get("id");
@@ -24,6 +28,10 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
         navigate("/");
         return;
       }
+      const grantsRes = await fetch(`/api/v1/db/accessGrants`);
+      if (grantsRes.ok) {
+        setAccessGrants(await grantsRes.json());
+      }
       if (id) {
         const response = await fetch(`/api/v1/db/mediaOverrides/${id}`);
         const data: MediaOverride = await response.json();
@@ -31,6 +39,9 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
         setSource(data.source);
         setType(data.type);
         setURL(data.url);
+        setAccessGrantId(
+          typeof data.accessGrantId === "number" ? String(data.accessGrantId) : PUBLIC_GRANT_VALUE
+        );
       }
     })();
   }, [navigate, id]);
@@ -43,6 +54,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
       source: source as Source,
       type: type as "video" | "photo" | "transcript" | "audio",
       url: url,
+      accessGrantId: accessGrantId === PUBLIC_GRANT_VALUE ? null : parseInt(accessGrantId, 10),
     };
     await fetch(`/api/v1/db/mediaOverrides`, {
       method: "POST",
@@ -137,6 +149,30 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                 />
                 <span className={adminCommon.formHint}>
                   The alternate URL endpoint for retrieving media
+                </span>
+              </div>
+
+              <div className={adminCommon.formGroup}>
+                <label htmlFor="accessGrant" className={adminCommon.formLabel}>
+                  Restrict to Access Grant
+                </label>
+                <select
+                  id="accessGrant"
+                  value={accessGrantId}
+                  onChange={(e) => setAccessGrantId(e.target.value)}
+                  className={adminCommon.formSelect}
+                >
+                  <option value={PUBLIC_GRANT_VALUE}>Public — no restriction</option>
+                  {accessGrants.map((g) => (
+                    <option key={g.id} value={String(g.id)}>
+                      {g.name} ({g.auidCount} AUID{g.auidCount === 1 ? "" : "s"})
+                    </option>
+                  ))}
+                </select>
+                <span className={adminCommon.formHint}>
+                  When a grant is selected, only users whose AUID is in that grant will receive this
+                  override (delivered via the restricted REST endpoint, not the public socket feed).
+                  Manage grants on the <Link to="/admin/accessGrants">Access Grants</Link> page.
                 </span>
               </div>
 

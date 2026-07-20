@@ -77,6 +77,12 @@ const AdminMediaOverrides: FunctionComponent = () => {
                           >
                             {record.source}
                             <span className={adminCommon.recordMeta}> — {record.type}</span>
+                            {typeof record.accessGrantId === "number" ? (
+                              <span className={adminCommon.recordMeta}>
+                                {" "}
+                                — restricted (grant #{record.accessGrantId})
+                              </span>
+                            ) : null}
                           </Link>
                           <button
                             type="button"

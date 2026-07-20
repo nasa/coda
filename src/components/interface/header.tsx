@@ -1,7 +1,13 @@
 import { deepEqual, refEqual, useAppSelector } from "utils/useAppSelector";
 import { usePlayheadDate } from "store/hooks";
 import { faCalendarAlt, faClock, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBookmark, faChevronDown, faEye, faTableCells } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBookmark,
+  faChevronDown,
+  faEye,
+  faShieldHalved,
+  faTableCells,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Calendar } from "components/interface/calendar";
 import { ModalDropdown } from "components/interface/dropdown-modal";
@@ -304,6 +310,31 @@ export const SocketStatus: FunctionComponent<{ socketStatus: ClientSocketStatus 
   );
 };
 
+export const RestrictedAccessIndicator: FunctionComponent = () => {
+  const restrictedOverrideActive = useAppSelector(
+    (state) => state.user.restrictedOverrideActive,
+    refEqual
+  );
+  const user = useAppSelector((state) => state.user.user, refEqual);
+  const source = useAppSelector((state) => state.framework.source, refEqual);
+  const playheadDate = usePlayheadDate();
+
+  if (!restrictedOverrideActive) return null;
+
+  const displayName = user?.display_name || user?.auid || "User";
+  const dateLabel = playheadDate.split("T")[0];
+
+  return (
+    <div
+      className={styles.restrictedAccess}
+      data-tooltip-id="app-tooltip"
+      data-tooltip-html={`${displayName}<br/>has been granted access to restricted<br/>material on ${source} / ${dateLabel}`}
+    >
+      <FontAwesomeIcon className={styles.restrictedAccessIcon} icon={faShieldHalved} />
+    </div>
+  );
+};
+
 const Header: FunctionComponent<{
   helpLoaderOpen: boolean;
   setHelpLoaderOpen: (val: boolean) => void;
@@ -348,6 +379,9 @@ const Header: FunctionComponent<{
         </div>
       </div>
       <div className={styles.right}>
+        <div>
+          <RestrictedAccessIndicator />
+        </div>
         <div>
           <SocketStatus socketStatus={socketStatus} />
         </div>
