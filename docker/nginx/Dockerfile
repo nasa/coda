@@ -9,6 +9,17 @@
 # allowing us to specify `--target base`
 FROM nginx:1.30.4-alpine AS base
 
+# njs provides ngx_http_js_module for URL-encoding in the @error401 named
+# location (docker/nginx/rd.js + js_set in nginx.conf). Stock nginx has no
+# urlencode primitive for $request_uri; njs encodeURIComponent handles it
+# without a base-image swap.
+# gettext provides envsubst, used by docker-entrypoint.sh to render
+# setup-auth-unified.conf with AUTH_HOST at container start.
+# Versions pinned to the apk packages bundled with nginx:1.30.4-alpine.
+# The njs module is tied to the nginx ABI and must be updated with the base
+# image; gettext only needs to remain available in the selected Alpine release.
+RUN apk add --no-cache nginx-mod-http-js=1.30.4-r1 gettext=1.0-r0
+
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
 
@@ -75,12 +86,22 @@ COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 
 # Nginx config files
 COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY /docker/nginx/setup-auth.conf /etc/nginx/setup-auth.conf
+# setup-auth-unified.conf is RENDERED AT CONTAINER START from this template by
+# docker-entrypoint.sh, which envsubst's the AUTH_HOST env var into it. The
+# rendered file lands at /etc/nginx/setup-auth-unified.conf and is what
+# nginx.conf includes.
+COPY /docker/nginx/setup-auth-unified.conf.template /etc/nginx/setup-auth-unified.conf.template
 COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf
+COPY /docker/nginx/rd.js /etc/nginx/rd.js
 # COPY /docker/nginx/*.conf /etc/nginx/*.conf
 
 COPY ./docker/nginx/loggedout.html /usr/share/nginx/html/
 COPY ./docker/nginx/loggedin.html /usr/share/nginx/html/
+
+# Entrypoint renders the unified-auth template, then exec's CMD.
+COPY ./docker/nginx/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # This image is intended to be run with docker-compose. See docker-compose*.yml files for necessary
 # environment variables

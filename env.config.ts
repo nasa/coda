@@ -4,64 +4,20 @@ export const environments = ["local", "fit", "test", "prod"] as const;
 
 export const config: DotenvConfig<typeof environments> = {
   /**
-   * Launchpad
-   * Only our prod URLs are added to launchpad prod. All environments (dev/int/prod) are added to launchpad sandbox.
-   * Ultimately we want to use sandbox launchpad for everything except prod (including local dev)
+   * Unified auth
+   * Hostname of the shared oauth2-proxy this app delegates `auth_request` to.
+   * The proxy lives at `https://${AUTH_HOST}/unified-auth/...` and owns the
+   * OIDC dance with LaunchPad. Today only one shared proxy exists
+   * (emss-labs.fit.nasa.gov, backed by LaunchPad SBX), so every environment
+   * points at it. When/if a prod-LaunchPad-backed shared proxy is stood up
+   * (e.g. emss-prod.fit.nasa.gov), flip `prod` to that hostname here. The
+   * value is consumed at container start by `docker/nginx/docker-entrypoint.sh`,
+   * which envsubst's it into `setup-auth-unified.conf`.
    */
-  OAUTH2_PROXY_COOKIE_SECRET: {
-    local: {
-      type: "generate-to-secret-if-missing",
-      length: 32,
-      characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-=",
-    },
-    default: { type: "required-from-secret" },
+  AUTH_HOST: {
+    // prod: "emss-prod.fit.nasa.gov", // <- when a prod-LaunchPad shared proxy exists
+    default: "emss-labs.fit.nasa.gov",
   },
-  OAUTH2_PROXY_OIDC_ISSUER_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs",
-  },
-  OAUTH2_PROXY_LOGIN_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/authorize/",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/authorize/",
-  },
-  OAUTH2_PROXY_REDEEM_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs/oauth2/token/",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs/oauth2/token/",
-  },
-  OAUTH2_PROXY_OIDC_JWKS_URL: {
-    prod: "https://authfs.launchpad.nasa.gov/adfs/discovery/keys",
-    default: "https://authfs.launchpad-sbx.nasa.gov/adfs/discovery/keys",
-  },
-  OAUTH2_PROXY_WHITELIST_DOMAIN: {
-    prod: "authfs.launchpad.nasa.gov",
-    default: "authfs.launchpad-sbx.nasa.gov",
-  },
-  OAUTH2_PROXY_CLIENT_ID: {
-    prod: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_PRODUCTION_CLIENT_ID" },
-    default: { type: "alternate-varname-from-secret-file", value: "LAUNCHPAD_SANDBOX_CLIENT_ID" },
-  },
-  OAUTH2_PROXY_CLIENT_SECRET: {
-    prod: {
-      type: "alternate-varname-from-secret-file",
-      value: "LAUNCHPAD_PRODUCTION_CLIENT_SECRET",
-    },
-    default: {
-      type: "alternate-varname-from-secret-file",
-      value: "LAUNCHPAD_SANDBOX_CLIENT_SECRET",
-    },
-  },
-
-  // Ultimately need to alter this based on what server we're on (prod/int/dev). Currently this override
-  // happens in the pipeline deploy script. `INSERT_SUBDOMAIN` that gets replaced
-  // with the appropriate subdomain during deploy.
-  OAUTH2_PROXY_REDIRECT_URL: {
-    // prod: "https://coda.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    // int: "https://coda-int.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    // dev: carbon, gold, iron, neon, oxygen...
-    local: "https://coda-local.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-    default: "https://INSERT_SUBDOMAIN.fit.nasa.gov/api/v1/auth/nasalp/adfs/oidc/login",
-  },
-  REDIS_CACHE_DIR: { local: "./.local/redis", default: "/d1/coda/redis" },
 
   /**
    * Directories on the host

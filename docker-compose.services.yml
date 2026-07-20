@@ -34,5 +34,3 @@ services:
   # Don't start any of these services
   nginx: !reset null
   apiv1: !reset null
-  oauth2-proxy: !reset null
-  redis: !reset null
