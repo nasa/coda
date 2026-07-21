@@ -325,7 +325,6 @@ type ChannelAudioState = {
 };
 
 /** Represents a processed utterance for display */
-
 type DisplayUtterance = {
   id: string;
   secs: number;
@@ -589,7 +588,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     return channels;
   }, [channelTimingMap]);
 
-  // Estimate a consistent label width from the longest channel name, capped at 100px
+  // Estimate a consistent label width from the longest channel name, capped at 115px
   const channelLabelWidth = useMemo(() => {
     if (!sortedChannels.length) return 60;
     const longest = Math.max(...sortedChannels.map((ch) => ch.length));
