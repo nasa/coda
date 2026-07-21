@@ -8,7 +8,23 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 
 const router = express.Router();
 
-const sanitizeAuids = (raw: unknown): string[] | null => {
+/**
+ * True if the given user should be treated as a member of the given access grant:
+ * either the user is a superuser (which bypasses all grants) or their AUID appears
+ * in the grant's auids list. Shared by the restricted-video endpoint and the
+ * visitor-data restricted-access lookup so the membership rule only lives in one place.
+ */
+export const userIsInGrant = (
+  user: EmssUser | null | undefined,
+  grant: Pick<AccessGrant, "auids">
+): boolean => {
+  if (isSuperuser(user)) return true;
+  const auid = user?.auid;
+  if (!auid) return false;
+  return Array.isArray(grant.auids) && grant.auids.includes(auid.toLowerCase());
+};
+
+export const sanitizeAuids = (raw: unknown): string[] | null => {
   if (!Array.isArray(raw)) return null;
   const cleaned: string[] = [];
   for (const v of raw) {
@@ -62,6 +78,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
     res.status(400).json({ status: "error", message: "auids must be an array of strings" });
     return;
   }
+  const cleanedNotes = typeof notes === "string" ? notes.trim() || undefined : undefined;
 
   const em = getORM().em;
 
@@ -71,7 +88,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       if (record) {
         record.name = name.trim();
         record.auids = cleanedAuids;
-        record.notes = notes;
+        record.notes = cleanedNotes;
         await em.persist(record).flush();
         res.status(200).json({ status: "success", message: "access grant updated", data: record });
       } else {
@@ -81,7 +98,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
       const record = em.create(AccessGrant_db, {
         name: name.trim(),
         auids: cleanedAuids,
-        notes,
+        notes: cleanedNotes,
       });
       await em.persist(record).flush();
       res.status(201).json({ status: "success", message: "access grant inserted", data: record });
@@ -148,7 +165,6 @@ export async function findRestrictedAccessesForUser(
 ): Promise<VisitorRestrictedAccess[]> {
   const auid = user?.auid;
   if (!auid) return [];
-  const userIsSuperuser = isSuperuser(user);
   const em = getORM().em.fork();
   const overrides = await em.find(MediaOverride_db, {
     source,
@@ -168,11 +184,7 @@ export async function findRestrictedAccessesForUser(
     if (typeof o.accessGrantId !== "number") continue;
     const grant = grantsById.get(o.accessGrantId);
     if (!grant) continue;
-    if (
-      !userIsSuperuser &&
-      (!Array.isArray(grant.auids) || !grant.auids.includes(auid.toLowerCase()))
-    )
-      continue;
+    if (!userIsInGrant(user, grant)) continue;
     results.push({
       overrideId: o.id,
       overrideType: o.type,

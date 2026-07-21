@@ -27,7 +27,7 @@ const normalizeAccessGrantId = (raw: unknown): number | null => {
 };
 
 // get by date or get list if no date provided
-router.get("/", async (req: Request, res: Response): Promise<void> => {
+router.get("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
 
   try {
@@ -53,7 +53,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 });
 
 // get by id
-router.get("/:id", async (req: Request, res: Response): Promise<void> => {
+router.get("/:id", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
   const em = getORM().em;
 

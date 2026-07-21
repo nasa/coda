@@ -8,7 +8,7 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-const parseAuidsInput = (raw: string): { auids: string[]; error: string | null } => {
+export const parseAuidsInput = (raw: string): { auids: string[]; error: string | null } => {
   const trimmed = raw.trim();
   if (trimmed.length === 0) return { auids: [], error: null };
 
@@ -73,7 +73,7 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
       return;
     }
     const data: AccessGrantUpsertRequest = {
-      id: id ? parseInt(id) : undefined,
+      id: id ? parseInt(id, 10) : undefined,
       name: name.trim(),
       auids: parsed.auids,
       notes: notes.trim() || undefined,

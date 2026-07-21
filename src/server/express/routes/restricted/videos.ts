@@ -5,7 +5,7 @@ import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { fetchForgedIoManifest } from "server/processing/io-api";
 import { getUser } from "packages/getUser";
-import { isSuperuser } from "utils/user";
+import { userIsInGrant } from "server/express/routes/db/accessGrants";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import serverLogger from "utils/logging/serverLogger";
 
@@ -17,8 +17,10 @@ import serverLogger from "utils/logging/serverLogger";
  *   2. The caller's JWT-derived AUID is in the linked AccessGrant.auids list
  *
  * If no restricted override exists for that (source, date), responds 204 (caller should
- * fall back to the public socket-delivered video data). 401 for missing/invalid JWT,
- * 403 if the user is identified but not in the grant.
+ * fall back to the public socket-delivered video data). 401 for missing/invalid JWT.
+ * If the user is identified but not in the grant, also responds 204 rather than 403 —
+ * an ineligible user must not be able to distinguish "no restricted override exists"
+ * from "one exists but you can't have it".
  *
  * NOTE: this endpoint MUST be reachable only via the launchpad-authed nginx path so
  * that JWT validation is enforced upstream as well as in the Express layer.
@@ -70,13 +72,16 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       ConsoleLogger.warn(
         `Restricted video override ${override.id} references missing access grant ${override.accessGrantId}`
       );
-      res.status(403).json({ status: "error", message: "Forbidden" });
+      // 204, not 403/404: don't leak the existence of a restricted override to a
+      // caller who isn't entitled to see it.
+      res.status(204).end();
       return;
     }
 
-    const auids = Array.isArray(grant.auids) ? grant.auids : [];
-    if (!isSuperuser(user) && (!user.auid || !auids.includes(user.auid.toLowerCase()))) {
-      res.status(403).json({ status: "error", message: "Forbidden" });
+    if (!userIsInGrant(user, grant)) {
+      // Same as above: respond identically to the "no restricted override exists"
+      // case so an ineligible user can't infer that restricted content exists.
+      res.status(204).end();
       return;
     }
 

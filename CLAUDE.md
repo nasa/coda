@@ -69,7 +69,7 @@ External APIs (SpaceTrack, EMSS, Maestro, LaunchPad)
   → Socket.IO events → Redux store → React components
 ```
 
-REST API is served at `/api/v1/`. Key route groups: `/db/*` (CRUD), `/emss/*`, `/user/current`, `/external/daynight/*`, `/log/from-client`.
+REST API is served at `/api/v1/`. Key route groups: `/db/*` (CRUD), `/emss/*`, `/user/current`, `/external/daynight/*`, `/log/from-client`, `/restricted/*` (auth-gated restricted media delivery).
 
 ### Key Patterns
 

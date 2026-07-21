@@ -34,6 +34,16 @@ const SocketClient: FunctionComponent<{
 
   const [user, setUser] = useState<EmssUser | undefined>(undefined);
 
+  // Track the latest source/playheadDate outside of the socket effect's closure so
+  // in-flight restricted-video fetches can detect when the user has since navigated
+  // away from the source/date they were requested for and discard stale responses.
+  const sourceRef = useRef(source);
+  const playheadDateRef = useRef(playheadDate);
+  useEffect(() => {
+    sourceRef.current = source;
+    playheadDateRef.current = playheadDate;
+  }, [source, playheadDate]);
+
   // Ensure the user is logged in and get the user data
   useEffect(() => {
     setupFetchFns();
@@ -190,10 +200,21 @@ const SocketClient: FunctionComponent<{
           dispatch(setRestrictedOverrideActive(false));
           // After applying public videos, request any restricted-override variant the
           // logged-in user may be entitled to. If returned, it replaces the videos store.
+          // Capture the source/date this request was made for so a stale response that
+          // resolves after the user has since switched source/date is discarded instead
+          // of clobbering the videos store.
+          const requestedSource = source;
+          const requestedPlayheadDate = playheadDate;
           void fetchAndApplyRestrictedVideos({
-            source,
-            dateWanted: playheadDate.split("T")[0],
+            source: requestedSource,
+            dateWanted: requestedPlayheadDate.split("T")[0],
             applyRestricted: (r) => {
+              if (
+                sourceRef.current !== requestedSource ||
+                playheadDateRef.current !== requestedPlayheadDate
+              ) {
+                return;
+              }
               dispatch(addVideos(r));
               dispatch(setRestrictedOverrideActive(true));
             },

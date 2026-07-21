@@ -328,7 +328,7 @@ export const RestrictedAccessIndicator: FunctionComponent = () => {
     <div
       className={styles.restrictedAccess}
       data-tooltip-id="app-tooltip"
-      data-tooltip-html={`${displayName}<br/>has been granted access to restricted<br/>material on ${source} / ${dateLabel}`}
+      data-tooltip-content={`${displayName} has been granted access to restricted material on ${source} / ${dateLabel}`}
     >
       <FontAwesomeIcon className={styles.restrictedAccessIcon} icon={faShieldHalved} />
     </div>
