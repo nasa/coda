@@ -44,7 +44,6 @@ vi.mock("./global", () => ({
     socketInterval: null,
     appVersion: null,
     fetchTrackers: {},
-    talkybotS2sSocket: null,
     celestrakInterval: null,
     celestrakTrackerData: {},
   } as unknown as GlobalValues,

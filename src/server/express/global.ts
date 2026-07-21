@@ -29,7 +29,6 @@ export const globalValues: GlobalValues = {
   socketInterval: null,
   appVersion: null,
   fetchTrackers: {},
-  talkybotS2sSocket: null,
   spacetrackInterval: null,
   spacetrackTrackerData: createInitialSpacetrackState(),
 };

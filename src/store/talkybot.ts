@@ -37,7 +37,7 @@ export const talkybotSlice = createSlice({
       state.audioFiles = [];
       state.metadata = null;
     },
-    /** Add or update a single audio file (upsert from talkybotS2sSocket updates) */
+    /** Add or update a single audio file (upsert from live Talkybot socket / overrides) */
     upsertTalkybotAudioFile: (state, action: { payload: TbAudioFileConverted }) => {
       const newFile = withAppSeconds(action.payload);
       // Check if audioFile record already exists (by fileUuid)

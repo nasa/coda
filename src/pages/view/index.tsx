@@ -27,6 +27,7 @@ import {
 import { useSearchParams } from "react-router";
 import { isSameDate, midnightZulu } from "../../utils/date";
 import SocketClient from "components/framework/SocketClient";
+import TalkybotClient from "components/framework/TalkybotClient";
 import { appSecondsFromDateString } from "utils/formatting";
 
 export function V2(): JSX.Element {
@@ -138,6 +139,7 @@ export function V2(): JSX.Element {
         socketStatus={socketStatus}
       />
       <SocketClient socketStatus={socketStatus} setSocketStatus={setSocketStatus} />
+      <TalkybotClient />
       <div className={styles.body}>
         {frameworkReady && <DockviewLayout initialLayout={urlState.dockviewLayout} />}
       </div>

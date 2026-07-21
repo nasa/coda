@@ -16,6 +16,14 @@ interface TbAudioFileConverted {
   /** Groups from Talkybot channel - used to route audio files to the correct CODA source */
   groups: TbGroup[];
 
+  /**
+   * Talkybot's per-channel "is this a simulation channel" flag. Combined with the
+   * channel's group(s) it determines which CODA source(s) this audio routes to
+   * (see getSourcesForTalkybotGroup). Defaults to false for legacy override files
+   * that don't originate from a real talkybot channel.
+   */
+  sim: boolean;
+
   /** Indicates this is from an override source, not Talkybot API */
   override?: boolean;
   /** Full URL to download audio file (used for overrides since they're not from Talkybot API) */

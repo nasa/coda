@@ -37,12 +37,6 @@ interface FetchConfig {
   isDateDependent?: boolean; // if true, data varies by date and uses per-date cache entries; if false, data is the same for all dates and uses a global cache entry
 }
 
-/** Incremental data updates for single items (e.g., new audio file from talkybotS2sSocket) */
-interface IncrementalDataUpdate {
-  type: StoreDataType;
-  item: unknown;
-}
-
 // ============================================================================
 // Fetch Tracker (Data Retrieval Scheduler)
 // ============================================================================
@@ -102,57 +96,6 @@ interface FetchInspectorUpdate {
 }
 
 // ============================================================================
-// TalkybotS2sSocket Tracker (Talkybot Connection)
-// ============================================================================
-
-/** TalkybotS2sSocket (Server-to-Server) Tracker Data for Talkybot connection monitoring */
-interface TalkybotS2sSocketTrackerData {
-  // Error tracking
-  lastErrorAt: string | null;
-  lastErrorMessage: string | null;
-
-  // Connection state
-  isConnected: boolean;
-  connectionStatus: ConnectionStatus;
-  connectedAt: string | null;
-  disconnectedAt: string | null;
-
-  // Configuration
-  targetUrl: string | null;
-  socketPath: string;
-  socketId: string | null;
-
-  // Reconnection tracking
-  reconnectAttempts: number;
-  maxReconnectAttempts: number;
-  lastReconnectAttemptAt: string | null;
-
-  // Message tracking
-  messagesReceived: number;
-  lastMessageReceivedAt: string | null;
-  lastMessageType: string | null;
-  lastMessagePreview: string | null;
-
-  // Talkybot server info
-  talkybotVersion: string | null;
-  lastStatusFromTalkybot: {
-    timestamp: number;
-    version: string;
-  } | null;
-
-  // Audio file tracking
-  audioFilesReceived: number;
-  lastAudioFileReceivedAt: string | null;
-  lastAudioFileUuid: string | null;
-  lastAudioFilePreview: string | null;
-}
-
-interface TalkybotS2sSocketTrackerDataUpdate {
-  status: TalkybotS2sSocketTrackerData;
-  updatedAt: string;
-}
-
-// ============================================================================
 // SpaceTrack TLE Scheduler Tracker
 // ============================================================================
 
@@ -208,10 +151,8 @@ interface ServerToClientEvents {
   noArg: () => void;
   statusFromServer: (payload: StatusFromServer) => void;
   dataUpdate: (payload: DataUpdate) => void;
-  incrementalDataUpdate: (payload: IncrementalDataUpdate) => void;
   version: (version: AppVersion) => void; // server version sent to client
   fetchInspectorUpdate: (payload: FetchInspectorUpdate) => void;
-  talkybotS2sSocketInspectorUpdate: (payload: TalkybotS2sSocketTrackerDataUpdate) => void;
   spacetrackInspectorUpdate: (payload: SpaceTrackTrackerDataUpdate) => void;
   visitorInspectorUpdate: (payload: VisitorInspectorUpdate) => void;
   liveVideoRestrictionUpdate: (payload: LiveVideoRestrictionUpdate) => void; // sent to individual clients when their restriction status changes

@@ -123,11 +123,6 @@ const AdminIndex: FunctionComponent = () => {
                 title="Visitor Activity"
                 description="Real-time management of all connected visitors organized by source and viewing date."
               />
-              <NavCard
-                to="/admin/talkybotSocketStatus"
-                title="Talkybot S2s Connection Monitor"
-                description="Monitor the server-to-server socket connection to Talkybot."
-              />
             </nav>
           </div>
         </section>
