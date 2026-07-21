@@ -122,6 +122,10 @@ const TalkybotClient: FunctionComponent = () => {
 
     let cancelled = false;
     const baseUrl = getTalkybotBaseUrl();
+    if (!baseUrl) {
+      ConsoleLogger.error("TalkybotClient: VITE_PUBLIC_TALKYBOT_URL is not set");
+      return;
+    }
 
     const load = async () => {
       dispatch(clearTalkybotAudioFiles());
@@ -161,7 +165,7 @@ const TalkybotClient: FunctionComponent = () => {
         dispatch(
           setTalkybotAudioFiles({
             data: [],
-            fetchMetadata: { success: true, timestamp: new Date().toISOString() },
+            fetchMetadata: { success: false, timestamp: new Date().toISOString() },
           })
         );
       }
