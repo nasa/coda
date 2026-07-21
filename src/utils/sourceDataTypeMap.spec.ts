@@ -2,6 +2,7 @@ import {
   isDataTypeValidForSource,
   isDateValidForMtxVideo,
   isDataTypeValidForSourceAndDate,
+  getSourcesForTalkybotGroup,
 } from "./sourceDataTypeMap";
 
 const MTX_VIDEO_MAX_AGE_DAYS = 7; // Default value for tests
@@ -103,6 +104,42 @@ describe("sourceDataTypeMap", () => {
       expect(
         isDataTypeValidForSourceAndDate("ISS", "gpstracks", today, MTX_VIDEO_MAX_AGE_DAYS)
       ).toBe(false);
+    });
+  });
+
+  describe("getSourcesForTalkybotGroup", () => {
+    it("should route real (non-sim) ISS traffic to ISS only", () => {
+      expect(getSourcesForTalkybotGroup("iss", false)).toEqual(["ISS"]);
+    });
+
+    it("should drop simulated ISS traffic entirely", () => {
+      expect(getSourcesForTalkybotGroup("iss", true)).toEqual([]);
+    });
+
+    it("should route the 'test' group to the miscellaneous bucket regardless of sim", () => {
+      expect(getSourcesForTalkybotGroup("test", false)).toEqual(["TEST_EVENTS", "ARTEMIS"]);
+      expect(getSourcesForTalkybotGroup("test", true)).toEqual(["TEST_EVENTS", "ARTEMIS"]);
+    });
+
+    it("should route the 'sim' group to the miscellaneous bucket regardless of sim", () => {
+      expect(getSourcesForTalkybotGroup("sim", false)).toEqual(["TEST_EVENTS", "ARTEMIS"]);
+      expect(getSourcesForTalkybotGroup("sim", true)).toEqual(["TEST_EVENTS", "ARTEMIS"]);
+    });
+
+    it("should route the 'artemis' group to the miscellaneous bucket regardless of sim", () => {
+      expect(getSourcesForTalkybotGroup("artemis", false)).toEqual(["TEST_EVENTS", "ARTEMIS"]);
+      expect(getSourcesForTalkybotGroup("artemis", true)).toEqual(["TEST_EVENTS", "ARTEMIS"]);
+    });
+
+    it("should route unknown group slugs to the miscellaneous bucket rather than dropping them", () => {
+      expect(getSourcesForTalkybotGroup("some-future-group", false)).toEqual([
+        "TEST_EVENTS",
+        "ARTEMIS",
+      ]);
+      expect(getSourcesForTalkybotGroup("some-future-group", true)).toEqual([
+        "TEST_EVENTS",
+        "ARTEMIS",
+      ]);
     });
   });
 });

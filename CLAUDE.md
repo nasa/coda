@@ -75,7 +75,7 @@ REST API is served at `/api/v1/`. Key route groups: `/db/*` (CRUD), `/emss/*`, `
 
 - **TypeScript strict mode** throughout; `baseUrl: "./src"` enables `import from "components/..."` style imports.
 - **MikroORM RequestContext** wraps each HTTP request for identity-map isolation.
-- **Socket.IO** handles real-time updates: GPS, sequences, video/photo timeline, ephemeris, talkybot.
+- **Socket.IO** handles real-time updates: GPS, sequences, video/photo timeline, ephemeris. (Talkybot connects directly client-to-server, not through CODA's socket.)
 - **Redux** uses `useAppSelector` / `useAppDispatch` wrappers — ESLint enforces this; bare `useSelector`/`useDispatch` imports are forbidden.
 - **Lodash**: import specific functions only (`import sortBy from "lodash/sortBy"`), not the full package.
 - **CSS Modules** for all component styling; Stylelint enforces CSS module best practices.
@@ -92,7 +92,7 @@ REST API is served at `/api/v1/`. Key route groups: `/db/*` (CRUD), `/emss/*`, `
 - **SpaceTrack**: TLE orbital data for ephemeris calculations
 - **EMSS Matrix**: Mission operations data
 - **Maestro**: Day/night terminator calculations
-- **Talkybot**: Server-to-server real-time communication
+- **Talkybot**: Direct client-to-server real-time communication (browser connects straight to Talkybot's Socket.IO + REST API using the shared `.fit.nasa.gov` auth cookie)
 - **LaunchPad**: NASA OAuth2 user authentication proxy
 - **Mapbox/MapLibre**: Map rendering
 

@@ -202,7 +202,11 @@ export const defaultPaneInstances: { [paneInstanceId: string]: PaneState } = {
 
 /**
  * The state of each frame containing the pane type and the state of the control
- * NOTE: all panes must manage a "ready" boolean in its paneStateData. This is used to determine application-wide readiness
+ * NOTE: every pane's paneStateData carries a "ready" boolean, but it is not aggregated
+ * into a single application-wide readiness signal. Panes with an async load that should
+ * hold up playback (video, pcd_audio) gate their own play/pause on it internally. Panes
+ * without such a load-gating concern (e.g. comm, which streams directly from Talkybot)
+ * leave it at the `true` default and simply don't read it.
  */
 export const initialState: FrameworkState = {
   layout: "n",
