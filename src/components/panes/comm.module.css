@@ -100,11 +100,7 @@
 }
 
 .channelTime {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
   padding: 0 5px 0 0;
-  flex-shrink: 0;
 }
 
 .channelLabel {
@@ -211,7 +207,7 @@
   font-size: 0.8rem;
   cursor: pointer;
   padding-left: 10px;
-  width: 110px;
+  padding-right: 30px;
   height: 20px;
   border: none;
   border-radius: var(--radius);
@@ -220,7 +216,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  min-width: 100px;
+  width: fit-content;
+  min-width: 90px;
 }
 
 .channelDropdownButton:hover {
@@ -244,7 +241,7 @@
   background-color: var(--grey);
   border: 1px solid var(--lightest-grey);
   border-radius: var(--radius);
-  min-width: 120px;
+  width: max-content;
   max-height: 200px;
   overflow-y: auto;
   margin-top: 2px;

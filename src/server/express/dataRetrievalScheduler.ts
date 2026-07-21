@@ -8,7 +8,6 @@ import getEphemera from "server/processing/ephemeris/ephemeris";
 import getPhotoData from "server/processing/io-photos";
 import getGpsTrackData from "server/processing/gps";
 import { getMTXAPIResponses } from "server/processing/mediaMtx";
-import getTalkybotData from "server/processing/talkybot";
 import getGraphManifest from "server/processing/graphs";
 import getPcdAudioData from "server/processing/pcdAudio";
 import { getISSEvaData } from "server/processing/wiki/evaData";
@@ -98,15 +97,6 @@ export const dataFetchConfigs: FetchConfig[] = [
     refreshIntervalMs: null,
     fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
     enableCacheUse: false, // Data retrieved from local database (no caching needed)
-    isDateDependent: true,
-  },
-  {
-    type: "talkybot",
-    getDataFunction: getTalkybotData,
-    refreshIntervalTodayMs: null, // No polling - updates come via talkybotS2sSocket incremental updates
-    refreshIntervalMs: null,
-    fetchTimeoutMs: DEFAULT_DATA_FETCH_TIMEOUT_MS,
-    enableCacheUse: false, // Always fetch fresh data from talkybot
     isDateDependent: true,
   },
   {

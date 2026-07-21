@@ -52,24 +52,39 @@ export const getSourcesWithDataType = (dataType: StoreDataType): Source[] => {
 };
 
 /**
- * Mapping from Talkybot group slugs to CODA sources.
- * Talkybot channels belong to groups; this maps those group slugs to CODA sources.
- * Current talkybot groups (from seeder): "iss", "sim", "test". "artemis" group added for upcoming Artemis data.
- * Talkybot only sends public channel data to CODA.
+ * Mapping from Talkybot group slugs to CODA sources, given the channel's `sim` flag.
+ *
+ * Talkybot exposes TWO orthogonal dimensions per channel: a `sim` boolean (sim vs
+ * mission) and a `group` slug (iss / artemis / test / sim / ...). CODA only cares
+ * about one distinction: ISS-encoder mission traffic vs everything else. The rules:
+ *
+ *   - group="iss" + sim=false (real ISS mission)         -> ISS only
+ *   - group="iss" + sim=true  (simulated ISS)            -> nowhere (never shown in CODA)
+ *   - any other (group, sim) combination                 -> both TEST_EVENTS and ARTEMIS
+ *     (treated as "miscellaneous" non-ISS content, regardless of whether it's a
+ *     sim or a real mission - they're collapsed together in CODA)
+ *
+ * Unknown group slugs fall through to the miscellaneous bucket rather than being
+ * dropped, so newly-added talkybot groups don't silently disappear from CODA.
  */
-const TALKYBOT_GROUP_TO_SOURCE_MAP: Record<string, Source> = {
-  iss: "ISS",
-  test: "TEST_EVENTS",
-  sim: "TEST_EVENTS",
-  artemis: "ARTEMIS",
+const MISCELLANEOUS_TALKYBOT_SOURCES: Source[] = ["TEST_EVENTS", "ARTEMIS"];
+
+const TALKYBOT_GROUP_TO_SOURCES_MAP: Record<string, (sim: boolean) => Source[]> = {
+  // Sim ISS traffic is intentionally dropped (returns []), so it never appears in CODA.
+  iss: (sim) => (sim ? [] : ["ISS"]),
+  test: () => MISCELLANEOUS_TALKYBOT_SOURCES,
+  sim: () => MISCELLANEOUS_TALKYBOT_SOURCES,
+  artemis: () => MISCELLANEOUS_TALKYBOT_SOURCES,
 };
 
 /**
- * Get the CODA source for a Talkybot group slug.
- * Returns null if the group slug doesn't map to any CODA source.
+ * Get the CODA sources for a Talkybot (group slug, sim flag) pair. A single talkybot
+ * group can surface in multiple CODA sources, or in none at all (e.g. simulated ISS).
+ * Unknown slugs fall through to the miscellaneous bucket.
  */
-export const getSourceForTalkybotGroup = (groupSlug: string): Source | null => {
-  return TALKYBOT_GROUP_TO_SOURCE_MAP[groupSlug] ?? null;
+export const getSourcesForTalkybotGroup = (groupSlug: string, sim: boolean): Source[] => {
+  const resolver = TALKYBOT_GROUP_TO_SOURCES_MAP[groupSlug];
+  return resolver ? resolver(sim) : MISCELLANEOUS_TALKYBOT_SOURCES;
 };
 
 /**

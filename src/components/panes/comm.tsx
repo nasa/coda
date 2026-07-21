@@ -17,6 +17,7 @@ import { usePlayheadDate } from "store/hooks";
 import { MuteButton } from "components/panes/video/video-controls";
 import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
+import { getTalkybotAudioUrl } from "utils/talkybot";
 import ClockInterval from "components/framework/ClockInterval";
 
 export const channelColors = [
@@ -317,13 +318,14 @@ export const CommControls: FunctionComponent<{
   );
 };
 
-/** Represents an audio file that's currently active for playback */
-type ActiveAudioFile = {
-  file: TbAudioFileConverted | null;
-  playOffset: number;
+/** Per-channel audio playback state */
+type ChannelAudioState = {
+  srcUrl: string;
+  playOffset: number; // seconds into the clip; -1 means pause
 };
 
 /** Represents a processed utterance for display */
+
 type DisplayUtterance = {
   id: string;
   secs: number;
@@ -381,11 +383,10 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     dispatch,
     paneInstanceId,
   ]);
-  const [activeAudioFile, setActiveAudioFile] = useState<ActiveAudioFile>({
-    file: null,
-    playOffset: -1,
-  });
-  const [srcUrl, setSrcUrl] = useState("");
+  // Per-channel audio state: channel name → { srcUrl, playOffset }
+  const [channelAudioStates, setChannelAudioStates] = useState<Map<string, ChannelAudioState>>(
+    new Map()
+  );
 
   // Transcript state
   const [filterText, setFilterText] = useState("");
@@ -395,7 +396,8 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const audioPlayerRef = useRef<HTMLAudioElement>(null);
+  // Per-channel audio element refs: channel name → HTMLAudioElement
+  const channelAudioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
   const lastProcessedMetadataRef = useRef<FetchMetadata | null>(null);
 
@@ -428,78 +430,93 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     }));
   }, [allChannelTimings]);
 
-  // Find and set the active audio file for the current playhead position
+  // Compute per-channel audio state from the current playhead position.
+  // Each selected channel independently finds its active clip (if any).
   useEffect(() => {
-    if (!allChannelTimings.length || paneStateData.isMuted) {
-      return;
-    }
+    const selectedChannels = paneStateData.sgChannels || [];
+    const nextStates = new Map<string, ChannelAudioState>();
 
-    let foundActive = false;
-    for (const timing of allChannelTimings) {
-      const { file } = timing;
+    for (const channel of selectedChannels) {
+      if (paneStateData.isMuted) {
+        nextStates.set(channel, { srcUrl: "", playOffset: -1 });
+        continue;
+      }
 
-      if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
-        const newSrcUrl =
-          file.audioUrl ||
-          `${import.meta.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/${file.fileUuid}/file`;
+      const timings = channelTimingMap.get(channel) ?? [];
+      let found = false;
 
-        if (srcUrl !== newSrcUrl) {
-          setSrcUrl(newSrcUrl);
-        }
-        setActiveAudioFile({
-          file,
-          playOffset:
+      for (const timing of timings) {
+        if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
+          const { file } = timing;
+          // Transcript-only overrides have no audio
+          let srcUrl = "";
+          if (!file.override || file.audioUrl) {
+            // Use audioUrl if available (for legacy overrides with audio), otherwise stream
+            // directly from Talkybot. CODA is a native Talkybot client now: the shared
+            // .fit.nasa.gov auth cookie gates per-user access, and the <audio> element below
+            // sends it via crossOrigin="use-credentials".
+            srcUrl = file.audioUrl || getTalkybotAudioUrl(file.fileUuid);
+          }
+          const playOffset =
             appSeconds - timing.startSeconds < file.duration
               ? appSeconds - timing.startSeconds
-              : -1,
-        });
+              : -1;
+          nextStates.set(channel, { srcUrl, playOffset });
+          found = true;
+          break;
+        }
+      }
 
-        foundActive = true;
-        break;
+      if (!found) {
+        nextStates.set(channel, { srcUrl: "", playOffset: -1 });
       }
     }
 
-    if (!foundActive) {
-      setActiveAudioFile({
-        file: null,
-        playOffset: -1,
-      });
-      setSrcUrl("");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- srcUrl intentionally excluded to prevent infinite loops; effect sets srcUrl based on playhead position
-  }, [allChannelTimings, appSeconds, paneStateData.isMuted, paneStateData.sgChannels]);
+    setChannelAudioStates(nextStates);
+  }, [channelTimingMap, appSeconds, paneStateData.isMuted, paneStateData.sgChannels]);
 
-  // Cue the audio and figure out whether to play or pause
+  // Drive play/pause for every channel's audio element whenever state changes.
   useEffect(() => {
-    if (!audioPlayerRef.current || srcUrl === "") {
-      return;
-    }
-    const isPlaying =
-      audioPlayerRef.current.currentTime > 0 &&
-      !audioPlayerRef.current.paused &&
-      !audioPlayerRef.current.ended &&
-      audioPlayerRef.current.readyState > audioPlayerRef.current.HAVE_CURRENT_DATA;
+    for (const [channel, state] of channelAudioStates) {
+      const el = channelAudioRefs.current.get(channel);
+      if (!el) continue;
 
-    if (activeAudioFile.playOffset > -1) {
-      if (Math.abs(audioPlayerRef.current.currentTime - activeAudioFile.playOffset) > 1) {
-        audioPlayerRef.current.currentTime = activeAudioFile.playOffset;
+      if (state.srcUrl === "" || state.playOffset === -1) {
+        el.pause();
+        continue;
+      }
+
+      // Swap src only when the URL changes to avoid unnecessary reloads
+      if (el.src !== state.srcUrl && !el.src.endsWith(state.srcUrl)) {
+        el.src = state.srcUrl;
+      }
+
+      const isPlaying =
+        el.currentTime > 0 && !el.paused && !el.ended && el.readyState > el.HAVE_CURRENT_DATA;
+
+      if (Math.abs(el.currentTime - state.playOffset) > 1) {
+        el.currentTime = state.playOffset;
       }
 
       try {
-        if (isRunning && paneStateData.ready) {
-          if (!isPlaying && srcUrl !== "") {
-            audioPlayerRef.current.play();
-          }
+        if (isRunning) {
+          if (!isPlaying) el.play();
         } else {
-          audioPlayerRef.current.pause();
+          el.pause();
         }
       } catch (e) {
-        // eat play errors. They are all bogus
+        // eat play errors — they are all benign (e.g. interrupted by a src change)
       }
-    } else {
-      audioPlayerRef.current.pause();
     }
-  }, [srcUrl, audioPlayerRef, isRunning, activeAudioFile.playOffset, paneStateData.ready]);
+
+    // Pause any element whose channel is no longer in the active state map
+    // (e.g. channel was deselected between renders)
+    for (const [channel, el] of channelAudioRefs.current) {
+      if (!channelAudioStates.has(channel)) {
+        el.pause();
+      }
+    }
+  }, [channelAudioStates, isRunning]);
 
   // Derive filtered utterances from utterances and filter criteria
   const filteredUtterances = useMemo((): DisplayUtterance[] => {
@@ -577,7 +594,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     if (!sortedChannels.length) return 60;
     const longest = Math.max(...sortedChannels.map((ch) => ch.length));
     // ~8px per uppercase char at 0.9em, plus ~8px horizontal padding
-    return Math.min(100, longest * 8 + 8);
+    return Math.min(115, longest * 8 + 8);
   }, [sortedChannels]);
 
   function displayUtterance(utterance: DisplayUtterance, idx: number) {
@@ -680,46 +697,23 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         </div>
       </div>
       <div className={styles.player}>
-        <audio
-          controls={true}
-          autoPlay={false}
-          ref={audioPlayerRef}
-          src={srcUrl}
-          muted={paneStateData.isMuted}
-          onCanPlay={() => {
-            if (!paneStateData.ready) {
-              dispatch(
-                setPaneStateDataValue({
-                  paneInstanceId,
-                  paneStateProperty: "ready",
-                  paneStateValue: true,
-                })
-              );
-            }
-          }}
-          onEnded={() => {
-            // ready up because we don't want a missing audio to hold up the playhead
-            setSrcUrl("");
-            dispatch(
-              setPaneStateDataValue({
-                paneInstanceId,
-                paneStateProperty: "ready",
-                paneStateValue: true,
-              })
-            );
-          }}
-          onWaiting={() => {
-            if (paneStateData.ready && srcUrl !== "") {
-              dispatch(
-                setPaneStateDataValue({
-                  paneInstanceId,
-                  paneStateProperty: "ready",
-                  paneStateValue: false,
-                })
-              );
-            }
-          }}
-        />
+        {(paneStateData.sgChannels || []).map((channel) => (
+          <audio
+            key={channel}
+            autoPlay={false}
+            muted={paneStateData.isMuted}
+            // Send the shared auth cookie on cross-origin Talkybot audio requests so
+            // per-user restricted audio is served (works with Talkybot CORS allow-credentials).
+            crossOrigin="use-credentials"
+            ref={(el) => {
+              if (el) {
+                channelAudioRefs.current.set(channel, el);
+              } else {
+                channelAudioRefs.current.delete(channel);
+              }
+            }}
+          />
+        ))}
       </div>
       <div className={styles.utterancesContainer}>
         <div>{filteredUtterances.map((utterance, idx) => displayUtterance(utterance, idx))}</div>
