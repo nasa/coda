@@ -38,15 +38,19 @@ location /oauth2/ {
 }
 
 # /oauth2/auth — subrequest endpoint hit by auth_request in route-require-auth.conf.
-# X-Auth-Request-Redirect encodes the original CODA URL into the LaunchPad state
-# parameter so oauth2-proxy redirects back here (not ${AUTH_HOST}) after the callback.
+# oauth2-proxy's AuthOnly handler (which serves this endpoint) returns a bare 401
+# immediately on an unauthenticated request — it does not read X-Auth-Request-Redirect
+# or build any redirect itself. The actual return-URL is carried separately: nginx's
+# `error_page 401 = @error401` (nginx.conf) turns that 401 into a 302 to
+# /oauth2/sign_in?rd=$rd_encoded, so no redirect header is needed on this subrequest.
+# (X-Auth-Request-Redirect IS needed below on /oauth2/ for the sign-in/callback flow,
+# which is a different oauth2-proxy handler that does consume it.)
 location = /oauth2/auth {
     proxy_pass       https://${AUTH_HOST}/unified-auth/oauth2/auth;
     proxy_ssl_server_name on;
     proxy_set_header Host                    ${AUTH_HOST};
     proxy_set_header X-Real-IP               $remote_addr;
     proxy_set_header X-Scheme                $scheme;
-    proxy_set_header X-Auth-Request-Redirect $scheme://$http_host$request_uri;
     proxy_set_header Content-Length          "";
     proxy_pass_request_body                  off;
 }
