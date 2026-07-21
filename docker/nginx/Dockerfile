@@ -16,8 +16,13 @@ FROM nginx:1.30.4-alpine AS base
 # gettext provides envsubst, used by docker-entrypoint.sh to render
 # setup-auth-unified.conf with AUTH_HOST at container start.
 # Versions pinned to the apk packages bundled with nginx:1.30.4-alpine.
-# The njs module is tied to the nginx ABI and must be updated with the base
-# image; gettext only needs to remain available in the selected Alpine release.
+# - nginx-mod-http-js is pinned exactly (including the -rN revision) because
+#   its .so is built against this exact nginx build; an unpinned or mismatched
+#   version can fail to load or ABI-mismatch at startup.
+# - gettext is pinned only because apk requires an exact version plus revision
+#   to resolve a `pkg=version` constraint. It is not ABI-sensitive like njs;
+#   it just needs to exist in the selected Alpine release. Both pins must be
+#   re-checked and bumped with the nginx base image.
 RUN apk add --no-cache nginx-mod-http-js=1.30.4-r1 gettext=1.0-r0
 
 # Ensure images directory exists.
