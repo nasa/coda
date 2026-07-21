@@ -11,7 +11,6 @@ import { setGPSTracks } from "store/gps";
 import { setGraphsManifest } from "store/graphs";
 import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
 import { addSequences } from "store/sequences";
-import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
 import { setPcdAudioData, clearPcdAudioData } from "store/pcdAudio";
 import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
@@ -236,23 +235,12 @@ const SocketClient: FunctionComponent<{
         } else if (dataUpdate.type === "gpstracks") {
           const dataResponse = response as FetchResponse<GPSTrack[]>;
           dispatch(setGPSTracks(dataResponse));
-        } else if (dataUpdate.type === "talkybot") {
-          const dataResponse = response as FetchResponse<TbAudioFileConverted[]>;
-          dispatch(setTalkybotAudioFiles(dataResponse));
         } else if (dataUpdate.type === "graph") {
           const dataResponse = response as FetchResponse<GraphsManifest>;
           dispatch(setGraphsManifest(dataResponse));
         } else if (dataUpdate.type === "pcdAudio") {
           const dataResponse = response as FetchResponse<PcdAudioJson | null>;
           dispatch(setPcdAudioData(dataResponse));
-        }
-      });
-
-      // Incoming incremental data updates (e.g., new audio files from talkybotS2sSocket)
-      currentSocket.on("incrementalDataUpdate", (incrementalUpdate: IncrementalDataUpdate) => {
-        if (incrementalUpdate.type === "talkybot") {
-          // Server already converts to TbAudioFileConverted before emitting
-          dispatch(upsertTalkybotAudioFile(incrementalUpdate.item as TbAudioFileConverted));
         }
       });
 

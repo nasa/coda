@@ -88,14 +88,14 @@ const AdminIndex: FunctionComponent = () => {
                 description="Per-NASA-ID photo time and video channel overrides scoped by source and date range."
               />
               <NavCard
-                to="/admin/accessGrants"
-                title="Access Grants"
-                description="Reusable AUID lists used to restrict delivery of media overrides to authorized users."
-              />
-              <NavCard
                 to="/admin/pcdAudio"
                 title="PCD Audio"
                 description="Crew PCD audio recording metadata fetched from Imagery Online, stored by mission source."
+              />
+              <NavCard
+                to="/admin/accessGrants"
+                title="Access Grants"
+                description="Reusable AUID lists used to restrict delivery of media overrides to authorized users."
               />
               <NavCard
                 to="/admin/ephemeris"
@@ -122,11 +122,6 @@ const AdminIndex: FunctionComponent = () => {
                 to="/admin/socketStatus"
                 title="Visitor Activity"
                 description="Real-time management of all connected visitors organized by source and viewing date."
-              />
-              <NavCard
-                to="/admin/talkybotSocketStatus"
-                title="Talkybot S2s Connection Monitor"
-                description="Monitor the server-to-server socket connection to Talkybot."
               />
             </nav>
           </div>

@@ -6,7 +6,6 @@ import { dataFetchConfigs, getSourceDateDataType, ALL_DATES_KEY } from "./dataRe
 import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { getTalkybotS2sSocketTrackerData } from "./talkybotS2sSocket";
 import { findRestrictedAccessesForUser } from "./routes/db/accessGrants";
 
 export const INSPECTOR_ROOM = "inspectorRoom";
@@ -57,17 +56,6 @@ export const emitFetchInspectorUpdate = (): void => {
   const room = io.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
   if (!room || room.size === 0) return;
   io.to(INSPECTOR_ROOM).emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
-};
-
-// Emit TalkybotS2sSocket inspector update to all clients in the inspector room
-export const emitTalkybotS2sSocketInspectorUpdate = (): void => {
-  const io = getSocketIO();
-  const room = io.sockets?.adapter?.rooms?.get(INSPECTOR_ROOM);
-  if (!room || room.size === 0) return;
-  io.to(INSPECTOR_ROOM).emit("talkybotS2sSocketInspectorUpdate", {
-    status: getTalkybotS2sSocketTrackerData(),
-    updatedAt: new Date().toISOString(),
-  });
 };
 
 // Build visitor inspector update payload for the admin monitoring page
@@ -186,10 +174,6 @@ export const setupSocketIO = (): void => {
           socket.join(INSPECTOR_ROOM);
           // Send all inspector updates on join - each admin page listens only to what it needs
           socket.emit("fetchInspectorUpdate", buildFetchInspectorUpdate());
-          socket.emit("talkybotS2sSocketInspectorUpdate", {
-            status: getTalkybotS2sSocketTrackerData(),
-            updatedAt: new Date().toISOString(),
-          });
           socket.emit("spacetrackInspectorUpdate", {
             status: { ...globalValues.spacetrackTrackerData },
             updatedAt: new Date().toISOString(),
@@ -294,25 +278,6 @@ export const emitDataUpdateToSource = ({
   ConsoleLogger.debug(
     `Emitted ${dataUpdate.type} update to ${uniqueDates.length} rooms for source ${source}`
   );
-};
-
-/**
- * Emit an incremental data update to clients viewing a specific source and date.
- * Used for real-time updates (e.g., new audio files from talkybotS2sSocket).
- */
-export const emitIncrementalDataUpdate = ({
-  source,
-  dataDate,
-  incrementalUpdate,
-}: {
-  source: Source;
-  dataDate: string;
-  incrementalUpdate: IncrementalDataUpdate;
-}): void => {
-  ConsoleLogger.debug(
-    `Emitting incremental ${incrementalUpdate.type} update to room ${source}_${dataDate}`
-  );
-  getSocketIO().to(`${source}_${dataDate}`).emit("incrementalDataUpdate", incrementalUpdate);
 };
 
 /**
