@@ -42,6 +42,8 @@ const LoaderHelpMenu: FunctionComponent<{
     <>
       <div
         className={styles.helpMenuButton}
+        role="button"
+        aria-label="Toggle help menu"
         onClick={() => {
           setHelpLoaderOpen(!helpLoaderOpen);
         }}
@@ -263,10 +265,10 @@ const Clock: FunctionComponent = () => {
             className={styles.timeButtonsContainer}
             style={{ top: buttonPos.top, left: buttonPos.left, width: buttonPos.width }}
           >
-            <button className={styles.timeButtonsItems} onClick={handleCancel}>
+            <button className={styles.timeButtonsItems} onClick={handleCancel} aria-label="Cancel time edit">
               <span>Cancel</span>
             </button>
-            <button className={styles.timeButtonsItems} onClick={handleTimeChange}>
+            <button className={styles.timeButtonsItems} onClick={handleTimeChange} aria-label="Apply time change">
               <span>Go</span>
             </button>
           </div>,
@@ -357,6 +359,8 @@ const Header: FunctionComponent<{
         <div className={styles.verticalCenter}>
           <span
             className={styles.wordMark}
+            role="button"
+            aria-label="Go to CODA home"
             onClick={() => {
               window.location.assign(location.origin);
             }}

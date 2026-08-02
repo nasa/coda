@@ -12,6 +12,8 @@ export const HelpButton: FunctionComponent<{ clickHandler: () => void; selected?
     <div
       className={`${styles.helpButton} ${selectedStyle}`}
       title={`More info`}
+      role="button"
+      aria-label="Toggle help overlay"
       onClick={() => {
         if (clickHandler) {
           clickHandler();

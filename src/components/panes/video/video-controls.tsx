@@ -38,6 +38,7 @@ export const IOInfoButton: FunctionComponent<{
     <button
       className={`${styles.ioButton} ${buttonLength} ${selectedStyle}`}
       onClick={clickHandler}
+      aria-label="Toggle IO information"
     >
       <span className={styles.ioLabel}>
         {isLargeFrame ? "IO " : ""}
@@ -53,7 +54,7 @@ export const MuteButton: FunctionComponent<{
   clickHandler: () => void;
   muted: boolean;
 }> = ({ clickHandler, muted }) => (
-  <button className={styles.muteButton} onClick={clickHandler}>
+  <button className={styles.muteButton} onClick={clickHandler} aria-label={muted ? "Unmute audio" : "Mute audio"}>
     <FontAwesomeIcon icon={muted ? faVolumeMute : faVolumeUp} />
   </button>
 );
