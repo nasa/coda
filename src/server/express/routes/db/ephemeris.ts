@@ -35,7 +35,7 @@ const parseQuery = (query: Query): EphemerisQueryParams => {
   return queryObj;
 };
 
-// get records around a date (3 before, 3 after)
+// get records for a date plus the nearest record on each side (1 before, 1 after)
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
 

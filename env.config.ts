@@ -1,4 +1,4 @@
-import { DotenvConfig } from "@emss/make-dotenv/src/types";
+import { DotenvConfig } from "@emss/make-dotenv/types";
 
 export const environments = ["local", "fit", "test", "prod"] as const;
 

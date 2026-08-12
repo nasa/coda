@@ -21,7 +21,7 @@
  *   Channel 7  → Helo feed 1 (recovery) / WB-57 aircraft, launch (source 200)
  *   Channel 8  → Helo feed 2
  *
- * Usage: node src/server/processing/artemis2/generate-channel-overrides.mjs
+ * Usage: node src/server/processing/artemis2/videos/generate-channel-overrides.mjs
  *
  * Reads:  video-notes.json  (same directory)
  * Writes: channel-overrides.json (same directory)

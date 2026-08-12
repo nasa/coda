@@ -19,7 +19,7 @@ const parseQuery = (query: Query): VideoQueryParams => {
   return queryObj;
 };
 
-// get by video id or get list if no date provided
+// get by video id or get list if no videoId provided
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
 

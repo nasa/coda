@@ -26,7 +26,7 @@
  * should be remote syncing from prod.
  *
  * IMPORTANT: Space-Track has strict rate limiting. The scheduler runs every 6 hours
- * and fetches 24 hours of TLE data in a single API call. Do not increase the frequency.
+ * and fetches a 10-day window of TLE data in a single API call. Do not increase the frequency.
  */
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";

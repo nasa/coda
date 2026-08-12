@@ -8,10 +8,10 @@
  * This script:
  * 1. Fetches all Artemis 2 mission-day photos from the IO search API
  * 2. Scrapes each photo's info page to extract EXIF metadata
- * 3. Writes results to src/server/processing/artemis2/photo-exif-metadata.json
+ * 3. Writes results to src/server/processing/artemis2/photos/photo-exif-metadata.json
  * 4. Prints a summary grouped by date + timezone offset + camera
  *
- * Usage: node src/server/processing/artemis2/scrape-io-photo-metadata.mjs
+ * Usage: node src/server/processing/artemis2/photos/scrape-io-photo-metadata.mjs
  *
  * Requires IO_KEY in .env file.
  */

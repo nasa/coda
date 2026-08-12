@@ -46,7 +46,7 @@ export function hhmmssFromDateString(dateStringParam: string): string {
 }
 
 /**
- * Formats any isoString timestamp into hh:mm
+ * Formats any appSeconds value into hh:mm equivalent
  */
 export function hhmmFromSeconds(secondsParam: number): string {
   const hours = Math.abs(Math.trunc(secondsParam / 3600));

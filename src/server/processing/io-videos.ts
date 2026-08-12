@@ -8,7 +8,7 @@ import { getAssetOverridesForDate } from "server/express/routes/db/assetOverride
 import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
- * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before and day after as well
+ * Fetch video data from IO. We can't always trust the accuracy of IO's dates, so we fetch videos from the day before as well
  */
 export default async function getVideoData({
   dateWanted,
@@ -88,7 +88,7 @@ export default async function getVideoData({
       ConsoleLogger.warn("Error fetching video-channel asset overrides:", channelOverrideErr);
     }
 
-    // fetch and parse videos for the requested day, the day before, and the day after
+    // fetch and parse videos for the requested day and the day before
     const [ioVideos, timeOverrides] = await Promise.all([
       fetchIoData({
         collection: col,

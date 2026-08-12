@@ -4,7 +4,7 @@
 # # # # # # # #
 # PROD image  #
 # # # # # # # #
-FROM node:24.11.1-alpine3.23 AS prod
+FROM node:24.19.0-alpine3.23 AS prod
 
 # CODA requires a special CA-cert in place to talk to Imagery Online.
 COPY .env.local.cert.pem /
@@ -29,7 +29,8 @@ RUN npm run api:build
 
 # Set NODE_ENV to production for the production image
 # This enables Express production mode (better error handling, performance optimizations)
-ENV NODE_ENV=production
+ENV NODE_ENV="production"
+ENV NODE_OPTIONS="--max-old-space-size-percentage=75"
 
 # This image is intended to be run with docker-compose.
 CMD ["/bin/sh", "-c", "npm run migration:up; npm run api:prod"]

@@ -64,8 +64,8 @@ export class ConsoleLogger {
   /**
    * Check if a message at the given level should be logged.
    * A message is logged if the configured level is verbose enough to include it.
-   * Level hierarchy: off < error < warn < log < debug
-   * Example: if level is "warn", then error and warn messages are shown, but log and debug are not.
+   * Level hierarchy: off < error < warn < notice < info < debug
+   * Example: if level is "warn", then error and warn messages are shown, but notice, info and debug are not.
    */
   private static shouldLog(messageLevel: LogLevel): boolean {
     this.initialize();
