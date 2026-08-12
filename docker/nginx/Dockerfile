@@ -17,7 +17,7 @@ RUN mkdir -p /usr/share/nginx/static
 # # # # # # # # #
 
 ### Build the React client
-FROM node:24.11.1-alpine3.23 AS builder
+FROM node:24.19.0-alpine3.23 AS builder
 
 RUN mkdir /clientsrc
 WORKDIR /clientsrc
