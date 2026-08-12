@@ -1,4 +1,4 @@
-FROM bluenviron/mediamtx:1.15.4-ffmpeg
+FROM bluenviron/mediamtx:1.19.2-ffmpeg
 
 # add dejavu font
 RUN apk add --no-cache \
