@@ -7,7 +7,7 @@
 
 # This build doesn't actually need the "AS base" except that it simplifies our .gitlab-ci.yml by
 # allowing us to specify `--target base`
-FROM nginx:1.28.0-alpine AS base
+FROM nginx:1.30.4-alpine AS base
 
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
