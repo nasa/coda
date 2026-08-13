@@ -94,9 +94,10 @@ COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
 # setup-auth-unified.conf is RENDERED AT CONTAINER START from this template by
 # docker-entrypoint.sh, which envsubst's the AUTH_HOST env var into it. The
 # rendered file lands at /etc/nginx/setup-auth-unified.conf and is what
-# nginx.conf includes.
+# nginx.conf includes. route-require-auth.conf is rendered too, to insert
+# AUTH_COOKIE_NAME without expanding nginx's own variables.
 COPY /docker/nginx/setup-auth-unified.conf.template /etc/nginx/setup-auth-unified.conf.template
-COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf
+COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf.template
 COPY /docker/nginx/rd.js /etc/nginx/rd.js
 # COPY /docker/nginx/*.conf /etc/nginx/*.conf
 

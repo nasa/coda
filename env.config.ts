@@ -4,19 +4,21 @@ export const environments = ["local", "fit", "test", "prod"] as const;
 
 export const config: DotenvConfig<typeof environments> = {
   /**
-   * Unified auth
+   * Name of the session cookie supplied by the shared oauth2-proxy.
+   */
+  AUTH_COOKIE_NAME: {
+    default: "EMSS_SESSION",
+  },
+
+  /**
    * Hostname of the shared oauth2-proxy this app delegates `auth_request` to.
-   * The proxy lives at `https://${AUTH_HOST}/unified-auth/...` and owns the
-   * OIDC dance with LaunchPad. Today only one shared proxy exists
-   * (emss-labs.fit.nasa.gov, backed by LaunchPad SBX), so every environment
-   * points at it. When/if a prod-LaunchPad-backed shared proxy is stood up
-   * (e.g. emss-prod.fit.nasa.gov), flip `prod` to that hostname here. The
-   * value is consumed at container start by `docker/nginx/docker-entrypoint.sh`,
-   * which envsubst's it into `setup-auth-unified.conf`.
+   * The proxy owns the OIDC dance with LaunchPad. The value is consumed at
+   * container start by `docker/nginx/docker-entrypoint.sh`.
    */
   AUTH_HOST: {
-    // prod: "emss-prod.fit.nasa.gov", // <- when a prod-LaunchPad shared proxy exists
-    default: "emss-labs.fit.nasa.gov",
+    // default: "emss-labs.fit.nasa.gov/unified-auth",
+    default: "emss-auth-int.fit.nasa.gov",
+    prod: "emss-auth.fit.nasa.gov",
   },
 
   /**
