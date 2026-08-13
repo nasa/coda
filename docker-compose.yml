@@ -37,6 +37,7 @@ services:
       # docker-entrypoint.sh envsubst's this into setup-auth-unified.conf at
       # container start. See env.config.ts for per-environment values.
       AUTH_HOST: ${AUTH_HOST}
+      AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME}
     volumes:
       - ${DOCKER_HOST_SSL_CERTS_DIR}:/etc/pki/tls/certs
       - ${DOCKER_HOST_SSL_PRIVATE_DIR}:/etc/pki/tls/private

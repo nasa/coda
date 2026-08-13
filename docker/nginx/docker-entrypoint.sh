@@ -1,20 +1,17 @@
 #!/bin/sh
-# Renders /etc/nginx/setup-auth-unified.conf from its .template by substituting
-# the AUTH_HOST env var, then exec's nginx.
+# Renders nginx config includes from their templates, then exec's nginx.
 #
 # Why a template?
 #   AUTH_HOST is the hostname of the shared oauth2-proxy this app delegates
-#   auth_request to. Today every environment points at emss-labs.fit.nasa.gov
-#   (LaunchPad SBX), but the value is per-deploy (e.g. emss-prod.fit.nasa.gov
-#   for a future prod-LaunchPad-backed shared proxy). Baking it into the image
-#   at build time would force a rebuild to switch; reading it at container
-#   start lets the same image work in any environment.
+#   auth_request to. AUTH_COOKIE_NAME is its session cookie name. Baking these
+#   values into the image would force a rebuild to switch environments; reading
+#   them at container start lets the same image work in any environment.
 #
 # Why envsubst with a quoted variable list?
 #   envsubst with no args substitutes EVERY $VAR / ${VAR} it finds, which
 #   would clobber nginx's own $remote_addr, $http_host, $scheme, etc.
-#   Passing the explicit list '${AUTH_HOST}' tells envsubst to only touch
-#   that one name and leave every other $... alone.
+#   Passing the explicit list tells envsubst to only touch these names and
+#   leave every other $... alone.
 
 set -eu
 
@@ -37,15 +34,21 @@ set -eu
 # If the base image is ever bumped, re-check /docker-entrypoint.d/ for new scripts.
 
 : "${AUTH_HOST:?AUTH_HOST env var is required (set in .env via env.config.ts)}"
+: "${AUTH_COOKIE_NAME:?AUTH_COOKIE_NAME env var is required (set in .env via env.config.ts)}"
 
-TEMPLATE=/etc/nginx/setup-auth-unified.conf.template
-OUTPUT=/etc/nginx/setup-auth-unified.conf
+render_template() {
+    template=$1
+    output=$2
 
-if [ -f "$TEMPLATE" ]; then
-    echo "[docker-entrypoint] Rendering $OUTPUT from $TEMPLATE (AUTH_HOST=$AUTH_HOST)"
-    envsubst '${AUTH_HOST}' < "$TEMPLATE" > "$OUTPUT"
-else
-    echo "[docker-entrypoint] WARNING: $TEMPLATE not found; leaving $OUTPUT as-is."
-fi
+    if [ -f "$template" ]; then
+        echo "[docker-entrypoint] Rendering $output (AUTH_HOST=$AUTH_HOST)"
+        envsubst '${AUTH_HOST} ${AUTH_COOKIE_NAME}' < "$template" > "$output"
+    else
+        echo "[docker-entrypoint] WARNING: $template not found; leaving $output as-is."
+    fi
+}
+
+render_template /etc/nginx/setup-auth-unified.conf.template /etc/nginx/setup-auth-unified.conf
+render_template /etc/nginx/route-require-auth.conf.template /etc/nginx/route-require-auth.conf
 
 exec "$@"
