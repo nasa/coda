@@ -13,17 +13,12 @@ FROM nginx:1.30.4-alpine AS base
 # location (docker/nginx/rd.js + js_set in nginx.conf). Stock nginx has no
 # urlencode primitive for $request_uri; njs encodeURIComponent handles it
 # without a base-image swap.
-# gettext provides envsubst, used by docker-entrypoint.sh to render
-# setup-auth-unified.conf with AUTH_HOST at container start.
 # Versions pinned to the apk packages bundled with nginx:1.30.4-alpine.
 # - nginx-mod-http-js is pinned exactly (including the -rN revision) because
 #   its .so is built against this exact nginx build; an unpinned or mismatched
 #   version can fail to load or ABI-mismatch at startup.
-# - gettext is pinned only because apk requires an exact version plus revision
-#   to resolve a `pkg=version` constraint. It is not ABI-sensitive like njs;
-#   it just needs to exist in the selected Alpine release. Both pins must be
-#   re-checked and bumped with the nginx base image.
-RUN apk add --no-cache nginx-mod-http-js=1.30.4-r1 gettext=1.0-r0
+# This pin must be re-checked and bumped with the nginx base image.
+RUN apk add --no-cache nginx-mod-http-js=1.30.4-r1
 
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
@@ -91,23 +86,15 @@ COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 
 # Nginx config files
 COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
-# setup-auth-unified.conf is RENDERED AT CONTAINER START from this template by
-# docker-entrypoint.sh, which envsubst's the AUTH_HOST env var into it. The
-# rendered file lands at /etc/nginx/setup-auth-unified.conf and is what
-# nginx.conf includes. route-require-auth.conf is rendered too, to insert
-# AUTH_COOKIE_NAME without expanding nginx's own variables.
-COPY /docker/nginx/setup-auth-unified.conf.template /etc/nginx/setup-auth-unified.conf.template
-COPY /docker/nginx/route-require-auth.conf /etc/nginx/route-require-auth.conf.template
+# The official nginx entrypoint renders these templates to /etc/nginx/conf.d
+# at container start, substituting only AUTH_HOST and AUTH_COOKIE_NAME.
+COPY /docker/nginx/setup-auth.conf.template /etc/nginx/templates/setup-auth.conf.template
+COPY /docker/nginx/route-require-auth.conf /etc/nginx/templates/route-require-auth.conf.template
 COPY /docker/nginx/rd.js /etc/nginx/rd.js
 # COPY /docker/nginx/*.conf /etc/nginx/*.conf
 
 COPY ./docker/nginx/loggedout.html /usr/share/nginx/html/
 COPY ./docker/nginx/loggedin.html /usr/share/nginx/html/
-
-# Entrypoint renders the unified-auth template, then exec's CMD.
-COPY ./docker/nginx/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # This image is intended to be run with docker-compose. See docker-compose*.yml files for necessary
 # environment variables

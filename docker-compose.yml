@@ -34,7 +34,7 @@ services:
     <<: *send_container_logs_to_syslog
     environment:
       # Hostname of the shared oauth2-proxy this app delegates auth_request to.
-      # docker-entrypoint.sh envsubst's this into setup-auth-unified.conf at
+      # The official nginx entrypoint renders this into its auth templates at
       # container start. See env.config.ts for per-environment values.
       AUTH_HOST: ${AUTH_HOST}
       AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME}

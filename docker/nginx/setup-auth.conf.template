@@ -1,22 +1,22 @@
-# !!! AUTO-GENERATED AT CONTAINER START — DO NOT EDIT THE RENDERED FILE !!!
+# !!! AUTO-GENERATED AT CONTAINER START - DO NOT EDIT THE RENDERED FILE !!!
 #
-# Source of truth: docker/nginx/setup-auth-unified.conf.template
-# docker-entrypoint.sh renders this template before nginx starts. ${AUTH_HOST}
-# becomes its environment value; nginx's own $variables (which use bare-`$var`,
-# not `${var}`) are unaffected.
+# Source of truth: docker/nginx/setup-auth.conf.template
+# The official nginx entrypoint renders this template to
+# /etc/nginx/conf.d/setup-auth.conf before nginx starts. ${AUTH_HOST}
+# becomes its environment value; nginx runtime variables are unaffected.
 #
 # Points all auth traffic at the shared oauth2-proxy running on ${AUTH_HOST}
 # instead of a sidecar oauth2-proxy container on this host.
 #
-# The SESSION cookie is scoped to .fit.nasa.gov, so a user who already authenticated
+# The SESSION cookie is scoped to .fit.nasa.gov, so a user already authenticated
 # via any other EMSS app on the same domain (e.g. ${AUTH_HOST}) is already
 # logged in here without a second LaunchPad redirect.
 #
-# /oauth2/ — sign-in page and other oauth2-proxy UI, served from the shared proxy.
+# /oauth2/ - sign-in page and other oauth2-proxy UI, served from the shared proxy.
 location /oauth2/ {
     proxy_pass       https://${AUTH_HOST}/oauth2/;
     proxy_ssl_server_name on;
-    proxy_set_header Host                    $proxy_host;
+    proxy_set_header Host                    ${AUTH_HOST};
     proxy_set_header X-Real-IP               $remote_addr;
     proxy_set_header X-Scheme                $scheme;
     # $http_host carries the client-sent Host header (coda-local.fit.nasa.gov),
@@ -24,30 +24,24 @@ location /oauth2/ {
     proxy_set_header X-Auth-Request-Redirect $scheme://$http_host$request_uri;
 }
 
-# /oauth2/auth — subrequest endpoint hit by auth_request in route-require-auth.conf.
-# oauth2-proxy's AuthOnly handler (which serves this endpoint) returns a bare 401
-# immediately on an unauthenticated request — it does not read X-Auth-Request-Redirect
-# or build any redirect itself. The actual return-URL is carried separately: nginx's
-# `error_page 401 = @error401` (nginx.conf) turns that 401 into a 302 to
-# /oauth2/sign_in?rd=$rd_encoded, so no redirect header is needed on this subrequest.
-# (X-Auth-Request-Redirect IS needed below on /oauth2/ for the sign-in/callback flow,
-# which is a different oauth2-proxy handler that does consume it.)
+# /oauth2/auth - subrequest endpoint hit by auth_request in route-require-auth.conf.
 location = /oauth2/auth {
     proxy_pass       https://${AUTH_HOST}/oauth2/auth;
     proxy_ssl_server_name on;
-    proxy_set_header Host                    $proxy_host;
+    proxy_set_header Host                    ${AUTH_HOST};
     proxy_set_header X-Real-IP               $remote_addr;
     proxy_set_header X-Scheme                $scheme;
+    proxy_set_header X-Auth-Request-Redirect $scheme://$http_host$request_uri;
     proxy_set_header Content-Length          "";
     proxy_pass_request_body                  off;
 }
 
-# Logout — forward to the shared proxy's sign_out.
+# Logout - forward to the shared proxy's sign_out.
 location = /logout {
     proxy_pass https://${AUTH_HOST}/oauth2/sign_out;
     proxy_ssl_server_name on;
     proxy_intercept_errors on;
-    proxy_set_header Host        $proxy_host;
+    proxy_set_header Host        ${AUTH_HOST};
     proxy_set_header X-Real-IP   $remote_addr;
     proxy_set_header X-Scheme    $scheme;
     error_page
@@ -59,7 +53,7 @@ location = /logout {
 }
 
 location = /login {
-    include route-require-auth.conf;
+    include /etc/nginx/conf.d/route-require-auth.conf;
     alias /usr/share/nginx/html/;
     try_files /loggedin.html =404;
 }
@@ -68,7 +62,7 @@ location = /is-logged-in {
     proxy_pass https://${AUTH_HOST}/oauth2/auth;
     proxy_ssl_server_name on;
     proxy_intercept_errors on;
-    proxy_set_header Host        $proxy_host;
+    proxy_set_header Host        ${AUTH_HOST};
     proxy_set_header X-Real-IP   $remote_addr;
     proxy_set_header X-Scheme    $scheme;
     error_page

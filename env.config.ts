@@ -13,7 +13,7 @@ export const config: DotenvConfig<typeof environments> = {
   /**
    * Hostname of the shared oauth2-proxy this app delegates `auth_request` to.
    * The proxy owns the OIDC dance with LaunchPad. The value is consumed at
-   * container start by `docker/nginx/docker-entrypoint.sh`.
+   * container start by nginx's standard template entrypoint.
    */
   AUTH_HOST: {
     // default: "emss-labs.fit.nasa.gov/unified-auth",
