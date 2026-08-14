@@ -3,22 +3,8 @@
 # Ref: https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview#configuring-for-use-with-the-nginx-auth_request-directive
 
 auth_request /oauth2/auth;
-# Use named location @error401 (defined at server level in nginx.conf) so we
-# can return a 302 to /oauth2/sign_in?rd=<original-url>, where <original-url>
-# has been properly percent-encoded by njs so embedded `&` chars survive
-# oauth2-proxy's Go-side query parser. oauth2-proxy encodes the decoded rd
-# into the LaunchPad `state` parameter, sending the browser back to the
-# correct URL after auth.
-#
-# Why neither simpler form works:
-# - `error_page 401 = /oauth2/sign_in;` does an internal nginx rewrite that
-#   loses $request_uri (it becomes /oauth2/sign_in), so oauth2-proxy has no
-#   return URL and falls back to its own host (emss-labs) after callback.
-# - `return 302 /oauth2/sign_in?rd=$scheme://$http_host$request_uri;` puts the
-#   raw URL into rd= unencoded, so any `&` in the URL is treated as a query
-#   separator by `req.Form.Get("rd")` and rd is truncated at the first one.
-#   $rd_encoded (set via js_set from docker/nginx/rd.js) is the fix \u2014 see
-#   nginx.conf and the Dockerfile for the njs wiring.
+# Redirect unauthenticated requests to @error401, which URL-encodes the
+# original request URL into rd= before sending the browser to /oauth2/sign_in.
 error_page 401 = @error401;
 
 # pass information via X-User and X-Email headers to backend,

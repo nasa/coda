@@ -9,17 +9,6 @@
 # allowing us to specify `--target base`
 FROM nginx:1.30.4-alpine AS base
 
-# njs provides ngx_http_js_module for URL-encoding in the @error401 named
-# location (docker/nginx/rd.js + js_set in nginx.conf). Stock nginx has no
-# urlencode primitive for $request_uri; njs encodeURIComponent handles it
-# without a base-image swap.
-# Versions pinned to the apk packages bundled with nginx:1.30.4-alpine.
-# - nginx-mod-http-js is pinned exactly (including the -rN revision) because
-#   its .so is built against this exact nginx build; an unpinned or mismatched
-#   version can fail to load or ABI-mismatch at startup.
-# This pin must be re-checked and bumped with the nginx base image.
-RUN apk add --no-cache nginx-mod-http-js=1.30.4-r1
-
 # Ensure images directory exists.
 RUN mkdir -p /usr/share/nginx/static
 
@@ -84,17 +73,8 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy built files to nginx root
 COPY --from=builder /clientsrc/.local/vite/dist /usr/share/nginx/html
 
-# Nginx config files
-COPY /docker/nginx/nginx.conf /etc/nginx/nginx.conf
-# The official nginx entrypoint renders these templates to /etc/nginx/conf.d
-# at container start, substituting only AUTH_HOST and AUTH_COOKIE_NAME.
-COPY /docker/nginx/setup-auth.conf.template /etc/nginx/templates/setup-auth.conf.template
-COPY /docker/nginx/route-require-auth.conf /etc/nginx/templates/route-require-auth.conf.template
-COPY /docker/nginx/rd.js /etc/nginx/rd.js
-# COPY /docker/nginx/*.conf /etc/nginx/*.conf
-
-COPY ./docker/nginx/loggedout.html /usr/share/nginx/html/
-COPY ./docker/nginx/loggedin.html /usr/share/nginx/html/
+# Copy nginx configuration and static files to their image destinations.
+COPY docker/nginx/root/ /
 
 # This image is intended to be run with docker-compose. See docker-compose*.yml files for necessary
 # environment variables

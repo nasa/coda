@@ -199,4 +199,10 @@ export default [
       "css-modules/no-unused-class": ["error", { camelCase: true }],
     },
   },
+  {
+    files: ["docker/nginx/root/etc/nginx/rd.js"],
+    rules: {
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+    },
+  },
 ];

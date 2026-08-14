@@ -1,30 +1,14 @@
-# !!! AUTO-GENERATED AT CONTAINER START - DO NOT EDIT THE RENDERED FILE !!!
-#
-# Source of truth: docker/nginx/setup-auth.conf.template
-# The official nginx entrypoint renders this template to
-# /etc/nginx/conf.d/setup-auth.conf before nginx starts. ${AUTH_HOST}
-# becomes its environment value; nginx runtime variables are unaffected.
-#
-# Points all auth traffic at the shared oauth2-proxy running on ${AUTH_HOST}
-# instead of a sidecar oauth2-proxy container on this host.
-#
-# The SESSION cookie is scoped to .fit.nasa.gov, so a user already authenticated
-# via any other EMSS app on the same domain (e.g. ${AUTH_HOST}) is already
-# logged in here without a second LaunchPad redirect.
-#
-# /oauth2/ - sign-in page and other oauth2-proxy UI, served from the shared proxy.
+# Routes authentication requests to the shared oauth2-proxy.
+
 location /oauth2/ {
     proxy_pass       https://${AUTH_HOST}/oauth2/;
     proxy_ssl_server_name on;
     proxy_set_header Host                    ${AUTH_HOST};
     proxy_set_header X-Real-IP               $remote_addr;
     proxy_set_header X-Scheme                $scheme;
-    # $http_host carries the client-sent Host header (coda-local.fit.nasa.gov),
-    # not nginx's server_name, so the return URL is correct after the callback.
     proxy_set_header X-Auth-Request-Redirect $scheme://$http_host$request_uri;
 }
 
-# /oauth2/auth - subrequest endpoint hit by auth_request in route-require-auth.conf.
 location = /oauth2/auth {
     proxy_pass       https://${AUTH_HOST}/oauth2/auth;
     proxy_ssl_server_name on;
@@ -36,7 +20,6 @@ location = /oauth2/auth {
     proxy_pass_request_body                  off;
 }
 
-# Logout - forward to the shared proxy's sign_out.
 location = /logout {
     proxy_pass https://${AUTH_HOST}/oauth2/sign_out;
     proxy_ssl_server_name on;
