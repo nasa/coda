@@ -10,11 +10,6 @@ import packageJSON from "./package.json" with { type: "json" };
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ReactCompilerConfig = {
-  // You can specify a target version: '17' | '18' | '19'
-  target: "19",
-};
-
 export const config: UserConfig = {
   root: "./src",
   envDir: "../",

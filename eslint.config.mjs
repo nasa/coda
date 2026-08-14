@@ -57,9 +57,9 @@ export default [
     },
   },
 
-  // Configuration for JavaScript and TypeScript files
+  // Configuration for TypeScript files
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: ["**/*.{ts,tsx,mts,cts}"],
     plugins: {
       react,
       "react-hooks": fixupPluginRules(reactHooks),
@@ -197,12 +197,6 @@ export default [
       // CSS Modules rules
       "css-modules/no-undef-class": ["error", { camelCase: true }],
       "css-modules/no-unused-class": ["error", { camelCase: true }],
-    },
-  },
-  {
-    files: ["docker/nginx/root/etc/nginx/rd.js"],
-    rules: {
-      "@typescript-eslint/explicit-module-boundary-types": "off",
     },
   },
 ];
