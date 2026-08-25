@@ -161,7 +161,11 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                 <select
                   id="type"
                   value={type}
-                  onChange={(e) => setType(e.target.value as MediaMedium)}
+                  onChange={(e) => {
+                    const nextType = e.target.value as MediaMedium;
+                    setType(nextType);
+                    if (nextType !== "video") setAccessGrantId(PUBLIC_GRANT_VALUE);
+                  }}
                   className={adminCommon.formSelect}
                   required
                 >
@@ -208,6 +212,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   value={accessGrantId}
                   onChange={(e) => setAccessGrantId(e.target.value)}
                   className={adminCommon.formSelect}
+                  disabled={type !== "video"}
                 >
                   <option value={PUBLIC_GRANT_VALUE}>Public — no restriction</option>
                   {accessGrants.map((g) => (
@@ -217,8 +222,14 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   ))}
                 </select>
                 <span className={adminCommon.formHint}>
-                  Group members and superusers can receive restricted video overrides. Manage groups
-                  on the <Link to="/admin/accessGrants">Access Groups</Link> page.
+                  {type === "video" ? (
+                    <>
+                      Group members and superusers can receive restricted video overrides. Manage
+                      groups on the <Link to="/admin/accessGrants">Access Groups</Link> page.
+                    </>
+                  ) : (
+                    "Restricted delivery is currently supported only for video overrides."
+                  )}
                 </span>
               </div>
 
