@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import getCommOverrides from "server/processing/commOverrides";
+import { isCanonicalDate } from "server/processing/mediaOverrideResolver";
 import { getSourcesWithDataType } from "utils/sourceDataTypeMap";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
@@ -13,8 +14,6 @@ import ConsoleLogger from "utils/logging/consoleLogger";
  */
 const router = express.Router();
 
-const DATE_RE = /^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/;
-
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const source = req.query.source as Source | undefined;
   const dateWanted = req.query.date as string | undefined;
@@ -23,7 +22,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({ status: "error", message: "Invalid or missing source" });
     return;
   }
-  if (!dateWanted || !DATE_RE.test(dateWanted)) {
+  if (!isCanonicalDate(dateWanted)) {
     res
       .status(400)
       .json({ status: "error", message: "Invalid or missing date (expected YYYY-MM-DD)" });

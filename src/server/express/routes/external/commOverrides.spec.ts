@@ -108,15 +108,21 @@ describe("commOverrides route", () => {
       expect(getCommOverridesMock).not.toHaveBeenCalled();
     });
 
-    it.each(["01-15-2025", "2025/01/15", "2025-13-01", "2025-01-32", "not-a-date", "2025-1-1"])(
-      "should reject malformed date %s",
-      async (date) => {
-        const res = buildRes();
-        await handler(buildReq({ source: "ISS", date }), res);
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(getCommOverridesMock).not.toHaveBeenCalled();
-      }
-    );
+    it.each([
+      "01-15-2025",
+      "2025/01/15",
+      "2025-13-01",
+      "2025-01-32",
+      "2025-02-29",
+      "2026-02-30",
+      "not-a-date",
+      "2025-1-1",
+    ])("should reject malformed date %s", async (date) => {
+      const res = buildRes();
+      await handler(buildReq({ source: "ISS", date }), res);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(getCommOverridesMock).not.toHaveBeenCalled();
+    });
 
     it("should accept a well-formed YYYY-MM-DD date", async () => {
       getCommOverridesMock.mockResolvedValue({

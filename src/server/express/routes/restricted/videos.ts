@@ -6,6 +6,7 @@ import { fetchForgedIoManifest } from "server/processing/io-api";
 import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import { getUser } from "packages/getUser";
 import { userIsInGrant } from "server/express/routes/db/accessGrants";
+import { isCanonicalDate } from "server/processing/mediaOverrideResolver";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import serverLogger from "utils/logging/serverLogger";
 
@@ -44,7 +45,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       .json({ status: "error", message: "source and dateWanted query params are required" });
     return;
   }
-  if (!/^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/.test(dateWanted)) {
+  if (!isCanonicalDate(dateWanted)) {
     res.status(400).json({ status: "error", message: "Invalid dateWanted (expected yyyy-mm-dd)" });
     return;
   }
@@ -57,57 +58,59 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       requestedDate: dateWanted,
       visibility: "restricted",
     });
-    const override = overrides[0];
-
-    if (!override) {
+    if (overrides.length === 0) {
       res.status(204).end();
       return;
     }
-    if (typeof override.accessGrantId !== "number") {
-      res.status(204).end();
-      return;
-    }
-
-    const grant = await em.findOne(AccessGrant_db, { id: override.accessGrantId });
-    if (!grant) {
-      ConsoleLogger.warn(
-        `Restricted video override ${override.id} references missing access grant ${override.accessGrantId}`
-      );
-      // 204, not 403/404: don't leak the existence of a restricted override to a
-      // caller who isn't entitled to see it.
-      res.status(204).end();
-      return;
-    }
-
-    if (!userIsInGrant(user, grant)) {
-      // Same as above: respond identically to the "no restricted override exists"
-      // case so an ineligible user can't infer that restricted content exists.
-      res.status(204).end();
-      return;
-    }
-
-    const manifest = (await fetchForgedIoManifest({
-      id: override.id,
-      date: override.date,
-      source: override.source,
-      type: override.type,
-      matchMode: override.matchMode,
-      url: override.url,
-    })) as VideoFile[];
-    const videos = sortBy(manifest, "startDateTime");
-
-    serverLogger.info(
-      {
-        logId: "restrictedOverrideAccess",
-        overrideId: override.id,
-        overrideType: override.type,
-        grantId: grant.id,
-        grantName: grant.name,
-        source,
-        dateWanted,
-      },
-      user
+    const grantIds = Array.from(
+      new Set(
+        overrides
+          .map((override) => override.accessGrantId)
+          .filter((id): id is number => typeof id === "number")
+      )
     );
+    const grants = await em.find(AccessGrant_db, { id: { $in: grantIds } });
+    const grantsById = new Map(grants.map((grant) => [grant.id, grant]));
+    const authorizedOverrides = overrides.filter((override) => {
+      if (typeof override.accessGrantId !== "number") return false;
+      const grant = grantsById.get(override.accessGrantId);
+      if (!grant) {
+        ConsoleLogger.warn(
+          `Restricted video override ${override.id} references missing access grant ${override.accessGrantId}`
+        );
+        return false;
+      }
+      return userIsInGrant(user, grant);
+    });
+
+    if (authorizedOverrides.length === 0) {
+      // Respond identically to the "no restricted override exists" case so an
+      // ineligible user cannot infer that restricted content exists.
+      res.status(204).end();
+      return;
+    }
+
+    const manifests = await Promise.all(
+      authorizedOverrides.map((override) => fetchForgedIoManifest(override))
+    );
+    const videos = sortBy(manifests.flat() as VideoFile[], "startDateTime");
+
+    for (const override of authorizedOverrides) {
+      const grant = grantsById.get(override.accessGrantId as number);
+      if (!grant) continue;
+      serverLogger.info(
+        {
+          logId: "restrictedOverrideAccess",
+          overrideId: override.id,
+          overrideType: override.type,
+          grantId: grant.id,
+          grantName: grant.name,
+          source,
+          dateWanted,
+        },
+        user
+      );
+    }
 
     const response: FetchResponse<VideoFile[]> = {
       data: videos,
