@@ -2,8 +2,8 @@ import clone from "lodash/clone";
 import isNil from "lodash/isNil";
 import sortBy from "lodash/sortBy";
 import { fetchIoData, fetchForgedIoManifest } from "server/processing/io-api";
-import { getPublicMediaOverridesList } from "server/express/routes/db/mediaOverrides";
 import { getAssetOverridesForDate } from "server/express/routes/db/assetOverrides";
+import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import { collection } from "utils/consts";
 import { appSecondsFromDateString } from "utils/formatting";
 import { addMs } from "../../utils/date";
@@ -48,20 +48,18 @@ export default async function getPhotoData({
     let mediaOverrides: MediaOverride[] | undefined;
     // Fetch photo source overrides from the db for this date. If there are none, then use Imagery Online
     try {
-      mediaOverrides = await getPublicMediaOverridesList();
+      mediaOverrides = await getApplicableMediaOverrides({
+        source,
+        type: "photo",
+        requestedDate: dateWanted,
+        visibility: "public",
+      });
     } catch (overrideError) {
       // don't block results if media overrides call fails
       ConsoleLogger.warn("Error fetching media overrides:", overrideError);
     }
 
-    const mediaOverride = mediaOverrides?.find((vo) => {
-      const overrideDate = new Date(vo.date);
-      return (
-        overrideDate.getTime() === requestedDate.getTime() &&
-        vo.source === source &&
-        vo.type === "photo"
-      );
-    });
+    const mediaOverride = mediaOverrides?.[0];
 
     // if there are media overrides, use those instead of IO
     if (mediaOverride) {

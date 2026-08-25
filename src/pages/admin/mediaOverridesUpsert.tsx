@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
 import { isSuperuser } from "utils/user";
@@ -12,14 +12,20 @@ const PUBLIC_GRANT_VALUE = "";
 
 export const EditMediaOverridesRecord: FunctionComponent = () => {
   const [date, setDate] = useState<string>("");
+  const [matchMode, setMatchMode] = useState<MediaOverrideMatchMode>("exact");
   const [source, setSource] = useState<Source>("ARTEMIS");
   const [type, setType] = useState<MediaMedium>("video");
   const [url, setURL] = useState<string>("");
   const [accessGrantId, setAccessGrantId] = useState<string>(PUBLIC_GRANT_VALUE);
   const [accessGrants, setAccessGrants] = useState<AccessGrantListItem[]>([]);
+  const [submitError, setSubmitError] = useState<string>("");
   const navigate = useNavigate();
   const query = useQuery();
   const id = query.get("id");
+  const resolvedExample = useMemo(
+    () => (matchMode === "daily" && date ? url.replace("{date}", date) : ""),
+    [date, matchMode, url]
+  );
 
   useEffect(() => {
     (async () => {
@@ -36,6 +42,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
         const response = await fetch(`/api/v1/db/mediaOverrides/${id}`);
         const data: MediaOverride = await response.json();
         setDate(data.date);
+        setMatchMode(data.matchMode ?? "exact");
         setSource(data.source);
         setType(data.type);
         setURL(data.url);
@@ -48,19 +55,26 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError("");
     const data: MediaOverrideUpsertRequest = {
       id: id ? parseInt(id) : undefined,
       date: date,
+      matchMode,
       source: source as Source,
       type: type as "video" | "photo" | "transcript" | "audio",
       url: url,
       accessGrantId: accessGrantId === PUBLIC_GRANT_VALUE ? null : parseInt(accessGrantId, 10),
     };
-    await fetch(`/api/v1/db/mediaOverrides`, {
+    const response = await fetch(`/api/v1/db/mediaOverrides`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setSubmitError(body.message ?? `Save failed (${response.status})`);
+      return;
+    }
     navigate("/admin/mediaOverrides");
   };
 
@@ -82,19 +96,42 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
           <div className={adminCommon.details}>
             <form onSubmit={handleSubmit} className={adminCommon.form}>
               <div className={adminCommon.formGroup}>
+                <label htmlFor="matchMode" className={adminCommon.formLabel}>
+                  Date Matching
+                </label>
+                <select
+                  id="matchMode"
+                  value={matchMode}
+                  onChange={(e) => setMatchMode(e.target.value as MediaOverrideMatchMode)}
+                  className={adminCommon.formSelect}
+                  required
+                >
+                  <option value="exact">Exact date</option>
+                  <option value="daily">Daily from start date</option>
+                </select>
+                <span className={adminCommon.formHint}>
+                  Daily overrides apply on and after the start date until replaced by a newer daily
+                  override. An exact override takes precedence for its date.
+                </span>
+              </div>
+
+              <div className={adminCommon.formGroup}>
                 <label htmlFor="date" className={adminCommon.formLabel}>
-                  Date
+                  {matchMode === "daily" ? "Start Date" : "Date"}
                 </label>
                 <input
                   id="date"
-                  type="text"
+                  type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   className={adminCommon.formInput}
-                  placeholder="yyyy-mm-dd"
                   required
                 />
-                <span className={adminCommon.formHint}>Format: yyyy-mm-dd (e.g., 2024-03-15)</span>
+                <span className={adminCommon.formHint}>
+                  {matchMode === "daily"
+                    ? "Inclusive: the template will not be used before this date."
+                    : "The override applies only to this date."}
+                </span>
               </div>
 
               <div className={adminCommon.formGroup}>
@@ -144,12 +181,21 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   value={url}
                   onChange={(e) => setURL(e.target.value)}
                   className={adminCommon.formTextarea}
-                  placeholder="https://example.com/media-source"
+                  placeholder={
+                    matchMode === "daily"
+                      ? "https://example.com/media/{date}"
+                      : "https://example.com/media/2026-08-25"
+                  }
                   required
                 />
                 <span className={adminCommon.formHint}>
-                  The alternate URL endpoint for retrieving media
+                  {matchMode === "daily"
+                    ? "Include exactly one {date} token. CODA replaces it with the requested yyyy-mm-dd date."
+                    : "The alternate base URL for retrieving media."}
                 </span>
+                {resolvedExample && url.includes("{date}") ? (
+                  <span className={adminCommon.formHint}>Example: {resolvedExample}</span>
+                ) : null}
               </div>
 
               <div className={adminCommon.formGroup}>
@@ -175,6 +221,8 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   Manage grants on the <Link to="/admin/accessGrants">Access Grants</Link> page.
                 </span>
               </div>
+
+              {submitError && <div className={adminCommon.statusErrorMessage}>{submitError}</div>}
 
               <div className={adminCommon.formActions}>
                 <button type="submit" className={adminCommon.buttonSubmit}>

@@ -51,7 +51,7 @@ const AdminMediaOverrides: FunctionComponent = () => {
         <h1 className={adminCommon.pageTitle}>Media Overrides</h1>
         <p className={adminCommon.introText}>
           Configure alternate media sources for CODA to retrieve video, photos, transcripts, or
-          audio from custom URLs by event type and date.
+          audio from exact URLs or daily URL templates by event type and date.
         </p>
 
         <section className={adminCommon.section}>
@@ -77,6 +77,11 @@ const AdminMediaOverrides: FunctionComponent = () => {
                           >
                             {record.source}
                             <span className={adminCommon.recordMeta}> — {record.type}</span>
+                            <span className={adminCommon.recordMeta}>
+                              {record.matchMode === "daily"
+                                ? " — daily from this date"
+                                : " — exact"}
+                            </span>
                             {typeof record.accessGrantId === "number" ? (
                               <span className={adminCommon.recordMeta}>
                                 {" "}
