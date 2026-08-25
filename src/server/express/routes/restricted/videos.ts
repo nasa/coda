@@ -1,9 +1,9 @@
 import express, { Request, Response } from "express";
 import sortBy from "lodash/sortBy";
 import { getORM } from "server/express/global";
-import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { fetchForgedIoManifest } from "server/processing/io-api";
+import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import { getUser } from "packages/getUser";
 import { userIsInGrant } from "server/express/routes/db/accessGrants";
 import ConsoleLogger from "utils/logging/consoleLogger";
@@ -51,12 +51,13 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 
   try {
     const em = getORM().em.fork();
-    const override = await em.findOne(MediaOverride_db, {
-      date: dateWanted,
+    const overrides = await getApplicableMediaOverrides({
       source: source as Source,
       type: "video",
-      accessGrantId: { $ne: null },
+      requestedDate: dateWanted,
+      visibility: "restricted",
     });
+    const override = overrides[0];
 
     if (!override) {
       res.status(204).end();
@@ -90,6 +91,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
       date: override.date,
       source: override.source,
       type: override.type,
+      matchMode: override.matchMode,
       url: override.url,
     })) as VideoFile[];
     const videos = sortBy(manifest, "startDateTime");

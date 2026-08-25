@@ -3,6 +3,7 @@ import { getORM } from "server/express/global";
 import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import { isSuperuser } from "utils/user";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
@@ -166,11 +167,19 @@ export async function findRestrictedAccessesForUser(
   const auid = user?.auid;
   if (!auid) return [];
   const em = getORM().em.fork();
-  const overrides = await em.find(MediaOverride_db, {
-    source,
-    date,
-    accessGrantId: { $ne: null },
-  });
+  const mediaTypes: MediaMedium[] = ["video", "photo", "transcript", "audio"];
+  const overrides = (
+    await Promise.all(
+      mediaTypes.map((type) =>
+        getApplicableMediaOverrides({
+          source,
+          type,
+          requestedDate: date,
+          visibility: "restricted",
+        })
+      )
+    )
+  ).flat();
   if (overrides.length === 0) return [];
 
   const grantIds = Array.from(
@@ -181,6 +190,7 @@ export async function findRestrictedAccessesForUser(
 
   const results: VisitorRestrictedAccess[] = [];
   for (const o of overrides) {
+    if (typeof o.id !== "number") continue;
     if (typeof o.accessGrantId !== "number") continue;
     const grant = grantsById.get(o.accessGrantId);
     if (!grant) continue;

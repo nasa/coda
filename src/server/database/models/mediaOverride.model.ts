@@ -5,6 +5,7 @@ export class MediaOverride_db implements MediaOverride {
   date!: string;
   source!: Source;
   type!: MediaMedium;
+  matchMode: MediaOverrideMatchMode = "exact";
   url!: string;
   accessGrantId?: number | null;
 }
@@ -17,6 +18,7 @@ export const MediaOverride_dbSchema = new EntitySchema<MediaOverride_db>({
     date: { type: MikroTypes.text },
     source: { type: MikroTypes.text },
     type: { type: MikroTypes.text },
+    matchMode: { type: MikroTypes.text, default: "exact" },
     url: { type: MikroTypes.text },
     accessGrantId: { type: MikroTypes.integer, nullable: true },
   },

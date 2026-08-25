@@ -1,9 +1,14 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
 import { getORM } from "server/express/global";
-import { Loaded } from "@mikro-orm/postgresql";
 import { MediaOverride_db } from "server/database/models/mediaOverride.model";
+import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
+import {
+  getApplicableMediaOverrides,
+  isCanonicalDate,
+  validateMediaOverrideUrl,
+} from "server/processing/mediaOverrideResolver";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
@@ -20,11 +25,15 @@ const parseQuery = (query: Query): MediaOverrideQueryParams => {
   return queryObj;
 };
 
-const normalizeAccessGrantId = (raw: unknown): number | null => {
+const normalizeAccessGrantId = (raw: unknown): number | null | undefined => {
   if (raw === undefined || raw === null || raw === "") return null;
-  const n = typeof raw === "number" ? raw : parseInt(String(raw), 10);
-  return Number.isFinite(n) ? n : null;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : undefined;
 };
+
+const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
+const MEDIA_TYPES: MediaMedium[] = ["video", "photo", "transcript", "audio"];
+const MATCH_MODES: MediaOverrideMatchMode[] = ["exact", "daily"];
 
 // get by date or get list if no date provided
 router.get("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
@@ -32,11 +41,7 @@ router.get("/", requireSuperuser, async (req: Request, res: Response): Promise<v
 
   try {
     if (queryObj.dateWanted) {
-      if (
-        !queryObj.dateWanted.match(
-          /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/
-        )
-      ) {
+      if (!isCanonicalDate(queryObj.dateWanted)) {
         res.status(400).json({ status: "error", message: "Invalid date format" });
         return;
       }
@@ -73,17 +78,65 @@ router.get("/:id", requireSuperuser, async (req: Request, res: Response): Promis
 // create via post
 router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<void> => {
   const { id, date, source, type, url, accessGrantId } = req.body as MediaOverrideUpsertRequest;
+  const matchMode = req.body.matchMode ?? "exact";
   const em = getORM().em;
   const normalizedGrantId = normalizeAccessGrantId(accessGrantId);
 
+  if (id !== undefined && (!Number.isInteger(Number(id)) || Number(id) <= 0)) {
+    res.status(400).json({ status: "error", message: "id must be a positive integer" });
+    return;
+  }
+  if (!isCanonicalDate(date)) {
+    res.status(400).json({ status: "error", message: "date must be a valid yyyy-mm-dd date" });
+    return;
+  }
+  if (!SOURCES.includes(source)) {
+    res.status(400).json({ status: "error", message: "Invalid source" });
+    return;
+  }
+  if (!MEDIA_TYPES.includes(type)) {
+    res.status(400).json({ status: "error", message: "Invalid media type" });
+    return;
+  }
+  if (!MATCH_MODES.includes(matchMode)) {
+    res.status(400).json({ status: "error", message: "Invalid match mode" });
+    return;
+  }
+  const urlError = validateMediaOverrideUrl(url, matchMode);
+  if (urlError) {
+    res.status(400).json({ status: "error", message: urlError });
+    return;
+  }
+  if (normalizedGrantId === undefined) {
+    res
+      .status(400)
+      .json({ status: "error", message: "accessGrantId must be a positive integer or null" });
+    return;
+  }
+  if (normalizedGrantId !== null && type !== "video") {
+    res.status(400).json({
+      status: "error",
+      message: "Access grants are currently supported only for video overrides",
+    });
+    return;
+  }
+
   try {
+    if (normalizedGrantId !== null) {
+      const grant = await em.findOne(AccessGrant_db, { id: normalizedGrantId });
+      if (!grant) {
+        res.status(400).json({ status: "error", message: "access grant not found" });
+        return;
+      }
+    }
     if (id) {
       const mediaOverride = await em.findOne(MediaOverride_db, { id: Number(id) });
       if (mediaOverride) {
         mediaOverride.date = date;
         mediaOverride.source = source;
         mediaOverride.type = type;
-        mediaOverride.url = url;
+        mediaOverride.matchMode = matchMode;
+        mediaOverride.url = url.trim();
         mediaOverride.accessGrantId = normalizedGrantId;
         await em.persist(mediaOverride).flush();
         res
@@ -98,7 +151,8 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         date,
         source,
         type,
-        url,
+        matchMode,
+        url: url.trim(),
         accessGrantId: normalizedGrantId,
       });
       await em.persist(mediaOverride).flush();
@@ -134,21 +188,19 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
 export default router;
 
 async function getMediaOverridesByDate(date: string): Promise<MediaOverride[]> {
-  const em = getORM().em.fork();
-  const mediaOverrides_db: Loaded<MediaOverride_db, never>[] = await em.find(
-    MediaOverride_db,
-    { date: date },
-    { orderBy: { source: "ASC" } }
+  const groups = await Promise.all(
+    SOURCES.flatMap((source) =>
+      MEDIA_TYPES.map((type) =>
+        getApplicableMediaOverrides({
+          source,
+          type,
+          requestedDate: date,
+          visibility: "all",
+        })
+      )
+    )
   );
-  if (mediaOverrides_db) {
-    const mediaOverrideData: MediaOverride[] = mediaOverrides_db.map((mediaOverrideRecord) => {
-      const mediaOverride = mediaOverrideRecord;
-      return mediaOverride;
-    });
-    return mediaOverrideData;
-  } else {
-    return [];
-  }
+  return groups.flat();
 }
 
 /**
@@ -162,7 +214,7 @@ export async function getMediaOverridesList(): Promise<MediaOverrideList[]> {
     {},
     {
       orderBy: { date: "ASC", source: "ASC" },
-      fields: ["id", "date", "source", "type", "url", "accessGrantId"],
+      fields: ["id", "date", "source", "type", "matchMode", "url", "accessGrantId"],
     }
   );
   if (mediaOverrides_db) {
@@ -184,7 +236,7 @@ export async function getPublicMediaOverridesList(): Promise<MediaOverrideList[]
     { accessGrantId: null },
     {
       orderBy: { date: "ASC", source: "ASC" },
-      fields: ["id", "date", "source", "type", "url", "accessGrantId"],
+      fields: ["id", "date", "source", "type", "matchMode", "url", "accessGrantId"],
     }
   );
   return mediaOverrides_db ?? [];

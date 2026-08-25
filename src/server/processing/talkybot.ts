@@ -1,6 +1,6 @@
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import leoProfanity from "leo-profanity";
-import { getMediaOverridesList } from "server/express/routes/db/mediaOverrides";
+import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
 import { getSourcesWithDataType, getSourceForTalkybotGroup } from "utils/sourceDataTypeMap";
@@ -93,32 +93,25 @@ export default async function getTalkybotData({
   source: Source;
   dateWanted: string; // yyyy-mm-dd
 }): Promise<FetchResponse<TalkybotResponse>> {
-  const requestedDate = new Date(dateWanted);
-
   // Fetch source overrides from the database for this date (only for non-ISS sources)
   if (source !== "ISS") {
     try {
-      const mediaOverrides = await getMediaOverridesList();
-
-      // Check for audio override
-      const audioMediaOverride = mediaOverrides?.find((vo) => {
-        const overrideDate = new Date(vo.date);
-        return (
-          overrideDate.getTime() === requestedDate.getTime() &&
-          vo.source === source &&
-          vo.type === "audio"
-        );
-      });
-
-      // Check for transcript override
-      const transcriptMediaOverride = mediaOverrides?.find((vo) => {
-        const overrideDate = new Date(vo.date);
-        return (
-          overrideDate.getTime() === requestedDate.getTime() &&
-          vo.source === source &&
-          vo.type === "transcript"
-        );
-      });
+      const [audioMediaOverrides, transcriptMediaOverrides] = await Promise.all([
+        getApplicableMediaOverrides({
+          source,
+          type: "audio",
+          requestedDate: dateWanted,
+          visibility: "public",
+        }),
+        getApplicableMediaOverrides({
+          source,
+          type: "transcript",
+          requestedDate: dateWanted,
+          visibility: "public",
+        }),
+      ]);
+      const audioMediaOverride = audioMediaOverrides[0];
+      const transcriptMediaOverride = transcriptMediaOverrides[0];
 
       // If we have overrides, merge them into AudioFile format
       if (audioMediaOverride || transcriptMediaOverride) {
