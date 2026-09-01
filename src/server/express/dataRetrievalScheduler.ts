@@ -532,6 +532,32 @@ export const getSourceDateDataType = async ({
 };
 
 /**
+ * Reads the cache bookkeeping for a data type without fetching or scheduling anything.
+ * Useful for endpoints that need to report when data was cached and when it expires.
+ * Returns null when the type does not use the cache or has no entry yet.
+ */
+export const getCacheStatusForDataType = async ({
+  source,
+  dateWanted,
+  dataFetchConfig,
+}: {
+  source: Source;
+  dateWanted: string;
+  dataFetchConfig: FetchConfig;
+}): Promise<{ cachedAt: string; expiration: string } | null> => {
+  if (!dataFetchConfig.enableCacheUse) return null;
+
+  const { cachePath } = getCacheAndTrackerKeys(dataFetchConfig, source, dateWanted);
+  const cacheEntry = await getCacheEntry({ folder: cachePath, identifier: dataFetchConfig.type });
+  if (!cacheEntry) return null;
+
+  return {
+    cachedAt: cacheEntry.createdAt.toISOString(),
+    expiration: cacheEntry.metadata?.expiration ?? "",
+  };
+};
+
+/**
  * Performs a background fetch, updates cache, emits to clients, and schedules next refresh
  */
 const performBackgroundFetch = async ({
