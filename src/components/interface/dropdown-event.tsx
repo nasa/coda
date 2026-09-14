@@ -100,7 +100,7 @@ const EventDropdown: FunctionComponent<{
             const formattedDate = `${year}-${month}-${day}`;
             return (
               <option key={formattedDate} value={formattedDate}>
-                Artemis II - FD{padZeros(i, 2)}
+                {formattedDate} - Artemis II - FD{padZeros(i, 2)}
               </option>
             );
           })}
@@ -114,7 +114,7 @@ const EventDropdown: FunctionComponent<{
             const formattedDate = `${year}-${month}-${day}`;
             return (
               <option key={formattedDate} value={formattedDate}>
-                Artemis I - FD{padZeros(i + 1, 2)}
+                {formattedDate} - Artemis I - FD{padZeros(i + 1, 2)}
               </option>
             );
           })}
@@ -152,6 +152,8 @@ const EventDropdown: FunctionComponent<{
                   displayText = `${eva.startDate} - ${eva.displayTitle}`;
                 } else if (collection === collectionEnum.TEST_EVENTS) {
                   displayText = formatTestEventDisplayTitle(eva);
+                } else if (collection === collectionEnum.NBL) {
+                  displayText = eva.displayTitle.replace(/^(\d{4}-\d{2}-\d{2}) /, "$1 - ");
                 }
                 return (
                   <option key={`${eva.name}-${eva.startDate}-${index}`} value={eva.startDate}>
