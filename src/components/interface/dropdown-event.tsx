@@ -12,15 +12,16 @@ import { useAppDispatch } from "utils/useAppDispatch";
 import { thunkChangeViewingDate } from "store/thunk/clockThunk";
 
 /**
- * Format display title for test events by adding event number in brackets
- * Example: "Test Event:757" -> "2021-10-23 TEST_EVENTS / Unknown (757)"
+ * Format test events with a date separator and event number in brackets
+ * Example: "Test Event:757" -> "2021-10-23 - TEST_EVENTS / Unknown (757)"
  */
 const formatTestEventDisplayTitle = (sequence: Sequence): string => {
+  const displayTitle = sequence.displayTitle.replace(/^(\d{4}-\d{2}-\d{2}) /, "$1 - ");
   const eventNumberMatch = sequence.name.match(/Test Event:(\d+)/);
   if (eventNumberMatch && eventNumberMatch[1]) {
-    return `${sequence.displayTitle} (${eventNumberMatch[1]})`;
+    return `${displayTitle} (${eventNumberMatch[1]})`;
   }
-  return sequence.displayTitle;
+  return displayTitle;
 };
 
 const EventDropdown: FunctionComponent<{
@@ -148,7 +149,7 @@ const EventDropdown: FunctionComponent<{
               .map((eva, index) => {
                 let displayText = eva.displayTitle;
                 if (collection === collectionEnum.ISS) {
-                  displayText = `${eva.startDate} ${eva.displayTitle}`;
+                  displayText = `${eva.startDate} - ${eva.displayTitle}`;
                 } else if (collection === collectionEnum.TEST_EVENTS) {
                   displayText = formatTestEventDisplayTitle(eva);
                 }
