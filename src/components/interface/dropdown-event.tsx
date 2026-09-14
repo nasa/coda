@@ -146,10 +146,12 @@ const EventDropdown: FunctionComponent<{
               })
               // Data is already sorted newest to oldest from the server
               .map((eva, index) => {
-                const displayText =
-                  collection === collectionEnum.TEST_EVENTS
-                    ? formatTestEventDisplayTitle(eva)
-                    : eva.displayTitle;
+                let displayText = eva.displayTitle;
+                if (collection === collectionEnum.ISS) {
+                  displayText = `${eva.startDate} ${eva.displayTitle}`;
+                } else if (collection === collectionEnum.TEST_EVENTS) {
+                  displayText = formatTestEventDisplayTitle(eva);
+                }
                 return (
                   <option key={`${eva.name}-${eva.startDate}-${index}`} value={eva.startDate}>
                     {displayText}
