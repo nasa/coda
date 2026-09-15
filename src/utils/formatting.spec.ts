@@ -488,6 +488,16 @@ describe("cleansEVATitleFromWiki", () => {
     },
     { title: "US EVA RITS", evaName: "US EVA RITS", output: "US EVA RITS" },
     { title: "US EVA SSRMS J4 R&R", evaName: "US EVA SSRMS J4 R&R", output: "US EVA SSRMS J4 R&R" },
+    {
+      title: "US EVA 95",
+      evaName: "US EVA SSRMS J5 R&amp;R",
+      output: "US EVA 95 - SSRMS J5 R&R",
+    },
+    {
+      title: "US EVA SSRMS J4 R&amp;R",
+      evaName: "US EVA SSRMS J4 R&amp;R",
+      output: "US EVA SSRMS J4 R&R",
+    },
   ];
 
   for (const testCase of testCases) {
