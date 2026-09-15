@@ -1,5 +1,6 @@
 import { collection } from "utils/consts";
 import { addMs } from "./date";
+import unescape from "lodash/unescape";
 
 /**
  * Return a zero padded string of a number
@@ -172,6 +173,8 @@ export const formatEVADisplayTitle = ({
   pageName: string;
   descriptiveTitle: string;
 }): string => {
+  pageName = unescape(pageName);
+  descriptiveTitle = unescape(descriptiveTitle);
   const regexWithNum = /^(U|R)S EVA \d+[A-Z]*/; // US EVA 55 or US EVA 55A (optional letter)
   const regexWithoutNum = /^(U|R)S EVA/;
 

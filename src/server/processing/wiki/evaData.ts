@@ -10,6 +10,8 @@ import { ConsoleLogger } from "utils/logging/consoleLogger";
 import { WIKI_BASE_URL } from "./auth";
 import { getAllEVAs, getAllAsExecuted, getAllCrew } from "./evaQueries";
 import { parseAsExecuted, parseCrews } from "./parsers";
+import isEqual from "lodash/isEqual";
+import uniqWith from "lodash/uniqWith";
 
 /**
  * Get ISS EVA data in the format expected by the scheduler
@@ -37,7 +39,8 @@ export async function getISSEvaData(): Promise<FetchResponse<Sequence[]>> {
     const crews = parseCrews(crewData);
 
     // Transform into Sequence format
-    const sequences: Sequence[] = allEVAs
+    // Cargo can return identical metadata rows for the same EVA page.
+    const sequences: Sequence[] = uniqWith(allEVAs, isEqual)
       .filter((eva) => eva["Start date"]) // Filter out EVAs without start date
       .map((eva) => {
         const evaName = eva.pageName;

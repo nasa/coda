@@ -30,7 +30,7 @@ function getEffectiveAppSeconds(clock: {
 
 /**
  * Thunk action to change the viewing date.
- * Clears all date-specific data from stores and sets the new date.
+ * Clears date-specific data only when moving to a different UTC day.
  * The SocketClient will automatically reconnect and fetch new data when playheadDate changes.
  *
  * @param newDate - The new date as an ISO string or YYYY-MM-DD format
@@ -62,19 +62,23 @@ export const thunkChangeViewingDate = appCreateAsyncThunk<
       }
     }
 
-    // Clear all date-specific data stores
-    dispatch(clearVideos());
-    dispatch(clearPhotos());
-    dispatch(clearEphemera());
-    dispatch(clearDayNight());
-    dispatch(clearGPSTracks());
-    dispatch(clearTalkybotAudioFiles());
-    dispatch(clearGraphsManifest());
-    dispatch(clearGraphsData());
+    // A same-day selection does not trigger a socket reload. Preserve its data
+    // and date representation, while still allowing the playhead time to change.
+    const currentDate = getState().clock.date;
+    if (!isSameDate(new Date(currentDate ?? Date.now()), new Date(newDate))) {
+      dispatch(clearVideos());
+      dispatch(clearPhotos());
+      dispatch(clearEphemera());
+      dispatch(clearDayNight());
+      dispatch(clearGPSTracks());
+      dispatch(clearTalkybotAudioFiles());
+      dispatch(clearGraphsManifest());
+      dispatch(clearGraphsData());
+      dispatch(setDate(newDate));
+    }
 
     // Update clock state with new date and reset time tracking
     // This ensures clean state after potentially long-running sessions
-    dispatch(setDate(newDate));
     dispatch(setAppSeconds(resolvedAppSeconds));
     // Stop the clock briefly to reset the timestamp, then restart if it was running
     // This prevents elapsed time calculation issues after days of running
