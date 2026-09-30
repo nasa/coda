@@ -333,24 +333,37 @@ export const ISSLocation: FunctionComponent<{
 
       const maplibreBaseUrl = import.meta.env.VITE_PUBLIC_MAPLIBRE_BASE_URL;
       const pmtilesFilename = import.meta.env.VITE_PUBLIC_MAPLIBRE_PMTILES_FILENAME;
+      const offlineMode = import.meta.env.VITE_PUBLIC_OFFLINE_MODE === "true";
 
-      const overrideStyle = {
-        ...mapStyle,
-        sources: {
-          protomaps: {
-            type: "vector",
-            url: `pmtiles://${maplibreBaseUrl}/${pmtilesFilename}`,
-          },
-        },
-        sprite: `${maplibreBaseUrl}/basemaps-assets-main/sprites/v4/light`,
-        glyphs: `${maplibreBaseUrl}/basemaps-assets-main/fonts/{fontstack}/{range}.pbf`,
-        layers:
-          mapStyle.layers?.map((layer) =>
-            layer.id === "background"
-              ? { ...layer, paint: { ...layer.paint, "background-color": "rgba(0,0,0,0)" } }
-              : layer
-          ) || [],
-      };
+      const overrideStyle = offlineMode
+        ? {
+            version: 8,
+            sources: {},
+            layers: [
+              {
+                id: "background",
+                type: "background",
+                paint: { "background-color": "rgba(0,0,0,0)" },
+              },
+            ],
+          }
+        : {
+            ...mapStyle,
+            sources: {
+              protomaps: {
+                type: "vector",
+                url: `pmtiles://${maplibreBaseUrl}/${pmtilesFilename}`,
+              },
+            },
+            sprite: `${maplibreBaseUrl}/basemaps-assets-main/sprites/v4/light`,
+            glyphs: `${maplibreBaseUrl}/basemaps-assets-main/fonts/{fontstack}/{range}.pbf`,
+            layers:
+              mapStyle.layers?.map((layer) =>
+                layer.id === "background"
+                  ? { ...layer, paint: { ...layer.paint, "background-color": "rgba(0,0,0,0)" } }
+                  : layer
+              ) || [],
+          };
 
       const thisMap = new maplibregl.Map({
         container: mapContainerRef.current,

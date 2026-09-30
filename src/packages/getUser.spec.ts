@@ -69,12 +69,12 @@ describe("getUser", () => {
 
       expect(getUserFromJWTMock).not.toHaveBeenCalled();
       expect(result).toMatchObject({
-        uupic: "1234",
-        email: "neil.armstrong@nasa.gov",
-        auid: "narmstra",
-        givenname: "Neil",
-        surname: "Armstrong",
-        display_name: "Armstrong, Neil A. (JSC-CB611)",
+        uupic: "local-user",
+        email: "developer@example.com",
+        auid: "localdev",
+        givenname: "Local",
+        surname: "Developer",
+        display_name: "Developer, Local",
         roles: expect.arrayContaining([
           "AEGIS-Editor",
           "AEGIS-Superuser",
@@ -85,8 +85,26 @@ describe("getUser", () => {
         uscitizen: true,
         legal_permanent_resident: true,
         usperson: true,
-        ip_address: "1.2.3.4",
+        ip_address: "127.0.0.1",
       });
+    });
+
+    it("should parse explicit false values for mock user flags", () => {
+      process.env.MOCK_USER_USCITIZEN = "false";
+      process.env.MOCK_USER_LPR = "false";
+      process.env.MOCK_USER_USPERSON = "false";
+
+      const result = getUser(mockRequest as Request);
+
+      expect(result).toMatchObject({
+        uscitizen: false,
+        legal_permanent_resident: false,
+        usperson: false,
+      });
+
+      delete process.env.MOCK_USER_USCITIZEN;
+      delete process.env.MOCK_USER_LPR;
+      delete process.env.MOCK_USER_USPERSON;
     });
 
     it("should use custom environment variables for mock user", () => {

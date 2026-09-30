@@ -72,11 +72,13 @@ describe("dataRetrievalScheduler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useRealTimers();
+    delete process.env.OFFLINE_MODE;
     // Reset global state
     globalValues.fetchTrackers = {};
   });
 
   afterEach(() => {
+    delete process.env.OFFLINE_MODE;
     // Clear all timeouts
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -223,6 +225,26 @@ describe("dataRetrievalScheduler", () => {
       expect(result).toEqual(mockSuccessResponse);
       expect(getCacheEntryMock).not.toHaveBeenCalled();
       expect(noCacheConfig.getDataFunction).toHaveBeenCalled();
+    });
+
+    it("returns empty data without calling NASA services in public offline mode", async () => {
+      process.env.OFFLINE_MODE = "true";
+      const noCacheConfig: FetchConfig = {
+        ...mockDataFetchConfig,
+        enableCacheUse: false,
+      };
+
+      const result = await getSourceDateDataType({
+        source: "ISS",
+        dateWanted: "2025-01-01",
+        dataFetchConfig: noCacheConfig,
+      });
+
+      expect(result).toMatchObject({
+        data: [],
+        fetchMetadata: { success: true },
+      });
+      expect(noCacheConfig.getDataFunction).not.toHaveBeenCalled();
     });
 
     it("does not trigger duplicate fetches when already fetching", async () => {
