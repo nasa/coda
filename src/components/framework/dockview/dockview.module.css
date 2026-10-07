@@ -2,6 +2,8 @@
   width: 100%;
   height: calc(100vh - (50px + 122px));
   /* 50px header + 122px timeline — matches the old CSS grid height */
+  /* Keep Dockview's controls below the timeline's overlapping time label. */
+  isolation: isolate;
 }
 
 /* ---- dockview theme overrides ---- */
