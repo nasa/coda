@@ -12,6 +12,12 @@ import {
 } from "utils/sourceDataTypeMap";
 import { usePlayheadDate } from "store/hooks";
 
+const helpVideoUrl =
+  import.meta.env.VITE_PUBLIC_HELP_VIDEO_URL ??
+  (import.meta.env.VITE_PUBLIC_OFFLINE_MODE === "true"
+    ? ""
+    : "https://emss-labs.fit.nasa.gov/public/coda-video/coda-help-video.mp4");
+
 const AboutOverlay = ({
   modalIsOpen,
   setModalIsOpen,
@@ -276,14 +282,16 @@ const AboutOverlay = ({
                   src="/images/help_callout_background.png"
                   alt="Using CODA callout"
                 />
-                <video
-                  className={styles.helpCalloutVideo}
-                  src="https://emss-labs.fit.nasa.gov/public/coda-video/coda-help-video.mp4"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                />
+                {helpVideoUrl && (
+                  <video
+                    className={styles.helpCalloutVideo}
+                    src={helpVideoUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                )}
               </div>
             </div>
           </div>

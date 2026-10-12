@@ -8,6 +8,10 @@ coverage/
 # Directory where local data is stored during dev
 .local
 
+# Optional public asset pack (download separately; see README.md)
+src/public/media/
+CODA_public_assets.zip
+
 .env
 env.secret.ts
 

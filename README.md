@@ -73,6 +73,45 @@ Public setup does **not** require NASA credentials, the NASA CA certificate, a h
 file change, or access to the internal npm/container registries. The fully Dockerized
 preview remains intended for the NASA deployment environment.
 
+### Optional: Download the help video
+
+The welcome overlay's help video is available as a separate `CODA_public_assets.zip`
+download. Public setup works without it and does not request the NASA-hosted video.
+
+1. Download [CODA_public_assets.zip](https://ares-aegis.s3.us-gov-west-1.amazonaws.com/CODA_public_assets.zip)
+   and place it in the repository root, or run:
+
+   ```sh
+   curl -fL -o CODA_public_assets.zip \
+     https://ares-aegis.s3.us-gov-west-1.amazonaws.com/CODA_public_assets.zip
+   ```
+
+2. Extract the pack into Vite's public assets folder:
+
+   ```sh
+   unzip CODA_public_assets.zip -d src/public
+   ```
+
+   On Windows PowerShell, use:
+
+   ```powershell
+   Expand-Archive -LiteralPath CODA_public_assets.zip -DestinationPath src/public
+   ```
+
+   This creates `src/public/media/coda-help-video.mp4`.
+3. Set the following value in `.env`:
+
+   ```dotenv
+   VITE_PUBLIC_HELP_VIDEO_URL="/media/coda-help-video.mp4"
+   ```
+
+4. Restart `npm run dev`. The welcome overlay now plays the local video. If building
+   CODA instead, run `npm run build` again so the setting and video are included.
+
+The pack contains only the help video and installation notes; it does not seed the
+database or include mission data. Leave `VITE_PUBLIC_HELP_VIDEO_URL` empty to omit
+the video. NASA developers without this setting continue to use the hosted video.
+
 ## Environments
 
 CODA is deployed using GitLab CI/CD and FIT-provisioned VMs.
