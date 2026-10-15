@@ -2,7 +2,6 @@ import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import { appSecondsFromDateString } from "utils/formatting";
 import { isSameDate } from "utils/date";
-import memoize from "lodash/memoize";
 
 /**
  * Converts a Source type to its abbreviated suffix for MediaMTX stream naming.
@@ -149,6 +148,21 @@ export function calculateChannelAvailability(
 // Video Data Structure Helpers
 // ============================================================================
 
+/** Cache immutable video arrays by identity and their most recently requested date. */
+const memoizeVideosByDate = <T>(compute: (videos: VideoFile[], date: Date) => T) => {
+  const cache = new WeakMap<VideoFile[], { date: string; result: T }>();
+  return (videos: VideoFile[], date: Date): T => {
+    const key = date.toISOString();
+    const cached = cache.get(videos);
+    if (cached?.date === key) {
+      return cached.result;
+    }
+    const result = compute(videos, date);
+    cache.set(videos, { date: key, result });
+    return result;
+  };
+};
+
 /** Map seconds and downlinks to videos */
 const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, string[]> => {
   const ret = new Map<string, string[]>();
@@ -169,10 +183,7 @@ const _visibleVideosBySecond = (videos: VideoFile[], date: Date): Map<string, st
 /**
  * Create a data structure that maps seconds and downlinks to videos. Each key is in the form of "second/downlink", eg. "86399/6", indicating a video playing at 23:59 on downlink 6. The value is a list of video IDs playing at that second. Missing keys represent "second/downlink" without any videos. Keys can be iterated in ascending chronological order, but downlink order is not guaranteed
  */
-export const visibleVideosBySecond = memoize(
-  _visibleVideosBySecond,
-  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`
-);
+export const visibleVideosBySecond = memoizeVideosByDate(_visibleVideosBySecond);
 
 /** Filters videos for start and end dates that overlap a given day */
 const _filterVisibleVideos = (videos: VideoFile[], date: Date): VideoFile[] => {
@@ -184,10 +195,7 @@ const _filterVisibleVideos = (videos: VideoFile[], date: Date): VideoFile[] => {
 };
 
 /** Return a list of all videos that cover some part of the day */
-export const filterVisibleVideos = memoize(
-  _filterVisibleVideos,
-  (videos: VideoFile[], date: Date) => `${videos.length}/${date.toISOString()}`
-);
+export const filterVisibleVideos = memoizeVideosByDate(_filterVisibleVideos);
 
 // ============================================================================
 // Video Player Type Determination
