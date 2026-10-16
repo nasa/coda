@@ -23,6 +23,14 @@ import ConsoleLogger from "utils/logging/consoleLogger";
 const IO_HOST = "https://io.jsc.nasa.gov";
 const IO_API_URL = `${IO_HOST}/api/search/rpp=500`;
 
+async function parseJsonResponse<T>(res: Response, url: string): Promise<T> {
+  if (!res.ok) {
+    throw new Error(`IO request failed: ${res.status} ${res.statusText} - ${url}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
 /**
  * Perform a request against the Imagery Online (IO) API with the given parameters.
  * @param params - URL query parameters (e.g., "s_dt=01-01-2020&e_dt=01-02-2020")
@@ -42,7 +50,7 @@ async function fetchIO(params: string): Promise<IOResponse> {
 
   try {
     const res = await fetchWithTimeout(url, options);
-    return res.json();
+    return await parseJsonResponse<IOResponse>(res, url);
   } catch (e) {
     ConsoleLogger.error("Error fetching IO data", e);
     throw e; // Re-throw to allow caller to handle the error
@@ -56,7 +64,7 @@ export async function fetchForgedIoManifest(
   const dataPath = `${override.url}/${override.type}Manifest.json`;
 
   const res = await fetchWithTimeout(dataPath);
-  return res.json() as Promise<VideoFile[] | PhotoFile[]>;
+  return parseJsonResponse<VideoFile[] | PhotoFile[]>(res, dataPath);
 }
 
 /**
