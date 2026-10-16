@@ -89,6 +89,7 @@ export const GPSLocationControls: FunctionComponent<{
           <button
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Click to toggle map scrolling in relation to GPS position`}
+            aria-label="Toggle map scroll lock"
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
@@ -628,6 +629,7 @@ const GPSLocation: FunctionComponent<{ paneInstanceId: number; groupDimensions: 
                               <img
                                 className="infoSectionTitleIcon"
                                 src={`/images/marker_${key.toLowerCase()}.png`}
+                                alt={`GPS marker icon for ${key}`}
                                 width="30px"
                               />
                             </div>
