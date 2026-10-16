@@ -6,6 +6,7 @@ import {
   videoSorter,
   buildQueryArray,
   fetchIoData,
+  fetchForgedIoManifest,
   isDownlinkVideo,
 } from "server/processing/io-api";
 import fetchWithTimeout from "../../utils/fetch-with-timeout";
@@ -35,9 +36,16 @@ const createIoResponse = (docs: unknown[], numfound?: number) => ({
   },
 });
 
-const mockFetchResponse = (payload: unknown): Response =>
+const mockFetchResponse = (
+  payload: unknown,
+  response: Partial<Response> = {}
+): Response =>
   ({
+    ok: true,
+    status: 200,
+    statusText: "OK",
     json: () => Promise.resolve(payload),
+    ...response,
   }) as unknown as Response;
 
 describe("services/io-api", () => {
@@ -407,6 +415,37 @@ describe("services/io-api", () => {
       expect(results.map((photo) => photo.id)).toEqual(["A", "B", "C"]);
       expect(fetchWithTimeoutMock).toHaveBeenCalledTimes(2);
       expect(fetchWithTimeoutMock.mock.calls[1]?.[0]).toContain("&sr=501");
+    });
+
+    it("returns a useful error when the IO search responds with a failure", async () => {
+      fetchWithTimeoutMock.mockResolvedValueOnce(
+        mockFetchResponse(null, { ok: false, status: 503, statusText: "Service Unavailable" })
+      );
+
+      const result = await fetchIoData({
+        collection: collection.ISS,
+        fetchType: "photos",
+        requestedDate: new Date("2024-01-02T00:00:00Z"),
+      });
+
+      expect(result.fetchMetadata.success).toBe(false);
+      expect(result.fetchMetadata.error).toContain("503 Service Unavailable");
+      expect(result.data).toEqual([]);
+    });
+
+    it("rejects failed forged manifests with their HTTP status", async () => {
+      fetchWithTimeoutMock.mockResolvedValueOnce(
+        mockFetchResponse(null, { ok: false, status: 404, statusText: "Not Found" })
+      );
+
+      await expect(
+        fetchForgedIoManifest({
+          date: "2024-01-02",
+          source: "ARTEMIS",
+          url: "https://example.test/manifest",
+          type: "photo",
+        })
+      ).rejects.toThrow("404 Not Found");
     });
   });
 });
