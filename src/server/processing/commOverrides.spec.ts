@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import getCommOverrides from "./commOverrides";
@@ -14,6 +14,79 @@ const fetchWithTimeoutMock = vi.mocked(fetchWithTimeout);
 describe("getCommOverrides", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("keeps Labs wildcard media URLs when Talkybot points to production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VITE_PUBLIC_TALKYBOT_URL", "https://talkybot.fit.nasa.gov");
+    const { resolveApplicableMediaOverrides } =
+      await vi.importActual<typeof import("./mediaOverrideResolver")>("./mediaOverrideResolver");
+    const template = "https://emss-labs.fit.nasa.gov/sim/{date}";
+    getApplicableMediaOverridesMock.mockImplementation(async ({ type, requestedDate }) =>
+      resolveApplicableMediaOverrides(
+        [
+          {
+            id: 1,
+            date: "2026-08-01",
+            source: "TEST_EVENTS",
+            type,
+            matchMode: "daily",
+            url: template,
+            accessGrantId: null,
+          },
+        ],
+        requestedDate
+      )
+    );
+    fetchWithTimeoutMock.mockImplementation(
+      async (url) =>
+        ({
+          json: async () =>
+            String(url).endsWith("audioManifest.json")
+              ? [
+                  {
+                    start_seconds: 3600,
+                    cue_start_seconds: 0,
+                    cue_end_seconds: 10,
+                    sgChannels: [
+                      {
+                        sgChannel: 1,
+                        activity_ranges: [
+                          {
+                            sound_start_secs: 0,
+                            sound_stop_secs: 10,
+                            aacSegmentFilename: "sim.aac",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ]
+              : String(url).endsWith("transcript-SG1.json")
+                ? [[3601, "crew", "Sim check"]]
+                : [],
+        }) as Response
+    );
+
+    const response = await getCommOverrides({ source: "TEST_EVENTS", dateWanted: "2026-10-22" });
+
+    expect(response.data).toHaveLength(1);
+    expect(response.data[0]).toMatchObject({
+      override: true,
+      text: "Sim check",
+      duration: 10,
+      audioUrl: "https://emss-labs.fit.nasa.gov/sim/2026-10-22/audio/sim.aac",
+    });
+    expect(fetchWithTimeoutMock.mock.calls.map(([url]) => String(url))).toEqual([
+      "https://emss-labs.fit.nasa.gov/sim/2026-10-22/audioManifest.json",
+      ...[1, 2, 3, 4].map(
+        (channel) => `https://emss-labs.fit.nasa.gov/sim/2026-10-22/transcript-SG${channel}.json`
+      ),
+    ]);
   });
 
   it("uses resolved public daily audio and transcript override URLs", async () => {
