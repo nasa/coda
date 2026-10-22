@@ -16,8 +16,8 @@ export const config: DotenvConfig<typeof environments> = {
    * container start by nginx's standard template entrypoint.
    */
   AUTH_HOST: {
-    default: "emss-auth-int.fit.nasa.gov",
-    prod: "emss-auth.fit.nasa.gov",
+    // All environments share production auth with the production Talkybot client.
+    default: "emss-auth.fit.nasa.gov",
   },
 
   /**
