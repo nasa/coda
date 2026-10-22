@@ -16,7 +16,6 @@ export const config: DotenvConfig<typeof environments> = {
    * container start by nginx's standard template entrypoint.
    */
   AUTH_HOST: {
-    // default: "emss-labs.fit.nasa.gov/unified-auth",
     default: "emss-auth-int.fit.nasa.gov",
     prod: "emss-auth.fit.nasa.gov",
   },

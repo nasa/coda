@@ -99,11 +99,11 @@ REST API is served at `/api/v1/`. Key route groups: `/db/*` (CRUD), `/emss/*`, `
 ### Authentication (shared auth)
 
 - CODA no longer runs its own oauth2-proxy + redis sidecar. Nginx delegates
-  auth via `auth_request` (`docker/nginx/route-require-auth.conf`) to a
+  auth via `auth_request` (`docker/nginx/root/etc/nginx/templates/route-require-auth.conf.template`) to a
   **shared** oauth2-proxy at `${AUTH_HOST}` (LaunchPad-backed), configured
-  per-environment in `env.config.ts` and rendered into
-  `docker/nginx/setup-auth-unified.conf.template` at container start by
-  `docker/nginx/docker-entrypoint.sh`.
+  per-environment in `env.config.ts`. The official nginx entrypoint renders
+  `docker/nginx/root/etc/nginx/templates/*.template` into `/etc/nginx/conf.d/`
+  at container start, substituting `AUTH_HOST` and `AUTH_COOKIE_NAME`.
 - Because the shared proxy's session cookie is scoped to `.fit.nasa.gov`, a
   user already signed in to any other EMSS app on that domain is
   automatically signed in here too.
