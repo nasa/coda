@@ -6,9 +6,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import react from "@vitejs/plugin-react";
 import packageJSON from "./package.json" with { type: "json" };
+import { existsSync, readFileSync } from "node:fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const devCert = path.join(__dirname, ".local/certs/nginx.crt");
+const devKey = path.join(__dirname, ".local/private/nginx.key");
 
 export const config: UserConfig = {
   root: "./src",
@@ -31,6 +34,13 @@ export const config: UserConfig = {
   },
   //server configurations for running vite as a server (only happens in local dev). On docker/production, nginx serves the front end
   server: {
+    // Use the same local certificate as the Docker preview for shared auth cookies.
+    https:
+      existsSync(devCert) && existsSync(devKey)
+        ? { cert: readFileSync(devCert), key: readFileSync(devKey) }
+        : undefined,
+    allowedHosts: ["coda-local.fit.nasa.gov"],
+    strictPort: true,
     // neither of these proxies are hit when running under docker:dev because nginx intercepts them
     proxy: {
       "/api/v1": {

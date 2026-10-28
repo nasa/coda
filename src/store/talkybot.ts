@@ -21,12 +21,21 @@ function withAppSeconds(file: TbAudioFileConverted): TbAudioFileConverted {
 export const initialState: TalkybotState = {
   audioFiles: [],
   metadata: null,
+  connectionError: null,
+  retryCount: 0,
 };
 
 export const talkybotSlice = createSlice({
   name: "talkybot",
   initialState,
   reducers: {
+    retryTalkybot: (state) => {
+      state.retryCount += 1;
+      state.connectionError = null;
+    },
+    setTalkybotConnectionError: (state, action: { payload: string | null }) => {
+      state.connectionError = action.payload;
+    },
     /** Set talkybot audio files in the store */
     setTalkybotAudioFiles: (state, action: { payload: FetchResponse<TbAudioFileConverted[]> }) => {
       const incomingAudioFiles = action.payload.data ?? [];
@@ -75,4 +84,6 @@ export const {
   clearTalkybotAudioFiles,
   upsertTalkybotAudioFile,
   talkybotFetchError,
+  retryTalkybot,
+  setTalkybotConnectionError,
 } = talkybotSlice.actions;

@@ -1,0 +1,24 @@
+.connectionNotice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  color: var(--greyish);
+  background-color: var(--dark-grey);
+  font-size: 0.85em;
+}
+
+.connectionNotice a {
+  color: var(--greyish);
+  text-decoration: underline;
+}
+
+.connectionNotice button {
+  padding: 4px 8px;
+  border: 1px solid var(--even-greyer);
+  border-radius: 3px;
+  color: var(--greyish);
+  background-color: var(--nearly-black);
+  cursor: pointer;
+}

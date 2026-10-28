@@ -74,6 +74,8 @@ type GPSState = {
 interface TalkybotState {
   audioFiles: TbAudioFileConverted[];
   metadata: FetchMetadata | null;
+  connectionError: string | null;
+  retryCount: number;
 }
 
 /**

@@ -47,8 +47,8 @@ EMSS dev servers all have element names, and are:
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
-5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is necessary for the direct IO API calls to work, and may be required in the future for LaunchPad authentication.
-6. (Required for Docker) Create a self-signed SSL certificate by doing `bash ./scripts/make-dev-ssl-cert.sh`
+5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is required for the direct IO and Talkybot connections.
+6. Create a local SSL certificate with `bash ./scripts/make-dev-ssl-cert.sh`. Both Vite and the Docker preview use this certificate. Trust it in your browser, or accept its warning when opening local CODA.
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
 
 ### Option 1: Local Dev (non-Docker)
@@ -60,7 +60,15 @@ npm run docker:services
 npm run dev
 ```
 
-Then go to (http://coda-local.fit.nasa.gov:3000)
+Then go to https://coda-local.fit.nasa.gov:3000. Vite enables HTTPS when the certificate and key from step 6 exist; restart `npm run dev` after creating them. Without them, HTTP development still works for features that do not use Talkybot.
+
+#### Talkybot communications in local development
+
+The comm panel connects directly to production Talkybot using your browser's real production shared-auth session. Local CODA's `MOCK_USER` does not authenticate you with Talkybot or grant access to its restricted channels.
+
+If communications cannot load, use **Sign in to Talkybot** in the comm panel to sign in through production LaunchPad in another tab. Returning to CODA retries the transcript requests and reconnects live updates. **Retry connection** also retries without reloading CODA. A successful request with no recordings remains an empty date, rather than a login error. Legacy CODA comm overrides still load if Talkybot is unavailable.
+
+Production Talkybot must include `https://coda-local.fit.nasa.gov:3000` in its production `TB_CORS_ALLOWED_ORIGINS` list (and `https://coda-local.fit.nasa.gov` for the Docker preview). Adding remote dev server origins alone does not cover the local port. Use the HTTPS hostname above rather than HTTP or `localhost` so the shared same-site cookie can accompany Talkybot requests.
 
 This command sets up a hot-reloading fullstack node server. If any changes are made to the client, they should appear automatically in the browser. If any changes are made to the server, the server should automatically restart.
 
