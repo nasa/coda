@@ -25,6 +25,41 @@ export const getTalkybotBaseUrl = (): string => {
 export const getTalkybotAudioUrl = (fileUuid: string): string =>
   `${getTalkybotBaseUrl()}/api/v1/audiofiles/${fileUuid}/file`;
 
+/** HTTP local development cannot use Talkybot's shared, same-site HTTPS session. */
+export const getTalkybotSetupError = (pageUrl: string): string | null => {
+  const baseUrl = getTalkybotBaseUrl();
+  if (!baseUrl || new URL(baseUrl).protocol !== "https:") return null;
+  const page = new URL(pageUrl);
+  if (page.protocol !== "https:" || ["localhost", "127.0.0.1", "[::1]"].includes(page.hostname)) {
+    return "Open CODA over HTTPS at coda-local.fit.nasa.gov to connect to Talkybot.";
+  }
+  return null;
+};
+
+/** Load both simulation buckets using the browser's real Talkybot session. */
+export const fetchTalkybotTranscript = async (
+  date: string,
+  signal?: AbortSignal
+): Promise<TbAudioFileNative[]> => {
+  const baseUrl = getTalkybotBaseUrl();
+  if (!baseUrl) throw new Error("Talkybot URL is not configured");
+
+  const buckets = await Promise.all(
+    [false, true].map(async (sim) => {
+      const response = await fetch(`${baseUrl}/api/v1/transcript/${date}?sim=${sim}`, {
+        credentials: "include",
+        redirect: "error",
+        signal,
+      });
+      if (!response.ok) throw new Error(`Talkybot returned HTTP ${response.status}`);
+      const body = (await response.json()) as TbDateResponse;
+      if (!Array.isArray(body.audioFiles)) throw new Error("Invalid Talkybot transcript response");
+      return body.audioFiles;
+    })
+  );
+  return buckets.flat();
+};
+
 /**
  * Convert a Talkybot native audio file (channel + transcription + mediaInfo) into the
  * `TbAudioFileConverted` shape the comm pane renders.

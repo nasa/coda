@@ -9,10 +9,15 @@ import {
   clearTalkybotAudioFiles,
   setTalkybotAudioFiles,
   upsertTalkybotAudioFile,
+  retryTalkybot,
+  setTalkybotConnectionError,
+  talkybotFetchError,
 } from "store/talkybot";
 import {
   filterAudioFilesForSource,
+  fetchTalkybotTranscript,
   getTalkybotBaseUrl,
+  getTalkybotSetupError,
   toTbAudioFileConverted,
 } from "utils/talkybot";
 import ConsoleLogger from "utils/logging/consoleLogger";
@@ -36,12 +41,6 @@ interface TalkybotServerToClientEvents {
   audioFile: (payload: TbAudioFileNative) => void;
 }
 
-/** Talkybot's per-date transcript response (only the fields we use). */
-interface TalkybotTranscriptResponse {
-  date: string;
-  audioFiles: TbAudioFileNative[];
-}
-
 const TalkybotClient: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   // The base UTC date being viewed. usePlayheadDate() is guaranteed non-null: it returns
@@ -54,6 +53,20 @@ const TalkybotClient: FunctionComponent = () => {
   // Stays put during playback (the live playhead advances via appSeconds, not clock.date).
   const clockDate = usePlayheadDate();
   const source = useAppSelector((state) => state.framework.source, refEqual);
+  const retryCount = useAppSelector((state) => state.talkybot.retryCount, refEqual);
+  const hasError = useAppSelector(
+    (state) => state.talkybot.metadata?.success === false || !!state.talkybot.connectionError,
+    refEqual
+  );
+  const setupError = getTalkybotSetupError(window.location.href);
+
+  // Returning from the Talkybot sign-in tab reloads transcripts and reconnects the socket.
+  useEffect(() => {
+    if (!hasError || setupError) return;
+    const retry = () => dispatch(retryTalkybot());
+    window.addEventListener("focus", retry);
+    return () => window.removeEventListener("focus", retry);
+  }, [hasError, setupError, dispatch]);
 
   // Latest source/date for the live socket handler to read without forcing a reconnect.
   const sourceRef = useRef<Source | null>(source);
@@ -70,6 +83,7 @@ const TalkybotClient: FunctionComponent = () => {
       ConsoleLogger.error("TalkybotClient: VITE_PUBLIC_TALKYBOT_URL is not set");
       return;
     }
+    if (setupError) return;
 
     // setTimeout(0) for the same StrictMode mount→unmount→remount reason as SocketClient.
     const timerId = setTimeout(() => {
@@ -96,6 +110,13 @@ const TalkybotClient: FunctionComponent = () => {
 
         dispatch(upsertTalkybotAudioFile(converted));
       });
+      socket.current.on("connect", () => dispatch(setTalkybotConnectionError(null)));
+      socket.current.on("connect_error", () =>
+        dispatch(setTalkybotConnectionError("Talkybot live updates are unavailable."))
+      );
+      socket.current.on("disconnect", () =>
+        dispatch(setTalkybotConnectionError("Talkybot live updates are disconnected."))
+      );
     }, 0);
 
     return () => {
@@ -106,8 +127,7 @@ const TalkybotClient: FunctionComponent = () => {
         socket.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only: socket persists across source/date changes; the handler reads current values via refs
-  }, []);
+  }, [dispatch, retryCount, setupError]);
 
   // Load the transcript + legacy overrides whenever the source or viewed date changes.
   useEffect(() => {
@@ -121,6 +141,7 @@ const TalkybotClient: FunctionComponent = () => {
     }
 
     let cancelled = false;
+    const controller = new AbortController();
     const baseUrl = getTalkybotBaseUrl();
     if (!baseUrl) {
       ConsoleLogger.error("TalkybotClient: VITE_PUBLIC_TALKYBOT_URL is not set");
@@ -130,27 +151,12 @@ const TalkybotClient: FunctionComponent = () => {
     const load = async () => {
       dispatch(clearTalkybotAudioFiles());
 
-      // Talkybot's transcript endpoint filters by a single `sim` value (default false),
-      // so fetch both to cover ISS (sim=false) and the non-ISS bucket (sim true/false);
-      // routing to the current CODA source is decided client-side by (group, sim).
-      const fetchTranscript = async (sim: boolean): Promise<TbAudioFileNative[]> => {
-        const url = `${baseUrl}/api/v1/transcript/${date}?sim=${sim}`;
-        const res = await fetch(url, { credentials: "include" });
-        if (!res.ok) {
-          ConsoleLogger.warn(
-            `TalkybotClient: transcript fetch (sim=${sim}) returned ${res.status}`
-          );
-          return [];
-        }
-        const body = (await res.json()) as TalkybotTranscriptResponse;
-        return body.audioFiles ?? [];
-      };
-
       try {
-        const [nonSim, sim] = await Promise.all([fetchTranscript(false), fetchTranscript(true)]);
+        if (setupError) throw new Error(setupError);
+        const nativeFiles = await fetchTalkybotTranscript(date, controller.signal);
         if (cancelled) return;
 
-        const converted = [...nonSim, ...sim].map(toTbAudioFileConverted);
+        const converted = nativeFiles.map(toTbAudioFileConverted);
         const audioFiles = filterAudioFilesForSource(converted, source);
 
         dispatch(
@@ -162,18 +168,14 @@ const TalkybotClient: FunctionComponent = () => {
       } catch (e) {
         if (cancelled) return;
         ConsoleLogger.warn("TalkybotClient: transcript load error:", e);
-        dispatch(
-          setTalkybotAudioFiles({
-            data: [],
-            fetchMetadata: { success: false, timestamp: new Date().toISOString() },
-          })
-        );
+        dispatch(talkybotFetchError("Unable to load Talkybot communications."));
       }
 
       // Merge CODA's legacy comm overrides (JETT5/MS1/MS2, etc.) on top of live data.
       try {
         const res = await fetch(
-          `/api/v1/external/comm-overrides?source=${encodeURIComponent(source)}&date=${encodeURIComponent(date)}`
+          `/api/v1/external/comm-overrides?source=${encodeURIComponent(source)}&date=${encodeURIComponent(date)}`,
+          { signal: controller.signal }
         );
         if (res.ok) {
           const overrideResponse = (await res.json()) as FetchResponse<TbAudioFileConverted[]>;
@@ -192,8 +194,9 @@ const TalkybotClient: FunctionComponent = () => {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [source, clockDate, dispatch]);
+  }, [source, clockDate, dispatch, retryCount, setupError]);
 
   return <></>;
 };

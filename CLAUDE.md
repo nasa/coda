@@ -33,7 +33,7 @@ npm run migration:create
 npm run docker:services
 ```
 
-Development requires PostgreSQL running (via `npm run docker:services`) before starting `npm run dev`. The dev server runs at `http://coda-local.fit.nasa.gov:3000`.
+Development requires PostgreSQL running (via `npm run docker:services`) before starting `npm run dev`. Generate the local certificate with `bash ./scripts/make-dev-ssl-cert.sh` and use `https://coda-local.fit.nasa.gov:3000` for Talkybot's shared auth cookies. The comm panel offers a production Talkybot sign-in link and retries on return; `MOCK_USER` only applies to CODA's own backend. Production Talkybot's CORS allowlist must include the exact local origin and port.
 
 ## Architecture
 

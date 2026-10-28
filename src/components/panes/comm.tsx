@@ -19,6 +19,7 @@ import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
 import { getTalkybotAudioUrl } from "utils/talkybot";
 import ClockInterval from "components/framework/ClockInterval";
+import TalkybotConnectionNotice from "./talkybotConnectionNotice";
 
 export const channelColors = [
   "#653939",
@@ -338,6 +339,7 @@ type DisplayUtterance = {
 const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceId }) => {
   const audioFiles = useAppSelector((state) => state.talkybot.audioFiles, deepEqual);
   const talkybotMetadata = useAppSelector((state) => state.talkybot.metadata, deepEqual);
+  const connectionError = useAppSelector((state) => state.talkybot.connectionError, refEqual);
   const hasAudioFiles = audioFiles && audioFiles.length > 0;
   const channelTimingMap = useMemo(() => buildChannelTimingMap(audioFiles), [audioFiles]);
 
@@ -575,7 +577,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         setPaneStateDataValue({
           paneInstanceId,
           paneStateProperty: "showHelp",
-          paneStateValue: !hasAudioFiles,
+          paneStateValue: talkybotMetadata.success && !hasAudioFiles,
         })
       );
     }
@@ -666,6 +668,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
   return (
     <div className={styles.main}>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
+      <TalkybotConnectionNotice />
       <div className={displayFilterStyle}>
         <div className={styles.inputBoxContainer}>
           <input
@@ -718,7 +721,9 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         <div>{filteredUtterances.map((utterance, idx) => displayUtterance(utterance, idx))}</div>
       </div>
       <HelpOverlay
-        isModalOpen={paneStateData.showHelp}
+        isModalOpen={
+          paneStateData.showHelp && talkybotMetadata?.success !== false && !connectionError
+        }
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
