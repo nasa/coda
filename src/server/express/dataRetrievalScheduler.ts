@@ -404,13 +404,11 @@ export const getSourceDateDataType = async ({
   dateWanted,
   dataFetchConfig,
   autoRefresh = true, // autoRefresh means to schedule background refreshes after fetching. Currently false only for manual data downloads API endpoint
-  awaitFetchOnMiss = false, // when true and nothing is cached, wait for the fetch result instead of returning null
 }: {
   source: Source;
   dateWanted: string;
   dataFetchConfig: FetchConfig;
   autoRefresh?: boolean;
-  awaitFetchOnMiss?: boolean;
 }): Promise<FetchResponse<unknown> | null> => {
   const dataType = dataFetchConfig.type;
 
@@ -461,10 +459,6 @@ export const getSourceDateDataType = async ({
 
   // Determine if we need to fetch
   const needsFetch = isExpired || !hasCachedData;
-
-  if (!hasCachedData && awaitFetchOnMiss) {
-    return performBackgroundFetch({ source, dateWanted, dataFetchConfig, autoRefresh });
-  }
 
   // Start background fetch if needed and not already fetching
   if (needsFetch && !isAlreadyFetching && autoRefresh) {
@@ -537,13 +531,10 @@ export const getSourceDateDataType = async ({
   return null;
 };
 
-// In-flight background fetches keyed by source, tracker date key, and data type
-const inFlightBackgroundFetches = new Map<string, Promise<FetchResponse<unknown> | null>>();
-
 /**
- * Performs a background fetch, or joins the one already in flight for the same source/date/type
+ * Performs a background fetch, updates cache, emits to clients, and schedules next refresh
  */
-const performBackgroundFetch = ({
+const performBackgroundFetch = async ({
   source,
   dateWanted,
   dataFetchConfig,
@@ -553,44 +544,7 @@ const performBackgroundFetch = ({
   dateWanted: string;
   dataFetchConfig: FetchConfig;
   autoRefresh: boolean;
-}): Promise<FetchResponse<unknown> | null> => {
-  const { trackerDateKey } = getCacheAndTrackerKeys(dataFetchConfig, source, dateWanted);
-  const inFlightFetchKey = `${source}|${trackerDateKey}|${dataFetchConfig.type}`;
-
-  const existingInFlightFetch = inFlightBackgroundFetches.get(inFlightFetchKey);
-  if (existingInFlightFetch) {
-    ConsoleLogger.debug(
-      `${dataFetchConfig.type} Joining in-flight background fetch for ${source}_${trackerDateKey}`
-    );
-    return existingInFlightFetch;
-  }
-
-  const backgroundFetchPromise = runBackgroundFetch({
-    source,
-    dateWanted,
-    dataFetchConfig,
-    autoRefresh,
-  }).finally(() => {
-    inFlightBackgroundFetches.delete(inFlightFetchKey);
-  });
-  inFlightBackgroundFetches.set(inFlightFetchKey, backgroundFetchPromise);
-  return backgroundFetchPromise;
-};
-
-/**
- * Fetches data, updates cache, emits to clients, and schedules next refresh
- */
-const runBackgroundFetch = async ({
-  source,
-  dateWanted,
-  dataFetchConfig,
-  autoRefresh,
-}: {
-  source: Source;
-  dateWanted: string;
-  dataFetchConfig: FetchConfig;
-  autoRefresh: boolean;
-}): Promise<FetchResponse<unknown> | null> => {
+}): Promise<void> => {
   const dataType = dataFetchConfig.type;
   const isDateDependent = dataFetchConfig.isDateDependent ?? true;
   const { cachePath, trackerDateKey } = getCacheAndTrackerKeys(dataFetchConfig, source, dateWanted);
@@ -714,8 +668,6 @@ const runBackgroundFetch = async ({
       lastEmitSkippedAt: new Date().toISOString(),
     });
   }
-
-  return dataResponse;
 };
 
 /**

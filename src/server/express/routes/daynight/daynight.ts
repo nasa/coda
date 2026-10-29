@@ -22,12 +22,9 @@ interface WrappedResponse<T> {
 /**
  * `/api/v1/external/daynight/daynight?dateWanted=2021-01-01`
  *
- * Get day night data. Served from the shared data cache. The first request for a date
- * waits for the fetch, and later requests read the cached result.
+ * Get day night data using the shared cache and polling schedule.
  */
 const router = express.Router();
-
-const DATE_WANTED_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const parseQuery = (query: Query): DayNightQueryParams => {
   const { dateWanted, dayNightSource } = query;
@@ -42,41 +39,32 @@ const parseQuery = (query: Query): DayNightQueryParams => {
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   const queryObj = parseQuery(req.query);
   try {
-    if (!queryObj.dateWanted || !DATE_WANTED_PATTERN.test(queryObj.dateWanted)) {
-      res.status(400).json({ error: "dateWanted is required and must be in YYYY-MM-DD format" });
-      return;
+    if (!queryObj.dateWanted) {
+      throw new Error("dateWanted is required");
     }
 
     const dataFetchConfig = dataFetchConfigs.find((config) => config.type === "daynight");
     if (!dataFetchConfig) {
-      res.status(500).json({ error: "No fetch configuration registered for daynight" });
-      return;
+      throw new Error("No fetch configuration registered for daynight");
     }
 
-    // Returns cached data immediately (even if stale) and starts a background refresh when
-    // expired. With nothing cached, waits for the fetch so the first request gets data.
     const response = (await getSourceDateDataType({
       source: "ISS",
       dateWanted: queryObj.dateWanted,
       dataFetchConfig,
-      awaitFetchOnMiss: true,
     })) as FetchResponse<DayNightStore> | null;
-
-    const now = new Date().toISOString();
-    const succeeded = response?.fetchMetadata?.success ?? false;
 
     // turn this into a legacy WrappedResponse for Maestro so they don't have to update anything
     const wrappedResponse: WrappedResponse<DayNightStore> = {
       responseMetadata: {
-        retrieverStatus: succeeded ? "complete" : "error",
-        cachedTimestamp: response?.fetchMetadata?.timestamp ?? now,
-        expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        error: succeeded ? "" : (response?.fetchMetadata?.error ?? "No day night data available"),
-        retrieverErrorCount: succeeded ? 0 : 1,
-        lastErrorTimestamp: succeeded ? "" : now,
+        retrieverStatus: response ? "complete" : "inprogress",
+        cachedTimestamp: new Date().toISOString(),
+        expiration: new Date(Date.now() + (response ? 24 * 60 * 60 * 1000 : 0)).toISOString(),
+        error: "",
+        retrieverErrorCount: 0,
+        lastErrorTimestamp: "",
       },
       data: response?.data ?? { dayNight: [] },
-      source: response?.origin,
     };
 
     res.status(200).json(wrappedResponse);

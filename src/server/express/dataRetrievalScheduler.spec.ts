@@ -270,89 +270,6 @@ describe("dataRetrievalScheduler", () => {
       // the background fetch should only have been initiated ONCE
       // (the second call detected the first was already fetching)
       expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalledTimes(1);
-
-      // Let the slow fetch finish so its in-flight entry is cleared before the next test
-      await vi.advanceTimersByTimeAsync(dayjs.duration(5, "seconds").asMilliseconds());
-    });
-
-    it("dedupes concurrent awaitFetchOnMiss calls on a cold cache", async () => {
-      vi.useFakeTimers();
-      getCacheEntryMock.mockResolvedValue(null);
-      (mockDataFetchConfig.getDataFunction as Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () => resolve(mockSuccessResponse),
-              dayjs.duration(5, "seconds").asMilliseconds()
-            )
-          )
-      );
-
-      const firstAwaitingCall = getSourceDateDataType({
-        source: "ISS",
-        dateWanted: "2025-01-01",
-        dataFetchConfig: mockDataFetchConfig,
-        autoRefresh: true,
-        awaitFetchOnMiss: true,
-      });
-      const secondAwaitingCall = getSourceDateDataType({
-        source: "ISS",
-        dateWanted: "2025-01-01",
-        dataFetchConfig: mockDataFetchConfig,
-        autoRefresh: true,
-        awaitFetchOnMiss: true,
-      });
-
-      await vi.advanceTimersByTimeAsync(dayjs.duration(5, "seconds").asMilliseconds());
-      const [firstResult, secondResult] = await Promise.all([
-        firstAwaitingCall,
-        secondAwaitingCall,
-      ]);
-
-      expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalledTimes(1);
-      expect(firstResult).toEqual(mockSuccessResponse);
-      expect(secondResult).toEqual(mockSuccessResponse);
-      expect(putCacheEntryMock).toHaveBeenCalledTimes(1);
-    });
-
-    it("awaitFetchOnMiss call joins a background fetch started by a non-awaiting call", async () => {
-      vi.useFakeTimers();
-      getCacheEntryMock.mockResolvedValue(null);
-      (mockDataFetchConfig.getDataFunction as Mock).mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () => resolve(mockSuccessResponse),
-              dayjs.duration(5, "seconds").asMilliseconds()
-            )
-          )
-      );
-
-      const nonAwaitingResult = await getSourceDateDataType({
-        source: "ISS",
-        dateWanted: "2025-01-01",
-        dataFetchConfig: mockDataFetchConfig,
-        autoRefresh: true,
-      });
-      expect(nonAwaitingResult).toBeNull();
-
-      // Start the background fetch before the awaiting call arrives
-      await vi.advanceTimersByTimeAsync(0);
-      expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalledTimes(1);
-
-      const awaitingCall = getSourceDateDataType({
-        source: "ISS",
-        dateWanted: "2025-01-01",
-        dataFetchConfig: mockDataFetchConfig,
-        autoRefresh: true,
-        awaitFetchOnMiss: true,
-      });
-
-      await vi.advanceTimersByTimeAsync(dayjs.duration(5, "seconds").asMilliseconds());
-
-      expect(await awaitingCall).toEqual(mockSuccessResponse);
-      expect(mockDataFetchConfig.getDataFunction).toHaveBeenCalledTimes(1);
-      expect(putCacheEntryMock).toHaveBeenCalledTimes(1);
     });
 
     it("updates cache after successful background fetch", async () => {
@@ -637,9 +554,8 @@ describe("dataRetrievalScheduler", () => {
       expect(tracker?.lastOperationSuccess).toBe(false);
       expect(tracker?.lastErrorMessage).toContain("Timeout after 30000ms");
 
-      // Let the 60s setTimeout resolve without firing the scheduled refresh, which would
-      // start a new fetch that never settles once timers are cleared
-      await vi.advanceTimersByTimeAsync(dayjs.duration(30, "seconds").asMilliseconds());
+      // Clean up any remaining timers (the 60s setTimeout that was never resolved)
+      await vi.runOnlyPendingTimersAsync();
     });
   });
 
