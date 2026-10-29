@@ -47,12 +47,11 @@ const SocketClient: FunctionComponent<{
   useEffect(() => {
     setupFetchFns();
     getCurrentUser().then((thisUser) => {
-      if (user instanceof Error) {
+      if (thisUser instanceof Error) {
         return;
       }
       setUser(thisUser as EmssUser);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect to fetch current user
   }, []);
 
   // Handle Socket.IO connection lifecycle.
