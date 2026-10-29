@@ -1,10 +1,6 @@
 import express, { Request, Response } from "express";
 import { Query } from "express-serve-static-core";
-import {
-  dataFetchConfigs,
-  getCacheStatusForDataType,
-  getSourceDateDataType,
-} from "server/express/dataRetrievalScheduler";
+import { dataFetchConfigs, getSourceDateDataType } from "server/express/dataRetrievalScheduler";
 import { ConsoleLogger } from "utils/logging/consoleLogger";
 
 interface ResponseMetadata {
@@ -26,9 +22,8 @@ interface WrappedResponse<T> {
 /**
  * `/api/v1/external/daynight/daynight?dateWanted=2021-01-01`
  *
- * Get day night data. Served from the shared data cache rather than fetching TOPO
- * per request. A cache miss returns an empty result and starts a background fetch,
- * so a follow-up request for the same date is served from cache.
+ * Get day night data. Served from the shared data cache. The first request for a date
+ * waits for the fetch, and later requests read the cached result.
  */
 const router = express.Router();
 
@@ -59,45 +54,26 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     }
 
     // Returns cached data immediately (even if stale) and starts a background refresh when
-    // expired. Returns null when nothing has been cached for this date yet.
+    // expired. With nothing cached, waits for the fetch so the first request gets data.
     const response = (await getSourceDateDataType({
       source: "ISS",
       dateWanted: queryObj.dateWanted,
       dataFetchConfig,
+      awaitFetchOnMiss: true,
     })) as FetchResponse<DayNightStore> | null;
-
-    // Read after the lookup above so the reported timestamps match the data being returned
-    const cacheStatus = await getCacheStatusForDataType({
-      source: "ISS",
-      dateWanted: queryObj.dateWanted,
-      dataFetchConfig,
-    });
 
     const now = new Date().toISOString();
     const succeeded = response?.fetchMetadata?.success ?? false;
-    const errorMessage = response?.fetchMetadata?.error ?? "";
-
-    // A miss means a background fetch was just started, so report it as still in progress
-    // and expire immediately to prompt the caller to ask again.
-    let retrieverStatus: FetchStatus;
-    if (!response) {
-      retrieverStatus = "inprogress";
-    } else if (succeeded) {
-      retrieverStatus = "complete";
-    } else {
-      retrieverStatus = "error";
-    }
 
     // turn this into a legacy WrappedResponse for Maestro so they don't have to update anything
     const wrappedResponse: WrappedResponse<DayNightStore> = {
       responseMetadata: {
-        retrieverStatus,
-        cachedTimestamp: cacheStatus?.cachedAt ?? now,
-        expiration: cacheStatus?.expiration || now,
-        error: retrieverStatus === "error" ? errorMessage : "",
-        retrieverErrorCount: retrieverStatus === "error" ? 1 : 0,
-        lastErrorTimestamp:
-          retrieverStatus === "error" ? (response?.fetchMetadata?.timestamp ?? now) : "",
+        retrieverStatus: succeeded ? "complete" : "error",
+        cachedTimestamp: response?.fetchMetadata?.timestamp ?? now,
+        expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        error: succeeded ? "" : (response?.fetchMetadata?.error ?? "No day night data available"),
+        retrieverErrorCount: succeeded ? 0 : 1,
+        lastErrorTimestamp: succeeded ? "" : now,
       },
       data: response?.data ?? { dayNight: [] },
       source: response?.origin,
