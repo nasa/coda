@@ -60,11 +60,36 @@ npm run docker:services
 npm run dev
 ```
 
-Then go to https://coda-local.fit.nasa.gov:3000. Vite enables HTTPS when the certificate and key from step 6 exist; restart `npm run dev` after creating them. Without them, HTTP development still works for features that do not use Talkybot.
+Then go to https://coda-local.fit.nasa.gov:3000. Vite enables HTTPS when the certificate and key from step 6 exist; restart `npm run dev` after creating them. Without them, HTTP development requires explicit mock mode (see below).
+
+#### Shared authentication in Vite
+
+Local development uses the same production shared-auth service as deployed CODA.
+With `MOCK_USER="false"` (the default), Vite validates the browser's session cookie
+with `https://${AUTH_HOST}/oauth2/auth` and forwards the returned JWT to the local
+API as `X-Access-Token`. The local API listens only on `127.0.0.1` during development.
+Your real identity and roles are used for admin pages and restricted media.
+
+Vite proxies `/oauth2/*` to the shared auth service and supplies `/login` for the
+existing popup helper. Open `/logout` to clear the shared session and return to
+`/login` for a new JWT sign-in. Unauthenticated page and protected API requests
+redirect to sign-in, preserving the local port and query parameters. The auth
+service must allow return URLs on port 3000; that is separate from Talkybot's CORS
+allowlist.
+
+Keep `AUTH_HOST="emss-auth.fit.nasa.gov"` to share a session with production
+Talkybot. To test against integration auth, set
+`AUTH_HOST="emss-auth-int.fit.nasa.gov"` and restart Vite and the API. Vite trusts
+the NASA CA bundle in `.env.local.cert.pem` for its server-side auth requests.
+
+For offline development, explicitly set `MOCK_USER="true"` in `.env` and restart
+`npm run dev`. This disables Vite's shared-auth gateway and uses the existing mock
+CODA user. It does not authenticate direct Talkybot requests. HTTP development
+without a local certificate is available in this mock mode.
 
 #### Talkybot communications in local development
 
-The comm panel connects directly to production Talkybot using your browser's real production shared-auth session. Local CODA's `MOCK_USER` does not authenticate you with Talkybot or grant access to its restricted channels.
+The comm panel connects directly to production Talkybot using the same browser session established by CODA's shared-auth login. In offline mock mode, `MOCK_USER` does not authenticate you with Talkybot or grant access to its restricted channels.
 
 If communications cannot load, use **Sign in to Talkybot** in the comm panel to sign in through production LaunchPad in another tab. Returning to CODA retries the transcript requests and reconnects live updates. **Retry connection** also retries without reloading CODA. A successful request with no recordings remains an empty date, rather than a login error. Legacy CODA comm overrides still load if Talkybot is unavailable.
 
