@@ -48,7 +48,7 @@ EMSS dev servers all have element names, and are:
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
 5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is required for the direct IO and Talkybot connections.
-6. Create a local SSL certificate with `bash ./scripts/make-dev-ssl-cert.sh`. Both Vite and the Docker preview use this certificate. Trust it in your browser, or accept its warning when opening local CODA.
+6. Create a local SSL certificate with `bash ./scripts/make-dev-ssl-cert.sh`. Both Vite and the Docker preview use this certificate. Trust it in your browser, or accept its warning when opening local CODA. Rerun the script to renew an expired, mismatched, or soon-to-expire certificate; it reuses valid certificates and backs up replaced pairs under `.local/cert-backups/`.
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
 
 ### Option 1: Local Dev (non-Docker)
