@@ -121,3 +121,5 @@ _[XKCD](https://xkcd.com/2867/) understands our pain..._
 On the server, CODA interacts with external APIs, cleans data, caches responses, provides its data to the client-side via sockets, and exposes its own APIs to provide nicely formatted data to other clients. CODA interacts with external APIs with the code in `src/server/services`.
 
 For more information about the APIs CODA interfaces with: https://eegitlab.fit.nasa.gov/emss/coda/-/wikis/APIs
+
+The [OPTIMIS API reference](docs/optimis-api.md) documents the investigated scheduling endpoints and field lists. The [OPTIMIS investigation tools](scripts/optimis/README.md) fetch bounded snapshots, probe authentication, and render a standalone comparison chart.

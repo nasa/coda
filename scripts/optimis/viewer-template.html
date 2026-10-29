@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OPTIMIS · API comparison</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #19181b;
+        color: #e0e0e0;
+        font-size: 12px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+        color: inherit;
+        background: #31313a;
+        border: 1px solid #53545f;
+        border-radius: 3px;
+        padding: 4px 7px;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        background: #4a4c57;
+      }
+      input[type="search"] {
+        width: 180px;
+      }
+      header {
+        padding: 12px 14px 8px;
+        border-bottom: 1px solid #383a45;
+      }
+      h1 {
+        margin: 0 0 5px;
+        font-size: 17px;
+        font-weight: 500;
+      }
+      .sub {
+        font-size: 11px;
+        color: #b8b8c0;
+        line-height: 1.6;
+      }
+      .toolbar {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 8px 14px;
+        background: #242428;
+        border-bottom: 1px solid #42424a;
+      }
+      .toolbar label {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+      .toolbar select {
+        max-width: 285px;
+      }
+      .rangebar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 6px 14px;
+      }
+      .rangebar input {
+        flex: 1;
+        max-width: 600px;
+        padding: 0;
+      }
+      .legend {
+        display: flex;
+        gap: 13px;
+        flex-wrap: wrap;
+        padding: 3px 14px 8px;
+        color: #bdbdc5;
+        font-size: 11px;
+      }
+      .swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 4px;
+        vertical-align: -1px;
+        border: 1px solid #888;
+      }
+      .viewport {
+        overflow: auto;
+        height: calc(100vh - 205px);
+        min-height: 300px;
+        border-top: 1px solid #51515c;
+        position: relative;
+      }
+      .chart {
+        min-width: 640px;
+        position: relative;
+        --label: 112px;
+      }
+      .ruler {
+        display: grid;
+        grid-template-columns: var(--label) 1fr;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: #242428;
+        height: 29px;
+        border-bottom: 1px solid #74747c;
+      }
+      .ruler-label {
+        position: sticky;
+        left: 0;
+        padding: 8px;
+        background: #242428;
+        z-index: 21;
+        font-size: 11px;
+      }
+      .axis {
+        position: relative;
+        overflow: hidden;
+      }
+      .tick {
+        position: absolute;
+        border-left: 1px solid #696974;
+        height: 100%;
+        padding: 7px 3px 0;
+        color: #ccc;
+        font-size: 10px;
+        font-variant-numeric: tabular-nums;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: var(--label) 1fr;
+        min-height: 22px;
+        border-bottom: 1px solid #41414a;
+      }
+      .lane-label {
+        position: sticky;
+        left: 0;
+        z-index: 7;
+        background: #29292f;
+        padding: 4px 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 11px;
+        border-right: 1px solid #62626d;
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+        align-items: flex-start;
+      }
+      .lane-label span {
+        color: #8f8f9a;
+        font-size: 9px;
+        padding-top: 1px;
+      }
+      .lane-track {
+        position: relative;
+        background: #1c1c21;
+        overflow: hidden;
+      }
+      .row:nth-child(even) .lane-track {
+        background: #212127;
+      }
+      .gridline {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: #42424d;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .halfline {
+        background: #2f2f38;
+      }
+      .bar {
+        position: absolute;
+        height: 18px;
+        min-width: 2px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: clip;
+        padding: 2px 3px;
+        border-radius: 1px;
+        border: 1px solid #121216;
+        font-size: 9px;
+        line-height: 12px;
+        text-align: left;
+        font-weight: 500;
+        color: #121212;
+        z-index: 2;
+      }
+      .bar:hover,
+      .bar:focus {
+        outline: 2px solid #ffa800;
+        outline-offset: 0;
+        z-index: 5;
+      }
+      .bar.critical {
+        border-top: 2px solid #ff5c49;
+      }
+      .profile {
+        height: 18px;
+        min-height: 18px;
+      }
+      .profile .lane-label {
+        font-size: 10px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        background: #34343d;
+      }
+      .profile .bar {
+        height: 14px;
+        top: 1px;
+        cursor: default;
+        font-size: 9px;
+        padding: 0 3px;
+        line-height: 12px;
+      }
+      .section {
+        background: #383a45;
+        padding: 4px 6px;
+        position: relative;
+        font-size: 10px;
+        color: #d6d6de;
+        border-bottom: 1px solid #555560;
+        letter-spacing: 0.06em;
+      }
+      .now-line {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        border-left: 1px dashed #ff7b72;
+        z-index: 6;
+        pointer-events: none;
+      }
+      .empty {
+        padding: 25px;
+        color: #aaa;
+      }
+      .footer {
+        padding: 6px 14px;
+        font-size: 10px;
+        color: #a3a3af;
+        line-height: 1.6;
+      }
+      dialog {
+        width: min(620px, 90vw);
+        border: 1px solid #696975;
+        border-radius: 5px;
+        background: #24242b;
+        color: #eee;
+        padding: 18px;
+      }
+      dialog::backdrop {
+        background: #0009;
+      }
+      dialog h2 {
+        font-size: 17px;
+        margin: 0 0 15px;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 9px;
+        margin: 0 0 16px;
+      }
+      dt {
+        color: #aaa;
+      }
+      dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+      }
+      .close-row {
+        text-align: right;
+      }
+      .error {
+        color: #ffad8a;
+      }
+      a {
+        color: #87dada;
+      }
+      @media (max-width: 700px) {
+        .toolbar select {
+          max-width: 190px;
+        }
+        .viewport {
+          height: calc(100vh - 260px);
+        }
+        .chart {
+          --label: 95px;
+        }
+        .sub {
+          font-size: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>OPTIMIS <span style="color: #92929f">/ API comparison</span></h1>
+      <div id="meta" class="sub"></div>
+      <div id="summary" class="sub"></div>
+    </header>
+    <div class="toolbar">
+      <label
+        >Plan
+        <select id="plan" aria-label="Source plan"></select
+      ></label>
+      <label
+        >Rows
+        <select id="rows">
+          <option value="key">Crew + key bands</option>
+          <option value="crew">Crew only</option>
+          <option value="all">All crew + bands</option>
+          <option value="bands">Bands only</option>
+        </select></label
+      >
+      <label
+        >Window
+        <select id="zoom">
+          <option value="86400">24 h</option>
+          <option value="43200" selected>12 h</option>
+          <option value="21600">6 h</option>
+          <option value="10800">3 h</option>
+        </select></label
+      >
+      <button id="previous" aria-label="Earlier time">◀</button
+      ><button id="next" aria-label="Later time">▶</button><button id="now">Now UTC</button>
+      <input
+        id="search"
+        type="search"
+        placeholder="Filter activity or ID"
+        aria-label="Filter activities"
+      />
+    </div>
+    <div class="rangebar">
+      <label for="pan">UTC window</label
+      ><input id="pan" type="range" min="0" max="43200" step="900" value="21600" /><output
+        id="range"
+      ></output>
+    </div>
+    <div class="legend">
+      <span><i class="swatch" style="background: #fff"></i>Scheduled</span
+      ><span><i class="swatch" style="background: #808080"></i>Completed</span
+      ><span><i class="swatch" style="background: #6cf691"></i>Active</span
+      ><span><i class="swatch" style="background: #b39ddb"></i>Aborted / deferred / inhibited</span
+      ><span>Additional colors: sequence or source status</span>
+    </div>
+    <div class="viewport" id="viewport"><div class="chart" id="chart"></div></div>
+    <div class="footer" id="footer"></div>
+    <dialog id="details">
+      <h2 id="detail-title"></h2>
+      <dl id="detail-fields"></dl>
+      <div class="close-row"><button id="close">Close</button></div>
+    </dialog>
+    <script id="source-data" type="application/json">
+      __DATA__
+    </script>
+    <script>
+      "use strict";
+      const data = JSON.parse(document.getElementById("source-data").textContent);
+      const $ = (id) => document.getElementById(id);
+      const el = (tag, cls, text) => {
+        const n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined) n.textContent = text;
+        return n;
+      };
+      const plan = $("plan"),
+        rowMode = $("rows"),
+        zoom = $("zoom"),
+        pan = $("pan"),
+        search = $("search"),
+        chart = $("chart");
+      const planCounts = new Map(
+        data.plans.map((p) => [p.id, data.activities.filter((a) => a.plan === p.id).length])
+      );
+      for (const p of data.plans) {
+        const o = el("option", "", `${p.name} (${planCounts.get(p.id)})`);
+        o.value = p.id;
+        plan.append(o);
+      }
+      const allOption = el("option", "", "All returned plans");
+      allOption.value = "all";
+      plan.append(allOption);
+      plan.value = data.plans.reduce(
+        (best, p) => (planCounts.get(p.id) > planCounts.get(best.id) ? p : best),
+        data.plans[0]
+      ).id;
+      const crewOrder = ["ISS CDR", "FE-2", "FE-3", "FE-10", "FE-11", "FE-12", "FE-13"];
+      const keyBands = ["CREW", "SPECIALIST", "S-BD", "KU-BD"];
+      const profileOrder = [
+        "DayNight",
+        "DAILY_ORB_NUM",
+        "ATTITUDE",
+        "ALL_KU_AVAIL",
+        "ALL_S1_AVAIL",
+        "ALL_S2_AVAIL",
+      ];
+      const profileColors = {
+        DayNight: "#e8e8ec",
+        DAILY_ORB_NUM: "#a8a9b4",
+        ATTITUDE: "#aebbd0",
+        ALL_KU_AVAIL: "#5dba9d",
+        ALL_S1_AVAIL: "#73bda3",
+        ALL_S2_AVAIL: "#73bda3",
+      };
+      const seqColors = {
+        "Sequenced 1": "#5ecaff",
+        "Sequenced 2": "#a901db",
+        "Sequenced 3": "#ffeb3a",
+        "Sequenced 4": "#3cab3c",
+        "Sequenced 5": "#df700f",
+        "Sequenced 6": "#f94df9",
+      };
+      function color(a) {
+        if (a.status === "Completed") return "#808080";
+        if (a.status === "Active") return "#6cf691";
+        if (
+          ["Failed", "Expired", "Aborted", "Paused", "Disabled", "Inhibited", "Deferred"].includes(
+            a.status
+          )
+        )
+          return "#b39ddb";
+        if (a.status === "Not Ready") return "#ff1919";
+        if (["Contingency", "As Needed"].includes(a.status)) return "#ffaa7d";
+        if (a.status === "Ground Coord") return "#ffff99";
+        return seqColors[a.sequence] || "#ffffff";
+      }
+      function hhmm(s) {
+        if (s === 86400) return "24:00";
+        const n = Math.max(0, Math.min(86400, Math.round(s)));
+        return `${String(Math.floor(n / 3600)).padStart(2, "0")}:${String(Math.floor((n % 3600) / 60)).padStart(2, "0")}`;
+      }
+      function utcDate(value) {
+        return new Date(value).toISOString().replace("T", " ").replace(".000Z", " Z");
+      }
+      function detail(a) {
+        $("detail-title").textContent = a.name;
+        const fields = $("detail-fields");
+        fields.replaceChildren();
+        const source = data.plans.find((p) => p.id === a.plan);
+        const pairs = [
+          ["Activity ID", a.id],
+          ["Plan", source.name],
+          ["Start UTC", utcDate(a.startTime)],
+          ["End UTC", utcDate(a.endTime)],
+          ["Duration", `${a.duration} seconds (${(a.duration / 60).toFixed(1)} min)`],
+          ["Source status", a.status],
+          ["Sequence", a.sequence || "—"],
+          ["Type", a.type],
+          ["Crew", a.crew.join(", ") || "—"],
+          ["Bands", a.events.join(", ") || "—"],
+          ["Category", a.category || "—"],
+          ["Location", a.location || "—"],
+          ["Time critical", a.timeCritical ? "Yes" : "No"],
+          ["Containers", a.containers || "—"],
+        ];
+        for (const [name, value] of pairs) fields.append(el("dt", "", name), el("dd", "", value));
+        $("details").showModal();
+      }
+      function textTooltip(a) {
+        return `${a.name}\n${utcDate(a.startTime)} → ${utcDate(a.endTime)}\n${a.status}${a.sequence ? " / " + a.sequence : ""}\n${a.id}`;
+      }
+      function timeBounds() {
+        const duration = Number(zoom.value);
+        return [Number(pan.value), Number(pan.value) + duration];
+      }
+      function grid(track, start, end) {
+        const step = end - start <= 21600 ? 1800 : 3600;
+        let i = 0;
+        for (let t = Math.ceil(start / step) * step; t < end; t += step) {
+          const n = el("span", "gridline" + (i++ % 2 ? " halfline" : ""));
+          n.style.left = `${(100 * (t - start)) / (end - start)}%`;
+          track.append(n);
+        }
+        const now = new Date();
+        if (now.toISOString().slice(0, 10) === data.date) {
+          const t = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+          if (t >= start && t <= end) {
+            const n = el("span", "now-line");
+            n.style.left = `${(100 * (t - start)) / (end - start)}%`;
+            track.append(n);
+          }
+        }
+      }
+      function layoutRow(label, items, start, end, isProfile = false, profileId = "") {
+        const row = el("div", "row" + (isProfile ? " profile" : ""));
+        const title = el("div", "lane-label", label);
+        title.title = label;
+        title.append(el("span", "", items.length || ""));
+        const track = el("div", "lane-track");
+        grid(track, start, end);
+        const ends = [];
+        let maxTracks = 1;
+        for (const item of [...items].sort((a, b) => a.start - b.start || b.end - a.end)) {
+          const left = Math.max(item.start, start),
+            right = Math.min(item.end, end);
+          if (item.end === item.start ? item.start < start || item.start >= end : right <= left)
+            continue;
+          let slot = 0;
+          while (slot < ends.length && ends[slot] > left) slot++;
+          ends[slot] = right;
+          maxTracks = Math.max(maxTracks, slot + 1);
+          const n = el(
+            isProfile ? "span" : "button",
+            "bar" + (!isProfile && item.timeCritical ? " critical" : ""),
+            isProfile ? (typeof item.value === "boolean" ? "" : String(item.value)) : item.name
+          );
+          n.style.left = `${(100 * (left - start)) / (end - start)}%`;
+          n.style.width = `${Math.max(0.08, (100 * (right - left)) / (end - start))}%`;
+          n.style.top = `${isProfile ? 1 : slot * 20 + 1}px`;
+          n.style.background = isProfile ? profileColors[profileId] || "#aab" : color(item);
+          if (isProfile) {
+            n.title = `${label}: ${String(item.value)}\n${hhmm(left)}–${hhmm(right)} UTC`;
+          } else {
+            n.title = textTooltip(item);
+            n.setAttribute("aria-label", n.title);
+            n.addEventListener("click", () => detail(item));
+          }
+          track.append(n);
+        }
+        if (!isProfile) row.style.height = `${maxTracks * 20 + 2}px`;
+        if (!items.length && isProfile) {
+          const missing = el("span", "", "No intervals returned");
+          missing.style.cssText = "position:absolute;left:6px;top:2px;font-size:10px;color:#85858e";
+          track.append(missing);
+        }
+        row.append(title, track);
+        chart.append(row);
+      }
+      function draw() {
+        const [start, end] = timeBounds();
+        const q = search.value.trim().toLowerCase();
+        const selected = data.activities.filter(
+          (a) =>
+            (plan.value === "all" || a.plan === plan.value) &&
+            (a.start === a.end
+              ? a.start >= start && a.start < end
+              : a.start < end && a.end > start) &&
+            (!q ||
+              [a.name, a.id, a.category, ...a.crew, ...a.events].some((v) =>
+                String(v).toLowerCase().includes(q)
+              ))
+        );
+        const relevantPlans = data.plans.filter((p) => plan.value === "all" || p.id === plan.value);
+        $("meta").textContent =
+          `${data.date} UTC · planContext=ops1 · isTask:false · snapshot ${utcDate(data.fetchedAt)}`;
+        $("summary").textContent =
+          `${data.sourceCount} activities returned · ${data.activities.length} overlap this UTC day · ${selected.length} in window/filter · ${relevantPlans.map((p) => `${p.name} / base ${p.baseRevision ?? "?"} + sub ${p.subRevision ?? "?"}`).join(" · ")}`;
+        $("range").textContent = `${hhmm(start)}–${hhmm(end)}`;
+        chart.replaceChildren();
+        const ruler = el("div", "ruler");
+        ruler.append(el("div", "ruler-label", "UTC / crew or band"));
+        const axis = el("div", "axis");
+        const step = end - start <= 10800 ? 900 : end - start <= 21600 ? 1800 : 3600;
+        for (let t = Math.ceil(start / step) * step; t < end; t += step) {
+          const n = el("span", "tick", hhmm(t));
+          n.style.left = `${(100 * (t - start)) / (end - start)}%`;
+          axis.append(n);
+        }
+        ruler.append(axis);
+        chart.append(ruler);
+        for (const id of profileOrder) {
+          const profiles = data.profiles.filter(
+            (p) =>
+              p.id === id &&
+              (plan.value === "all" || relevantPlans.some((plan) => plan.name === p.project))
+          );
+          for (const p of profiles)
+            layoutRow(
+              p.name,
+              p.points.filter((x) => x.start < end && x.end > start),
+              start,
+              end,
+              true,
+              id
+            );
+        }
+        const crews = new Map(),
+          bands = new Map();
+        for (const a of selected) {
+          for (const member of a.crew) {
+            if (!crews.has(member)) crews.set(member, []);
+            crews.get(member).push(a);
+          }
+          for (const name of a.events) {
+            if (!bands.has(name)) bands.set(name, []);
+            bands.get(name).push(a);
+          }
+        }
+        if (rowMode.value !== "bands") {
+          chart.append(el("div", "section", "CREW"));
+          const members = [...crews.keys()].sort((a, b) => {
+            const ai = crewOrder.indexOf(a),
+              bi = crewOrder.indexOf(b);
+            return (
+              (ai < 0 ? 100 : ai) - (bi < 0 ? 100 : bi) ||
+              a.localeCompare(b, undefined, { numeric: true })
+            );
+          });
+          for (const member of members) layoutRow(member, crews.get(member), start, end);
+          if (!members.length)
+            chart.append(el("div", "empty", "No crew-assigned activities in this window/filter."));
+        }
+        if (rowMode.value !== "crew") {
+          chart.append(el("div", "section", "BANDS / EVENTS"));
+          const names =
+            rowMode.value === "key"
+              ? keyBands.filter((n) => bands.has(n))
+              : [...bands.keys()].sort((a, b) => a.localeCompare(b));
+          for (const name of names) layoutRow(name, bands.get(name), start, end);
+          if (!names.length)
+            chart.append(
+              el(
+                "div",
+                "empty",
+                "No matching event bands. Select “All crew + bands” to inspect every returned band."
+              )
+            );
+        }
+        $("footer").textContent =
+          `Read-only snapshot; no automatic API polling. Bars use startTime + duration (seconds), clipped to the UTC window. Counts on each lane are bar assignments; a shared activity can appear in several lanes. Overlaps stack vertically. Profile strips show returned intervals only. ${data.diagnostics.length} parsing errors. Click an activity for its exact source ID and times. Crew/ground notes and execution-note content are omitted.`;
+      }
+      function updateZoom() {
+        const max = 86400 - Number(zoom.value);
+        pan.max = max;
+        pan.value = Math.min(Number(pan.value), max);
+        draw();
+      }
+      plan.addEventListener("change", draw);
+      rowMode.addEventListener("change", draw);
+      zoom.addEventListener("change", updateZoom);
+      pan.addEventListener("input", draw);
+      search.addEventListener("input", draw);
+      $("previous").onclick = () => {
+        pan.value = Math.max(0, Number(pan.value) - Number(zoom.value) / 2);
+        draw();
+      };
+      $("next").onclick = () => {
+        pan.value = Math.min(Number(pan.max), Number(pan.value) + Number(zoom.value) / 2);
+        draw();
+      };
+      $("now").onclick = () => {
+        const n = new Date();
+        if (n.toISOString().slice(0, 10) !== data.date) {
+          alert("This snapshot is for " + data.date + ".");
+          return;
+        }
+        const t = n.getUTCHours() * 3600 + n.getUTCMinutes() * 60;
+        pan.value = Math.max(0, Math.min(Number(pan.max), t - Number(zoom.value) / 2));
+        draw();
+      };
+      $("close").onclick = () => $("details").close();
+      draw();
+    </script>
+  </body>
+</html>
