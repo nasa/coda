@@ -36,7 +36,6 @@ export default [
       "**/public/**/*",
       ".local/**/*",
       "node_modules/**/*",
-      "env.secret.ts",
       ".cache/**/*",
       "**/coverage/**/*",
       "**/suncalc.js",
