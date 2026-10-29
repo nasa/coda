@@ -262,8 +262,9 @@ export const config: DotenvConfig<typeof environments> = {
     default: "udp://127.0.0.1:514",
   },
 
-  // Set true explicitly in .env for offline development without the shared auth service.
+  // Mock up the user when running in non-docker local dev or else JWT errors will occur
   MOCK_USER: {
+    local: "true",
     default: "false",
   },
 

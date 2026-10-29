@@ -16,7 +16,6 @@ export const getCurrentUser = async (): Promise<EmssUser | Error> => {
       console.error("Unable to get current user", json);
       return json;
     }
-    if (!json.user) return new Error("Unable to get authenticated user");
     currentUser = json.user;
 
     return currentUser;

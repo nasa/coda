@@ -29,7 +29,7 @@
     "vite:build": "vite build --emptyOutDir",
     "vite:dev": "vite",
     "vite:dev:debug": "vite dev --debug",
-    "vite:dev:wait": "wait-on http://127.0.0.1:3001/api/v1/health && vite",
+    "vite:dev:wait": "wait-on http://localhost:3001/api/v1/health && vite",
     "api:build": "node esbuild.mjs",
     "api:build:watch": "npm run api:build -- --watch",
     "api:dev": "rimraf ./.local/express/dist && cross-env NODE_ENV=development  npm run api:build:watch",

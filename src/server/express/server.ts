@@ -41,8 +41,7 @@ setupSocketIO();
 server.on("request", app);
 
 // Start the server
-const listenHost = process.env.NODE_ENV === "development" ? "127.0.0.1" : "0.0.0.0";
-server.listen(3001, listenHost, () => {
+server.listen(3001, () => {
   serverLogger.info({ logId: "api-restart" });
 
   // Start Space-Track TLE update scheduler
