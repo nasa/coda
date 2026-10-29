@@ -66,9 +66,14 @@ describe("Vite shared-auth gateway", () => {
         res.setHeader("Content-Type", "application/json");
         res.writeHead(authenticated ? 200 : 401);
         res.end(JSON.stringify(authenticated ? { email: "real-user@nasa.gov" } : {}));
-      } else if (req.url === "/oauth2/sign_out") {
-        res.setHeader("Set-Cookie", "EMSS_SESSION=; Max-Age=0; Path=/");
-        res.writeHead(302, { Location: "/" });
+      } else if (req.url?.startsWith("/oauth2/sign_out")) {
+        res.setHeader("Set-Cookie", [
+          "EMSS_SESSION=; Max-Age=0; Path=/",
+          "EMSS_SESSION_1=; Max-Age=0; Path=/",
+        ]);
+        res.writeHead(302, {
+          Location: new URL(req.url, "http://auth.test").searchParams.get("rd") || "/",
+        });
         res.end();
       } else {
         res.setHeader("Set-Cookie", "EMSS_SESSION_csrf=test-only; Path=/");
@@ -108,9 +113,7 @@ describe("Vite shared-auth gateway", () => {
       mode: "development",
       logLevel: "silent",
       optimizeDeps: { noDiscovery: true, include: [] },
-      plugins: [
-        sharedAuthPlugin({ authOrigin: address(auth), publicOrigin: localOrigin, timeoutMs: 1000 }),
-      ],
+      plugins: [sharedAuthPlugin({ authOrigin: address(auth), publicOrigin: localOrigin })],
       server: {
         host: "127.0.0.1",
         port: 0,
@@ -150,7 +153,7 @@ describe("Vite shared-auth gateway", () => {
     expect(await response.json()).toMatchObject({
       auid: "real-user",
       token,
-      email: "real-user@nasa.gov",
+      email: null,
       authorization: null,
     });
     expect(authCalls).toEqual([
@@ -158,7 +161,7 @@ describe("Vite shared-auth gateway", () => {
         path: "/oauth2/auth",
         cookie: "EMSS_SESSION=valid; EMSS_SESSION_1=part",
         token: undefined,
-        redirect: `${localOrigin}/api/v1/user/current`,
+        redirect: undefined,
       },
     ]);
     expect(response.headers.get("x-access-token")).toBeNull();
@@ -228,7 +231,7 @@ describe("Vite shared-auth gateway", () => {
   it("provides the login page and same-origin userinfo used by the popup helper", async () => {
     const headers = { Cookie: "EMSS_SESSION=valid" };
     const login = await fetch(`${baseUrl}/login`, { headers });
-    expect(await login.text()).toContain("You are logged in");
+    expect(await login.text()).toContain("Signed in.");
     const userinfo = await fetch(`${baseUrl}/oauth2/userinfo`, { headers });
     expect(await userinfo.json()).toEqual({ email: "real-user@nasa.gov" });
   });
@@ -262,18 +265,30 @@ describe("Vite shared-auth gateway", () => {
     await response.text();
   });
 
-  it("clears the shared cookie and serves the logged-out page", async () => {
-    const response = await fetch(`${baseUrl}/logout`);
-    expect(response.status).toBe(200);
-    expect(response.headers.getSetCookie()).toEqual(["EMSS_SESSION=; Max-Age=0; Path=/"]);
-    expect(await response.text()).toContain("logged");
-  });
+  it("logs out the shared session and sends the next login through sign-in again", async () => {
+    const logout = await fetch(`${baseUrl}/logout`, { redirect: "manual" });
+    expect(logout.status).toBe(302);
+    expect(logout.headers.get("location")).toBe("/oauth2/sign_out?rd=%2Flogin");
+    await logout.text();
 
-  it("returns a failed login check without redirecting to LaunchPad", async () => {
-    const response = await fetch(`${baseUrl}/is-logged-in`, { redirect: "manual" });
-    expect(response.status).toBe(401);
-    expect(response.headers.get("location")).toBeNull();
-    await response.text();
+    const signOut = await fetch(baseUrl + logout.headers.get("location"), {
+      headers: { Cookie: "EMSS_SESSION=valid; EMSS_SESSION_1=part" },
+      redirect: "manual",
+    });
+    expect(signOut.headers.getSetCookie()).toEqual([
+      "EMSS_SESSION=; Max-Age=0; Path=/",
+      "EMSS_SESSION_1=; Max-Age=0; Path=/",
+    ]);
+    expect(signOut.headers.get("location")).toBe("/login");
+    expect(authCalls[0].cookie).toBe("EMSS_SESSION=valid; EMSS_SESSION_1=part");
+    await signOut.text();
+
+    const login = await fetch(`${baseUrl}/login`, { redirect: "manual" });
+    expect(login.status).toBe(302);
+    expect(login.headers.get("location")).toBe(
+      `/oauth2/sign_in?rd=${encodeURIComponent(`${localOrigin}/login`)}`
+    );
+    await login.text();
   });
 
   it.each([403, 503])(
