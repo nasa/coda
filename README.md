@@ -70,12 +70,12 @@ with `https://${AUTH_HOST}/oauth2/auth` and forwards the returned JWT to the loc
 API as `X-Access-Token`. The local API listens only on `127.0.0.1` during development.
 Your real identity and roles are used for admin pages and restricted media.
 
-Vite provides the same `/login`, `/logout`, `/is-logged-in`, and `/oauth2/*` routes
-as nginx. Opening CODA without a session redirects to LaunchPad; the existing
-login popup helper can also reauthenticate API requests. Login redirects preserve
-the full return URL, including the local port and query parameters. The auth
-service must allow return URLs on port 3000 (EMSS Auth MR !6); that is separate
-from Talkybot's CORS allowlist.
+Vite proxies `/oauth2/*` to the shared auth service and supplies `/login` for the
+existing popup helper. Open `/logout` to clear the shared session and return to
+`/login` for a new JWT sign-in. Unauthenticated page and protected API requests
+redirect to sign-in, preserving the local port and query parameters. The auth
+service must allow return URLs on port 3000; that is separate from Talkybot's CORS
+allowlist.
 
 Keep `AUTH_HOST="emss-auth.fit.nasa.gov"` to share a session with production
 Talkybot. To test against integration auth, set
