@@ -97,6 +97,22 @@ The override handles name resolution only. Complete the SSL certificate setup in
 
 References: [Chromium hostname overrides](https://github.com/chromium/chromium/blob/main/net/dns/README.md), [Chrome profile directories](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md), and [PowerToys Hosts File Editor permissions](https://learn.microsoft.com/en-us/windows/powertoys/hosts-file-editor).
 
+#### Optional: Attach the VS Code browser debugger
+
+To debug client-side code from VS Code, add `--remote-debugging-port=9222` to the Chrome command or shortcut above, before the URL. For example, this combines debugging with the no-admin hostname override:
+
+```powershell
+& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" `
+  "--user-data-dir=$env:LOCALAPPDATA\Chrome-Coda-Dev" `
+  "--remote-debugging-port=9222" `
+  "--host-resolver-rules=MAP coda-local.fit.nasa.gov 127.0.0.1" `
+  "https://coda-local.fit.nasa.gov:3000"
+```
+
+With a hosts-file entry, omit `--host-resolver-rules` but keep the separate profile and debugging port. Chrome 136 and later require a non-default `--user-data-dir` for remote debugging; see [Chrome's remote debugging requirements](https://developer.chrome.com/blog/remote-debugging-port). Close all windows using the development profile before relaunching with the new flag. Only one Chrome instance can listen on port `9222` at a time.
+
+Start CODA, open its HTTPS URL in that Chrome window, then select **Chrome Attach** in VS Code's **Run and Debug** panel and press **F5**. The configuration in [`.vscode/launch.json`](.vscode/launch.json) attaches on port `9222` and matches `https://coda-local.fit.nasa.gov:3000/*`. Set breakpoints in client-side source files. Use **Node Attach** to debug the API instead. Browser DevTools (F12) works without the remote debugging flag.
+
 ### Option 1: Local Dev (non-Docker)
 
 To start CODA locally for development, run the following
@@ -143,7 +159,7 @@ Production Talkybot must include `https://coda-local.fit.nasa.gov:3000` in its p
 
 This command sets up a hot-reloading fullstack node server. If any changes are made to the client, they should appear automatically in the browser. If any changes are made to the server, the server should automatically restart.
 
-Bonus: When run locally, the application is already setup to work with [VS Code's debugger](https://code.visualstudio.com/docs/editor/debugging). Once the dev server is up and running, press F5 to attach to it (assuming the default keybindings haven't been changed in VS Code). Now breakpoints can be set and code execution can be inspected. The `.vscode/launch.json` file in this repo includes the debugger configuration.
+Bonus: The application includes [VS Code debugger configurations](.vscode/launch.json). Select **Node Attach** and press F5 to debug the local API. For client-side breakpoints, follow [Attach the VS Code browser debugger](#optional-attach-the-vs-code-browser-debugger).
 
 ### Option 2: Fully docker-compose (not recommended for dev)
 
