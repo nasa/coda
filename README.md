@@ -48,7 +48,7 @@ EMSS dev servers all have element names, and are:
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
 5. Map `coda-local.fit.nasa.gov` to `127.0.0.1` so the browser uses the hostname required for direct IO and Talkybot connections. Follow [Windows with admin rights](#windows-with-admin-rights) to edit the hosts file, or use the [Chrome hostname override](#windows-without-admin-rights) without admin rights.
-6. Vite creates a trusted local SSL certificate on first start using [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert). It downloads `mkcert` if needed and installs a local certificate authority; approve the trust prompt if shown, then restart your browser if needed. For Docker preview, run `npm run dev:cert` once before starting containers if Vite has not already generated the certificate. Certificates and the local CA stay in the ignored `.local/` directory.
+6. The first `npm run dev` creates a local HTTPS certificate and asks Windows to trust it. Expect a security prompt; see [Local HTTPS certificate](#local-https-certificate) for exactly what happens.
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
 
 #### Windows with admin rights
@@ -69,6 +69,16 @@ If the browser cached a failed lookup, restart it. If needed, run `ipconfig /flu
 Alternatively, use **PowerToys > Hosts File Editor** with **Open as administrator** enabled. Add an active entry with address `127.0.0.1` and host `coda-local.fit.nasa.gov`. PowerToys also requires elevation to save changes.
 
 The hosts entry applies to Windows applications using the system resolver, so no special Chrome launch arguments are needed. Containers and WSL may need their own hostname configuration.
+
+If you also run other EMSS apps locally, add their hostnames too (for example `talkybot-local.fit.nasa.gov` and `aegis-local.fit.nasa.gov`, each as `127.0.0.1 <hostname>`), then run `ipconfig /flushdns`.
+
+**Recommended Chrome shortcut with a hosts file.** To keep many local test windows and have them restore on launch, use a dedicated profile and no URL. The profile's **On startup** setting must be **Continue where you left off** (`chrome://settings/onStartup`):
+
+```text
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="%LOCALAPPDATA%\Chrome-EMSS-Dev"
+```
+
+This avoids the "unsupported command-line flag" warning described [below](#windows-without-admin-rights), because no `--host-resolver-rules` flag is needed.
 
 #### Windows without admin rights
 
@@ -91,13 +101,42 @@ For a reusable shortcut, right-click the Windows desktop, select **New > Shortcu
 
 Name it **CODA Dev** and use it whenever opening local CODA. The override must be supplied each time this development Chrome instance starts; the regular Chrome shortcut does not supply it. Close all windows using the development profile before relaunching if you change the arguments.
 
+**Expected Chrome warning.** Chrome shows an infobar reading "You are using an unsupported command-line flag: --host-resolver-rules=...  Stability and security will suffer." This is expected. Chromium hard-codes `--host-resolver-rules` in its list of "bad flags" because it can redirect traffic (see [`bad_flags_prompt.cc`](https://chromium.googlesource.com/chromium/src/+/main/chrome/browser/ui/startup/bad_flags_prompt.cc)). It is only a warning, and the mapping still works. No flag or setting suppresses it. You can dismiss it, or add a hosts-file entry as described in [Windows with admin rights](#windows-with-admin-rights) and drop the flag.
+
+**Several local apps.** `--host-resolver-rules` takes a comma-separated list, so one shortcut can cover multiple apps (no URL is needed, which lets Chrome restore your previous windows if **On startup** is set to **Continue where you left off**):
+
+```text
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="%LOCALAPPDATA%\Chrome-EMSS-Dev" --host-resolver-rules="MAP coda-local.fit.nasa.gov 127.0.0.1,MAP talkybot-local.fit.nasa.gov 127.0.0.1,MAP aegis-local.fit.nasa.gov 127.0.0.1"
+```
+
 This maps only the hostname within that Chrome instance. It keeps the hostname in the URL for shared auth cookies and leaves port `3000` unchanged. Node, Docker, and other applications do not inherit the mapping. For the Docker preview, open `https://coda-local.fit.nasa.gov` in the same development Chrome window instead.
 
-The override handles name resolution only and works with Vite's trusted certificate: the URL and certificate both use `coda-local.fit.nasa.gov`. On Windows, `mkcert` installs its CA in the current user's root certificate store, so administrator rights are normally unnecessary. A managed device can restrict user-installed CAs; if trust installation is blocked, ask your administrator to allow it. Keep HTTPS and `coda-local.fit.nasa.gov` for shared authentication.
-
-References for certificate trust: [mkcert's Windows implementation](https://github.com/FiloSottile/mkcert/blob/master/truststore_windows.go) and [Windows current-user certificate store](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certopensystemstorew).
+The override handles name resolution only; the URL and the [local certificate](#local-https-certificate) both use `coda-local.fit.nasa.gov`, so HTTPS works. Keep HTTPS and that hostname for shared authentication.
 
 References: [Chromium hostname overrides](https://github.com/chromium/chromium/blob/main/net/dns/README.md), [Chrome profile directories](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md), and [PowerToys Hosts File Editor permissions](https://learn.microsoft.com/en-us/windows/powertoys/hosts-file-editor).
+
+#### Local HTTPS certificate
+
+CODA needs HTTPS on `coda-local.fit.nasa.gov` so the shared `.fit.nasa.gov` auth cookie works. On the first `npm run dev`, [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert) does the following automatically:
+
+1. **Downloads [mkcert](https://github.com/FiloSottile/mkcert)** (a small open-source tool) from its GitHub releases into `.local/mkcert/`.
+2. **Creates a private certificate authority (CA)** unique to your machine: `rootCA.pem` and `rootCA-key.pem` in `.local/mkcert/`.
+3. **Installs the CA's public certificate into your Windows user trust store** (Trusted Root Certification Authorities, current user). **This is the security prompt you see.** Windows shows "You are about to install a certificate from a certification authority (CA) claiming to represent: mkcert ..."; choose **Yes**. Administrator rights are normally not needed. On a managed device that blocks user-installed CAs, ask your administrator.
+4. **Issues a server certificate** for `coda-local.fit.nasa.gov` (plus `localhost` and your local IPs), signed by that CA, to `.local/certs/nginx.crt` and `.local/private/nginx.key`. Vite and the Docker preview both use these files.
+
+After that, Chrome and Edge trust `https://coda-local.fit.nasa.gov:3000`; restart the browser if it still shows a warning. Later runs reuse everything; the server certificate is only reissued if the hostname list changes.
+
+Good to know:
+
+- Everything lives in the git-ignored `.local/` directory. Nothing is sent anywhere, and the CA is trusted only on your machine and user account.
+- Keep `.local/mkcert/rootCA-key.pem` private. Anyone with it could mint certificates your machine trusts.
+- Node, Docker containers, and WSL do not use the Windows trust store, which is why CODA's server-side requests use `.env.local.cert.pem` instead.
+- Generate the certificate without starting the dev server (for example before `npm run docker:preview`) with `npm run dev:cert`.
+- To remove the trust, run this in PowerShell from the CODA root, then delete `.local/mkcert/`:
+
+  ```powershell
+  $env:CAROOT = "$PWD\.local\mkcert"; .\.local\mkcert\mkcert.exe -uninstall
+  ```
 
 #### Optional: Attach the VS Code browser debugger
 
@@ -124,16 +163,14 @@ npm run docker:services
 npm run dev
 ```
 
-Then go to https://coda-local.fit.nasa.gov:3000. Vite automatically generates and reuses the trusted certificate from step 6.
+Then go to https://coda-local.fit.nasa.gov:3000. Vite reuses the [local HTTPS certificate](#local-https-certificate) from step 6.
 
 #### Shared authentication in Vite
 
 Local HTTPS and auth configuration lives in `src/dev/viteLocalDevelopment.ts`,
 with the auth gateway in `src/dev/viteSharedAuth.ts`. The main Vite config adds
 them only for the dev server; builds, preview, and tests use the base config.
-Vite's built-in proxy handles forwarding. `vite-plugin-mkcert` writes the certificate
-and key to the existing Docker mount paths, so both entry points share one setup.
-Its downloaded binary and local CA are cached in `.local/mkcert/`.
+Vite's built-in proxy handles forwarding.
 
 Local development uses the same production shared-auth service as deployed CODA.
 With `MOCK_USER="false"` (the default), Vite validates the browser's session cookie
@@ -178,7 +215,7 @@ To preview a production-like setup with a full docker environment, essentially i
 npm run docker:preview
 ```
 
-Docker mounts the existing certificate and key into Nginx. If Vite has not already generated them, run `npm run dev:cert` once before starting the preview. Then go to https://coda-local.fit.nasa.gov. Docker uses port 443, so no port number is specified. The browser trusts the host's local CA; the containers do not need to install it.
+Docker mounts the [local HTTPS certificate](#local-https-certificate) into Nginx. If it doesn't exist yet, run `npm run dev:cert` once first. Then go to https://coda-local.fit.nasa.gov. Docker uses port 443, so no port number is specified. The browser trusts your host's local CA; the containers don't need to.
 
 To be sure that the Docker images are fully rebuilt after making changes to CODA, run `npm run docker:preview:rebuild`. This is generally not required, however, and simply running `npm run docker:preview` again will be sufficient to rebuild just what is necessary (not rebuild everything). To completely rebuild without using the cache, run `npm run docker:preview:rebuild:nocache`
 
