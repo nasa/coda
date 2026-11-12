@@ -47,9 +47,28 @@ EMSS dev servers all have element names, and are:
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
-5. Map `coda-local.fit.nasa.gov` to `127.0.0.1` so the browser uses the hostname required for direct IO and Talkybot connections. With elevated privileges, add `127.0.0.1 coda-local.fit.nasa.gov` to the hosts file (no port number). Without admin rights on Windows, use the [Chrome hostname override](#windows-without-admin-rights) below. PowerToys Hosts File Editor also requires elevation to save changes.
+5. Map `coda-local.fit.nasa.gov` to `127.0.0.1` so the browser uses the hostname required for direct IO and Talkybot connections. Follow [Windows with admin rights](#windows-with-admin-rights) to edit the hosts file, or use the [Chrome hostname override](#windows-without-admin-rights) without admin rights.
 6. Create a local SSL certificate with `bash ./scripts/make-dev-ssl-cert.sh`. Both Vite and the Docker preview use this certificate. Trust it in your browser, or accept its warning when opening local CODA. Rerun the script to renew an expired, mismatched, or soon-to-expire certificate; it reuses valid certificates and backs up replaced pairs under `.local/cert-backups/`.
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
+
+#### Windows with admin rights
+
+1. Search for **Notepad** in the Start menu, right-click it, and select **Run as administrator**. Approve the elevation prompt.
+2. In Notepad, select **File > Open**, browse to `C:\Windows\System32\drivers\etc`, and change the file filter from **Text Documents** to **All Files**. Open `hosts`.
+3. Add this line, or update an existing entry for the same hostname:
+
+   ```text
+   127.0.0.1 coda-local.fit.nasa.gov
+   ```
+
+4. Save the existing `hosts` file without adding a `.txt` extension. Keep the port number out of this file.
+5. Complete the SSL certificate setup in step 6 above, start CODA using the instructions below, and open `https://coda-local.fit.nasa.gov:3000` in your normal browser. For the Docker preview, use `https://coda-local.fit.nasa.gov`.
+
+If the browser cached a failed lookup, restart it. If needed, run `ipconfig /flushdns` in an administrator terminal to clear the Windows DNS cache.
+
+Alternatively, use **PowerToys > Hosts File Editor** with **Open as administrator** enabled. Add an active entry with address `127.0.0.1` and host `coda-local.fit.nasa.gov`. PowerToys also requires elevation to save changes.
+
+The hosts entry applies to Windows applications using the system resolver, so no special Chrome launch arguments are needed. Containers and WSL may need their own hostname configuration.
 
 #### Windows without admin rights
 
