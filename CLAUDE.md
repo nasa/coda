@@ -33,7 +33,7 @@ npm run migration:create
 npm run docker:services
 ```
 
-Development requires PostgreSQL running (via `npm run docker:services`) before starting `npm run dev`. Generate the local certificate with `bash ./scripts/make-dev-ssl-cert.sh` and use `https://coda-local.fit.nasa.gov:3000`. With the default `MOCK_USER=false`, `src/dev/viteSharedAuth.ts` validates the shared session with `AUTH_HOST` and forwards the trusted JWT to the API, which binds to loopback in development. Use `MOCK_USER=true` explicitly for offline development. The comm panel connects directly to Talkybot with the same real browser session; production Talkybot's CORS allowlist must include the exact local origin and port.
+Development requires PostgreSQL running (via `npm run docker:services`) before starting `npm run dev`. `src/dev/viteLocalDevelopment.ts` uses `vite-plugin-mkcert` to generate a trusted local certificate automatically; use `https://coda-local.fit.nasa.gov:3000`. Docker preview reuses the existing certificate; run `npm run dev:cert` once before `npm run docker:preview` if Vite has not already generated it. Certificate setup runs only for local development, not builds, Vite preview, or tests. With the default `MOCK_USER=false`, `src/dev/viteSharedAuth.ts` validates the shared session with `AUTH_HOST` and forwards the trusted JWT to the API, which binds to loopback in development. Use `MOCK_USER=true` explicitly for offline development after initial certificate setup. The comm panel connects directly to Talkybot with the same real browser session; production Talkybot's CORS allowlist must include the exact local origin and port.
 
 ## Architecture
 

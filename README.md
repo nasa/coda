@@ -33,7 +33,7 @@ EMSS dev servers all have element names, and are:
 
 ### Software Dependencies
 
-- [NodeJS](https://nodejs.dev/) (see the [Dockerfile](./docker/apiv1/Dockerfile) for the version we're using).
+- [NodeJS](https://nodejs.dev/) >= 22.19.0 (see the [Dockerfile](./docker/apiv1/Dockerfile) for the version we're using).
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (optional)
 
 ### First Time Setup
@@ -48,7 +48,7 @@ EMSS dev servers all have element names, and are:
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
 5. Map `coda-local.fit.nasa.gov` to `127.0.0.1` so the browser uses the hostname required for direct IO and Talkybot connections. Follow [Windows with admin rights](#windows-with-admin-rights) to edit the hosts file, or use the [Chrome hostname override](#windows-without-admin-rights) without admin rights.
-6. Create a local SSL certificate with `bash ./scripts/make-dev-ssl-cert.sh`. Both Vite and the Docker preview use this certificate. Trust it in your browser, or accept its warning when opening local CODA. Rerun the script to renew an expired, mismatched, or soon-to-expire certificate; it reuses valid certificates and backs up replaced pairs under `.local/cert-backups/`.
+6. Vite creates a trusted local SSL certificate on first start using [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert). It downloads `mkcert` if needed and installs a local certificate authority; approve the trust prompt if shown, then restart your browser if needed. For Docker preview, run `npm run dev:cert` once before starting containers if Vite has not already generated the certificate. Certificates and the local CA stay in the ignored `.local/` directory.
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
 
 #### Windows with admin rights
@@ -62,7 +62,7 @@ EMSS dev servers all have element names, and are:
    ```
 
 4. Save the existing `hosts` file without adding a `.txt` extension. Keep the port number out of this file.
-5. Complete the SSL certificate setup in step 6 above, start CODA using the instructions below, and open `https://coda-local.fit.nasa.gov:3000` in your normal browser. For the Docker preview, use `https://coda-local.fit.nasa.gov`.
+5. Start CODA using the instructions below and open `https://coda-local.fit.nasa.gov:3000` in your normal browser. For the Docker preview, use `https://coda-local.fit.nasa.gov`.
 
 If the browser cached a failed lookup, restart it. If needed, run `ipconfig /flushdns` in an administrator terminal to clear the Windows DNS cache.
 
@@ -93,7 +93,9 @@ Name it **CODA Dev** and use it whenever opening local CODA. The override must b
 
 This maps only the hostname within that Chrome instance. It keeps the hostname in the URL for shared auth cookies and leaves port `3000` unchanged. Node, Docker, and other applications do not inherit the mapping. For the Docker preview, open `https://coda-local.fit.nasa.gov` in the same development Chrome window instead.
 
-The override handles name resolution only. Complete the SSL certificate setup in step 6 and trust the certificate or accept its warning in the development browser. Keep HTTPS and `coda-local.fit.nasa.gov` for shared authentication.
+The override handles name resolution only and works with Vite's trusted certificate: the URL and certificate both use `coda-local.fit.nasa.gov`. On Windows, `mkcert` installs its CA in the current user's root certificate store, so administrator rights are normally unnecessary. A managed device can restrict user-installed CAs; if trust installation is blocked, ask your administrator to allow it. Keep HTTPS and `coda-local.fit.nasa.gov` for shared authentication.
+
+References for certificate trust: [mkcert's Windows implementation](https://github.com/FiloSottile/mkcert/blob/master/truststore_windows.go) and [Windows current-user certificate store](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certopensystemstorew).
 
 References: [Chromium hostname overrides](https://github.com/chromium/chromium/blob/main/net/dns/README.md), [Chrome profile directories](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md), and [PowerToys Hosts File Editor permissions](https://learn.microsoft.com/en-us/windows/powertoys/hosts-file-editor).
 
@@ -122,9 +124,16 @@ npm run docker:services
 npm run dev
 ```
 
-Then go to https://coda-local.fit.nasa.gov:3000. Vite enables HTTPS when the certificate and key from step 6 exist; restart `npm run dev` after creating them. Without them, HTTP development requires explicit mock mode (see below).
+Then go to https://coda-local.fit.nasa.gov:3000. Vite automatically generates and reuses the trusted certificate from step 6.
 
 #### Shared authentication in Vite
+
+Local HTTPS and auth configuration lives in `src/dev/viteLocalDevelopment.ts`,
+with the auth gateway in `src/dev/viteSharedAuth.ts`. The main Vite config adds
+them only for the dev server; builds, preview, and tests use the base config.
+Vite's built-in proxy handles forwarding. `vite-plugin-mkcert` writes the certificate
+and key to the existing Docker mount paths, so both entry points share one setup.
+Its downloaded binary and local CA are cached in `.local/mkcert/`.
 
 Local development uses the same production shared-auth service as deployed CODA.
 With `MOCK_USER="false"` (the default), Vite validates the browser's session cookie
@@ -144,10 +153,10 @@ Talkybot. To test against integration auth, set
 `AUTH_HOST="emss-auth-int.fit.nasa.gov"` and restart Vite and the API. Vite trusts
 the NASA CA bundle in `.env.local.cert.pem` for its server-side auth requests.
 
-For offline development, explicitly set `MOCK_USER="true"` in `.env` and restart
+After the first certificate setup, for offline development set `MOCK_USER="true"` in `.env` and restart
 `npm run dev`. This disables Vite's shared-auth gateway and uses the existing mock
-CODA user. It does not authenticate direct Talkybot requests. HTTP development
-without a local certificate is available in this mock mode.
+CODA user. HTTPS stays enabled using the cached certificate. Mock mode does not
+authenticate direct Talkybot requests.
 
 #### Talkybot communications in local development
 
@@ -169,9 +178,7 @@ To preview a production-like setup with a full docker environment, essentially i
 npm run docker:preview
 ```
 
-Then go to https://coda-local.fit.nasa.gov. Note the HTTPS not HTTP, since the Docker setup is behind an nginx proxy with a self-signed certificate. Also there is no port number specified, since this is over port 443.
-
-You will likely need to accept the self-signed certificate warning.
+Docker mounts the existing certificate and key into Nginx. If Vite has not already generated them, run `npm run dev:cert` once before starting the preview. Then go to https://coda-local.fit.nasa.gov. Docker uses port 443, so no port number is specified. The browser trusts the host's local CA; the containers do not need to install it.
 
 To be sure that the Docker images are fully rebuilt after making changes to CODA, run `npm run docker:preview:rebuild`. This is generally not required, however, and simply running `npm run docker:preview` again will be sufficient to rebuild just what is necessary (not rebuild everything). To completely rebuild without using the cache, run `npm run docker:preview:rebuild:nocache`
 

@@ -1,31 +1,20 @@
 /// <reference types="vitest/config" />
 import dotenv from "dotenv";
 dotenv.config({ override: true, quiet: true });
-import { UserConfig, defineConfig } from "vite";
+import { UserConfig, defineConfig, mergeConfig } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import react from "@vitejs/plugin-react";
 import packageJSON from "./package.json" with { type: "json" };
-import { existsSync, readFileSync } from "node:fs";
-import { sharedAuthPlugin } from "./src/dev/viteSharedAuth";
+import { localDevelopmentConfig } from "./src/dev/viteLocalDevelopment";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const devCert = path.join(__dirname, ".local/certs/nginx.crt");
-const devKey = path.join(__dirname, ".local/private/nginx.key");
-const nasaCa = path.join(__dirname, ".env.local.cert.pem");
 
 export const config: UserConfig = {
   root: "./src",
   envDir: "../",
-  plugins: [
-    react(),
-    process.env.MOCK_USER !== "true" &&
-      sharedAuthPlugin({
-        authOrigin: `https://${process.env.AUTH_HOST || "emss-auth.fit.nasa.gov"}`,
-        ca: existsSync(nasaCa) ? readFileSync(nasaCa, "utf8") : undefined,
-      }),
-  ],
+  plugins: [react()],
 
   resolve: {
     //alias paths so that the import statements are shorter and start from the src folder
@@ -43,13 +32,6 @@ export const config: UserConfig = {
   },
   //server configurations for running vite as a server (only happens in local dev). On docker/production, nginx serves the front end
   server: {
-    // Use the same local certificate as the Docker preview for shared auth cookies.
-    https:
-      existsSync(devCert) && existsSync(devKey)
-        ? { cert: readFileSync(devCert), key: readFileSync(devKey) }
-        : undefined,
-    allowedHosts: ["coda-local.fit.nasa.gov"],
-    strictPort: true,
     // neither of these proxies are hit when running under docker:dev because nginx intercepts them
     proxy: {
       "/api/v1": {
@@ -118,4 +100,8 @@ export const config: UserConfig = {
 };
 
 // https://vitejs.dev/config/
-export default defineConfig(config);
+export default defineConfig(({ command, mode, isPreview }) =>
+  command === "serve" && mode !== "test" && !isPreview
+    ? mergeConfig(config, localDevelopmentConfig(__dirname))
+    : config
+);

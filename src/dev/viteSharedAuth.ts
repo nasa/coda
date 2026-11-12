@@ -34,7 +34,9 @@ export const sharedAuthPlugin = (options: SharedAuthOptions): Plugin => ({
     const authOrigin = new URL(options.authOrigin);
     const secure = authOrigin.protocol === "https:";
     if (secure && !server.config.server.https) {
-      throw new Error("Shared auth requires HTTPS. Run bash ./scripts/make-dev-ssl-cert.sh first.");
+      throw new Error(
+        "Shared auth requires HTTPS. Check the local mkcert setup or use MOCK_USER=true."
+      );
     }
     const port = server.config.server.port || 3000;
     const origin =

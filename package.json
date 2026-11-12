@@ -9,6 +9,7 @@
     "make-dotenv": "make-dotenv",
     "build": "npm run vite:build && npm run api:build",
     "dev": "concurrently -n vite,api \"npm run vite:dev:wait\" \"npm run api:dev\"",
+    "dev:cert": "node ./scripts/make-dev-ssl-cert.mjs",
     "test": "vitest run --config vitest.config.mts",
     "test:all": "npm run lint && npm run tsc && npm run build && npm run test",
     "test:coverage": "vitest run --coverage --config vitest.config.mts",
@@ -137,6 +138,7 @@
     "undici": "8.5.0",
     "uuid": "14.0.1",
     "vite": "8.1.0",
+    "vite-plugin-mkcert": "2.1.0",
     "vitest": "4.1.9",
     "wait-on": "9.0.10"
   },
