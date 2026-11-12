@@ -47,9 +47,36 @@ EMSS dev servers all have element names, and are:
    3. Download zip file
    4. Extract zip and put the `.pem` file into the CODA root directory named `.env.local.cert.pem`
 
-5. **Elevated privileges required:** Change the hosts file to map `coda-local.fit.nasa.gov` to `127.0.0.1`. This is required for the direct IO and Talkybot connections.
+5. Map `coda-local.fit.nasa.gov` to `127.0.0.1` so the browser uses the hostname required for direct IO and Talkybot connections. With elevated privileges, add `127.0.0.1 coda-local.fit.nasa.gov` to the hosts file (no port number). Without admin rights on Windows, use the [Chrome hostname override](#windows-without-admin-rights) below. PowerToys Hosts File Editor also requires elevation to save changes.
 6. Create a local SSL certificate with `bash ./scripts/make-dev-ssl-cert.sh`. Both Vite and the Docker preview use this certificate. Trust it in your browser, or accept its warning when opening local CODA. Rerun the script to renew an expired, mismatched, or soon-to-expire certificate; it reuses valid certificates and backs up replaced pairs under `.local/cert-backups/`.
 7. (Optional unless you're making a lot of map requests) Get a Mapbox API key https://account.mapbox.com/. Set it to the `VITE_PUBLIC_MAPBOX_KEY` value in the `.env` file.
+
+#### Windows without admin rights
+
+Launch Chrome from PowerShell with a hostname override and a separate development profile:
+
+```powershell
+& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" `
+  "--user-data-dir=$env:LOCALAPPDATA\Chrome-Coda-Dev" `
+  "--host-resolver-rules=MAP coda-local.fit.nasa.gov 127.0.0.1" `
+  "https://coda-local.fit.nasa.gov:3000"
+```
+
+Adjust the executable path if Chrome is installed elsewhere. The separate profile allows normal Chrome to stay open alongside development Chrome; its cookies and sign-ins are separate, so sign in through the development window.
+
+For a reusable shortcut, right-click the Windows desktop, select **New > Shortcut**, and paste the following as the location (adjusting Chrome's path if needed):
+
+```text
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="%LOCALAPPDATA%\Chrome-Coda-Dev" --host-resolver-rules="MAP coda-local.fit.nasa.gov 127.0.0.1" "https://coda-local.fit.nasa.gov:3000"
+```
+
+Name it **CODA Dev** and use it whenever opening local CODA. The override must be supplied each time this development Chrome instance starts; the regular Chrome shortcut does not supply it. Close all windows using the development profile before relaunching if you change the arguments.
+
+This maps only the hostname within that Chrome instance. It keeps the hostname in the URL for shared auth cookies and leaves port `3000` unchanged. Node, Docker, and other applications do not inherit the mapping. For the Docker preview, open `https://coda-local.fit.nasa.gov` in the same development Chrome window instead.
+
+The override handles name resolution only. Complete the SSL certificate setup in step 6 and trust the certificate or accept its warning in the development browser. Keep HTTPS and `coda-local.fit.nasa.gov` for shared authentication.
+
+References: [Chromium hostname overrides](https://github.com/chromium/chromium/blob/main/net/dns/README.md), [Chrome profile directories](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md), and [PowerToys Hosts File Editor permissions](https://learn.microsoft.com/en-us/windows/powertoys/hosts-file-editor).
 
 ### Option 1: Local Dev (non-Docker)
 
