@@ -28,7 +28,11 @@ include:
     rules:
       - if: $SCHEDULE_TYPE != "audit" # exclude from audit scheduled pipelines
   - project: "emss/gitlab-templates"
-    ref: 2.6.0
+    # Pinned to a commit on fix/deploy-bugs-and-ubuntu-ec2-servers instead of a
+    # tag because that branch adds the Tin/Uranium/Xenon/Zinc .<name>-deploy
+    # blocks our new deploy jobs below extend. Revert to a tagged ref once
+    # that branch is merged and released.
+    ref: 896a52ff7f41a24db306f109e3ac8a3141067ddd
     file:
       # EMSS shared dev server helpers (carbon, iron, oxygen, etc)
       - "/jobs/emss-shared-dev.gitlab-ci.yml"

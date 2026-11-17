@@ -479,6 +479,42 @@ deploy:oxygen:
     - sed -i "s/INSERT_SUBDOMAIN/oxygen-emss-dev/g" .env
     - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/oxygen/g" .env
 
+deploy:tin:
+  extends:
+    - .deploy-template:dev
+    - .tin-deploy
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/tin-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/tin/g" .env
+
+deploy:uranium:
+  extends:
+    - .deploy-template:dev
+    - .uranium-deploy
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/uranium-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/uranium/g" .env
+
+deploy:xenon:
+  extends:
+    - .deploy-template:dev
+    - .xenon-deploy
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/xenon-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/xenon/g" .env
+
+deploy:zinc:
+  extends:
+    - .deploy-template:dev
+    - .zinc-deploy
+  when: manual
+  before_script:
+    - sed -i "s/INSERT_SUBDOMAIN/zinc-emss-dev/g" .env
+    - sed -i "s/INSERT_LOG_DATA_SERVER_NAME/zinc/g" .env
+
 deploy:int:
   extends: .deploy-template
   tags: ["emss-coda-int"]
