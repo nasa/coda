@@ -10,6 +10,7 @@ import {
   faCircleXmark,
   faLock,
   faLockOpen,
+  faKey,
   faFilter,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
@@ -18,6 +19,7 @@ import { MuteButton } from "components/panes/video/video-controls";
 import { setAppSeconds } from "store/clock";
 import { dateFromAppSeconds } from "utils/formatting";
 import ClockInterval from "components/framework/ClockInterval";
+import TalkybotConnectionNotice from "./talkybotConnectionNotice";
 
 export const channelColors = [
   "#653939",
@@ -88,33 +90,6 @@ export const CommControls: FunctionComponent<{
     return channels;
   }, [channelTimingMap]);
 
-  // Auto-select any newly available channel that the user has not explicitly
-  // unselected. This keeps every channel selected by default — including
-  // channels that first appear after a date change — while preserving the
-  // user's intentional opt-outs.
-  useEffect(() => {
-    if (availableChannels.length === 0) return;
-    const unselected = paneStateData.unselectedSgChannels || [];
-    const toAdd = availableChannels.filter(
-      (c) => !paneStateData.sgChannels.includes(c) && !unselected.includes(c)
-    );
-    if (toAdd.length > 0) {
-      dispatch(
-        setPaneStateDataValue({
-          paneInstanceId,
-          paneStateProperty: "sgChannels",
-          paneStateValue: [...paneStateData.sgChannels, ...toAdd],
-        })
-      );
-    }
-  }, [
-    availableChannels,
-    paneStateData.sgChannels,
-    paneStateData.unselectedSgChannels,
-    dispatch,
-    paneInstanceId,
-  ]);
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -176,7 +151,9 @@ export const CommControls: FunctionComponent<{
     filterButtonSelected = styles.buttonSelected;
   }
 
-  const selectedCount = paneStateData.sgChannels?.length || 0;
+  const selectedCount = availableChannels.filter((channel) =>
+    paneStateData.sgChannels.includes(channel)
+  ).length;
   const totalCount = availableChannels.length;
 
   const controlsLeft = () => {
@@ -216,7 +193,12 @@ export const CommControls: FunctionComponent<{
                   onChange={() => toggleChannel(channel)}
                   onClick={(e) => e.stopPropagation()}
                 />
-                <label>{channel}</label>
+                <label>
+                  {channel}{" "}
+                  {channelTimingMap.get(channel)?.[0]?.file.restricted && (
+                    <FontAwesomeIcon icon={faKey} title="Restricted channel" />
+                  )}
+                </label>
               </div>
             ))}
           </div>
@@ -317,10 +299,35 @@ export const CommControls: FunctionComponent<{
   );
 };
 
-/** Represents an audio file that's currently active for playback */
-type ActiveAudioFile = {
-  file: TbAudioFileConverted | null;
-  playOffset: number;
+const ChannelAudioPlayer: FunctionComponent<{
+  src: string | undefined;
+  offset: number;
+  playing: boolean;
+}> = ({ src, offset, playing }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !src) return;
+    audio.src = src;
+    return () => {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    };
+  }, [src]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !src) return;
+    if (!playing || Math.abs(audio.currentTime - offset) > 1) {
+      audio.currentTime = offset;
+    }
+    if (playing && audio.paused) void audio.play().catch(() => {});
+    if (!playing) audio.pause();
+  }, [src, offset, playing]);
+
+  return <audio ref={audioRef} />;
 };
 
 /** Represents a processed utterance for display */
@@ -381,12 +388,6 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     dispatch,
     paneInstanceId,
   ]);
-  const [activeAudioFile, setActiveAudioFile] = useState<ActiveAudioFile>({
-    file: null,
-    playOffset: -1,
-  });
-  const [srcUrl, setSrcUrl] = useState("");
-
   // Transcript state
   const [filterText, setFilterText] = useState("");
 
@@ -395,7 +396,6 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
   const isRunning = useAppSelector((state) => state.clock.isRunning, refEqual);
   const [appSeconds, setLocalAppSeconds] = useState(0);
 
-  const audioPlayerRef = useRef<HTMLAudioElement>(null);
   const activeUtteranceRef = useRef<HTMLDivElement>(null);
   const lastProcessedMetadataRef = useRef<FetchMetadata | null>(null);
 
@@ -427,81 +427,6 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
       channel: timing.file.channel,
     }));
   }, [allChannelTimings]);
-
-  // Find and set the active audio file for the current playhead position
-  useEffect(() => {
-    if (!allChannelTimings.length || paneStateData.isMuted) {
-      return;
-    }
-
-    let foundActive = false;
-    for (const timing of allChannelTimings) {
-      const { file } = timing;
-
-      if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
-        const newSrcUrl =
-          file.audioUrl ||
-          (file.override
-            ? ""
-            : `/api/v1/restricted/talkybot/audio/${encodeURIComponent(file.fileUuid)}`);
-
-        if (srcUrl !== newSrcUrl) {
-          setSrcUrl(newSrcUrl);
-        }
-        setActiveAudioFile({
-          file,
-          playOffset:
-            appSeconds - timing.startSeconds < file.duration
-              ? appSeconds - timing.startSeconds
-              : -1,
-        });
-
-        foundActive = true;
-        break;
-      }
-    }
-
-    if (!foundActive) {
-      setActiveAudioFile({
-        file: null,
-        playOffset: -1,
-      });
-      setSrcUrl("");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- srcUrl intentionally excluded to prevent infinite loops; effect sets srcUrl based on playhead position
-  }, [allChannelTimings, appSeconds, paneStateData.isMuted, paneStateData.sgChannels]);
-
-  // Cue the audio and figure out whether to play or pause
-  useEffect(() => {
-    if (!audioPlayerRef.current || srcUrl === "") {
-      return;
-    }
-    const isPlaying =
-      audioPlayerRef.current.currentTime > 0 &&
-      !audioPlayerRef.current.paused &&
-      !audioPlayerRef.current.ended &&
-      audioPlayerRef.current.readyState > audioPlayerRef.current.HAVE_CURRENT_DATA;
-
-    if (activeAudioFile.playOffset > -1) {
-      if (Math.abs(audioPlayerRef.current.currentTime - activeAudioFile.playOffset) > 1) {
-        audioPlayerRef.current.currentTime = activeAudioFile.playOffset;
-      }
-
-      try {
-        if (isRunning && paneStateData.ready) {
-          if (!isPlaying && srcUrl !== "") {
-            audioPlayerRef.current.play();
-          }
-        } else {
-          audioPlayerRef.current.pause();
-        }
-      } catch (e) {
-        // eat play errors. They are all bogus
-      }
-    } else {
-      audioPlayerRef.current.pause();
-    }
-  }, [srcUrl, audioPlayerRef, isRunning, activeAudioFile.playOffset, paneStateData.ready]);
 
   // Derive filtered utterances from utterances and filter criteria
   const filteredUtterances = useMemo((): DisplayUtterance[] => {
@@ -561,7 +486,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         setPaneStateDataValue({
           paneInstanceId,
           paneStateProperty: "showHelp",
-          paneStateValue: !hasAudioFiles,
+          paneStateValue: talkybotMetadata.success && !hasAudioFiles,
         })
       );
     }
@@ -574,12 +499,12 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
     return channels;
   }, [channelTimingMap]);
 
-  // Estimate a consistent label width from the longest channel name, capped at 100px
+  // Estimate a consistent label width from the longest channel name, capped at 115px
   const channelLabelWidth = useMemo(() => {
     if (!sortedChannels.length) return 60;
     const longest = Math.max(...sortedChannels.map((ch) => ch.length));
     // ~8px per uppercase char at 0.9em, plus ~8px horizontal padding
-    return Math.min(100, longest * 8 + 8);
+    return Math.min(115, longest * 8 + 8);
   }, [sortedChannels]);
 
   function displayUtterance(utterance: DisplayUtterance, idx: number) {
@@ -652,6 +577,7 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
   return (
     <div className={styles.main}>
       <ClockInterval setAppSeconds={setLocalAppSeconds} />
+      <TalkybotConnectionNotice />
       <div className={displayFilterStyle}>
         <div className={styles.inputBoxContainer}>
           <input
@@ -682,52 +608,37 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
         </div>
       </div>
       <div className={styles.player}>
-        <audio
-          controls={true}
-          autoPlay={false}
-          ref={audioPlayerRef}
-          src={srcUrl}
-          muted={paneStateData.isMuted}
-          onCanPlay={() => {
-            if (!paneStateData.ready) {
-              dispatch(
-                setPaneStateDataValue({
-                  paneInstanceId,
-                  paneStateProperty: "ready",
-                  paneStateValue: true,
-                })
+        {availableChannels
+          .filter((channel) => paneStateData.sgChannels.includes(channel))
+          .map((channel) => {
+            const clip = channelTimingMap
+              .get(channel)
+              ?.find(
+                ({ file, startSeconds, endSeconds }) =>
+                  (!file.override || file.audioUrl) &&
+                  startSeconds <= appSeconds &&
+                  appSeconds < endSeconds
               );
-            }
-          }}
-          onEnded={() => {
-            // ready up because we don't want a missing audio to hold up the playhead
-            setSrcUrl("");
-            dispatch(
-              setPaneStateDataValue({
-                paneInstanceId,
-                paneStateProperty: "ready",
-                paneStateValue: true,
-              })
+            const src =
+              clip && !paneStateData.isMuted
+                ? (clip.file.audioUrl ??
+                  `/api/v1/restricted/talkybot/audio/${encodeURIComponent(clip.file.fileUuid)}`)
+                : undefined;
+            return (
+              <ChannelAudioPlayer
+                key={channel}
+                src={src}
+                offset={clip ? appSeconds - clip.startSeconds : 0}
+                playing={isRunning}
+              />
             );
-          }}
-          onWaiting={() => {
-            if (paneStateData.ready && srcUrl !== "") {
-              dispatch(
-                setPaneStateDataValue({
-                  paneInstanceId,
-                  paneStateProperty: "ready",
-                  paneStateValue: false,
-                })
-              );
-            }
-          }}
-        />
+          })}
       </div>
       <div className={styles.utterancesContainer}>
         <div>{filteredUtterances.map((utterance, idx) => displayUtterance(utterance, idx))}</div>
       </div>
       <HelpOverlay
-        isModalOpen={paneStateData.showHelp}
+        isModalOpen={paneStateData.showHelp && talkybotMetadata?.success !== false}
         closeHandler={() => {
           dispatch(
             setPaneStateDataValue({
