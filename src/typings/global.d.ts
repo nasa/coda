@@ -4,7 +4,7 @@ type GlobalValues = {
         ClientToServerEvents,
         ServerToClientEvents,
         import("socket.io/dist/typed-events").DefaultEventsMap,
-        {}
+        CodaSocketData
       >
     | null;
   orm: import("@mikro-orm/postgresql").MikroORM | null;

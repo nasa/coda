@@ -41,7 +41,9 @@ export default async function fetchWithTimeout(
   cookieOptions?: CookieOptions
 ): Promise<Response> {
   const controller = new AbortController();
-  const signal = controller.signal;
+  const signal = requestInit?.signal
+    ? AbortSignal.any([controller.signal, requestInit.signal])
+    : controller.signal;
   const id = setTimeout(() => controller.abort(), timeout);
 
   // Build headers with optional cookie support

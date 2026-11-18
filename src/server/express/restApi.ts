@@ -17,6 +17,7 @@ import photoRoute from "./routes/db/photos";
 import assetOverridesRoute from "./routes/db/assetOverrides";
 import pcdAudioRoute from "./routes/db/pcdAudio";
 import accessGrantsRoute from "./routes/db/accessGrants";
+import talkybotAudioRoute from "./routes/restricted/talkybotAudio";
 import restrictedVideosRoute from "./routes/restricted/videos";
 import { getORM, globalValues } from "./global";
 import timeRoute from "./routes/time/time";
@@ -57,6 +58,7 @@ app.use("/api/v1/db/photoTimeShifts", photoRoute);
 app.use("/api/v1/db/assetOverrides", assetOverridesRoute);
 app.use("/api/v1/db/pcdAudio", pcdAudioRoute);
 app.use("/api/v1/db/accessGrants", accessGrantsRoute);
+app.use("/api/v1/restricted/talkybot/audio", talkybotAudioRoute);
 app.use("/api/v1/restricted/videos", restrictedVideosRoute); // routed through launchpad — see RESTRICTED_OVERRIDES.md
 app.use("/api/v1/user/current", getCurrentUser); // routed through launchpad
 app.use("/api/v1/log/from-client", logFromClient);

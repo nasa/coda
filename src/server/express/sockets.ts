@@ -6,7 +6,10 @@ import { dataFetchConfigs, getSourceDateDataType, ALL_DATES_KEY } from "./dataRe
 import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 import type { DefaultEventsMap, Socket } from "socket.io";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { getTalkybotS2sSocketTrackerData } from "./talkybotS2sSocket";
+import { getTalkybotS2sSocketTrackerData, retryTalkybotS2sConnection } from "./talkybotS2sSocket";
+import { removeTalkybotView, retryTalkybotHistory, setTalkybotView } from "./talkybotDelivery";
+import { getUser } from "packages/getUser";
+import type { Request } from "express";
 import { findRestrictedAccessesForUser } from "./routes/db/accessGrants";
 
 export const INSPECTOR_ROOM = "inspectorRoom";
@@ -103,17 +106,43 @@ export const setupSocketIO = (): void => {
   const visitorsData: VisitorData[] = globalValues.serverSocketStatus.visitorsData;
   const io = getSocketIO();
 
-  // Listen for connection events
+  // Production nginx authenticates the upgrade and replaces X-Access-Token.
+  // Local development uses the same configured mock identity as the HTTP API.
+  io.use((socket, next) => {
+    const user = getUser(socket.request as Request);
+    if (user instanceof Error || !user.auid) {
+      next(new Error("Unauthorized"));
+      return;
+    }
+    socket.data.user = user;
+    next();
+  });
+
   io.on(
     "connection",
-    (socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, {}>) => {
+    (
+      socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, CodaSocketData>
+    ) => {
+      const { user } = socket.data;
       // emit app version to client that just connected
       if (globalValues.appVersion) {
         socket.emit("version", globalValues.appVersion);
       }
 
-      socket.on("visitorJoin", (visitorData: VisitorData) => {
+      socket.on("visitorJoin", (payload) => {
         try {
+          const visitorData: VisitorData = {
+            source: payload.source,
+            dateViewing: payload.dateViewing,
+            appVersion: payload.appVersion,
+            socketId: socket.id,
+            user,
+            connectedAt: Date.now(),
+            liveVideoEnabled: true,
+            restrictedAccesses: [],
+          };
+          const previous = find(visitorsData, { socketId: socket.id });
+          if (previous) void socket.leave(`${previous.source}_${previous.dateViewing}`);
           // check app version and git commit
           if (
             globalValues.appVersion &&
@@ -121,8 +150,8 @@ export const setupSocketIO = (): void => {
           ) {
             ConsoleLogger.debug(
               `SocketIO - visitorJoin: appVersion mismatch between client and server
-          client: ${JSON.stringify(visitorData.appVersion)}
-          server: ${JSON.stringify(globalValues.appVersion)}`
+            client: ${JSON.stringify(visitorData.appVersion)}
+            server: ${JSON.stringify(globalValues.appVersion)}`
             );
           }
 
@@ -138,7 +167,7 @@ export const setupSocketIO = (): void => {
             return item.socketId === visitorData.socketId;
           });
           // Initialize liveVideoEnabled to true for new visitors
-          visitorsData.push({ ...visitorData, liveVideoEnabled: true, restrictedAccesses: [] });
+          visitorsData.push(visitorData);
 
           // Compute restricted-override eligibility (auid-gated MediaOverride rows for this source+date)
           // and update the visitor record + emit fresh inspector update once available.
@@ -170,6 +199,8 @@ export const setupSocketIO = (): void => {
             visitorData,
           });
 
+          setTalkybotView(socket, user, visitorData);
+
           // emit visitor count to all clients
           const statusFromServer = getStatusFromServer();
           io.emit("statusFromServer", statusFromServer);
@@ -179,6 +210,11 @@ export const setupSocketIO = (): void => {
         } catch (error) {
           ConsoleLogger.error("SocketIO - visitorJoin: ", error);
         }
+      });
+
+      socket.on("retryTalkybot", () => {
+        retryTalkybotS2sConnection();
+        retryTalkybotHistory(socket.id);
       });
 
       socket.on("joinInspector", () => {
@@ -209,6 +245,7 @@ export const setupSocketIO = (): void => {
       });
 
       socket.on("disconnect", () => {
+        removeTalkybotView(socket.id);
         try {
           const visitorBeingRemoved = find(visitorsData, {
             socketId: socket.id,
@@ -294,25 +331,6 @@ export const emitDataUpdateToSource = ({
   ConsoleLogger.debug(
     `Emitted ${dataUpdate.type} update to ${uniqueDates.length} rooms for source ${source}`
   );
-};
-
-/**
- * Emit an incremental data update to clients viewing a specific source and date.
- * Used for real-time updates (e.g., new audio files from talkybotS2sSocket).
- */
-export const emitIncrementalDataUpdate = ({
-  source,
-  dataDate,
-  incrementalUpdate,
-}: {
-  source: Source;
-  dataDate: string;
-  incrementalUpdate: IncrementalDataUpdate;
-}): void => {
-  ConsoleLogger.debug(
-    `Emitting incremental ${incrementalUpdate.type} update to room ${source}_${dataDate}`
-  );
-  getSocketIO().to(`${source}_${dataDate}`).emit("incrementalDataUpdate", incrementalUpdate);
 };
 
 /**

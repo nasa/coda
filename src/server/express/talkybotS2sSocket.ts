@@ -1,9 +1,8 @@
 import "utils/loadEnv";
 import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
-import { emitIncrementalDataUpdate, emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
-import { toTbAudioFileConverted } from "../processing/talkybot";
-import { getSourcesWithDataType, getSourceForTalkybotGroup } from "../../utils/sourceDataTypeMap";
+import { emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
+import { deliverTalkybotClip } from "./talkybotDelivery";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
@@ -18,6 +17,7 @@ interface TalkybotS2sServerToClientEvents {
   statusFromServer: (payload: TalkybotS2sStatusFromServer) => void;
   version: (appVersion: string) => void;
   audioFile: (payload: TbAudioFileNative) => void;
+  restrictedAudioFile: (payload: TbAudioFileNative) => void;
 }
 
 interface TalkybotS2sStatusFromServer {
@@ -178,9 +178,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
         "TalkybotS2s Socket: This usually means the Talkybot server's EMSS_TOKEN is not set or there's a server-side configuration issue"
       );
     } else if (error.message.includes("Authentication failed")) {
-      ConsoleLogger.error(
-        `TalkybotS2s Socket: Token mismatch - verify EMSS_TOKEN matches on both sides. Using token: ${authToken?.substring(0, 8)}... (partial)`
-      );
+      ConsoleLogger.error("TalkybotS2s Socket: Verify EMSS_TOKEN matches on both sides");
     }
 
     const isFailed = reconnectAttempts >= MAX_RECONNECT_ATTEMPTS;
@@ -250,71 +248,20 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
     });
   });
 
-  talkybotS2sSocket.on("audioFile", (payload) => {
-    // Convert native audio file to Coda format
-    const audioFile = toTbAudioFileConverted(payload);
-
-    ConsoleLogger.debug(`TalkybotS2s Socket: Received new audioFile - ${audioFile.fileUuid}`);
-
-    const textPreview = audioFile.text
-      ? `"${audioFile.text.substring(0, 80)}${audioFile.text.length > 80 ? "..." : ""}"`
-      : "No transcript";
-
+  const receiveAudioFile = (payload: TbAudioFileNative): void => {
+    const now = new Date().toISOString();
     updateTalkybotS2sSocketTrackerData({
       messagesReceived: talkybotS2sSocketTrackerData.messagesReceived + 1,
-      lastMessageReceivedAt: new Date().toISOString(),
+      lastMessageReceivedAt: now,
       lastMessageType: "audioFile",
-      lastMessagePreview: `${audioFile.channel}: ${textPreview}`,
+      lastMessagePreview: null,
       audioFilesReceived: talkybotS2sSocketTrackerData.audioFilesReceived + 1,
-      lastAudioFileReceivedAt: new Date().toISOString(),
-      lastAudioFileUuid: audioFile.fileUuid,
-      lastAudioFilePreview: `[${audioFile.channel}] ${textPreview} (${audioFile.duration}s)`,
+      lastAudioFileReceivedAt: now,
     });
-
-    // Emit incremental update to clients viewing today's date
-    const today = new Date().toISOString().split("T")[0];
-
-    // Use group info to target the correct source(s), or fall back to sending to all sources
-    const allTalkybotSources = getSourcesWithDataType("talkybot");
-    let targetSources: Source[];
-
-    if (audioFile.groups.length > 0) {
-      // Map group slugs to CODA sources, deduplicating
-      const mappedSources = new Set<Source>();
-      const unmappedSlugs: string[] = [];
-
-      for (const group of audioFile.groups) {
-        const source = getSourceForTalkybotGroup(group.slug);
-        if (source) {
-          mappedSources.add(source);
-        } else {
-          unmappedSlugs.push(group.slug);
-        }
-      }
-
-      if (unmappedSlugs.length > 0) {
-        ConsoleLogger.warn(
-          `TalkybotS2s Socket: No CODA source mapped for talkybot group(s): ${unmappedSlugs.join(", ")}. This means audio files from these groups will be sent to all sources. Consider updating the TALKYBOT_GROUP_TO_SOURCE_MAP to include these groups.`
-        );
-      }
-
-      // If we resolved at least one source, use those; otherwise fall back to all
-      targetSources = mappedSources.size > 0 ? [...mappedSources] : allTalkybotSources;
-    } else {
-      targetSources = allTalkybotSources;
-    }
-
-    for (const source of targetSources) {
-      emitIncrementalDataUpdate({
-        source,
-        dataDate: today,
-        incrementalUpdate: {
-          type: "talkybot",
-          item: audioFile,
-        },
-      });
-    }
-  });
+    deliverTalkybotClip(payload);
+  };
+  talkybotS2sSocket.on("audioFile", receiveAudioFile);
+  talkybotS2sSocket.on("restrictedAudioFile", receiveAudioFile);
 
   return talkybotS2sSocket;
 };
@@ -322,6 +269,10 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
 /**
  * Disconnect the TalkybotS2s socket connection
  */
+export const retryTalkybotS2sConnection = (): void => {
+  if (talkybotS2sSocket && !talkybotS2sSocket.active) talkybotS2sSocket.connect();
+};
+
 export const disconnectTalkybotS2sSocket = (): void => {
   if (talkybotS2sSocket) {
     ConsoleLogger.info("TalkybotS2s Socket: Disconnecting...");

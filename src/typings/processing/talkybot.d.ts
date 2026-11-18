@@ -9,6 +9,8 @@ interface TbAudioFileConverted {
   appSeconds?: number;
   duration: number;
   channel: string; // channel slug (e.g. "1-sg-1")
+  talkybotChannelId?: number;
+  restricted?: boolean;
   text: string;
   textOriginalLanguage: string;
   language: string;
@@ -23,6 +25,7 @@ interface TbAudioFileConverted {
 }
 
 interface TbDateResponse {
+  channelIds: number[];
   date: string; // ISO date format (YYYY-MM-DD)
   audioFiles: TbAudioFileNative[];
 }

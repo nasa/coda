@@ -21,6 +21,7 @@ function withAppSeconds(file: TbAudioFileConverted): TbAudioFileConverted {
 export const initialState: TalkybotState = {
   audioFiles: [],
   metadata: null,
+  retryCount: 0,
 };
 
 export const talkybotSlice = createSlice({
@@ -60,12 +61,14 @@ export const talkybotSlice = createSlice({
         state.audioFiles[existingIndex] = newFile;
       }
     },
-    talkybotFetchError: (state, action: { payload: string }) => {
-      state.metadata = {
-        success: false,
-        error: action.payload,
-        timestamp: state.metadata?.timestamp || new Date().toISOString(),
-      };
+    talkybotFetchError: (state, { payload }: { payload: string }) => {
+      state.metadata = { success: false, error: payload, timestamp: new Date().toISOString() };
+    },
+    removeTalkybotClip: (state, { payload }: { payload: string }) => {
+      state.audioFiles = state.audioFiles.filter((file) => file.fileUuid !== payload);
+    },
+    retryTalkybot: (state) => {
+      state.retryCount++;
     },
   },
 });
@@ -75,4 +78,6 @@ export const {
   clearTalkybotAudioFiles,
   upsertTalkybotAudioFile,
   talkybotFetchError,
+  removeTalkybotClip,
+  retryTalkybot,
 } = talkybotSlice.actions;

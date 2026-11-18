@@ -11,7 +11,13 @@ import { setGPSTracks } from "store/gps";
 import { setGraphsManifest } from "store/graphs";
 import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/photos";
 import { addSequences } from "store/sequences";
-import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
+import {
+  clearTalkybotAudioFiles,
+  removeTalkybotClip,
+  talkybotFetchError,
+  setTalkybotAudioFiles,
+  upsertTalkybotAudioFile,
+} from "store/talkybot";
 import { setPcdAudioData, clearPcdAudioData } from "store/pcdAudio";
 import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
@@ -28,6 +34,7 @@ const SocketClient: FunctionComponent<{
   const playheadDate = usePlayheadDate();
 
   const source = useAppSelector((state) => state.framework.source, refEqual);
+  const talkybotRetryCount = useAppSelector((state) => state.talkybot.retryCount, refEqual);
 
   //socket connection
   const socket = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(null);
@@ -48,13 +55,18 @@ const SocketClient: FunctionComponent<{
   useEffect(() => {
     setupFetchFns();
     getCurrentUser().then((thisUser) => {
-      if (user instanceof Error) {
+      if (thisUser instanceof Error) {
         return;
       }
-      setUser(thisUser as EmssUser);
+      setUser(thisUser);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect to fetch current user
   }, []);
+
+  useEffect(() => {
+    if (talkybotRetryCount === 0 || !socket.current) return;
+    if (socket.current.connected) socket.current.emit("retryTalkybot");
+    else socket.current.connect();
+  }, [talkybotRetryCount]);
 
   // Handle Socket.IO connection lifecycle.
   // The setTimeout(0) below is solely to work around a local-dev Firefox bug where date changes cause socket reconnects to hang; see comment block below for details.
@@ -84,16 +96,11 @@ const SocketClient: FunctionComponent<{
       const currentSocket = socket.current;
 
       currentSocket.on("connect", () => {
-        const visitorData: VisitorData = {
-          socketId: currentSocket.id ?? "",
+        currentSocket.emit("visitorJoin", {
           dateViewing: playheadDate.split("T")[0],
-          source: source,
-          user: user,
+          source,
           appVersion: socketStatus.clientVersion,
-          connectedAt: Date.now(),
-          liveVideoEnabled: true,
-        };
-        currentSocket.emit("visitorJoin", visitorData);
+        });
 
         // Set metadata to "unneeded" for data types not valid for this source
         const unneededMetadata: FetchMetadata = {
@@ -125,7 +132,11 @@ const SocketClient: FunctionComponent<{
         }
       });
 
+      currentSocket.on("connect_error", () => {
+        dispatch(talkybotFetchError("Coda is disconnected from Talkybot communications."));
+      });
       currentSocket.on("disconnect", () => {
+        dispatch(talkybotFetchError("Coda is disconnected from Talkybot communications."));
         setSocketStatus({
           connectionStatus: "disconnected",
           lastStatusFromServer: socketStatus.lastStatusFromServer,
@@ -248,6 +259,8 @@ const SocketClient: FunctionComponent<{
         }
       });
 
+      currentSocket.on("talkybotClipRemoved", (uuid) => dispatch(removeTalkybotClip(uuid)));
+
       // Incoming incremental data updates (e.g., new audio files from talkybotS2sSocket)
       currentSocket.on("incrementalDataUpdate", (incrementalUpdate: IncrementalDataUpdate) => {
         if (incrementalUpdate.type === "talkybot") {
@@ -264,6 +277,7 @@ const SocketClient: FunctionComponent<{
 
     return () => {
       clearTimeout(timerId);
+      dispatch(clearTalkybotAudioFiles());
       if (socket.current) {
         socket.current.removeAllListeners();
         socket.current.disconnect();

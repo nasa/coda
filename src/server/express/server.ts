@@ -23,7 +23,7 @@ globalValues.socketio = new SocketServer<
   ClientToServerEvents,
   ServerToClientEvents,
   InterServerEvents,
-  {}
+  CodaSocketData
 >(server, {
   transports: ["websocket"],
   path: "/api/v1/socketio",

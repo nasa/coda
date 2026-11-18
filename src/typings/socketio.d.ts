@@ -208,6 +208,7 @@ interface ServerToClientEvents {
   noArg: () => void;
   statusFromServer: (payload: StatusFromServer) => void;
   dataUpdate: (payload: DataUpdate) => void;
+  talkybotClipRemoved: (uuid: string) => void;
   incrementalDataUpdate: (payload: IncrementalDataUpdate) => void;
   version: (version: AppVersion) => void; // server version sent to client
   fetchInspectorUpdate: (payload: FetchInspectorUpdate) => void;
@@ -218,9 +219,14 @@ interface ServerToClientEvents {
 }
 
 interface ClientToServerEvents {
-  visitorJoin: (payload: VisitorData) => void;
+  retryTalkybot: () => void;
+  visitorJoin: (payload: Pick<VisitorData, "source" | "dateViewing" | "appVersion">) => void;
   joinInspector: () => void;
   leaveInspector: () => void;
+}
+
+interface CodaSocketData {
+  user: import("@emss/oauth2-proxy-common").EmssUser;
 }
 
 interface InterServerEvents {

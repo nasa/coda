@@ -441,7 +441,9 @@ const CommPane: FunctionComponent<{ paneInstanceId: number }> = ({ paneInstanceI
       if (appSeconds >= timing.startSeconds && appSeconds <= timing.endSeconds) {
         const newSrcUrl =
           file.audioUrl ||
-          `${import.meta.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles/${file.fileUuid}/file`;
+          (file.override
+            ? ""
+            : `/api/v1/restricted/talkybot/audio/${encodeURIComponent(file.fileUuid)}`);
 
         if (srcUrl !== newSrcUrl) {
           setSrcUrl(newSrcUrl);

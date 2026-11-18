@@ -1,9 +1,10 @@
+import type { EmssUser } from "@emss/oauth2-proxy-common";
+import { getTalkybotRequestHeaders } from "./talkybotAuth";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import leoProfanity from "leo-profanity";
 import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
 import { dateFromAppSeconds } from "utils/formatting";
 import ConsoleLogger from "utils/logging/consoleLogger";
-import { getSourcesWithDataType, getSourceForTalkybotGroup } from "utils/sourceDataTypeMap";
 
 /**
  * Response type for Talkybot data fetch
@@ -44,31 +45,26 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
       ? Math.max(...af.transcription.segments.map((s) => s.end))
       : 0);
 
-  // Concatenate text from segments of type "segment"
   const text =
-    af.transcription?.segments
-      .filter((s) => s.type === "segment")
-      .map((s) => s.text)
-      .join(" ") ?? "";
-
-  // Concatenate text from nativeLanguageSegments if available
+    af.transcription?.text ??
+    af.transcription?.segments.map((segment) => segment.text).join(" ") ??
+    "";
   const textOriginalLanguage =
-    af.transcription?.nativeLanguageSegments
-      ?.filter((s) => s.type === "segment")
-      .map((s) => s.text)
-      .join(" ") ?? "";
+    af.transcription?.nativeLanguageText ??
+    af.transcription?.nativeLanguageSegments?.map((segment) => segment.text).join(" ") ??
+    "";
+
+  const startTime = /(?:Z|[+-]\d{2}:\d{2})$/.test(af.startTime)
+    ? new Date(af.startTime)
+    : new Date(`${af.startTime}Z`);
 
   return {
     fileUuid: af.uuid,
-    startTime: new Date(
-      typeof af.startTime === "string"
-        ? af.startTime.endsWith("Z")
-          ? af.startTime
-          : `${af.startTime}Z`
-        : af.startTime
-    ),
+    startTime,
     duration,
     channel: af.channel.slug,
+    talkybotChannelId: af.channel.id,
+    restricted: !af.channel.public || !af.channel.enabled,
     text,
     textOriginalLanguage,
     language: af.transcription?.language ?? "",
@@ -81,134 +77,82 @@ export const toTbAudioFileConverted = (af: TbAudioFileNative): TbAudioFileConver
  */
 type LegacyTranscriptEntry = [number, string, string];
 
-/**
- * Fetches Talkybot audio and transcript data for a given date.
- * The new Talkybot API returns audio files with embedded transcriptions.
- * For non-ISS sources, legacy overrides are fetched and converted to AudioFile format.
- */
-export default async function getTalkybotData({
-  source,
-  dateWanted,
-}: {
-  source: Source;
-  dateWanted: string; // yyyy-mm-dd
-}): Promise<FetchResponse<TalkybotResponse>> {
-  // Fetch source overrides from the database for this date (only for non-ISS sources)
-  if (source !== "ISS") {
-    try {
-      const [audioMediaOverrides, transcriptMediaOverrides] = await Promise.all([
-        getApplicableMediaOverrides({
-          source,
-          type: "audio",
-          requestedDate: dateWanted,
-          visibility: "public",
-        }),
-        getApplicableMediaOverrides({
-          source,
-          type: "transcript",
-          requestedDate: dateWanted,
-          visibility: "public",
-        }),
-      ]);
-      const audioMediaOverride = audioMediaOverrides[0];
-      const transcriptMediaOverride = transcriptMediaOverrides[0];
+/** Match the sim and group predicates used by Talkybot's internal daily transcript API. */
+export const getTalkybotSources = (channel: TbAudioFileNative["channel"]): Source[] => {
+  if (channel.sim) return ["TEST_EVENTS"];
 
-      // If we have overrides, merge them into AudioFile format
-      if (audioMediaOverride || transcriptMediaOverride) {
-        const audioFiles = await fetchAndMergeLegacyOverrides({
-          audioOverrideUrl: audioMediaOverride?.url,
-          transcriptOverrideUrl: transcriptMediaOverride?.url,
-          dateWanted,
-        });
+  const sources: Source[] = [];
+  if (channel.groups?.some(({ slug }) => slug === "iss")) sources.push("ISS");
+  if (channel.groups?.some(({ slug }) => slug === "artemis")) sources.push("ARTEMIS");
+  return sources;
+};
 
-        return {
-          data: audioFiles,
-          fetchMetadata: {
-            success: true,
-            timestamp: new Date().toISOString(),
-          },
-          origin: "override",
-        };
-      }
-    } catch (e) {
-      // don't block results if media overrides call fails
-      ConsoleLogger.warn("Error fetching media overrides:", e);
-    }
+async function fetchTalkybotHistory(date: string, user: EmssUser): Promise<TbDateResponse> {
+  const token = process.env.EMSS_TOKEN;
+  const baseUrl = process.env.VITE_PUBLIC_TALKYBOT_URL;
+  if (!token || !baseUrl) throw new Error("Talkybot server connection is not configured");
+  const url = new URL("/api/v1/external/audiofiles/coda", baseUrl);
+  url.searchParams.set("date", date);
+  const response = await fetchWithTimeout(url.href, {
+    headers: getTalkybotRequestHeaders(user, token),
+    redirect: "error",
+  });
+  if (!response.ok) throw new Error(`Talkybot history returned ${response.status}`);
+  const data: TbDateResponse = await response.json();
+  if (!Array.isArray(data.audioFiles) || !Array.isArray(data.channelIds)) {
+    throw new Error("Talkybot history did not include clips and channel access");
   }
-
-  // Fetch Talkybot's native, combined audio/transcript data from Talkybot
-  const nativeAudioFiles = await fetchTalkybotAudioFiles({
-    source,
-    dateWanted,
-  });
-
-  // Convert native audio files to the format expected by the UI
-  const allAudioFiles = nativeAudioFiles.map(toTbAudioFileConverted);
-
-  // Filter by group if audio files have group info - only include files whose group maps to this source
-  const audioFiles = allAudioFiles.filter((af) => {
-    if (af.groups.length === 0) return true; // No group info = include (backward compatible with REST API)
-    return af.groups.some((g) => {
-      const mappedSource = getSourceForTalkybotGroup(g.slug);
-      return mappedSource === null || mappedSource === source; // Include if unmapped or matches this source
-    });
-  });
-
-  return {
-    data: audioFiles,
-    fetchMetadata: {
-      success: true,
-      timestamp: new Date().toISOString(),
-    },
-    origin: "talky-bot",
-  };
+  return data;
 }
 
-/**
- * Fetches audio files from Talkybot API.
- * Returns TbAudioFile[] which includes channel info and transcriptions.
- * Supports sources defined in SOURCE_DATA_TYPE_MAP with "talkybot" data type.
- */
-export async function fetchTalkybotAudioFiles({
-  source,
-  dateWanted,
-}: {
-  source: Source;
-  dateWanted: string;
-}): Promise<TbAudioFileNative[]> {
-  // Only sources with talkybot support are valid
-  if (!getSourcesWithDataType("talkybot").includes(source)) {
-    return [];
-  }
+async function getLegacyOverrides(source: Source, dateWanted: string): Promise<TalkybotResponse> {
+  if (source === "ISS") return [];
+  const [audio, transcript] = await Promise.all(
+    (["audio", "transcript"] as const).map((type) =>
+      getApplicableMediaOverrides({ source, type, requestedDate: dateWanted, visibility: "public" })
+    )
+  );
+  if (!audio.length && !transcript.length) return [];
 
-  const emssToken = process.env.EMSS_TOKEN;
-  if (!emssToken) {
-    ConsoleLogger.error("EMSS_TOKEN environment variable is not set");
-    return [];
-  }
+  return fetchAndMergeLegacyOverrides({
+    audioOverrideUrl: audio[0]?.url,
+    transcriptOverrideUrl: transcript[0]?.url,
+    dateWanted,
+  });
+}
 
-  const url = `${process.env.VITE_PUBLIC_TALKYBOT_URL}/api/v1/external/audiofiles?date=${dateWanted}`;
+export async function getTalkybotData(
+  source: Source,
+  date: string,
+  user: EmssUser
+): Promise<{ channelIds: number[]; response: FetchResponse<TalkybotResponse> }> {
+  const [history, overrides] = await Promise.allSettled([
+    fetchTalkybotHistory(date, user).then(({ channelIds, audioFiles }) => ({
+      channelIds,
+      files: audioFiles
+        .filter((file) => !file.deleted && getTalkybotSources(file.channel).includes(source))
+        .map(toTbAudioFileConverted),
+    })),
+    getLegacyOverrides(source, date),
+  ]);
+  const error = history.status === "rejected" ? "Unable to load Talkybot communications." : null;
+  if (history.status === "rejected") ConsoleLogger.warn("Talkybot history:", history.reason);
+  if (overrides.status === "rejected") ConsoleLogger.warn("Comm overrides:", overrides.reason);
 
-  try {
-    const res = await fetchWithTimeout(url, {
-      headers: {
-        "x-api-key": emssToken, // "x-api-key" is required by Talkybot API
+  const nativeFiles = history.status === "fulfilled" ? history.value.files : [];
+  const legacyFiles = overrides.status === "fulfilled" ? overrides.value : [];
+  return {
+    channelIds: history.status === "fulfilled" ? history.value.channelIds : [],
+    response: {
+      data: [...nativeFiles, ...legacyFiles].sort((a, b) => +a.startTime - +b.startTime),
+      fetchMetadata: {
+        success: !error,
+        timestamp: new Date().toISOString(),
+        ...(error && { error }),
       },
-    });
-    if (!res.ok) {
-      ConsoleLogger.error(`Failed to fetch Talkybot audio files: ${res.status} ${res.statusText}`);
-      return [];
-    }
-
-    const data: TbDateResponse = await res.json();
-    ConsoleLogger.debug(
-      `talkybot Successfully fetched ${data.audioFiles.length} Talkybot audio files for ${dateWanted}`
-    );
-    return data.audioFiles;
-  } catch (e) {
-    ConsoleLogger.error("Error fetching Talkybot audio files:", e);
-    return [];
-  }
+      origin: nativeFiles.length || !legacyFiles.length ? "talky-bot" : "override",
+    },
+  };
 }
 
 /**
