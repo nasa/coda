@@ -1,0 +1,21 @@
+{
+  "name": "@emss/logger",
+  "version": "0.0.0-fallback",
+  "private": true,
+  "codaFallback": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./client": {
+      "types": "./client.d.ts",
+      "default": "./client.js"
+    },
+    "./types": {
+      "types": "./types.d.ts",
+      "default": "./types.js"
+    }
+  }
+}

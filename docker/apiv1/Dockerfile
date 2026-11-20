@@ -33,4 +33,4 @@ ENV NODE_ENV="production"
 ENV NODE_OPTIONS="--max-old-space-size-percentage=75"
 
 # This image is intended to be run with docker-compose.
-CMD ["/bin/sh", "-c", "npm run migration:up; npm run api:prod"]
+CMD ["/bin/sh", "-c", "npm run migration:up && npm run api:prod"]

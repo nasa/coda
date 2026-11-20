@@ -45,14 +45,18 @@ server.on("request", app);
 server.listen(3001, () => {
   serverLogger.info({ logId: "api-restart" });
 
-  // Start Space-Track TLE update scheduler
-  void startSpacetrackScheduler();
+  if (process.env.OFFLINE_MODE === "true") {
+    ConsoleLogger.notice("Public offline mode enabled; NASA-only background services are disabled");
+  } else {
+    // Start Space-Track TLE update scheduler
+    void startSpacetrackScheduler();
 
-  // Initialize server-to-server socket connection to Talkybot
-  const talkybotS2sSocket = initTalkybotS2sSocket();
-  if (talkybotS2sSocket) {
-    globalValues.talkybotS2sSocket = talkybotS2sSocket;
-    ConsoleLogger.info("TalkybotS2s Socket to Talkybot initialized");
+    // Initialize server-to-server socket connection to Talkybot
+    const talkybotS2sSocket = initTalkybotS2sSocket();
+    if (talkybotS2sSocket) {
+      globalValues.talkybotS2sSocket = talkybotS2sSocket;
+      ConsoleLogger.info("TalkybotS2s Socket to Talkybot initialized");
+    }
   }
 });
 

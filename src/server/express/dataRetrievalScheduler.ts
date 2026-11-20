@@ -24,6 +24,32 @@ const DEFAULT_REFRESH_INTERVAL_MS_TODAY = dayjs.duration(2, "minutes").asMillise
 const DEFAULT_REFRESH_INTERVAL_MS = dayjs.duration(1, "hour").asMilliseconds(); // refresh cache every 60 minutes by default
 const DEFAULT_DATA_FETCH_TIMEOUT_MS = dayjs.duration(30, "seconds").asMilliseconds(); // 30 seconds
 
+const nasaOnlyDataTypes = new Set<StoreDataType>([
+  "daynight",
+  "videos",
+  "photos",
+  "wikiEvas",
+  "wikiTestEvents",
+  "mtxvideo",
+  "talkybot",
+]);
+
+const getOfflineResponse = (dataType: StoreDataType): FetchResponse<unknown> => {
+  let data: unknown = [];
+  if (dataType === "daynight") data = { dayNight: [] };
+  if (dataType === "mtxvideo") {
+    data = { mtxPlaybackAvailability: {}, mtxHlsEndpoints: [] };
+  }
+
+  return {
+    data,
+    fetchMetadata: {
+      success: true,
+      timestamp: new Date().toISOString(),
+    },
+  };
+};
+
 // Key used for non-date-dependent data in fetch tracker (e.g., wiki data that's the same for all dates)
 export const ALL_DATES_KEY = "notDateDependent";
 
@@ -345,13 +371,12 @@ const fetchData = async ({
       );
     });
 
-    dataResponse = await Promise.race([
-      config.getDataFunction({
-        dateWanted,
-        source,
-      }),
-      timeoutPromise,
-    ]);
+    const dataPromise =
+      process.env.OFFLINE_MODE === "true" && nasaOnlyDataTypes.has(dataType)
+        ? Promise.resolve(getOfflineResponse(dataType))
+        : config.getDataFunction({ dateWanted, source });
+
+    dataResponse = await Promise.race([dataPromise, timeoutPromise]);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown data fetch error";
     ConsoleLogger.error(

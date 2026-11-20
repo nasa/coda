@@ -11,6 +11,107 @@ Other CODA clock tools
 - **The clocksync app**: https://coda.fit.nasa.gov/clocksync/index.html
 - **The clockcalc app**: https://coda.fit.nasa.gov/clockcalc/clockcalc.html
 
+## Setup Outside NASA
+
+CODA is open source, but its production deployment integrates with NASA-only
+authentication, data services, documentation, and package registries. Public
+development uses mock authentication, local logging, and offline responses for
+those integrations.
+
+### Prerequisites
+
+- Node.js 24 (the version used by [`docker/apiv1/Dockerfile`](docker/apiv1/Dockerfile))
+- Docker Desktop with Docker Compose
+
+### First-time setup
+
+1. Install dependencies and local stand-ins for any unavailable private
+   `@emss/*` packages:
+
+   ```sh
+   npm run setup:public
+   ```
+
+   The stand-ins are documented in
+   [`emss-fallback/README.md`](emss-fallback/README.md). They preserve CODA's
+   imports but intentionally do not provide NASA authentication or remote logging.
+
+2. Copy [`.env.template`](.env.template) to `.env`:
+
+   ```sh
+   cp .env.template .env
+   ```
+
+3. Start PostgreSQL and the optional local MediaMTX mock:
+
+   ```sh
+   npm run docker:services:public
+   ```
+
+4. Create the database schema:
+
+   ```sh
+   npm run migration:up
+   ```
+
+5. Start CODA:
+
+   ```sh
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000).
+
+The public setup starts with an empty database. CODA will load, and database-backed
+admin features remain available, but NASA mission media and operational data are not
+included. With `OFFLINE_MODE=true`, CODA does not automatically contact Imagery
+Online, TOPO, the NASA wiki, Talkybot, the internal map service, or another CODA
+deployment. A personal Mapbox token may be added to `VITE_PUBLIC_MAPBOX_KEY` if that
+map is needed.
+
+Public setup does **not** require NASA credentials, the NASA CA certificate, a hosts
+file change, or access to the internal npm/container registries. The fully Dockerized
+preview remains intended for the NASA deployment environment.
+
+### Optional: Download the help video
+
+The welcome overlay's help video is available as a separate `CODA_public_assets.zip`
+download. Public setup works without it and does not request the NASA-hosted video.
+
+1. Download [CODA_public_assets.zip](https://ares-aegis.s3.us-gov-west-1.amazonaws.com/CODA_public_assets.zip)
+   and place it in the repository root, or run:
+
+   ```sh
+   curl -fL -o CODA_public_assets.zip \
+     https://ares-aegis.s3.us-gov-west-1.amazonaws.com/CODA_public_assets.zip
+   ```
+
+2. Extract the pack into Vite's public assets folder:
+
+   ```sh
+   unzip CODA_public_assets.zip -d src/public
+   ```
+
+   On Windows PowerShell, use:
+
+   ```powershell
+   Expand-Archive -LiteralPath CODA_public_assets.zip -DestinationPath src/public
+   ```
+
+   This creates `src/public/media/coda-help-video.mp4`.
+3. Set the following value in `.env`:
+
+   ```dotenv
+   VITE_PUBLIC_HELP_VIDEO_URL="/media/coda-help-video.mp4"
+   ```
+
+4. Restart `npm run dev`. The welcome overlay now plays the local video. If building
+   CODA instead, run `npm run build` again so the setting and video are included.
+
+The pack contains only the help video and installation notes; it does not seed the
+database or include mission data. Leave `VITE_PUBLIC_HELP_VIDEO_URL` empty to omit
+the video. NASA developers without this setting continue to use the hosted video.
+
 ## Environments
 
 CODA is deployed using GitLab CI/CD and FIT-provisioned VMs.
@@ -29,7 +130,11 @@ EMSS dev servers all have element names, and are:
 - https://neon-emss-dev.fit.nasa.gov
 - https://oxygen-emss-dev.fit.nasa.gov
 
-## Development
+## Development Within NASA
+
+> These instructions require access to NASA's internal package registry,
+> credentials, certificates, services, and documentation. External contributors
+> should use [Setup Outside NASA](#setup-outside-nasa).
 
 ### Software Dependencies
 
