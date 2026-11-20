@@ -24,6 +24,7 @@ export default defineConfig({
   dbName: process.env.DB_NAME,
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT ?? "5432"),
+  user: process.env.DB_USER ?? "postgres",
   driver: PostgreSqlDriver,
   password: process.env.DB_PASS,
   migrations: {

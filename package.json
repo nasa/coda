@@ -37,7 +37,9 @@
     "migration:up": "npx tsx node_modules/@mikro-orm/cli/cli.js migration:up",
     "migration:down": "npx tsx node_modules/@mikro-orm/cli/cli.js migration:down",
     "migration:create": "npx tsx node_modules/@mikro-orm/cli/cli.js migration:create && npx prettier --write ./src/server/database/migrations/Migration20*.ts --ignore-path .prettierignore",
-    "migration:fresh": "npx tsx node_modules/@mikro-orm/cli/cli.js migration:fresh"
+    "migration:fresh": "npx tsx node_modules/@mikro-orm/cli/cli.js migration:fresh",
+    "setup:public": "npm install && node ./emss-fallback/install.mjs",
+    "docker:services:public": "docker compose -f docker-compose.yml -f docker-compose.services.yml up -d"
   },
   "repository": {
     "type": "git",
@@ -56,11 +58,6 @@
     "globals": "17.7.0"
   },
   "devDependencies": {
-    "@emss/logger": "0.12.0",
-    "@emss/make-dotenv": "0.5.0",
-    "@emss/oauth2-proxy-backend": "0.8.0",
-    "@emss/oauth2-proxy-frontend": "0.4.0",
-    "@emss/utils": "0.7.0",
     "@eslint/compat": "2.1.0",
     "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "9.39.4",
@@ -138,6 +135,13 @@
     "vite": "8.1.0",
     "vitest": "4.1.9",
     "wait-on": "9.0.10"
+  },
+  "optionalDependencies": {
+    "@emss/logger": "0.12.0",
+    "@emss/make-dotenv": "0.5.0",
+    "@emss/oauth2-proxy-backend": "0.8.0",
+    "@emss/oauth2-proxy-frontend": "0.4.0",
+    "@emss/utils": "0.7.0"
   },
   "browser": {
     "services/iss-wiki-server": false

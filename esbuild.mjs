@@ -54,7 +54,10 @@ const watchPlugin = {
 
 // Simple server start function
 function startServer() {
-  const env = { ...process.env, NODE_EXTRA_CA_CERTS: "./.env.local.cert.pem" };
+  const env = { ...process.env };
+  if (process.env.NODE_EXTRA_CA_CERTS) {
+    env.NODE_EXTRA_CA_CERTS = process.env.NODE_EXTRA_CA_CERTS;
+  }
   if (process.env.MOCK_USER === "true") {
     env.MOCK_USER = "true";
   }

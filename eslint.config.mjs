@@ -37,8 +37,11 @@ export default [
       ".local/**/*",
       "node_modules/**/*",
       ".cache/**/*",
+      "env.secret.ts",
       "**/coverage/**/*",
       "**/suncalc.js",
+      // Vendored stand-ins for private packages; see emss-fallback/README.md.
+      "emss-fallback/**",
     ],
   },
   ...fixupConfigRules(compat.extends("prettier", "plugin:react-hooks/recommended")),
