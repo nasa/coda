@@ -422,16 +422,18 @@ deploy:artifactize-committed-files:
     - deploy:artifactize-committed-files
   stage: stageless
   timeout: 10 minutes
+  script:
+    - !reference [.emss-fitdock-deploy, script]
+    # Remove the old Redis bind mount after Compose removes the auth sidecars.
+    - sudo rm -rf -- /d1/coda/redis
 
 # Used by dev envs — does NOT require tests to pass (via docker:retag:dev)
 .deploy-template:dev:
-  extends: .emss-fitdock-deploy
+  extends: .deploy-template
   needs:
     - make-dotenv:fit
     - docker:retag:dev
     - deploy:artifactize-committed-files
-  stage: stageless
-  timeout: 10 minutes
 
 deploy:carbon:
   extends:
