@@ -3,7 +3,13 @@ import type { Socket } from "socket.io";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
-import { deliverTalkybotClip, removeTalkybotView, setTalkybotView } from "./talkybotDelivery";
+import { setTalkybotChannelAuthorization } from "server/processing/talkybotAuth";
+import {
+  deliverTalkybotClip,
+  refreshTalkybotViews,
+  removeTalkybotView,
+  setTalkybotView,
+} from "./talkybotDelivery";
 
 vi.mock("utils/fetch-with-timeout", () => ({ default: vi.fn() }));
 vi.mock("server/processing/mediaOverrideResolver", () => ({
@@ -12,11 +18,15 @@ vi.mock("server/processing/mediaOverrideResolver", () => ({
 
 type ViewerSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 const socketIds: string[] = [];
-let allowedViewer = "allowed";
 const firstDate = "2026-11-17";
 const secondDate = "2026-11-18";
 const group = { id: 1, slug: "artemis", name: "Artemis" };
 const channel = { id: 2, slug: "xpl-fd", name: "XPL FD", groups: [group] };
+
+function publishPermissions(auids: string[]) {
+  setTalkybotChannelAuthorization([{ channelId: channel.id, public: false, enabled: true, auids }]);
+  refreshTalkybotViews();
+}
 
 function clip(uuid: string, date: string, sim: boolean): TbAudioFileNative {
   const time = `${date}T13:30:00.000Z`;
@@ -41,28 +51,28 @@ function openView(auid: string, source: Source, dateViewing: string) {
 
 describe("Coda Talkybot delivery", () => {
   beforeEach(() => {
-    allowedViewer = "allowed";
+    publishPermissions(["allowed"]);
     vi.mocked(getApplicableMediaOverrides).mockResolvedValue([]);
-    vi.stubEnv("EMSS_TOKEN", "test-key");
-    vi.stubEnv("VITE_PUBLIC_TALKYBOT_URL", "http://talkybot.test");
-    vi.mocked(fetchWithTimeout).mockImplementation(async (url, options) => {
-      const headers = options?.headers as Record<string, string>;
-      const allowed = headers["x-coda-viewer-auid"] === allowedViewer;
+    vi.stubEnv("EMSS_TOKEN", "service-key");
+    vi.stubEnv("VITE_PUBLIC_TALKYBOT_URL", "https://talkybot.test");
+    vi.mocked(fetchWithTimeout).mockImplementation(async (url, init) => {
       const date = new URL(url).searchParams.get("date");
-      const audioFiles =
+      expect(new URL(url).searchParams.get("includeRestricted")).toBe("true");
+      expect(init?.headers).toEqual({ "x-api-key": "service-key" });
+      const files =
         date === firstDate
           ? [clip("mission-history", firstDate, false)]
           : [clip("sim-history", secondDate, true)];
-      return Response.json({
-        channelIds: allowed ? [channel.id] : [],
-        audioFiles: allowed ? audioFiles : [],
-      });
+      const hidden = clip("hidden-history", date!, date === secondDate);
+      hidden.channel = { ...hidden.channel, id: 99 };
+      return Response.json({ audioFiles: [...files, hidden] });
     });
   });
 
   afterEach(() => {
-    socketIds.splice(0).forEach(removeTalkybotView);
     vi.unstubAllEnvs();
+    socketIds.splice(0).forEach(removeTalkybotView);
+    setTalkybotChannelAuthorization(null);
   });
 
   it("routes the same XPL loop by recording date and filters history and live data by viewer", async () => {
@@ -99,9 +109,7 @@ describe("Coda Talkybot delivery", () => {
       expect(emit.mock.calls.some(([event]) => event === "incrementalDataUpdate")).toBe(false);
     }
 
-    vi.mocked(fetchWithTimeout).mockResolvedValueOnce(
-      Response.json({ channelIds: [channel.id], audioFiles: [live] })
-    );
+    vi.mocked(fetchWithTimeout).mockResolvedValueOnce(Response.json({ audioFiles: [live] }));
     const reopened = openView("allowed", "TEST_EVENTS", secondDate);
     await vi.waitFor(() =>
       expect(reopened).toHaveBeenCalledWith(
@@ -114,10 +122,13 @@ describe("Coda Talkybot delivery", () => {
       )
     );
 
-    allowedViewer = "denied";
+    publishPermissions(["denied"]);
+    expect(sim).toHaveBeenCalledWith("talkybotClipRemoved", live.uuid);
+    sim.mockClear();
     const later = clip("later-live", secondDate, true);
     deliverTalkybotClip(later);
-    expect(sim).toHaveBeenLastCalledWith(
+    expect(sim).not.toHaveBeenCalled();
+    expect(denied).toHaveBeenCalledWith(
       "incrementalDataUpdate",
       expect.objectContaining({ item: expect.objectContaining({ fileUuid: later.uuid }) })
     );
@@ -133,6 +144,7 @@ describe("Coda Talkybot delivery", () => {
     expect(refreshed).not.toHaveBeenCalled();
   });
   it("retains legacy transcript-only overrides while Talkybot access is unavailable", async () => {
+    setTalkybotChannelAuthorization(null);
     vi.mocked(getApplicableMediaOverrides).mockImplementation(async ({ type }) =>
       type === "transcript"
         ? [

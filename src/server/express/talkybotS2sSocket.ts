@@ -2,14 +2,17 @@ import "utils/loadEnv";
 import { io, Socket } from "socket.io-client";
 import { ConsoleLogger } from "../../utils/logging/consoleLogger";
 import { emitTalkybotS2sSocketInspectorUpdate } from "./sockets";
-import { deliverTalkybotClip } from "./talkybotDelivery";
+import {
+  checkTalkybotClipPlayback,
+  setTalkybotChannelAuthorization,
+} from "server/processing/talkybotAuth";
+import { deliverTalkybotClip, refreshTalkybotViews } from "./talkybotDelivery";
 
 /**
  * TalkybotS2s Server-to-Server Socket.IO client connection to Talkybot
  *
  * This module establishes and maintains a persistent socket connection
- * to the Talkybot server for receiving real-time data updates.
- * This is a one-way connection - Coda only receives events from Talkybot.
+ * to the Talkybot server for channel authorization and live clip updates.
  */
 
 // Events that Talkybot server sends to this client
@@ -18,6 +21,7 @@ interface TalkybotS2sServerToClientEvents {
   version: (appVersion: string) => void;
   audioFile: (payload: TbAudioFileNative) => void;
   restrictedAudioFile: (payload: TbAudioFileNative) => void;
+  channelAuthorization: (channels: TalkybotChannelAuthorization[] | null) => void;
 }
 
 interface TalkybotS2sStatusFromServer {
@@ -29,8 +33,19 @@ type TalkybotS2sSocket = Socket<TalkybotS2sServerToClientEvents, never>;
 
 // Module-level socket instance
 let talkybotS2sSocket: TalkybotS2sSocket | null = null;
+let authorizationExpiry: NodeJS.Timeout | undefined;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = process.env.NODE_ENV === "production" ? Infinity : 10;
+
+function updateChannelAuthorization(channels: TalkybotChannelAuthorization[] | null): void {
+  clearTimeout(authorizationExpiry);
+  setTalkybotChannelAuthorization(channels);
+  if (channels) {
+    authorizationExpiry = setTimeout(() => updateChannelAuthorization(null), 30_000);
+    authorizationExpiry.unref();
+  }
+  refreshTalkybotViews();
+}
 
 // TalkybotS2sSocket status tracking for admin monitoring
 let talkybotS2sSocketTrackerData: TalkybotS2sSocketTrackerData = {
@@ -124,6 +139,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
     path: "/api/v1/s2sSocketio/",
     auth: {
       token: authToken,
+      channelAuthorization: true,
     },
     transports: ["websocket"],
     reconnection: true,
@@ -156,6 +172,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
   });
 
   talkybotS2sSocket.on("disconnect", (reason) => {
+    updateChannelAuthorization(null);
     ConsoleLogger.info(`TalkybotS2s Socket: Disconnected from Talkybot - ${reason}`);
     updateTalkybotS2sSocketTrackerData({
       isConnected: false,
@@ -227,6 +244,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
   });
 
   // Event handlers for incoming Talkybot events
+  talkybotS2sSocket.on("channelAuthorization", updateChannelAuthorization);
   talkybotS2sSocket.on("version", (appVersion) => {
     ConsoleLogger.debug(`TalkybotS2s Socket: Talkybot version: ${appVersion}`);
     updateTalkybotS2sSocketTrackerData({
@@ -258,6 +276,7 @@ export const initTalkybotS2sSocket = (): TalkybotS2sSocket | null => {
       audioFilesReceived: talkybotS2sSocketTrackerData.audioFilesReceived + 1,
       lastAudioFileReceivedAt: now,
     });
+    checkTalkybotClipPlayback(payload);
     deliverTalkybotClip(payload);
   };
   talkybotS2sSocket.on("audioFile", receiveAudioFile);
@@ -279,6 +298,7 @@ export const disconnectTalkybotS2sSocket = (): void => {
     talkybotS2sSocket.removeAllListeners();
     talkybotS2sSocket.disconnect();
     talkybotS2sSocket = null;
+    updateChannelAuthorization(null);
     reconnectAttempts = 0;
     updateTalkybotS2sSocketTrackerData({
       isConnected: false,

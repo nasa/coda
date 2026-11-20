@@ -24,8 +24,14 @@ interface TbAudioFileConverted {
   audioUrl?: string;
 }
 
+interface TalkybotChannelAuthorization {
+  channelId: number;
+  enabled: boolean;
+  public: boolean;
+  auids: string[];
+}
+
 interface TbDateResponse {
-  channelIds: number[];
   date: string; // ISO date format (YYYY-MM-DD)
   audioFiles: TbAudioFileNative[];
 }

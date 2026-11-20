@@ -1,5 +1,3 @@
-import type { EmssUser } from "@emss/oauth2-proxy-common";
-import { getTalkybotRequestHeaders } from "./talkybotAuth";
 import fetchWithTimeout from "utils/fetch-with-timeout";
 import leoProfanity from "leo-profanity";
 import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
@@ -87,20 +85,24 @@ export const getTalkybotSources = (channel: TbAudioFileNative["channel"]): Sourc
   return sources;
 };
 
-async function fetchTalkybotHistory(date: string, user: EmssUser): Promise<TbDateResponse> {
+async function fetchTalkybotHistory(date: string): Promise<TbDateResponse> {
   const token = process.env.EMSS_TOKEN;
   const baseUrl = process.env.VITE_PUBLIC_TALKYBOT_URL;
   if (!token || !baseUrl) throw new Error("Talkybot server connection is not configured");
-  const url = new URL("/api/v1/external/audiofiles/coda", baseUrl);
+  const url = new URL("/api/v1/external/audiofiles", baseUrl);
   url.searchParams.set("date", date);
+  url.searchParams.set("includeRestricted", "true");
   const response = await fetchWithTimeout(url.href, {
-    headers: getTalkybotRequestHeaders(user, token),
+    headers: { "x-api-key": token },
     redirect: "error",
   });
-  if (!response.ok) throw new Error(`Talkybot history returned ${response.status}`);
+  if (!response.ok) {
+    await response.body?.cancel();
+    throw new Error(`Talkybot history returned ${response.status}`);
+  }
   const data: TbDateResponse = await response.json();
-  if (!Array.isArray(data.audioFiles) || !Array.isArray(data.channelIds)) {
-    throw new Error("Talkybot history did not include clips and channel access");
+  if (!Array.isArray(data.audioFiles)) {
+    throw new Error("Talkybot history did not include clips");
   }
   return data;
 }
@@ -124,34 +126,38 @@ async function getLegacyOverrides(source: Source, dateWanted: string): Promise<T
 export async function getTalkybotData(
   source: Source,
   date: string,
-  user: EmssUser
-): Promise<{ channelIds: number[]; response: FetchResponse<TalkybotResponse> }> {
+  channelIds: ReadonlySet<number> | null
+): Promise<FetchResponse<TalkybotResponse>> {
   const [history, overrides] = await Promise.allSettled([
-    fetchTalkybotHistory(date, user).then(({ channelIds, audioFiles }) => ({
-      channelIds,
-      files: audioFiles
-        .filter((file) => !file.deleted && getTalkybotSources(file.channel).includes(source))
-        .map(toTbAudioFileConverted),
-    })),
+    channelIds?.size
+      ? fetchTalkybotHistory(date).then(({ audioFiles }) =>
+          audioFiles
+            .filter(
+              (file) =>
+                !file.deleted &&
+                channelIds.has(file.channel.id) &&
+                getTalkybotSources(file.channel).includes(source)
+            )
+            .map(toTbAudioFileConverted)
+        )
+      : Promise.resolve([]),
     getLegacyOverrides(source, date),
   ]);
-  const error = history.status === "rejected" ? "Unable to load Talkybot communications." : null;
+  const error =
+    !channelIds || history.status === "rejected" ? "Unable to load Talkybot communications." : null;
   if (history.status === "rejected") ConsoleLogger.warn("Talkybot history:", history.reason);
   if (overrides.status === "rejected") ConsoleLogger.warn("Comm overrides:", overrides.reason);
 
-  const nativeFiles = history.status === "fulfilled" ? history.value.files : [];
+  const nativeFiles = history.status === "fulfilled" ? history.value : [];
   const legacyFiles = overrides.status === "fulfilled" ? overrides.value : [];
   return {
-    channelIds: history.status === "fulfilled" ? history.value.channelIds : [],
-    response: {
-      data: [...nativeFiles, ...legacyFiles].sort((a, b) => +a.startTime - +b.startTime),
-      fetchMetadata: {
-        success: !error,
-        timestamp: new Date().toISOString(),
-        ...(error && { error }),
-      },
-      origin: nativeFiles.length || !legacyFiles.length ? "talky-bot" : "override",
+    data: [...nativeFiles, ...legacyFiles].sort((a, b) => +a.startTime - +b.startTime),
+    fetchMetadata: {
+      success: !error,
+      timestamp: new Date().toISOString(),
+      ...(error && { error }),
     },
+    origin: nativeFiles.length || !legacyFiles.length ? "talky-bot" : "override",
   };
 }
 

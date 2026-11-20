@@ -5,6 +5,10 @@ import {
   getTalkybotSources,
   toTbAudioFileConverted,
 } from "server/processing/talkybot";
+import {
+  getTalkybotAllowedChannels,
+  hasTalkybotAuthorization,
+} from "server/processing/talkybotAuth";
 import { isDataTypeValidForSourceAndDate } from "utils/sourceDataTypeMap";
 
 type ViewerSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -14,21 +18,21 @@ interface TalkybotView {
   user: EmssUser;
   source: Source;
   date: string;
-  channelIds?: Set<number>;
+  channelIds: Set<number>;
+  authorized: boolean;
+  shown: Map<string, number>;
   pending?: Map<string, TbAudioFileConverted | null>;
 }
 
 const views = new Map<string, TalkybotView>();
 
 async function sendHistory(view: TalkybotView): Promise<void> {
-  const { socket, user, source, date } = view;
-  const liveFiles = new Map<string, TbAudioFileConverted | null>();
+  const { socket, source, date } = view;
+  const liveFiles = new Map(view.pending);
   view.pending = liveFiles;
-  const { channelIds, response } = await getTalkybotData(source, date, user);
-  if (views.get(socket.id) !== view) return;
+  const response = await getTalkybotData(source, date, view.authorized ? view.channelIds : null);
+  if (views.get(socket.id) !== view || view.pending !== liveFiles) return;
   view.pending = undefined;
-  const allowedChannels = new Set(channelIds);
-  view.channelIds = allowedChannels;
 
   const files = new Map(response.data.map((file) => [file.fileUuid, file]));
   // A clip can arrive or be deleted while the history request is in flight.
@@ -37,8 +41,12 @@ async function sendHistory(view: TalkybotView): Promise<void> {
     else files.delete(uuid);
   }
   const visibleFiles = [...files.values()].filter(
-    (file) => file.override || allowedChannels.has(file.talkybotChannelId ?? -1)
+    (file) => file.override || view.channelIds.has(file.talkybotChannelId ?? -1)
   );
+  view.shown.clear();
+  for (const file of visibleFiles) {
+    if (file.talkybotChannelId !== undefined) view.shown.set(file.fileUuid, file.talkybotChannelId);
+  }
   socket.emit("dataUpdate", {
     type: "talkybot",
     response: { ...response, data: visibleFiles.sort((a, b) => +a.startTime - +b.startTime) },
@@ -52,7 +60,15 @@ export function setTalkybotView(
 ): void {
   removeTalkybotView(socket.id);
   if (!isDataTypeValidForSourceAndDate(source, "talkybot", date)) return;
-  const view = { socket, user, source, date };
+  const view: TalkybotView = {
+    socket,
+    user,
+    source,
+    date,
+    channelIds: getTalkybotAllowedChannels(user),
+    authorized: hasTalkybotAuthorization(),
+    shown: new Map(),
+  };
   views.set(socket.id, view);
   void sendHistory(view);
 }
@@ -66,6 +82,23 @@ export function retryTalkybotHistory(socketId: string): void {
   if (view && !view.pending) void sendHistory(view);
 }
 
+export function refreshTalkybotViews(): void {
+  const authorized = hasTalkybotAuthorization();
+  for (const view of views.values()) {
+    const channels = getTalkybotAllowedChannels(view.user);
+    const needsHistory =
+      authorized !== view.authorized || [...channels].some((id) => !view.channelIds.has(id));
+    view.authorized = authorized;
+    view.channelIds = channels;
+    for (const [uuid, channelId] of view.shown) {
+      if (channels.has(channelId)) continue;
+      view.shown.delete(uuid);
+      view.socket.emit("talkybotClipRemoved", uuid);
+    }
+    if (needsHistory) void sendHistory(view);
+  }
+}
+
 export function deliverTalkybotClip(payload: TbAudioFileNative): void {
   const file = toTbAudioFileConverted(payload);
   if (!Number.isFinite(+file.startTime)) return;
@@ -74,13 +107,13 @@ export function deliverTalkybotClip(payload: TbAudioFileNative): void {
   const channelId = payload.channel.id;
 
   for (const view of views.values()) {
-    if (view.date !== date || !sources.includes(view.source)) continue;
-    view.pending?.set(file.fileUuid, payload.deleted ? null : file);
-    if (!view.channelIds?.has(channelId)) continue;
-    if (payload.deleted) {
-      view.socket.emit("talkybotClipRemoved", file.fileUuid);
-    } else {
+    const matches = view.date === date && sources.includes(view.source) && !payload.deleted;
+    view.pending?.set(file.fileUuid, matches ? file : null);
+    if (matches && view.channelIds.has(channelId)) {
+      view.shown.set(file.fileUuid, channelId);
       view.socket.emit("incrementalDataUpdate", { type: "talkybot", item: file });
+    } else if (view.shown.delete(file.fileUuid)) {
+      view.socket.emit("talkybotClipRemoved", file.fileUuid);
     }
   }
 }
