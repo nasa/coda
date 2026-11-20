@@ -13,7 +13,7 @@ import { addPhotos, buildPhotoCollections, setCollectionFilters } from "store/ph
 import { addSequences } from "store/sequences";
 import { upsertTalkybotAudioFile, setTalkybotAudioFiles } from "store/talkybot";
 import { setPcdAudioData, clearPcdAudioData } from "store/pcdAudio";
-import { setLiveVideoEnabled, setRestrictedOverrideActive } from "store/user";
+import { setLiveVideoEnabled, setRestrictedVideoOverrideActive } from "store/user";
 import { addVideos, setMtxPlayback } from "store/videos";
 import { useAppDispatch } from "utils/useAppDispatch";
 import { refEqual, useAppSelector } from "utils/useAppSelector";
@@ -197,7 +197,7 @@ const SocketClient: FunctionComponent<{
           const dataResponse = response as FetchResponse<VideoFile[]>;
           dispatch(addVideos(dataResponse));
           // Reset restricted status when public data arrives, then check for restricted override
-          dispatch(setRestrictedOverrideActive(false));
+          dispatch(setRestrictedVideoOverrideActive(false));
           // After applying public videos, request any restricted-override variant the
           // logged-in user may be entitled to. If returned, it replaces the videos store.
           // Capture the source/date this request was made for so a stale response that
@@ -216,7 +216,7 @@ const SocketClient: FunctionComponent<{
                 return;
               }
               dispatch(addVideos(r));
-              dispatch(setRestrictedOverrideActive(true));
+              dispatch(setRestrictedVideoOverrideActive(true));
             },
           });
         } else if (dataUpdate.type === "photos") {

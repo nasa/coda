@@ -4,6 +4,7 @@ import { AccessGrant_db } from "server/database/models/AccessGrant.model";
 import { MediaOverride_db } from "server/database/models/mediaOverride.model";
 import { requireSuperuser } from "server/express/middleware/requireSuperuser";
 import { getApplicableMediaOverrides } from "server/processing/mediaOverrideResolver";
+import { MEDIA_TYPES } from "utils/consts";
 import { isSuperuser } from "utils/user";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
@@ -58,7 +59,7 @@ router.get("/:id", requireSuperuser, async (req: Request, res: Response): Promis
     if (record) {
       res.status(200).json(record);
     } else {
-      res.status(404).json({ status: "error", message: "access grant not found" });
+      res.status(404).json({ status: "error", message: "Access group not found" });
     }
   } catch (e) {
     ConsoleLogger.error(e);
@@ -91,9 +92,9 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         record.auids = cleanedAuids;
         record.notes = cleanedNotes;
         await em.persist(record).flush();
-        res.status(200).json({ status: "success", message: "access grant updated", data: record });
+        res.status(200).json({ status: "success", message: "Access group updated", data: record });
       } else {
-        res.status(404).json({ status: "error", message: "access grant not found" });
+        res.status(404).json({ status: "error", message: "Access group not found" });
       }
     } else {
       const record = em.create(AccessGrant_db, {
@@ -102,7 +103,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
         notes: cleanedNotes,
       });
       await em.persist(record).flush();
-      res.status(201).json({ status: "success", message: "access grant inserted", data: record });
+      res.status(201).json({ status: "success", message: "Access group created", data: record });
     }
   } catch (e) {
     ConsoleLogger.error(e);
@@ -118,7 +119,7 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
   try {
     const record = await em.findOne(AccessGrant_db, { id: Number(id) });
     if (!record) {
-      res.status(404).json({ status: "error", message: "access grant not found" });
+      res.status(404).json({ status: "error", message: "Access group not found" });
       return;
     }
     // Refuse to delete if any MediaOverride still references this grant
@@ -126,12 +127,12 @@ router.delete("/:id", requireSuperuser, async (req: Request, res: Response): Pro
     if (refCount > 0) {
       res.status(409).json({
         status: "error",
-        message: `Cannot delete: ${refCount} media override(s) still reference this access grant`,
+        message: `Cannot delete: ${refCount} media override(s) still reference this access group`,
       });
       return;
     }
     await em.remove(record).flush();
-    res.status(200).json({ status: "success", message: "access grant deleted" });
+    res.status(200).json({ status: "success", message: "Access group deleted" });
   } catch (e) {
     ConsoleLogger.error(e);
     res.status(500).json({ status: "error", message: `Error processing the DELETE request ${e}` });
@@ -167,10 +168,9 @@ export async function findRestrictedAccessesForUser(
   const auid = user?.auid;
   if (!auid) return [];
   const em = getORM().em.fork();
-  const mediaTypes: MediaMedium[] = ["video", "photo", "transcript", "audio"];
   const overrides = (
     await Promise.all(
-      mediaTypes.map((type) =>
+      MEDIA_TYPES.map((type) =>
         getApplicableMediaOverrides({
           source,
           type,

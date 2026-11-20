@@ -311,15 +311,15 @@ export const SocketStatus: FunctionComponent<{ socketStatus: ClientSocketStatus 
 };
 
 export const RestrictedAccessIndicator: FunctionComponent = () => {
-  const restrictedOverrideActive = useAppSelector(
-    (state) => state.user.restrictedOverrideActive,
+  const restrictedVideoOverrideActive = useAppSelector(
+    (state) => state.user.restrictedVideoOverrideActive,
     refEqual
   );
   const user = useAppSelector((state) => state.user.user, refEqual);
   const source = useAppSelector((state) => state.framework.source, refEqual);
   const playheadDate = usePlayheadDate();
 
-  if (!restrictedOverrideActive) return null;
+  if (!restrictedVideoOverrideActive) return null;
 
   const displayName = user?.display_name || user?.auid || "User";
   const dateLabel = playheadDate.split("T")[0];

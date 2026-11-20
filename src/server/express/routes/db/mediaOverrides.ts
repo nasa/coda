@@ -9,6 +9,7 @@ import {
   isCanonicalDate,
   validateMediaOverrideUrl,
 } from "server/processing/mediaOverrideResolver";
+import { MEDIA_TYPES, SOURCES } from "utils/consts";
 import ConsoleLogger from "utils/logging/consoleLogger";
 
 /**
@@ -31,8 +32,6 @@ const normalizeAccessGrantId = (raw: unknown): number | null | undefined => {
   return Number.isInteger(n) && n > 0 ? n : undefined;
 };
 
-const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
-const MEDIA_TYPES: MediaMedium[] = ["video", "photo", "transcript", "audio"];
 const MATCH_MODES: MediaOverrideMatchMode[] = ["exact", "daily"];
 
 // get by date or get list if no date provided
@@ -116,7 +115,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
   if (normalizedGrantId !== null && type !== "video") {
     res.status(400).json({
       status: "error",
-      message: "Access grants are currently supported only for video overrides",
+      message: "Access groups are currently supported only for video overrides",
     });
     return;
   }
@@ -125,7 +124,7 @@ router.post("/", requireSuperuser, async (req: Request, res: Response): Promise<
     if (normalizedGrantId !== null) {
       const grant = await em.findOne(AccessGrant_db, { id: normalizedGrantId });
       if (!grant) {
-        res.status(400).json({ status: "error", message: "access grant not found" });
+        res.status(400).json({ status: "error", message: "Access group not found" });
         return;
       }
     }

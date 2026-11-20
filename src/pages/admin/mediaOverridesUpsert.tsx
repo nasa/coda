@@ -1,6 +1,7 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
+import { MEDIA_TYPES, SOURCES } from "utils/consts";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
 
@@ -60,8 +61,8 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
       id: id ? parseInt(id) : undefined,
       date: date,
       matchMode,
-      source: source as Source,
-      type: type as "video" | "photo" | "transcript" | "audio",
+      source,
+      type,
       url: url,
       accessGrantId: accessGrantId === PUBLIC_GRANT_VALUE ? null : parseInt(accessGrantId, 10),
     };
@@ -145,10 +146,11 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   className={adminCommon.formSelect}
                   required
                 >
-                  <option value="ARTEMIS">ARTEMIS</option>
-                  <option value="ISS">ISS</option>
-                  <option value="NBL">NBL</option>
-                  <option value="TEST_EVENTS">TEST_EVENTS</option>
+                  {SOURCES.map((sourceOption) => (
+                    <option key={sourceOption} value={sourceOption}>
+                      {sourceOption}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -159,16 +161,15 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                 <select
                   id="type"
                   value={type}
-                  onChange={(e) =>
-                    setType(e.target.value as "video" | "photo" | "transcript" | "audio")
-                  }
+                  onChange={(e) => setType(e.target.value as MediaMedium)}
                   className={adminCommon.formSelect}
                   required
                 >
-                  <option value="video">video</option>
-                  <option value="photo">photo</option>
-                  <option value="transcript">transcript</option>
-                  <option value="audio">audio</option>
+                  {MEDIA_TYPES.map((mediaType) => (
+                    <option key={mediaType} value={mediaType}>
+                      {mediaType}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -200,7 +201,7 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
 
               <div className={adminCommon.formGroup}>
                 <label htmlFor="accessGrant" className={adminCommon.formLabel}>
-                  Restrict to Access Grant
+                  Restrict to Access Group
                 </label>
                 <select
                   id="accessGrant"
@@ -216,9 +217,8 @@ export const EditMediaOverridesRecord: FunctionComponent = () => {
                   ))}
                 </select>
                 <span className={adminCommon.formHint}>
-                  When a grant is selected, only users whose AUID is in that grant will receive this
-                  override (delivered via the restricted REST endpoint, not the public socket feed).
-                  Manage grants on the <Link to="/admin/accessGrants">Access Grants</Link> page.
+                  Group members and superusers can receive restricted video overrides. Manage groups
+                  on the <Link to="/admin/accessGrants">Access Groups</Link> page.
                 </span>
               </div>
 

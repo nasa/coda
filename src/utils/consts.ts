@@ -1,3 +1,6 @@
+export const SOURCES: readonly Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
+export const MEDIA_TYPES: readonly MediaMedium[] = ["video", "photo", "transcript", "audio"];
+
 export const collection: Record<Source, Collection> = {
   ISS: 4,
   TEST_EVENTS: 2359932,

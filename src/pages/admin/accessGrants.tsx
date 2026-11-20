@@ -26,7 +26,7 @@ const AdminAccessGrants: FunctionComponent = () => {
   const handleDelete = async (id: number) => {
     if (
       !confirm(
-        "Delete this access grant? It cannot be deleted if any media override still references it."
+        "Delete this access group? It cannot be deleted if any media override still references it."
       )
     )
       return;
@@ -45,22 +45,21 @@ const AdminAccessGrants: FunctionComponent = () => {
         <Link to="/admin" className={adminCommon.backLink}>
           ← Admin
         </Link>
-        <h1 className={adminCommon.pageTitle}>Access Grants</h1>
+        <h1 className={adminCommon.pageTitle}>Access Groups</h1>
         <p className={adminCommon.introText}>
-          Reusable lists of LaunchPad AUIDs. Attach a grant to a Media Override to restrict delivery
-          of that override to only the AUIDs in the grant. Overrides with no grant attached remain
-          public.
+          Reusable lists of LaunchPad AUIDs. Assign a group to a media override to restrict it to
+          group members. Overrides with no group assigned are public.
         </p>
 
         <section className={adminCommon.section}>
           <h2 className={adminCommon.sectionHeading}>Records</h2>
           <div className={adminCommon.details}>
             <Link to="/admin/accessGrantUpsert" className={adminCommon.createButton}>
-              + Create Access Grant
+              + Create Access Group
             </Link>
 
             {records.length === 0 ? (
-              <p className={adminCommon.emptyState}>No access grants defined.</p>
+              <p className={adminCommon.emptyState}>No access groups defined.</p>
             ) : (
               <ul className={adminCommon.dateGroupRecords} style={{ marginTop: "12px" }}>
                 {records.map((record) => (

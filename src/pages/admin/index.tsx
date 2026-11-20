@@ -89,7 +89,7 @@ const AdminIndex: FunctionComponent = () => {
               />
               <NavCard
                 to="/admin/accessGrants"
-                title="Access Grants"
+                title="Access Groups"
                 description="Reusable AUID lists used to restrict delivery of media overrides to authorized users."
               />
               <NavCard

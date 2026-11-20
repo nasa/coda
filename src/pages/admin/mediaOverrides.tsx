@@ -85,7 +85,7 @@ const AdminMediaOverrides: FunctionComponent = () => {
                             {typeof record.accessGrantId === "number" ? (
                               <span className={adminCommon.recordMeta}>
                                 {" "}
-                                — restricted (grant #{record.accessGrantId})
+                                — restricted (group #{record.accessGrantId})
                               </span>
                             ) : null}
                           </Link>

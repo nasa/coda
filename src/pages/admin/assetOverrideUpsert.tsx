@@ -1,6 +1,7 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { getCurrentUser } from "packages/getCurrentUser";
+import { SOURCES } from "utils/consts";
 import { isSuperuser } from "utils/user";
 import adminCommon from "./adminCommon.module.css";
 
@@ -8,7 +9,6 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-const SOURCES: Source[] = ["ISS", "TEST_EVENTS", "NBL", "ARTEMIS"];
 const MEDIA_TYPES: AssetOverrideMediaType[] = ["photo-time", "video-channel"];
 
 const TIME_OFFSET_RE = /^[+-]\d{2}:\d{2}:\d{2}$/;

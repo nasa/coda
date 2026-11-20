@@ -10,29 +10,8 @@ describe("parseAuidsInput", () => {
   });
 
   it("parses comma-separated AUIDs and trims whitespace", () => {
-    expect(parseAuidsInput("narmstra, ealdrin ,  mcollin")).toEqual({
+    expect(parseAuidsInput("narmstra,\n ealdrin ,  mcollin")).toEqual({
       auids: ["narmstra", "ealdrin", "mcollin"],
-      error: null,
-    });
-  });
-
-  it("parses whitespace/newline-separated AUIDs", () => {
-    expect(parseAuidsInput("narmstra\nealdrin\tmcollin")).toEqual({
-      auids: ["narmstra", "ealdrin", "mcollin"],
-      error: null,
-    });
-  });
-
-  it("parses a JSON array of strings", () => {
-    expect(parseAuidsInput('["narmstra", "ealdrin"]')).toEqual({
-      auids: ["narmstra", "ealdrin"],
-      error: null,
-    });
-  });
-
-  it("trims and drops empty strings from a JSON array", () => {
-    expect(parseAuidsInput('["  narmstra  ", "", "   "]')).toEqual({
-      auids: ["narmstra"],
       error: null,
     });
   });
@@ -41,15 +20,18 @@ describe("parseAuidsInput", () => {
     expect(parseAuidsInput("NArmstra")).toEqual({ auids: ["NArmstra"], error: null });
   });
 
-  it("returns an error when JSON input is not an array of strings", () => {
-    const result = parseAuidsInput('["narmstra", 42]');
-    expect(result.auids).toEqual([]);
-    expect(result.error).toBe("JSON must be an array of strings");
-  });
-
-  it("returns an error when JSON input is malformed", () => {
-    const result = parseAuidsInput('["narmstra"');
-    expect(result.auids).toEqual([]);
-    expect(result.error).toMatch(/Invalid JSON/);
+  it.each([
+    "narmstra ealdrin",
+    "narmstra\nealdrin",
+    "narmstra;ealdrin",
+    '["narmstra", "ealdrin"]',
+    "'narmstra', 'ealdrin'",
+    ",narmstra",
+    "narmstra,",
+    "narmstra, ,ealdrin",
+  ])("rejects a malformed comma-delimited list %j", (input) => {
+    const { auids, error } = parseAuidsInput(input);
+    expect(auids).toEqual([]);
+    expect(error).toBe("Enter one unquoted AUID per comma-separated entry.");
   });
 });

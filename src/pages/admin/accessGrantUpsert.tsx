@@ -9,31 +9,13 @@ function useQuery() {
 }
 
 export const parseAuidsInput = (raw: string): { auids: string[]; error: string | null } => {
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) return { auids: [], error: null };
+  if (raw.trim().length === 0) return { auids: [], error: null };
 
-  // Try JSON first
-  if (trimmed.startsWith("[")) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (!Array.isArray(parsed) || parsed.some((v) => typeof v !== "string")) {
-        return { auids: [], error: "JSON must be an array of strings" };
-      }
-      return {
-        auids: parsed.map((s: string) => s.trim()).filter((s: string) => s.length > 0),
-        error: null,
-      };
-    } catch (e) {
-      return { auids: [], error: `Invalid JSON: ${e instanceof Error ? e.message : String(e)}` };
-    }
+  const auids = raw.split(",").map((auid) => auid.trim());
+  if (auids.some((auid) => auid.length === 0 || /[\s;"'[\]]/.test(auid))) {
+    return { auids: [], error: "Enter one unquoted AUID per comma-separated entry." };
   }
-
-  // Otherwise treat as line- or comma-separated
-  const split = trimmed
-    .split(/[\s,;]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-  return { auids: split, error: null };
+  return { auids, error: null };
 };
 
 export const EditAccessGrantRecord: FunctionComponent = () => {
@@ -57,7 +39,7 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
         if (!response.ok) return;
         const data: AccessGrant = await response.json();
         setName(data.name);
-        setAuidsInput(JSON.stringify(data.auids, null, 2));
+        setAuidsInput(data.auids.join(", "));
         setNotes(data.notes ?? "");
       }
     })();
@@ -95,16 +77,16 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
     <main className={adminCommon.page}>
       <div className={adminCommon.container}>
         <Link to="/admin/accessGrants" className={adminCommon.backLink}>
-          ← Access Grants
+          ← Access Groups
         </Link>
-        <h1 className={adminCommon.pageTitle}>{id ? "Edit" : "Create"} Access Grant</h1>
+        <h1 className={adminCommon.pageTitle}>{id ? "Edit" : "Create"} Access Group</h1>
         <p className={adminCommon.introText}>
-          Define a named list of LaunchPad AUIDs. Attach this grant to a Media Override to restrict
-          delivery of that override.
+          Define a named list of LaunchPad AUIDs. Assign this group to a media override to restrict
+          it to group members.
         </p>
 
         <section className={adminCommon.section}>
-          <h2 className={adminCommon.sectionHeading}>Grant Details</h2>
+          <h2 className={adminCommon.sectionHeading}>Group Details</h2>
           <div className={adminCommon.details}>
             <form onSubmit={handleSubmit} className={adminCommon.form}>
               <div className={adminCommon.formGroup}>
@@ -121,7 +103,7 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
                   required
                 />
                 <span className={adminCommon.formHint}>
-                  Display name. Shown in the Media Override form&apos;s grant dropdown.
+                  Display name. Shown in the Media Override form&apos;s access group dropdown.
                 </span>
               </div>
 
@@ -133,13 +115,24 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
                   id="auids"
                   value={auidsInput}
                   onChange={(e) => setAuidsInput(e.target.value)}
+                  onBlur={() => {
+                    if (!parsed.error) setAuidsInput(parsed.auids.join(", "));
+                  }}
                   className={adminCommon.formTextarea}
-                  rows={10}
-                  placeholder={`Either JSON array:\n["narmstra", "ealdrin"]\n\nor whitespace/comma-separated:\nnarmstra, ealdrin`}
+                  rows={4}
+                  spellCheck={false}
+                  aria-invalid={parsed.error !== null}
+                  aria-describedby="auids-format auids-status"
                 />
-                <span className={adminCommon.formHint}>
-                  Parsed: {parsed.auids.length} AUID{parsed.auids.length === 1 ? "" : "s"}
-                  {parsed.error ? ` — error: ${parsed.error}` : ""}
+                <span id="auids-format" className={adminCommon.formHint}>
+                  Separate AUIDs with commas, for example <code>narmstra, ealdrin</code>.
+                </span>
+                <span
+                  id="auids-status"
+                  className={parsed.error ? adminCommon.statusErrorMessage : adminCommon.formHint}
+                >
+                  {parsed.error ??
+                    `${parsed.auids.length} AUID${parsed.auids.length === 1 ? "" : "s"}`}
                 </span>
               </div>
 
@@ -153,7 +146,7 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
                   onChange={(e) => setNotes(e.target.value)}
                   className={adminCommon.formTextarea}
                   rows={3}
-                  placeholder="Free-form notes about this access grant"
+                  placeholder="Free-form notes about this access group"
                 />
               </div>
 
@@ -163,7 +156,7 @@ export const EditAccessGrantRecord: FunctionComponent = () => {
 
               <div className={adminCommon.formActions}>
                 <button type="submit" className={adminCommon.buttonSubmit}>
-                  {id ? "Update Grant" : "Create Grant"}
+                  {id ? "Update Group" : "Create Group"}
                 </button>
                 <Link to="/admin/accessGrants" className={adminCommon.buttonCancel}>
                   Cancel

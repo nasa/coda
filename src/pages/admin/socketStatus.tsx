@@ -334,7 +334,7 @@ const ServerSocketStatus: FunctionComponent = () => {
                                     title={conn.restrictedAccesses
                                       .map(
                                         (a) =>
-                                          `${a.overrideType} override #${a.overrideId} via grant "${a.grantName}" (#${a.grantId})`
+                                          `${a.overrideType} override #${a.overrideId} via group "${a.grantName}" (#${a.grantId})`
                                       )
                                       .join("\n")}
                                   >

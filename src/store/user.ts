@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export const initialState: UserState = {
   user: {} as EmssUser,
   liveVideoEnabled: true,
-  restrictedOverrideActive: false,
+  restrictedVideoOverrideActive: false,
 };
 
 export const userSlice = createSlice({
@@ -16,10 +16,10 @@ export const userSlice = createSlice({
     setLiveVideoEnabled: (state, action: { payload: boolean }) => {
       state.liveVideoEnabled = action.payload;
     },
-    setRestrictedOverrideActive: (state, action: { payload: boolean }) => {
-      state.restrictedOverrideActive = action.payload;
+    setRestrictedVideoOverrideActive: (state, action: { payload: boolean }) => {
+      state.restrictedVideoOverrideActive = action.payload;
     },
   },
 });
 
-export const { setUser, setLiveVideoEnabled, setRestrictedOverrideActive } = userSlice.actions;
+export const { setUser, setLiveVideoEnabled, setRestrictedVideoOverrideActive } = userSlice.actions;

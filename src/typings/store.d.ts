@@ -92,7 +92,7 @@ type UserState = {
   /** Whether live video (MTX/HLS) is enabled for this session (can be disabled by an admin) */
   liveVideoEnabled: boolean;
   /** Whether the current view has an active restricted override that the user has been granted access to */
-  restrictedOverrideActive: boolean;
+  restrictedVideoOverrideActive: boolean;
 };
 
 /**
