@@ -1,6 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig, mergeConfig } from "vitest/config";
-import viteConfig from "./vite.config.mts";
+import { config as viteConfig } from "./vite.config.mts";
 
 /**
  * Vitest configuration - extends the main Vite config
