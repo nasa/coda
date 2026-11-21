@@ -75,7 +75,7 @@ const DockviewWatermark: FunctionComponent<IWatermarkPanelProps> = ({ containerA
   return (
     <div className={styles.watermark}>
       <span>Use</span>
-      <button className={styles.watermarkButton} onClick={handleAddPanel} title="Add panel">
+      <button className={styles.watermarkButton} onClick={handleAddPanel} title="Add panel" aria-label="Add panel">
         <FontAwesomeIcon icon={faPlus} />
       </button>
       <span>to add a new panel</span>

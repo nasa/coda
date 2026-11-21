@@ -189,6 +189,8 @@ export const CommControls: FunctionComponent<{
         <button
           className={styles.channelDropdownButton}
           onClick={() => setDropdownOpen(!dropdownOpen)}
+          aria-label="Toggle channel selection"
+          aria-expanded={dropdownOpen}
         >
           <span>
             {selectedCount === totalCount
@@ -247,6 +249,7 @@ export const CommControls: FunctionComponent<{
           <button
             className={`${styles.filterButton} ${buttonLength} ${filterButtonSelected}`}
             title={`Filter utterances by words`}
+            aria-label="Toggle utterance filter"
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
@@ -273,6 +276,7 @@ export const CommControls: FunctionComponent<{
           <button
             className={`${styles.lockButton} ${buttonLength} ${lockButtonSelected}`}
             title={`Scroll automatically to the last spoken utterance`}
+            aria-label="Toggle auto-scroll lock"
             onClick={() => {
               dispatch(
                 setPaneStateDataValue({
