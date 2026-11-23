@@ -144,6 +144,11 @@ export function generateShareURL(
       case "pcd_audio":
         paneStateString = getStateStringForPcdAudio(element.paneStateData as PcdAudioPaneStateData);
         break;
+      case "maestro_procedure":
+        paneStateString = getStateStringForMaestroProcedure(
+          element.paneStateData as MaestroProcedurePaneStateData
+        );
+        break;
     }
     stateUrlParams += "&f" + key + "=" + paneStateString;
   }
@@ -263,6 +268,16 @@ export function getStateStringForComm(_state: CommPaneStateData): string {
 export function getStateStringForPcdAudio(state: PcdAudioPaneStateData): string {
   const paneTypeString = paneTypeShortVal.pcd_audio;
   return `${paneTypeString}${state.unmutedChannels.join(",")}`;
+}
+
+/**
+ * @returns {string}
+ * Chars 0,1 digits: pane type (12)
+ * Chars 2+: manually chosen Maestro event id, or empty when following the EVA at the playhead
+ */
+export function getStateStringForMaestroProcedure(state: MaestroProcedurePaneStateData): string {
+  const paneTypeString = paneTypeShortVal.maestro_procedure;
+  return `${paneTypeString}${encodeURIComponent(state.maestroEventId)}`;
 }
 
 /**
@@ -461,6 +476,19 @@ export function interpretFrameQueryParam(frameString: string): PaneState | undef
         } as PcdAudioPaneStateData,
       };
       return pcdAudioReturnVal;
+    case paneTypeShortVal.maestro_procedure:
+      /* Chars 2+: manually chosen Maestro event id, or empty when following the EVA at the playhead */
+      const maestroProcedureReturnVal: PaneState = {
+        paneType: "maestro_procedure",
+        paneStateData: {
+          ready: true,
+          showHelp: false,
+          maestroEventId: decodeURIComponent(frameString.substring(2)),
+          maestroEventName: "",
+          showEventPicker: false,
+        } as MaestroProcedurePaneStateData,
+      };
+      return maestroProcedureReturnVal;
     default:
       return undefined;
   }

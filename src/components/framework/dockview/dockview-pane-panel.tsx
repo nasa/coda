@@ -27,6 +27,7 @@ import GPSLocation from "components/panes/gps-location";
 import CommPane from "components/panes/comm";
 import Graph from "components/panes/graph/graph";
 import PcdAudioPane from "components/panes/pcd-audio";
+import MaestroProcedurePane from "components/panes/maestro-procedure";
 
 import styles from "./dockview-pane-panel.module.css";
 
@@ -42,6 +43,7 @@ const paneComponents: Record<string, React.ComponentType<PaneComponentProps> | n
   comm: CommPane,
   graph: Graph,
   pcd_audio: PcdAudioPane,
+  maestro_procedure: MaestroProcedurePane,
 };
 
 interface PanelParams {

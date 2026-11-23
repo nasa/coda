@@ -80,6 +80,8 @@ export const config: DotenvConfig<typeof environments> = {
   // Note: VITE vars are embedded at build time so no env-specific values like "prod" are allowed.
   VITE_PUBLIC_TALKYBOT_URL: { default: "https://talkybot.fit.nasa.gov" },
   // VITE_PUBLIC_TALKYBOT_URL: { default: "https://neon-emss-dev.fit.nasa.gov" },
+  // no trailing slash
+  VITE_PUBLIC_MAESTRO_URL: { default: "https://maestro.fit.nasa.gov" },
 
   // Although this would seem to change between envs, it is only the origin
   // header passed along with IO requests, and it is simpler to just always

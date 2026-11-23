@@ -6,6 +6,7 @@ import {
   faGlobeAmericas,
   faHeadphones,
   faInfo,
+  faListCheck,
   faSatellite,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
@@ -132,6 +133,18 @@ export const allPanes: Panes = {
       unmutedChannels: ["PCD1", "PCD2", "PCD3"],
       showHelp: false,
     } as PcdAudioPaneStateData,
+  },
+  maestro_procedure: {
+    title: "Maestro Procedure",
+    shortTitle: "Maestro",
+    icon: faListCheck,
+    defaultPaneStateData: {
+      ready: true,
+      showHelp: false,
+      maestroEventId: "",
+      maestroEventName: "",
+      showEventPicker: false,
+    } as MaestroProcedurePaneStateData,
   },
 };
 

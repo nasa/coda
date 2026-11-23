@@ -33,4 +33,5 @@ export const paneTypeShortVal: Record<PaneTypeKey, PaneTypeShortVal> = {
   // 9 was sg-audio for some reason --- IGNORE ---
   graph: 10,
   pcd_audio: 11,
+  maestro_procedure: 12,
 };

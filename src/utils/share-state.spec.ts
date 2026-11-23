@@ -11,6 +11,7 @@ import {
   getStateStringforGPSLocation,
   getStateStringForComm,
   getStateStringForGraph,
+  getStateStringForMaestroProcedure,
 } from "./share-state";
 import { getDockviewApi } from "components/framework/dockview/dockview-api-ref";
 import { paneTypeShortVal } from "utils/consts";
@@ -378,6 +379,17 @@ describe("pane state encoders", () => {
       getStateStringForGraph({ lockScroll: false, selectedGraphId: "co2" } as GraphPaneStateData)
     ).toBe("100co2");
   });
+
+  it("encodes maestro_procedure: manually chosen event id", () => {
+    expect(
+      getStateStringForMaestroProcedure({
+        maestroEventId: "abc-123",
+      } as MaestroProcedurePaneStateData)
+    ).toBe("12abc-123");
+    expect(
+      getStateStringForMaestroProcedure({ maestroEventId: "" } as MaestroProcedurePaneStateData)
+    ).toBe("12");
+  });
 });
 
 describe("interpretFrameQueryParam", () => {
@@ -447,6 +459,16 @@ describe("interpretFrameQueryParam", () => {
     const data = interpretFrameQueryParam("101heart-rate")!.paneStateData as GraphPaneStateData;
     expect(data.lockScroll).toBe(true);
     expect(data.selectedGraphId).toBe("heart-rate");
+  });
+
+  it("decodes maestro_procedure: manually chosen event id", () => {
+    const chosen = interpretFrameQueryParam("12abc-123")!;
+    expect(chosen.paneType).toBe("maestro_procedure");
+    expect((chosen.paneStateData as MaestroProcedurePaneStateData).maestroEventId).toBe("abc-123");
+    const following = interpretFrameQueryParam("12")!
+      .paneStateData as MaestroProcedurePaneStateData;
+    expect(following.maestroEventId).toBe("");
+    expect(following.showEventPicker).toBe(false);
   });
 
   it("returns undefined for unrecognised pane type codes", () => {

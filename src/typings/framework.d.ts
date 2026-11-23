@@ -21,7 +21,8 @@ interface Pane {
     | LocationPaneStateData
     | EventPaneStateData
     | CommPaneStateData
-    | PcdAudioPaneStateData;
+    | PcdAudioPaneStateData
+    | MaestroProcedurePaneStateData;
 }
 
 type PaneType =
@@ -35,7 +36,8 @@ type PaneType =
   | "event_info"
   | "comm"
   | "graph"
-  | "pcd_audio";
+  | "pcd_audio"
+  | "maestro_procedure";
 
 type Panes = Record<PaneType, Pane>;
 
@@ -71,7 +73,8 @@ type AllPaneStateData =
   | EventPaneStateData
   | CommPaneStateData
   | GraphPaneStateData
-  | PcdAudioPaneStateData;
+  | PcdAudioPaneStateData
+  | MaestroProcedurePaneStateData;
 
 interface PaneState {
   paneType: PaneType;
@@ -146,4 +149,14 @@ type PcdAudioPaneStateData = {
   /** Device channel keys whose audio is currently unmuted (e.g. ["PLT", "MS2"]) */
   unmutedChannels: string[];
   showHelp: boolean;
+};
+
+type MaestroProcedurePaneStateData = {
+  ready: boolean;
+  showHelp: boolean;
+  /** Maestro event chosen by the user; empty string when following the EVA at the playhead */
+  maestroEventId: string;
+  maestroEventName: string;
+  /** Show Maestro's event picker instead of resolving an event */
+  showEventPicker: boolean;
 };

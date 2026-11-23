@@ -159,6 +159,7 @@ export const PANE_DATA_TYPE_REQUIREMENTS: Record<string, StoreDataType[]> = {
   comm: ["talkybot"],
   graph: ["graph"],
   pcd_audio: ["pcdAudio"],
+  maestro_procedure: ["wikiEvas", "wikiTestEvents"],
 };
 
 /**
